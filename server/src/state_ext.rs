@@ -4,7 +4,8 @@ use crate::{
     events::{self, update_map_markers},
     persistence::PersistedComponents,
     pet::restore_pet,
-    presence::{Presence, RepositionOnChunkLoad},
+    presence::RepositionOnChunkLoad,
+    rtsim::RtSim,
     settings::Settings,
     sys::sentinel::DeletedEntities,
     wiring, BattleModeBuffer, SpawnPoint,
@@ -18,18 +19,19 @@ use common::{
         self,
         item::{ItemKind, MaterialStatManifest},
         skills::{GeneralSkill, Skill},
-        ChatType, Group, Inventory, Item, Player, Poise,
+        ChatType, Group, Inventory, Item, Player, Poise, Presence, PresenceKind,
     },
     effect::Effect,
     link::{Link, LinkHandle},
     mounting::Mounting,
     resources::{Secs, Time, TimeOfDay},
+    rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
     LoadoutBuilder, ViewDistances,
 };
 use common_net::{
-    msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
+    msg::{CharacterInfo, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
 use common_state::State;
@@ -64,7 +66,6 @@ pub trait StateExt {
         pos: comp::Pos,
         ship: comp::ship::Body,
         make_collider: F,
-        mountable: bool,
     ) -> EcsEntityBuilder;
     /// Build a projectile
     fn create_projectile(
@@ -139,6 +140,8 @@ pub trait StateExt {
         &mut self,
         entity: EcsEntity,
     ) -> Result<(), specs::error::WrongGeneration>;
+    /// Get the given entity as an [`Actor`], if it is one.
+    fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor>;
 }
 
 impl StateExt for State {
@@ -286,6 +289,7 @@ impl StateExt for State {
             .with(poise)
             .with(comp::Alignment::Npc)
             .with(comp::CharacterState::default())
+            .with(comp::CharacterActivity::default())
             .with(inventory)
             .with(comp::Buffs::default())
             .with(comp::Combo::default())
@@ -336,7 +340,6 @@ impl StateExt for State {
         pos: comp::Pos,
         ship: comp::ship::Body,
         make_collider: F,
-        mountable: bool,
     ) -> EcsEntityBuilder {
         let body = comp::Body::Ship(ship);
         let builder = self
@@ -349,10 +352,10 @@ impl StateExt for State {
             .with(body.density())
             .with(make_collider(ship))
             .with(body)
-            .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
             .with(comp::Controller::default())
             .with(Inventory::with_empty())
             .with(comp::CharacterState::default())
+            .with(comp::CharacterActivity::default())
             // TODO: some of these are required in order for the character_behavior system to
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
             .with(comp::Energy::new(ship.into(), 0))
@@ -361,9 +364,6 @@ impl StateExt for State {
             .with(comp::ActiveAbilities::default())
             .with(comp::Combo::default());
 
-        if mountable {
-            // TODO: Re-add mounting check
-        }
         builder
     }
 
@@ -497,6 +497,10 @@ impl StateExt for State {
         {
             let ecs = self.ecs();
             let slow_jobs = ecs.write_resource::<SlowJobPool>();
+            #[cfg(feature = "worldgen")]
+            let rtsim = ecs.read_resource::<RtSim>();
+            #[cfg(not(feature = "worldgen"))]
+            let rtsim = ();
             let mut chunk_generator =
                 ecs.write_resource::<crate::chunk_generator::ChunkGenerator>();
             let chunk_pos = self.terrain().pos_key(pos.0.map(|e| e as i32));
@@ -517,7 +521,7 @@ impl StateExt for State {
                 #[cfg(feature = "worldgen")]
                 {
                     let time = (*ecs.read_resource::<TimeOfDay>(), (*ecs.read_resource::<Calendar>()).clone());
-                    chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), index.clone(), time);
+                    chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), &rtsim, index.clone(), time);
                 }
             });
         }
@@ -559,6 +563,7 @@ impl StateExt for State {
                 z_max: 1.75,
             });
             self.write_component_ignore_entity_dead(entity, comp::CharacterState::default());
+            self.write_component_ignore_entity_dead(entity, comp::CharacterActivity::default());
             self.write_component_ignore_entity_dead(entity, comp::Alignment::Owned(player_uid));
             self.write_component_ignore_entity_dead(entity, comp::Buffs::default());
             self.write_component_ignore_entity_dead(entity, comp::Auras::default());
@@ -654,7 +659,9 @@ impl StateExt for State {
             );
 
             if let Some(waypoint) = waypoint {
-                self.write_component_ignore_entity_dead(entity, RepositionOnChunkLoad);
+                self.write_component_ignore_entity_dead(entity, RepositionOnChunkLoad {
+                    needs_ground: true,
+                });
                 self.write_component_ignore_entity_dead(entity, waypoint);
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
@@ -791,7 +798,11 @@ impl StateExt for State {
             (*ecs.read_resource::<UidAllocator>())
                 .retrieve_entity_internal(sender.0)
                 .map_or(false, |e| {
-                    self.validate_chat_msg(e, &msg.chat_type, &msg.message)
+                    self.validate_chat_msg(
+                        e,
+                        &msg.chat_type,
+                        msg.content().as_plain().unwrap_or_default(),
+                    )
                 })
         }) {
             match &msg.chat_type {
@@ -821,7 +832,6 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Kill(kill_source, uid) => {
-                    let comp::chat::GenericChatMsg { message, .. } = msg;
                     let clients = ecs.read_storage::<Client>();
                     let clients_count = clients.count();
                     // Avoid chat spam, send kill message only to group or nearby players if a
@@ -864,7 +874,7 @@ impl StateExt for State {
                     } else {
                         self.notify_players(ServerGeneral::server_msg(
                             comp::ChatType::Kill(kill_source.clone(), *uid),
-                            message,
+                            msg.into_content(),
                         ))
                     }
                 },
@@ -894,7 +904,7 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::Npc(uid, _r) => {
+                comp::ChatType::Npc(uid) => {
                     let entity_opt =
                         (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
 
@@ -907,7 +917,7 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::NpcSay(uid, _r) => {
+                comp::ChatType::NpcSay(uid) => {
                     let entity_opt =
                         (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
 
@@ -920,7 +930,7 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::NpcTell(from, to, _r) => {
+                comp::ChatType::NpcTell(from, to) => {
                     for (client, uid) in
                         (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
                     {
@@ -944,12 +954,10 @@ impl StateExt for State {
                 comp::ChatType::Group(from, g) => {
                     if group_info.is_none() {
                         // group not found, reply with command error
-                        let reply = comp::ChatMsg {
-                            chat_type: comp::ChatType::CommandError,
-                            message: "You are using group chat but do not belong to a group. Use \
-                                      /world or /region to change chat."
-                                .into(),
-                        };
+                        let reply = comp::ChatType::CommandError.into_plain_msg(
+                            "You are using group chat but do not belong to a group. Use /world or \
+                             /region to change chat.",
+                        );
 
                         if let Some((client, _)) =
                             (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>())
@@ -1099,6 +1107,26 @@ impl StateExt for State {
             }
         }
         res
+    }
+
+    fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor> {
+        if let Some(rtsim_entity) = self
+            .ecs()
+            .read_storage::<RtSimEntity>()
+            .get(entity)
+            .copied()
+        {
+            Some(Actor::Npc(rtsim_entity.0))
+        } else if let Some(PresenceKind::Character(character)) = self
+            .ecs()
+            .read_storage::<Presence>()
+            .get(entity)
+            .map(|p| p.kind)
+        {
+            Some(Actor::Character(character))
+        } else {
+            None
+        }
     }
 }
 

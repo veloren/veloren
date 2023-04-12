@@ -1,12 +1,8 @@
 use super::sentinel::{DeletedEntities, TrackedStorages, UpdateTrackers};
-use crate::{
-    client::Client,
-    presence::{Presence, RegionSubscription},
-    Tick,
-};
+use crate::{client::Client, presence::RegionSubscription, Tick};
 use common::{
     calendar::Calendar,
-    comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Vel},
+    comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Presence, Vel},
     event::EventBus,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},

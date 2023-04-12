@@ -5,7 +5,6 @@ use crate::{
     client::Client,
     location::Locations,
     login_provider::LoginProvider,
-    presence::Presence,
     settings::{
         Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
@@ -31,7 +30,7 @@ use common::{
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::{tool::AbilityMap, MaterialStatManifest, Quality},
         invite::InviteKind,
-        AdminRole, ChatType, Inventory, Item, LightEmitter, WaypointArea,
+        AdminRole, ChatType, Inventory, Item, LightEmitter, Presence, PresenceKind, WaypointArea,
     },
     depot,
     effect::Effect,
@@ -43,13 +42,14 @@ use common::{
     outcome::Outcome,
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay},
+    rtsim::Actor,
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
-    msg::{DisconnectReason, Notification, PlayerListUpdate, PresenceKind, ServerGeneral},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
 use common_state::{BuildAreaError, BuildAreas};
@@ -184,6 +184,11 @@ fn do_command(
         ServerChatCommand::Tell => handle_tell,
         ServerChatCommand::Time => handle_time,
         ServerChatCommand::Tp => handle_tp,
+        ServerChatCommand::RtsimTp => handle_rtsim_tp,
+        ServerChatCommand::RtsimInfo => handle_rtsim_info,
+        ServerChatCommand::RtsimNpc => handle_rtsim_npc,
+        ServerChatCommand::RtsimPurge => handle_rtsim_purge,
+        ServerChatCommand::RtsimChunk => handle_rtsim_chunk,
         ServerChatCommand::Unban => handle_unban,
         ServerChatCommand::Version => handle_version,
         ServerChatCommand::Waypoint => handle_waypoint,
@@ -196,6 +201,7 @@ fn do_command(
         ServerChatCommand::DeleteLocation => handle_delete_location,
         ServerChatCommand::WeatherZone => handle_weather_zone,
         ServerChatCommand::Lightning => handle_lightning,
+        ServerChatCommand::Scale => handle_scale,
     };
 
     handler(server, client, target, args, cmd)
@@ -1181,6 +1187,241 @@ fn handle_tp(
     })
 }
 
+fn handle_rtsim_tp(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim::RtSim;
+    let pos = if let Some(id) = parse_cmd_args!(args, u32) {
+        // TODO: Take some other identifier than an integer to this command.
+        server
+            .state
+            .ecs()
+            .read_resource::<RtSim>()
+            .state()
+            .data()
+            .npcs
+            .values()
+            .nth(id as usize)
+            .ok_or(action.help_string())?
+            .wpos
+    } else {
+        return Err(action.help_string());
+    };
+    position_mut(server, target, "target", |target_pos| {
+        target_pos.0 = pos;
+    })
+}
+
+fn handle_rtsim_info(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim::RtSim;
+    if let Some(id) = parse_cmd_args!(args, u32) {
+        // TODO: Take some other identifier than an integer to this command.
+        let rtsim = server.state.ecs().read_resource::<RtSim>();
+        let data = rtsim.state().data();
+        let npc = data
+            .npcs
+            .values()
+            .nth(id as usize)
+            .ok_or_else(|| format!("No NPC has index {}", id))?;
+
+        let mut info = String::new();
+
+        let _ = writeln!(&mut info, "-- General Information --");
+        let _ = writeln!(&mut info, "Seed: {}", npc.seed);
+        let _ = writeln!(&mut info, "Profession: {:?}", npc.profession);
+        let _ = writeln!(&mut info, "Home: {:?}", npc.home);
+        let _ = writeln!(&mut info, "-- Status --");
+        let _ = writeln!(&mut info, "Current site: {:?}", npc.current_site);
+        let _ = writeln!(&mut info, "Current mode: {:?}", npc.mode);
+        let _ = writeln!(&mut info, "-- Action State --");
+        if let Some(brain) = &npc.brain {
+            let mut bt = Vec::new();
+            brain.action.backtrace(&mut bt);
+            for (i, action) in bt.into_iter().enumerate() {
+                let _ = writeln!(&mut info, "[{}] {}", i, action);
+            }
+        } else {
+            let _ = writeln!(&mut info, "<NPC has no brain>");
+        }
+
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, info),
+        );
+
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_rtsim_npc(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim::RtSim;
+    if let (Some(query), count) = parse_cmd_args!(args, String, u32) {
+        let terms = query
+            .split(',')
+            .filter(|s| !s.is_empty())
+            .map(|s| s.trim().to_lowercase())
+            .collect::<Vec<_>>();
+
+        let rtsim = server.state.ecs().read_resource::<RtSim>();
+        let data = rtsim.state().data();
+        let mut npcs = data
+            .npcs
+            .values()
+            .enumerate()
+            .filter(|(idx, npc)| {
+                let tags = [
+                    npc.profession
+                        .as_ref()
+                        .map(|p| format!("{:?}", p))
+                        .unwrap_or_default(),
+                    format!("{:?}", npc.mode),
+                    format!("{}", idx),
+                ];
+                terms
+                    .iter()
+                    .all(|term| tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim())))
+            })
+            .collect::<Vec<_>>();
+        if let Ok(pos) = position(server, target, "target") {
+            npcs.sort_by_key(|(_, npc)| (npc.wpos.distance_squared(pos.0) * 10.0) as u64);
+        }
+
+        let mut info = String::new();
+
+        let _ = writeln!(&mut info, "-- NPCs matching [{}] --", terms.join(", "));
+        for (idx, _) in npcs.iter().take(count.unwrap_or(!0) as usize) {
+            let _ = write!(&mut info, "{}, ", idx);
+        }
+        let _ = writeln!(&mut info);
+        let _ = writeln!(
+            &mut info,
+            "Showing {}/{} matching NPCs.",
+            count.unwrap_or(npcs.len() as u32),
+            npcs.len()
+        );
+
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, info),
+        );
+
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
+}
+
+// TODO: Remove this command when rtsim becomes more mature and we're sure we
+// don't need purges to fix broken state.
+fn handle_rtsim_purge(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim::RtSim;
+    let client_uuid = uuid(server, client, "client")?;
+    if !matches!(real_role(server, client_uuid, "client")?, AdminRole::Admin) {
+        return Err(
+            "You must be a real admin (not just a temporary admin) to purge rtsim data."
+                .to_string(),
+        );
+    }
+
+    if let Some(should_purge) = parse_cmd_args!(args, bool) {
+        server
+            .state
+            .ecs()
+            .write_resource::<RtSim>()
+            .set_should_purge(should_purge);
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                format!(
+                    "Rtsim data {} be purged on next startup",
+                    if should_purge { "WILL" } else { "will NOT" },
+                ),
+            ),
+        );
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_rtsim_chunk(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    use crate::rtsim::{ChunkStates, RtSim};
+    let pos = position(server, target, "target")?;
+
+    let chunk_key = pos.0.xy().as_::<i32>().wpos_to_cpos();
+
+    let rtsim = server.state.ecs().read_resource::<RtSim>();
+    let data = rtsim.state().data();
+
+    let chunk_states = rtsim.state().resource::<ChunkStates>();
+    let chunk_state = match chunk_states.0.get(chunk_key) {
+        Some(Some(chunk_state)) => chunk_state,
+        Some(None) => return Err(format!("Chunk {}, {} not loaded", chunk_key.x, chunk_key.y)),
+        None => {
+            return Err(format!(
+                "Chunk {}, {} not within map bounds",
+                chunk_key.x, chunk_key.y
+            ));
+        },
+    };
+
+    let mut info = String::new();
+    let _ = writeln!(
+        &mut info,
+        "-- Chunk {}, {} Resources --",
+        chunk_key.x, chunk_key.y
+    );
+    for (res, frac) in data.nature.get_chunk_resources(chunk_key) {
+        let total = chunk_state.max_res[res];
+        let _ = writeln!(
+            &mut info,
+            "{:?}: {} / {} ({}%)",
+            res,
+            frac * total as f32,
+            total,
+            frac * 100.0
+        );
+    }
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(ChatType::CommandInfo, info),
+    );
+
+    Ok(())
+}
+
 fn handle_spawn(
     server: &mut Server,
     client: EcsEntity,
@@ -1188,8 +1429,8 @@ fn handle_spawn(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    match parse_cmd_args!(args, String, npc::NpcBody, u32, bool) {
-        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai) => {
+    match parse_cmd_args!(args, String, npc::NpcBody, u32, bool, f32) {
+        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai, opt_scale) => {
             let uid = uid(server, target, "target")?;
             let alignment = parse_alignment(uid, &opt_align)?;
             let amount = opt_amount.filter(|x| *x > 0).unwrap_or(1).min(50);
@@ -1226,7 +1467,8 @@ fn handle_spawn(
                         body,
                     )
                     .with(comp::Vel(vel))
-                    .with(body.scale())
+                    .with(opt_scale.map(comp::Scale).unwrap_or(body.scale()))
+                    .maybe_with(opt_scale.map(|s| comp::Mass(body.mass().0 * s.powi(3))))
                     .with(alignment);
 
                 if ai {
@@ -1342,7 +1584,7 @@ fn handle_spawn_airship(
     let ship = comp::ship::Body::random_airship_with(&mut rng);
     let mut builder = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider(), true)
+        .create_ship(pos, ship, |ship| ship.make_collider())
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1350,7 +1592,8 @@ fn handle_spawn_airship(
             animated: true,
         });
     if let Some(pos) = destination {
-        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship));
+        let (kp, ki, kd) =
+            comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
@@ -1390,7 +1633,7 @@ fn handle_spawn_ship(
     let ship = comp::ship::Body::random_ship_with(&mut rng);
     let mut builder = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider(), true)
+        .create_ship(pos, ship, |ship| ship.make_collider())
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1398,7 +1641,8 @@ fn handle_spawn_ship(
             animated: true,
         });
     if let Some(pos) = destination {
-        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship));
+        let (kp, ki, kd) =
+            comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
@@ -1439,12 +1683,9 @@ fn handle_make_volume(
     };
     server
         .state
-        .create_ship(
-            comp::Pos(pos.0 + Vec3::unit_z() * 50.0),
-            ship,
-            move |_| collider,
-            true,
-        )
+        .create_ship(comp::Pos(pos.0 + Vec3::unit_z() * 50.0), ship, move |_| {
+            collider
+        })
         .build();
 
     server.notify_client(
@@ -1847,13 +2088,22 @@ fn handle_kill_npcs(
     let to_kill = {
         let ecs = server.state.ecs();
         let entities = ecs.entities();
+        let positions = ecs.write_storage::<comp::Pos>();
         let healths = ecs.write_storage::<comp::Health>();
         let players = ecs.read_storage::<comp::Player>();
         let alignments = ecs.read_storage::<Alignment>();
+        let rtsim_entities = ecs.read_storage::<common::rtsim::RtSimEntity>();
+        let mut rtsim = ecs.write_resource::<crate::rtsim::RtSim>();
 
-        (&entities, &healths, !&players, alignments.maybe())
+        (
+            &entities,
+            &healths,
+            !&players,
+            alignments.maybe(),
+            &positions,
+        )
             .join()
-            .filter_map(|(entity, _health, (), alignment)| {
+            .filter_map(|(entity, _health, (), alignment, pos)| {
                 let should_kill = kill_pets
                     || if let Some(Alignment::Owned(owned)) = alignment {
                         ecs.entity_from_uid(owned.0)
@@ -1862,7 +2112,20 @@ fn handle_kill_npcs(
                         true
                     };
 
-                should_kill.then_some(entity)
+                if should_kill {
+                    if let Some(rtsim_entity) = rtsim_entities.get(entity).copied() {
+                        rtsim.hook_rtsim_actor_death(
+                            &ecs.read_resource::<Arc<world::World>>(),
+                            ecs.read_resource::<world::IndexOwned>().as_index_ref(),
+                            Actor::Npc(rtsim_entity.0),
+                            Some(pos.0),
+                            None,
+                        );
+                    }
+                    Some(entity)
+                } else {
+                    None
+                }
             })
             .collect::<Vec<_>>()
     };
@@ -2482,7 +2745,7 @@ fn handle_tell(
         } else {
             message_opt.join(" ")
         };
-        server.state.send_chat(mode.new_message(target_uid, msg));
+        server.state.send_chat(mode.to_plain_msg(target_uid, msg));
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
@@ -2507,7 +2770,7 @@ fn handle_faction(
         let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server.state.send_chat(mode.new_message(*uid, msg));
+                server.state.send_chat(mode.to_plain_msg(*uid, msg));
             }
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2534,7 +2797,7 @@ fn handle_group(
         let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server.state.send_chat(mode.new_message(*uid, msg));
+                server.state.send_chat(mode.to_plain_msg(*uid, msg));
             }
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2658,7 +2921,7 @@ fn handle_region(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg));
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2679,7 +2942,7 @@ fn handle_say(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg));
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2700,7 +2963,7 @@ fn handle_world(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.new_message(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg));
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2729,8 +2992,9 @@ fn handle_join_faction(
                 .flatten()
                 .map(|f| f.0);
             server.state.send_chat(
+                // TODO: Localise
                 ChatType::FactionMeta(faction.clone())
-                    .chat_msg(format!("[{}] joined faction ({})", alias, faction)),
+                    .into_plain_msg(format!("[{}] joined faction ({})", alias, faction)),
             );
             (faction_join, mode)
         } else {
@@ -2746,8 +3010,9 @@ fn handle_join_faction(
         };
         if let Some(faction) = faction_leave {
             server.state.send_chat(
+                // TODO: Localise
                 ChatType::FactionMeta(faction.clone())
-                    .chat_msg(format!("[{}] left faction ({})", alias, faction)),
+                    .into_plain_msg(format!("[{}] left faction ({})", alias, faction)),
             );
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -3830,6 +4095,36 @@ fn handle_body(
         {
             stat.original_body = body;
         }
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_scale(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let (Some(scale), reset_mass) = parse_cmd_args!(args, f32, bool) {
+        let scale = scale.clamped(0.025, 1000.0);
+        insert_or_replace_component(server, target, comp::Scale(scale), "target")?;
+        if reset_mass.unwrap_or(true) {
+            let mass = server.state.ecs()
+                .read_storage::<comp::Body>()
+                .get(target)
+                // Mass is derived from volume, which changes with the third power of scale
+                .map(|body| body.mass().0 * scale.powi(3));
+            if let Some(mass) = mass {
+                insert_or_replace_component(server, target, comp::Mass(mass), "target")?;
+            }
+        }
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, format!("Set scale to {}", scale)),
+        );
         Ok(())
     } else {
         Err(action.help_string())

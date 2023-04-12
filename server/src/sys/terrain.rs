@@ -6,20 +6,16 @@ use crate::TerrainPersistence;
 use world::{IndexOwned, World};
 
 use crate::{
-    chunk_generator::ChunkGenerator,
-    chunk_serialize::ChunkSendEntry,
-    client::Client,
-    presence::{Presence, RepositionOnChunkLoad},
-    rtsim::RtSim,
-    settings::Settings,
-    ChunkRequest, Tick,
+    chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry, client::Client,
+    presence::RepositionOnChunkLoad, rtsim, settings::Settings, ChunkRequest, Tick,
 };
 use common::{
     calendar::Calendar,
     comp::{
-        self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Waypoint,
+        self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Presence,
+        Waypoint,
     },
-    event::{EventBus, ServerEvent},
+    event::{EventBus, NpcBuilder, ServerEvent},
     generation::EntityInfo,
     lottery::LootSpec,
     resources::{Time, TimeOfDay},
@@ -49,6 +45,11 @@ pub type TerrainPersistenceData<'a> = ();
 
 pub const SAFE_ZONE_RADIUS: f32 = 200.0;
 
+#[cfg(feature = "worldgen")]
+type RtSimData<'a> = WriteExpect<'a, rtsim::RtSim>;
+#[cfg(not(feature = "worldgen"))]
+type RtSimData<'a> = ();
+
 /// This system will handle loading generated chunks and unloading
 /// unneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
@@ -73,7 +74,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
         Write<'a, Vec<ChunkRequest>>,
-        WriteExpect<'a, RtSim>,
+        RtSimData<'a>,
         TerrainPersistenceData<'a>,
         WriteStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
@@ -130,6 +131,7 @@ impl<'a> System<'a> for Sys {
                 request.key,
                 &slow_jobs,
                 Arc::clone(&world),
+                &rtsim,
                 index.clone(),
                 (*time_of_day, calendar.clone()),
             )
@@ -174,7 +176,8 @@ impl<'a> System<'a> for Sys {
                 terrain_changes.modified_chunks.insert(key);
             } else {
                 terrain_changes.new_chunks.insert(key);
-                rtsim.hook_load_chunk(key);
+                #[cfg(feature = "worldgen")]
+                rtsim.hook_load_chunk(key, supplement.rtsim_max_resources);
             }
 
             // Handle chunk supplement
@@ -208,19 +211,15 @@ impl<'a> System<'a> for Sys {
                     } => {
                         server_emitter.emit(ServerEvent::CreateNpc {
                             pos,
-                            stats,
-                            skill_set,
-                            health,
-                            poise,
-                            inventory,
-                            agent,
-                            body,
-                            alignment,
-                            scale,
-                            anchor: Some(comp::Anchor::Chunk(key)),
-                            loot,
-                            rtsim_entity: None,
-                            projectile: None,
+                            npc: NpcBuilder::new(stats, body, alignment)
+                                .with_skill_set(skill_set)
+                                .with_health(health)
+                                .with_poise(poise)
+                                .with_inventory(inventory)
+                                .with_agent(agent)
+                                .with_scale(scale)
+                                .with_anchor(comp::Anchor::Chunk(key))
+                                .with_loot(loot),
                         });
                     },
                 }
@@ -229,11 +228,11 @@ impl<'a> System<'a> for Sys {
 
         // TODO: Consider putting this in another system since this forces us to take
         // positions by write rather than read access.
-        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), reposition_on_load.mask())
+        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), &reposition_on_load)
             // TODO: Consider using par_bridge() because Rayon has very poor work splitting for
             // sparse joins.
             .par_join()
-            .filter_map(|(entity, pos, force_update, _)| {
+            .filter_map(|(entity, pos, force_update, reposition)| {
                 // NOTE: We use regular as casts rather than as_ because we want to saturate on
                 // overflow.
                 let entity_pos = pos.0.map(|x| x as i32);
@@ -241,10 +240,11 @@ impl<'a> System<'a> for Sys {
                 // from having just logged in), reposition them.
                 let chunk_pos = TerrainGrid::chunk_key(entity_pos);
                 let chunk = terrain.get_key(chunk_pos)?;
-                let new_pos = terrain
-                    .try_find_space(entity_pos)
-                    .map(|x| x.as_::<f32>())
-                    .unwrap_or_else(|| chunk.find_accessible_pos(entity_pos.xy(), false));
+                let new_pos = if reposition.needs_ground {
+                    terrain.try_find_ground(entity_pos)
+                } else {
+                    terrain.try_find_space(entity_pos)
+                }.map(|x| x.as_::<f32>()).unwrap_or_else(|| chunk.find_accessible_pos(entity_pos.xy(), false));
                 pos.0 = new_pos;
                 force_update.map(|force_update| force_update.update());
                 Some((entity, new_pos))
@@ -252,7 +252,9 @@ impl<'a> System<'a> for Sys {
             .collect::<Vec<_>>();
 
         for (entity, new_pos) in repositioned {
-            let _ = waypoints.insert(entity, Waypoint::new(new_pos, *time));
+            if let Some(waypoint) = waypoints.get_mut(entity) {
+                *waypoint = Waypoint::new(new_pos, *time);
+            }
             reposition_on_load.remove(entity);
         }
 
@@ -378,6 +380,7 @@ impl<'a> System<'a> for Sys {
                 // TODO: code duplication for chunk insertion between here and state.rs
                 terrain.remove(key).map(|chunk| {
                     terrain_changes.removed_chunks.insert(key);
+                    #[cfg(feature = "worldgen")]
                     rtsim.hook_unload_chunk(key);
                     chunk
                 })
@@ -503,15 +506,19 @@ impl NpcData {
         };
 
         let agent = has_agency.then(|| {
-            comp::Agent::from_body(&body)
-                .with_behavior(
-                    Behavior::default()
-                        .maybe_with_capabilities(can_speak.then_some(BehaviorCapability::SPEAK))
-                        .maybe_with_capabilities(trade_for_site.map(|_| BehaviorCapability::TRADE))
-                        .with_trade_site(trade_for_site),
-                )
-                .with_patrol_origin(pos)
-                .with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
+            let mut agent = comp::Agent::from_body(&body).with_behavior(
+                Behavior::default()
+                    .maybe_with_capabilities(can_speak.then_some(BehaviorCapability::SPEAK))
+                    .maybe_with_capabilities(trade_for_site.map(|_| BehaviorCapability::TRADE))
+                    .with_trade_site(trade_for_site),
+            );
+
+            // Non-humanoids get a patrol origin to stop them moving too far
+            if !matches!(body, comp::Body::Humanoid(_)) {
+                agent = agent.with_patrol_origin(pos);
+            }
+
+            agent.with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
         });
 
         let agent = if matches!(alignment, comp::Alignment::Enemy)

@@ -8,9 +8,9 @@ use common::{
         self,
         character_state::OutputEvents,
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
-        ActiveAbilities, Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health,
-        Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos, SkillSet, Stance,
-        StateUpdate, Stats, Vel,
+        ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, Controller, Density,
+        Energy, Health, Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos,
+        Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     link::Is,
@@ -37,6 +37,7 @@ pub struct ReadData<'a> {
     healths: ReadStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
     masses: ReadStorage<'a, Mass>,
+    scales: ReadStorage<'a, Scale>,
     physics_states: ReadStorage<'a, PhysicsState>,
     melee_attacks: ReadStorage<'a, Melee>,
     beams: ReadStorage<'a, Beam>,
@@ -64,6 +65,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, CharacterState>,
+        WriteStorage<'a, CharacterActivity>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -83,6 +85,7 @@ impl<'a> System<'a> for Sys {
         (
             read_data,
             mut character_states,
+            mut character_activities,
             mut positions,
             mut velocities,
             mut orientations,
@@ -105,6 +108,7 @@ impl<'a> System<'a> for Sys {
             entity,
             uid,
             mut char_state,
+            character_activity,
             pos,
             vel,
             ori,
@@ -115,13 +119,13 @@ impl<'a> System<'a> for Sys {
             controller,
             health,
             body,
-            physics,
-            (stat, skill_set, active_abilities, is_rider),
+            (physics, scale, stat, skill_set, active_abilities, is_rider),
             combo,
         ) in (
             &read_data.entities,
             &read_data.uids,
             &mut character_states,
+            &mut character_activities,
             &mut positions,
             &mut velocities,
             &mut orientations,
@@ -132,8 +136,9 @@ impl<'a> System<'a> for Sys {
             &mut controllers,
             read_data.healths.maybe(),
             &read_data.bodies,
-            &read_data.physics_states,
             (
+                &read_data.physics_states,
+                read_data.scales.maybe(),
                 &read_data.stats,
                 &read_data.skill_sets,
                 read_data.active_abilities.maybe(),
@@ -180,9 +185,11 @@ impl<'a> System<'a> for Sys {
                 entity,
                 uid,
                 char_state,
+                character_activity,
                 pos,
                 vel,
                 ori,
+                scale,
                 mass,
                 density,
                 energy,
@@ -257,6 +264,9 @@ impl Sys {
         // StateUpdate
         if *join.char_state != state_update.character {
             *join.char_state = state_update.character
+        }
+        if *join.character_activity != state_update.character_activity {
+            *join.character_activity = state_update.character_activity
         }
         if *join.density != state_update.density {
             *join.density = state_update.density

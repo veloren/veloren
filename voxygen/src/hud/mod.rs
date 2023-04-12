@@ -99,7 +99,7 @@ use common::{
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
-        BuffData, BuffKind, Health, Item, MapMarkerChange,
+        BuffData, BuffKind, Health, Item, MapMarkerChange, PresenceKind,
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
@@ -115,7 +115,7 @@ use common::{
 };
 use common_base::{prof_span, span};
 use common_net::{
-    msg::{world_msg::SiteId, Notification, PresenceKind},
+    msg::{world_msg::SiteId, Notification},
     sync::WorldSyncExt,
 };
 use conrod_core::{
@@ -212,8 +212,6 @@ const MENU_BG: Color = Color::Rgba(0.1, 0.12, 0.12, 1.0);
 
 /// Distance at which nametags are visible for group members
 const NAMETAG_GROUP_RANGE: f32 = 1000.0;
-/// Distance at which nametags are visible for merchants
-const NAMETAG_MERCHANT_RANGE: f32 = 50.0;
 /// Distance at which nametags are visible
 const NAMETAG_RANGE: f32 = 40.0;
 /// Time nametags stay visible after doing damage even if they are out of range
@@ -2268,11 +2266,6 @@ impl Hud {
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
                         let is_me = entity == me;
-                        // TODO: once the site2 rework lands and merchants have dedicated stalls or
-                        // buildings, they no longer need to be emphasized via the higher overhead
-                        // text radius relative to other NPCs
-                        let is_merchant =
-                            stats.name == "Merchant" && client.player_list().get(uid).is_none();
                         let dist_sqr = pos.distance_squared(player_pos);
                         // Determine whether to display nametag and healthbar based on whether the
                         // entity has been damaged, is targeted/selected, or is in your group
@@ -2282,13 +2275,10 @@ impl Hud {
                             && (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
                                 || health.map_or(true, overhead::should_show_healthbar)
-                                || in_group
-                                || is_merchant)
+                                || in_group)
                             && dist_sqr
                                 < (if in_group {
                                     NAMETAG_GROUP_RANGE
-                                } else if is_merchant {
-                                    NAMETAG_MERCHANT_RANGE
                                 } else if hpfl
                                     .time_since_last_dmg_by_me
                                     .map_or(false, |t| t < NAMETAG_DMG_TIME)
@@ -3289,7 +3279,7 @@ impl Hud {
 
         // Don't put NPC messages in chat box.
         self.new_messages
-            .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_, _)));
+            .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_)));
 
         // Chat box
         if global_state.settings.interface.toggle_chat {
@@ -4036,46 +4026,48 @@ impl Hud {
                              remove,
                              quantity: &mut u32| {
                                 if let Some(prices) = prices {
-                                    let balance0 =
-                                        prices.balance(&trade.offers, &r_inventories, who, true);
-                                    let balance1 = prices.balance(
-                                        &trade.offers,
-                                        &r_inventories,
-                                        1 - who,
-                                        false,
-                                    );
-                                    if let Some(item) = inventory.get(slot) {
-                                        if let Some(materials) =
-                                            TradePricing::get_materials(&item.item_definition_id())
-                                        {
-                                            let unit_price: f32 = materials
-                                                .iter()
-                                                .map(|e| {
-                                                    prices
-                                                        .values
-                                                        .get(&e.1)
-                                                        .cloned()
-                                                        .unwrap_or_default()
-                                                        * e.0
-                                                        * (if ours {
-                                                            e.1.trade_margin()
-                                                        } else {
-                                                            1.0
-                                                        })
-                                                })
-                                                .sum();
+                                    if let Some((balance0, balance1)) = prices
+                                        .balance(&trade.offers, &r_inventories, who, true)
+                                        .zip(prices.balance(
+                                            &trade.offers,
+                                            &r_inventories,
+                                            1 - who,
+                                            false,
+                                        ))
+                                    {
+                                        if let Some(item) = inventory.get(slot) {
+                                            if let Some(materials) = TradePricing::get_materials(
+                                                &item.item_definition_id(),
+                                            ) {
+                                                let unit_price: f32 = materials
+                                                    .iter()
+                                                    .map(|e| {
+                                                        prices
+                                                            .values
+                                                            .get(&e.1)
+                                                            .cloned()
+                                                            .unwrap_or_default()
+                                                            * e.0
+                                                            * (if ours {
+                                                                e.1.trade_margin()
+                                                            } else {
+                                                                1.0
+                                                            })
+                                                    })
+                                                    .sum();
 
-                                            let mut float_delta = if ours ^ remove {
-                                                (balance1 - balance0) / unit_price
-                                            } else {
-                                                (balance0 - balance1) / unit_price
-                                            };
-                                            if ours ^ remove {
-                                                float_delta = float_delta.ceil();
-                                            } else {
-                                                float_delta = float_delta.floor();
+                                                let mut float_delta = if ours ^ remove {
+                                                    (balance1 - balance0) / unit_price
+                                                } else {
+                                                    (balance0 - balance1) / unit_price
+                                                };
+                                                if ours ^ remove {
+                                                    float_delta = float_delta.ceil();
+                                                } else {
+                                                    float_delta = float_delta.floor();
+                                                }
+                                                *quantity = float_delta.max(0.0) as u32;
                                             }
-                                            *quantity = float_delta.max(0.0) as u32;
                                         }
                                     }
                                 }

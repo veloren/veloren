@@ -66,7 +66,7 @@ impl<'a> System<'a> for Sys {
                 // TODO: Create a teleportation event to handle this instead of
                 // processing the entity position move here
                 pet_pos.0 = terrain
-                    .find_space(owner_pos.0.map(|e| e.floor() as i32))
+                    .find_ground(owner_pos.0.map(|e| e.floor() as i32))
                     .map(|e| e as f32);
             }
         }

@@ -7,7 +7,7 @@ use crate::{
         skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
     },
-    rtsim::RtSim,
+    rtsim,
     sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
@@ -26,7 +26,6 @@ use common::{
     event::{EventBus, ServerEvent},
     outcome::{HealthChangeInfo, Outcome},
     resources::{Secs, Time},
-    rtsim::RtSimEntity,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
@@ -36,14 +35,13 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::BlockChange;
-use comp::chat::GenericChatMsg;
 use hashbrown::HashSet;
 use rand::{distributions::WeightedIndex, Rng};
 use rand_distr::Distribution;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
-use std::{collections::HashMap, iter, time::Duration};
+use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 use tracing::{debug, error};
 use vek::{Vec2, Vec3};
 
@@ -199,10 +197,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                 _ => KillSource::Other,
             };
 
-            state.send_chat(GenericChatMsg {
-                chat_type: comp::ChatType::Kill(kill_source, *uid),
-                message: "".to_string(),
-            });
+            state.send_chat(comp::ChatType::Kill(kill_source, *uid).into_plain_msg(""));
         }
     }
 
@@ -519,16 +514,32 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     }
 
     if should_delete {
-        if let Some(rtsim_entity) = state
-            .ecs()
-            .read_storage::<RtSimEntity>()
-            .get(entity)
-            .copied()
-        {
+        if let Some(actor) = state.entity_as_actor(entity) {
             state
                 .ecs()
-                .write_resource::<RtSim>()
-                .destroy_entity(rtsim_entity.0);
+                .write_resource::<rtsim::RtSim>()
+                .hook_rtsim_actor_death(
+                &state.ecs().read_resource::<Arc<world::World>>(),
+                state
+                    .ecs()
+                    .read_resource::<world::IndexOwned>()
+                    .as_index_ref(),
+                actor,
+                state.ecs().read_storage::<Pos>().get(entity).map(|p| p.0),
+                last_change
+                    .by
+                    .as_ref()
+                    .and_then(
+                        |(DamageContributor::Solo(entity_uid)
+                         | DamageContributor::Group { entity_uid, .. })| {
+                            state
+                                .ecs()
+                                .read_resource::<UidAllocator>()
+                                .retrieve_entity_internal((*entity_uid).into())
+                        },
+                    )
+                    .and_then(|killer| state.entity_as_actor(killer)),
+            );
         }
 
         if let Err(e) = state.delete_entity_recorded(entity) {

@@ -12,6 +12,7 @@ use crate::{
         utils::{AbilityInfo, StageSection},
         *,
     },
+    util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
@@ -30,6 +31,7 @@ pub struct StateUpdate {
     pub should_strafe: bool,
     pub queued_inputs: BTreeMap<InputKind, InputAttr>,
     pub removed_inputs: Vec<InputKind>,
+    pub character_activity: CharacterActivity,
 }
 
 pub struct OutputEvents<'a> {
@@ -60,6 +62,7 @@ impl From<&JoinData<'_>> for StateUpdate {
             character: data.character.clone(),
             queued_inputs: BTreeMap::new(),
             removed_inputs: Vec::new(),
+            character_activity: *data.character_activity,
         }
     }
 }
@@ -257,7 +260,6 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
-                | CharacterState::UseItem(_)
                 | CharacterState::Wielding(_)
                 | CharacterState::Talk
                 | CharacterState::FinisherMelee(_)
@@ -978,5 +980,22 @@ impl Default for CharacterState {
 }
 
 impl Component for CharacterState {
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
+}
+
+/// Contains information about the visual activity of a character.
+///
+/// For now this only includes the direction they're looking in, but later it
+/// might include markers indicating that they're available for
+/// trade/interaction, more details about their stance or appearance, facial
+/// expression, etc.
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct CharacterActivity {
+    /// `None` means that the look direction should be derived from the
+    /// orientation
+    pub look_dir: Option<Dir>,
+}
+
+impl Component for CharacterActivity {
     type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }

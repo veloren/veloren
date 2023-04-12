@@ -135,6 +135,7 @@ impl Body {
         rel_flow: &Vel,
         fluid_density: f32,
         wings: Option<&Wings>,
+        scale: f32,
     ) -> Vec3<f32> {
         let v_sq = rel_flow.0.magnitude_squared();
         if v_sq < 0.25 {
@@ -201,11 +202,11 @@ impl Body {
                         debug_assert!(c_d.is_sign_positive());
                         debug_assert!(c_l.is_sign_positive() || aoa.is_sign_negative());
 
-                        planform_area * (c_l * *lift_dir + c_d * *rel_flow_dir)
-                            + self.parasite_drag() * *rel_flow_dir
+                        planform_area * scale.powf(2.0) * (c_l * *lift_dir + c_d * *rel_flow_dir)
+                            + self.parasite_drag(scale) * *rel_flow_dir
                     },
 
-                    _ => self.parasite_drag() * *rel_flow_dir,
+                    _ => self.parasite_drag(scale) * *rel_flow_dir,
                 }
         }
     }
@@ -214,13 +215,13 @@ impl Body {
     /// Skin friction is the drag arising from the shear forces between a fluid
     /// and a surface, while pressure drag is due to flow separation. Both are
     /// viscous effects.
-    fn parasite_drag(&self) -> f32 {
+    fn parasite_drag(&self, scale: f32) -> f32 {
         // Reference area and drag coefficient assumes best-case scenario of the
         // orientation producing least amount of drag
         match self {
             // Cross-section, head/feet first
             Body::BipedLarge(_) | Body::BipedSmall(_) | Body::Golem(_) | Body::Humanoid(_) => {
-                let dim = self.dimensions().xy().map(|a| a * 0.5);
+                let dim = self.dimensions().xy().map(|a| a * 0.5 * scale);
                 const CD: f32 = 0.7;
                 CD * PI * dim.x * dim.y
             },
@@ -231,7 +232,7 @@ impl Body {
             | Body::QuadrupedSmall(_)
             | Body::QuadrupedLow(_)
             | Body::Arthropod(_) => {
-                let dim = self.dimensions().map(|a| a * 0.5);
+                let dim = self.dimensions().map(|a| a * 0.5 * scale);
                 let cd: f32 = if matches!(self, Body::QuadrupedLow(_)) {
                     0.7
                 } else {
@@ -242,7 +243,7 @@ impl Body {
 
             // Cross-section, zero-lift angle; exclude the wings (width * 0.2)
             Body::BirdMedium(_) | Body::BirdLarge(_) | Body::Dragon(_) => {
-                let dim = self.dimensions().map(|a| a * 0.5);
+                let dim = self.dimensions().map(|a| a * 0.5 * scale);
                 let cd: f32 = match self {
                     // "Field Estimates of Body Drag Coefficient
                     // on the Basis of Dives in Passerine Birds",
@@ -256,7 +257,7 @@ impl Body {
 
             // Cross-section, zero-lift angle; exclude the fins (width * 0.2)
             Body::FishMedium(_) | Body::FishSmall(_) => {
-                let dim = self.dimensions().map(|a| a * 0.5);
+                let dim = self.dimensions().map(|a| a * 0.5 * scale);
                 // "A Simple Method to Determine Drag Coefficients in Aquatic Animals",
                 // D. Bilo and W. Nachtigall, 1980
                 const CD: f32 = 0.031;
@@ -276,7 +277,7 @@ impl Body {
                 | object::Body::FireworkYellow
                 | object::Body::MultiArrow
                 | object::Body::Dart => {
-                    let dim = self.dimensions().map(|a| a * 0.5);
+                    let dim = self.dimensions().map(|a| a * 0.5 * scale);
                     const CD: f32 = 0.02;
                     CD * PI * dim.x * dim.z
                 },
@@ -295,20 +296,20 @@ impl Body {
                 | object::Body::Pumpkin3
                 | object::Body::Pumpkin4
                 | object::Body::Pumpkin5 => {
-                    let dim = self.dimensions().map(|a| a * 0.5);
+                    let dim = self.dimensions().map(|a| a * 0.5 * scale);
                     const CD: f32 = 0.5;
                     CD * PI * dim.x * dim.z
                 },
 
                 _ => {
-                    let dim = self.dimensions();
+                    let dim = self.dimensions().map(|a| a * scale);
                     const CD: f32 = 2.0;
                     CD * (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
                 },
             },
 
             Body::ItemDrop(_) => {
-                let dim = self.dimensions();
+                let dim = self.dimensions().map(|a| a * scale);
                 const CD: f32 = 2.0;
                 CD * (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
             },
@@ -316,7 +317,7 @@ impl Body {
             Body::Ship(_) => {
                 // Airships tend to use the square of the cube root of its volume for
                 // reference area
-                let dim = self.dimensions();
+                let dim = self.dimensions().map(|a| a * scale);
                 (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
             },
         }

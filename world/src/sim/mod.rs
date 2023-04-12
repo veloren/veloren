@@ -1914,6 +1914,13 @@ impl WorldSim {
         }
     }
 
+    /// Get the altitude of the surface, could be water or ground.
+    pub fn get_surface_alt_approx(&self, wpos: Vec2<i32>) -> Option<f32> {
+        self.get_interpolated(wpos, |chunk| chunk.alt)
+            .zip(self.get_interpolated(wpos, |chunk| chunk.water_alt))
+            .map(|(alt, water_alt)| alt.max(water_alt))
+    }
+
     pub fn get_alt_approx(&self, wpos: Vec2<i32>) -> Option<f32> {
         self.get_interpolated(wpos, |chunk| chunk.alt)
     }

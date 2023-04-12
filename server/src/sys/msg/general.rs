@@ -28,7 +28,7 @@ impl Sys {
                         const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
                         let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);
                         // Send chat message
-                        server_emitter.emit(ServerEvent::Chat(mode.new_message(*from, message)));
+                        server_emitter.emit(ServerEvent::Chat(mode.to_plain_msg(*from, message)));
                     } else {
                         error!("Could not send message. Missing player uid");
                     }

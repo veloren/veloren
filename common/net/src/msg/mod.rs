@@ -19,22 +19,7 @@ pub use self::{
     },
     world_msg::WorldMapMsg,
 };
-use common::character::CharacterId;
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum PresenceKind {
-    Spectator,
-    Character(CharacterId),
-    Possessor,
-}
-
-impl PresenceKind {
-    /// Check if the presence represents a control of a character, and thus
-    /// certain in-game messages from the client such as control inputs
-    /// should be handled.
-    pub fn controlling_char(&self) -> bool { matches!(self, Self::Character(_) | Self::Possessor) }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PingMsg {

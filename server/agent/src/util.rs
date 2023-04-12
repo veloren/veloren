@@ -2,7 +2,7 @@ use crate::data::{ActionMode, AgentData, AttackData, Path, ReadData, TargetData}
 use common::{
     comp::{
         agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Agent, Alignment,
-        Body, Controller, InputKind, Pos,
+        Body, Controller, InputKind, Pos, Scale,
     },
     consts::GRAVITY,
     terrain::Block,
@@ -146,17 +146,19 @@ pub fn are_our_owners_hostile(
 pub fn entities_have_line_of_sight(
     pos: &Pos,
     body: Option<&Body>,
+    scale: f32,
     other_pos: &Pos,
     other_body: Option<&Body>,
+    other_scale: Option<&Scale>,
     read_data: &ReadData,
 ) -> bool {
-    let get_eye_pos = |pos: &Pos, body: Option<&Body>| {
-        let eye_offset = body.map_or(0.0, |b| b.eye_height());
+    let get_eye_pos = |pos: &Pos, body: Option<&Body>, scale: f32| {
+        let eye_offset = body.map_or(0.0, |b| b.eye_height(scale));
 
         Pos(pos.0.with_z(pos.0.z + eye_offset))
     };
-    let eye_pos = get_eye_pos(pos, body);
-    let other_eye_pos = get_eye_pos(other_pos, other_body);
+    let eye_pos = get_eye_pos(pos, body, scale);
+    let other_eye_pos = get_eye_pos(other_pos, other_body, other_scale.map_or(1.0, |s| s.0));
 
     positions_have_line_of_sight(&eye_pos, &other_eye_pos, read_data)
 }

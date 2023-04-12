@@ -3,30 +3,199 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp,
-    event::{EventBus, ServerEvent},
+    comp::{self, Body, Presence, PresenceKind},
+    event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
-    resources::{DeltaTime, Time},
-    terrain::TerrainGrid,
+    resources::{DeltaTime, Time, TimeOfDay},
+    rtsim::{Actor, RtSimEntity, RtSimVehicle},
+    slowjob::SlowJobPool,
+    terrain::CoordinateConversions,
+    trade::{Good, SiteInformation},
+    LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use rtsim::data::{
+    npc::{Profession, SimulationMode},
+    Npc, Sites,
+};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
+use tracing::error;
+use world::site::settlement::trader_loadout;
+
+fn humanoid_config(profession: &Profession) -> &'static str {
+    match profession {
+        Profession::Farmer => "common.entity.village.farmer",
+        Profession::Hunter => "common.entity.village.hunter",
+        Profession::Herbalist => "common.entity.village.herbalist",
+        Profession::Captain => "common.entity.village.captain",
+        Profession::Merchant => "common.entity.village.merchant",
+        Profession::Guard => "common.entity.village.guard",
+        Profession::Adventurer(rank) => match rank {
+            0 => "common.entity.world.traveler0",
+            1 => "common.entity.world.traveler1",
+            2 => "common.entity.world.traveler2",
+            3 => "common.entity.world.traveler3",
+            _ => {
+                error!(
+                    "Tried to get configuration for invalid adventurer rank {}",
+                    rank
+                );
+                "common.entity.world.traveler3"
+            },
+        },
+        Profession::Blacksmith => "common.entity.village.blacksmith",
+        Profession::Chef => "common.entity.village.chef",
+        Profession::Alchemist => "common.entity.village.alchemist",
+        Profession::Pirate => "common.entity.spot.pirate",
+        Profession::Cultist => "common.entity.dungeon.tier-5.cultist",
+    }
+}
+
+fn loadout_default(loadout: LoadoutBuilder, _economy: Option<&SiteInformation>) -> LoadoutBuilder {
+    loadout
+}
+
+fn merchant_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |_| true)
+}
+
+fn farmer_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+}
+
+fn herbalist_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Ingredients)
+    })
+}
+
+fn chef_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+}
+
+fn blacksmith_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Tools | Good::Armor)
+    })
+}
+
+fn alchemist_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+) -> LoadoutBuilder {
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Potions)
+    })
+}
+
+fn profession_extra_loadout(
+    profession: Option<&Profession>,
+) -> fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder {
+    match profession {
+        Some(Profession::Merchant) => merchant_loadout,
+        Some(Profession::Farmer) => farmer_loadout,
+        Some(Profession::Herbalist) => herbalist_loadout,
+        Some(Profession::Chef) => chef_loadout,
+        Some(Profession::Blacksmith) => blacksmith_loadout,
+        Some(Profession::Alchemist) => alchemist_loadout,
+        _ => loadout_default,
+    }
+}
+
+fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent::Mark> {
+    match profession {
+        Some(
+            Profession::Merchant
+            | Profession::Farmer
+            | Profession::Herbalist
+            | Profession::Chef
+            | Profession::Blacksmith
+            | Profession::Alchemist,
+        ) => Some(comp::agent::Mark::Merchant),
+        Some(Profession::Guard) => Some(comp::agent::Mark::Guard),
+        _ => None,
+    }
+}
+
+fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo {
+    let pos = comp::Pos(npc.wpos);
+
+    let mut rng = npc.rng(Npc::PERM_ENTITY_CONFIG);
+    if let Some(ref profession) = npc.profession {
+        let economy = npc.home.and_then(|home| {
+            let site = sites.get(home)?.world_site?;
+            index.sites.get(site).trade_information(site.id())
+        });
+
+        let config_asset = humanoid_config(profession);
+
+        let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
+            .with_body(BodyBuilder::Exact(npc.body));
+        EntityInfo::at(pos.0)
+            .with_entity_config(entity_config, Some(config_asset), &mut rng)
+            .with_alignment(if matches!(profession, Profession::Cultist) {
+                comp::Alignment::Enemy
+            } else {
+                comp::Alignment::Npc
+            })
+            .with_economy(economy.as_ref())
+            .with_lazy_loadout(profession_extra_loadout(npc.profession.as_ref()))
+            .with_alias(npc.get_name())
+            .with_agent_mark(profession_agent_mark(npc.profession.as_ref()))
+    } else {
+        let config_asset = match npc.body {
+            Body::BirdLarge(body) => match body.species {
+                comp::bird_large::Species::Phoenix => "common.entity.wild.peaceful.phoenix",
+                comp::bird_large::Species::Cockatrice => "common.entity.wild.aggressive.cockatrice",
+                comp::bird_large::Species::Roc => "common.entity.wild.aggressive.roc",
+                // Wildcard match used here as there is an array above
+                // which limits what species are used
+                _ => unimplemented!(),
+            },
+            _ => unimplemented!(),
+        };
+        let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
+            .with_body(BodyBuilder::Exact(npc.body));
+
+        EntityInfo::at(pos.0)
+            .with_entity_config(entity_config, Some(config_asset), &mut rng)
+            .with_alignment(comp::Alignment::Wild)
+    }
+}
 
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        Read<'a, Time>,
         Read<'a, DeltaTime>,
+        Read<'a, Time>,
+        Read<'a, TimeOfDay>,
         Read<'a, EventBus<ServerEvent>>,
         WriteExpect<'a, RtSim>,
-        ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, Arc<world::World>>,
         ReadExpect<'a, world::IndexOwned>,
+        ReadExpect<'a, SlowJobPool>,
         ReadStorage<'a, comp::Pos>,
         ReadStorage<'a, RtSimEntity>,
+        ReadStorage<'a, RtSimVehicle>,
         WriteStorage<'a, comp::Agent>,
+        ReadStorage<'a, Presence>,
     );
 
     const NAME: &'static str = "rtsim::tick";
@@ -36,114 +205,136 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
+            dt,
             time,
-            _dt,
+            time_of_day,
             server_event_bus,
             mut rtsim,
-            terrain,
             world,
             index,
+            slow_jobs,
             positions,
             rtsim_entities,
+            rtsim_vehicles,
             mut agents,
+            presences,
         ): Self::SystemData,
     ) {
+        let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
-        rtsim.tick += 1;
 
-        // Update unloaded rtsim entities, in groups at a time
-        const TICK_STAGGER: usize = 30;
-        let entities_per_iteration = rtsim.entities.len() / TICK_STAGGER;
-        let mut to_reify = Vec::new();
-        for (id, entity) in rtsim
-            .entities
-            .iter_mut()
-            .skip((rtsim.tick as usize % TICK_STAGGER) * entities_per_iteration)
-            .take(entities_per_iteration)
-            .filter(|(_, e)| !e.is_loaded)
+        // Set up rtsim inputs
         {
-            // Calculating dt ourselves because the dt provided to this fn was since the
-            // last frame, not since the last iteration that these entities acted
-            let dt = (time.0 - entity.last_time_ticked) as f32;
-            entity.last_time_ticked = time.0;
+            let mut data = rtsim.state.data_mut();
 
-            if rtsim
-                .chunks
-                .chunk_at(entity.pos.xy())
-                .map(|c| c.is_loaded)
-                .unwrap_or(false)
-            {
-                to_reify.push(id);
-            } else {
-                // Simulate behaviour
-                if let Some(travel_to) = &entity.controller.travel_to {
-                    // Move towards target at approximate character speed
-                    entity.pos += Vec3::from(
-                        (travel_to.0.xy() - entity.pos.xy())
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::zero)
-                            * entity.get_body().max_speed_approx()
-                            * entity.controller.speed_factor,
-                    ) * dt;
-                }
+            // Update time of day
+            data.time_of_day = *time_of_day;
 
-                if let Some(alt) = world
-                    .sim()
-                    .get_alt_approx(entity.pos.xy().map(|e| e.floor() as i32))
-                {
-                    entity.pos.z = alt;
+            // Update character map (i.e: so that rtsim knows where players are)
+            // TODO: Other entities too like animals? Or do we now care about that?
+            data.npcs.character_map.clear();
+            for (presence, wpos) in (&presences, &positions).join() {
+                if let PresenceKind::Character(character) = &presence.kind {
+                    let chunk_pos = wpos.0.xy().as_().wpos_to_cpos();
+                    data.npcs
+                        .character_map
+                        .entry(chunk_pos)
+                        .or_default()
+                        .push((*character, wpos.0));
                 }
             }
-            entity.tick(&time, &terrain, &world, &index.as_index_ref());
         }
 
-        // Tick entity AI each time if it's loaded
-        for (_, entity) in rtsim.entities.iter_mut().filter(|(_, e)| e.is_loaded) {
-            entity.last_time_ticked = time.0;
-            entity.tick(&time, &terrain, &world, &index.as_index_ref());
+        // Tick rtsim
+        rtsim
+            .state
+            .tick(&world, index.as_index_ref(), *time_of_day, *time, dt.0);
+
+        // Perform a save if required
+        if rtsim
+            .last_saved
+            .map_or(true, |ls| ls.elapsed() > Duration::from_secs(60))
+        {
+            // TODO: Use slow jobs
+            let _ = slow_jobs;
+            rtsim.save(/* &slow_jobs, */ false);
         }
 
-        let mut server_emitter = server_event_bus.emitter();
-        for id in to_reify {
-            rtsim.reify_entity(id);
-            let entity = &rtsim.entities[id];
-            let rtsim_entity = Some(RtSimEntity(id));
+        let chunk_states = rtsim.state.resource::<ChunkStates>();
+        let data = &mut *rtsim.state.data_mut();
 
-            let body = entity.get_body();
-            let spawn_pos = terrain
-                .find_space(entity.pos.map(|e| e.floor() as i32))
-                .map(|e| e as f32)
-                + Vec3::new(0.5, 0.5, body.flying_height());
+        // Load in vehicles
+        for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {
+            let chunk = vehicle.wpos.xy().as_::<i32>().wpos_to_cpos();
 
-            let pos = comp::Pos(spawn_pos);
+            if matches!(vehicle.mode, SimulationMode::Simulated)
+                && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+            {
+                vehicle.mode = SimulationMode::Loaded;
 
-            let event = if let comp::Body::Ship(ship) = body {
-                ServerEvent::CreateShip {
-                    pos,
-                    ship,
-                    mountable: false,
-                    agent: Some(comp::Agent::from_body(&body)),
-                    rtsim_entity,
-                }
-            } else {
-                let entity_config_path = entity.get_entity_config();
-                let mut loadout_rng = entity.loadout_rng();
-                let ad_hoc_loadout = entity.get_adhoc_loadout();
-                // Body is rewritten so that body parameters
-                // are consistent between reifications
-                let entity_config = EntityConfig::from_asset_expect_owned(entity_config_path)
-                    .with_body(BodyBuilder::Exact(body));
+                let mut actor_info = |actor: Actor| {
+                    let npc_id = actor.npc()?;
+                    let npc = data.npcs.npcs.get_mut(npc_id)?;
+                    if matches!(npc.mode, SimulationMode::Simulated) {
+                        npc.mode = SimulationMode::Loaded;
+                        let entity_info =
+                            get_npc_entity_info(npc, &data.sites, index.as_index_ref());
 
-                let mut entity_info = EntityInfo::at(pos.0)
-                    .with_entity_config(entity_config, Some(entity_config_path), &mut loadout_rng)
-                    .with_lazy_loadout(ad_hoc_loadout);
-                // Merchants can be traded with
-                if let Some(economy) = entity.get_trade_info(&world, &index) {
-                    entity_info = entity_info
-                        .with_agent_mark(comp::agent::Mark::Merchant)
-                        .with_economy(&economy);
-                }
-                match NpcData::from_entity_info(entity_info) {
+                        Some(match NpcData::from_entity_info(entity_info) {
+                            NpcData::Data {
+                                pos: _,
+                                stats,
+                                skill_set,
+                                health,
+                                poise,
+                                inventory,
+                                agent,
+                                body,
+                                alignment,
+                                scale,
+                                loot,
+                            } => NpcBuilder::new(stats, body, alignment)
+                                .with_skill_set(skill_set)
+                                .with_health(health)
+                                .with_poise(poise)
+                                .with_inventory(inventory)
+                                .with_agent(agent)
+                                .with_scale(scale)
+                                .with_loot(loot)
+                                .with_rtsim(RtSimEntity(npc_id)),
+                            // EntityConfig can't represent Waypoints at all
+                            // as of now, and if someone will try to spawn
+                            // rtsim waypoint it is definitely error.
+                            NpcData::Waypoint(_) => unimplemented!(),
+                        })
+                    } else {
+                        error!("Npc is loaded but vehicle is unloaded");
+                        None
+                    }
+                };
+
+                emitter.emit(ServerEvent::CreateShip {
+                    pos: comp::Pos(vehicle.wpos),
+                    ship: vehicle.body,
+                    rtsim_entity: Some(RtSimVehicle(vehicle_id)),
+                    driver: vehicle.driver.and_then(&mut actor_info),
+                });
+            }
+        }
+
+        // Load in NPCs
+        for (npc_id, npc) in data.npcs.npcs.iter_mut() {
+            let chunk = npc.wpos.xy().as_::<i32>().wpos_to_cpos();
+
+            // Load the NPC into the world if it's in a loaded chunk and is not already
+            // loaded
+            if matches!(npc.mode, SimulationMode::Simulated)
+                && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+            {
+                npc.mode = SimulationMode::Loaded;
+                let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
+
+                emitter.emit(match NpcData::from_entity_info(entity_info) {
                     NpcData::Data {
                         pos,
                         stats,
@@ -158,38 +349,56 @@ impl<'a> System<'a> for Sys {
                         loot,
                     } => ServerEvent::CreateNpc {
                         pos,
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        agent,
-                        body,
-                        alignment,
-                        scale,
-                        anchor: None,
-                        loot,
-                        rtsim_entity,
-                        projectile: None,
+                        npc: NpcBuilder::new(stats, body, alignment)
+                            .with_skill_set(skill_set)
+                            .with_health(health)
+                            .with_poise(poise)
+                            .with_inventory(inventory)
+                            .with_agent(agent)
+                            .with_scale(scale)
+                            .with_loot(loot)
+                            .with_rtsim(RtSimEntity(npc_id)),
                     },
                     // EntityConfig can't represent Waypoints at all
                     // as of now, and if someone will try to spawn
                     // rtsim waypoint it is definitely error.
                     NpcData::Waypoint(_) => unimplemented!(),
-                }
-            };
-            server_emitter.emit(event);
+                });
+            }
         }
 
-        // Update rtsim with real entity data
-        for (pos, rtsim_entity, agent) in (&positions, &rtsim_entities, &mut agents).join() {
-            rtsim
-                .entities
+        // Synchronise rtsim NPC with entity data
+        for (pos, rtsim_vehicle) in (&positions, &rtsim_vehicles).join() {
+            data.npcs
+                .vehicles
+                .get_mut(rtsim_vehicle.0)
+                .filter(|npc| matches!(npc.mode, SimulationMode::Loaded))
+                .map(|vehicle| {
+                    // Update rtsim NPC state
+                    vehicle.wpos = pos.0;
+                });
+        }
+
+        // Synchronise rtsim NPC with entity data
+        for (pos, rtsim_entity, agent) in
+            (&positions, &rtsim_entities, (&mut agents).maybe()).join()
+        {
+            data.npcs
                 .get_mut(rtsim_entity.0)
-                .filter(|e| e.is_loaded)
-                .map(|entity| {
-                    entity.pos = pos.0;
-                    agent.rtsim_controller = entity.controller.clone();
+                .filter(|npc| matches!(npc.mode, SimulationMode::Loaded))
+                .map(|npc| {
+                    // Update rtsim NPC state
+                    npc.wpos = pos.0;
+
+                    // Update entity state
+                    if let Some(agent) = agent {
+                        agent.rtsim_controller.personality = npc.personality;
+                        agent.rtsim_controller.activity = npc.controller.activity;
+                        agent
+                            .rtsim_controller
+                            .actions
+                            .extend(std::mem::take(&mut npc.controller.actions));
+                    }
                 });
         }
     }

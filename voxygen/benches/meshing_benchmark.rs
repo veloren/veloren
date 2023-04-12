@@ -38,7 +38,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         .map(|pos| {
             (
                 pos,
-                world.generate_chunk(index, pos, || false, None).unwrap(),
+                world
+                    .generate_chunk(index, pos, None, || false, None)
+                    .unwrap(),
             )
         })
         .for_each(|(key, chunk)| {

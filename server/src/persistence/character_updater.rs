@@ -242,7 +242,7 @@ impl CharacterUpdater {
             warn!(
                 "Ignoring request to add pending logout update for character ID {} as there is a \
                  disconnection of all clients in progress",
-                update_data.0
+                update_data.0.0
             );
             return;
         }
@@ -251,7 +251,7 @@ impl CharacterUpdater {
             warn!(
                 "Ignoring request to add pending logout update for character ID {} as there is \
                  already a pending delete for this character",
-                update_data.0
+                update_data.0.0
             );
             return;
         }

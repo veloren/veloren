@@ -9,6 +9,7 @@ pub enum Error {
     StreamErr(StreamError),
     DatabaseErr(rusqlite::Error),
     PersistenceErr(PersistenceError),
+    RtsimError(ron::Error),
     Other(String),
 }
 
@@ -41,6 +42,7 @@ impl Display for Error {
             Self::StreamErr(err) => write!(f, "Stream Error: {}", err),
             Self::DatabaseErr(err) => write!(f, "Database Error: {}", err),
             Self::PersistenceErr(err) => write!(f, "Persistence Error: {}", err),
+            Self::RtsimError(err) => write!(f, "Rtsim Error: {}", err),
             Self::Other(err) => write!(f, "Error: {}", err),
         }
     }

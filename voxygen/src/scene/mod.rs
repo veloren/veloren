@@ -38,7 +38,6 @@ use common::{
     vol::ReadVol,
 };
 use common_base::{prof_span, span};
-use common_net::msg::PresenceKind;
 use common_state::State;
 use comp::item::Reagent;
 use hashbrown::HashMap;
@@ -311,7 +310,7 @@ impl Scene {
         let terrain = Terrain::new(renderer, &data, lod.get_data(), sprite_render_context);
 
         let camera_mode = match client.presence() {
-            Some(PresenceKind::Spectator) => CameraMode::Freefly,
+            Some(comp::PresenceKind::Spectator) => CameraMode::Freefly,
             _ => CameraMode::ThirdPerson,
         };
 
@@ -409,15 +408,23 @@ impl Scene {
                 // when zooming in the distance the camera travelles should be based on the
                 // final distance. This is to make sure the camera travelles the
                 // same distance when zooming in and out
+                let player_scale = client
+                    .state()
+                    .read_component_copied::<comp::Scale>(client.entity())
+                    .map_or(1.0, |s| s.0);
                 if delta < 0.0 {
                     self.camera.zoom_switch(
                         // Thank you Imbris for doing the math
                         delta * (0.05 + self.camera.get_distance() * 0.01) / (1.0 - delta * 0.01),
                         cap,
+                        player_scale,
                     );
                 } else {
-                    self.camera
-                        .zoom_switch(delta * (0.05 + self.camera.get_distance() * 0.01), cap);
+                    self.camera.zoom_switch(
+                        delta * (0.05 + self.camera.get_distance() * 0.01),
+                        cap,
+                        player_scale,
+                    );
                 }
                 true
             },
@@ -526,6 +533,11 @@ impl Scene {
                 .get(scene_data.viewpoint_entity)
                 .map_or(Quaternion::identity(), |ori| ori.to_quat());
 
+            let viewpoint_scale = ecs
+                .read_storage::<comp::Scale>()
+                .get(scene_data.viewpoint_entity)
+                .map_or(1.0, |scale| scale.0);
+
             let (is_humanoid, viewpoint_height, viewpoint_eye_height) = ecs
                 .read_storage::<comp::Body>()
                 .get(scene_data.viewpoint_entity)
@@ -533,7 +545,7 @@ impl Scene {
                     (
                         matches!(b, comp::Body::Humanoid(_)),
                         b.height(),
-                        b.eye_height(),
+                        b.eye_height(1.0), // Scale is applied later
                     )
                 });
 
@@ -602,7 +614,7 @@ impl Scene {
                 let tilt = self.camera.get_orientation().y;
                 let dist = self.camera.get_distance();
 
-                Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6)
+                Vec3::unit_z() * (up * viewpoint_scale - tilt.min(0.0).sin() * dist * 0.6)
             } else {
                 self.figure_mgr
                     .viewpoint_offset(scene_data, scene_data.viewpoint_entity)
@@ -1441,17 +1453,32 @@ impl Scene {
                         z_min,
                         z_max,
                     } => {
+                        let scale = scale.map_or(1.0, |s| s.0);
                         current_entities.insert(entity);
-                        let s = scale.map_or(1.0, |sc| sc.0);
-                        let shape_id = hitboxes.entry(entity).or_insert_with(|| {
-                            self.debug.add_shape(DebugShape::CapsulePrism {
-                                p0: *p0 * s,
-                                p1: *p1 * s,
-                                radius: *radius * s,
-                                height: (*z_max - *z_min) * s,
-                            })
-                        });
-                        let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
+
+                        let shape = DebugShape::CapsulePrism {
+                            p0: *p0 * scale,
+                            p1: *p1 * scale,
+                            radius: *radius * scale,
+                            height: (*z_max - *z_min) * scale,
+                        };
+
+                        // If this shape no longer matches, remove the old one
+                        if let Some(shape_id) = hitboxes.get(&entity) {
+                            if self
+                                .debug
+                                .get_shape(*shape_id)
+                                .map_or(false, |s| s != &shape)
+                            {
+                                self.debug.remove_shape(*shape_id);
+                                hitboxes.remove(&entity);
+                            }
+                        }
+
+                        let shape_id = hitboxes
+                            .entry(entity)
+                            .or_insert_with(|| self.debug.add_shape(shape));
+                        let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min * scale, 0.0];
                         let color = if group == Some(&comp::group::ENEMY) {
                             [1.0, 0.0, 0.0, 0.5]
                         } else if group == Some(&comp::group::NPC) {

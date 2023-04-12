@@ -543,7 +543,8 @@ impl Floor {
     }
 
     fn create_route(&mut self, _ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
-        let heuristic = move |l: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
+        let heuristic =
+            move |l: &Vec2<i32>, _: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
         let neighbors = |l: &Vec2<i32>| {
             let l = *l;
             CARDINALS
@@ -562,12 +563,7 @@ impl Floor {
         // (1) we don't care about DDOS attacks (ruling out SipHash);
         // (2) we don't care about determinism across computers (we could use AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
-        let mut astar = Astar::new(
-            20000,
-            a,
-            heuristic,
-            BuildHasherDefault::<FxHasher64>::default(),
-        );
+        let mut astar = Astar::new(20000, a, BuildHasherDefault::<FxHasher64>::default());
         let path = astar
             .poll(
                 FLOOR_SIZE.product() as usize + 1,

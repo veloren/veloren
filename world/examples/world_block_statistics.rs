@@ -100,7 +100,7 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
             println!("Generating chunk at ({}, {})", x, y);
             let start_time = SystemTime::now();
             if let Ok((chunk, _supplement)) =
-                world.generate_chunk(index.as_index_ref(), Vec2::new(x, y), || false, None)
+                world.generate_chunk(index.as_index_ref(), Vec2::new(x, y), None, || false, None)
             {
                 let end_time = SystemTime::now();
                 // TODO: can kiddo be made to work without the `Float` bound, so we can use

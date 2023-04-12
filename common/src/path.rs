@@ -19,7 +19,7 @@ use vek::*;
 
 #[derive(Clone, Debug)]
 pub struct Path<T> {
-    nodes: Vec<T>,
+    pub nodes: Vec<T>,
 }
 
 impl<T> Default for Path<T> {
@@ -534,7 +534,7 @@ where
         _ => return (None, false),
     };
 
-    let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
+    let heuristic = |pos: &Vec3<i32>, _: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
         const DIRS: [Vec3<i32>; 17] = [
@@ -639,7 +639,7 @@ where
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => Astar::new(25_000, start, heuristic, DefaultHashBuilder::default()),
+        None => Astar::new(25_000, start, DefaultHashBuilder::default()),
         Some(astar) => astar,
     };
 

@@ -38,6 +38,8 @@ pub mod loot_owner;
 #[cfg(not(target_arch = "wasm32"))] mod player;
 #[cfg(not(target_arch = "wasm32"))] pub mod poise;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod presence;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod projectile;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod shockwave;
@@ -71,9 +73,10 @@ pub use self::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
         ModifierKind,
     },
-    character_state::{CharacterState, StateUpdate},
+    character_state::{CharacterActivity, CharacterState, StateUpdate},
     chat::{
-        ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
+        ChatMode, ChatMsg, ChatType, Content, Faction, LocalizationArg, SpeechBubble,
+        SpeechBubbleType, UnresolvedChatMsg,
     },
     combo::Combo,
     controller::{
@@ -107,6 +110,7 @@ pub use self::{
     player::DisconnectReason,
     player::{AliasError, Player, MAX_ALIAS_LEN},
     poise::{Poise, PoiseChange, PoiseState},
+    presence::{Presence, PresenceKind},
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},
     skillset::{

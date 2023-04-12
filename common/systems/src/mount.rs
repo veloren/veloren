@@ -1,5 +1,5 @@
 use common::{
-    comp::{Body, Controller, InputKind, Ori, Pos, Vel},
+    comp::{Body, ControlAction, Controller, InputKind, Ori, Pos, Scale, Vel},
     link::Is,
     mounting::Mount,
     uid::UidAllocator,
@@ -24,6 +24,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         ReadStorage<'a, Body>,
+        ReadStorage<'a, Scale>,
     );
 
     const NAME: &'static str = "mount";
@@ -41,22 +42,24 @@ impl<'a> System<'a> for Sys {
             mut velocities,
             mut orientations,
             bodies,
+            scales,
         ): Self::SystemData,
     ) {
         // For each mount...
         for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
             // ...find the rider...
-            let Some((inputs, queued_inputs, rider)) = uid_allocator
+            let Some((inputs, actions, rider)) = uid_allocator
                 .retrieve_entity_internal(is_mount.rider.id())
                 .and_then(|rider| {
                     controllers
                         .get_mut(rider)
                         .map(|c| {
-                            let queued_inputs = c.queued_inputs
-                                // TODO: Formalise ways to pass inputs to mounts
-                                .drain_filter(|i, _| matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll))
-                                .collect();
-                            (c.inputs.clone(), queued_inputs, rider)
+                            let actions = c.actions.drain_filter(|action| match action {
+                                ControlAction::StartInput { input: i, .. }
+                                | ControlAction::CancelInput(i) => matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll),
+                                _ => false
+                            }).collect();
+                            (c.inputs.clone(), actions, rider)
                         })
                 })
             else { continue };
@@ -68,18 +71,17 @@ impl<'a> System<'a> for Sys {
             if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
                 let mounter_body = bodies.get(rider);
                 let mounting_offset = body.map_or(Vec3::unit_z(), Body::mount_offset)
-                    + mounter_body.map_or(Vec3::zero(), Body::rider_offset);
+                    * scales.get(entity).map_or(1.0, |s| s.0)
+                    + mounter_body.map_or(Vec3::zero(), Body::rider_offset)
+                        * scales.get(rider).map_or(1.0, |s| s.0);
                 let _ = positions.insert(rider, Pos(pos.0 + ori.to_quat() * mounting_offset));
                 let _ = orientations.insert(rider, ori);
                 let _ = velocities.insert(rider, vel);
             }
             // ...and apply the rider's inputs to the mount's controller.
             if let Some(controller) = controllers.get_mut(entity) {
-                *controller = Controller {
-                    inputs,
-                    queued_inputs,
-                    ..Default::default()
-                }
+                controller.inputs = inputs;
+                controller.actions = actions;
             }
         }
     }

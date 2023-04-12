@@ -69,13 +69,14 @@ impl<'a> System<'a> for Sys {
         let mut rng = rand::thread_rng();
 
         // Attacks
-        for (attacker, uid, pos, ori, melee_attack, body) in (
+        for (attacker, uid, pos, ori, melee_attack, body, scale) in (
             &read_data.entities,
             &read_data.uids,
             &read_data.positions,
             &read_data.orientations,
             &mut melee_attacks,
             &read_data.bodies,
+            read_data.scales.maybe(),
         )
             .join()
         {
@@ -88,7 +89,7 @@ impl<'a> System<'a> for Sys {
             melee_attack.applied = true;
 
             // Scales
-            let eye_pos = pos.0 + Vec3::unit_z() * body.eye_height();
+            let eye_pos = pos.0 + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0));
             let scale = read_data.scales.get(attacker).map_or(1.0, |s| s.0);
             let height = body.height() * scale;
             // TODO: use Capsule Prisms instead of Cylinders

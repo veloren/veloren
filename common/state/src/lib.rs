@@ -6,4 +6,4 @@ mod build_areas;
 mod state;
 // TODO: breakup state module and remove glob
 pub use build_areas::{BuildAreaError, BuildAreas};
-pub use state::{BlockChange, State, TerrainChanges};
+pub use state::{BlockChange, BlockDiff, State, TerrainChanges};

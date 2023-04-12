@@ -1,24 +1,22 @@
 use crate::{
-    client::Client, events::player::handle_exit_ingame, persistence::PersistedComponents, sys,
-    CharacterUpdater, Server, StateExt,
+    client::Client, events::player::handle_exit_ingame, persistence::PersistedComponents,
+    presence::RepositionOnChunkLoad, sys, CharacterUpdater, Server, StateExt,
 };
 use common::{
     character::CharacterId,
     comp::{
         self,
-        agent::pid_coefficients,
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        shockwave, Agent, Alignment, Anchor, BehaviorCapability, Body, Health, Inventory, ItemDrop,
-        LightEmitter, Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats,
-        TradingBehavior, Vel, WaypointArea,
+        shockwave, Alignment, BehaviorCapability, Body, ItemDrop, LightEmitter, Object, Ori, Pos,
+        Projectile, TradingBehavior, Vel, WaypointArea,
     },
-    event::{EventBus, UpdateCharacterMetadata},
-    lottery::LootSpec,
+    event::{EventBus, NpcBuilder, UpdateCharacterMetadata},
+    mounting::Mounting,
     outcome::Outcome,
     resources::{Secs, Time},
-    rtsim::RtSimEntity,
+    rtsim::RtSimVehicle,
     uid::Uid,
     util::Dir,
     ViewDistances,
@@ -91,63 +89,56 @@ pub fn handle_loaded_character_data(
     server.notify_client(entity, ServerGeneral::CharacterDataLoadResult(Ok(metadata)));
 }
 
-pub fn handle_create_npc(
-    server: &mut Server,
-    pos: Pos,
-    stats: Stats,
-    skill_set: SkillSet,
-    health: Option<Health>,
-    poise: Poise,
-    inventory: Inventory,
-    body: Body,
-    agent: impl Into<Option<Agent>>,
-    alignment: Alignment,
-    scale: Scale,
-    loot: LootSpec<String>,
-    home_chunk: Option<Anchor>,
-    rtsim_entity: Option<RtSimEntity>,
-    projectile: Option<Projectile>,
-) {
+pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> EcsEntity {
     let entity = server
         .state
-        .create_npc(pos, stats, skill_set, health, poise, inventory, body)
-        .with(scale);
+        .create_npc(
+            pos,
+            npc.stats,
+            npc.skill_set,
+            npc.health,
+            npc.poise,
+            npc.inventory,
+            npc.body,
+        )
+        .with(npc.scale);
 
-    let mut agent = agent.into();
-    if let Some(agent) = &mut agent {
-        if let Alignment::Owned(_) = &alignment {
+    if let Some(agent) = &mut npc.agent {
+        if let Alignment::Owned(_) = &npc.alignment {
             agent.behavior.allow(BehaviorCapability::TRADE);
             agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
         }
     }
 
-    let entity = entity.with(alignment);
+    let entity = entity.with(npc.alignment);
 
-    let entity = if let Some(agent) = agent {
+    let entity = if let Some(agent) = npc.agent {
         entity.with(agent)
     } else {
         entity
     };
 
-    let entity = if let Some(drop_item) = loot.to_item() {
+    let entity = if let Some(drop_item) = npc.loot.to_item() {
         entity.with(ItemDrop(drop_item))
     } else {
         entity
     };
 
-    let entity = if let Some(home_chunk) = home_chunk {
+    let entity = if let Some(home_chunk) = npc.anchor {
         entity.with(home_chunk)
     } else {
         entity
     };
 
-    let entity = if let Some(rtsim_entity) = rtsim_entity {
-        entity.with(rtsim_entity)
+    let entity = if let Some(rtsim_entity) = npc.rtsim_entity {
+        entity.with(rtsim_entity).with(RepositionOnChunkLoad {
+            needs_ground: false,
+        })
     } else {
         entity
     };
 
-    let entity = if let Some(projectile) = projectile {
+    let entity = if let Some(projectile) = npc.projectile {
         entity.with(projectile)
     } else {
         entity
@@ -156,7 +147,7 @@ pub fn handle_create_npc(
     let new_entity = entity.build();
 
     // Add to group system if a pet
-    if let comp::Alignment::Owned(owner_uid) = alignment {
+    if let comp::Alignment::Owned(owner_uid) = npc.alignment {
         let state = server.state();
         let clients = state.ecs().read_storage::<Client>();
         let uids = state.ecs().read_storage::<Uid>();
@@ -187,7 +178,7 @@ pub fn handle_create_npc(
                 },
             );
         }
-    } else if let Some(group) = match alignment {
+    } else if let Some(group) = match npc.alignment {
         Alignment::Wild => None,
         Alignment::Passive => None,
         Alignment::Enemy => Some(comp::group::ENEMY),
@@ -196,19 +187,22 @@ pub fn handle_create_npc(
     } {
         let _ = server.state.ecs().write_storage().insert(new_entity, group);
     }
+
+    new_entity
 }
 
 pub fn handle_create_ship(
     server: &mut Server,
     pos: Pos,
     ship: comp::ship::Body,
-    mountable: bool,
-    agent: Option<Agent>,
-    rtsim_entity: Option<RtSimEntity>,
+    rtsim_vehicle: Option<RtSimVehicle>,
+    driver: Option<NpcBuilder>,
+    passengers: Vec<NpcBuilder>,
 ) {
     let mut entity = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider(), mountable);
+        .create_ship(pos, ship, |ship| ship.make_collider());
+    /*
     if let Some(mut agent) = agent {
         let (kp, ki, kd) = pid_coefficients(&Body::Ship(ship));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
@@ -216,10 +210,35 @@ pub fn handle_create_ship(
             agent.with_position_pid_controller(PidController::new(kp, ki, kd, pos.0, 0.0, pure_z));
         entity = entity.with(agent);
     }
-    if let Some(rtsim_entity) = rtsim_entity {
-        entity = entity.with(rtsim_entity);
+    */
+    if let Some(rtsim_vehicle) = rtsim_vehicle {
+        entity = entity.with(rtsim_vehicle);
     }
-    entity.build();
+    let entity = entity.build();
+
+    if let Some(driver) = driver {
+        let npc_entity = handle_create_npc(server, pos, driver);
+
+        let uids = server.state.ecs().read_storage::<Uid>();
+        if let (Some(rider_uid), Some(mount_uid)) =
+            (uids.get(npc_entity).copied(), uids.get(entity).copied())
+        {
+            drop(uids);
+            server
+                .state
+                .link(Mounting {
+                    mount: mount_uid,
+                    rider: rider_uid,
+                })
+                .expect("Failed to link driver to ship");
+        } else {
+            panic!("Couldn't get Uid from newly created ship and npc");
+        }
+    }
+
+    for passenger in passengers {
+        handle_create_npc(server, Pos(pos.0 + Vec3::unit_z() * 5.0), passenger);
+    }
 }
 
 pub fn handle_shoot(

@@ -19,10 +19,11 @@ use std::{borrow::Cow, io};
 use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher, SharedString};
 use tracing::warn;
 // Re-export because I don't like prefix
+use common::comp::{Content, LocalizationArg};
 use common_assets as assets;
 
 // Re-export for argument creation
-pub use fluent::fluent_args;
+pub use fluent::{fluent_args, FluentValue};
 pub use fluent_bundle::FluentArgs;
 
 /// The reference language, aka the more up-to-date localization data.
@@ -116,7 +117,9 @@ impl Language {
         let msg = bundle.get_message(key)?;
         let mut attrs = msg.attributes();
 
-        if attrs.len() != 0 {
+        let mut errs = Vec::new();
+
+        let msg = if attrs.len() != 0 {
             let idx = usize::from(seed) % attrs.len();
             // unwrap is ok here, because idx is bound to attrs.len()
             // by using modulo operator.
@@ -134,16 +137,17 @@ impl Language {
             // * len = 0
             // * no matter what seed is, we return None in code above
             let variation = attrs.nth(idx).unwrap();
-            let mut errs = Vec::new();
-            let msg = bundle.format_pattern(variation.value(), args, &mut errs);
-            for err in errs {
-                tracing::error!("err: {err} for {key}");
-            }
-
-            Some(msg)
+            bundle.format_pattern(variation.value(), args, &mut errs)
         } else {
-            None
+            // Fall back to single message if there are no attributes
+            bundle.format_pattern(msg.value()?, args, &mut errs)
+        };
+
+        for err in errs {
+            tracing::error!("err: {err} for {key}");
         }
+
+        Some(msg)
     }
 }
 
@@ -326,6 +330,47 @@ impl LocalizationGuard {
                     .as_ref()
                     .and_then(|fb| fb.try_variation(key, seed, Some(args)))
             })
+    }
+
+    /// Localize the given content.
+    pub fn get_content(&self, content: &Content) -> String {
+        // On error, produces the localisation but with the missing key inline
+        fn get_content_inner(lang: &Language, content: &Content) -> Result<String, String> {
+            match content {
+                Content::Plain(text) => Ok(text.clone()),
+                Content::Localized { key, seed, args } => {
+                    let mut is_err = false;
+                    let mut fargs = FluentArgs::new();
+                    for (k, arg) in args {
+                        fargs.set(k, match arg {
+                            LocalizationArg::Content(content) => FluentValue::String(
+                                get_content_inner(lang, content)
+                                    .unwrap_or_else(|broken_text| {
+                                        is_err = true;
+                                        broken_text
+                                    })
+                                    .into(),
+                            ),
+                            LocalizationArg::Nat(n) => FluentValue::from(n),
+                        });
+                    }
+
+                    lang.try_variation(key, *seed, Some(&fargs))
+                        .map(Cow::into_owned)
+                        .ok_or_else(|| key.clone())
+                        .and_then(|text| if is_err { Err(text) } else { Ok(text) })
+                },
+            }
+        }
+
+        match get_content_inner(&self.active, content) {
+            Ok(text) => text,
+            // If part of the localisation failed, use the fallback language
+            Err(broken_text) => self.fallback.as_ref()
+                .and_then(|fb| get_content_inner(fb, content).ok())
+                // If all else fails, localise with the active language, but with the missing key included inline
+                .unwrap_or(broken_text),
+        }
     }
 
     /// Get a localized text from the variation of given key with given

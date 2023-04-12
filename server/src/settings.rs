@@ -17,6 +17,7 @@ use chrono::Utc;
 use common::{
     calendar::{Calendar, CalendarEvent},
     resources::BattleMode,
+    rtsim::WorldSettings,
 };
 use core::time::Duration;
 use portpicker::pick_unused_port;
@@ -184,6 +185,9 @@ pub struct Settings {
     pub gameplay: GameplaySettings,
     #[serde(default)]
     pub moderation: ModerationSettings,
+
+    #[serde(default)]
+    pub world: WorldSettings,
 }
 
 impl Default for Settings {
@@ -213,6 +217,7 @@ impl Default for Settings {
             experimental_terrain_persistence: false,
             gameplay: GameplaySettings::default(),
             moderation: ModerationSettings::default(),
+            world: WorldSettings::default(),
         }
     }
 }
@@ -292,7 +297,6 @@ impl Settings {
             },
             server_name: "Singleplayer".to_owned(),
             max_players: 100,
-            start_time: 9.0 * 3600.0,
             max_view_distance: None,
             client_timeout: Duration::from_secs(180),
             ..load // Fill in remaining fields from server_settings.ron.

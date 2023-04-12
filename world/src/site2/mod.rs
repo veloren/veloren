@@ -3,10 +3,11 @@ pub mod plot;
 mod tile;
 pub mod util;
 
-use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
+use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TILE_SIZE};
 pub use self::{
     gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
     plot::{Plot, PlotKind},
+    tile::TileKind,
     util::Dir,
 };
 use crate::{
@@ -17,6 +18,8 @@ use crate::{
 };
 use common::{
     astar::Astar,
+    comp::Alignment,
+    generation::EntityInfo,
     lottery::Lottery,
     spiral::Spiral2d,
     store::{Id, Store},
@@ -40,12 +43,13 @@ fn reseed(rng: &mut impl Rng) -> impl Rng { ChaChaRng::from_seed(rng.gen::<[u8; 
 
 #[derive(Default)]
 pub struct Site {
-    pub(crate) origin: Vec2<i32>,
+    pub origin: Vec2<i32>,
     name: String,
-    tiles: TileGrid,
-    plots: Store<Plot>,
-    plazas: Vec<Id<Plot>>,
-    roads: Vec<Id<Plot>>,
+    // NOTE: Do we want these to be public?
+    pub tiles: TileGrid,
+    pub plots: Store<Plot>,
+    pub plazas: Vec<Id<Plot>>,
+    pub roads: Vec<Id<Plot>>,
 }
 
 impl Site {
@@ -109,8 +113,8 @@ impl Site {
     pub fn bounds(&self) -> Aabr<i32> {
         let border = 1;
         Aabr {
-            min: self.origin + self.tile_wpos(self.tiles.bounds.min - border),
-            max: self.origin + self.tile_wpos(self.tiles.bounds.max + 1 + border),
+            min: self.tile_wpos(self.tiles.bounds.min - border),
+            max: self.tile_wpos(self.tiles.bounds.max + 1 + border),
         }
     }
 
@@ -142,7 +146,8 @@ impl Site {
     ) -> Option<Id<Plot>> {
         const MAX_ITERS: usize = 4096;
         let range = -(w as i32) / 2..w as i32 - (w as i32 + 1) / 2;
-        let heuristic = |tile: &Vec2<i32>| {
+        let heuristic = |(tile, dir): &(Vec2<i32>, Vec2<i32>),
+                         (_, old_dir): &(Vec2<i32>, Vec2<i32>)| {
             let mut max_cost = (tile.distance_squared(b) as f32).sqrt();
             for y in range.clone() {
                 for x in range.clone() {
@@ -153,35 +158,35 @@ impl Site {
                     }
                 }
             }
-            max_cost
+            max_cost + (dir != old_dir) as i32 as f32 * 35.0
         };
-        let path = Astar::new(MAX_ITERS, a, heuristic, DefaultHashBuilder::default())
+        let path = Astar::new(MAX_ITERS, (a, Vec2::zero()), DefaultHashBuilder::default())
             .poll(
                 MAX_ITERS,
                 &heuristic,
-                |tile| {
+                |(tile, _)| {
                     let tile = *tile;
-                    CARDINALS.iter().map(move |dir| tile + *dir)
+                    CARDINALS.iter().map(move |dir| (tile + *dir, *dir))
                 },
-                |a, b| {
+                |(a, _), (b, _)| {
                     let alt_a = land.get_alt_approx(self.tile_center_wpos(*a));
                     let alt_b = land.get_alt_approx(self.tile_center_wpos(*b));
                     (alt_a - alt_b).abs() / TILE_SIZE as f32
                 },
-                |tile| *tile == b,
+                |(tile, _)| *tile == b,
             )
             .into_path()?;
 
         let plot = self.create_plot(Plot {
-            kind: PlotKind::Road(path.clone()),
+            kind: PlotKind::Road(path.iter().map(|(tile, _)| *tile).collect()),
             root_tile: a,
-            tiles: path.clone().into_iter().collect(),
+            tiles: path.iter().map(|(tile, _)| *tile).collect(),
             seed: rng.gen(),
         });
 
         self.roads.push(plot);
 
-        for (i, &tile) in path.iter().enumerate() {
+        for (i, (tile, _)) in path.iter().enumerate() {
             for y in range.clone() {
                 for x in range.clone() {
                     let tile = tile + Vec2::new(x, y);
@@ -336,8 +341,17 @@ impl Site {
                             .map(|tile| tile.kind = TileKind::Hazard(kind));
                     }
                 }
-                if let Some((dist, _, Path { width }, _)) = land.get_nearest_path(wpos) {
-                    if dist < 2.0 * width {
+                if let Some((_, path_wpos, Path { width }, _)) = land.get_nearest_path(wpos) {
+                    let tile_aabb = Aabr {
+                        min: self.tile_wpos(tile),
+                        max: self.tile_wpos(tile + 1) - 1,
+                    };
+
+                    if (tile_aabb
+                        .projected_point(path_wpos.as_())
+                        .distance_squared(path_wpos.as_()) as f32)
+                        < width.powi(2)
+                    {
                         self.tiles
                             .get_mut(tile)
                             .map(|tile| tile.kind = TileKind::Path);
@@ -1074,9 +1088,10 @@ impl Site {
         self.origin + tile * TILE_SIZE as i32 + TILE_SIZE as i32 / 2
     }
 
-    pub fn render_tile(&self, canvas: &mut Canvas, _dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {
+    pub fn render_tile(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {
         let tile = self.tiles.get(tpos);
         let twpos = self.tile_wpos(tpos);
+        let twpos_center = self.tile_center_wpos(tpos);
         let border = TILE_SIZE as i32;
         let cols = (-border..TILE_SIZE as i32 + border).flat_map(|y| {
             (-border..TILE_SIZE as i32 + border)
@@ -1109,11 +1124,9 @@ impl Site {
                         let sub_surface_color = canvas
                             .col(wpos2d)
                             .map_or(Rgb::zero(), |col| col.sub_surface_color * 0.5);
-                        let mut underground = true;
                         for z in -8..6 {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
                                 if b.kind() == BlockKind::Snow {
-                                    underground = false;
                                     b.into_vacant()
                                 } else if b.is_filled() {
                                     if b.is_terrain() {
@@ -1125,10 +1138,22 @@ impl Site {
                                         b
                                     }
                                 } else {
-                                    underground = false;
                                     b.into_vacant()
                                 }
                             })
+                        }
+                        if wpos2d == twpos_center && dynamic_rng.gen_bool(0.01) {
+                            let spec = [
+                                "common.entity.wild.peaceful.cat",
+                                "common.entity.wild.peaceful.dog",
+                            ]
+                            .choose(dynamic_rng)
+                            .unwrap();
+                            canvas.spawn(
+                                EntityInfo::at(Vec3::new(wpos2d.x, wpos2d.y, alt).as_())
+                                    .with_asset_expect(spec, dynamic_rng)
+                                    .with_alignment(Alignment::Tame),
+                            );
                         }
                     }
                 });

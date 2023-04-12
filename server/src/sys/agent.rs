@@ -1,12 +1,10 @@
 pub mod behavior_tree;
 pub use server_agent::{action_nodes, attack, consts, data, util};
+use vek::Vec3;
 
-use crate::{
-    rtsim::RtSim,
-    sys::agent::{
-        behavior_tree::{BehaviorData, BehaviorTree},
-        data::{AgentData, ReadData},
-    },
+use crate::sys::agent::{
+    behavior_tree::{BehaviorData, BehaviorTree},
+    data::{AgentData, ReadData},
 };
 use common::{
     comp::{
@@ -15,13 +13,12 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     path::TraversalConfig,
-    rtsim::RtSimEvent,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::thread_rng;
 use rayon::iter::ParallelIterator;
-use specs::{Join, ParJoin, Read, WriteExpect, WriteStorage};
+use specs::{saveload::MarkerAllocator, Join, ParJoin, Read, WriteStorage};
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -32,7 +29,6 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
-        WriteExpect<'a, RtSim>,
     );
 
     const NAME: &'static str = "agent";
@@ -41,9 +37,8 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         job: &mut Job<Self>,
-        (read_data, event_bus, mut agents, mut controllers, mut rtsim): Self::SystemData,
+        (read_data, event_bus, mut agents, mut controllers): Self::SystemData,
     ) {
-        let rtsim = &mut *rtsim;
         job.cpu_stats.measure(ParMode::Rayon);
 
         (
@@ -71,7 +66,9 @@ impl<'a> System<'a> for Sys {
             &mut controllers,
             read_data.light_emitter.maybe(),
             read_data.groups.maybe(),
+            read_data.rtsim_entities.maybe(),
             !&read_data.is_mounts,
+            read_data.is_riders.maybe(),
         )
             .par_join()
             .for_each_init(
@@ -93,10 +90,23 @@ impl<'a> System<'a> for Sys {
                     controller,
                     light_emitter,
                     group,
+                    rtsim_entity,
                     _,
+                    is_rider,
                 )| {
                     let mut event_emitter = event_bus.emitter();
                     let mut rng = thread_rng();
+
+                    // The entity that is moving, if riding it's the mount, otherwise it's itself
+                    let moving_entity = is_rider
+                        .and_then(|is_rider| {
+                            read_data
+                                .uid_allocator
+                                .retrieve_entity_internal(is_rider.mount.into())
+                        })
+                        .unwrap_or(entity);
+
+                    let moving_body = read_data.bodies.get(moving_entity);
 
                     // Hack, replace with better system when groups are more sophisticated
                     // Override alignment if in a group unless entity is owned already
@@ -140,8 +150,22 @@ impl<'a> System<'a> for Sys {
                         Some(CharacterState::GlideWield(_) | CharacterState::Glide(_))
                     ) && physics_state.on_ground.is_none();
 
-                    if let Some(pid) = agent.position_pid_controller.as_mut() {
+                    if let Some((kp, ki, kd)) = moving_body.and_then(comp::agent::pid_coefficients)
+                    {
+                        if agent
+                            .position_pid_controller
+                            .as_ref()
+                            .map_or(false, |pid| (pid.kp, pid.ki, pid.kd) != (kp, ki, kd))
+                        {
+                            agent.position_pid_controller = None;
+                        }
+                        let pid = agent.position_pid_controller.get_or_insert_with(|| {
+                            fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
+                            comp::PidController::new(kp, ki, kd, pos.0, 0.0, pure_z)
+                        });
                         pid.add_measurement(read_data.time.0, pos.0);
+                    } else {
+                        agent.position_pid_controller = None;
                     }
 
                     // This controls how picky NPCs are about their pathfinding.
@@ -150,23 +174,19 @@ impl<'a> System<'a> for Sys {
                     // (especially since they would otherwise get stuck on
                     // obstacles that smaller entities would not).
                     let node_tolerance = scale * 1.5;
-                    let slow_factor = body.map_or(0.0, |b| b.base_accel() / 250.0).min(1.0);
+                    let slow_factor = moving_body.map_or(0.0, |b| b.base_accel() / 250.0).min(1.0);
                     let traversal_config = TraversalConfig {
                         node_tolerance,
                         slow_factor,
                         on_ground: physics_state.on_ground.is_some(),
                         in_liquid: physics_state.in_liquid().is_some(),
                         min_tgt_dist: 1.0,
-                        can_climb: body.map_or(false, Body::can_climb),
-                        can_fly: body.map_or(false, |b| b.fly_thrust().is_some()),
+                        can_climb: moving_body.map_or(false, Body::can_climb),
+                        can_fly: moving_body.map_or(false, |b| b.fly_thrust().is_some()),
                     };
                     let health_fraction = health.map_or(1.0, Health::fraction);
-                    let rtsim_entity = read_data
-                        .rtsim_entities
-                        .get(entity)
-                        .and_then(|rtsim_ent| rtsim.get_entity(rtsim_ent.0));
 
-                    if traversal_config.can_fly && matches!(body, Some(Body::Ship(_))) {
+                    if traversal_config.can_fly && matches!(moving_body, Some(Body::Ship(_))) {
                         // hack (kinda): Never turn off flight airships
                         // since it results in stuttering and falling back to the ground.
                         //
@@ -178,6 +198,7 @@ impl<'a> System<'a> for Sys {
                     // Package all this agent's data into a convenient struct
                     let data = AgentData {
                         entity: &entity,
+                        rtsim_entity,
                         uid,
                         pos,
                         vel,
@@ -226,7 +247,6 @@ impl<'a> System<'a> for Sys {
                     // inputs.
                     let mut behavior_data = BehaviorData {
                         agent,
-                        rtsim_entity,
                         agent_data: data,
                         read_data: &read_data,
                         event_emitter: &mut event_emitter,
@@ -240,23 +260,5 @@ impl<'a> System<'a> for Sys {
                     debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
                 },
             );
-        for (agent, rtsim_entity) in (&mut agents, &read_data.rtsim_entities).join() {
-            // Entity must be loaded in as it has an agent component :)
-            // React to all events in the controller
-            for event in core::mem::take(&mut agent.rtsim_controller.events) {
-                match event {
-                    RtSimEvent::AddMemory(memory) => {
-                        rtsim.insert_entity_memory(rtsim_entity.0, memory.clone());
-                    },
-                    RtSimEvent::ForgetEnemy(name) => {
-                        rtsim.forget_entity_enemy(rtsim_entity.0, &name);
-                    },
-                    RtSimEvent::SetMood(memory) => {
-                        rtsim.set_entity_mood(rtsim_entity.0, memory.clone());
-                    },
-                    RtSimEvent::PrintMemories => {},
-                }
-            }
-        }
     }
 }

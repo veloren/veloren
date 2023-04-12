@@ -62,8 +62,7 @@ use crate::{
     location::Locations,
     login_provider::LoginProvider,
     persistence::PersistedComponents,
-    presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
-    rtsim::RtSim,
+    presence::{RegionSubscription, RepositionOnChunkLoad},
     state_ext::StateExt,
     sys::sentinel::DeletedEntities,
 };
@@ -78,7 +77,7 @@ use common::{
     comp,
     event::{EventBus, ServerEvent},
     resources::{BattleMode, GameMode, Time, TimeOfDay},
-    rtsim::RtSimEntity,
+    rtsim::{RtSimEntity, RtSimVehicle},
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::{TerrainChunk, TerrainChunkSize},
@@ -89,7 +88,7 @@ use common_net::{
     msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerMsg},
     sync::WorldSyncExt,
 };
-use common_state::{BuildAreas, State};
+use common_state::{BlockDiff, BuildAreas, State};
 use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
@@ -341,6 +340,7 @@ impl Server {
             pool.configure("CHUNK_DROP", |_n| 1);
             pool.configure("CHUNK_GENERATOR", |n| n / 2 + n / 4);
             pool.configure("CHUNK_SERIALIZER", |n| n / 2);
+            pool.configure("RTSIM_SAVE", |_| 1);
         }
         state
             .ecs_mut()
@@ -376,13 +376,15 @@ impl Server {
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
-        state.ecs_mut().register::<Presence>();
+        state.ecs_mut().register::<comp::Presence>();
         state.ecs_mut().register::<wiring::WiringElement>();
         state.ecs_mut().register::<wiring::Circuit>();
         state.ecs_mut().register::<Anchor>();
         state.ecs_mut().register::<comp::Pet>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
+        state.ecs_mut().register::<RtSimEntity>();
+        state.ecs_mut().register::<RtSimVehicle>();
 
         // Load banned words list
         let banned_words = settings.moderation.load_banned_words(data_dir);
@@ -455,7 +457,7 @@ impl Server {
         state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.
-        state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
+        state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.world.start_time;
 
         // Register trackers
         sys::sentinel::UpdateTrackers::register(state.ecs_mut());
@@ -547,14 +549,26 @@ impl Server {
 
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
-        // Initiate real-time world simulation
+        // Init rtsim, loading it from disk if possible
         #[cfg(feature = "worldgen")]
         {
-            rtsim::init(&mut state, &world, index.as_index_ref());
+            match rtsim::RtSim::new(
+                &settings.world,
+                index.as_index_ref(),
+                &world,
+                data_dir.to_owned(),
+            ) {
+                Ok(rtsim) => {
+                    state.ecs_mut().insert(rtsim.state().data().time_of_day);
+                    state.ecs_mut().insert(rtsim);
+                },
+                Err(err) => {
+                    error!("Failed to load rtsim: {}", err);
+                    return Err(Error::RtsimError(err));
+                },
+            }
             weather::init(&mut state, &world);
         }
-        #[cfg(not(feature = "worldgen"))]
-        rtsim::init(&mut state);
 
         let server_constants = ServerConstants {
             day_cycle_coefficient: 1440.0 / settings.day_length,
@@ -684,6 +698,20 @@ impl Server {
 
         let before_state_tick = Instant::now();
 
+        fn on_block_update(ecs: &specs::World, changes: Vec<BlockDiff>) {
+            // When a resource block updates, inform rtsim
+            if changes
+                .iter()
+                .any(|c| c.old.get_rtsim_resource() != c.new.get_rtsim_resource())
+            {
+                ecs.write_resource::<rtsim::RtSim>().hook_block_update(
+                    &ecs.read_resource::<Arc<world::World>>(),
+                    ecs.read_resource::<world::IndexOwned>().as_index_ref(),
+                    changes,
+                );
+            }
+        }
+
         // 4) Tick the server's LocalState.
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // in sys/terrain.rs
@@ -703,6 +731,7 @@ impl Server {
             false,
             Some(&mut state_tick_metrics),
             &self.server_constants,
+            on_block_update,
         );
 
         let before_handle_events = Instant::now();
@@ -726,7 +755,7 @@ impl Server {
         self.state.update_region_map();
         // NOTE: apply_terrain_changes sends the *new* value since it is not being
         // synchronized during the tick.
-        self.state.apply_terrain_changes();
+        self.state.apply_terrain_changes(on_block_update);
 
         let before_sync = Instant::now();
 
@@ -781,7 +810,7 @@ impl Server {
             (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
-                !&self.state.ecs().read_storage::<Presence>(),
+                !&self.state.ecs().read_storage::<comp::Presence>(),
                 self.state.ecs().read_storage::<Anchor>().maybe(),
             )
                 .join()
@@ -804,21 +833,26 @@ impl Server {
                 .collect::<Vec<_>>()
         };
 
-        for entity in to_delete {
-            // Assimilate entities that are part of the real-time world simulation
-            if let Some(rtsim_entity) = self
-                .state
-                .ecs()
-                .read_storage::<RtSimEntity>()
-                .get(entity)
-                .copied()
-            {
-                self.state
-                    .ecs()
-                    .write_resource::<RtSim>()
-                    .assimilate_entity(rtsim_entity.0);
-            }
+        {
+            let mut rtsim = self.state.ecs().write_resource::<rtsim::RtSim>();
+            let rtsim_entities = self.state.ecs().read_storage::<RtSimEntity>();
+            let rtsim_vehicles = self.state.ecs().read_storage::<RtSimVehicle>();
 
+            // Assimilate entities that are part of the real-time world simulation
+            for entity in &to_delete {
+                #[cfg(feature = "worldgen")]
+                if let Some(rtsim_entity) = rtsim_entities.get(*entity) {
+                    rtsim.hook_rtsim_entity_unload(*rtsim_entity);
+                }
+                #[cfg(feature = "worldgen")]
+                if let Some(rtsim_vehicle) = rtsim_vehicles.get(*entity) {
+                    rtsim.hook_rtsim_vehicle_unload(*rtsim_vehicle);
+                }
+            }
+        }
+
+        // Actually perform entity deletion
+        for entity in to_delete {
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");
             }
@@ -969,6 +1003,10 @@ impl Server {
                 let mut chunk_generator = ecs.write_resource::<ChunkGenerator>();
                 let client = ecs.read_storage::<Client>();
                 let mut terrain = ecs.write_resource::<common::terrain::TerrainGrid>();
+                #[cfg(feature = "worldgen")]
+                let rtsim = ecs.read_resource::<rtsim::RtSim>();
+                #[cfg(not(feature = "worldgen"))]
+                let rtsim = ();
 
                 // Cancel all pending chunks.
                 chunk_generator.cancel_all();
@@ -984,6 +1022,7 @@ impl Server {
                             pos,
                             &slow_jobs,
                             Arc::clone(world),
+                            &rtsim,
                             index.clone(),
                             (
                                 *ecs.read_resource::<TimeOfDay>(),
@@ -1147,11 +1186,16 @@ impl Server {
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
         let ecs = self.state.ecs();
         let slow_jobs = ecs.read_resource::<SlowJobPool>();
+        #[cfg(feature = "worldgen")]
+        let rtsim = ecs.read_resource::<rtsim::RtSim>();
+        #[cfg(not(feature = "worldgen"))]
+        let rtsim = ();
         ecs.write_resource::<ChunkGenerator>().generate_chunk(
             Some(entity),
             key,
             &slow_jobs,
             Arc::clone(&self.world),
+            &rtsim,
             self.index.clone(),
             (
                 *ecs.read_resource::<TimeOfDay>(),
@@ -1384,6 +1428,12 @@ impl Drop for Server {
                 info!("Unloading terrain persistence...");
                 terrain_persistence.unload_all()
             });
+
+        #[cfg(feature = "worldgen")]
+        {
+            debug!("Saving rtsim state...");
+            self.state.ecs().write_resource::<rtsim::RtSim>().save(true);
+        }
     }
 }
 

@@ -22,12 +22,13 @@ use common::{
         },
         item_drop,
         projectile::ProjectileConstructor,
-        Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller,
-        HealthChange, InputKind, InventoryAction, Pos, UnresolvedChatMsg, UtteranceKind,
+        Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent, Controller,
+        HealthChange, InputKind, InventoryAction, Pos, Scale, UnresolvedChatMsg, UtteranceKind,
     },
     effect::{BuffEffect, Effect},
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
+    rtsim::NpcActivity,
     states::basic_beam,
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
@@ -160,6 +161,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
+        event_emitter: &mut Emitter<ServerEvent>,
         rng: &mut impl Rng,
     ) {
         enum ActionTimers {
@@ -212,123 +214,161 @@ impl<'a> AgentData<'a> {
         }
 
         agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
-        if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
-            // If it has an rtsim destination and can fly, then it should.
-            // If it is flying and bumps something above it, then it should move down.
-            if self.traversal_config.can_fly
-                && !read_data
-                    .terrain
-                    .ray(self.pos.0, self.pos.0 + (Vec3::unit_z() * 3.0))
-                    .until(Block::is_solid)
-                    .cast()
-                    .1
-                    .map_or(true, |b| b.is_some())
-            {
-                controller.push_basic_input(InputKind::Fly);
-            } else {
-                controller.push_cancel_input(InputKind::Fly)
-            }
-
-            if let Some((bearing, speed)) = agent.chaser.chase(
-                &*read_data.terrain,
-                self.pos.0,
-                self.vel.0,
-                *travel_to,
-                TraversalConfig {
-                    min_tgt_dist: 1.25,
-                    ..self.traversal_config
-                },
-            ) {
-                controller.inputs.move_dir =
-                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
-                        * speed.min(agent.rtsim_controller.speed_factor);
-                self.jump_if(bearing.z > 1.5 || self.traversal_config.can_fly, controller);
-                controller.inputs.climb = Some(comp::Climb::Up);
-                //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
-
-                let height_offset = bearing.z
-                    + if self.traversal_config.can_fly {
-                        // NOTE: costs 4 us (imbris)
-                        let obstacle_ahead = read_data
+        'activity: {
+            match agent.rtsim_controller.activity {
+                Some(NpcActivity::Goto(travel_to, speed_factor)) => {
+                    // If it has an rtsim destination and can fly, then it should.
+                    // If it is flying and bumps something above it, then it should move down.
+                    if self.traversal_config.can_fly
+                        && !read_data
                             .terrain
-                            .ray(
-                                self.pos.0 + Vec3::unit_z(),
-                                self.pos.0
-                                    + bearing.try_normalized().unwrap_or_else(Vec3::unit_y) * 80.0
-                                    + Vec3::unit_z(),
-                            )
+                            .ray(self.pos.0, self.pos.0 + (Vec3::unit_z() * 3.0))
                             .until(Block::is_solid)
                             .cast()
                             .1
-                            .map_or(true, |b| b.is_some());
+                            .map_or(true, |b| b.is_some())
+                    {
+                        controller.push_basic_input(InputKind::Fly);
+                    } else {
+                        controller.push_cancel_input(InputKind::Fly)
+                    }
 
-                        let mut ground_too_close = self
-                            .body
-                            .map(|body| {
-                                #[cfg(feature = "worldgen")]
-                                let height_approx = self.pos.0.z
-                                    - read_data
-                                        .world
-                                        .sim()
-                                        .get_alt_approx(self.pos.0.xy().map(|x: f32| x as i32))
-                                        .unwrap_or(0.0);
-                                #[cfg(not(feature = "worldgen"))]
-                                let height_approx = self.pos.0.z;
+                    let chase_tgt = if self.traversal_config.can_fly {
+                        read_data.terrain.try_find_space(travel_to.as_())
+                    } else {
+                        read_data.terrain.try_find_ground(travel_to.as_())
+                    }
+                    .map(|pos| pos.as_())
+                    .unwrap_or(travel_to);
 
-                                height_approx < body.flying_height()
-                            })
-                            .unwrap_or(false);
+                    if let Some((bearing, speed)) = agent.chaser.chase(
+                        &*read_data.terrain,
+                        self.pos.0,
+                        self.vel.0,
+                        chase_tgt,
+                        TraversalConfig {
+                            min_tgt_dist: 1.25,
+                            ..self.traversal_config
+                        },
+                    ) {
+                        controller.inputs.move_dir =
+                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                                * speed.min(speed_factor);
+                        self.jump_if(bearing.z > 1.5 || self.traversal_config.can_fly, controller);
+                        controller.inputs.climb = Some(comp::Climb::Up);
+                        //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
 
-                        const NUM_RAYS: usize = 5;
-
-                        // NOTE: costs 15-20 us (imbris)
-                        for i in 0..=NUM_RAYS {
-                            let magnitude = self.body.map_or(20.0, |b| b.flying_height());
-                            // Lerp between a line straight ahead and straight down to detect a
-                            // wedge of obstacles we might fly into (inclusive so that both vectors
-                            // are sampled)
-                            if let Some(dir) = Lerp::lerp(
-                                -Vec3::unit_z(),
-                                Vec3::new(bearing.x, bearing.y, 0.0),
-                                i as f32 / NUM_RAYS as f32,
-                            )
-                            .try_normalized()
-                            {
-                                ground_too_close |= read_data
+                        let height_offset = bearing.z
+                            + if self.traversal_config.can_fly {
+                                // NOTE: costs 4 us (imbris)
+                                let obstacle_ahead = read_data
                                     .terrain
-                                    .ray(self.pos.0, self.pos.0 + magnitude * dir)
-                                    .until(|b: &Block| b.is_solid() || b.is_liquid())
+                                    .ray(
+                                        self.pos.0 + Vec3::unit_z(),
+                                        self.pos.0
+                                            + bearing.try_normalized().unwrap_or_else(Vec3::unit_y)
+                                                * 80.0
+                                            + Vec3::unit_z(),
+                                    )
+                                    .until(Block::is_solid)
                                     .cast()
                                     .1
-                                    .map_or(false, |b| b.is_some())
-                            }
-                        }
+                                    .map_or(true, |b| b.is_some());
 
-                        if obstacle_ahead || ground_too_close {
-                            5.0 //fly up when approaching obstacles
+                                let mut ground_too_close = self
+                                    .body
+                                    .map(|body| {
+                                        #[cfg(feature = "worldgen")]
+                                        let height_approx = self.pos.0.z
+                                            - read_data
+                                                .world
+                                                .sim()
+                                                .get_alt_approx(
+                                                    self.pos.0.xy().map(|x: f32| x as i32),
+                                                )
+                                                .unwrap_or(0.0);
+                                        #[cfg(not(feature = "worldgen"))]
+                                        let height_approx = self.pos.0.z;
+
+                                        height_approx < body.flying_height()
+                                    })
+                                    .unwrap_or(false);
+
+                                const NUM_RAYS: usize = 5;
+
+                                // NOTE: costs 15-20 us (imbris)
+                                for i in 0..=NUM_RAYS {
+                                    let magnitude = self.body.map_or(20.0, |b| b.flying_height());
+                                    // Lerp between a line straight ahead and straight down to
+                                    // detect a
+                                    // wedge of obstacles we might fly into (inclusive so that both
+                                    // vectors are sampled)
+                                    if let Some(dir) = Lerp::lerp(
+                                        -Vec3::unit_z(),
+                                        Vec3::new(bearing.x, bearing.y, 0.0),
+                                        i as f32 / NUM_RAYS as f32,
+                                    )
+                                    .try_normalized()
+                                    {
+                                        ground_too_close |= read_data
+                                            .terrain
+                                            .ray(self.pos.0, self.pos.0 + magnitude * dir)
+                                            .until(|b: &Block| b.is_solid() || b.is_liquid())
+                                            .cast()
+                                            .1
+                                            .map_or(false, |b| b.is_some())
+                                    }
+                                }
+
+                                if obstacle_ahead || ground_too_close {
+                                    5.0 //fly up when approaching obstacles
+                                } else {
+                                    -2.0
+                                } //flying things should slowly come down from the stratosphere
+                            } else {
+                                0.05 //normal land traveller offset
+                            };
+                        if let Some(pid) = agent.position_pid_controller.as_mut() {
+                            pid.sp = self.pos.0.z + height_offset * Vec3::unit_z();
+                            controller.inputs.move_z = pid.calc_err();
                         } else {
-                            -2.0
-                        } //flying things should slowly come down from the stratosphere
-                    } else {
-                        0.05 //normal land traveller offset
-                    };
-                if let Some(pid) = agent.position_pid_controller.as_mut() {
-                    pid.sp = self.pos.0.z + height_offset * Vec3::unit_z();
-                    controller.inputs.move_z = pid.calc_err();
-                } else {
-                    controller.inputs.move_z = height_offset;
-                }
-                // Put away weapon
-                if rng.gen_bool(0.1)
-                    && matches!(
-                        read_data.char_states.get(*self.entity),
-                        Some(CharacterState::Wielding(_))
-                    )
-                {
-                    controller.push_action(ControlAction::Unwield);
-                }
+                            controller.inputs.move_z = height_offset;
+                        }
+                        // Put away weapon
+                        if rng.gen_bool(0.1)
+                            && matches!(
+                                read_data.char_states.get(*self.entity),
+                                Some(CharacterState::Wielding(_))
+                            )
+                        {
+                            controller.push_action(ControlAction::Unwield);
+                        }
+                    }
+                    break 'activity; // Don't fall through to idle wandering
+                },
+                Some(NpcActivity::Gather(_resources)) => {
+                    // TODO: Implement
+                    controller.push_action(ControlAction::Dance);
+                    break 'activity; // Don't fall through to idle wandering
+                },
+                Some(NpcActivity::Dance) => {
+                    controller.push_action(ControlAction::Dance);
+                    break 'activity; // Don't fall through to idle wandering
+                },
+                Some(NpcActivity::HuntAnimals) => {
+                    if rng.gen::<f32>() < 0.1 {
+                        self.choose_target(
+                            agent,
+                            controller,
+                            read_data,
+                            event_emitter,
+                            AgentData::is_hunting_animal,
+                        );
+                    }
+                },
+                None => {},
             }
-        } else {
+
             // Bats should fly
             // Use a proportional controller as the bouncing effect mimics bat flight
             if self.traversal_config.can_fly
@@ -476,8 +516,10 @@ impl<'a> AgentData<'a> {
         target: EcsEntity,
     ) -> bool {
         if let Some(tgt_pos) = read_data.positions.get(target) {
-            let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-            let tgt_eye_offset = read_data.bodies.get(target).map_or(0.0, |b| b.eye_height());
+            let eye_offset = self.body.map_or(0.0, |b| b.eye_height(self.scale));
+            let tgt_eye_offset = read_data.bodies.get(target).map_or(0.0, |b| {
+                b.eye_height(read_data.scales.get(target).map_or(1.0, |s| s.0))
+            });
             if let Some(dir) = Dir::from_unnormalized(
                 Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
                     - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
@@ -645,7 +687,7 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<ServerEvent>,
-        will_ambush: bool,
+        is_enemy: fn(&Self, EcsEntity, &ReadData) -> bool,
     ) {
         enum ActionStateTimers {
             TimerChooseTarget = 0,
@@ -668,7 +710,7 @@ impl<'a> AgentData<'a> {
                     .get(entity)
                     .map_or(false, |eu| eu != self.uid)
             };
-            if will_ambush
+            if agent.rtsim_controller.personality.will_ambush()
                 && self_different_from_entity()
                 && !self.passive_towards(entity, read_data)
             {
@@ -686,12 +728,12 @@ impl<'a> AgentData<'a> {
         let get_pos = |entity| read_data.positions.get(entity);
         let get_enemy = |(entity, attack_target): (EcsEntity, bool)| {
             if attack_target {
-                if self.is_enemy(entity, read_data) {
+                if is_enemy(self, entity, read_data) {
                     Some((entity, true))
                 } else if can_ambush(entity, read_data) {
                     controller.clone().push_utterance(UtteranceKind::Ambush);
                     self.chat_npc_if_allowed_to_speak(
-                        "npc-speech-ambush".to_string(),
+                        Content::localized("npc-speech-ambush"),
                         agent,
                         event_emitter,
                     );
@@ -756,8 +798,8 @@ impl<'a> AgentData<'a> {
             },
         };
 
-        let is_detected = |entity: &EcsEntity, e_pos: &Pos| {
-            self.detects_other(agent, controller, entity, e_pos, read_data)
+        let is_detected = |entity: &EcsEntity, e_pos: &Pos, e_scale: Option<&Scale>| {
+            self.detects_other(agent, controller, entity, e_pos, e_scale, read_data)
         };
 
         let target = entities_nearby
@@ -767,7 +809,7 @@ impl<'a> AgentData<'a> {
             .filter_map(|(entity, attack_target)| {
                 get_pos(entity).map(|pos| (entity, pos, attack_target))
             })
-            .filter(|(entity, e_pos, _)| is_detected(entity, e_pos))
+            .filter(|(entity, e_pos, _)| is_detected(entity, e_pos, read_data.scales.get(*entity)))
             .min_by_key(|(_, e_pos, attack_target)| {
                 (
                     *attack_target,
@@ -959,9 +1001,11 @@ impl<'a> AgentData<'a> {
             .angle_between((tgt_data.pos.0 - self.pos.0).xy())
             .to_degrees();
 
-        let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
+        let eye_offset = self.body.map_or(0.0, |b| b.eye_height(self.scale));
 
-        let tgt_eye_height = tgt_data.body.map_or(0.0, |b| b.eye_height());
+        let tgt_eye_height = tgt_data
+            .body
+            .map_or(0.0, |b| b.eye_height(tgt_data.scale.map_or(1.0, |s| s.0)));
         let tgt_eye_offset = tgt_eye_height +
                    // Special case for jumping attacks to jump at the body
                    // of the target and not the ground around the target
@@ -999,7 +1043,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            body.projectile_offsets(self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec(), self.scale)
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1024,7 +1068,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            body.projectile_offsets(self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec(), self.scale)
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1039,7 +1083,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            body.projectile_offsets(self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec(), self.scale)
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1371,12 +1415,13 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
+        event_emitter: &mut Emitter<ServerEvent>,
         rng: &mut impl Rng,
     ) {
         agent.forget_old_sounds(read_data.time.0);
 
         if is_invulnerable(*self.entity, read_data) {
-            self.idle(agent, controller, read_data, rng);
+            self.idle(agent, controller, read_data, event_emitter, rng);
             return;
         }
 
@@ -1409,13 +1454,13 @@ impl<'a> AgentData<'a> {
                 } else if self.below_flee_health(agent) || !follows_threatening_sounds {
                     self.flee(agent, controller, &sound_pos, &read_data.terrain);
                 } else {
-                    self.idle(agent, controller, read_data, rng);
+                    self.idle(agent, controller, read_data, event_emitter, rng);
                 }
             } else {
-                self.idle(agent, controller, read_data, rng);
+                self.idle(agent, controller, read_data, event_emitter, rng);
             }
         } else {
-            self.idle(agent, controller, read_data, rng);
+            self.idle(agent, controller, read_data, event_emitter, rng);
         }
     }
 
@@ -1424,6 +1469,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         read_data: &ReadData,
         controller: &mut Controller,
+        event_emitter: &mut Emitter<ServerEvent>,
         rng: &mut impl Rng,
     ) {
         if let Some(Target { target, .. }) = agent.target {
@@ -1453,14 +1499,15 @@ impl<'a> AgentData<'a> {
                                     Some(tgt_pos.0),
                                 ));
 
-                                self.idle(agent, controller, read_data, rng);
+                                self.idle(agent, controller, read_data, event_emitter, rng);
                             } else {
                                 let target_data = TargetData::new(tgt_pos, target, read_data);
-                                if let Some(tgt_name) =
-                                    read_data.stats.get(target).map(|stats| stats.name.clone())
-                                {
-                                    agent.add_fight_to_memory(&tgt_name, read_data.time.0)
-                                }
+                                // TODO: Reimplement this in rtsim
+                                // if let Some(tgt_name) =
+                                //     read_data.stats.get(target).map(|stats| stats.name.clone())
+                                // {
+                                //     agent.add_fight_to_memory(&tgt_name, read_data.time.0)
+                                // }
                                 self.attack(agent, controller, &target_data, read_data, rng);
                             }
                         }
@@ -1470,9 +1517,11 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    // TODO: Pass a localisation key instead of `Content` to avoid allocating if
+    // we're not permitted to speak.
     pub fn chat_npc_if_allowed_to_speak(
         &self,
-        msg: impl ToString,
+        msg: Content,
         agent: &Agent,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) -> bool {
@@ -1484,10 +1533,9 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    pub fn chat_npc(&self, msg: impl ToString, event_emitter: &mut Emitter<'_, ServerEvent>) {
+    pub fn chat_npc(&self, content: Content, event_emitter: &mut Emitter<'_, ServerEvent>) {
         event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
-            *self.uid,
-            msg.to_string(),
+            *self.uid, content,
         )));
     }
 
@@ -1516,13 +1564,13 @@ impl<'a> AgentData<'a> {
             // FIXME: If going to use "cultist + low health + fleeing" string, make sure
             // they are each true.
             self.chat_npc_if_allowed_to_speak(
-                "npc-speech-cultist_low_health_fleeing",
+                Content::localized("npc-speech-cultist_low_health_fleeing"),
                 agent,
                 event_emitter,
             );
         } else if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
-                "npc-speech-villager_under_attack",
+                Content::localized("npc-speech-villager_under_attack"),
                 agent,
                 event_emitter,
             );
@@ -1537,7 +1585,7 @@ impl<'a> AgentData<'a> {
     ) {
         if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
-                "npc-speech-villager_enemy_killed",
+                Content::localized("npc-speech-villager_enemy_killed"),
                 agent,
                 event_emitter,
             );
@@ -1580,13 +1628,19 @@ impl<'a> AgentData<'a> {
         })
     }
 
-    fn is_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+    pub fn is_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
         let other_alignment = read_data.alignments.get(entity);
 
         (entity != *self.entity)
             && !self.passive_towards(entity, read_data)
             && (are_our_owners_hostile(self.alignment, other_alignment, read_data)
                 || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)))
+    }
+
+    pub fn is_hunting_animal(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        (entity != *self.entity)
+            && !self.friendly_towards(entity, read_data)
+            && matches!(read_data.bodies.get(entity), Some(Body::QuadrupedSmall(_)))
     }
 
     fn should_defend(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
@@ -1621,12 +1675,23 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    fn friendly_towards(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        if let (Some(self_alignment), Some(other_alignment)) =
+            (self.alignment, read_data.alignments.get(entity))
+        {
+            self_alignment.friendly_towards(*other_alignment)
+        } else {
+            false
+        }
+    }
+
     pub fn can_see_entity(
         &self,
         agent: &Agent,
         controller: &Controller,
         other: EcsEntity,
         other_pos: &Pos,
+        other_scale: Option<&Scale>,
         read_data: &ReadData,
     ) -> bool {
         let other_stealth_multiplier = {
@@ -1651,7 +1716,15 @@ impl<'a> AgentData<'a> {
 
         (within_sight_dist)
             && within_fov
-            && entities_have_line_of_sight(self.pos, self.body, other_pos, other_body, read_data)
+            && entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                other_pos,
+                other_body,
+                other_scale,
+                read_data,
+            )
     }
 
     pub fn detects_other(
@@ -1660,10 +1733,11 @@ impl<'a> AgentData<'a> {
         controller: &Controller,
         other: &EcsEntity,
         other_pos: &Pos,
+        other_scale: Option<&Scale>,
         read_data: &ReadData,
     ) -> bool {
         self.can_sense_directly_near(other_pos)
-            || self.can_see_entity(agent, controller, *other, other_pos, read_data)
+            || self.can_see_entity(agent, controller, *other, other_pos, other_scale, read_data)
     }
 
     pub fn can_sense_directly_near(&self, e_pos: &Pos) -> bool {
@@ -1685,16 +1759,22 @@ impl<'a> AgentData<'a> {
         let move_dir = controller.inputs.move_dir;
         let move_dir_mag = move_dir.magnitude();
         let small_chance = rng.gen::<f32>() < read_data.dt.0 * 0.25;
-        let mut chat = |msg: &str| {
-            self.chat_npc_if_allowed_to_speak(msg.to_string(), agent, event_emitter);
+        let mut chat = |content: Content| {
+            self.chat_npc_if_allowed_to_speak(content, agent, event_emitter);
         };
         let mut chat_villager_remembers_fighting = || {
             let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
+            // TODO: Localise
             if let Some(tgt_name) = tgt_name {
-                chat(format!("{}! How dare you cross me again!", &tgt_name).as_str());
+                chat(Content::Plain(format!(
+                    "{}! How dare you cross me again!",
+                    &tgt_name
+                )));
             } else {
-                chat("You! How dare you cross me again!");
+                chat(Content::Plain(
+                    "You! How dare you cross me again!".to_string(),
+                ));
             }
         };
 
@@ -1711,12 +1791,12 @@ impl<'a> AgentData<'a> {
                 if remembers_fight_with_target {
                     chat_villager_remembers_fighting();
                 } else if is_dressed_as_cultist(target, read_data) {
-                    chat("npc-speech-villager_cultist_alarm");
+                    chat(Content::localized("npc-speech-villager_cultist_alarm"));
                 } else {
-                    chat("npc-speech-menacing");
+                    chat(Content::localized("npc-speech-menacing"));
                 }
             } else {
-                chat("npc-speech-menacing");
+                chat(Content::localized("npc-speech-menacing"));
             }
         }
     }

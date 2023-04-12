@@ -1,0 +1,28 @@
+// Christmas event
+//(1.0, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
+#![enable(implicit_some)]
+(
+    head: Choice([
+        (6, None),
+        (2, Item("common.items.armor.misc.head.straw")),
+        (3, Item("common.items.armor.misc.head.hood")),
+        (3, Item("common.items.armor.misc.head.hood_dark")),
+    ]),
+    chest: Choice([
+        (1, Item("common.items.armor.hide.leather.chest")),
+        (1, Item("common.items.armor.hide.rawhide.chest")),
+        (1, Item("common.items.armor.hide.primal.chest")),
+    ]),
+    legs: Choice([
+        (1, Item("common.items.armor.hide.leather.pants")),
+        (1, Item("common.items.armor.hide.rawhide.pants")),
+        (1, Item("common.items.armor.hide.primal.pants")),
+    ]),
+    feet: Choice([
+        (1, None),
+        (2, Item("common.items.armor.misc.foot.sandals")),
+        (4, Item("common.items.armor.hide.leather.foot")),
+        (4, Item("common.items.armor.hide.rawhide.foot")),
+        (4, Item("common.items.armor.hide.primal.foot")),
+    ]),
+)

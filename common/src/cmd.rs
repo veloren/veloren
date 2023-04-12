@@ -296,8 +296,14 @@ pub enum ServerChatCommand {
     Respawn,
     RevokeBuild,
     RevokeBuildAll,
+    RtsimChunk,
+    RtsimInfo,
+    RtsimNpc,
+    RtsimPurge,
+    RtsimTp,
     Safezone,
     Say,
+    Scale,
     ServerPhysics,
     SetMotd,
     Ship,
@@ -653,6 +659,7 @@ impl ServerChatCommand {
                     Enum("entity", ENTITIES.clone(), Required),
                     Integer("amount", 1, Optional),
                     Boolean("ai", "true".to_string(), Optional),
+                    Float("scale", 1.0, Optional),
                 ],
                 "Spawn a test entity",
                 Some(Admin),
@@ -675,6 +682,36 @@ impl ServerChatCommand {
             ServerChatCommand::Tp => cmd(
                 vec![PlayerName(Optional)],
                 "Teleport to another player",
+                Some(Moderator),
+            ),
+            ServerChatCommand::RtsimTp => cmd(
+                vec![Integer("npc index", 0, Required)],
+                "Teleport to an rtsim npc",
+                Some(Moderator),
+            ),
+            ServerChatCommand::RtsimInfo => cmd(
+                vec![Integer("npc index", 0, Required)],
+                "Display information about an rtsim NPC",
+                Some(Moderator),
+            ),
+            ServerChatCommand::RtsimNpc => cmd(
+                vec![Any("query", Required), Integer("max number", 20, Optional)],
+                "List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of \
+                 distance",
+                Some(Moderator),
+            ),
+            ServerChatCommand::RtsimPurge => cmd(
+                vec![Boolean(
+                    "whether purging of rtsim data should occur on next startup",
+                    true.to_string(),
+                    Required,
+                )],
+                "Purge rtsim data on next startup",
+                Some(Admin),
+            ),
+            ServerChatCommand::RtsimChunk => cmd(
+                vec![],
+                "Display information about the current chunk from rtsim",
                 Some(Moderator),
             ),
             ServerChatCommand::Unban => cmd(
@@ -727,6 +764,14 @@ impl ServerChatCommand {
             ServerChatCommand::Lightning => {
                 cmd(vec![], "Lightning strike at current position", Some(Admin))
             },
+            ServerChatCommand::Scale => cmd(
+                vec![
+                    Float("factor", 1.0, Required),
+                    Boolean("reset_mass", true.to_string(), Optional),
+                ],
+                "Scale your character",
+                Some(Admin),
+            ),
         }
     }
 
@@ -796,6 +841,11 @@ impl ServerChatCommand {
             ServerChatCommand::Tell => "tell",
             ServerChatCommand::Time => "time",
             ServerChatCommand::Tp => "tp",
+            ServerChatCommand::RtsimTp => "rtsim_tp",
+            ServerChatCommand::RtsimInfo => "rtsim_info",
+            ServerChatCommand::RtsimNpc => "rtsim_npc",
+            ServerChatCommand::RtsimPurge => "rtsim_purge",
+            ServerChatCommand::RtsimChunk => "rtsim_chunk",
             ServerChatCommand::Unban => "unban",
             ServerChatCommand::Version => "version",
             ServerChatCommand::Waypoint => "waypoint",
@@ -808,6 +858,7 @@ impl ServerChatCommand {
             ServerChatCommand::DeleteLocation => "delete_location",
             ServerChatCommand::WeatherZone => "weather_zone",
             ServerChatCommand::Lightning => "lightning",
+            ServerChatCommand::Scale => "scale",
         }
     }
 

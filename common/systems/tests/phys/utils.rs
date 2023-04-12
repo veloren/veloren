@@ -3,8 +3,8 @@ use common::{
         inventory::item::MaterialStatManifest,
         skills::{GeneralSkill, Skill},
         tool::AbilityMap,
-        Auras, Buffs, CharacterState, Collider, Combo, Controller, Energy, Health, Ori, Pos, Stats,
-        Vel,
+        Auras, Buffs, CharacterActivity, CharacterState, Collider, Combo, Controller, Energy,
+        Health, Ori, Pos, Stats, Vel,
     },
     resources::{DeltaTime, GameMode, Time},
     shared_server_config::ServerConstants,
@@ -66,6 +66,7 @@ pub fn tick(state: &mut State, dt: Duration) {
         false,
         None,
         &ServerConstants::default(),
+        |_, _| {},
     );
 }
 
@@ -122,6 +123,7 @@ pub fn create_player(state: &mut State) -> Entity {
         .with(body)
         .with(Controller::default())
         .with(CharacterState::default())
+        .with(CharacterActivity::default())
         .with(Buffs::default())
         .with(Combo::default())
         .with(Auras::default())

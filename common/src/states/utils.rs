@@ -220,7 +220,7 @@ impl Body {
                 _ => 2.0,
             },
             Body::Ship(ship) if ship.has_water_thrust() => 0.1,
-            Body::Ship(_) => 0.035,
+            Body::Ship(_) => 0.12,
             Body::Arthropod(_) => 3.5,
         }
     }
@@ -298,10 +298,10 @@ impl Body {
 
     /// Returns the position where a projectile should be fired relative to this
     /// body
-    pub fn projectile_offsets(&self, ori: Vec3<f32>) -> Vec3<f32> {
+    pub fn projectile_offsets(&self, ori: Vec3<f32>, scale: f32) -> Vec3<f32> {
         let body_offsets_z = match self {
             Body::Golem(_) => self.height() * 0.4,
-            _ => self.eye_height(),
+            _ => self.eye_height(scale),
         };
 
         let dim = self.dimensions();
@@ -385,7 +385,11 @@ fn basic_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
 
     let accel = if let Some(block) = data.physics.on_ground {
         // FRIC_GROUND temporarily used to normalize things around expected values
-        data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
+        data.body.base_accel()
+            * data.scale.map_or(1.0, |s| s.0.sqrt())
+            * block.get_traction()
+            * block.get_friction()
+            / FRIC_GROUND
     } else {
         data.body.air_accel()
     } * efficiency;
@@ -434,8 +438,11 @@ pub fn handle_forced_movement(
                 // FRIC_GROUND temporarily used to normalize things around expected values
                 data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
             }) {
-                update.vel.0 +=
-                    Vec2::broadcast(data.dt.0) * accel * Vec2::from(*data.ori) * strength;
+                update.vel.0 += Vec2::broadcast(data.dt.0)
+                    * accel
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * Vec2::from(*data.ori)
+                    * strength;
             }
         },
         ForcedMovement::Reverse(strength) => {
@@ -444,8 +451,11 @@ pub fn handle_forced_movement(
                 // FRIC_GROUND temporarily used to normalize things around expected values
                 data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
             }) {
-                update.vel.0 +=
-                    Vec2::broadcast(data.dt.0) * accel * -Vec2::from(*data.ori) * strength;
+                update.vel.0 += Vec2::broadcast(data.dt.0)
+                    * accel
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * -Vec2::from(*data.ori)
+                    * strength;
             }
         },
         ForcedMovement::Sideways(strength) => {
@@ -467,7 +477,11 @@ pub fn handle_forced_movement(
                     }
                 };
 
-                update.vel.0 += Vec2::broadcast(data.dt.0) * accel * direction * strength;
+                update.vel.0 += Vec2::broadcast(data.dt.0)
+                    * accel
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * direction
+                    * strength;
             }
         },
         ForcedMovement::DirectedReverse(strength) => {
@@ -516,6 +530,7 @@ pub fn handle_forced_movement(
                 dir.y,
                 vertical,
             )
+                * data.scale.map_or(1.0, |s| s.0.sqrt())
                 // Multiply decreasing amount linearly over time (with average of 1)
                 * 2.0 * progress
                 // Apply direction
@@ -529,7 +544,9 @@ pub fn handle_forced_movement(
         },
         ForcedMovement::Hover { move_input } => {
             update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0)
-                + move_input * data.inputs.move_dir.try_normalized().unwrap_or_default();
+                + move_input
+                    * data.scale.map_or(1.0, |s| s.0.sqrt())
+                    * data.inputs.move_dir.try_normalized().unwrap_or_default();
         },
     }
 }
@@ -569,7 +586,7 @@ pub fn handle_orientation(
             .map_or_else(|| to_horizontal_fast(data.ori), |dir| dir.into())
     };
     // unit is multiples of 180°
-    let half_turns_per_tick = data.body.base_ori_rate()
+    let half_turns_per_tick = data.body.base_ori_rate() / data.scale.map_or(1.0, |s| s.0.sqrt())
         * efficiency
         * if data.physics.on_ground.is_some() {
             1.0
@@ -594,6 +611,9 @@ pub fn handle_orientation(
             .ori
             .slerped_towards(target_ori, target_fraction.min(1.0))
     };
+
+    // Look at things
+    update.character_activity.look_dir = Some(data.controller.inputs.look_dir);
 }
 
 /// Updates components to move player as if theyre swimming
@@ -605,7 +625,7 @@ fn swim_move(
 ) -> bool {
     let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
     if let Some(force) = data.body.swim_thrust() {
-        let force = efficiency * force;
+        let force = efficiency * force * data.scale.map_or(1.0, |s| s.0);
         let mut water_accel = force / data.mass.0;
 
         if let Ok(level) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
@@ -912,13 +932,13 @@ pub fn handle_manipulate_loadout(
                     let iters =
                         (3.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
                     // Heuristic compares manhattan distance of start and end pos
-                    let heuristic =
-                        move |pos: &Vec3<i32>| (sprite_pos - pos).map(|x| x.abs()).sum() as f32;
+                    let heuristic = move |pos: &Vec3<i32>, _: &Vec3<i32>| {
+                        (sprite_pos - pos).map(|x| x.abs()).sum() as f32
+                    };
 
                     let mut astar = Astar::new(
                         iters,
                         data.pos.0.map(|x| x.floor() as i32),
-                        heuristic,
                         BuildHasherDefault::<FxHasher64>::default(),
                     );
 
@@ -1068,7 +1088,9 @@ pub fn handle_jump(
         .map(|impulse| {
             output_events.emit_local(LocalEvent::Jump(
                 data.entity,
-                strength * impulse / data.mass.0 * data.stats.move_speed_modifier,
+                strength * impulse / data.mass.0
+                    * data.scale.map_or(1.0, |s| s.0.powf(13.0).powf(0.25))
+                    * data.stats.move_speed_modifier,
             ));
         })
         .is_some()

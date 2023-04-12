@@ -95,7 +95,9 @@ impl CharacterBehavior for Data {
                         get_crit_data(data, self.static_data.ability_info);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     // Gets offsets
-                    let body_offsets = data.body.projectile_offsets(update.ori.look_vec());
+                    let body_offsets = data
+                        .body
+                        .projectile_offsets(update.ori.look_vec(), data.scale.map_or(1.0, |s| s.0));
                     let pos = Pos(data.pos.0 + body_offsets);
                     let projectile = self.static_data.projectile.create_projectile(
                         Some(*data.uid),

@@ -30,7 +30,7 @@ use common::{
         slot::{EquipSlot, InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
         GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
-        MapMarkerChange, UtteranceKind,
+        MapMarkerChange, PresenceKind, UtteranceKind,
     },
     event::{EventBus, LocalEvent, UpdateCharacterMetadata},
     grid::Grid,
@@ -59,8 +59,8 @@ use common_net::{
         self,
         world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
         ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, ClientType, DisconnectReason,
-        InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, PresenceKind,
-        RegisterError, ServerGeneral, ServerInit, ServerRegisterAnswer,
+        InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError,
+        ServerGeneral, ServerInit, ServerRegisterAnswer,
     },
     sync::WorldSyncExt,
 };
@@ -1855,6 +1855,7 @@ impl Client {
             true,
             None,
             &self.connected_server_constants,
+            |_, _| {},
         );
         // TODO: avoid emitting these in the first place
         let _ = self
@@ -2279,13 +2280,15 @@ impl Client {
                                 .any(|r| !matches!(r, group::Role::Pet))
                         {
                             frontend_events
-                                .push(Event::Chat(comp::ChatType::Meta.chat_msg(
+                                // TODO: localise
+                                .push(Event::Chat(comp::ChatType::Meta.into_plain_msg(
                                     "Type /g or /group to chat with your group members",
                                 )));
                         }
                         if let Some(player_info) = self.player_list.get(&uid) {
                             frontend_events.push(Event::Chat(
-                                comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                // TODO: localise
+                                comp::ChatType::GroupMeta("Group".into()).into_plain_msg(format!(
                                     "[{}] joined group",
                                     self.personalize_alias(uid, player_info.player_alias.clone())
                                 )),
@@ -2302,7 +2305,8 @@ impl Client {
                     Removed(uid) => {
                         if let Some(player_info) = self.player_list.get(&uid) {
                             frontend_events.push(Event::Chat(
-                                comp::ChatType::GroupMeta("Group".into()).chat_msg(format!(
+                                // TODO: localise
+                                comp::ChatType::GroupMeta("Group".into()).into_plain_msg(format!(
                                     "[{}] left group",
                                     self.personalize_alias(uid, player_info.player_alias.clone())
                                 )),
@@ -2789,20 +2793,20 @@ impl Client {
                     KillSource::Other => (),
                 };
             },
-            comp::ChatType::Tell(from, to) | comp::ChatType::NpcTell(from, to, _) => {
+            comp::ChatType::Tell(from, to) | comp::ChatType::NpcTell(from, to) => {
                 alias_of_uid(from);
                 alias_of_uid(to);
             },
             comp::ChatType::Say(uid)
             | comp::ChatType::Region(uid)
             | comp::ChatType::World(uid)
-            | comp::ChatType::NpcSay(uid, _) => {
+            | comp::ChatType::NpcSay(uid) => {
                 alias_of_uid(uid);
             },
             comp::ChatType::Group(uid, _) | comp::ChatType::Faction(uid, _) => {
                 alias_of_uid(uid);
             },
-            comp::ChatType::Npc(uid, _) => alias_of_uid(uid),
+            comp::ChatType::Npc(uid) => alias_of_uid(uid),
             comp::ChatType::Meta => (),
         };
         result
@@ -2963,7 +2967,7 @@ mod tests {
                                 &localisation.read(),
                                 true,
                             )
-                            .message;
+                            .1;
                         },
                         Event::Disconnect => {},
                         Event::DisconnectionNotification(_) => {

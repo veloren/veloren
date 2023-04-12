@@ -26,6 +26,7 @@ common-base = { package = "veloren-common-base", path = "base" }
 serde = { version = "1.0.110", features = ["derive", "rc"] }
 
 # Util
+enum-map = "2.4"
 vek = { version = "0.15.8", features = ["serde"] }
 cfg-if = "1.0.0"
 chrono = "0.4.22"

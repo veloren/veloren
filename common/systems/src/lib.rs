@@ -1,4 +1,4 @@
-#![feature(btree_drain_filter)]
+#![feature(drain_filter)]
 #![allow(clippy::option_map_unit_fn)]
 
 mod aura;

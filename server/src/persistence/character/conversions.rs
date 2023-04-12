@@ -608,7 +608,7 @@ pub fn convert_body_from_database(
 
 pub fn convert_character_from_database(character: &Character) -> common::character::Character {
     common::character::Character {
-        id: Some(character.character_id),
+        id: Some(CharacterId(character.character_id)),
         alias: String::from(&character.alias),
     }
 }
@@ -704,7 +704,7 @@ pub fn convert_skill_groups_to_database<'a, I: Iterator<Item = &'a skillset::Ski
     skill_groups
         .into_iter()
         .map(|sg| SkillGroup {
-            entity_id,
+            entity_id: entity_id.0,
             skill_group_kind: json_models::skill_group_to_db_string(sg.skill_group_kind),
             earned_exp: i64::from(sg.earned_exp),
             spent_exp: i64::from(sg.spent_exp()),
@@ -724,7 +724,7 @@ pub fn convert_active_abilities_to_database(
 ) -> AbilitySets {
     let ability_sets = json_models::active_abilities_to_db_model(active_abilities);
     AbilitySets {
-        entity_id,
+        entity_id: entity_id.0,
         ability_sets: serde_json::to_string(&ability_sets).unwrap_or_default(),
     }
 }

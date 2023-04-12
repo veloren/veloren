@@ -23,6 +23,7 @@ common-state = { package = "veloren-common-state", path = "../common/state" }
 common-systems = { package = "veloren-common-systems", path = "../common/systems" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
+rtsim = { package = "veloren-rtsim", path = "../rtsim" }
 network = { package = "veloren-network", path = "../network", features = ["metrics", "compression", "quic"], default-features = false }
 
 server-agent = {package = "veloren-server-agent", path = "agent"}
@@ -63,6 +64,7 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253
 slab  = "0.4"
 rand_distr = "0.4.0"
 enumset = "1.0.8"
+enum-map = "2.4"
 noise = { version = "0.7", default-features = false }
 censor = "0.2"
 

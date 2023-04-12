@@ -84,7 +84,9 @@ pub trait CoordinateConversions {
 
 impl CoordinateConversions for Vec2<i32> {
     #[inline]
-    fn wpos_to_cpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as i32) }
+    fn wpos_to_cpos(&self) -> Self {
+        self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e.div_euclid(sz as i32))
+    }
 
     #[inline]
     fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32) }
@@ -222,11 +224,13 @@ impl TerrainChunkMeta {
 pub type TerrainChunk = chonk::Chonk<Block, TerrainChunkSize, TerrainChunkMeta>;
 pub type TerrainGrid = VolGrid2d<TerrainChunk>;
 
+const TERRAIN_GRID_SEARCH_DIST: i32 = 63;
+
 impl TerrainGrid {
     /// Find a location suitable for spawning an entity near the given
     /// position (but in the same chunk).
-    pub fn find_space(&self, pos: Vec3<i32>) -> Vec3<i32> {
-        self.try_find_space(pos).unwrap_or(pos)
+    pub fn find_ground(&self, pos: Vec3<i32>) -> Vec3<i32> {
+        self.try_find_ground(pos).unwrap_or(pos)
     }
 
     pub fn is_space(&self, pos: Vec3<i32>) -> bool {
@@ -237,8 +241,14 @@ impl TerrainGrid {
     }
 
     pub fn try_find_space(&self, pos: Vec3<i32>) -> Option<Vec3<i32>> {
-        const SEARCH_DIST: i32 = 63;
-        (0..SEARCH_DIST * 2 + 1)
+        (0..TERRAIN_GRID_SEARCH_DIST * 2 + 1)
+            .map(|i| if i % 2 == 0 { i } else { -i } / 2)
+            .map(|z_diff| pos + Vec3::unit_z() * z_diff)
+            .find(|pos| self.is_space(*pos))
+    }
+
+    pub fn try_find_ground(&self, pos: Vec3<i32>) -> Option<Vec3<i32>> {
+        (0..TERRAIN_GRID_SEARCH_DIST * 2 + 1)
             .map(|i| if i % 2 == 0 { i } else { -i } / 2)
             .map(|z_diff| pos + Vec3::unit_z() * z_diff)
             .find(|pos| {

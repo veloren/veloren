@@ -49,12 +49,14 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     lod,
     resources::TimeOfDay,
+    rtsim::ChunkResource,
     terrain::{
         Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use common_net::msg::{world_msg, WorldMapMsg};
+use enum_map::EnumMap;
 use rand::{prelude::*, Rng};
 use rand_chacha::ChaCha8Rng;
 use rayon::iter::ParallelIterator;
@@ -235,7 +237,7 @@ impl World {
         // Unwrapping because generate_chunk only returns err when should_continue evals
         // to true
         let (tc, _cs) = self
-            .generate_chunk(index, chunk_pos, || false, None)
+            .generate_chunk(index, chunk_pos, None, || false, None)
             .unwrap();
 
         tc.find_accessible_pos(spawn_wpos, ascending)
@@ -246,6 +248,7 @@ impl World {
         &self,
         index: IndexRef,
         chunk_pos: Vec2<i32>,
+        rtsim_resources: Option<EnumMap<ChunkResource, f32>>,
         // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
         time: Option<(TimeOfDay, Calendar)>,
@@ -377,6 +380,7 @@ impl World {
             },
             chunk: &mut chunk,
             entities: Vec::new(),
+            rtsim_resource_blocks: Vec::new(),
         };
 
         if index.features.train_tracks {
@@ -416,9 +420,12 @@ impl World {
             .iter()
             .for_each(|site| index.sites[*site].apply_to(&mut canvas, &mut dynamic_rng));
 
+        let mut rtsim_resource_blocks = std::mem::take(&mut canvas.rtsim_resource_blocks);
         let mut supplement = ChunkSupplement {
-            entities: canvas.entities,
+            entities: std::mem::take(&mut canvas.entities),
+            rtsim_max_resources: Default::default(),
         };
+        drop(canvas);
 
         let gen_entity_pos = |dynamic_rng: &mut ChaCha8Rng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE
@@ -484,6 +491,34 @@ impl World {
 
         // Finally, defragment to minimize space consumption.
         chunk.defragment();
+
+        // Before we finish, we check candidate rtsim resource blocks, deduplicating
+        // positions and only keeping those that actually do have resources.
+        // Although this looks potentially very expensive, only blocks that are rtsim
+        // resources (i.e: a relatively small number of sprites) are processed here.
+        if let Some(rtsim_resources) = rtsim_resources {
+            rtsim_resource_blocks.sort_unstable_by_key(|pos| pos.into_array());
+            rtsim_resource_blocks.dedup();
+            for wpos in rtsim_resource_blocks {
+                let _ = chunk.map(wpos - chunk_wpos2d.with_z(0), |block| {
+                    if let Some(res) = block.get_rtsim_resource() {
+                        // Note: this represents the upper limit, not the actual number spanwed, so
+                        // we increment this before deciding whether we're going to spawn the
+                        // resource.
+                        supplement.rtsim_max_resources[res] += 1;
+                        // Throw a dice to determine whether this resource should actually spawn
+                        // TODO: Don't throw a dice, try to generate the *exact* correct number
+                        if dynamic_rng.gen_bool(rtsim_resources[res] as f64) {
+                            block
+                        } else {
+                            block.into_vacant()
+                        }
+                    } else {
+                        block
+                    }
+                });
+            }
+        }
 
         Ok((chunk, supplement))
     }
@@ -555,12 +590,22 @@ impl World {
                     _ => None,
                 })
                 .flatten()
-                .map(|wpos2d| lod::Object {
+                .filter_map(|wpos2d| {
+                    ColumnGen::new(self.sim())
+                        .get((wpos2d, index, self.sim().calendar.as_ref()))
+                        .zip(Some(wpos2d))
+                })
+                .map(|(col, wpos2d)| lod::Object {
                     kind: lod::ObjectKind::House,
                     pos: (wpos2d - min_wpos)
                         .map(|e| e as i16)
                         .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16),
-                    flags: lod::Flags::empty(),
+                    flags: lod::Flags::IS_BUILDING
+                        | if col.snow_cover {
+                            lod::Flags::SNOW_COVERED
+                        } else {
+                            lod::Flags::empty()
+                        },
                 }),
         );
 

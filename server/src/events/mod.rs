@@ -188,45 +188,15 @@ impl Server {
                 ServerEvent::ExitIngame { entity } => {
                     handle_exit_ingame(self, entity, false);
                 },
-                ServerEvent::CreateNpc {
-                    pos,
-                    stats,
-                    skill_set,
-                    health,
-                    poise,
-                    inventory,
-                    body,
-                    agent,
-                    alignment,
-                    scale,
-                    anchor: home_chunk,
-                    loot,
-                    rtsim_entity,
-                    projectile,
-                } => handle_create_npc(
-                    self,
-                    pos,
-                    stats,
-                    skill_set,
-                    health,
-                    poise,
-                    inventory,
-                    body,
-                    agent,
-                    alignment,
-                    scale,
-                    loot,
-                    home_chunk,
-                    rtsim_entity,
-                    projectile,
-                ),
+                ServerEvent::CreateNpc { pos, npc } => {
+                    handle_create_npc(self, pos, npc);
+                },
                 ServerEvent::CreateShip {
                     pos,
                     ship,
-                    mountable,
-                    agent,
                     rtsim_entity,
-                } => handle_create_ship(self, pos, ship, mountable, agent, rtsim_entity),
+                    driver,
+                } => handle_create_ship(self, pos, ship, rtsim_entity, driver, Vec::new()),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity, reason) => {
                     frontend_events.push(handle_client_disconnect(self, entity, reason, false))

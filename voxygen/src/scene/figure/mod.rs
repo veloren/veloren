@@ -33,9 +33,9 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
-        Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
-        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, SkillSet, Stance,
-        Vel,
+        ship, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
+        Item, ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos,
+        Scale, SkillSet, Stance, Vel,
     },
     link::Is,
     mounting::Rider,
@@ -741,14 +741,14 @@ impl FigureMgr {
                 scale,
                 body,
                 character,
+                character_activity,
                 last_character,
                 physics,
                 health,
                 inventory,
                 item,
                 light_emitter,
-                is_rider,
-                (collider, stance, skillset),
+                (is_rider, collider, stance, skillset),
             ),
         ) in (
             &ecs.entities(),
@@ -759,14 +759,15 @@ impl FigureMgr {
             ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<CharacterState>().maybe(),
+            ecs.read_storage::<CharacterActivity>().maybe(),
             ecs.read_storage::<Last<CharacterState>>().maybe(),
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
-            ecs.read_storage::<Is<Rider>>().maybe(),
             (
+                ecs.read_storage::<Is<Rider>>().maybe(),
                 ecs.read_storage::<Collider>().maybe(),
                 ecs.read_storage::<Stance>().maybe(),
                 ecs.read_storage::<SkillSet>().maybe(),
@@ -776,9 +777,16 @@ impl FigureMgr {
             .enumerate()
         {
             // Velocity relative to the current ground
-            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel);
+            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel)
+                / scale.map_or(1.0, |s| s.0);
 
-            let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
+            // Priortise CharacterActivity as the source of the look direction
+            let look_dir = character_activity.and_then(|ca| ca.look_dir)
+                // Failing that, take the controller as the source of truth
+                .or_else(|| controller.map(|c| c.inputs.look_dir))
+                // If that still didn't work, fall back to the interpolation orientation
+                .or_else(|| interpolated.map(|i| i.ori.look_dir()))
+                .unwrap_or_default();
             let is_viewpoint = scene_data.viewpoint_entity == entity;
             let viewpoint_camera_mode = if is_viewpoint {
                 camera_mode
@@ -809,8 +817,9 @@ impl FigureMgr {
             const MIN_PERFECT_RATE_DIST: f32 = 100.0;
 
             if (i as u64 + tick)
-                % (((pos.0.distance_squared(focus_pos).powf(0.25) - MIN_PERFECT_RATE_DIST.sqrt())
-                    .max(0.0)
+                % ((((pos.0.distance_squared(focus_pos) / scale.map_or(1.0, |s| s.0)).powf(0.25)
+                    - MIN_PERFECT_RATE_DIST.sqrt())
+                .max(0.0)
                     / 3.0) as u64)
                     .saturating_add(1)
                 != 0
@@ -1005,7 +1014,7 @@ impl FigureMgr {
                         });
 
                     // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
+                    let rel_avg_vel = (state.avg_vel - physics.ground_vel) / scale;
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -6157,6 +6166,7 @@ impl FigureMgr {
                     None,
                     entity,
                     body,
+                    scale.copied(),
                     inventory,
                     false,
                     pos.0,
@@ -6238,6 +6248,7 @@ impl FigureMgr {
                 character_state,
                 entity,
                 body,
+                scale.copied(),
                 inventory,
                 false,
                 pos.0,
@@ -6273,9 +6284,10 @@ impl FigureMgr {
         let character_state = character_state_storage.get(player_entity);
         let items = ecs.read_storage::<Item>();
 
-        if let (Some(pos), Some(body)) = (
+        if let (Some(pos), Some(body), scale) = (
             ecs.read_storage::<Pos>().get(player_entity),
             ecs.read_storage::<Body>().get(player_entity),
+            ecs.read_storage::<Scale>().get(player_entity),
         ) {
             let healths = state.read_storage::<Health>();
             let health = healths.get(player_entity);
@@ -6292,6 +6304,7 @@ impl FigureMgr {
                 character_state,
                 player_entity,
                 body,
+                scale.copied(),
                 inventory,
                 true,
                 pos.0,
@@ -6325,6 +6338,7 @@ impl FigureMgr {
         character_state: Option<&CharacterState>,
         entity: EcsEntity,
         body: &Body,
+        scale: Option<Scale>,
         inventory: Option<&Inventory>,
         is_viewpoint: bool,
         pos: Vec3<f32>,
@@ -6702,8 +6716,22 @@ impl FigureMgr {
         } {
             let model_entry = model_entry?;
 
-            let figure_low_detail_distance = figure_lod_render_distance * 0.75;
-            let figure_mid_detail_distance = figure_lod_render_distance * 0.5;
+            let figure_low_detail_distance = figure_lod_render_distance
+                * if matches!(body, Body::Ship(_)) {
+                    ship::AIRSHIP_SCALE
+                } else {
+                    1.0
+                }
+                * scale.map_or(1.0, |s| s.0)
+                * 0.75;
+            let figure_mid_detail_distance = figure_lod_render_distance
+                * if matches!(body, Body::Ship(_)) {
+                    ship::AIRSHIP_SCALE
+                } else {
+                    1.0
+                }
+                * scale.map_or(1.0, |s| s.0)
+                * 0.5;
 
             let model = if pos.distance_squared(cam_pos) > figure_low_detail_distance.powi(2) {
                 model_entry.lod_model(2)
@@ -7092,7 +7120,7 @@ impl<S: Skeleton> FigureState<S> {
 
         self.last_ori = Lerp::lerp(self.last_ori, *ori, 15.0 * dt).normalized();
 
-        self.state_time += dt * state_animation_rate;
+        self.state_time += dt * state_animation_rate / scale;
 
         let mat = {
             let scale_mat = anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(*scale));
@@ -7254,7 +7282,7 @@ impl<S: Skeleton> FigureState<S> {
 
         // Can potentially overflow
         if self.avg_vel.magnitude_squared() != 0.0 {
-            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt;
+            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt / scale;
         } else {
             self.acc_vel = 0.0;
         }

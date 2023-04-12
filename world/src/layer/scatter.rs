@@ -1,4 +1,4 @@
-use crate::{column::ColumnSample, sim::SimChunk, Canvas, CONFIG};
+use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, Canvas, CONFIG};
 use common::{
     calendar::{Calendar, CalendarEvent},
     terrain::{Block, BlockKind, SpriteKind},
@@ -13,7 +13,7 @@ pub fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
 
-/// Returns a decimal value between 0 and 1.  
+/// Returns a decimal value between 0 and 1.
 /// The density is maximum at the middle of the highest and the lowest allowed
 /// altitudes, and zero otherwise. Quadratic curve.
 ///
@@ -30,7 +30,7 @@ pub fn density_factor_by_altitude(lower_limit: f32, altitude: f32, upper_limit: 
 const MUSH_FACT: f32 = 1.0e-4; // To balance things around the mushroom spawning rate
 const GRASS_FACT: f32 = 1.0e-3; // To balance things around the grass spawning rate
 const DEPTH_WATER_NORM: f32 = 15.0; // Water depth at which regular underwater sprites start spawning
-pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng, calendar: Option<&Calendar>) {
+pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Option<&Calendar>) {
     enum WaterMode {
         Underwater,
         Floating,
@@ -1071,7 +1071,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng, calendar: Optio
                     })
                     .unwrap_or(density);
                 if density > 0.0
-                    && rng.gen::<f32>() < density //RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                    // Now deterministic, chunk resources are tracked by rtsim
+                    && /*rng.gen::<f32>() < density*/ RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
                     && matches!(&water_mode, Underwater | Floating) == underwater
                 {
                     Some((*kind, water_mode))
@@ -1097,7 +1098,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng, calendar: Optio
                         .find(|z| !is_under(canvas.get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))))
                 })
             {
-                canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end), |block| {
+                canvas.map_resource(Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end), |block| {
                     block.with_sprite(kind)
                 });
             }

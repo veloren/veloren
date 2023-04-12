@@ -336,7 +336,7 @@ pub fn apply_trees_to(
                     if last_block.is_filled() {
                         for (chance, sprite) in hanging_sprites {
                             if dynamic_rng.gen_bool(*chance as f64) {
-                                canvas.map(wpos, |block| block.with_sprite(*sprite));
+                                canvas.map_resource(wpos, |block| block.with_sprite(*sprite));
                             }
                         }
                     }

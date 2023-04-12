@@ -139,7 +139,7 @@ pub fn load_character_data(
     )?;
 
     let (body_data, character_data) = stmt.query_row(
-        &[requesting_player_uuid.clone(), char_id.to_string()],
+        &[requesting_player_uuid.clone(), char_id.0.to_string()],
         |row| {
             let character_data = Character {
                 character_id: row.get(0)?,
@@ -168,7 +168,7 @@ pub fn load_character_data(
             warn!(
                 "Error reading waypoint from database for character ID
     {}, error: {}",
-                char_id, e
+                char_id.0, e
             );
             (None, None)
         },
@@ -187,9 +187,9 @@ pub fn load_character_data(
     )?;
 
     let skill_group_data = stmt
-        .query_map(&[char_id], |row| {
+        .query_map(&[char_id.0], |row| {
             Ok(SkillGroup {
-                entity_id: char_id,
+                entity_id: char_id.0,
                 skill_group_kind: row.get(0)?,
                 earned_exp: row.get(1)?,
                 spent_exp: row.get(2)?,
@@ -212,7 +212,7 @@ pub fn load_character_data(
     )?;
 
     let db_pets = stmt
-        .query_map(&[char_id], |row| {
+        .query_map(&[char_id.0], |row| {
             Ok(Pet {
                 database_id: row.get(0)?,
                 name: row.get(1)?,
@@ -240,7 +240,7 @@ pub fn load_character_data(
             } else {
                 warn!(
                     "Failed to deserialize pet_id: {} for character_id {}",
-                    db_pet.database_id, char_id
+                    db_pet.database_id, char_id.0
                 );
                 None
             }
@@ -254,9 +254,9 @@ pub fn load_character_data(
             WHERE   entity_id = ?1",
     )?;
 
-    let ability_set_data = stmt.query_row(&[char_id], |row| {
+    let ability_set_data = stmt.query_row(&[char_id.0], |row| {
         Ok(AbilitySets {
-            entity_id: char_id,
+            entity_id: char_id.0,
             ability_sets: row.get(0)?,
         })
     })?;
@@ -329,7 +329,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
                 FROM    body
                 WHERE   body_id = ?1",
             )?;
-            let db_body = stmt.query_row(&[char.id], |row| {
+            let db_body = stmt.query_row(&[char.id.map(|c| c.0)], |row| {
                 Ok(Body {
                     body_id: row.get(0)?,
                     variant: row.get(1)?,
@@ -342,7 +342,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
 
             let loadout_container_id = get_pseudo_container_id(
                 connection,
-                character_data.character_id,
+                CharacterId(character_data.character_id),
                 LOADOUT_PSEUDO_CONTAINER_POSITION,
             )?;
 
@@ -470,7 +470,8 @@ pub fn create_character(
     ])?;
     drop(stmt);
 
-    let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups());
+    let db_skill_groups =
+        convert_skill_groups_to_database(CharacterId(character_id), skill_set.skill_groups());
 
     let mut stmt = transaction.prepare_cached(
         "
@@ -495,7 +496,8 @@ pub fn create_character(
     }
     drop(stmt);
 
-    let ability_sets = convert_active_abilities_to_database(character_id, &active_abilities);
+    let ability_sets =
+        convert_active_abilities_to_database(CharacterId(character_id), &active_abilities);
 
     let mut stmt = transaction.prepare_cached(
         "
@@ -547,7 +549,7 @@ pub fn create_character(
     }
     drop(stmt);
 
-    load_character_list(uuid, transaction).map(|list| (character_id, list))
+    load_character_list(uuid, transaction).map(|list| (CharacterId(character_id), list))
 }
 
 pub fn edit_character(
@@ -570,7 +572,7 @@ pub fn edit_character(
                     warn!(
                         "Character edit rejected due to failed validation - Character ID: {} \
                          Alias: {}",
-                        character_id, character_alias
+                        character_id.0, character_alias
                     );
                     return Err(PersistenceError::CharacterDataError);
                 } else {
@@ -587,14 +589,14 @@ pub fn edit_character(
     stmt.execute(&[
         &body_variant.to_string(),
         &body_data,
-        &character_id as &dyn ToSql,
+        &character_id.0 as &dyn ToSql,
     ])?;
     drop(stmt);
 
     let mut stmt =
         transaction.prepare_cached("UPDATE character SET alias = ?1 WHERE character_id = ?2")?;
 
-    stmt.execute(&[&character_alias, &character_id as &dyn ToSql])?;
+    stmt.execute(&[&character_alias, &character_id.0 as &dyn ToSql])?;
     drop(stmt);
 
     char_list.map(|list| (character_id, list))
@@ -616,10 +618,13 @@ pub fn delete_character(
         AND     player_uuid = ?2",
     )?;
 
-    let result = stmt.query_row(&[&char_id as &dyn ToSql, &requesting_player_uuid], |row| {
-        let y: i64 = row.get(0)?;
-        Ok(y)
-    })?;
+    let result = stmt.query_row(
+        &[&char_id.0 as &dyn ToSql, &requesting_player_uuid],
+        |row| {
+            let y: i64 = row.get(0)?;
+            Ok(y)
+        },
+    )?;
     drop(stmt);
 
     if result != 1 {
@@ -636,7 +641,7 @@ pub fn delete_character(
         WHERE   entity_id = ?1",
     )?;
 
-    stmt.execute(&[&char_id])?;
+    stmt.execute(&[&char_id.0])?;
     drop(stmt);
 
     let pet_ids = get_pet_ids(char_id, transaction)?
@@ -655,7 +660,7 @@ pub fn delete_character(
         WHERE   entity_id = ?1",
     )?;
 
-    stmt.execute(&[&char_id])?;
+    stmt.execute(&[&char_id.0])?;
     drop(stmt);
 
     // Delete character
@@ -666,7 +671,7 @@ pub fn delete_character(
         WHERE   character_id = ?1",
     )?;
 
-    stmt.execute(&[&char_id])?;
+    stmt.execute(&[&char_id.0])?;
     drop(stmt);
 
     // Delete body
@@ -677,7 +682,7 @@ pub fn delete_character(
         WHERE   body_id = ?1",
     )?;
 
-    stmt.execute(&[&char_id])?;
+    stmt.execute(&[&char_id.0])?;
     drop(stmt);
 
     // Delete all items, recursively walking all containers starting from the
@@ -701,14 +706,14 @@ pub fn delete_character(
         WHERE   EXISTS (SELECT 1 FROM parents WHERE parents.item_id = item.item_id)",
     )?;
 
-    let deleted_item_count = stmt.execute(&[&char_id])?;
+    let deleted_item_count = stmt.execute(&[&char_id.0])?;
     drop(stmt);
 
     if deleted_item_count < 3 {
         return Err(PersistenceError::OtherError(format!(
             "Error deleting from item table for char_id {} (expected at least 3 deletions, found \
              {})",
-            char_id, deleted_item_count
+            char_id.0, deleted_item_count
         )));
     }
 
@@ -822,7 +827,7 @@ fn get_pseudo_container_id(
     #[allow(clippy::needless_question_mark)]
     let res = stmt.query_row(
         &[
-            character_id.to_string(),
+            character_id.0.to_string(),
             pseudo_container_position.to_string(),
         ],
         |row| Ok(row.get(0)?),
@@ -850,7 +855,7 @@ fn update_pets(
     pets: Vec<PetPersistenceData>,
     transaction: &mut Transaction,
 ) -> Result<(), PersistenceError> {
-    debug!("Updating {} pets for character {}", pets.len(), char_id);
+    debug!("Updating {} pets for character {}", pets.len(), char_id.0);
 
     let db_pets = get_pet_ids(char_id, transaction)?;
     if !db_pets.is_empty() {
@@ -907,7 +912,7 @@ fn update_pets(
             VALUES  (?1, ?2, ?3)",
         )?;
 
-        stmt.execute(&[&pet_entity_id as &dyn ToSql, &char_id, &stats.name])?;
+        stmt.execute(&[&pet_entity_id as &dyn ToSql, &char_id.0, &stats.name])?;
         drop(stmt);
 
         pet.get_database_id()
@@ -917,7 +922,10 @@ fn update_pets(
     Ok(())
 }
 
-fn get_pet_ids(char_id: i64, transaction: &mut Transaction) -> Result<Vec<i64>, PersistenceError> {
+fn get_pet_ids(
+    char_id: CharacterId,
+    transaction: &mut Transaction,
+) -> Result<Vec<i64>, PersistenceError> {
     #[rustfmt::skip]
         let mut stmt = transaction.prepare_cached("
         SELECT  pet_id
@@ -927,7 +935,7 @@ fn get_pet_ids(char_id: i64, transaction: &mut Transaction) -> Result<Vec<i64>, 
 
     #[allow(clippy::needless_question_mark)]
     let db_pets = stmt
-        .query_map(&[&char_id], |row| Ok(row.get(0)?))?
+        .query_map(&[&char_id.0], |row| Ok(row.get(0)?))?
         .map(|x| x.unwrap())
         .collect::<Vec<i64>>();
     drop(stmt);
@@ -948,7 +956,10 @@ fn delete_pets(
 
     let delete_count = stmt.execute(&[&pet_ids])?;
     drop(stmt);
-    debug!("Deleted {} pets for character id {}", delete_count, char_id);
+    debug!(
+        "Deleted {} pets for character id {}",
+        delete_count, char_id.0
+    );
 
     #[rustfmt::skip]
     let mut stmt = transaction.prepare_cached("
@@ -960,7 +971,7 @@ fn delete_pets(
     let delete_count = stmt.execute(&[&pet_ids])?;
     debug!(
         "Deleted {} pet bodies for character id {}",
-        delete_count, char_id
+        delete_count, char_id.0
     );
 
     Ok(())
@@ -996,7 +1007,7 @@ pub fn update(
     })?;
 
     // Next, delete any slots we aren't upserting.
-    trace!("Deleting items for character_id {}", char_id);
+    trace!("Deleting items for character_id {}", char_id.0);
     let mut existing_item_ids: Vec<_> = vec![
         Value::from(pseudo_containers.inventory_container_id),
         Value::from(pseudo_containers.loadout_container_id),
@@ -1040,7 +1051,7 @@ pub fn update(
         trace!(
             "Upserting items {:?} for character_id {}",
             upserted_items,
-            char_id
+            char_id.0
         );
 
         // When moving inventory items around, foreign key constraints on
@@ -1111,12 +1122,12 @@ pub fn update(
     ",
     )?;
 
-    let waypoint_count = stmt.execute(&[&db_waypoint as &dyn ToSql, &char_id])?;
+    let waypoint_count = stmt.execute(&[&db_waypoint as &dyn ToSql, &char_id.0])?;
 
     if waypoint_count != 1 {
         return Err(PersistenceError::OtherError(format!(
             "Error updating character table for char_id {}",
-            char_id
+            char_id.0
         )));
     }
 
@@ -1132,13 +1143,13 @@ pub fn update(
 
     let ability_sets_count = stmt.execute(&[
         &ability_sets.ability_sets as &dyn ToSql,
-        &char_id as &dyn ToSql,
+        &char_id.0 as &dyn ToSql,
     ])?;
 
     if ability_sets_count != 1 {
         return Err(PersistenceError::OtherError(format!(
             "Error updating ability_set table for char_id {}",
-            char_id,
+            char_id.0,
         )));
     }
 

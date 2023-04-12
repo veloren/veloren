@@ -6,21 +6,21 @@ use common::{
         group,
         item::MaterialStatManifest,
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
-        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Scale, SkillSet, Stance, Stats,
-        Vel,
+        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, PresenceKind, Scale,
+        SkillSet, Stance, Stats, Vel,
     },
     link::Is,
-    mounting::Mount,
+    mounting::{Mount, Rider},
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
-    rtsim::RtSimEntity,
+    rtsim::{Actor, RtSimEntity},
     states::utils::{ForcedMovement, StageSection},
     terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
 };
 use specs::{
-    shred::ResourceId, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
-    World,
+    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage,
+    SystemData, World,
 };
 
 // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate
@@ -54,6 +54,7 @@ pub struct AgentData<'a> {
     pub stance: Option<&'a Stance>,
     pub cached_spatial_grid: &'a common::CachedSpatialGrid,
     pub msm: &'a MaterialStatManifest,
+    pub rtsim_entity: Option<&'a RtSimEntity>,
 }
 
 pub struct TargetData<'a> {
@@ -232,6 +233,7 @@ pub struct ReadData<'a> {
     pub alignments: ReadStorage<'a, Alignment>,
     pub bodies: ReadStorage<'a, Body>,
     pub is_mounts: ReadStorage<'a, Is<Mount>>,
+    pub is_riders: ReadStorage<'a, Is<Rider>>,
     pub time_of_day: Read<'a, TimeOfDay>,
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]
@@ -244,6 +246,25 @@ pub struct ReadData<'a> {
     pub msm: ReadExpect<'a, MaterialStatManifest>,
     pub poises: ReadStorage<'a, Poise>,
     pub stances: ReadStorage<'a, Stance>,
+    pub presences: ReadStorage<'a, Presence>,
+}
+
+impl<'a> ReadData<'a> {
+    pub fn lookup_actor(&self, actor: Actor) -> Option<EcsEntity> {
+        // TODO: We really shouldn't be doing a linear search here. The only saving
+        // grace is that the set of entities that fit each case should be
+        // *relatively* small.
+        match actor {
+            Actor::Character(character_id) => (&self.entities, &self.presences)
+                .join()
+                .find(|(_, p)| p.kind == PresenceKind::Character(character_id))
+                .map(|(entity, _)| entity),
+            Actor::Npc(npc_id) => (&self.entities, &self.rtsim_entities)
+                .join()
+                .find(|(_, e)| e.0 == npc_id)
+                .map(|(entity, _)| entity),
+        }
+    }
 }
 
 pub enum Path {

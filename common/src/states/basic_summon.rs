@@ -6,7 +6,7 @@ use crate::{
         skillset::skills,
         Behavior, BehaviorCapability, CharacterState, Projectile, StateUpdate,
     },
-    event::{LocalEvent, ServerEvent},
+    event::{LocalEvent, NpcBuilder, ServerEvent},
     outcome::Outcome,
     skillset_builder::{self, SkillSetBuilder},
     states::{
@@ -149,7 +149,7 @@ impl CharacterBehavior for Data {
                         let collision_vector = Vec3::new(
                             data.pos.0.x + (summon_frac * 2.0 * PI).sin() * obstacle_xy,
                             data.pos.0.y + (summon_frac * 2.0 * PI).cos() * obstacle_xy,
-                            data.pos.0.z + data.body.eye_height(),
+                            data.pos.0.z + data.body.eye_height(data.scale.map_or(1.0, |s| s.0)),
                         );
 
                         // Check for collision in z up to 50 blocks
@@ -174,27 +174,22 @@ impl CharacterBehavior for Data {
                         // Send server event to create npc
                         output_events.emit_server(ServerEvent::CreateNpc {
                             pos: comp::Pos(collision_vector - Vec3::unit_z() * obstacle_z),
-                            stats,
-                            skill_set,
-                            health,
-                            poise: comp::Poise::new(body),
-                            inventory: comp::Inventory::with_loadout(loadout, body),
-                            body,
-                            agent: Some(
-                                comp::Agent::from_body(&body)
-                                    .with_behavior(Behavior::from(BehaviorCapability::SPEAK))
-                                    .with_no_flee_if(true),
-                            ),
-                            alignment: comp::Alignment::Owned(*data.uid),
-                            scale: self
-                                .static_data
-                                .summon_info
-                                .scale
-                                .unwrap_or(comp::Scale(1.0)),
-                            anchor: None,
-                            loot: crate::lottery::LootSpec::Nothing,
-                            rtsim_entity: None,
-                            projectile,
+                            npc: NpcBuilder::new(stats, body, comp::Alignment::Owned(*data.uid))
+                                .with_skill_set(skill_set)
+                                .with_health(health)
+                                .with_inventory(comp::Inventory::with_loadout(loadout, body))
+                                .with_agent(
+                                    comp::Agent::from_body(&body)
+                                        .with_behavior(Behavior::from(BehaviorCapability::SPEAK))
+                                        .with_no_flee_if(true),
+                                )
+                                .with_scale(
+                                    self.static_data
+                                        .summon_info
+                                        .scale
+                                        .unwrap_or(comp::Scale(1.0)),
+                                )
+                                .with_projectile(projectile),
                         });
 
                         // Send local event used for frontend shenanigans

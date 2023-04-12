@@ -113,6 +113,13 @@ impl TerrainChanges {
     }
 }
 
+#[derive(Clone)]
+pub struct BlockDiff {
+    pub wpos: Vec3<i32>,
+    pub old: Block,
+    pub new: Block,
+}
+
 /// A type used to represent game state stored on both the client and the
 /// server. This includes things like entity components, terrain data, and
 /// global states like weather, time of day, etc.
@@ -199,6 +206,7 @@ impl State {
         ecs.register::<comp::Sticky>();
         ecs.register::<comp::Immovable>();
         ecs.register::<comp::CharacterState>();
+        ecs.register::<comp::CharacterActivity>();
         ecs.register::<comp::Object>();
         ecs.register::<comp::Group>();
         ecs.register::<comp::Shockwave>();
@@ -524,7 +532,9 @@ impl State {
     }
 
     // Apply terrain changes
-    pub fn apply_terrain_changes(&self) { self.apply_terrain_changes_internal(false); }
+    pub fn apply_terrain_changes(&self, block_update: impl FnMut(&specs::World, Vec<BlockDiff>)) {
+        self.apply_terrain_changes_internal(false, block_update);
+    }
 
     /// `during_tick` is true if and only if this is called from within
     /// [State::tick].
@@ -534,7 +544,11 @@ impl State {
     /// from within both the client and the server ticks, right after
     /// handling terrain messages; currently, client sets it to true and
     /// server to false.
-    fn apply_terrain_changes_internal(&self, during_tick: bool) {
+    fn apply_terrain_changes_internal(
+        &self,
+        during_tick: bool,
+        mut block_update: impl FnMut(&specs::World, Vec<BlockDiff>),
+    ) {
         span!(
             _guard,
             "apply_terrain_changes",
@@ -575,17 +589,30 @@ impl State {
         }
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
-        modified_blocks.retain(|pos, block| {
-            let res = terrain.set(*pos, *block);
-            if let (&Ok(old_block), true) = (&res, during_tick) {
+        let mut updated_blocks = Vec::with_capacity(modified_blocks.len());
+        modified_blocks.retain(|wpos, new| {
+            let res = terrain.map(*wpos, |old| {
+                updated_blocks.push(BlockDiff {
+                    wpos: *wpos,
+                    old,
+                    new: *new,
+                });
+                *new
+            });
+            if let (&Ok(old), true) = (&res, during_tick) {
                 // NOTE: If the changes are applied during the tick, we push the *old* value as
                 // the modified block (since it otherwise can't be recovered after the tick).
                 // Otherwise, the changes will be applied after the tick, so we push the *new*
                 // value.
-                *block = old_block;
+                *new = old;
             }
             res.is_ok()
         });
+
+        if !updated_blocks.is_empty() {
+            block_update(&self.ecs, updated_blocks);
+        }
+
         self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;
     }
 
@@ -597,6 +624,7 @@ impl State {
         update_terrain_and_regions: bool,
         mut metrics: Option<&mut StateTickMetrics>,
         server_constants: &ServerConstants,
+        block_update: impl FnMut(&specs::World, Vec<BlockDiff>),
     ) {
         span!(_guard, "tick", "State::tick");
 
@@ -643,7 +671,7 @@ impl State {
         drop(guard);
 
         if update_terrain_and_regions {
-            self.apply_terrain_changes_internal(true);
+            self.apply_terrain_changes_internal(true, block_update);
         }
 
         // Process local events

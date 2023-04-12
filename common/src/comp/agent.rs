@@ -4,7 +4,7 @@ use crate::{
         quadruped_small, ship, Body, UtteranceKind,
     },
     path::Chaser,
-    rtsim::{Memory, MemoryItem, RtSimController, RtSimEvent},
+    rtsim::RtSimController,
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
@@ -83,7 +83,7 @@ impl Alignment {
         }
     }
 
-    // Never attacks
+    // Usually never attacks
     pub fn passive_towards(self, other: Alignment) -> bool {
         match (self, other) {
             (Alignment::Enemy, Alignment::Enemy) => true,
@@ -92,6 +92,20 @@ impl Alignment {
             (Alignment::Npc, Alignment::Tame) => true,
             (Alignment::Enemy, Alignment::Wild) => true,
             (Alignment::Wild, Alignment::Enemy) => true,
+            (Alignment::Tame, Alignment::Npc) => true,
+            (Alignment::Tame, Alignment::Tame) => true,
+            (_, Alignment::Passive) => true,
+            _ => false,
+        }
+    }
+
+    // Never attacks
+    pub fn friendly_towards(self, other: Alignment) -> bool {
+        match (self, other) {
+            (Alignment::Enemy, Alignment::Enemy) => true,
+            (Alignment::Owned(a), Alignment::Owned(b)) if a == b => true,
+            (Alignment::Npc, Alignment::Npc) => true,
+            (Alignment::Npc, Alignment::Tame) => true,
             (Alignment::Tame, Alignment::Npc) => true,
             (Alignment::Tame, Alignment::Tame) => true,
             (_, Alignment::Passive) => true,
@@ -611,6 +625,11 @@ impl Awareness {
             self.reached = false;
         }
     }
+
+    pub fn set_maximally_aware(&mut self) {
+        self.reached = true;
+        self.level = Self::ALERT;
+    }
 }
 
 #[derive(Clone, Debug, PartialOrd, PartialEq, Eq)]
@@ -713,23 +732,6 @@ impl Agent {
     }
 
     pub fn allowed_to_speak(&self) -> bool { self.behavior.can(BehaviorCapability::SPEAK) }
-
-    pub fn forget_enemy(&mut self, target_name: &str) {
-        self.rtsim_controller
-            .events
-            .push(RtSimEvent::ForgetEnemy(target_name.to_owned()));
-    }
-
-    pub fn add_fight_to_memory(&mut self, target_name: &str, time: f64) {
-        self.rtsim_controller
-            .events
-            .push(RtSimEvent::AddMemory(Memory {
-                item: MemoryItem::CharacterFight {
-                    name: target_name.to_owned(),
-                },
-                time_to_forget: time + 300.0,
-            }));
-    }
 }
 
 impl Component for Agent {
@@ -904,21 +906,21 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
 
 /// Get the PID coefficients associated with some Body, since it will likely
 /// need to be tuned differently for each body type
-pub fn pid_coefficients(body: &Body) -> (f32, f32, f32) {
+pub fn pid_coefficients(body: &Body) -> Option<(f32, f32, f32)> {
+    // A pure-proportional controller is { kp: 1.0, ki: 0.0, kd: 0.0 }
     match body {
         Body::Ship(ship::Body::DefaultAirship) => {
             let kp = 1.0;
             let ki = 0.1;
             let kd = 1.2;
-            (kp, ki, kd)
+            Some((kp, ki, kd))
         },
         Body::Ship(ship::Body::AirBalloon) => {
             let kp = 1.0;
             let ki = 0.1;
             let kd = 0.8;
-            (kp, ki, kd)
+            Some((kp, ki, kd))
         },
-        // default to a pure-proportional controller, which is the first step when tuning
-        _ => (1.0, 0.0, 0.0),
+        _ => None,
     }
 }

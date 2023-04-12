@@ -1,13 +1,13 @@
-use crate::{persistence::character_updater, presence::Presence, sys::SysScheduler};
+use crate::{persistence::character_updater, sys::SysScheduler};
 use common::{
     comp::{
         pet::{is_tameable, Pet},
-        ActiveAbilities, Alignment, Body, Inventory, MapMarker, SkillSet, Stats, Waypoint,
+        ActiveAbilities, Alignment, Body, Inventory, MapMarker, Presence, PresenceKind, SkillSet,
+        Stats, Waypoint,
     },
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::PresenceKind;
 use specs::{Join, ReadStorage, Write, WriteExpect};
 
 #[derive(Default)]

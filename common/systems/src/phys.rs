@@ -50,6 +50,7 @@ fn integrate_forces(
     mass: &Mass,
     fluid: &Fluid,
     gravity: f32,
+    scale: Option<Scale>,
 ) -> Vel {
     let dim = body.dimensions();
     let height = dim.z;
@@ -61,7 +62,13 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        let impulse = dt.0 * body.aerodynamic_forces(&rel_flow, fluid_density.0, wings);
+        let impulse = dt.0
+            * body.aerodynamic_forces(
+                &rel_flow,
+                fluid_density.0,
+                wings,
+                scale.map_or(1.0, |s| s.0),
+            );
         debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
         if !impulse.is_approx_zero() {
             let new_v = vel.0 + impulse / mass.0;
@@ -610,6 +617,7 @@ impl<'a> PhysicsData<'a> {
             &write.physics_states,
             &read.masses,
             &read.densities,
+            read.scales.maybe(),
             !&read.is_ridings,
         )
             .par_join()
@@ -628,6 +636,7 @@ impl<'a> PhysicsData<'a> {
                     physics_state,
                     mass,
                     density,
+                    scale,
                     _,
                 )| {
                     let in_loaded_chunk = read
@@ -672,6 +681,7 @@ impl<'a> PhysicsData<'a> {
                                     mass,
                                     &fluid,
                                     GRAVITY,
+                                    scale.copied(),
                                 )
                                 .0
                             },
@@ -1092,19 +1102,21 @@ impl<'a> PhysicsData<'a> {
 
                                     // TODO: Cache the matrices here to avoid recomputing
 
-                                    let transform_last_from = Mat4::<f32>::translation_3d(
-                                        previous_cache_other.pos.unwrap_or(*pos_other).0
-                                            - previous_cache.pos.unwrap_or(Pos(wpos)).0,
-                                    ) * Mat4::from(
-                                        previous_cache_other.ori,
-                                    ) * Mat4::<f32>::translation_3d(
-                                        voxel_collider.translation,
-                                    );
+                                    let transform_last_from =
+                                        Mat4::<f32>::translation_3d(
+                                            previous_cache_other.pos.unwrap_or(*pos_other).0
+                                                - previous_cache.pos.unwrap_or(Pos(wpos)).0,
+                                        ) * Mat4::from(previous_cache_other.ori)
+                                            * Mat4::<f32>::scaling_3d(previous_cache_other.scale)
+                                            * Mat4::<f32>::translation_3d(
+                                                voxel_collider.translation,
+                                            );
                                     let transform_last_to = transform_last_from.inverted();
 
                                     let transform_from =
                                         Mat4::<f32>::translation_3d(pos_other.0 - wpos)
                                             * Mat4::from(ori_other.to_quat())
+                                            * Mat4::<f32>::scaling_3d(previous_cache_other.scale)
                                             * Mat4::<f32>::translation_3d(
                                                 voxel_collider.translation,
                                             );
@@ -1350,12 +1362,9 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     read: &PhysicsRead,
     ori: &Ori,
 ) {
-    // FIXME: Review these
-    #![allow(
-        clippy::cast_precision_loss,
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss
-    )]
+    // We cap out scale at 10.0 to prevent an enormous amount of lag
+    let scale = read.scales.get(entity).map_or(1.0, |s| s.0.min(10.0));
+
     //prof_span!("box_voxel_collision");
 
     // Convience function to compute the player aabb
@@ -1410,7 +1419,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     #[allow(clippy::trivially_copy_pass_by_ref)]
     fn always_hits(_: &Block) -> bool { true }
 
-    let (radius, z_min, z_max) = cylinder;
+    let (radius, z_min, z_max) = (Vec3::from(cylinder) * scale).into_tuple();
 
     // Probe distances
     let hdist = radius.ceil() as i32;
@@ -1440,7 +1449,8 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
 
     // Don't jump too far at once
     const MAX_INCREMENTS: usize = 100; // The maximum number of collision tests per tick
-    let increments = ((pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3).ceil() as usize)
+    let min_step = (radius / 2.0).min(z_max - z_min).clamped(0.01, 0.3);
+    let increments = ((pos_delta.map(|e| e.abs()).reduce_partial_max() / min_step).ceil() as usize)
         .clamped(1, MAX_INCREMENTS);
     let old_pos = pos.0;
     for _ in 0..increments {

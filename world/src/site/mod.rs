@@ -305,6 +305,25 @@ impl Site {
                 | SiteKind::Settlement(_)
         )
     }
+
+    /// Return the inner site2 site, if this site has one.
+    // TODO: Remove all of this when site1 gets removed.
+    pub fn site2(&self) -> Option<&site2::Site> {
+        match &self.kind {
+            SiteKind::Settlement(_) => None,
+            SiteKind::Dungeon(site2) => Some(site2),
+            SiteKind::Castle(_) => None,
+            SiteKind::Refactor(site2) => Some(site2),
+            SiteKind::CliffTown(site2) => Some(site2),
+            SiteKind::SavannahPit(site2) => Some(site2),
+            SiteKind::Tree(_) => None,
+            SiteKind::DesertCity(site2) => Some(site2),
+            SiteKind::ChapelSite(site2) => Some(site2),
+            SiteKind::GiantTree(site2) => Some(site2),
+            SiteKind::Gnarling(site2) => Some(site2),
+            SiteKind::Bridge(site2) => Some(site2),
+        }
+    }
 }
 
 impl SiteKind {

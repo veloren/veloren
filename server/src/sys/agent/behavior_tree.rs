@@ -1,4 +1,3 @@
-use crate::rtsim::Entity as RtSimEntity;
 use common::{
     comp::{
         agent::{
@@ -10,6 +9,7 @@ use common::{
     },
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
+    rtsim::{NpcAction, RtSimEntity},
 };
 use rand::{prelude::ThreadRng, thread_rng, Rng};
 use specs::{
@@ -40,8 +40,6 @@ mod interaction;
 pub struct BehaviorData<'a, 'b, 'c> {
     pub agent: &'a mut Agent,
     pub agent_data: AgentData<'a>,
-    // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate crate
-    pub rtsim_entity: Option<&'a RtSimEntity>,
     pub read_data: &'a ReadData<'a>,
     pub event_emitter: &'a mut Emitter<'c, ServerEvent>,
     pub controller: &'a mut Controller,
@@ -162,7 +160,11 @@ impl BehaviorTree {
     /// Idle BehaviorTree
     pub fn idle() -> Self {
         Self {
-            tree: vec![set_owner_if_no_target, handle_timed_events],
+            tree: vec![
+                set_owner_if_no_target,
+                handle_rtsim_actions,
+                handle_timed_events,
+            ],
         }
     }
 
@@ -277,6 +279,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                         }
 
                         // Remember this attack if we're an RtSim entity
+                        /*
                         if let Some(attacker_stats) =
                             bdata.rtsim_entity.and(bdata.read_data.stats.get(attacker))
                         {
@@ -284,6 +287,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                                 .agent
                                 .add_fight_to_memory(&attacker_stats.name, bdata.read_data.time.0);
                         }
+                        */
                     }
                 }
             }
@@ -316,9 +320,11 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
         if let Some(tgt_health) = bdata.read_data.healths.get(target) {
             // If target is dead, forget them
             if tgt_health.is_dead {
+                /*
                 if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {
                     bdata.agent.forget_enemy(&tgt_stats.name);
                 }
+                */
                 bdata.agent.target = None;
                 return true;
             }
@@ -431,6 +437,7 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
                     bdata.agent,
                     bdata.read_data,
                     bdata.controller,
+                    bdata.event_emitter,
                     bdata.rng,
                 );
                 return true;
@@ -456,10 +463,60 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
                     false,
                     owner_pos,
                 ));
+                // Always become aware of our owner no matter what
+                bdata.agent.awareness.set_maximally_aware();
             }
         }
     }
     false
+}
+
+/// Handle action requests from rtsim, such as talking to NPCs or attacking
+fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
+    if let Some(action) = bdata.agent.rtsim_controller.actions.pop_front() {
+        match action {
+            NpcAction::Say(target, msg) => {
+                if bdata.agent.allowed_to_speak() {
+                    // Aim the speech toward a target
+                    if let Some(target) = target.and_then(|tgt| bdata.read_data.lookup_actor(tgt)) {
+                        bdata.agent.target = Some(Target::new(
+                            target,
+                            false,
+                            bdata.read_data.time.0,
+                            false,
+                            bdata.read_data.positions.get(target).map(|p| p.0),
+                        ));
+                        // We're always aware of someone we're talking to
+                        bdata.agent.awareness.set_maximally_aware();
+                        // Start a timer so that we eventually stop interacting
+                        bdata
+                            .agent
+                            .timer
+                            .start(bdata.read_data.time.0, TimerAction::Interact);
+                        bdata.controller.push_action(ControlAction::Stand);
+                    }
+
+                    bdata.controller.push_utterance(UtteranceKind::Greeting);
+                    bdata.agent_data.chat_npc(msg, bdata.event_emitter);
+                }
+            },
+            NpcAction::Attack(target) => {
+                if let Some(target) = bdata.read_data.lookup_actor(target) {
+                    bdata.agent.target = Some(Target::new(
+                        target,
+                        true,
+                        bdata.read_data.time.0,
+                        false,
+                        bdata.read_data.positions.get(target).map(|p| p.0),
+                    ));
+                    bdata.agent.awareness.set_maximally_aware();
+                }
+            },
+        }
+        true
+    } else {
+        false
+    }
 }
 
 /// Handle timed events, like looking at the player we are talking to
@@ -496,13 +553,14 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                     bdata.controller,
                     bdata.read_data,
                     bdata.event_emitter,
-                    will_ambush(bdata.rtsim_entity, &bdata.agent_data),
+                    AgentData::is_enemy,
                 );
             } else {
                 bdata.agent_data.handle_sounds_heard(
                     bdata.agent,
                     bdata.controller,
                     bdata.read_data,
+                    bdata.event_emitter,
                     bdata.rng,
                 );
             }
@@ -524,7 +582,14 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
         let target = target_info.target;
 
         if let Some(target_pos) = read_data.positions.get(target) {
-            if agent_data.detects_other(agent, controller, &target, target_pos, read_data) {
+            if agent_data.detects_other(
+                agent,
+                controller,
+                &target,
+                target_pos,
+                read_data.scales.get(target),
+                read_data,
+            ) {
                 let updated_pos = Some(target_pos.0);
 
                 let Target {
@@ -584,9 +649,10 @@ fn update_target_awareness(bdata: &mut BehaviorData) -> bool {
 
     let target = agent.target.map(|t| t.target);
     let tgt_pos = target.and_then(|t| read_data.positions.get(t));
+    let tgt_scale = target.and_then(|t| read_data.scales.get(t));
 
     if let (Some(target), Some(tgt_pos)) = (target, tgt_pos) {
-        if agent_data.can_see_entity(agent, controller, target, tgt_pos, read_data) {
+        if agent_data.can_see_entity(agent, controller, target, tgt_pos, tgt_scale, read_data) {
             agent.awareness.change_by(1.75 * read_data.dt.0);
         } else if agent_data.can_sense_directly_near(tgt_pos) {
             agent.awareness.change_by(0.25);
@@ -639,7 +705,6 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent,
         agent_data,
-        rtsim_entity,
         read_data,
         event_emitter,
         controller,
@@ -718,12 +783,12 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.0;
                     agent.target = None;
                     agent.flee_from_pos = None;
-                    agent_data.idle(agent, controller, read_data, rng);
+                    agent_data.idle(agent, controller, read_data, event_emitter, rng);
                 }
             } else if is_dead(target, read_data) {
                 agent_data.exclaim_relief_about_enemy_dead(agent, event_emitter);
                 agent.target = None;
-                agent_data.idle(agent, controller, read_data, rng);
+                agent_data.idle(agent, controller, read_data, event_emitter, rng);
             } else if is_invulnerable(target, read_data)
                 || stop_pursuing(
                     dist_sqrd,
@@ -735,7 +800,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 )
             {
                 agent.target = None;
-                agent_data.idle(agent, controller, read_data, rng);
+                agent_data.idle(agent, controller, read_data, event_emitter, rng);
             } else {
                 let is_time_to_retarget =
                     read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
@@ -746,15 +811,17 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         controller,
                         read_data,
                         event_emitter,
-                        will_ambush(*rtsim_entity, agent_data),
+                        AgentData::is_enemy,
                     );
                 }
 
                 if aggro_on {
                     let target_data = TargetData::new(tgt_pos, target, read_data);
-                    let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
+                    // let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
-                    tgt_name.map(|tgt_name| agent.add_fight_to_memory(&tgt_name, read_data.time.0));
+                    // TODO: Reimplement in rtsim2
+                    // tgt_name.map(|tgt_name| agent.add_fight_to_memory(&tgt_name,
+                    // read_data.time.0));
                     agent_data.attack(agent, controller, &target_data, read_data, rng);
                 } else {
                     agent_data.menacing(
@@ -764,9 +831,11 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         read_data,
                         event_emitter,
                         rng,
-                        remembers_fight_with(*rtsim_entity, read_data, target),
+                        remembers_fight_with(agent_data.rtsim_entity, read_data, target),
                     );
-                    remember_fight(*rtsim_entity, read_data, agent, target);
+                    // TODO: Reimplement in rtsim2
+                    // remember_fight(agent_data.rtsim_entity, read_data, agent,
+                    // target);
                 }
             }
         }
@@ -774,38 +843,33 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-fn will_ambush(rtsim_entity: Option<&RtSimEntity>, agent_data: &AgentData) -> bool {
-    agent_data
-        .health
-        .map_or(false, |h| h.current() / h.maximum() > 0.7)
-        && rtsim_entity.map_or(false, |re| re.brain.personality.will_ambush)
-}
-
 fn remembers_fight_with(
-    rtsim_entity: Option<&RtSimEntity>,
-    read_data: &ReadData,
-    other: EcsEntity,
+    _rtsim_entity: Option<&RtSimEntity>,
+    _read_data: &ReadData,
+    _other: EcsEntity,
 ) -> bool {
-    let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
+    // TODO: implement for rtsim2
+    // let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
 
-    rtsim_entity.map_or(false, |rtsim_entity| {
-        name().map_or(false, |name| {
-            rtsim_entity.brain.remembers_fight_with_character(&name)
-        })
-    })
+    // rtsim_entity.map_or(false, |rtsim_entity| {
+    //     name().map_or(false, |name| {
+    //         rtsim_entity.brain.remembers_fight_with_character(&name)
+    //     })
+    // })
+    false
 }
 
-/// Remember target.
-fn remember_fight(
-    rtsim_entity: Option<&RtSimEntity>,
-    read_data: &ReadData,
-    agent: &mut Agent,
-    target: EcsEntity,
-) {
-    rtsim_entity.is_some().then(|| {
-        read_data
-            .stats
-            .get(target)
-            .map(|stats| agent.add_fight_to_memory(&stats.name, read_data.time.0))
-    });
-}
+// /// Remember target.
+// fn remember_fight(
+//     rtsim_entity: Option<&RtSimEntity>,
+//     read_data: &ReadData,
+//     agent: &mut Agent,
+//     target: EcsEntity,
+// ) {
+//     rtsim_entity.is_some().then(|| {
+//         read_data
+//             .stats
+//             .get(target)
+//             .map(|stats| agent.add_fight_to_memory(&stats.name,
+// read_data.time.0))     });
+// }
