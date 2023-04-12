@@ -102,7 +102,7 @@ impl Animation for SelfBuffAnimation {
         // TODO: Remove clippy allow when second species is added
         #[allow(clippy::single_match)]
         match active_tool_kind {
-            Some(ToolKind::Axe) => {
+            Some(ToolKind::Axe | ToolKind::Hammer) => {
                 next.control_l.position = Vec3::new(-1.0, 2.0, 12.0);
                 next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
 

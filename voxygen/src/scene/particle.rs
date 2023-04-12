@@ -358,6 +358,15 @@ impl ParticleMgr {
                     },
                 );
             },
+            Outcome::CyclopsCharge { pos } => {
+                self.particles.push(Particle::new_directed(
+                    Duration::from_secs_f32(rng.gen_range(0.1..0.2)),
+                    time,
+                    ParticleMode::CyclopsCharge,
+                    *pos + Vec3::new(0.0, 0.0, 5.3),
+                    *pos + Vec3::new(0.0, 0.0, 5.6 + 0.5 * rng.gen_range(0.0..0.2)),
+                ));
+            },
             Outcome::Death { pos, .. } => {
                 self.particles.resize_with(self.particles.len() + 40, || {
                     Particle::new(
@@ -381,7 +390,8 @@ impl ParticleMgr {
             | Outcome::Utterance { .. }
             | Outcome::IceSpikes { .. }
             | Outcome::IceCrack { .. }
-            | Outcome::Glider { .. } => {},
+            | Outcome::Glider { .. }
+            | Outcome::LaserBeam { .. } => {},
         }
     }
 

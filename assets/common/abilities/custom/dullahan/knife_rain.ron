@@ -1,0 +1,16 @@
+BasicRanged(
+    energy_cost: 0.0,
+    buildup_duration: 1.1,
+    recover_duration: 0.2,
+    projectile: Knife(
+        damage: 34.0,
+        radius: 3.8,
+        knockback: 5.0,
+        energy_regen: 20.0,
+        min_falloff: 0.3,
+    ),
+    projectile_body: Object(SpectralSwordSmall),
+    projectile_speed: 20.0,
+    num_projectiles: 36,
+    projectile_spread: 0.4,
+)

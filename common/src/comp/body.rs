@@ -783,12 +783,12 @@ impl Body {
             Body::FishSmall(_) => 3,
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Ogre => 320,
-                biped_large::Species::Cyclops => 320,
+                biped_large::Species::Cyclops => 1000,
                 biped_large::Species::Wendigo => 280,
                 biped_large::Species::Cavetroll => 240,
                 biped_large::Species::Mountaintroll => 240,
                 biped_large::Species::Swamptroll => 240,
-                biped_large::Species::Dullahan => 700,
+                biped_large::Species::Dullahan => 600,
                 biped_large::Species::Mindflayer => 1250,
                 biped_large::Species::Tidalwarrior => 1600,
                 biped_large::Species::Yeti => 1200,
@@ -895,8 +895,15 @@ impl Body {
                 ),
                 Body::BipedLarge(b) => matches!(
                     b.species,
-                    biped_large::Species::Huskbrute | biped_large::Species::Gigasfrost
+                    biped_large::Species::Huskbrute
+                        | biped_large::Species::Gigasfrost
+                        | biped_large::Species::Dullahan
                 ),
+                _ => false,
+            },
+            BuffKind::Crippled => match self {
+                Body::Object(_) | Body::Golem(_) | Body::Ship(_) => true,
+                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Dullahan),
                 _ => false,
             },
             BuffKind::Burning => match self {
@@ -915,6 +922,7 @@ impl Body {
                         | bird_large::Species::WealdWyvern
                 ),
                 Body::Arthropod(b) => matches!(b.species, arthropod::Species::Moltencrawler),
+                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Cyclops),
                 _ => false,
             },
             BuffKind::Ensnared => match self {

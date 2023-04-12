@@ -1,7 +1,7 @@
 #![enable(implicit_some)]
 (
-    name: Name("Dullahan"),
-    body: RandomWith("dullahan"),
+    name: Automatic,
+    body: RandomWith("cyclops"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.tier-4.miniboss"),
     inventory: (

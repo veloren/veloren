@@ -168,6 +168,8 @@ pub enum Tactic {
     Roshwalr,
     FrostGigas,
     BorealHammer,
+    Dullahan,
+    Cyclops,
 }
 
 #[derive(Copy, Clone)]

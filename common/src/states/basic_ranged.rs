@@ -1,10 +1,11 @@
 use crate::{
     combat::CombatEffect,
     comp::{
-        character_state::OutputEvents, Body, CharacterState, LightEmitter, Pos,
-        ProjectileConstructor, StateUpdate,
+        character_state::OutputEvents, object::Body::LaserBeam, Body, CharacterState, LightEmitter,
+        Pos, ProjectileConstructor, StateUpdate,
     },
-    event::ServerEvent,
+    event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -66,6 +67,14 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
+                    if self.static_data.projectile_body == Body::Object(LaserBeam) {
+                        // Send local event used for frontend shenanigans
+                        output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::CyclopsCharge {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            },
+                        ));
+                    }
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::BasicRanged(Data {

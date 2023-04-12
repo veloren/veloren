@@ -909,6 +909,8 @@ impl<'a> AgentData<'a> {
                             "Bird Medium Basic" => Tactic::BirdMediumBasic,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Minotaur" => Tactic::Minotaur,
+                            "Cyclops" => Tactic::Cyclops,
+                            "Dullahan" => Tactic::Dullahan,
                             "Clay Golem" => Tactic::ClayGolem,
                             "Tidal Warrior" => Tactic::TidalWarrior,
                             "Tidal Totem"
@@ -1293,6 +1295,12 @@ impl<'a> AgentData<'a> {
             },
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::Cyclops => {
+                self.handle_cyclops_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::Dullahan => {
+                self.handle_dullahan_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::ClayGolem => {
                 self.handle_clay_golem_attack(agent, controller, &attack_data, tgt_data, read_data)

@@ -910,12 +910,15 @@ impl LoadoutBuilder {
                     Some("common.items.npc_armor.biped_large.harvester")
                 },
                 biped_large::Species::Ogre
-                | biped_large::Species::Cyclops
                 | biped_large::Species::Blueoni
                 | biped_large::Species::Redoni
                 | biped_large::Species::Cavetroll
                 | biped_large::Species::Wendigo => {
                     Some("common.items.npc_armor.biped_large.generic")
+                },
+                biped_large::Species::Cyclops => Some("common.items.npc_armor.biped_large.cyclops"),
+                biped_large::Species::Dullahan => {
+                    Some("common.items.npc_armor.biped_large.dullahan")
                 },
                 biped_large::Species::Cultistwarlord => {
                     Some("common.items.npc_armor.biped_large.warlord")

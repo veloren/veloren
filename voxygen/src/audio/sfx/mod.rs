@@ -171,6 +171,8 @@ pub enum SfxEvent {
     IceCrack,
     Utterance(UtteranceKind, VoiceKind),
     Lightning,
+    CyclopsCharge,
+    LaserBeam,
     Music(ToolKind, AbilitySpec),
 }
 
@@ -430,6 +432,14 @@ impl SfxMgr {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundSlam);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
+            Outcome::LaserBeam { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::LaserBeam);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
+            Outcome::CyclopsCharge { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::CyclopsCharge);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
             Outcome::FlashFreeze { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlashFreeze);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
@@ -461,7 +471,9 @@ impl SfxMgr {
                         object::Body::Arrow
                         | object::Body::MultiArrow
                         | object::Body::ArrowSnake
-                        | object::Body::ArrowTurret,
+                        | object::Body::ArrowTurret
+                        | object::Body::SpectralSwordSmall
+                        | object::Body::SpectralSwordLarge,
                     ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowShot);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
@@ -472,6 +484,10 @@ impl SfxMgr {
                         | object::Body::BoltNature,
                     ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FireShot);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
+                    },
+                    Body::Object(object::Body::LaserBeam) => {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::LaserBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
                     _ => {
@@ -490,7 +506,9 @@ impl SfxMgr {
                     object::Body::Arrow
                     | object::Body::MultiArrow
                     | object::Body::ArrowSnake
-                    | object::Body::ArrowTurret,
+                    | object::Body::ArrowTurret
+                    | object::Body::SpectralSwordSmall
+                    | object::Body::SpectralSwordLarge,
                 ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowMiss);
