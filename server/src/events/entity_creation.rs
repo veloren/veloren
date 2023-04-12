@@ -1,6 +1,6 @@
 use crate::{
     client::Client, events::player::handle_exit_ingame, persistence::PersistedComponents, sys,
-    CharacterUpdater, Server, StateExt,
+    CharacterUpdater, Server, StateExt, presence::RepositionOnChunkLoad,
 };
 use common::{
     character::CharacterId,
@@ -131,7 +131,7 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
     };
 
     let entity = if let Some(rtsim_entity) = npc.rtsim_entity {
-        entity.with(rtsim_entity)
+        entity.with(rtsim_entity).with(RepositionOnChunkLoad)
     } else {
         entity
     };

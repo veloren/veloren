@@ -251,7 +251,9 @@ impl<'a> System<'a> for Sys {
             .collect::<Vec<_>>();
 
         for (entity, new_pos) in repositioned {
-            let _ = waypoints.insert(entity, Waypoint::new(new_pos, *time));
+            if let Some(waypoint) = waypoints.get_mut(entity) {
+                *waypoint = Waypoint::new(new_pos, *time);
+            }
             reposition_on_load.remove(entity);
         }
 
