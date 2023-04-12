@@ -1,6 +1,6 @@
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use specs::{Component, NullStorage};
+use specs::{Component, VecStorage};
 use vek::*;
 
 // Distance from fuzzy_chunk before snapping to current chunk
@@ -20,8 +20,10 @@ impl Component for RegionSubscription {
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct RepositionOnChunkLoad;
+pub struct RepositionOnChunkLoad {
+    pub needs_ground: bool,
+}
 
 impl Component for RepositionOnChunkLoad {
-    type Storage = NullStorage<Self>;
+    type Storage = VecStorage<Self>;
 }

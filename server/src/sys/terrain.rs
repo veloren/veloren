@@ -228,11 +228,11 @@ impl<'a> System<'a> for Sys {
 
         // TODO: Consider putting this in another system since this forces us to take
         // positions by write rather than read access.
-        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), reposition_on_load.mask())
+        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), &mut reposition_on_load)
             // TODO: Consider using par_bridge() because Rayon has very poor work splitting for
             // sparse joins.
             .par_join()
-            .filter_map(|(entity, pos, force_update, _)| {
+            .filter_map(|(entity, pos, force_update, reposition)| {
                 // NOTE: We use regular as casts rather than as_ because we want to saturate on
                 // overflow.
                 let entity_pos = pos.0.map(|x| x as i32);
@@ -240,10 +240,11 @@ impl<'a> System<'a> for Sys {
                 // from having just logged in), reposition them.
                 let chunk_pos = TerrainGrid::chunk_key(entity_pos);
                 let chunk = terrain.get_key(chunk_pos)?;
-                let new_pos = terrain
-                    .try_find_space(entity_pos)
-                    .map(|x| x.as_::<f32>())
-                    .unwrap_or_else(|| chunk.find_accessible_pos(entity_pos.xy(), false));
+                let new_pos = if reposition.needs_ground {
+                    terrain.try_find_ground(entity_pos)
+                } else {
+                    terrain.try_find_space(entity_pos)
+                }.map(|x| x.as_::<f32>()).unwrap_or_else(|| chunk.find_accessible_pos(entity_pos.xy(), false));
                 pos.0 = new_pos;
                 force_update.map(|force_update| force_update.update());
                 Some((entity, new_pos))

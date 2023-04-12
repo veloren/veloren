@@ -659,7 +659,9 @@ impl StateExt for State {
             );
 
             if let Some(waypoint) = waypoint {
-                self.write_component_ignore_entity_dead(entity, RepositionOnChunkLoad);
+                self.write_component_ignore_entity_dead(entity, RepositionOnChunkLoad {
+                    needs_ground: true,
+                });
                 self.write_component_ignore_entity_dead(entity, waypoint);
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));

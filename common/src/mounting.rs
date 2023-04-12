@@ -137,7 +137,7 @@ impl Link for Mounting {
                 let old_pos = pos.0.map(|e| e.floor() as i32);
                 pos.0 = safe_pos
                     .map(|p| p.0.map(|e| e.floor()))
-                    .unwrap_or_else(|| terrain.find_space(old_pos).map(|e| e as f32))
+                    .unwrap_or_else(|| terrain.find_ground(old_pos).map(|e| e as f32))
                     + Vec3::new(0.5, 0.5, 0.0);
                 if let Some(force_update) = force_update.get_mut(rider) {
                     force_update.update();
