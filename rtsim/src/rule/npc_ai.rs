@@ -16,9 +16,8 @@ use common::{
     rtsim::{ChunkResource, Profession, SiteId},
     spiral::Spiral2d,
     store::Id,
-    terrain::{SiteKindMeta, TerrainChunkSize},
+    terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
     time::DayPeriod,
-    vol::RectVolSize,
 };
 use fxhash::FxHasher64;
 use itertools::{Either, Itertools};
@@ -333,7 +332,7 @@ where
         let wpos_site = |wpos: Vec2<f32>| {
             ctx.world
                 .sim()
-                .get(wpos.as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_())
+                .get(wpos.as_().wpos_to_cpos())
                 .and_then(|chunk| chunk.sites.first().copied())
         };
 
@@ -568,7 +567,7 @@ fn hunt_animals() -> impl Action {
 }
 
 fn find_forest(ctx: &mut NpcCtx) -> Option<Vec2<f32>> {
-    let chunk_pos = ctx.npc.wpos.xy().as_() / TerrainChunkSize::RECT_SIZE.as_();
+    let chunk_pos = ctx.npc.wpos.xy().as_().wpos_to_cpos();
     Spiral2d::new()
         .skip(ctx.rng.gen_range(1..=8))
         .take(49)
@@ -801,8 +800,7 @@ fn chunk_path(
                 .filter_map(|p| Some((p, chunk_height(p)?)))
         },
         |(p0, h0), (p1, h1)| {
-            let diff =
-                ((p0 - p1).as_() * TerrainChunkSize::RECT_SIZE.as_()).with_z((h0 - h1) as f32);
+            let diff = (p0 - p1).as_().cpos_to_wpos().with_z((h0 - h1) as f32);
 
             diff.magnitude_squared()
         },
@@ -841,9 +839,8 @@ fn pilot() -> impl Action {
             })
             .choose(&mut ctx.rng);
         if let Some((_id, site)) = site {
-            let start_chunk =
-                ctx.npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
-            let end_chunk = site.wpos / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+            let start_chunk = ctx.npc.wpos.xy().as_().wpos_to_cpos();
+            let end_chunk = site.wpos.wpos_to_cpos();
             chunk_path(start_chunk, end_chunk, |chunk| {
                 ctx.world
                     .sim()
@@ -861,7 +858,7 @@ fn pilot() -> impl Action {
 fn captain() -> impl Action {
     // For now just randomly travel the sea
     now(|ctx| {
-        let chunk = ctx.npc.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+        let chunk = ctx.npc.wpos.xy().as_().wpos_to_cpos();
         if let Some(chunk) = NEIGHBORS
             .into_iter()
             .map(|neighbor| chunk + neighbor)

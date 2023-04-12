@@ -6,8 +6,7 @@ use crate::{
 use common::{
     comp::{self, Body},
     rtsim::{Actor, NpcAction, NpcActivity, Personality},
-    terrain::TerrainChunkSize,
-    vol::RectVolSize,
+    terrain::CoordinateConversions,
 };
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
@@ -180,11 +179,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                                 | common::comp::ship::Body::AirBalloon => true,
                                 common::comp::ship::Body::SailBoat
                                 | common::comp::ship::Body::Galleon => {
-                                    let chunk_pos =
-                                        wpos.xy().as_::<i32>().map2(
-                                            TerrainChunkSize::RECT_SIZE.as_::<i32>(),
-                                            |e, sz| e.div_euclid(sz),
-                                        );
+                                    let chunk_pos = wpos.xy().as_().wpos_to_cpos();
                                     ctx.world
                                         .sim()
                                         .get(chunk_pos)

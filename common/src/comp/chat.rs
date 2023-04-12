@@ -199,18 +199,54 @@ pub enum Content {
         /// deterministic (but pseudorandom) localised output
         seed: u16,
         /// i18n arguments
-        args: HashMap<String, Content>,
+        args: HashMap<String, LocalizationArg>,
     },
 }
 
-// TODO: Remove impl and make use of `Plain` explicit (to discourage it)
+// TODO: Remove impl and make use of `Plain(...)` explicit (to discourage it)
 impl From<String> for Content {
     fn from(text: String) -> Self { Self::Plain(text) }
 }
 
-// TODO: Remove impl and make use of `Plain` explicit (to discourage it)
+// TODO: Remove impl and make use of `Plain(...)` explicit (to discourage it)
 impl<'a> From<&'a str> for Content {
     fn from(text: &'a str) -> Self { Self::Plain(text.to_string()) }
+}
+
+/// A localisation argument for localised content (see [`Content::Localized`]).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum LocalizationArg {
+    /// The localisation argument is itself a section of content.
+    ///
+    /// Note that this allows [`Content`] to recursively refer to itself. It may
+    /// be tempting to decide to parameterise everything, having dialogue
+    /// generated with a compact tree. "It's simpler!", you might say. False.
+    /// Over-parameterisation is an anti-pattern that hurts translators. Where
+    /// possible, prefer fewer levels of nesting unless doing so would
+    /// result in an intractably larger number of combinations. See [here](https://github.com/projectfluent/fluent/wiki/Good-Practices-for-Developers#prefer-wet-over-dry) for the
+    /// guidance provided by the docs for `fluent`, the localisation library
+    /// used by clients.
+    Content(Content),
+    /// The localisation argument is a natural number
+    Nat(u64),
+}
+
+// TODO: Remove impl and make use of `Content(Plain(...))` explicit (to
+// discourage it)
+impl From<String> for LocalizationArg {
+    fn from(text: String) -> Self { Self::Content(Content::Plain(text)) }
+}
+
+// TODO: Remove impl and make use of `Content(Plain(...))` explicit (to
+// discourage it)
+impl<'a> From<&'a str> for LocalizationArg {
+    fn from(text: &'a str) -> Self { Self::Content(Content::Plain(text.to_string())) }
+}
+
+// TODO: Remove impl and make use of `Content(Plain(...))` explicit (to
+// discourage it)
+impl From<u64> for LocalizationArg {
+    fn from(n: u64) -> Self { Self::Nat(n) }
 }
 
 impl Content {
@@ -222,7 +258,7 @@ impl Content {
         }
     }
 
-    pub fn localized_with_args<'a, A: Into<Content>>(
+    pub fn localized_with_args<'a, A: Into<LocalizationArg>>(
         key: impl ToString,
         args: impl IntoIterator<Item = (&'a str, A)>,
     ) -> Self {
@@ -340,6 +376,8 @@ impl<G> GenericChatMsg<G> {
     pub fn uid(&self) -> Option<Uid> { self.chat_type.uid() }
 
     pub fn content(&self) -> &Content { &self.content }
+
+    pub fn into_content(self) -> Content { self.content }
 
     pub fn set_content(&mut self, content: Content) { self.content = content; }
 }

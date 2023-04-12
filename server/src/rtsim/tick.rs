@@ -9,9 +9,8 @@ use common::{
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity, RtSimVehicle},
     slowjob::SlowJobPool,
-    terrain::{CoordinateConversions, TerrainChunkSize},
+    terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
-    vol::RectVolSize,
     LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -236,13 +235,7 @@ impl<'a> System<'a> for Sys {
             data.npcs.character_map.clear();
             for (presence, wpos) in (&presences, &positions).join() {
                 if let PresenceKind::Character(character) = &presence.kind {
-                    let chunk_pos = wpos
-                        .0
-                        .xy()
-                        .as_::<i32>()
-                        .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
-                            e.div_euclid(sz)
-                        });
+                    let chunk_pos = wpos.0.xy().as_().wpos_to_cpos();
                     data.npcs
                         .character_map
                         .entry(chunk_pos)

@@ -874,7 +874,7 @@ impl StateExt for State {
                     } else {
                         self.notify_players(ServerGeneral::server_msg(
                             comp::ChatType::Kill(kill_source.clone(), *uid),
-                            msg.content().clone(),
+                            msg.into_content(),
                         ))
                     }
                 },

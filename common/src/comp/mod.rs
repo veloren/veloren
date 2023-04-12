@@ -75,8 +75,8 @@ pub use self::{
     },
     character_state::{CharacterActivity, CharacterState, StateUpdate},
     chat::{
-        ChatMode, ChatMsg, ChatType, Content, Faction, SpeechBubble, SpeechBubbleType,
-        UnresolvedChatMsg,
+        ChatMode, ChatMsg, ChatType, Content, Faction, LocalizationArg, SpeechBubble,
+        SpeechBubbleType, UnresolvedChatMsg,
     },
     combo::Combo,
     controller::{

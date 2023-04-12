@@ -2,7 +2,7 @@ use crate::{
     event::{EventCtx, OnDeath, OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
-use common::{grid::Grid, rtsim::Actor, terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{grid::Grid, rtsim::Actor, terrain::CoordinateConversions};
 
 pub struct SyncNpcs;
 
@@ -45,7 +45,7 @@ fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
     let data = &mut *ctx.state.data_mut();
     // Update vehicle grid cells
     for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {
-        let chunk_pos = vehicle.wpos.xy().as_::<i32>() / TerrainChunkSize::RECT_SIZE.as_::<i32>();
+        let chunk_pos = vehicle.wpos.xy().as_().wpos_to_cpos();
         if vehicle.chunk_pos != Some(chunk_pos) {
             if let Some(cell) = vehicle
                 .chunk_pos
@@ -66,14 +66,7 @@ fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
         npc.current_site = ctx
             .world
             .sim()
-            .get(
-                npc.wpos
-                    .xy()
-                    .as_::<i32>()
-                    .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
-                        e.div_euclid(sz)
-                    }),
-            )
+            .get(npc.wpos.xy().as_().wpos_to_cpos())
             .and_then(|chunk| {
                 chunk
                     .sites
@@ -99,13 +92,7 @@ fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
         }
 
         // Update the NPC's grid cell
-        let chunk_pos = npc
-            .wpos
-            .xy()
-            .as_::<i32>()
-            .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
-                e.div_euclid(sz)
-            });
+        let chunk_pos = npc.wpos.xy().as_().wpos_to_cpos();
         if npc.chunk_pos != Some(chunk_pos) {
             if let Some(cell) = npc
                 .chunk_pos

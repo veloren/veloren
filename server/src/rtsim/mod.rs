@@ -201,7 +201,10 @@ impl RtSim {
         debug!("Saving rtsim data...");
 
         // Create the save thread if it doesn't already exist
-        // TODO: Use the slow job pool eventually
+        // We're not using the slow job pool here for two reasons:
+        // 1) The thread is mostly blocked on IO, not compute
+        // 2) We need to synchronise saves to ensure monotonicity, which slow jobs
+        // aren't designed to allow
         let (tx, _) = self.save_thread.get_or_insert_with(|| {
             trace!("Starting rtsim data save thread...");
             let (tx, rx) = unbounded();

@@ -12,8 +12,7 @@ use common::{
         Actor, ChunkResource, FactionId, NpcAction, NpcActivity, Personality, SiteId, VehicleId,
     },
     store::Id,
-    terrain::TerrainChunkSize,
-    vol::RectVolSize,
+    terrain::CoordinateConversions,
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -349,12 +348,7 @@ impl Npcs {
         wpos: Vec3<f32>,
         radius: f32,
     ) -> impl Iterator<Item = Actor> + '_ {
-        let chunk_pos = wpos
-            .xy()
-            .as_::<i32>()
-            .map2(TerrainChunkSize::RECT_SIZE.as_::<i32>(), |e, sz| {
-                e.div_euclid(sz)
-            });
+        let chunk_pos = wpos.xy().as_().wpos_to_cpos();
         let r_sqr = radius * radius;
         LOCALITY
             .into_iter()

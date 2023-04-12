@@ -84,7 +84,9 @@ pub trait CoordinateConversions {
 
 impl CoordinateConversions for Vec2<i32> {
     #[inline]
-    fn wpos_to_cpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as i32) }
+    fn wpos_to_cpos(&self) -> Self {
+        self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e.div_euclid(sz as i32))
+    }
 
     #[inline]
     fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32) }

@@ -1515,6 +1515,8 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    // TODO: Pass a localisation key instead of `Content` to avoid allocating if
+    // we're not permitted to speak.
     pub fn chat_npc_if_allowed_to_speak(
         &self,
         msg: Content,

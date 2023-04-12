@@ -19,11 +19,11 @@ use std::{borrow::Cow, io};
 use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher, SharedString};
 use tracing::warn;
 // Re-export because I don't like prefix
-use common::comp::Content;
+use common::comp::{Content, LocalizationArg};
 use common_assets as assets;
 
 // Re-export for argument creation
-pub use fluent::fluent_args;
+pub use fluent::{fluent_args, FluentValue};
 pub use fluent_bundle::FluentArgs;
 
 /// The reference language, aka the more up-to-date localization data.
@@ -332,7 +332,7 @@ impl LocalizationGuard {
             })
     }
 
-    /// Localize the given context.
+    /// Localize the given content.
     pub fn get_content(&self, content: &Content) -> String {
         match content {
             Content::Plain(text) => text.clone(),
@@ -342,7 +342,14 @@ impl LocalizationGuard {
                     *seed,
                     &args
                         .iter()
-                        .map(|(k, content)| (k, self.get_content(content)))
+                        .map(|(k, arg)| {
+                            (k, match arg {
+                                LocalizationArg::Content(content) => {
+                                    FluentValue::String(self.get_content(content).into())
+                                },
+                                LocalizationArg::Nat(n) => FluentValue::from(n),
+                            })
+                        })
                         .collect(),
                 )
                 .into_owned(),

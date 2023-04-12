@@ -384,8 +384,7 @@ impl SessionState {
                         .new_message(ChatType::CommandError.into_msg(match time {
                             0 => Content::localized("hud-chat-goodbye"),
                             _ => Content::localized_with_args("hud-chat-connection_lost", [(
-                                "time",
-                                time.to_string(),
+                                "time", time,
                             )]),
                         }));
                 },
@@ -988,7 +987,7 @@ impl PlayState for SessionState {
                                                     self.hud.new_message(ChatType::Meta.into_msg(
                                                         Content::localized_with_args(
                                                             "hud-trade-invite_sent",
-                                                            [("playername", name.as_str())],
+                                                            [("playername", name)],
                                                         ),
                                                     ));
                                                     client.send_invite(uid, InviteKind::Trade)
