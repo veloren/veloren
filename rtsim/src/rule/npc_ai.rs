@@ -61,7 +61,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             TileKind::Empty => 3.0,
             TileKind::Hazard(_) => 50.0,
             TileKind::Field => 8.0,
-            TileKind::Plaza | TileKind::Road { .. } | TileKind::Path => 1.0,
+            TileKind::Plaza | TileKind::Road { .. } | TileKind::Path | TileKind::Bridge => 1.0,
 
             TileKind::Building
             | TileKind::Castle

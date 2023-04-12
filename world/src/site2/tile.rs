@@ -191,6 +191,7 @@ pub enum TileKind {
     Keep(KeepKind),
     Gate,
     GnarlingFortification,
+    Bridge,
 }
 
 #[derive(Clone, PartialEq)]
