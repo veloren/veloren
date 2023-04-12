@@ -334,26 +334,39 @@ impl LocalizationGuard {
 
     /// Localize the given content.
     pub fn get_content(&self, content: &Content) -> String {
-        match content {
-            Content::Plain(text) => text.clone(),
-            Content::Localized { key, seed, args } => self
-                .get_variation_ctx(
-                    key,
-                    *seed,
-                    &args
-                        .iter()
-                        .map(|(k, arg)| {
-                            (k, match arg {
-                                LocalizationArg::Content(content) => {
-                                    FluentValue::String(self.get_content(content).into())
-                                },
-                                LocalizationArg::Nat(n) => FluentValue::from(n),
-                            })
-                        })
-                        .collect(),
-                )
-                .into_owned(),
+        fn get_content_inner(lang: &Language, content: &Content) -> Option<String> {
+            match content {
+                Content::Plain(text) => Some(text.clone()),
+                Content::Localized { key, seed, args } => lang
+                    .try_variation(
+                        key,
+                        *seed,
+                        Some(
+                            &args
+                                .iter()
+                                .map(|(k, arg)| {
+                                    Some((k, match arg {
+                                        LocalizationArg::Content(content) => FluentValue::String(
+                                            get_content_inner(lang, content)?.into(),
+                                        ),
+                                        LocalizationArg::Nat(n) => FluentValue::from(n),
+                                    }))
+                                })
+                                .collect::<Option<_>>()?,
+                        ),
+                    )
+                    .map(Cow::into_owned),
+            }
         }
+
+        get_content_inner(&self.active, content)
+            // If part of the localisation failed, use the fallback language
+            .or_else(|| self.fallback.as_ref().and_then(|fb| get_content_inner(fb, content)))
+            // If all else fails, just display the localisation key
+            .unwrap_or_else(|| match content {
+                Content::Plain(text) => text.clone(),
+                Content::Localized { key, .. } => key.clone(),
+            })
     }
 
     /// Get a localized text from the variation of given key with given
