@@ -58,6 +58,8 @@ make_case_elim!(
         // often want to experiment with new kinds of block without allocating them a
         // dedicated block kind.
         Misc = 0xFE,
+        // Snow to use with sites, to not attract snowfall particles
+        ArtSnow = 0xFF,
     }
 );
 
@@ -351,6 +353,7 @@ impl Block {
             BlockKind::Leaves => (9, 255.0),
             BlockKind::Wood => (6, 2.0),
             BlockKind::Snow => (6, 2.0),
+            BlockKind::ArtSnow => (6, 2.0),
             BlockKind::Ice => (4, 2.0),
             _ if self.is_opaque() => (0, 255.0),
             _ => (0, 0.0),
@@ -494,7 +497,7 @@ impl Block {
     #[inline]
     pub fn get_traction(&self) -> f32 {
         match self.kind() {
-            BlockKind::Snow => 0.8,
+            BlockKind::Snow | BlockKind::ArtSnow => 0.8,
             _ => 1.0,
         }
     }

@@ -70,7 +70,10 @@ impl Default for Friction {
 impl Friction {
     pub fn can_skate_on(&self, b: BlockKind) -> bool {
         match self {
-            Friction::Ski => matches!(b, BlockKind::Snow | BlockKind::Ice | BlockKind::Air),
+            Friction::Ski => matches!(
+                b,
+                BlockKind::Snow | BlockKind::ArtSnow | BlockKind::Ice | BlockKind::Air
+            ),
             Friction::Skate => b == BlockKind::Ice,
             _ => false,
         }
@@ -80,6 +83,7 @@ impl Friction {
     pub fn get_friction(&self, b: BlockKind) -> (f32, f32) {
         match (self, b) {
             (Friction::Ski, BlockKind::Snow) => (0.01, 0.95),
+            (Friction::Ski, BlockKind::ArtSnow) => (0.01, 0.95),
             (Friction::Ski, BlockKind::Ice) => (0.001, 0.5),
             (Friction::Ski, BlockKind::Water) => (0.1, 0.7),
             (Friction::Ski, BlockKind::Air) => (0.0, 0.0),

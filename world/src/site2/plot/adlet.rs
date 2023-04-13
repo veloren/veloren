@@ -426,20 +426,27 @@ impl Structure for AdletStronghold {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_adletstronghold")]
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let snow_ice_fill = Fill::Sampling(Arc::new(|wpos| {
-            Some(match (RandomField::new(0).get(wpos)) % 80 {
-                0..=3 => Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)),
-                _ => Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+            Some(match (RandomField::new(0).get(wpos)) % 250 {
+                0..=2 => Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)),
+                3..=10 => Block::new(BlockKind::ArtSnow, Rgb::new(138, 147, 217)),
+                11..=20 => Block::new(BlockKind::ArtSnow, Rgb::new(213, 213, 242)),
+                21..=35 => Block::new(BlockKind::ArtSnow, Rgb::new(231, 230, 247)),
+                36..=62 => Block::new(BlockKind::ArtSnow, Rgb::new(180, 181, 227)),
+                _ => Block::new(BlockKind::ArtSnow, Rgb::new(209, 212, 238)),
             })
         }));
         let snow_ice_air_fill = Fill::Sampling(Arc::new(|wpos| {
-            Some(match (RandomField::new(0).get(wpos)) % 100 {
-                0..=3 => Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)),
-                4..=24 => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
-                _ => Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+            Some(match (RandomField::new(0).get(wpos)) % 250 {
+                0..=2 => Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)),
+                3..=5 => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+                6..=10 => Block::new(BlockKind::ArtSnow, Rgb::new(138, 147, 217)),
+                11..=20 => Block::new(BlockKind::ArtSnow, Rgb::new(213, 213, 242)),
+                21..=35 => Block::new(BlockKind::ArtSnow, Rgb::new(231, 230, 247)),
+                36..=62 => Block::new(BlockKind::ArtSnow, Rgb::new(180, 181, 227)),
+                _ => Block::new(BlockKind::ArtSnow, Rgb::new(209, 212, 238)),
             })
         }));
         let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
-        let snow_fill = Fill::Block(Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)));
         let ice_fill = Fill::Block(Block::new(BlockKind::Ice, Rgb::new(120, 160, 255)));
         let dirt_fill = Fill::Brick(BlockKind::Earth, Rgb::new(55, 25, 8), 24);
         let grass_fill = Fill::Sampling(Arc::new(|wpos| {
@@ -465,7 +472,7 @@ impl Structure for AdletStronghold {
                 0..=2 => Block::air(SpriteKind::Bones),
                 4..=5 => Block::air(SpriteKind::GlowIceCrystal),
                 6..=8 => Block::air(SpriteKind::IceCrystal),
-                9..=15 => Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+                9..=15 => Block::new(BlockKind::ArtSnow, Rgb::new(255, 255, 255)),
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
@@ -814,7 +821,7 @@ impl Structure for AdletStronghold {
                             // igloo snow
                             painter
                                 .sphere_with_radius(igloo_pos.with_z(alt as i32 - 1), igloo_size)
-                                .fill(snow_fill.clone());
+                                .fill(snow_ice_fill.clone());
                             // 4 hide pieces
                             for dir in CARDINALS {
                                 let hide_size = 5
@@ -958,7 +965,7 @@ impl Structure for AdletStronghold {
                             (igloo_size as i32 - 4) as f32,
                             2.0,
                         )
-                        .fill(snow_fill.clone());
+                        .fill(snow_ice_fill.clone());
                     // top decor bone with some hide
                     painter
                         .aabb(Aabb {

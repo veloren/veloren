@@ -206,7 +206,7 @@ impl MovementEventMapper {
                 SfxEvent::Sneak
             } else {
                 match underfoot_block_kind {
-                    BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
+                    BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::Run(BlockKind::Snow),
                     BlockKind::Rock
                     | BlockKind::WeakRock
                     | BlockKind::GlowingRock
@@ -238,7 +238,7 @@ impl MovementEventMapper {
             SfxEvent::Swim
         } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
-                BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
+                BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::Run(BlockKind::Snow),
                 BlockKind::Rock
                 | BlockKind::WeakRock
                 | BlockKind::GlowingRock
@@ -264,7 +264,7 @@ impl MovementEventMapper {
             SfxEvent::Swim
         } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
-                BlockKind::Snow => SfxEvent::QuadRun(BlockKind::Snow),
+                BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::QuadRun(BlockKind::Snow),
                 BlockKind::Rock
                 | BlockKind::WeakRock
                 | BlockKind::GlowingRock
