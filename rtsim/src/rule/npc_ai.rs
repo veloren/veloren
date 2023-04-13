@@ -137,14 +137,11 @@ fn path_between_sites(
 
     let neighbors = |site: &Id<civ::Site>| world.civs().neighbors(*site);
 
-    let track_between = |a: Id<civ::Site>, b: Id<civ::Site>| {
-        world
-            .civs()
-            .tracks
-            .get(world.civs().track_between(a, b).unwrap().0)
+    let transition = |a: &Id<civ::Site>, b: &Id<civ::Site>| {
+        world.civs().track_between(*a, *b).map(|(id, _)| {
+            world.civs().tracks.get(id).cost
+        }).unwrap_or(f32::INFINITY)
     };
-
-    let transition = |a: &Id<civ::Site>, b: &Id<civ::Site>| track_between(*a, *b).cost;
 
     let path = astar.poll(250, heuristic, neighbors, transition, |site| *site == end);
 
@@ -152,8 +149,9 @@ fn path_between_sites(
         let path = path
             .into_iter()
             .tuple_windows::<(_, _)>()
-            .map(|(a, b)| world.civs().track_between(a, b).unwrap())
-            .collect_vec();
+            // Since we get a, b from neighbors, track_between shouldn't return None.
+            .filter_map(|(a, b)| world.civs().track_between(a, b))
+            .collect();
         Path { nodes: path }
     })
 }
