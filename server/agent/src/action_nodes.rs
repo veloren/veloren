@@ -247,7 +247,7 @@ impl<'a> AgentData<'a> {
                         self.vel.0,
                         chase_tgt,
                         TraversalConfig {
-                            min_tgt_dist: 1.25,
+                            min_tgt_dist: self.traversal_config.min_tgt_dist * 1.25,
                             ..self.traversal_config
                         },
                     ) {

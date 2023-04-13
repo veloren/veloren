@@ -166,12 +166,11 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                             let dist2 = diff.magnitude_squared();
 
                             if dist2 > 0.5f32.powi(2) {
-                                let mut wpos = vehicle.wpos
-                                    + (diff
-                                        * (vehicle.get_speed() * speed_factor * ctx.event.dt
-                                            / dist2.sqrt())
-                                        .min(1.0))
-                                    .with_z(0.0);
+                                let wpos = vehicle.wpos
+                                + (diff
+                                    * (vehicle.get_speed() * speed_factor * ctx.event.dt
+                                        / dist2.sqrt())
+                                    .min(1.0));
 
                                 let is_valid = match vehicle.body {
                                     common::comp::ship::Body::DefaultAirship
@@ -188,31 +187,6 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                                 };
 
                                 if is_valid {
-                                    match vehicle.body {
-                                        common::comp::ship::Body::DefaultAirship
-                                        | common::comp::ship::Body::AirBalloon => {
-                                            if let Some(alt) = ctx
-                                                .world
-                                                .sim()
-                                                .get_alt_approx(wpos.xy().as_())
-                                                .filter(|alt| wpos.z < *alt)
-                                            {
-                                                wpos.z = alt;
-                                            }
-                                        },
-                                        common::comp::ship::Body::SailBoat
-                                        | common::comp::ship::Body::Galleon => {
-                                            wpos.z = ctx
-                                                .world
-                                                .sim()
-                                                .get_interpolated(
-                                                    wpos.xy().map(|e| e as i32),
-                                                    |chunk| chunk.water_alt,
-                                                )
-                                                .unwrap_or(0.0);
-                                        },
-                                        _ => {},
-                                    }
                                     vehicle.wpos = wpos;
                                 }
                             }
@@ -226,6 +200,12 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                         ) => {},
                         None => {},
                     }
+                    vehicle.wpos.z = ctx
+                        .world
+                        .sim()
+                        .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
+                        .unwrap_or(0.0)
+                        + vehicle.body.flying_height();
                     npc.wpos = vehicle.wpos;
                 } else {
                     // Vehicle doens't exist anymore
@@ -264,7 +244,6 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
                 }
             }
-
             // Make sure NPCs remain on the surface
             npc.wpos.z = ctx
                 .world
