@@ -45,107 +45,110 @@ fn on_setup(ctx: EventCtx<SimulateNpcs, OnSetup>) {
 fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
     let data = &mut *ctx.state.data_mut();
 
-    if let Actor::Npc(npc_id) = ctx.event.actor
-        && let Some(npc) = data.npcs.get(npc_id)
-    {
-        let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
+    if let Actor::Npc(npc_id) = ctx.event.actor {
+        if let Some(npc) = data.npcs.get(npc_id) {
+            let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
 
-        // Respawn dead NPCs
-        let details = match npc.body {
-            Body::Humanoid(_) => {
-                if let Some((site_id, site)) = data
-                    .sites
-                    .iter()
-                    .filter(|(id, site)| {
-                        Some(*id) != npc.home
-                            && (npc.faction.is_none() || site.faction == npc.faction)
-                            && site.world_site.map_or(false, |s| {
-                                matches!(ctx.index.sites.get(s).kind, SiteKind::Refactor(_)
-                | SiteKind::CliffTown(_)
-                | SiteKind::SavannahPit(_)
-                | SiteKind::DesertCity(_))
-                            })
-                    })
-                    .min_by_key(|(_, site)| site.population.len())
-                {
-                    let rand_wpos = |rng: &mut ChaChaRng| {
-                        let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
-                        wpos2d
-                            .map(|e| e as f32 + 0.5)
-                            .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
-                    };
-                    let random_humanoid = |rng: &mut ChaChaRng| {
-                        let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
-                        Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
-                    };
-                    let npc_id = data.spawn_npc(
-                        Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
-                            .with_personality(Personality::random(&mut rng))
-                            .with_home(site_id)
-                            .with_faction(npc.faction)
-                            .with_profession(npc.profession.clone()),
-                    );
-                    Some((npc_id, site_id))
-                } else {
-                    warn!("No site found for respawning humanoid");
+            // Respawn dead NPCs
+            let details = match npc.body {
+                Body::Humanoid(_) => {
+                    if let Some((site_id, site)) = data
+                        .sites
+                        .iter()
+                        .filter(|(id, site)| {
+                            Some(*id) != npc.home
+                                && (npc.faction.is_none() || site.faction == npc.faction)
+                                && site.world_site.map_or(false, |s| {
+                                    matches!(
+                                        ctx.index.sites.get(s).kind,
+                                        SiteKind::Refactor(_)
+                                            | SiteKind::CliffTown(_)
+                                            | SiteKind::SavannahPit(_)
+                                            | SiteKind::DesertCity(_)
+                                    )
+                                })
+                        })
+                        .min_by_key(|(_, site)| site.population.len())
+                    {
+                        let rand_wpos = |rng: &mut ChaChaRng| {
+                            let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+                            wpos2d
+                                .map(|e| e as f32 + 0.5)
+                                .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                        };
+                        let random_humanoid = |rng: &mut ChaChaRng| {
+                            let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
+                            Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
+                        };
+                        let npc_id = data.spawn_npc(
+                            Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
+                                .with_personality(Personality::random(&mut rng))
+                                .with_home(site_id)
+                                .with_faction(npc.faction)
+                                .with_profession(npc.profession.clone()),
+                        );
+                        Some((npc_id, site_id))
+                    } else {
+                        warn!("No site found for respawning humanoid");
+                        None
+                    }
+                },
+                Body::BirdLarge(_) => {
+                    if let Some((site_id, site)) = data
+                        .sites
+                        .iter()
+                        .filter(|(id, site)| {
+                            Some(*id) != npc.home
+                                && site.world_site.map_or(false, |s| {
+                                    matches!(ctx.index.sites.get(s).kind, SiteKind::Dungeon(_))
+                                })
+                        })
+                        .min_by_key(|(_, site)| site.population.len())
+                    {
+                        let rand_wpos = |rng: &mut ChaChaRng| {
+                            let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+                            wpos2d
+                                .map(|e| e as f32 + 0.5)
+                                .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                        };
+                        let species = [
+                            comp::body::bird_large::Species::Phoenix,
+                            comp::body::bird_large::Species::Cockatrice,
+                            comp::body::bird_large::Species::Roc,
+                        ]
+                        .choose(&mut rng)
+                        .unwrap();
+                        let npc_id = data.npcs.create_npc(
+                            Npc::new(
+                                rng.gen(),
+                                rand_wpos(&mut rng),
+                                Body::BirdLarge(comp::body::bird_large::Body::random_with(
+                                    &mut rng, species,
+                                )),
+                            )
+                            .with_home(site_id),
+                        );
+                        Some((npc_id, site_id))
+                    } else {
+                        warn!("No site found for respawning bird");
+                        None
+                    }
+                },
+                body => {
+                    error!("Tried to respawn rtsim NPC with invalid body: {:?}", body);
                     None
-                }
-            },
-            Body::BirdLarge(_) => {
-                if let Some((site_id, site)) = data
-                    .sites
-                    .iter()
-                    .filter(|(id, site)| {
-                        Some(*id) != npc.home
-                            && site.world_site.map_or(false, |s| {
-                                matches!(ctx.index.sites.get(s).kind, SiteKind::Dungeon(_))
-                            })
-                    })
-                    .min_by_key(|(_, site)| site.population.len())
-                {
-                    let rand_wpos = |rng: &mut ChaChaRng| {
-                        let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
-                        wpos2d
-                            .map(|e| e as f32 + 0.5)
-                            .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
-                    };
-                    let species = [
-                        comp::body::bird_large::Species::Phoenix,
-                        comp::body::bird_large::Species::Cockatrice,
-                        comp::body::bird_large::Species::Roc,
-                    ]
-                    .choose(&mut rng)
-                    .unwrap();
-                    let npc_id = data.npcs.create_npc(
-                        Npc::new(
-                            rng.gen(),
-                            rand_wpos(&mut rng),
-                            Body::BirdLarge(comp::body::bird_large::Body::random_with(
-                                &mut rng, species,
-                            )),
-                        )
-                        .with_home(site_id),
-                    );
-                    Some((npc_id, site_id))
-                } else {
-                    warn!("No site found for respawning bird");
-                    None
-                }
-            },
-            body => {
-                error!("Tried to respawn rtsim NPC with invalid body: {:?}", body);
-                None
-            },
-        };
+                },
+            };
 
-        // Add the NPC to their home site
-        if let Some((npc_id, home_site)) = details {
-            if let Some(home) = data.sites.get_mut(home_site) {
-                home.population.insert(npc_id);
+            // Add the NPC to their home site
+            if let Some((npc_id, home_site)) = details {
+                if let Some(home) = data.sites.get_mut(home_site) {
+                    home.population.insert(npc_id);
+                }
             }
+        } else {
+            error!("Trying to respawn non-existent NPC");
         }
-    } else {
-        error!("Trying to respawn non-existent NPC");
     }
 }
 

@@ -513,12 +513,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         inventory.damage_items(&ability_map, &msm);
     }
 
-    if should_delete {
-        if let Some(actor) = state.entity_as_actor(entity) {
-            state
-                .ecs()
-                .write_resource::<rtsim::RtSim>()
-                .hook_rtsim_actor_death(
+    if let Some(actor) = state.entity_as_actor(entity) {
+        state
+            .ecs()
+            .write_resource::<rtsim::RtSim>()
+            .hook_rtsim_actor_death(
                 &state.ecs().read_resource::<Arc<world::World>>(),
                 state
                     .ecs()
@@ -540,8 +539,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     )
                     .and_then(|killer| state.entity_as_actor(killer)),
             );
-        }
+    }
 
+    if should_delete {
         if let Err(e) = state.delete_entity_recorded(entity) {
             error!(?e, ?entity, "Failed to delete destroyed entity");
         }

@@ -1,3 +1,4 @@
+use super::Content;
 use vek::Vec2;
 // TODO: Move this to common/src/, it's not a component
 
@@ -39,7 +40,7 @@ impl Direction {
         }
     }
 
-    // TODO: localization
+    // TODO: Remove this in favour of `Direction::localize_npc`?
     pub fn name(&self) -> &'static str {
         match self {
             Direction::North => "North",
@@ -51,6 +52,19 @@ impl Direction {
             Direction::West => "West",
             Direction::Northwest => "Northwest",
         }
+    }
+
+    pub fn localize_npc(&self) -> Content {
+        Content::localized(match self {
+            Direction::North => "npc-speech-dir_north",
+            Direction::Northeast => "npc-speech-dir_north_east",
+            Direction::East => "npc-speech-dir_east",
+            Direction::Southeast => "npc-speech-dir_south_east",
+            Direction::South => "npc-speech-dir_south",
+            Direction::Southwest => "npc-speech-dir_south_west",
+            Direction::West => "npc-speech-dir_west",
+            Direction::Northwest => "npc-speech-dir_north_west",
+        })
     }
 }
 

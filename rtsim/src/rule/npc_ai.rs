@@ -11,9 +11,9 @@ use crate::{
 };
 use common::{
     astar::{Astar, PathResult},
-    comp::Content,
+    comp::{compass::Direction, Content},
     path::Path,
-    rtsim::{ChunkResource, Profession, SiteId},
+    rtsim::{Actor, ChunkResource, Profession, SiteId},
     spiral::Spiral2d,
     store::Id,
     terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
@@ -489,7 +489,21 @@ fn socialize() -> impl Action {
                 .choose(&mut ctx.rng)
             {
                 return Either::Left(
-                    just(move |ctx| ctx.controller.say(other, ctx.npc.personality.get_generic_comment(&mut ctx.rng)))
+                    just(move |ctx| ctx.controller.say(other, if ctx.rng.gen_bool(0.3)
+                        && let Some(current_site) = ctx.npc.current_site
+                        && let Some(current_site) = ctx.state.data().sites.get(current_site)
+                        && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
+                        && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
+                        && let Some(mention_site_name) = mention_site.world_site
+                            .map(|ws| ctx.index.sites.get(ws).name().to_string())
+                    {
+                        Content::localized_with_args("npc-speech-tell_site", [
+                            ("site", Content::Plain(mention_site_name.clone())),
+                            ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
+                        ])
+                    } else {
+                        ctx.npc.personality.get_generic_comment(&mut ctx.rng)
+                    }))
                     // After greeting the actor, wait for a while
                     .then(idle().repeat().stop_if(timeout(4.0)))
                     .map(|_| ())
@@ -713,7 +727,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Guard)) && ctx.rng.gen_bool(0.5) {
+        } else if matches!(ctx.npc.profession, Some(Profession::Guard)) && ctx.rng.gen_bool(0.7) {
             if let Some(plaza_wpos) = choose_plaza(ctx, visiting_site) {
                 return casual(
                     travel_to_point(plaza_wpos, 0.4)
@@ -918,8 +932,13 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
                         // TODO: Sentiment should be positive if we didn't like actor that died
                         // TODO: Don't report self
                         let phrase = if let Some(killer) = killer {
-                            // TODO: Don't hard-code sentiment change
-                            ctx.sentiments.change_by(killer, -0.7, Sentiment::VILLAIN);
+                            // TODO: For now, we don't make sentiment changes if the killer was an
+                            // NPC because NPCs can't hurt one-another.
+                            // This should be changed in the future.
+                            if !matches!(killer, Actor::Npc(_)) {
+                                // TODO: Don't hard-code sentiment change
+                                ctx.sentiments.change_by(killer, -0.7, Sentiment::VILLAIN);
+                            }
                             "npc-speech-witness_murder"
                         } else {
                             "npc-speech-witness_death"

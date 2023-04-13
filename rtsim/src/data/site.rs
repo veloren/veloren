@@ -40,6 +40,13 @@ pub struct Site {
     // Note: there's currently no guarantee that site populations are non-intersecting
     #[serde(skip_serializing, skip_deserializing)]
     pub population: HashSet<NpcId>,
+
+    /// A list of the nearby sites where each elements is both further and
+    /// larger (currently based on number of plots) than the next.
+    /// Effectively, this is a list of nearby sites that might be deemed
+    /// 'important' to the current one
+    #[serde(skip_serializing, skip_deserializing)]
+    pub nearby_sites_by_size: Vec<SiteId>,
 }
 
 impl Site {

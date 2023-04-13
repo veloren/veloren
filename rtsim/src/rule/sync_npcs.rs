@@ -28,6 +28,43 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
             home.population.insert(npc_id);
         }
     }
+
+    // Update the list of nearest sites by size for each site
+    let sites_iter = data.sites.iter().filter_map(|(site_id, site)| {
+        let site2 = site
+            .world_site
+            .and_then(|ws| ctx.index.sites.get(ws).site2())?;
+        Some((site_id, site, site2))
+    });
+    let nearest_by_size = sites_iter.clone()
+        .map(|(site_id, site, site2)| {
+            let mut other_sites = sites_iter.clone()
+                // Only include sites in the list if they're not the current one and they're more populus
+                .filter(|(other_id, _, other_site2)| *other_id != site_id && other_site2.plots().len() > site2.plots().len())
+                .collect::<Vec<_>>();
+            other_sites.sort_by_key(|(_, other, _)| other.wpos.distance_squared(site.wpos) as i64);
+            let mut max_size = 0;
+            // Remove sites that aren't in increasing order of size (Stalin sort?!)
+            other_sites.retain(|(_, _, other_site2)| {
+                if other_site2.plots().len() > max_size {
+                    max_size = other_site2.plots().len();
+                    true
+                } else {
+                    false
+                }
+            });
+            let nearest_by_size = other_sites
+                .into_iter()
+                .map(|(site_id, _, _)| site_id)
+                .collect::<Vec<_>>();
+            (site_id, nearest_by_size)
+        })
+        .collect::<Vec<_>>();
+    for (site_id, nearest_by_size) in nearest_by_size {
+        if let Some(site) = data.sites.get_mut(site_id) {
+            site.nearby_sites_by_size = nearest_by_size;
+        }
+    }
 }
 
 fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
