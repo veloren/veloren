@@ -359,11 +359,15 @@ impl Civs {
                     SiteKind::Castle => {
                         WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                     },
-                    SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
+                    SiteKind::Refactor => {
+                        let size = Lerp::lerp(0.03, 1.0, rng.gen_range(0.0..1f32).powi(5));
+                        WorldSite::refactor(site2::Site::generate_city(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                            size,
+                        ))
+                    },
                     SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
                         &Land::from_sim(ctx.sim),
                         &mut rng,

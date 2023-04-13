@@ -53,6 +53,7 @@ impl Site {
             }),
             population: Default::default(),
             known_reports: Default::default(),
+            nearby_sites_by_size: Vec::new(),
         }
     }
 }

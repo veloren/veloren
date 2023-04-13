@@ -23,4 +23,6 @@
         (1, Item("common.items.lantern.geode_purp")),
         (1, Item("common.items.boss_drops.lantern")),
     ]),
+    // TODO: Figure out what to do when airship captains die instead of this
+    tabard: Item("common.items.debug.admin"),
 )

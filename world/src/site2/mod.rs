@@ -493,7 +493,8 @@ impl Site {
         site
     }
 
-    pub fn generate_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    // Size is 0..1
+    pub fn generate_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, size: f32) -> Self {
         let mut rng = reseed(rng);
 
         let mut site = Site {
@@ -510,7 +511,7 @@ impl Site {
 
         let mut castles = 0;
 
-        for _ in 0..120 {
+        for _ in 0..(size * 200.0) as i32 {
             match *build_chance.choose_seeded(rng.gen()) {
                 // House
                 1 => {
@@ -1417,7 +1418,9 @@ impl Site {
     }
 }
 
-pub fn test_site() -> Site { Site::generate_city(&Land::empty(), &mut thread_rng(), Vec2::zero()) }
+pub fn test_site() -> Site {
+    Site::generate_city(&Land::empty(), &mut thread_rng(), Vec2::zero(), 0.5)
+}
 
 fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
     if land

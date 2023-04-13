@@ -1681,8 +1681,9 @@ impl WorldSim {
             rgba: Grid::from_raw(self.get_size().map(|e| e as i32), v),
             alt: Grid::from_raw(self.get_size().map(|e| e as i32), alts),
             horizons,
-            sites: Vec::new(), // Will be substituted later
-            pois: Vec::new(),  // Will be substituted later
+            sites: Vec::new(),                   // Will be substituted later
+            pois: Vec::new(),                    // Will be substituted later
+            possible_starting_sites: Vec::new(), // Will be substituted later
             default_chunk: Arc::new(self.generate_oob_chunk()),
         }
     }

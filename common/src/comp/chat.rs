@@ -231,6 +231,10 @@ pub enum LocalizationArg {
     Nat(u64),
 }
 
+impl From<Content> for LocalizationArg {
+    fn from(content: Content) -> Self { Self::Content(content) }
+}
+
 // TODO: Remove impl and make use of `Content(Plain(...))` explicit (to
 // discourage it)
 impl From<String> for LocalizationArg {

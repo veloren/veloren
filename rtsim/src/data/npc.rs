@@ -55,6 +55,7 @@ pub struct PathingMemory {
 pub struct Controller {
     pub actions: Vec<NpcAction>,
     pub activity: Option<NpcActivity>,
+    pub new_home: Option<SiteId>,
 }
 
 impl Controller {
@@ -79,6 +80,8 @@ impl Controller {
     pub fn attack(&mut self, target: impl Into<Actor>) {
         self.actions.push(NpcAction::Attack(target.into()));
     }
+
+    pub fn set_new_home(&mut self, new_home: SiteId) { self.new_home = Some(new_home); }
 }
 
 pub struct Brain {
