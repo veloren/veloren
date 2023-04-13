@@ -599,28 +599,50 @@ fn choose_plaza(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
 
 fn villager(visiting_site: SiteId) -> impl Action {
     choose(move |ctx| {
-        /*
-        if ctx
-            .state
-            .data()
-            .sites
-            .get(visiting_site)
-            .map_or(true, |s| s.world_site.is_none())
+        // Consider moving home if the home site gets too full
+        if ctx.rng.gen_bool(0.0001)
+            && let Some(home) = ctx.npc.home
+            && Some(home) == ctx.npc.current_site
+            && let Some(home_pop_ratio) = ctx.state.data().sites.get(home)
+                .and_then(|site| Some((site, ctx.index.sites.get(site.world_site?).site2()?)))
+                .map(|(site, site2)| site.population.len() as f32 / site2.plots().len() as f32)
+                // Only consider moving if the population is more than 1.5x the number of homes
+                .filter(|pop_ratio| *pop_ratio > 1.5)
+            && let Some(new_home) = ctx
+                .state
+                .data()
+                .sites
+                .iter()
+                // Don't try to move to the site that's currently our home
+                .filter(|(site_id, _)| Some(*site_id) != ctx.npc.home)
+                // Only consider towns as potential homes
+                .filter_map(|(site_id, site)| {
+                    let site2 = match site.world_site.map(|ws| &ctx.index.sites.get(ws).kind) {
+                        Some(SiteKind::Refactor(site2)
+                            | SiteKind::CliffTown(site2)
+                            | SiteKind::SavannahPit(site2)
+                            | SiteKind::DesertCity(site2)) => site2,
+                        _ => return None,
+                    };
+                    Some((site_id, site, site2))
+                })
+                // Only select sites that are less densely populated than our own
+                .filter(|(_, site, site2)| (site.population.len() as f32 / site2.plots().len() as f32) < home_pop_ratio)
+                // Find the closest of the candidate sites
+                .min_by_key(|(_, site, _)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
+                .map(|(site_id, _, _)| site_id)
         {
-            return casual(idle()
-                .debug(|| "idling (visiting site does not exist, perhaps it's stale data?)"));
-        } else if ctx.npc.current_site != Some(visiting_site) {
-            let npc_home = ctx.npc.home;
-            // Travel to the site we're supposed to be in
-            return urgent(travel_to_site(visiting_site, 1.0).debug(move || {
-                if npc_home == Some(visiting_site) {
-                    "travel home".to_string()
-                } else {
-                    "travel to visiting site".to_string()
+            let site_name = ctx.state.data().sites[new_home].world_site
+                .map(|ws| ctx.index.sites.get(ws).name().to_string());
+            return important(just(move |ctx| {
+                if let Some(site_name) = &site_name {
+                    ctx.controller.say(None, Content::localized_with_args("npc-speech-migrating", [("site", site_name.clone())]))
                 }
-            }));
-        } else
-        */
+            })
+                .then(travel_to_site(new_home, 0.5))
+                .then(just(move |ctx| ctx.controller.set_new_home(new_home))));
+        }
+
         if DayPeriod::from(ctx.time_of_day.0).is_dark()
             && !matches!(ctx.npc.profession, Some(Profession::Guard))
         {
