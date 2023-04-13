@@ -38,8 +38,12 @@ void main() {
     if (w_pos.w == 1.0) {
         f_uv = v_uv;
         // Fixed scale In-game element
-        vec4 projected_pos = /*proj_mat * view_mat*/all_mat * vec4(w_pos.xyz - focus_off.xyz, 1.0);
-        gl_Position = vec4(projected_pos.xy / projected_pos.w + v_pos/* * projected_pos.w*/, 0.5, /*projected_pos.w*/1.0);
+        vec4 projected_pos = all_mat * vec4(w_pos.xyz - focus_off.xyz, 1.0);
+        // Note, if screen_res is odd this won't actually be snapped to a
+        // pixel, but we are using it as an offset so we just need to ensure
+        // that it is a multiple of a whole pixel. 
+        vec2 snapped_pos = round((projected_pos.xy / projected_pos.w) * screen_res.xy / 2.0) * 2.0 / screen_res.xy;
+        gl_Position = vec4(snapped_pos + v_pos, 0.5, 1.0);
     } else if (v_mode == uint(3)) {
         // HACK: North facing source rectangle.
         gl_Position = vec4(v_pos, 0.5, 1.0);
