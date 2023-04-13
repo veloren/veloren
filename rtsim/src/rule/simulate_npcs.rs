@@ -151,7 +151,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
 
 fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
     let data = &mut *ctx.state.data_mut();
-    for npc in data.npcs.npcs.values_mut().filter(|npc| !npc.is_dead) {
+    for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead) {
         if matches!(npc.mode, SimulationMode::Simulated) {
             // Simulate NPC movement when riding
             if let Some(riding) = &npc.riding {
@@ -273,6 +273,16 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
 
         // Move home if required
         if let Some(new_home) = npc.controller.new_home.take() {
+            // Remove the NPC from their old home population
+            if let Some(old_home) = npc.home {
+                if let Some(old_home) = data.sites.get_mut(old_home) {
+                    old_home.population.remove(&npc_id);
+                }
+            }
+            // Add the NPC to their new home population
+            if let Some(new_home) = data.sites.get_mut(new_home) {
+                new_home.population.insert(npc_id);
+            }
             npc.home = Some(new_home);
         }
     }

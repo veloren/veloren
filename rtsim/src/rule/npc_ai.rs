@@ -715,8 +715,8 @@ fn villager(visiting_site: SiteId) -> impl Action {
             }
         } else if matches!(ctx.npc.profession, Some(Profession::Guard)) && ctx.rng.gen_bool(0.5) {
             if let Some(plaza_wpos) = choose_plaza(ctx, visiting_site) {
-                return important(
-                    travel_to_point(plaza_wpos, 0.45)
+                return casual(
+                    travel_to_point(plaza_wpos, 0.4)
                         .debug(|| "patrol")
                         .interrupt_with(|ctx| {
                             if ctx.rng.gen_bool(0.0003) {
