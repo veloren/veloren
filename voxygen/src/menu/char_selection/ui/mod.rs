@@ -29,7 +29,7 @@ use common::{
     vol::RectVolSize,
     LoadoutBuilder,
 };
-use common_net::msg::world_msg::{SiteId, SiteInfo, SiteKind};
+use common_net::msg::world_msg::{SiteId, SiteInfo};
 use i18n::{Localization, LocalizationHandle};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
@@ -1978,10 +1978,10 @@ impl CharSelectionUi {
                 Arc::clone(client.world_data().topo_map_image()),
                 Some(default_water_color()),
             )),
-            client.sites()
-                .values()
-                // TODO: Enforce this server-side and add some way to customise it?
-                .filter(|info| matches!(&info.site.kind, SiteKind::Town /*| SiteKind::Castle | SiteKind::Bridge*/))
+            client
+                .possible_starting_sites()
+                .iter()
+                .filter_map(|site_id| client.sites().get(site_id))
                 .map(|info| info.site.clone())
                 .collect(),
             client.world_data().chunk_size().as_(),

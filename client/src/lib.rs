@@ -218,6 +218,7 @@ pub struct Client {
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
     sites: HashMap<SiteId, SiteInfoRich>,
+    possible_starting_sites: Vec<SiteId>,
     pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
@@ -654,6 +655,7 @@ impl Client {
                 Grid::from_raw(map_size.map(|e| e as i32), lod_horizon),
                 (world_map_layers, map_size, map_bounds),
                 world_map.sites,
+                world_map.possible_starting_sites,
                 world_map.pois,
                 recipe_book,
                 component_recipe_book,
@@ -670,6 +672,7 @@ impl Client {
             lod_horizon,
             world_map,
             sites,
+            possible_starting_sites,
             pois,
             recipe_book,
             component_recipe_book,
@@ -709,6 +712,7 @@ impl Client {
                     })
                 })
                 .collect(),
+            possible_starting_sites,
             pois,
             recipe_book,
             component_recipe_book,
@@ -1347,6 +1351,8 @@ impl Client {
 
     /// Unstable, likely to be removed in a future release
     pub fn sites(&self) -> &HashMap<SiteId, SiteInfoRich> { &self.sites }
+
+    pub fn possible_starting_sites(&self) -> &[SiteId] { &self.possible_starting_sites }
 
     /// Unstable, likely to be removed in a future release
     pub fn pois(&self) -> &Vec<PoiInfo> { &self.pois }

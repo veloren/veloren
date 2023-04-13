@@ -121,6 +121,7 @@ pub struct WorldMapMsg {
     /// (256 possible angles).
     pub horizons: [(Vec<u8>, Vec<u8>); 2],
     pub sites: Vec<SiteInfo>,
+    pub possible_starting_sites: Vec<SiteId>,
     pub pois: Vec<PoiInfo>,
     /// Default chunk (representing the ocean outside the map bounds).  Sea
     /// level (used to provide a base altitude) is the lower bound of this

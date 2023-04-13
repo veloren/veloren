@@ -6,7 +6,7 @@
 )]
 #![allow(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(option_zip)]
+#![feature(option_zip, let_chains)]
 
 mod all;
 mod block;
@@ -205,6 +205,37 @@ impl World {
                             wpos,
                         }))
                     .collect(),
+                possible_starting_sites: {
+                    const STARTING_SITE_COUNT: usize = 4;
+
+                    let mut candidates = self
+                        .civs()
+                        .sites
+                        .iter()
+                        .filter_map(|(_, civ_site)| Some((civ_site, civ_site.site_tmp?)))
+                        .map(|(civ_site, site_id)| {
+                            // Score the site according to how suitable it is to be a starting site
+                            let mut score = 0.0;
+
+                            if let SiteKind::Refactor(site2) = &index.sites[site_id].kind {
+                                // Strongly prefer towns
+                                score += 1000.0;
+                                // Prefer sites of a medium size
+                                score += 2.0 / (1.0 + (site2.plots().len() as f32 - 20.0).abs() / 10.0);
+                            };
+                            // Prefer sites in hospitable climates
+                            if let Some(chunk) = self.sim().get(civ_site.center) {
+                                score += 1.0 / (1.0 + chunk.temp.abs());
+                                score += 1.0 / (1.0 + (chunk.humidity - CONFIG.forest_hum).abs() * 2.0);
+                            }
+                            // Prefer sites that are close to the centre of the world
+                            score += 4.0 / (1.0 + civ_site.center.map2(self.sim().get_size(), |e, sz| (e as f32 / sz as f32 - 0.5).abs() * 2.0).reduce_partial_max());
+                            (site_id.id(), score)
+                        })
+                        .collect::<Vec<_>>();
+                    candidates.sort_by_key(|(_, score)| -(*score * 1000.0) as i32);
+                    candidates.into_iter().map(|(site_id, _)| site_id).take(STARTING_SITE_COUNT).collect()
+                },
                 ..self.sim.get_map(index, self.sim().calendar.as_ref())
             }
         })
