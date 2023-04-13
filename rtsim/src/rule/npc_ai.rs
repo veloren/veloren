@@ -378,6 +378,8 @@ fn travel_to_site(tgt_site: SiteId, speed_factor: f32) -> impl Action {
     now(move |ctx| {
         let sites = &ctx.state.data().sites;
 
+        let site_wpos = sites.get(tgt_site).map(|site| site.wpos.as_());
+
         // If we're currently in a site, try to find a path to the target site via
         // tracks
         if let Some(current_site) = ctx.npc.current_site
@@ -458,8 +460,11 @@ fn travel_to_site(tgt_site: SiteId, speed_factor: f32) -> impl Action {
             // If we can't find a way to get to the site at all, there's nothing more to be done
             finish().boxed()
         }
+            // Stop the NPC early if we're near the site to prevent huddling around the centre
+            .stop_if(move |ctx| site_wpos.map_or(false, |site_wpos| ctx.npc.wpos.xy().distance_squared(site_wpos) < 16f32.powi(2)))
     })
-    .debug(move || format!("travel_to_site {:?}", tgt_site))
+        .debug(move || format!("travel_to_site {:?}", tgt_site))
+        .map(|_| ())
 }
 
 // Seconds
@@ -498,7 +503,7 @@ fn socialize() -> impl Action {
                             .map(|ws| ctx.index.sites.get(ws).name().to_string())
                     {
                         Content::localized_with_args("npc-speech-tell_site", [
-                            ("site", Content::Plain(mention_site_name.clone())),
+                            ("site", Content::Plain(mention_site_name)),
                             ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
                         ])
                     } else {
