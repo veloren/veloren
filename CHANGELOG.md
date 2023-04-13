@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs now have unique names
 - A /scale command that can be used to change the in-game scale of players
 - Merchants will flog their wares in towns, encouraging nearby character to buy goods from them
+- NPCs will now tell you about nearby towns and how to visit them
+- NPCs will migrate to new towns if they are dissatisfied with their current town
 
 ### Changed
 
@@ -50,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rescaling of images for the UI is now done when sampling from them on the GPU. Improvements are
   particularily noticeable when opening the map screen (which involves rescaling a few large
   images) and also when using the voxel minimap view (where a medium size image is updated often).
+- Towns now have a variety of sizes
 
 ### Removed
 
