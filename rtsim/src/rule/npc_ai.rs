@@ -283,9 +283,6 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     let mut waypoint = None;
 
     just(move |ctx| {
-        let rpos = wpos - ctx.npc.wpos;
-        let len = rpos.magnitude();
-
         // If we're close to the next waypoint, complete it
         if waypoint.map_or(false, |waypoint: Vec3<f32>| {
             ctx.npc.wpos.xy().distance_squared(waypoint.xy()) < WAYPOINT_DIST.powi(2)
@@ -295,6 +292,8 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
 
         // Get the next waypoint on the route toward the goal
         let waypoint = waypoint.get_or_insert_with(|| {
+            let rpos = wpos - ctx.npc.wpos;
+            let len = rpos.magnitude();
             let wpos = ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST);
 
             wpos.with_z(
@@ -313,6 +312,8 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     .map(|_| {})
 }
 
+/// Try to walk fly a 3D position following the terrain altitude at an offset
+/// without caring for obstacles.
 fn goto_flying(
     wpos: Vec3<f32>,
     speed_factor: f32,
@@ -324,9 +325,6 @@ fn goto_flying(
     let mut waypoint = None;
 
     just(move |ctx| {
-        let rpos = wpos - ctx.npc.wpos;
-        let len = rpos.magnitude();
-
         // If we're close to the next waypoint, complete it
         if waypoint.map_or(false, |waypoint: Vec3<f32>| {
             ctx.npc.wpos.distance_squared(waypoint) < waypoint_dist.powi(2)
@@ -336,6 +334,8 @@ fn goto_flying(
 
         // Get the next waypoint on the route toward the goal
         let waypoint = waypoint.get_or_insert_with(|| {
+            let rpos = wpos - ctx.npc.wpos;
+            let len = rpos.magnitude();
             let wpos = ctx.npc.wpos + (rpos / len) * len.min(step_dist);
 
             wpos.with_z(
@@ -364,6 +364,8 @@ fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action 
     })
 }
 
+/// Try to fly toward a 2D position following the terrain altitude at an offset
+/// without caring for obstacles.
 fn goto_2d_flying(
     wpos2d: Vec2<f32>,
     speed_factor: f32,
