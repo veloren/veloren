@@ -76,6 +76,7 @@ impl Animation for ComboAnimation {
                                 15.0 + move1 * -6.0 + move2 * 6.0,
                                 -9.0 + move1 * 4.0 + move2 * -2.0,
                             );
+                            next.weapon_l.position = Vec3::new(-10.0, 12.0, -7.0);
                             next.weapon_r.orientation = Quaternion::rotation_x(move2 * 0.5)
                                 * Quaternion::rotation_z(move1 * -1.5 + move2 * 2.0);
                             next.shoulder_l.orientation = Quaternion::rotation_x(0.8);
@@ -83,6 +84,7 @@ impl Animation for ComboAnimation {
                                 * Quaternion::rotation_y(move1 * -0.9 + move2 * 0.7);
                         },
                         1 => {
+                            next.weapon_r.position = Vec3::new(10.0, 12.0, -7.0);
                             next.weapon_l.position = Vec3::new(
                                 -10.0 + move1 * -12.0 + move2 * 14.0,
                                 15.0 + move1 * -6.0 + move2 * 6.0,
