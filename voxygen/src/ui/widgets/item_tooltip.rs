@@ -773,7 +773,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             );
                             diff_text(text, buff_strength_diff.1, 6)
                         }
-                        if tool_durability != equipped_durability {
+                        if tool_durability != equipped_durability && item.has_durability() {
                             let text = format!(
                                 "{} {}",
                                 &durability_diff.0,
@@ -1020,7 +1020,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         }
                         index += armor_stats.stealth.is_some() as usize;
 
-                        if armor_durability != equipped_durability {
+                        if armor_durability != equipped_durability && item.has_durability() {
                             let diff = armor_durability.unwrap_or(Item::MAX_DURABILITY) as i32
                                 - equipped_durability.unwrap_or(Item::MAX_DURABILITY) as i32;
                             let text = format!("{} {}", &durability_diff.0, diff);
