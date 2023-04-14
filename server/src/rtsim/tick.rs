@@ -332,6 +332,8 @@ impl<'a> System<'a> for Sys {
             // loaded
             if matches!(npc.mode, SimulationMode::Simulated)
                 && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+                // Riding npcs will be spawned by the vehicle.
+                && npc.riding.is_none()
             {
                 npc.mode = SimulationMode::Loaded;
                 let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
