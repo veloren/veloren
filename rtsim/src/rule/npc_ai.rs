@@ -138,9 +138,11 @@ fn path_between_sites(
     let neighbors = |site: &Id<civ::Site>| world.civs().neighbors(*site);
 
     let transition = |a: &Id<civ::Site>, b: &Id<civ::Site>| {
-        world.civs().track_between(*a, *b).map(|(id, _)| {
-            world.civs().tracks.get(id).cost
-        }).unwrap_or(f32::INFINITY)
+        world
+            .civs()
+            .track_between(*a, *b)
+            .map(|(id, _)| world.civs().tracks.get(id).cost)
+            .unwrap_or(f32::INFINITY)
     };
 
     let path = astar.poll(250, heuristic, neighbors, transition, |site| *site == end);
@@ -275,10 +277,9 @@ impl Rule for NpcAi {
 fn idle() -> impl Action { just(|ctx| ctx.controller.do_idle()).debug(|| "idle") }
 
 /// Try to walk toward a 3D position without caring for obstacles.
-fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32, height_offset: f32) -> impl Action {
+fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     const STEP_DIST: f32 = 24.0;
     const WAYPOINT_DIST: f32 = 12.0;
-
     let mut waypoint = None;
 
     just(move |ctx| {
@@ -300,6 +301,49 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32, height_offset: f32) 
                 ctx.world
                     .sim()
                     .get_surface_alt_approx(wpos.xy().as_())
+                    .map(|alt| alt)
+                    .unwrap_or(wpos.z),
+            )
+        });
+
+        ctx.controller.do_goto(*waypoint, speed_factor);
+    })
+    .repeat()
+    .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2))
+    .debug(move || format!("goto {}, {}, {}", wpos.x, wpos.y, wpos.z))
+    .map(|_| {})
+}
+
+
+fn goto_flying(
+    wpos: Vec3<f32>,
+    speed_factor: f32,
+    goal_dist: f32,
+    step_dist: f32,
+    waypoint_dist: f32,
+    height_offset: f32,
+) -> impl Action {
+    let mut waypoint = None;
+
+    just(move |ctx| {
+        let rpos = wpos - ctx.npc.wpos;
+        let len = rpos.magnitude();
+
+        // If we're close to the next waypoint, complete it
+        if waypoint.map_or(false, |waypoint: Vec3<f32>| {
+            ctx.npc.wpos.distance_squared(waypoint) < waypoint_dist.powi(2)
+        }) {
+            waypoint = None;
+        }
+
+        // Get the next waypoint on the route toward the goal
+        let waypoint = waypoint.get_or_insert_with(|| {
+            let wpos = ctx.npc.wpos + (rpos / len) * len.min(step_dist);
+
+            wpos.with_z(
+                ctx.world
+                    .sim()
+                    .get_surface_alt_approx(wpos.xy().as_())
                     .map(|alt| alt + height_offset)
                     .unwrap_or(wpos.z),
             )
@@ -315,20 +359,36 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32, height_offset: f32) 
 
 /// Try to walk toward a 2D position on the terrain without caring for
 /// obstacles.
-fn goto_2d(
+fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
+    now(move |ctx| {
+        let wpos = wpos2d.with_z(ctx.world.sim().get_alt_approx(wpos2d.as_()).unwrap_or(0.0));
+        goto(wpos, speed_factor, goal_dist)
+    })
+}
+
+fn goto_2d_flying(
     wpos2d: Vec2<f32>,
     speed_factor: f32,
     goal_dist: f32,
+    step_dist: f32,
+    waypoint_dist: f32,
     height_offset: f32,
 ) -> impl Action {
     now(move |ctx| {
         let wpos = wpos2d
             .with_z(ctx.world.sim().get_alt_approx(wpos2d.as_()).unwrap_or(0.0) + height_offset);
-        goto(wpos, speed_factor, goal_dist, height_offset)
+        goto_flying(
+            wpos,
+            speed_factor,
+            goal_dist,
+            step_dist,
+            waypoint_dist,
+            height_offset,
+        )
     })
 }
 
-fn traverse_points<F>(mut next_point: F, speed_factor: f32, height_offset: f32) -> impl Action
+fn traverse_points<F>(mut next_point: F, speed_factor: f32) -> impl Action
 where
     F: FnMut(&mut NpcCtx) -> Option<Vec2<f32>> + Send + Sync + 'static,
 {
@@ -351,26 +411,17 @@ where
 
             if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
                 Some(Either::Left(
-                    seq(path
-                        .into_iter()
-                        .map(move |wpos| goto_2d(wpos, 1.0, 8.0, height_offset)))
-                    .then(goto_2d(site_exit, speed_factor, 8.0, height_offset)),
+                    seq(path.into_iter().map(move |wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
+                        site_exit,
+                        speed_factor,
+                        8.0,
+                    )),
                 ))
             } else {
-                Some(Either::Right(goto_2d(
-                    site_exit,
-                    speed_factor,
-                    8.0,
-                    height_offset,
-                )))
+                Some(Either::Right(goto_2d(site_exit, speed_factor, 8.0)))
             }
         } else {
-            Some(Either::Right(goto_2d(
-                wpos,
-                speed_factor,
-                8.0,
-                height_offset,
-            )))
+            Some(Either::Right(goto_2d(wpos, speed_factor, 8.0)))
         }
     })
 }
@@ -383,7 +434,7 @@ fn travel_to_point(wpos: Vec2<f32>, speed_factor: f32) -> impl Action {
         let diff = wpos - start;
         let n = (diff.magnitude() / WAYPOINT).max(1.0);
         let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
-        traverse_points(move |_| points.next(), speed_factor, 0.0)
+        traverse_points(move |_| points.next(), speed_factor)
     })
     .debug(|| "travel to point")
 }
@@ -429,7 +480,7 @@ fn travel_to_site(tgt_site: SiteId, speed_factor: f32) -> impl Action {
                 } else {
                     None
                 }
-            }, speed_factor, 0.0)
+            }, speed_factor)
                 .boxed()
 
             // For every track in the path we discovered between the sites...
@@ -851,7 +902,21 @@ fn pilot(ship: common::comp::ship::Body) -> impl Action {
             })
             .choose(&mut ctx.rng);
         if let Some((_id, site)) = site {
-            Either::Right(goto_2d(site.wpos.as_(), 1.0, 20.0, ship.flying_height()))
+            Either::Right(goto_2d_flying(
+                site.wpos.as_(),
+                1.0,
+                50.0,
+                150.0,
+                110.0,
+                ship.flying_height(),
+            ).then(goto_2d_flying(
+                site.wpos.as_(),
+                1.0,
+                10.0,
+                32.0,
+                16.0,
+                10.0,
+            )))
         } else {
             Either::Left(finish())
         }
@@ -882,7 +947,7 @@ fn captain() -> impl Action {
                     .get_interpolated(wpos, |chunk| chunk.water_alt)
                     .unwrap_or(0.0),
             );
-            goto(wpos, 0.7, 5.0, 0.0).boxed()
+            goto(wpos, 0.7, 5.0).boxed()
         } else {
             idle().boxed()
         }
@@ -988,6 +1053,16 @@ fn bird_large() -> impl Action {
         let data = ctx.state.data();
         if let Some(home) = ctx.npc.home {
             let is_home = ctx.npc.current_site.map_or(false, |site| home == site);
+            let goto = |wpos| {
+                casual(goto_2d_flying(
+                    wpos,
+                    1.0,
+                    20.0,
+                    32.0,
+                    22.0,
+                    ctx.npc.body.flying_height(),
+                ))
+            };
             if is_home {
                 if let Some((_, site)) = data
                     .sites
@@ -1000,22 +1075,12 @@ fn bird_large() -> impl Action {
                     })
                     .choose(&mut ctx.rng)
                 {
-                    casual(goto_2d(
-                        site.wpos.as_::<f32>(),
-                        1.0,
-                        20.0,
-                        ctx.npc.body.flying_height(),
-                    ))
+                    goto(site.wpos.as_::<f32>())
                 } else {
                     casual(idle())
                 }
             } else if let Some(site) = data.sites.get(home) {
-                casual(goto_2d(
-                    site.wpos.as_::<f32>(),
-                    1.0,
-                    20.0,
-                    ctx.npc.body.flying_height(),
-                ))
+                goto(site.wpos.as_::<f32>())
             } else {
                 casual(idle())
             }

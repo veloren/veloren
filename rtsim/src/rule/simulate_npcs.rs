@@ -200,12 +200,6 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                         ) => {},
                         None => {},
                     }
-                    vehicle.wpos.z = ctx
-                        .world
-                        .sim()
-                        .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
-                        .unwrap_or(0.0)
-                        + vehicle.body.flying_height();
                     npc.wpos = vehicle.wpos;
                 } else {
                     // Vehicle doens't exist anymore

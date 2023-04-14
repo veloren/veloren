@@ -110,7 +110,7 @@ impl Body {
         matches!(self, Body::DefaultAirship | Body::AirBalloon | Body::Volume)
     }
 
-    pub fn flying_height(&self) -> f32 { if self.can_fly() { 60.0 } else { 0.0 } }
+    pub fn flying_height(&self) -> f32 { if self.can_fly() { 200.0 } else { 0.0 } }
 
     pub fn has_water_thrust(&self) -> bool {
         !self.can_fly() // TODO: Differentiate this more carefully
