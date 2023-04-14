@@ -214,6 +214,99 @@ recipes: {
     ItemDefId("common.items.armor.misc.pants.worker_brown"): ( inputs: [], ),
     ItemDefId("common.items.armor.misc.pants.worker_blue"): ( inputs: [], ),
     ItemDefId("common.items.armor.misc.foot.sandals"): ( inputs: [], ),
+    // Twigs set
+    ItemDefId("common.items.armor.twigs.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigs.chest"): (
+        inputs: [
+        (Item("common.items.crafting_ing.twigs"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigs.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigs.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigs.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigs.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 2),
+        ],
+    ),
+    // Twigsleaves set
+    ItemDefId("common.items.armor.twigsleaves.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsleaves.chest"): (
+        inputs: [
+        (Item("common.items.crafting_ing.twigs"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsleaves.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsleaves.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsleaves.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsleaves.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 2),
+        ],
+    ),
+    // Twigsflowers set
+    ItemDefId("common.items.armor.twigsflowers.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsflowers.chest"): (
+        inputs: [
+        (Item("common.items.crafting_ing.twigs"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsflowers.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsflowers.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsflowers.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.twigsflowers.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 2),
+        ],
+    ),
     // ARMOR/HIDE/RAWHIDE
     ItemDefId("common.items.armor.hide.rawhide.back"): (
         inputs: [
@@ -230,7 +323,7 @@ recipes: {
             (Item("common.items.crafting_ing.leather.simple_leather"), 3),
         ],
     ),
-    ItemDefId("common.items.armorhide.rawhide.foot"): (
+    ItemDefId("common.items.armor.hide.rawhide.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 1),
         ],
@@ -266,7 +359,7 @@ recipes: {
             (Item("common.items.crafting_ing.leather.thick_leather"), 3),
         ],
     ),
-    ItemDefId("common.items.armorhide.leather.foot"): (
+    ItemDefId("common.items.armor.hide.leather.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.leather.thick_leather"), 1),
         ],
@@ -305,7 +398,7 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
-    ItemDefId("common.items.armorhide.scale.foot"): (
+    ItemDefId("common.items.armor.hide.scale.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 1),
@@ -348,7 +441,7 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 6),
         ],
     ),
-    ItemDefId("common.items.armorhide.carapace.foot"): (
+    ItemDefId("common.items.armor.hide.carapace.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.carapace"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 2),
@@ -391,7 +484,7 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 9),
         ],
     ),
-    ItemDefId("common.items.armorhide.primal.foot"): (
+    ItemDefId("common.items.armor.hide.primal.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 3),
@@ -1084,7 +1177,7 @@ recipes: {
 },
 fallback: (
     inputs: [
-        (Item("common.items.mineral.ore.veloritefrag"), 16),
+        (Item("common.items.mineral.ore.veloritefrag"), 8),
     ],
 ),
 )
