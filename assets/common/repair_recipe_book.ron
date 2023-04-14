@@ -158,6 +158,22 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 8),
         ],
     ),
+    // TOOLS
+    ItemDefId("common.items.tool.pickaxe_stone"): (
+        inputs: [
+            (Item("common.items.crafting_ing.stones"), 1),
+        ],
+    ),
+    ItemDefId("common.items.tool.pickaxe_steel"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+        ],
+    ),
+    ItemDefId("common.items.tool.craftsman_hammer"): (
+        inputs: [
+            (Item("common.items.crafting_ing.stones"), 1),
+        ],
+    ),
     // ARMOR
     ItemDefId("common.items.armor.cloth_purple.chest"): ( inputs: [], ),
     ItemDefId("common.items.armor.cloth_purple.belt"): ( inputs: [], ),
