@@ -293,6 +293,7 @@ pub enum ServerChatCommand {
     Region,
     ReloadChunks,
     RemoveLights,
+    RepairEquipment,
     Respawn,
     RevokeBuild,
     RevokeBuildAll,
@@ -772,6 +773,9 @@ impl ServerChatCommand {
                 "Scale your character",
                 Some(Admin),
             ),
+            ServerChatCommand::RepairEquipment => {
+                cmd(vec![], "Repairs all equipped items", Some(Admin))
+            },
         }
     }
 
@@ -859,6 +863,7 @@ impl ServerChatCommand {
             ServerChatCommand::WeatherZone => "weather_zone",
             ServerChatCommand::Lightning => "lightning",
             ServerChatCommand::Scale => "scale",
+            ServerChatCommand::RepairEquipment => "repair_equipment",
         }
     }
 
