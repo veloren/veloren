@@ -262,6 +262,7 @@ pub enum VehicleKind {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Vehicle {
     pub wpos: Vec3<f32>,
+    pub dir: Vec2<f32>,
 
     pub body: comp::ship::Body,
 
@@ -283,6 +284,7 @@ impl Vehicle {
     pub fn new(wpos: Vec3<f32>, body: comp::ship::Body) -> Self {
         Self {
             wpos,
+            dir: Vec2::unit_y(),
             body,
             chunk_pos: None,
             driver: None,
@@ -295,10 +297,10 @@ impl Vehicle {
     /// Max speed in block/s
     pub fn get_speed(&self) -> f32 {
         match self.body {
-            comp::ship::Body::DefaultAirship => 15.0,
-            comp::ship::Body::AirBalloon => 16.0,
-            comp::ship::Body::SailBoat => 12.0,
-            comp::ship::Body::Galleon => 13.0,
+            comp::ship::Body::DefaultAirship => 7.0,
+            comp::ship::Body::AirBalloon => 8.0,
+            comp::ship::Body::SailBoat => 5.0,
+            comp::ship::Body::Galleon => 6.0,
             _ => 10.0,
         }
     }

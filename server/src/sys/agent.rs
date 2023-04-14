@@ -107,6 +107,10 @@ impl<'a> System<'a> for Sys {
                         .unwrap_or(entity);
 
                     let moving_body = read_data.bodies.get(moving_entity);
+                    let physics_state = read_data
+                        .physics_states
+                        .get(moving_entity)
+                        .unwrap_or(physics_state);
 
                     // Hack, replace with better system when groups are more sophisticated
                     // Override alignment if in a group unless entity is owned already
@@ -136,7 +140,10 @@ impl<'a> System<'a> for Sys {
                         controller.inputs.look_dir = ori.look_dir();
                     }
 
-                    let scale = read_data.scales.get(entity).map_or(1.0, |Scale(s)| *s);
+                    let scale = read_data
+                        .scales
+                        .get(moving_entity)
+                        .map_or(1.0, |Scale(s)| *s);
 
                     let glider_equipped = inventory
                         .equipped(EquipSlot::Glider)
@@ -180,7 +187,7 @@ impl<'a> System<'a> for Sys {
                         slow_factor,
                         on_ground: physics_state.on_ground.is_some(),
                         in_liquid: physics_state.in_liquid().is_some(),
-                        min_tgt_dist: 1.0,
+                        min_tgt_dist: scale * moving_body.map_or(1.0, |body| body.max_radius()),
                         can_climb: moving_body.map_or(false, Body::can_climb),
                         can_fly: moving_body.map_or(false, |b| b.fly_thrust().is_some()),
                     };

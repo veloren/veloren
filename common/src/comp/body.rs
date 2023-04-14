@@ -880,7 +880,7 @@ impl Body {
             Body::BirdLarge(_) => 50.0,
             Body::BirdMedium(_) => 40.0,
             Body::Dragon(_) => 60.0,
-            Body::Ship(ship) if ship.can_fly() => 60.0,
+            Body::Ship(ship) => ship.flying_height(),
             _ => 0.0,
         }
     }

@@ -11,6 +11,7 @@ use common::{
     slowjob::SlowJobPool,
     terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
+    util::Dir,
     LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -315,6 +316,7 @@ impl<'a> System<'a> for Sys {
 
                 emitter.emit(ServerEvent::CreateShip {
                     pos: comp::Pos(vehicle.wpos),
+                    ori: comp::Ori::from(Dir::new(vehicle.dir.with_z(0.0))),
                     ship: vehicle.body,
                     rtsim_entity: Some(RtSimVehicle(vehicle_id)),
                     driver: vehicle.driver.and_then(&mut actor_info),
@@ -330,6 +332,8 @@ impl<'a> System<'a> for Sys {
             // loaded
             if matches!(npc.mode, SimulationMode::Simulated)
                 && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+                // Riding npcs will be spawned by the vehicle.
+                && npc.riding.is_none()
             {
                 npc.mode = SimulationMode::Loaded;
                 let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());

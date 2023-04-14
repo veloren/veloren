@@ -227,6 +227,7 @@ pub enum ServerEvent {
     },
     CreateShip {
         pos: Pos,
+        ori: Ori,
         ship: comp::ship::Body,
         rtsim_entity: Option<RtSimVehicle>,
         driver: Option<NpcBuilder>,

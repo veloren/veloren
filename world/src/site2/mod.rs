@@ -1067,7 +1067,7 @@ impl Site {
         });
 
         site.blit_aabr(aabr, Tile {
-            kind: TileKind::Building,
+            kind: TileKind::Bridge,
             plot: Some(plot),
             hard_alt: None,
         });

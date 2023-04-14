@@ -466,7 +466,9 @@ impl Chaser {
                 /*if traversal_cfg.can_fly {
                     Some(((tgt - pos) , 1.0))
                 } else */
-                if !walking_towards_edge || traversal_cfg.can_fly {
+                if traversal_cfg.can_fly {
+                    Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.5), 1.0))
+                } else if !walking_towards_edge {
                     Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 1.0))
                 } else {
                     // This is unfortunately where an NPC will stare blankly

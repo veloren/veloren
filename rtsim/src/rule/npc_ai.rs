@@ -61,7 +61,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             TileKind::Empty => 3.0,
             TileKind::Hazard(_) => 50.0,
             TileKind::Field => 8.0,
-            TileKind::Plaza | TileKind::Road { .. } | TileKind::Path => 1.0,
+            TileKind::Plaza | TileKind::Road { .. } | TileKind::Path | TileKind::Bridge => 1.0,
 
             TileKind::Building
             | TileKind::Castle
@@ -95,13 +95,14 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
         distance * terrain + building
     };
 
-    astar.poll(
-        1000,
-        heuristic,
-        |&tile| CARDINALS.iter().map(move |c| tile + *c),
-        transition,
-        |tile| *tile == end || site.tiles.get_known(*tile).is_none(),
-    )
+    let neighbors = |tile: &Vec2<i32>| {
+        let tile = *tile;
+        CARDINALS.iter().map(move |c| tile + *c)
+    };
+
+    astar.poll(1000, heuristic, neighbors, transition, |tile| {
+        *tile == end || site.tiles.get_known(*tile).is_none()
+    })
 }
 
 fn path_between_sites(
@@ -136,14 +137,13 @@ fn path_between_sites(
 
     let neighbors = |site: &Id<civ::Site>| world.civs().neighbors(*site);
 
-    let track_between = |a: Id<civ::Site>, b: Id<civ::Site>| {
+    let transition = |a: &Id<civ::Site>, b: &Id<civ::Site>| {
         world
             .civs()
-            .tracks
-            .get(world.civs().track_between(a, b).unwrap().0)
+            .track_between(*a, *b)
+            .map(|(id, _)| world.civs().tracks.get(id).cost)
+            .unwrap_or(f32::INFINITY)
     };
-
-    let transition = |a: &Id<civ::Site>, b: &Id<civ::Site>| track_between(*a, *b).cost;
 
     let path = astar.poll(250, heuristic, neighbors, transition, |site| *site == end);
 
@@ -151,8 +151,9 @@ fn path_between_sites(
         let path = path
             .into_iter()
             .tuple_windows::<(_, _)>()
-            .map(|(a, b)| world.civs().track_between(a, b).unwrap())
-            .collect_vec();
+            // Since we get a, b from neighbors, track_between shouldn't return None.
+            .filter_map(|(a, b)| world.civs().track_between(a, b))
+            .collect();
         Path { nodes: path }
     })
 }
@@ -279,13 +280,9 @@ fn idle() -> impl Action { just(|ctx| ctx.controller.do_idle()).debug(|| "idle")
 fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     const STEP_DIST: f32 = 24.0;
     const WAYPOINT_DIST: f32 = 12.0;
-
     let mut waypoint = None;
 
     just(move |ctx| {
-        let rpos = wpos - ctx.npc.wpos;
-        let len = rpos.magnitude();
-
         // If we're close to the next waypoint, complete it
         if waypoint.map_or(false, |waypoint: Vec3<f32>| {
             ctx.npc.wpos.xy().distance_squared(waypoint.xy()) < WAYPOINT_DIST.powi(2)
@@ -295,6 +292,8 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
 
         // Get the next waypoint on the route toward the goal
         let waypoint = waypoint.get_or_insert_with(|| {
+            let rpos = wpos - ctx.npc.wpos;
+            let len = rpos.magnitude();
             let wpos = ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST);
 
             wpos.with_z(
@@ -313,12 +312,79 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     .map(|_| {})
 }
 
+/// Try to walk fly a 3D position following the terrain altitude at an offset
+/// without caring for obstacles.
+fn goto_flying(
+    wpos: Vec3<f32>,
+    speed_factor: f32,
+    goal_dist: f32,
+    step_dist: f32,
+    waypoint_dist: f32,
+    height_offset: f32,
+) -> impl Action {
+    let mut waypoint = None;
+
+    just(move |ctx| {
+        // If we're close to the next waypoint, complete it
+        if waypoint.map_or(false, |waypoint: Vec3<f32>| {
+            ctx.npc.wpos.distance_squared(waypoint) < waypoint_dist.powi(2)
+        }) {
+            waypoint = None;
+        }
+
+        // Get the next waypoint on the route toward the goal
+        let waypoint = waypoint.get_or_insert_with(|| {
+            let rpos = wpos - ctx.npc.wpos;
+            let len = rpos.magnitude();
+            let wpos = ctx.npc.wpos + (rpos / len) * len.min(step_dist);
+
+            wpos.with_z(
+                ctx.world
+                    .sim()
+                    .get_surface_alt_approx(wpos.xy().as_())
+                    .map(|alt| alt + height_offset)
+                    .unwrap_or(wpos.z),
+            )
+        });
+
+        ctx.controller.do_goto(*waypoint, speed_factor);
+    })
+    .repeat()
+    .stop_if(move |ctx| ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2))
+    .debug(move || format!("goto {}, {}, {}", wpos.x, wpos.y, wpos.z))
+    .map(|_| {})
+}
+
 /// Try to walk toward a 2D position on the terrain without caring for
 /// obstacles.
 fn goto_2d(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     now(move |ctx| {
         let wpos = wpos2d.with_z(ctx.world.sim().get_alt_approx(wpos2d.as_()).unwrap_or(0.0));
         goto(wpos, speed_factor, goal_dist)
+    })
+}
+
+/// Try to fly toward a 2D position following the terrain altitude at an offset
+/// without caring for obstacles.
+fn goto_2d_flying(
+    wpos2d: Vec2<f32>,
+    speed_factor: f32,
+    goal_dist: f32,
+    step_dist: f32,
+    waypoint_dist: f32,
+    height_offset: f32,
+) -> impl Action {
+    now(move |ctx| {
+        let wpos = wpos2d
+            .with_z(ctx.world.sim().get_alt_approx(wpos2d.as_()).unwrap_or(0.0) + height_offset);
+        goto_flying(
+            wpos,
+            speed_factor,
+            goal_dist,
+            step_dist,
+            waypoint_dist,
+            height_offset,
+        )
     })
 }
 
@@ -345,7 +411,7 @@ where
 
             if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
                 Some(Either::Left(
-                    seq(path.into_iter().map(|wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
+                    seq(path.into_iter().map(move |wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
                         site_exit,
                         speed_factor,
                         8.0,
@@ -821,53 +887,9 @@ fn follow(npc: NpcId, distance: f32) -> impl Action {
 }
 */
 
-fn chunk_path(
-    from: Vec2<i32>,
-    to: Vec2<i32>,
-    chunk_height: impl Fn(Vec2<i32>) -> Option<i32>,
-) -> Box<dyn Action> {
-    let heuristics =
-        |(p, _): &(Vec2<i32>, i32), _: &(Vec2<i32>, i32)| p.distance_squared(to) as f32;
-    let start = (from, chunk_height(from).unwrap());
-    let mut astar = Astar::new(1000, start, BuildHasherDefault::<FxHasher64>::default());
-
-    let path = astar.poll(
-        1000,
-        heuristics,
-        |&(p, _)| {
-            NEIGHBORS
-                .into_iter()
-                .map(move |n| p + n)
-                .filter_map(|p| Some((p, chunk_height(p)?)))
-        },
-        |(p0, h0), (p1, h1)| {
-            let diff = (p0 - p1).as_().cpos_to_wpos().with_z((h0 - h1) as f32);
-
-            diff.magnitude_squared()
-        },
-        |(e, _)| *e == to,
-    );
-    let path = match path {
-        PathResult::Exhausted(p) | PathResult::Path(p) => p,
-        _ => return finish().boxed(),
-    };
-    let len = path.len();
-    seq(path
-        .into_iter()
-        .enumerate()
-        .map(move |(i, (chunk_pos, height))| {
-            let wpos = TerrainChunkSize::center_wpos(chunk_pos)
-                .with_z(height)
-                .as_();
-            goto(wpos, 1.0, 5.0)
-                .debug(move || format!("chunk path {i}/{len} chunk: {chunk_pos}, height: {height}"))
-        }))
-    .boxed()
-}
-
-fn pilot() -> impl Action {
+fn pilot(ship: common::comp::ship::Body) -> impl Action {
     // Travel between different towns in a straight line
-    now(|ctx| {
+    now(move |ctx| {
         let data = &*ctx.state.data();
         let site = data
             .sites
@@ -880,16 +902,19 @@ fn pilot() -> impl Action {
             })
             .choose(&mut ctx.rng);
         if let Some((_id, site)) = site {
-            let start_chunk = ctx.npc.wpos.xy().as_().wpos_to_cpos();
-            let end_chunk = site.wpos.wpos_to_cpos();
-            chunk_path(start_chunk, end_chunk, |chunk| {
-                ctx.world
-                    .sim()
-                    .get_alt_approx(TerrainChunkSize::center_wpos(chunk))
-                    .map(|f| (f + 150.0) as i32)
-            })
+            Either::Right(
+                goto_2d_flying(
+                    site.wpos.as_(),
+                    1.0,
+                    50.0,
+                    150.0,
+                    110.0,
+                    ship.flying_height(),
+                )
+                .then(goto_2d_flying(site.wpos.as_(), 1.0, 10.0, 32.0, 16.0, 10.0)),
+            )
         } else {
-            finish().boxed()
+            Either::Left(finish())
         }
     })
     .repeat()
@@ -990,7 +1015,7 @@ fn humanoid() -> impl Action {
                 if let Some(vehicle) = ctx.state.data().npcs.vehicles.get(riding.vehicle) {
                     match vehicle.body {
                         common::comp::ship::Body::DefaultAirship
-                        | common::comp::ship::Body::AirBalloon => important(pilot()),
+                        | common::comp::ship::Body::AirBalloon => important(pilot(vehicle.body)),
                         common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
                             important(captain())
                         },
@@ -1024,6 +1049,16 @@ fn bird_large() -> impl Action {
         let data = ctx.state.data();
         if let Some(home) = ctx.npc.home {
             let is_home = ctx.npc.current_site.map_or(false, |site| home == site);
+            let goto = |wpos| {
+                casual(goto_2d_flying(
+                    wpos,
+                    1.0,
+                    20.0,
+                    32.0,
+                    22.0,
+                    ctx.npc.body.flying_height(),
+                ))
+            };
             if is_home {
                 if let Some((_, site)) = data
                     .sites
@@ -1036,32 +1071,12 @@ fn bird_large() -> impl Action {
                     })
                     .choose(&mut ctx.rng)
                 {
-                    casual(goto(
-                        site.wpos.as_::<f32>().with_z(
-                            ctx.world
-                                .sim()
-                                .get_surface_alt_approx(site.wpos)
-                                .unwrap_or(0.0)
-                                + ctx.npc.body.flying_height(),
-                        ),
-                        1.0,
-                        20.0,
-                    ))
+                    goto(site.wpos.as_::<f32>())
                 } else {
                     casual(idle())
                 }
             } else if let Some(site) = data.sites.get(home) {
-                casual(goto(
-                    site.wpos.as_::<f32>().with_z(
-                        ctx.world
-                            .sim()
-                            .get_surface_alt_approx(site.wpos)
-                            .unwrap_or(0.0)
-                            + ctx.npc.body.flying_height(),
-                    ),
-                    1.0,
-                    20.0,
-                ))
+                goto(site.wpos.as_::<f32>())
             } else {
                 casual(idle())
             }
