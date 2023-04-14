@@ -1572,19 +1572,14 @@ fn handle_spawn_airship(
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
     let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
-    let destination = angle.map(|a| {
-        pos.0
-            + Vec3::new(
-                DESTINATION_RADIUS * a.cos(),
-                DESTINATION_RADIUS * a.sin(),
-                200.0,
-            )
-    });
+    let dir = angle.map(|a| Vec3::new(a.cos(), a.sin(), 0.0));
+    let destination = dir.map(|dir| pos.0 + dir * DESTINATION_RADIUS + Vec3::new(0.0, 0.0, 200.0));
     let mut rng = thread_rng();
     let ship = comp::ship::Body::random_airship_with(&mut rng);
+    let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider())
+        .create_ship(pos, ori, ship, |ship| ship.make_collider())
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1621,19 +1616,14 @@ fn handle_spawn_ship(
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
     let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
-    let destination = angle.map(|a| {
-        pos.0
-            + Vec3::new(
-                DESTINATION_RADIUS * a.cos(),
-                DESTINATION_RADIUS * a.sin(),
-                200.0,
-            )
-    });
+    let dir = angle.map(|a| Vec3::new(a.cos(), a.sin(), 0.0));
+    let destination = dir.map(|dir| pos.0 + dir * DESTINATION_RADIUS + Vec3::new(0.0, 0.0, 200.0));
     let mut rng = thread_rng();
     let ship = comp::ship::Body::random_ship_with(&mut rng);
+    let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider())
+        .create_ship(pos, ori, ship, |ship| ship.make_collider())
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1683,9 +1673,12 @@ fn handle_make_volume(
     };
     server
         .state
-        .create_ship(comp::Pos(pos.0 + Vec3::unit_z() * 50.0), ship, move |_| {
-            collider
-        })
+        .create_ship(
+            comp::Pos(pos.0 + Vec3::unit_z() * 50.0),
+            comp::Ori::default(),
+            ship,
+            move |_| collider,
+        )
         .build();
 
     server.notify_client(

@@ -11,6 +11,7 @@ use common::{
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::{error, warn};
+use vek::Vec2;
 use world::site::SiteKind;
 
 pub struct SimulateNpcs;
@@ -167,10 +168,10 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
 
                             if dist2 > 0.5f32.powi(2) {
                                 let wpos = vehicle.wpos
-                                + (diff
-                                    * (vehicle.get_speed() * speed_factor * ctx.event.dt
-                                        / dist2.sqrt())
-                                    .min(1.0));
+                                    + (diff
+                                        * (vehicle.get_speed() * speed_factor * ctx.event.dt
+                                            / dist2.sqrt())
+                                        .min(1.0));
 
                                 let is_valid = match vehicle.body {
                                     common::comp::ship::Body::DefaultAirship
@@ -189,6 +190,9 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                                 if is_valid {
                                     vehicle.wpos = wpos;
                                 }
+                                vehicle.dir = (target.xy() - vehicle.wpos.xy())
+                                    .try_normalized()
+                                    .unwrap_or(Vec2::unit_y());
                             }
                         },
                         // When riding, other actions are disabled

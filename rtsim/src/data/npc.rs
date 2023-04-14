@@ -262,6 +262,7 @@ pub enum VehicleKind {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Vehicle {
     pub wpos: Vec3<f32>,
+    pub dir: Vec2<f32>,
 
     pub body: comp::ship::Body,
 
@@ -283,6 +284,7 @@ impl Vehicle {
     pub fn new(wpos: Vec3<f32>, body: comp::ship::Body) -> Self {
         Self {
             wpos,
+            dir: Vec2::unit_y(),
             body,
             chunk_pos: None,
             driver: None,

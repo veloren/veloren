@@ -194,6 +194,7 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
 pub fn handle_create_ship(
     server: &mut Server,
     pos: Pos,
+    ori: Ori,
     ship: comp::ship::Body,
     rtsim_vehicle: Option<RtSimVehicle>,
     driver: Option<NpcBuilder>,
@@ -201,7 +202,7 @@ pub fn handle_create_ship(
 ) {
     let mut entity = server
         .state
-        .create_ship(pos, ship, |ship| ship.make_collider());
+        .create_ship(pos, ori, ship, |ship| ship.make_collider());
     /*
     if let Some(mut agent) = agent {
         let (kp, ki, kd) = pid_coefficients(&Body::Ship(ship));

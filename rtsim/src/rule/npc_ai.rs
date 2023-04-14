@@ -301,7 +301,6 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
                 ctx.world
                     .sim()
                     .get_surface_alt_approx(wpos.xy().as_())
-                    .map(|alt| alt)
                     .unwrap_or(wpos.z),
             )
         });
@@ -313,7 +312,6 @@ fn goto(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action {
     .debug(move || format!("goto {}, {}, {}", wpos.x, wpos.y, wpos.z))
     .map(|_| {})
 }
-
 
 fn goto_flying(
     wpos: Vec3<f32>,
@@ -902,21 +900,17 @@ fn pilot(ship: common::comp::ship::Body) -> impl Action {
             })
             .choose(&mut ctx.rng);
         if let Some((_id, site)) = site {
-            Either::Right(goto_2d_flying(
-                site.wpos.as_(),
-                1.0,
-                50.0,
-                150.0,
-                110.0,
-                ship.flying_height(),
-            ).then(goto_2d_flying(
-                site.wpos.as_(),
-                1.0,
-                10.0,
-                32.0,
-                16.0,
-                10.0,
-            )))
+            Either::Right(
+                goto_2d_flying(
+                    site.wpos.as_(),
+                    1.0,
+                    50.0,
+                    150.0,
+                    110.0,
+                    ship.flying_height(),
+                )
+                .then(goto_2d_flying(site.wpos.as_(), 1.0, 10.0, 32.0, 16.0, 10.0)),
+            )
         } else {
             Either::Left(finish())
         }

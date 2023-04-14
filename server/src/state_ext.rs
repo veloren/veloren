@@ -64,6 +64,7 @@ pub trait StateExt {
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         ship: comp::ship::Body,
         make_collider: F,
     ) -> EcsEntityBuilder;
@@ -338,6 +339,7 @@ impl StateExt for State {
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         ship: comp::ship::Body,
         make_collider: F,
     ) -> EcsEntityBuilder {
@@ -347,7 +349,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori::default())
+            .with(ori)
             .with(body.mass())
             .with(body.density())
             .with(make_collider(ship))

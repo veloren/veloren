@@ -11,6 +11,7 @@ use common::{
     slowjob::SlowJobPool,
     terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
+    util::Dir,
     LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -315,6 +316,7 @@ impl<'a> System<'a> for Sys {
 
                 emitter.emit(ServerEvent::CreateShip {
                     pos: comp::Pos(vehicle.wpos),
+                    ori: comp::Ori::from(Dir::new(vehicle.dir.with_z(0.0))),
                     ship: vehicle.body,
                     rtsim_entity: Some(RtSimVehicle(vehicle_id)),
                     driver: vehicle.driver.and_then(&mut actor_info),
