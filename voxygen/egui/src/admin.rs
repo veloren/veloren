@@ -13,6 +13,16 @@ lazy_static! {
         item_specs
     };
 }
+lazy_static! {
+    static ref ITEM_CONFIGS: Vec<String> = {
+        let mut item_configs = common::cmd::ITEM_CONFIGS
+            .iter()
+            .map(|entity_desc| entity_desc.replace("common.entity.", ""))
+            .collect::<Vec<String>>();
+        entity_configs.sort();
+        entity_confifs
+    };
+}
 
 pub fn draw_admin_commands_window(
     ctx: &CtxRef,
@@ -37,6 +47,11 @@ pub fn draw_admin_commands_window(
                     .show(ui, |ui| {
                         draw_kits(ui, state, egui_actions);
                     });
+                CollapsingHeader::new("Spawn Entities")
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        draw_spawn_entities(ui, state, egui_actions);
+                    })
             });
         });
 }
