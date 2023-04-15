@@ -1403,6 +1403,12 @@
             ],
             threshold: 1.0,
         ),
+        Utterance(Greeting, HumanFemale): (
+            files: [
+                "voxygen.audio.sfx.utterance.humanfemale_greeting1",
+            ],
+            threshold: 1.0,
+        ),
         Utterance(Hurt, Adlet): (
             files: [
                 "voxygen.audio.sfx.utterance.adlet_hurt1",

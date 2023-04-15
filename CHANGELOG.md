@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Merchants will flog their wares in towns, encouraging nearby character to buy goods from them
 - NPCs will now tell you about nearby towns and how to visit them
 - NPCs will migrate to new towns if they are dissatisfied with their current town
+- Female humanoids now have a greeting sound effect
 
 ### Changed
 
