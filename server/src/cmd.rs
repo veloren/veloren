@@ -28,7 +28,10 @@ use common::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
         buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
-        inventory::item::{tool::AbilityMap, MaterialStatManifest, Quality},
+        inventory::{
+            item::{tool::AbilityMap, MaterialStatManifest, Quality},
+            slot::Slot,
+        },
         invite::InviteKind,
         AdminRole, ChatType, Inventory, Item, LightEmitter, Presence, PresenceKind, WaypointArea,
     },
@@ -202,6 +205,7 @@ fn do_command(
         ServerChatCommand::WeatherZone => handle_weather_zone,
         ServerChatCommand::Lightning => handle_lightning,
         ServerChatCommand::Scale => handle_scale,
+        ServerChatCommand::RepairEquipment => handle_repair_equipment,
     };
 
     handler(server, client, target, args, cmd)
@@ -4117,6 +4121,35 @@ fn handle_scale(
         server.notify_client(
             client,
             ServerGeneral::server_msg(ChatType::CommandInfo, format!("Set scale to {}", scale)),
+        );
+        Ok(())
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_repair_equipment(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let ecs = server.state.ecs();
+    if let Some(mut inventory) = ecs.write_storage::<comp::Inventory>().get_mut(target) {
+        let ability_map = ecs.read_resource::<AbilityMap>();
+        let msm = ecs.read_resource::<MaterialStatManifest>();
+        let slots = inventory
+            .equipped_items_with_slot()
+            .filter(|(_, item)| item.has_durability())
+            .map(|(slot, _)| slot)
+            .collect::<Vec<_>>();
+        for slot in slots {
+            inventory.repair_item_at_slot(Slot::Equip(slot), &ability_map, &msm);
+        }
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, "Repaired all equipped items"),
         );
         Ok(())
     } else {

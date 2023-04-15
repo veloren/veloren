@@ -1230,7 +1230,9 @@ impl Item {
         DurabilityMultiplier(mult)
     }
 
-    pub fn has_durability(&self) -> bool { self.kind().has_durability() }
+    pub fn has_durability(&self) -> bool {
+        self.kind().has_durability() && self.quality() != Quality::Debug
+    }
 
     pub fn increment_damage(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
         if let Some(durability_lost) = &mut self.durability_lost {
@@ -1353,7 +1355,9 @@ impl ItemDesc for ItemDef {
 
     fn components(&self) -> &[Item] { &[] }
 
-    fn has_durability(&self) -> bool { self.kind().has_durability() }
+    fn has_durability(&self) -> bool {
+        self.kind().has_durability() && self.quality != Quality::Debug
+    }
 
     fn durability(&self) -> Option<u32> { None }
 
