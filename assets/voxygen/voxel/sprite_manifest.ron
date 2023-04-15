@@ -4395,7 +4395,7 @@ GlowIceCrystal: Some((
         ),
         (
             model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_2",
-            offset: (-11.5, -22.5, 0.0),
+            offset: (-11.5, -12.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
         (
@@ -4410,7 +4410,7 @@ GlowIceCrystal: Some((
         ),
         (
             model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_5",
-            offset: (-11.5, -22.5, 0.0),
+            offset: (-11.5, -12.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

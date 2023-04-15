@@ -60,7 +60,7 @@ impl AdletStructure {
             Self::CookFire => 3,
             Self::RockHut => 4,
             Self::BoneHut => 11,
-            Self::BossBoneHut => 13,
+            Self::BossBoneHut => 14,
             Self::Bonfire => 10,
         };
 
@@ -468,11 +468,10 @@ impl Structure for AdletStronghold {
             })
         }));
         let yeti_sprites_fill = Fill::Sampling(Arc::new(|wpos| {
-            Some(match (RandomField::new(0).get(wpos)) % 80 {
+            Some(match (RandomField::new(0).get(wpos)) % 60 {
                 0..=2 => Block::air(SpriteKind::Bones),
                 4..=5 => Block::air(SpriteKind::GlowIceCrystal),
                 6..=8 => Block::air(SpriteKind::IceCrystal),
-                9..=15 => Block::new(BlockKind::ArtSnow, Rgb::new(255, 255, 255)),
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
@@ -1218,11 +1217,11 @@ impl Structure for AdletStronghold {
                                                     level - (3 * down) - 4 - (cone_height / 8),
                                                 ),
                                                 cone_radius as f32,
-                                                cone_height as f32,
+                                                (cone_height - 1) as f32,
                                             )
                                             .rotate_about(
                                                 Mat3::rotation_x(PI).as_(),
-                                                yetipit_center.with_z(level - (2 * down)),
+                                                yetipit_center.with_z(level - (2 * down) - 1),
                                             )
                                             .fill(snow_ice_fill.clone());
                                         // small cone tops
@@ -1273,10 +1272,34 @@ impl Structure for AdletStronghold {
                             painter
                                 .cylinder_with_radius(
                                     yetipit_center.with_z(level - (3 * down) - 5),
-                                    (room_size / 2) as f32,
+                                    room_size as f32,
                                     ((room_size / 3) + 5) as f32,
                                 )
                                 .clear();
+                            // sprites: icecrystals, bones
+                            for r in 0..4 {
+                                painter
+                                    .cylinder_with_radius(
+                                        yetipit_center.with_z(level - (3 * down) - 2 - r),
+                                        (room_size + 2 - r) as f32,
+                                        1.0,
+                                    )
+                                    .fill(snow_ice_fill.clone());
+                                painter
+                                    .cylinder_with_radius(
+                                        yetipit_center.with_z(level - (3 * down) - 1 - r),
+                                        (room_size - r) as f32,
+                                        1.0,
+                                    )
+                                    .fill(yeti_sprites_fill.clone());
+                                painter
+                                    .cylinder_with_radius(
+                                        yetipit_center.with_z(level - (3 * down) - 2 - r),
+                                        (room_size - 1 - r) as f32,
+                                        2.0,
+                                    )
+                                    .clear();
+                            }
                             let yetipit_mobs = 2
                                 + (RandomField::new(0)
                                     .get(yetipit_center.with_z(level - (3 * down) - 3))
@@ -1290,13 +1313,13 @@ impl Structure for AdletStronghold {
                             painter
                                 .cone_with_radius(
                                     yetipit_center.with_z(level - (3 * down) + (room_size / 3) - 2),
-                                    (room_size / 2) as f32,
+                                    room_size as f32,
                                     (room_size / 3) as f32,
                                 )
                                 .clear();
                             // snow covered speleothem cluster
                             for dir in NEIGHBORS {
-                                let cluster_pos = yetipit_center + dir * (room_size / 2);
+                                let cluster_pos = yetipit_center + dir * room_size;
                                 for dir in NEIGHBORS {
                                     let cone_radius = 3
                                         + (RandomField::new(0)
@@ -1336,6 +1359,65 @@ impl Structure for AdletStronghold {
                                                 ),
                                         })
                                         .fill(snow_ice_fill.clone());
+                                }
+                            }
+                            // ceiling snow covered speleothem cluster
+                            for dir in NEIGHBORS {
+                                for c in 0..5 {
+                                    let cluster_pos = yetipit_center + dir * (c * (room_size / 3));
+                                    for dir in NEIGHBORS {
+                                        let cone_radius = 3
+                                            + (RandomField::new(0)
+                                                .get((cluster_pos + dir).with_z(alt as i32))
+                                                % 3)
+                                                as i32;
+                                        let cone_offset = 3
+                                            + (RandomField::new(0)
+                                                .get((cluster_pos + 1 + dir).with_z(alt as i32))
+                                                % 4)
+                                                as i32;
+                                        let cone_height = 15
+                                            + (RandomField::new(0)
+                                                .get((cluster_pos + 2 + dir).with_z(alt as i32))
+                                                % 10)
+                                                as i32;
+                                        // cones
+                                        painter
+                                            .cone_with_radius(
+                                                (cluster_pos + (dir * cone_offset)).with_z(
+                                                    level - (3 * down) - 4 - (cone_height / 8),
+                                                ),
+                                                cone_radius as f32,
+                                                (cone_height - 1) as f32,
+                                            )
+                                            .rotate_about(
+                                                Mat3::rotation_x(PI).as_(),
+                                                yetipit_center.with_z(level - (2 * down) - 1),
+                                            )
+                                            .fill(snow_ice_fill.clone());
+                                        // small cone tops
+                                        let top_pos = (RandomField::new(0)
+                                            .get((cluster_pos + 3 + dir).with_z(level))
+                                            % 2)
+                                            as i32;
+                                        painter
+                                            .aabb(Aabb {
+                                                min: (cluster_pos + (dir * cone_offset) - top_pos)
+                                                    .with_z(level - (3 * down) - 3),
+                                                max: (cluster_pos + (dir * cone_offset) + 1
+                                                    - top_pos)
+                                                    .with_z(
+                                                        (level - (3 * down) - 2) + cone_height
+                                                            - (cone_height / 6)
+                                                            - 2,
+                                                    ),
+                                            })
+                                            .rotate_about(
+                                                Mat3::rotation_x(PI).as_(),
+                                                yetipit_center.with_z(level - (2 * down)),
+                                            )
+                                            .fill(snow_ice_fill.clone());
+                                    }
                                 }
                             }
                             // frozen pond
@@ -1898,17 +1980,17 @@ impl Structure for AdletStronghold {
                             .clear();
                         let entry_start = Vec2::new(
                             bosshut_pos.x - hut_radius + 3,
-                            bosshut_pos.y - hut_radius - 3 + (n * ((2 * hut_radius) + 6)),
+                            bosshut_pos.y - hut_radius - 2 + (n * ((2 * hut_radius) + 4)),
                         )
                         .with_z(alt as i32);
                         let entry_peak = Vec2::new(
                             bosshut_pos.x,
-                            bosshut_pos.y - hut_radius - 1 + (n * (2 * hut_radius)),
+                            bosshut_pos.y - hut_radius + (n * (2 * hut_radius)),
                         )
-                        .with_z(alt as i32 + hut_radius);
+                        .with_z(alt as i32 + hut_radius + 2);
                         let entry_end = Vec2::new(
                             bosshut_pos.x + hut_radius - 3,
-                            bosshut_pos.y - hut_radius - 3 + (n * ((2 * hut_radius) + 6)),
+                            bosshut_pos.y - hut_radius - 2 + (n * ((2 * hut_radius) + 4)),
                         )
                         .with_z(alt as i32);
                         painter
