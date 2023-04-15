@@ -479,7 +479,7 @@ impl Body {
                 quadruped_medium::Species::Lion => Vec3::new(2.0, 3.3, 2.0),
                 quadruped_medium::Species::Moose => Vec3::new(2.0, 4.0, 2.5),
                 quadruped_medium::Species::Bristleback => Vec3::new(2.0, 3.0, 2.0),
-                quadruped_medium::Species::Roshwalr => Vec3::new(2.0, 3.5, 2.2),
+                quadruped_medium::Species::Roshwalr => Vec3::new(3.4, 5.2, 3.7),
                 quadruped_medium::Species::Saber => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
                 quadruped_medium::Species::Yak => Vec3::new(2.0, 3.6, 3.0),

@@ -652,7 +652,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tarasque, _) => 1.05,
                 (Tiger, _) => 0.95,
                 (Catoblepas, _) => 1.05,
-                (Roshwalr, _) => 1.05,
+                (Roshwalr, _) => 1.75,
                 (Barghest, _) => 1.2,
                 (Antelope, _) => 0.95,
                 (Kelpie, _) => 1.1,
