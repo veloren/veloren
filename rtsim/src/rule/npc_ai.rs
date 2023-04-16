@@ -958,8 +958,7 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
             Some(report_id) if !ctx.known_reports.contains(&report_id) => {
                 #[allow(clippy::single_match)]
                 match ctx.state.data().reports.get(report_id).map(|r| r.kind) {
-                    Some(ReportKind::Death { killer, .. }) => {
-                        // TODO: Sentiment should be positive if we didn't like actor that died
+                    Some(ReportKind::Death { killer, actor, .. }) => {
                         // TODO: Don't report self
                         let phrase = if let Some(killer) = killer {
                             // TODO: For now, we don't make sentiment changes if the killer was an
@@ -967,9 +966,20 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
                             // This should be changed in the future.
                             if !matches!(killer, Actor::Npc(_)) {
                                 // TODO: Don't hard-code sentiment change
-                                ctx.sentiments.change_by(killer, -0.7, Sentiment::VILLAIN);
+                                let mut change = -0.7;
+                                if ctx.sentiments.toward(actor).is(Sentiment::ENEMY) {
+                                    // Like the killer if we have negative sentiment towards the
+                                    // killed.
+                                    change *= -1.0;
+                                }
+                                ctx.sentiments.change_by(killer, change, Sentiment::VILLAIN);
                             }
-                            "npc-speech-witness_murder"
+
+                            if ctx.sentiments.toward(actor).is(Sentiment::ENEMY) {
+                                "npc-speech-witness_enemy_murder"
+                            } else {
+                                "npc-speech-witness_murder"
+                            }
                         } else {
                             "npc-speech-witness_death"
                         };
