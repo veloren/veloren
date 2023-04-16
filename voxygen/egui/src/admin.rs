@@ -14,13 +14,13 @@ lazy_static! {
     };
 }
 lazy_static! {
-    static ref ITEM_CONFIGS: Vec<String> = {
-        let mut item_configs = common::cmd::ITEM_CONFIGS
+    static ref ENTITY_CONFIGS: Vec<String> = {
+        let mut entity_configs = common::cmd::ENTITY_CONFIGS
             .iter()
             .map(|entity_desc| entity_desc.replace("common.entity.", ""))
             .collect::<Vec<String>>();
         entity_configs.sort();
-        entity_confifs
+        entity_configs
     };
 }
 
@@ -104,6 +104,45 @@ fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mu
                 &ITEM_SPECS,
                 &state.give_item_search_text,
                 &mut state.give_item_selected_idx,
+            );
+        });
+}
+fn draw_spawn_entities(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut EguiActions) {
+    ui.spacing_mut().window_padding = Vec2::new(10.0, 10.0);
+    Resize::default()
+        .default_size([400.0, 200.0])
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.add(
+                    Slider::new(&mut state.spawn_entity_qty, 1..=49)
+                        .logarithmic(true)
+                        .clamp_to_range(true)
+                        .text("Qty"),
+                );
+                if ui.button("Spawn Entities").clicked() {
+                    egui_actions.actions.push(EguiAction::ChatCommand {
+                        cmd: ServerChatCommand::MakeNpc,
+                        args: vec![
+                            format!(
+                                "common.entity.{}",
+                                ENTITY_CONFIGS[state.spawn_entity_selected_idx].clone()
+                            ),
+                            format!("{}", state.spawn_entity_qty),
+                        ],
+                    });
+                };
+            });
+            ui.horizontal(|ui| {
+                ui.label("Filter:");
+
+                ui.text_edit_singleline(&mut state.spawn_entity_search_text);
+            });
+
+            crate::widgets::filterable_list(
+                ui,
+                &ENTITY_CONFIGS,
+                &state.spawn_entity_search_text,
+                &mut state.spawn_entity_selected_idx,
             );
         });
 }
