@@ -134,14 +134,14 @@ hud-skill-bow_repeater_cost = 施展腾空击需要消耗的耐力减少{ $boost
 hud-skill-bow_repeater_speed_title = 速度提升
 hud-skill-bow_repeater_speed = 将射箭速度提高{ $boost }%{ $SP }
 
-hud-skill-bow_shotgun_unlock_title = 解锁霰弹枪
+hud-skill-bow_shotgun_unlock_title = 解锁迸发
 hud-skill-bow_shotgun_unlock = 解锁一次发射多支箭矢的能力{ $SP }
 hud-skill-bow_shotgun_damage_title = 伤害提升
-hud-skill-bow_shotgun_damage = 将霰弹枪的伤害提升{ $boost }%{ $SP }
+hud-skill-bow_shotgun_damage = 将迸发的伤害提升{ $boost }%{ $SP }
 hud-skill-bow_shotgun_cost_title = 耐力节省
-hud-skill-bow_shotgun_cost = 将使用霰弹枪时的能量降低{ $boost }%{ $SP }
+hud-skill-bow_shotgun_cost = 将使用迸发时的能量降低{ $boost }%{ $SP }
 hud-skill-bow_shotgun_arrow_count_title = 箭矢数量
-hud-skill-bow_shotgun_arrow_count = 你射击时的箭矢数量增加{ $boost }{ $SP }
+hud-skill-bow_shotgun_arrow_count = 你迸发时的箭矢数量增加{ $boost }{ $SP }
 hud-skill-bow_shotgun_spread_title = 集中
 hud-skill-bow_shotgun_spread = 将射击时的散射范围降低{ $boost }%{ $SP }
 

@@ -1,7 +1,7 @@
 common-abilities-debug-possess = 附身箭矢
     .desc = 射出一个毒箭矢，使你能够控制你的目标。
-common-abilities-axe-leap = 斧身一跃
-    .desc = 往指定地点跳劈.
+common-abilities-axe-leap = 飞身一击
+    .desc = 飞身施展强力一劈.
 common-abilities-hammer-leap = 厄运粉碎
     .desc = 一个拥有击退的AOE（范围）攻击. 跳跃到指定地点.
 common-abilities-bow-shotgun = 爆发
@@ -192,7 +192,7 @@ common-abilities-sword-defensive_counter = 反击
         { -requires_moderate_combo }
 common-abilities-sword-crippling_mutilate = 肢解
     .desc =
-        Mutilate your foe by sawing through their injuries, deals more damage to bleeding foes
+        通过锯穿敌人的伤口来肢解他们, 对于流血的敌人造成更多的伤害.
         { -requires_moderate_combo }
 common-abilities-sword-cleaving_bladestorm = 飓风之刃
     .desc =
@@ -277,7 +277,7 @@ common-abilities-sword-crippling_bloody_gash = 撕裂伤口
         { -require_stance } { -crippling_stance }
 common-abilities-sword-cleaving_blade_fever = 狂热刀刃
     .desc =
-        使你更加狂热的攻击, 你的攻击伤害增加但你的防御随之降低.
+        使你更加狂热的攻击, 你的伤害会增加但你的防御也会随之降低.
         { -require_stance } { -cleaving_stance }
 common-abilities-sword-cleaving_sky_splitter = 开天斩
     .desc =
