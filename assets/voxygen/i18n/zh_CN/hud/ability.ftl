@@ -35,7 +35,7 @@ veloren-core-pseudo_abilities-sword-defensive_stance = { -defensive_stance }
 veloren-core-pseudo_abilities-sword-crippling_stance = { -crippling_stance }
     .desc = 使用此姿态来攻击可以形成或者加重持久的伤口.
 veloren-core-pseudo_abilities-sword-cleaving_stance = { -cleaving_stance }
-    .desc = 此姿态可以攻击多个敌人
+    .desc = 此姿态可以攻击多个敌人.
 
 -double_slash = 二连击
 
@@ -130,42 +130,41 @@ common-abilities-sword-cleaving_skewer = { -cleaving_state } { -skewer }
 
 -cascade = 威势倾泻
 
-
 veloren-core-pseudo_abilities-sword-cascade = { -cascade }
     .desc =
-        An overhead slash
+        一个从上到下的斩击.
         { -modified_depending_stance }
 common-abilities-sword-basic_cascade = { -basic_state } { -cascade }
-    .desc = A basic, overhead slash
+    .desc = 一个基础的, 从上到下的斩击.
 common-abilities-sword-heavy_cascade = { -heavy_state } { -cascade }
-    .desc = An overhead slash that can stagger
+    .desc = 一个从上到下的斩击, 有可能震慑敌人.
 common-abilities-sword-agile_cascade = { -agile_state } { -cascade }
-    .desc = A quick, overhead slash
+    .desc = 一个快速的, 从上到下的斩击.
 common-abilities-sword-defensive_cascade = { -defensive_state } { -cascade }
-    .desc = A parrying, overhead slash
+    .desc = 一个保守的, 从上到下的斩击.
 common-abilities-sword-crippling_cascade = { -crippling_state } { -cascade }
-    .desc = An overhead slash that can bleed
+    .desc = 一个从上到下的斩击, 有可能使敌人流血.
 common-abilities-sword-cleaving_cascade = { -cleaving_state } { -cascade }
-    .desc = An overhead slash that can cleave through enemies
+    .desc = 一个可以劈开敌人的, 从上到下的斩击.
 
 -cross_cut = X裂斩
 
 veloren-core-pseudo_abilities-sword-cross_cut = { -cross_cut }
     .desc =
-        A right and left slash
+        一个X字形的斩击.
         { -modified_depending_stance }
 common-abilities-sword-basic_cross_cut = { -basic_state } { -cross_cut }
-    .desc = A basic right and left slash
+    .desc = 一个基础的, X字形的斩击.
 common-abilities-sword-heavy_cross_cut = { -heavy_state } { -cross_cut }
-    .desc = A right and left slash that can each stagger
+    .desc = 一个X字形的斩击, 有可能震慑敌人.
 common-abilities-sword-agile_cross_cut = { -agile_state } { -cross_cut }
-    .desc = A quick right and left slash
+    .desc = 一个快速的, X字形的斩击.
 common-abilities-sword-defensive_cross_cut = { -defensive_state } { -cross_cut }
-    .desc = A parrying right and left slash
+    .desc = 一个保守的, X字形的斩击.
 common-abilities-sword-crippling_cross_cut = { -crippling_state } { -cross_cut }
-    .desc = A right and left slash that can bleed
+    .desc = 一个X字形的斩击, 有可能使敌人流血.
 common-abilities-sword-cleaving_cross_cut = { -cleaving_state } { -cross_cut }
-    .desc = A right and left slash which cleave through enemies
+    .desc = 一个可以劈开敌人的, X字形的斩击.
 
 
 -requires_moderate_combo = 需要较多连击方可使用
@@ -176,7 +175,7 @@ veloren-core-pseudo_abilities-sword-finisher = 终结
         { -modified_depending_stance }
 common-abilities-sword-basic_mighty_strike = 强烈打击
     .desc =
-        A simple, powerful slash
+        一个简单，但强大的斩击.
         { -requires_moderate_combo }
 common-abilities-sword-heavy_guillotine = Guillotine
     .desc =
@@ -188,7 +187,7 @@ common-abilities-sword-agile_hundred_cuts = 百刀斩
         { -requires_moderate_combo }
 common-abilities-sword-defensive_counter = 反击
     .desc =
-        A rapidly launched attack that deals substantially more damage to a parried foe
+        迅速发起反击, 对于被格挡的敌人造成更多伤害.
         { -requires_moderate_combo }
 common-abilities-sword-crippling_mutilate = 肢解
     .desc =
@@ -253,19 +252,19 @@ common-abilities-sword-heavy_pillar_thrust = 镇压
         { -require_stance } { -heavy_stance }
 common-abilities-sword-agile_dancing_edge = 舞动之刃
     .desc =
-        使你的攻击与移动更加迅速
+        使你的攻击与移动更加迅速.
         { -require_stance } { -agile_stance }
 common-abilities-sword-agile_flurry = 狂潮
     .desc =
-        进行数次快速突刺
+        进行数次快速突刺.
         { -require_stance } { -agile_stance }
 common-abilities-sword-defensive_stalwart_sword = 坚定
     .desc =
-        转移攻击带来的冲击, 外来的伤害降低.
+        转移攻击带来的冲击, 使得外来的伤害降低.
         { -require_stance } { -defensive_stance }
 common-abilities-sword-defensive_deflect = 反弹
     .desc =
-        一个极快的格挡，甚至能够能够抵挡弹道.
+        一个极快的格挡，甚至能够抵挡弹道.
         { -require_stance } { -defensive_stance }
 common-abilities-sword-crippling_eviscerate = 二次伤害
     .desc =

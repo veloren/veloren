@@ -257,7 +257,7 @@ npc-speech-tell_site =
 
 npc-speech-witness_murder =
     .a0 = 杀人犯!
-    .a1 = 你怎么能如此做?
+    .a1 = 你怎么能这么做?
     .a2 = 啊啊啊!
 npc-speech-witness_death =
     .a0 = 不!
