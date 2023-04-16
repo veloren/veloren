@@ -511,8 +511,46 @@ impl Site {
 
         let mut castles = 0;
 
+        let mut workshops = 0;
+
         for _ in 0..(size * 200.0) as i32 {
             match *build_chance.choose_seeded(rng.gen()) {
+                // Workshop
+                n if (n == 5 && workshops < (size * 5.0) as i32) || workshops == 0 => {
+                    let size = (3.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            4..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let workshop = plot::Workshop::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let workshop_alt = workshop.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::Workshop(workshop),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(workshop_alt),
+                        });
+                        workshops += 1;
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
                 // House
                 1 => {
                     let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
@@ -543,41 +581,6 @@ impl Site {
                             kind: TileKind::Building,
                             plot: Some(plot),
                             hard_alt: Some(house_alt),
-                        });
-                    } else {
-                        site.make_plaza(land, &mut rng);
-                    }
-                },
-                // Workshop
-                5 => {
-                    let size = (3.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            4..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
-                    }) {
-                        let workshop = plot::Workshop::generate(
-                            land,
-                            &mut reseed(&mut rng),
-                            &site,
-                            door_tile,
-                            door_dir,
-                            aabr,
-                        );
-                        let workshop_alt = workshop.alt;
-                        let plot = site.create_plot(Plot {
-                            kind: PlotKind::Workshop(workshop),
-                            root_tile: aabr.center(),
-                            tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
-                        });
-
-                        site.blit_aabr(aabr, Tile {
-                            kind: TileKind::Building,
-                            plot: Some(plot),
-                            hard_alt: Some(workshop_alt),
                         });
                     } else {
                         site.make_plaza(land, &mut rng);
