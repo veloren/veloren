@@ -107,9 +107,8 @@ impl Loadout {
         time: Time,
     ) -> Option<Item> {
         if let Some(item_def_id) = item.as_ref().map(|item| item.item_definition_id()) {
-            if let Some((_unequip_time, count)) = self
-                .recently_unequipped_items
-                .get_mut(&item_def_id.to_owned())
+            if let Some((_unequip_time, count)) =
+                self.recently_unequipped_items.get_mut(&item_def_id)
             {
                 *count = count.saturating_sub(1);
             }

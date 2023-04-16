@@ -20,6 +20,7 @@ use core::{
     num::{NonZeroU32, NonZeroU64},
 };
 use crossbeam_utils::atomic::AtomicCell;
+use hashbrown::Equivalent;
 use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
@@ -1449,6 +1450,10 @@ impl PartialEq<ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
 impl PartialEq<ItemDefinitionIdOwned> for ItemDefinitionId<'_> {
     #[inline]
     fn eq(&self, other: &ItemDefinitionIdOwned) -> bool { other == self }
+}
+
+impl Equivalent<ItemDefinitionIdOwned> for ItemDefinitionId<'_> {
+    fn equivalent(&self, key: &ItemDefinitionIdOwned) -> bool { self == key }
 }
 
 #[cfg(test)]

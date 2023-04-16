@@ -17,7 +17,7 @@ intl-memoizer = { git = "https://github.com/juliancoffee/fluent-rs.git", branch 
 fluent = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 # Utility
-hashbrown = { version = "0.12", features = ["serde", "nightly"] }
+hashbrown = { version = "0.13", features = ["serde", "nightly"] }
 deunicode = "1.0"
 tracing = "0.1"
 # Bin

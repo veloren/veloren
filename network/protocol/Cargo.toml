@@ -24,7 +24,7 @@ rand = { version = "0.8" }
 # async traits
 async-trait = "0.1.42"
 bytes = "^1"
-hashbrown = { version = ">=0.12, <0.13" }
+hashbrown = { version = "0.13" }
 
 [dev-dependencies]
 async-channel = "1.5.1"

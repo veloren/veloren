@@ -910,7 +910,7 @@ impl Inventory {
                         && self
                             .loadout
                             .recently_unequipped_items
-                            .contains_key(&item.item_definition_id().to_owned())
+                            .contains_key(&item.item_definition_id())
                 })
             })
             .map(|(slot, _item)| slot)
