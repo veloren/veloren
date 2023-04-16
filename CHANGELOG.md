@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Intert entities like arrows no longer obstruct interacting with nearby entities/blocks.
 - Underwater fall damage
 - The scale component now behaves properly
+- Multiple model support for dropped items (orichalcum armor)
 
 ## [0.14.0] - 2023-01-07
 
