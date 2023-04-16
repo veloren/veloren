@@ -38,6 +38,7 @@ pub mod uid;
 // NOTE: Comment out macro to get rustfmt to re-order these as needed.
 cfg_if! { if #[cfg(not(target_arch = "wasm32"))] {
     pub mod astar;
+    pub mod astar2;
     pub mod calendar;
     pub mod character;
     pub mod clock;

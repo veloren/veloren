@@ -124,6 +124,7 @@ pub enum RiverKind {
 impl RiverKind {
     pub fn is_ocean(&self) -> bool { matches!(*self, RiverKind::Ocean) }
 
+    #[inline(always)] // saves ~100 ms on current `world_generate_time`
     pub fn is_river(&self) -> bool { matches!(*self, RiverKind::River { .. }) }
 
     pub fn is_lake(&self) -> bool { matches!(*self, RiverKind::Lake { .. }) }
@@ -212,7 +213,11 @@ impl RiverData {
 
     pub fn near_river(&self) -> bool { self.is_river() || !self.neighbor_rivers.is_empty() }
 
-    pub fn near_water(&self) -> bool { self.near_river() || self.is_lake() || self.is_ocean() }
+    pub fn near_water(&self) -> bool {
+        // 7408 ms -> 7270 ms (only 50 ms difference now)
+        self.river_kind.is_some() || !self.neighbor_rivers.is_empty()
+        //self.near_river() || self.is_lake() || self.is_ocean()
+    }
 }
 
 /// Draw rivers and assign them heights, widths, and velocities.  Take some

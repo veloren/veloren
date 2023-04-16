@@ -21,6 +21,7 @@ use common::{
     },
     vol::RectVolSize,
 };
+use common_base::prof_span;
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
 use fxhash::FxHasher64;
 use rand::prelude::*;
@@ -54,7 +55,17 @@ pub struct Civs {
     /// (3) we have 8-byte keys (for which FxHash is fastest).
     pub track_map: DHashMap<Id<Site>, DHashMap<Id<Site>, Id<Track>>>,
 
-    pub bridges: DHashMap<Vec2<i32>, (Vec2<i32>, Id<Site>)>,
+    // 8249 ms -> 7680 ms (change when switching to ahash)
+    // 7495 ms -> 8057 ms -> 7481 ms (ahash -> sip13 -> fxhasher)
+    // TODO: deterministic(?), this is certainly faster, presumably due to less collisions
+    pub bridges: hashbrown::HashMap<
+        Vec2<i32>,
+        (Vec2<i32>, Id<Site>),
+        //std::hash::BuildHasherDefault<siphasher::sip::SipHasher13>,
+        std::hash::BuildHasherDefault<fxhash::FxHasher64>,
+        //std::hash::BuildHasherDefault<fxhash::FxHasher>,
+        //std::hash::BuildHasherDefault<fxhash::FxHasher32>, // too many collisions!
+    >,
 
     pub sites: Store<Site>,
     pub caves: Store<CaveInfo>,
@@ -160,7 +171,7 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 
 impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim, index: &mut Index) -> Self {
-        common_base::prof_span!("Civs::generate");
+        prof_span!("Civs::generate");
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let name_rng = rng.clone();
@@ -181,14 +192,18 @@ impl Civs {
         // this.generate_caves(&mut ctx);
 
         info!("starting civilisation creation");
+        prof_span!(guard, "create civs");
         for _ in 0..initial_civ_count {
+            prof_span!("create civ");
             debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
                 warn!("Failed to find starting site for civilisation.");
             }
         }
+        drop(guard);
         info!(?initial_civ_count, "all civilisations created");
 
+        prof_span!(guard, "find locations and establish sites");
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (loc, kind) = match ctx.rng.gen_range(0..64) {
@@ -260,6 +275,7 @@ impl Civs {
                 }))
             });
         }
+        drop(guard);
 
         // Tick
         //=== old economy is gone
@@ -511,6 +527,8 @@ impl Civs {
                 }
             }
         }
+
+        dbg!(CC.load(Ordering::Relaxed));
     }
 
     // TODO: Move this
@@ -730,7 +748,7 @@ impl Civs {
 
     /// Adds lake POIs and names them
     fn name_biomes(&mut self, ctx: &mut GenCtx<impl Rng>) {
-        common_base::prof_span!("name_biomes");
+        prof_span!("name_biomes");
         let map_size_lg = ctx.sim.map_size_lg();
         let world_size = map_size_lg.chunks();
         let mut biomes: Vec<(common::terrain::BiomeKind, Vec<usize>)> = Vec::new();
@@ -769,7 +787,7 @@ impl Civs {
             biomes.push((biome, filled));
         }
 
-        common_base::prof_span!("after flood fill");
+        prof_span!("after flood fill");
         let mut biome_count = 0;
         for biome in biomes {
             let name = match biome.0 {
@@ -1013,7 +1031,7 @@ impl Civs {
 
     /// Adds mountain POIs and name them
     fn name_peaks(&mut self, ctx: &mut GenCtx<impl Rng>) {
-        common_base::prof_span!("name_peaks");
+        prof_span!("name_peaks");
         let map_size_lg = ctx.sim.map_size_lg();
         const MIN_MOUNTAIN_ALT: f32 = 600.0;
         const MIN_MOUNTAIN_CHAOS: f32 = 0.35;
@@ -1093,6 +1111,7 @@ impl Civs {
         loc: Vec2<i32>,
         site_fn: impl FnOnce(Id<Place>) -> Site,
     ) -> Id<Site> {
+        prof_span!("establish_site");
         const SITE_AREA: Range<usize> = 1..4; //64..256;
 
         fn establish_site(
@@ -1101,6 +1120,7 @@ impl Civs {
             loc: Vec2<i32>,
             site_fn: impl FnOnce(Id<Place>) -> Site,
         ) -> Id<Site> {
+            prof_span!("establish site inner");
             let place = match ctx.sim.get(loc).and_then(|site| site.place) {
                 Some(place) => place,
                 None => civs.establish_place(ctx, loc, SITE_AREA),
@@ -1112,6 +1132,7 @@ impl Civs {
         let site = establish_site(self, ctx, loc, site_fn);
 
         // Find neighbors
+        prof_span!(guard, "find neighbors");
         const MAX_NEIGHBOR_DISTANCE: f32 = 2000.0;
         let mut nearby = self
             .sites
@@ -1131,6 +1152,7 @@ impl Civs {
             .filter(|(_, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
+        drop(guard);
 
         if let SiteKind::Refactor
         | SiteKind::Settlement
@@ -1140,13 +1162,24 @@ impl Civs {
         | SiteKind::Castle = self.sites[site].kind
         {
             for (nearby, _) in nearby.into_iter().take(5) {
+                prof_span!("for nearby");
                 // Find a novel path
-                if let Some((path, cost)) = find_path(
-                    ctx,
-                    |start| self.bridges.get(&start).map(|(end, _)| *end),
-                    loc,
-                    self.sites.get(nearby).center,
-                ) {
+                let maybe_path = {
+                    prof_span!("find path");
+                    find_path(
+                        ctx,
+                        |start| self.bridges.get(&start).map(|(end, _)| *end),
+                        loc,
+                        self.sites.get(nearby).center,
+                    )
+                };
+                if maybe_path.is_some() {
+                    info!("Succeed");
+                } else {
+                    info!("Fail");
+                }
+                if let Some((path, cost)) = maybe_path {
+                    prof_span!("with path");
                     // Find a path using existing paths
                     if self
                         .route_between(site, nearby)
@@ -1180,6 +1213,7 @@ impl Civs {
                                     1 << (i as u8);
                                 randomize_offset = true;
                             } else if !self.bridges.contains_key(&locs[1]) {
+                                //dbg!("here"); called 18 times
                                 let center = (locs[1] + locs[2]) / 2;
                                 let id =
                                     establish_site(self, &mut ctx.reseed(), center, move |place| {
@@ -1305,45 +1339,144 @@ fn find_path(
 ) -> Option<(Path<Vec2<i32>>, f32)> {
     const MAX_PATH_ITERS: usize = 100_000;
     let sim = &ctx.sim;
+    // NOTE: If heuristic overestimates the actual cost, then A* is not guaranteed
+    // to produce the least-cost path (since it will explore partially based on
+    // the heuristic). TODO: heuristic can be larger than actual cost, since
+    // diagonals can only cost `1.0` if a path exists and since bridges have
+    // zero cost (and cover multiple tiles).
     let heuristic = move |l: &Vec2<i32>, _: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
-    let get_bridge = &get_bridge;
     let neighbors = |l: &Vec2<i32>| {
         let l = *l;
+        let bridge = get_bridge(l);
+        /*
         NEIGHBORS
             .iter()
-            .filter_map(move |dir| walk_in_dir(sim, get_bridge, l, *dir))
-            .map(move |(p, _)| p)
+            .filter_map(move |dir| walk_in_dir(sim, bridge, l, *dir))
+         */
+        /*
+         */
+        // Using walk_in_all_dirs saves ~500 ms
+        let potential = walk_in_all_dirs(sim, bridge, l);
+        potential.into_iter().filter_map(|p| p)
     };
+    // transition cost?
     let transition = |a: &Vec2<i32>, b: &Vec2<i32>| {
-        1.0 + walk_in_dir(sim, get_bridge, *a, (*b - *a).map(|e| e.signum()))
+        // factoring this out: 7463 ms -> 7356 ms
+        let bridge = get_bridge(*a);
+        1.0 + walk_in_dir(sim, bridge, *a, (*b - *a).map(|e| e.signum()))
             .map_or(10000.0, |(_, cost)| cost)
     };
     let satisfied = |l: &Vec2<i32>| *l == b;
+    let cluster = |l: &Vec2<i32>| {
+        let bx = l.x.div_euclid(16);
+        let by = l.y.div_euclid(16);
+        let x = l.x % 16;
+        let y = l.y % 16;
+        (Vec2::new(bx, by), (x + y * 16) as u8)
+    };
     // We use this hasher (FxHasher64) because
     // (1) we don't care about DDOS attacks (ruling out SipHash);
     // (2) we care about determinism across computers (ruling out AAHash);
     // (3) we have 8-byte keys (for which FxHash is fastest).
-    let mut astar = Astar::new(
+    let mut astar = common::astar2::Astar::new(
         MAX_PATH_ITERS,
         a,
         BuildHasherDefault::<FxHasher64>::default(),
     );
     astar
-        .poll(MAX_PATH_ITERS, heuristic, neighbors, transition, satisfied)
+        .poll(
+            MAX_PATH_ITERS,
+            heuristic,
+            neighbors,
+            transition,
+            satisfied,
+            cluster,
+        )
         .into_path()
         .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
+}
+
+use core::sync::atomic::{AtomicUsize, Ordering};
+static CC: AtomicUsize = AtomicUsize::new(0);
+
+fn walk_in_all_dirs(
+    sim: &WorldSim,
+    bridge: Option<Vec2<i32>>,
+    a: Vec2<i32>,
+) -> [Option<(Vec2<i32>, f32)>; 8] {
+    let mut potential = [None; 8];
+
+    let mut adjacents = [a; 8];
+    for i in 0..8 {
+        adjacents[i] += NEIGHBORS[i];
+    }
+
+    let Some(a_chunk) = sim.get(a) else { return potential };
+    let mut chunks = [None; 8];
+    for i in 0..8 {
+        if loc_suitable_for_walking(sim, adjacents[i]) {
+            chunks[i] = sim.get(adjacents[i]);
+        }
+    }
+    for i in 0..8 {
+        let Some(b_chunk) = chunks[i] else { continue };
+
+        let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 5.0).powi(2);
+        let water_cost = (b_chunk.water_alt - b_chunk.alt + 8.0).clamped(0.0, 8.0) * 3.0; // Try not to path swamps / tidal areas
+        let wild_cost = if b_chunk.path.0.is_way() {
+            0.0 // Traversing existing paths has no additional cost!
+        } else {
+            3.0 // + (1.0 - b_chunk.tree_density) * 20.0 // Prefer going through forests, for aesthetics
+        };
+
+        let cost = 1.0 + hill_cost + water_cost + wild_cost;
+        potential[i] = Some((adjacents[i], cost));
+    }
+
+    // Look for potential bridge spots in the cardinal directions if
+    // `loc_suitable_for_wallking` was false for the adjacent chunk.
+    for i in 0..4 {
+        // These happen to be the dirs where: dir.x == 0 || dir.y == 0
+        let i = i * 2;
+        if potential[i].is_none() {
+            let dir = NEIGHBORS[i];
+            // if we can skip over unsuitable area with a bridge
+            potential[i] = (4..=5).find_map(|i| {
+                loc_suitable_for_walking(sim, a + dir * i)
+                    .then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
+            });
+        }
+    }
+
+    // If current position is a bridge, skip to its destination.
+    if let Some(p) = bridge {
+        let dir = (p - a).map(|e| e.signum());
+        if let Some((dir_index, _)) = NEIGHBORS
+            .iter()
+            .enumerate()
+            .find(|(_, n_dir)| **n_dir == dir)
+        {
+            potential[dir_index] = Some((p, 0.0));
+        }
+    }
+
+    potential
 }
 
 /// Return Some if travel between a location and a chunk next to it is permitted
 /// If permitted, the approximate relative const of traversal is given
 // (TODO: by whom?)
+//
+// Return tuple: (final location, cost)
 fn walk_in_dir(
     sim: &WorldSim,
-    get_bridge: impl Fn(Vec2<i32>) -> Option<Vec2<i32>>,
+    // Is there a bridge at `a`?
+    bridge: Option<Vec2<i32>>,
     a: Vec2<i32>,
     dir: Vec2<i32>,
 ) -> Option<(Vec2<i32>, f32)> {
-    if let Some(p) = get_bridge(a).filter(|p| (p - a).map(|e| e.signum()) == dir) {
+    //CC.fetch_add(1, Ordering::Relaxed);
+    if let Some(p) = bridge.filter(|p| (p - a).map(|e| e.signum()) == dir) {
         // Traversing an existing bridge has no cost.
         Some((p, 0.0))
     } else if loc_suitable_for_walking(sim, a + dir) {
@@ -1360,6 +1493,7 @@ fn walk_in_dir(
         };
         Some((a + dir, 1.0 + hill_cost + water_cost + wild_cost))
     } else if dir.x == 0 || dir.y == 0 {
+        // if we can skip over unsuitable area with a bridge
         (4..=5).find_map(|i| {
             loc_suitable_for_walking(sim, a + dir * i)
                 .then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
@@ -1372,10 +1506,14 @@ fn walk_in_dir(
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if sim.get(loc).is_some() {
-        !NEIGHBORS.iter().any(|n| {
-            sim.get(loc + *n)
-                .map_or(false, |chunk| chunk.river.near_water())
-        })
+        // 7181 ms -> 6868 ms (300 ms! almost 10% of pathfinding time)
+        !NEIGHBORS
+            .iter()
+            .map(|n| {
+                sim.get(loc + *n)
+                    .map_or(false, |chunk| chunk.river.near_water())
+            })
+            .fold(false, |acc, near_water| acc & near_water)
     } else {
         false
     }
@@ -1411,6 +1549,7 @@ fn find_site_loc(
     proximity_reqs: &ProximityRequirements,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
+    prof_span!("find_site_loc");
     const MAX_ATTEMPTS: usize = 10000;
     let mut loc = None;
     for _ in 0..MAX_ATTEMPTS {
