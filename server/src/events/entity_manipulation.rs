@@ -28,6 +28,7 @@ use common::{
     resources::{Secs, Time},
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
+    trade::{TradeResult, Trades},
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
@@ -1409,6 +1410,35 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         entity,
         buff_change: buff::BuffChange::RemoveByKind(BuffKind::Saturation),
     });
+
+    // If entity was in an active trade, cancel it
+    let mut trades = ecs.write_resource::<Trades>();
+    let uids = ecs.read_storage::<Uid>();
+    let clients = ecs.read_storage::<Client>();
+    let mut agents = ecs.write_storage::<Agent>();
+    let mut notify_trade_party = |entity| {
+        if let Some(client) = clients.get(entity) {
+            client.send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
+        }
+        if let Some(agent) = agents.get_mut(entity) {
+            agent
+                .inbox
+                .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+        }
+    };
+    if let Some(uid) = uids.get(entity) {
+        // Notify attacked entity
+        notify_trade_party(entity);
+        if let Some(trade) = trades.entity_trades.get(uid).copied() {
+            trades
+                .decline_trade(trade, *uid)
+                .and_then(|uid| ecs.entity_from_uid(uid.0))
+                .map(|entity| {
+                    // Notify person trading with attacked person
+                    notify_trade_party(entity)
+                });
+        }
+    }
 }
 
 pub fn handle_change_ability(
