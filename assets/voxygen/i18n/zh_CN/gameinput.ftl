@@ -49,6 +49,7 @@ gameinput-togglewield = 切换手持
 gameinput-interact = 交互
 gameinput-freelook = 自由视角
 gameinput-autowalk = 自动 行走/滑翔
+gameinput-zoomlock = 摄像头缩放锁定
 gameinput-cameraclamp = 锁定视角
 gameinput-dance = 跳舞
 gameinput-select = 选择实体
