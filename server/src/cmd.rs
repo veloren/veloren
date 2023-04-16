@@ -1244,6 +1244,8 @@ fn handle_rtsim_info(
         let _ = writeln!(&mut info, "Seed: {}", npc.seed);
         let _ = writeln!(&mut info, "Profession: {:?}", npc.profession);
         let _ = writeln!(&mut info, "Home: {:?}", npc.home);
+        let _ = writeln!(&mut info, "Faction: {:?}", npc.faction);
+        let _ = writeln!(&mut info, "Personality: {:?}", npc.personality);
         let _ = writeln!(&mut info, "-- Status --");
         let _ = writeln!(&mut info, "Current site: {:?}", npc.current_site);
         let _ = writeln!(&mut info, "Current mode: {:?}", npc.mode);
@@ -1311,8 +1313,8 @@ fn handle_rtsim_npc(
         let mut info = String::new();
 
         let _ = writeln!(&mut info, "-- NPCs matching [{}] --", terms.join(", "));
-        for (idx, _) in npcs.iter().take(count.unwrap_or(!0) as usize) {
-            let _ = write!(&mut info, "{}, ", idx);
+        for (idx, npc) in npcs.iter().take(count.unwrap_or(!0) as usize) {
+            let _ = write!(&mut info, "{} ({}), ", npc.get_name(), idx);
         }
         let _ = writeln!(&mut info);
         let _ = writeln!(
