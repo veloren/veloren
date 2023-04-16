@@ -121,11 +121,12 @@ impl Loadout {
             .find(|x| x.equip_slot == equip_slot)
             .and_then(|x| core::mem::replace(&mut x.slot, item));
         if let Some(unequipped_item) = unequipped_item.as_ref() {
+            // TODO: Avoid this allocation when there isn't an insert
             let entry = self
                 .recently_unequipped_items
                 .entry(unequipped_item.item_definition_id().to_owned())
                 .or_insert((time, 0));
-            *entry = (time, entry.1 + 1);
+            *entry = (time, entry.1.saturating_add(1));
         }
         unequipped_item
     }
@@ -503,24 +504,27 @@ impl Loadout {
         }
         self.recently_unequipped_items
             .retain(|_def, (unequip_time, count)| {
-                (time.0 - unequip_time.0 < UNEQUIP_TRACKING_DURATION) || *count > 0
+                (time.0 - unequip_time.0 < UNEQUIP_TRACKING_DURATION) && *count > 0
             });
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::comp::{
-        inventory::{
-            item::{
-                armor::{Armor, ArmorKind, Protection},
-                ItemKind,
+    use crate::{
+        comp::{
+            inventory::{
+                item::{
+                    armor::{Armor, ArmorKind, Protection},
+                    ItemKind,
+                },
+                loadout::Loadout,
+                slot::{ArmorSlot, EquipSlot},
+                test_helpers::get_test_bag,
             },
-            loadout::Loadout,
-            slot::{ArmorSlot, EquipSlot},
-            test_helpers::get_test_bag,
+            Item,
         },
-        Item,
+        resources::Time,
     };
 
     #[test]
@@ -529,7 +533,7 @@ mod tests {
 
         let bag1_slot = EquipSlot::Armor(ArmorSlot::Bag1);
         let bag = get_test_bag(18);
-        loadout.swap(bag1_slot, Some(bag));
+        loadout.swap(bag1_slot, Some(bag), Time(0.0));
 
         let result = loadout.slot_range_for_equip_slot(bag1_slot).unwrap();
 
@@ -550,7 +554,7 @@ mod tests {
 
         let feet_slot = EquipSlot::Armor(ArmorSlot::Feet);
         let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
-        loadout.swap(feet_slot, Some(boots));
+        loadout.swap(feet_slot, Some(boots), Time(0.0));
         let result = loadout.slot_range_for_equip_slot(feet_slot);
 
         assert_eq!(None, result);
@@ -560,7 +564,11 @@ mod tests {
     fn test_get_slot_to_equip_into_second_bag_slot_free() {
         let mut loadout = Loadout::new_empty();
 
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(1)));
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag1),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
 
         let result = loadout
             .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
@@ -577,10 +585,26 @@ mod tests {
     fn test_get_slot_to_equip_into_no_bag_slots_free() {
         let mut loadout = Loadout::new_empty();
 
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(1)));
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag2), Some(get_test_bag(1)));
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag3), Some(get_test_bag(1)));
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag4), Some(get_test_bag(1)));
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag1),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag2),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag3),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag4),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
 
         let result = loadout
             .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
