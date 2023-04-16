@@ -56,17 +56,17 @@ common-abilities-sword-crippling_double_slash = { -crippling_state } { -double_s
 common-abilities-sword-cleaving_double_slash = { -cleaving_state } { -double_slash }
     .desc = 一个能够劈穿数个敌人的二连击.
 veloren-core-pseudo_abilities-sword-secondary_ability = 副剑技
-    .desc = The ability bound to secondary attack key
+    .desc = 绑定在特殊攻击上的技能.
 common-abilities-sword-basic_thrust = 基础突进
-    .desc = 蓄势可以使突进更加强大
-common-abilities-sword-heavy_slam = 重锤出击
-    .desc = A strong overhead slash that can be charged to be more staggering
-common-abilities-sword-agile_perforate = Perforate
-    .desc = A rapid flurry of light attacks
-common-abilities-sword-defensive_vital_jab = { -defensive_state } Vital Jab
-    .desc = A quickly charged jab that does more damage against parried foes
+    .desc = 蓄势可以使突进更加强大.
+common-abilities-sword-heavy_slam = 重剑出击
+    .desc = 威力强大，覆盖头顶的一斩，蓄势后的震慑威力更强大.
+common-abilities-sword-agile_perforate = 钻墙打孔
+    .desc = 一阵又轻又快的攻击.
+common-abilities-sword-defensive_vital_jab = { -defensive_state } 致命一戳
+    .desc = 一个极快的前戳，对于被格挡的敌人造成更多的伤害.
 common-abilities-sword-crippling_deep_rend = 撕裂伤口
-    .desc = A strike aimed at an already open wound, deals more damage to bleeding enemies
+    .desc = 专注于攻击已经撕裂的伤口，对于已流血的敌人造成更多伤害.
 common-abilities-sword-cleaving_spiral_slash = 螺旋一劈
     .desc = 挥舞刀刃一圈来攻击附近的任何目标.
 
@@ -127,21 +127,25 @@ common-abilities-sword-crippling_skewer = { -crippling_state } { -skewer }
 common-abilities-sword-cleaving_skewer = { -cleaving_state } { -skewer }
     .desc = 一个可穿透敌人的突刺.
 
-veloren-core-pseudo_abilities-sword-cascade = Cascade
+
+-cascade = 威势倾泻
+
+
+veloren-core-pseudo_abilities-sword-cascade = { -cascade }
     .desc =
         An overhead slash
         { -modified_depending_stance }
-common-abilities-sword-basic_cascade = { -basic_state } Cascade
+common-abilities-sword-basic_cascade = { -basic_state } { -cascade }
     .desc = A basic, overhead slash
-common-abilities-sword-heavy_cascade = { -heavy_state } Cascade
+common-abilities-sword-heavy_cascade = { -heavy_state } { -cascade }
     .desc = An overhead slash that can stagger
-common-abilities-sword-agile_cascade = { -agile_state } Cascade
+common-abilities-sword-agile_cascade = { -agile_state } { -cascade }
     .desc = A quick, overhead slash
-common-abilities-sword-defensive_cascade = { -defensive_state } Cascade
+common-abilities-sword-defensive_cascade = { -defensive_state } { -cascade }
     .desc = A parrying, overhead slash
-common-abilities-sword-crippling_cascade = { -crippling_state } Cascade
+common-abilities-sword-crippling_cascade = { -crippling_state } { -cascade }
     .desc = An overhead slash that can bleed
-common-abilities-sword-cleaving_cascade = { -cleaving_state } Cascade
+common-abilities-sword-cleaving_cascade = { -cleaving_state } { -cascade }
     .desc = An overhead slash that can cleave through enemies
 
 -cross_cut = X裂斩
@@ -170,7 +174,6 @@ veloren-core-pseudo_abilities-sword-finisher = 终结
     .desc =
         一个应当在战斗尾声时使用的连击战技
         { -modified_depending_stance }
-        终结会根据姿态不同而不同
 common-abilities-sword-basic_mighty_strike = 强烈打击
     .desc =
         A simple, powerful slash
@@ -179,9 +182,9 @@ common-abilities-sword-heavy_guillotine = Guillotine
     .desc =
         A strong cleave that will likely stagger what it doesn't kill
         { -requires_moderate_combo }
-common-abilities-sword-agile_hundred_cuts = 百刀切
+common-abilities-sword-agile_hundred_cuts = 百刀斩
     .desc =
-        对制定目标实行数次极快的刀切
+        对制定目标实行数次极快的攻击.
         { -requires_moderate_combo }
 common-abilities-sword-defensive_counter = 反击
     .desc =
@@ -208,9 +211,9 @@ common-abilities-sword-heavy_pommel_strike = 钝击
     .desc =
         使用钝器来震荡敌人的头部.
         { -enter_stance } { -heavy_stance }
-common-abilities-sword-agile_quick_draw = Quick Draw
+common-abilities-sword-agile_quick_draw = 快刀斩
     .desc =
-        Dash forward as you draw your blade for a quick attack
+        取出剑攻击的同时向前冲.
         { -enter_stance } { -agile_stance }
 common-abilities-sword-agile_feint = 佯攻
     .desc =
@@ -236,17 +239,17 @@ common-abilities-sword-cleaving_whirlwind_slice = 旋风斩
     .desc =
         螺旋式的攻击你周围的敌人.
         { -enter_stance } { -cleaving_stance }
-common-abilities-sword-cleaving_earth_splitter = 地裂斩
+common-abilities-sword-cleaving_earth_splitter = 辟地斩
     .desc =
-        Split the earth, if used while falling will have a much stronger impact
+        劈开地壳, 在下降时使用会对目标造成更大的影响.
         { -enter_stance } { -cleaving_stance }
 common-abilities-sword-heavy_fortitude = 刚毅
     .desc =
         随着受到的伤害增长对于震慑的抵抗力，并提高你震慑的威力.
         { -require_stance } { -heavy_stance }
-common-abilities-sword-heavy_pillar_thrust = Pillar Thrust
+common-abilities-sword-heavy_pillar_thrust = 镇压
     .desc =
-        Stab your sword down through the enemy, all the way into the ground, is more powerful if used while falling
+        从头刺穿你的敌人，直到地底，在下降时使用会对目标造成更大的影响.
         { -require_stance } { -heavy_stance }
 common-abilities-sword-agile_dancing_edge = 舞动之刃
     .desc =
@@ -256,27 +259,27 @@ common-abilities-sword-agile_flurry = 狂潮
     .desc =
         进行数次快速突刺
         { -require_stance } { -agile_stance }
-common-abilities-sword-defensive_stalwart_sword = 勇敢之剑
+common-abilities-sword-defensive_stalwart_sword = 坚定
     .desc =
-        Shrug off the brunt of attacks, incoming damage is reduced
+        转移攻击带来的冲击, 外来的伤害降低.
         { -require_stance } { -defensive_stance }
 common-abilities-sword-defensive_deflect = 反弹
     .desc =
-        一个极快的格挡，甚至能够能够抵挡弹道
+        一个极快的格挡，甚至能够能够抵挡弹道.
         { -require_stance } { -defensive_stance }
 common-abilities-sword-crippling_eviscerate = 二次伤害
     .desc =
-        Shreds wounds further, deals more damage to crippled enemies
+        把伤口蔓延更远，对于残疾的敌人造成更多伤害.
         { -require_stance } { -crippling_stance }
-common-abilities-sword-crippling_bloody_gash = 
+common-abilities-sword-crippling_bloody_gash = 撕裂伤口
     .desc =
-        Cruelly strike an already bleeding wound, does more damage to bleeding enemies
+        残忍的撕裂已经流血的伤口, 对于流血的敌人造成更多伤害.
         { -require_stance } { -crippling_stance }
 common-abilities-sword-cleaving_blade_fever = 狂热刀刃
     .desc =
-        Attack more recklessly, increasing the power of your strikes while leaving yourself open to incoming attacks
+        使你更加狂热的攻击, 你的攻击伤害增加但你的防御随之降低.
         { -require_stance } { -cleaving_stance }
-common-abilities-sword-cleaving_sky_splitter = 天裂斩
+common-abilities-sword-cleaving_sky_splitter = 开天斩
     .desc =
         一个据说能够劈开天空的强力一斩，但会用来劈开敌人.
         { -require_stance } { -cleaving_stance }
