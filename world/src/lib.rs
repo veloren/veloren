@@ -55,6 +55,7 @@ use common::{
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
+use common_base::prof_span;
 use common_net::msg::{world_msg, WorldMapMsg};
 use enum_map::EnumMap;
 use rand::{prelude::*, Rng};
@@ -110,6 +111,7 @@ impl World {
         opts: sim::WorldOpts,
         threadpool: &rayon::ThreadPool,
     ) -> (Self, IndexOwned) {
+        prof_span!("World::generate");
         // NOTE: Generating index first in order to quickly fail if the color manifest
         // is broken.
         threadpool.install(|| {

@@ -90,6 +90,7 @@ use common_net::{
 };
 use common_state::{BlockDiff, BuildAreas, State};
 use common_systems::add_local_systems;
+use common_base::prof_span;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
 use persistence::{
@@ -221,6 +222,7 @@ impl Server {
         data_dir: &std::path::Path,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
+        prof_span!("Server::new");
         info!("Server data dir is: {}", data_dir.display());
         if settings.auth_server_address.is_none() {
             info!("Authentication is disabled");
