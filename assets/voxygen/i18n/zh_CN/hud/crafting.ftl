@@ -1,8 +1,11 @@
 hud-crafting = 制作
-hud-crafting-recipes = 食谱
+hud-crafting-recipes = 菜单
 hud-crafting-ingredients = 配方:
 hud-crafting-craft = 制作
 hud-crafting-craft_all = 全部制作
+hud-crafting-repair = 维修
+hud-crafting-repair_equipped = 维修身上的装备
+hud-crafting-repair_all = 维修所有
 hud-crafting-tool_cata = 需要:
 hud-crafting-req_crafting_station = 需要:
 hud-crafting-anvil = 铁砧
@@ -14,6 +17,7 @@ hud-crafting-loom = 织布机
 hud-crafting-spinning_wheel = 纺车
 hud-crafting-tanning_rack = 刮毛架
 hud-crafting-salvaging_station = 拆卸台
+hud-crafting-repair_bench = 维修台
 hud-crafting-campfire = 篝火
 hud-crafting-tabs-all = 全部
 hud-crafting-tabs-armor = 防具
@@ -28,8 +32,8 @@ hud-crafting-tabs-bag = 背包
 hud-crafting-tabs-processed_material = 材料
 hud-crafting-dismantle_title = 拆卸
 hud-crafting-dismantle_explanation =
-    将物品悬停在您的包中
-    以查看您可以回收的物品.
+    光标悬停在你背包的物品上
+    以查看你可以回收的物品.
     
     双击它们开始拆卸.
 hud-crafting-modular_desc = 将物品部件拖到此处以制作武器
@@ -43,3 +47,5 @@ hud-crafting-mod_comp_wood_prim_slot_title = 木材
 hud-crafting-mod_comp_wood_prim_slot_desc = 在这里放置一种木材，只有某些木材可以用来制造武器.
 hud-crafting-mod_comp_sec_slot_title = 动物材料
 hud-crafting-mod_comp_sec_slot_desc = 可选择放置一种动物制造材料，只有某些材料可以用来增强武器.
+hud-crafting-repair_slot_title = 损坏的物品
+hud-crafting-repair_slot_desc = 在这里放置一个物品来显示当前耐久级别的修复成本

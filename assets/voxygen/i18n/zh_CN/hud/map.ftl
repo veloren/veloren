@@ -14,6 +14,7 @@ hud-map-trees = 巨树
 hud-map-tree = 巨树
 hud-map-town = 城镇
 hud-map-castle = 城堡
+hud-map-bridge = 桥
 hud-map-dungeon = 地牢
 hud-map-difficulty_dungeon =
     地牢
