@@ -15,6 +15,7 @@ use common::{
     recipe::{
         self, default_component_recipe_book, default_recipe_book, default_repair_recipe_book,
     },
+    resources::Time,
     terrain::{Block, SpriteKind},
     trade::Trades,
     uid::Uid,
@@ -112,6 +113,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         debug!("Can't manipulate inventory; entity is dead");
         return;
     }
+
+    let time = *state.ecs().read_resource::<Time>();
 
     match manip {
         comp::InventoryManip::Pickup(pickup_uid) => {
@@ -405,15 +408,17 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             swap_lantern(&mut state.ecs().write_storage(), entity, lantern_info);
                         }
                         if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
-                            dropped_items.extend(inventory.equip(slot).into_iter().map(|x| {
-                                (
-                                    *pos,
-                                    state
-                                        .read_component_copied::<comp::Ori>(entity)
-                                        .unwrap_or_default(),
-                                    x,
-                                )
-                            }));
+                            dropped_items.extend(inventory.equip(slot, time).into_iter().map(
+                                |x| {
+                                    (
+                                        *pos,
+                                        state
+                                            .read_component_copied::<comp::Ori>(entity)
+                                            .unwrap_or_default(),
+                                        x,
+                                    )
+                                },
+                            ));
                         }
                         Some(InventoryUpdateEvent::Used)
                     } else if let Some(item) = inventory.take(
@@ -525,7 +530,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
                         // Unequip the item, any items that no longer fit within the inventory (due
                         // to unequipping a bag for example) will be dropped on the floor
-                        if let Ok(Some(leftover_items)) = inventory.unequip(slot) {
+                        if let Ok(Some(leftover_items)) = inventory.unequip(slot, time) {
                             dropped_items.extend(leftover_items.into_iter().map(|x| {
                                 (
                                     *pos,
@@ -598,7 +603,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
                 // If the stacks weren't mergable carry out a swap.
                 if !merged_stacks {
-                    dropped_items.extend(inventory.swap(a, b).into_iter().map(|x| {
+                    dropped_items.extend(inventory.swap(a, b, time).into_iter().map(|x| {
                         (
                             *pos,
                             state
@@ -665,7 +670,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         comp::InventoryManip::Drop(slot) => {
             let item = match slot {
                 Slot::Inventory(slot) => inventory.remove(slot),
-                Slot::Equip(slot) => inventory.replace_loadout_item(slot, None),
+                Slot::Equip(slot) => inventory.replace_loadout_item(slot, None, time),
             };
 
             // FIXME: We should really require the drop and write to be atomic!
@@ -910,7 +915,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             drop(inventories);
         },
         comp::InventoryManip::SwapEquippedWeapons => {
-            inventory.swap_equipped_weapons();
+            inventory.swap_equipped_weapons(time);
             drop(inventories);
         },
     }

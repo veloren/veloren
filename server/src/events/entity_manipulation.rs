@@ -508,9 +508,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
     // Modify durability on all equipped items
     if let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
-        let ability_map = state.ecs().read_resource::<AbilityMap>();
-        let msm = state.ecs().read_resource::<MaterialStatManifest>();
-        inventory.damage_items(&ability_map, &msm);
+        let ecs = state.ecs();
+        let ability_map = ecs.read_resource::<AbilityMap>();
+        let msm = ecs.read_resource::<MaterialStatManifest>();
+        let time = ecs.read_resource::<Time>();
+        inventory.damage_items(&ability_map, &msm, *time);
     }
 
     if let Some(actor) = state.entity_as_actor(entity) {

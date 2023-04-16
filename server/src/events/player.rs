@@ -7,6 +7,7 @@ use common::{
     character::CharacterId,
     comp,
     comp::{group, pet::is_tameable, Presence, PresenceKind},
+    resources::Time,
     uid::{Uid, UidAllocator},
 };
 use common_base::span;
@@ -482,6 +483,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
         drop(admins);
 
         // Put possess item into loadout
+        let time = ecs.read_resource::<Time>();
         let mut inventories = ecs.write_storage::<Inventory>();
         let mut inventory = inventories
             .entry(possessee)
@@ -493,12 +495,13 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
             let leftover_items = inventory.swap(
                 Slot::Equip(EquipSlot::ActiveMainhand),
                 Slot::Equip(EquipSlot::InactiveMainhand),
+                *time,
             );
             assert!(
                 leftover_items.is_empty(),
                 "Swapping active and inactive mainhands never results in leftover items"
             );
-            inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item));
+            inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item), *time);
         }
         drop(inventories);
 

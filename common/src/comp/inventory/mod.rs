@@ -17,6 +17,7 @@ use crate::{
         slot::{InvSlotId, SlotId},
         Item,
     },
+    resources::Time,
     uid::Uid,
     LoadoutBuilder,
 };
@@ -615,18 +616,19 @@ impl Inventory {
         &mut self,
         equip_slot: EquipSlot,
         replacement_item: Option<Item>,
+        time: Time,
     ) -> Option<Item> {
-        self.loadout.swap(equip_slot, replacement_item)
+        self.loadout.swap(equip_slot, replacement_item, time)
     }
 
     /// Equip an item from a slot in inventory. The currently equipped item will
     /// go into inventory. If the item is going to mainhand, put mainhand in
     /// offhand and place offhand into inventory.
     #[must_use = "Returned items will be lost if not used"]
-    pub fn equip(&mut self, inv_slot: InvSlotId) -> Vec<Item> {
+    pub fn equip(&mut self, inv_slot: InvSlotId, time: Time) -> Vec<Item> {
         self.get(inv_slot)
             .and_then(|item| self.loadout.get_slot_to_equip_into(&item.kind()))
-            .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot))
+            .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot, time))
             .unwrap_or_else(Vec::new)
     }
 
@@ -680,7 +682,11 @@ impl Inventory {
     /// equipped if inventory has no slots available.
     #[must_use = "Returned items will be lost if not used"]
     #[allow(clippy::needless_collect)] // This is a false positive, the collect is needed
-    pub fn unequip(&mut self, equip_slot: EquipSlot) -> Result<Option<Vec<Item>>, SlotError> {
+    pub fn unequip(
+        &mut self,
+        equip_slot: EquipSlot,
+        time: Time,
+    ) -> Result<Option<Vec<Item>>, SlotError> {
         // Ensure there is enough space in the inventory to place the unequipped item
         if self.free_slots_minus_equipped_item(equip_slot) == 0 {
             return Err(SlotError::InventoryFull);
@@ -688,7 +694,7 @@ impl Inventory {
 
         Ok(self
             .loadout
-            .swap(equip_slot, None)
+            .swap(equip_slot, None, time)
             .and_then(|mut unequipped_item| {
                 let unloaded_items: Vec<Item> = unequipped_item.drain().collect();
                 self.push(unequipped_item)
@@ -721,7 +727,7 @@ impl Inventory {
     /// Swaps items from two slots, regardless of if either is inventory or
     /// loadout.
     #[must_use = "Returned items will be lost if not used"]
-    pub fn swap(&mut self, slot_a: Slot, slot_b: Slot) -> Vec<Item> {
+    pub fn swap(&mut self, slot_a: Slot, slot_b: Slot, time: Time) -> Vec<Item> {
         match (slot_a, slot_b) {
             (Slot::Inventory(slot_a), Slot::Inventory(slot_b)) => {
                 self.swap_slots(slot_a, slot_b);
@@ -729,10 +735,10 @@ impl Inventory {
             },
             (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
             | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
-                self.swap_inventory_loadout(inv_slot, equip_slot)
+                self.swap_inventory_loadout(inv_slot, equip_slot, time)
             },
             (Slot::Equip(slot_a), Slot::Equip(slot_b)) => {
-                self.loadout.swap_slots(slot_a, slot_b);
+                self.loadout.swap_slots(slot_a, slot_b, time);
                 Vec::new()
             },
         }
@@ -768,6 +774,7 @@ impl Inventory {
         &mut self,
         inv_slot_id: InvSlotId,
         equip_slot: EquipSlot,
+        time: Time,
     ) -> Vec<Item> {
         if !self.can_swap(inv_slot_id, equip_slot) {
             return Vec::new();
@@ -777,7 +784,7 @@ impl Inventory {
         let from_inv = self.remove(inv_slot_id);
 
         // Swap the equipped item for the item from the inventory
-        let from_equip = self.loadout.swap(equip_slot, from_inv);
+        let from_equip = self.loadout.swap(equip_slot, from_inv, time);
 
         let unloaded_items = from_equip
             .map(|mut from_equip| {
@@ -803,10 +810,10 @@ impl Inventory {
                 if self.loadout.equipped(EquipSlot::ActiveMainhand).is_none()
                     && self.loadout.equipped(EquipSlot::ActiveOffhand).is_some()
                 {
-                    let offhand = self.loadout.swap(EquipSlot::ActiveOffhand, None);
+                    let offhand = self.loadout.swap(EquipSlot::ActiveOffhand, None, time);
                     assert!(
                         self.loadout
-                            .swap(EquipSlot::ActiveMainhand, offhand)
+                            .swap(EquipSlot::ActiveMainhand, offhand, time)
                             .is_none()
                     );
                 }
@@ -815,10 +822,10 @@ impl Inventory {
                 if self.loadout.equipped(EquipSlot::InactiveMainhand).is_none()
                     && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some()
                 {
-                    let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None);
+                    let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None, time);
                     assert!(
                         self.loadout
-                            .swap(EquipSlot::InactiveMainhand, offhand)
+                            .swap(EquipSlot::InactiveMainhand, offhand, time)
                             .is_none()
                     );
                 }
@@ -867,7 +874,7 @@ impl Inventory {
         self.loadout.equipped_items_replaceable_by(item_kind)
     }
 
-    pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }
+    pub fn swap_equipped_weapons(&mut self, time: Time) { self.loadout.swap_equipped_weapons(time) }
 
     /// Update internal computed state of all top level items in this loadout.
     /// Used only when loading in persistence code.
@@ -883,13 +890,48 @@ impl Inventory {
         });
     }
 
-    /// Increments durability of all valid items equipped in loaodut by 1
+    /// Increments durability of all valid items equipped in loaodut and
+    /// recently unequipped from loadout by 1
     pub fn damage_items(
         &mut self,
         ability_map: &item::tool::AbilityMap,
         msm: &item::MaterialStatManifest,
+        time: Time,
     ) {
-        self.loadout.damage_items(ability_map, msm)
+        self.loadout.damage_items(ability_map, msm);
+        self.loadout
+            .recently_unequipped_items
+            .retain(|_item, unequip_time| {
+                time.0 - unequip_time.0 <= loadout::UNEQUIP_TRACKING_DURATION
+            });
+        let inv_slots = self
+            .loadout
+            .recently_unequipped_items
+            .keys()
+            .filter_map(|item_def_id| {
+                self.slots_with_id()
+                    .find(|&(_, item)| {
+                        if let Some(item) = item {
+                            // Find an item with the matching item definition id and that is not yet
+                            // at maximum durability lost
+                            item.item_definition_id() == *item_def_id
+                                && item
+                                    .durability()
+                                    .map_or(true, |dur| dur < Item::MAX_DURABILITY)
+                        } else {
+                            false
+                        }
+                    })
+                    .map(|(slot, _)| slot)
+            })
+            .collect::<Vec<_>>();
+        for inv_slot in inv_slots.iter() {
+            if let Some(Some(item)) = self.slot_mut(*inv_slot) {
+                if item.has_durability() {
+                    item.increment_damage(ability_map, msm);
+                }
+            }
+        }
     }
 
     /// Resets durability of item in specified slot

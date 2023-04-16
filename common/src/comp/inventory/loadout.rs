@@ -1,18 +1,26 @@
-use crate::comp::{
-    inventory::{
-        item::{self, tool::Tool, Hands, ItemKind},
-        slot::{ArmorSlot, EquipSlot},
-        InvSlot,
+use crate::{
+    comp::{
+        inventory::{
+            item::{self, tool::Tool, Hands, ItemDefinitionIdOwned, ItemKind},
+            slot::{ArmorSlot, EquipSlot},
+            InvSlot,
+        },
+        Item,
     },
-    Item,
+    resources::Time,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::ops::Range;
 use tracing::warn;
 
+pub(super) const UNEQUIP_TRACKING_DURATION: f64 = 60.0;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Loadout {
     slots: Vec<LoadoutSlot>,
+    // Includes time that item was unequipped at
+    pub(super) recently_unequipped_items: HashMap<ItemDefinitionIdOwned, Time>,
 }
 
 /// NOTE: Please don't derive a PartialEq Instance for this; that's broken!
@@ -83,16 +91,36 @@ impl Loadout {
             .into_iter()
             .map(|(equip_slot, persistence_key)| LoadoutSlot::new(equip_slot, persistence_key))
             .collect(),
+            recently_unequipped_items: HashMap::new(),
         }
     }
 
     /// Replaces the item in the Loadout slot that corresponds to the given
     /// EquipSlot and returns the previous item if any
-    pub(super) fn swap(&mut self, equip_slot: EquipSlot, item: Option<Item>) -> Option<Item> {
-        self.slots
+    pub(super) fn swap(
+        &mut self,
+        equip_slot: EquipSlot,
+        item: Option<Item>,
+        time: Time,
+    ) -> Option<Item> {
+        self.recently_unequipped_items.retain(|def, unequip_time| {
+            let item_reequipped = item
+                .as_ref()
+                .map_or(false, |i| def.as_ref() == i.item_definition_id());
+            let old_unequip = time.0 - unequip_time.0 > UNEQUIP_TRACKING_DURATION;
+            // Stop tracking item if it is re-equipped or if was unequipped a while ago
+            !(item_reequipped || old_unequip)
+        });
+        let unequipped_item = self
+            .slots
             .iter_mut()
             .find(|x| x.equip_slot == equip_slot)
-            .and_then(|x| core::mem::replace(&mut x.slot, item))
+            .and_then(|x| core::mem::replace(&mut x.slot, item));
+        if let Some(unequipped_item) = unequipped_item.as_ref() {
+            self.recently_unequipped_items
+                .insert(unequipped_item.item_definition_id().to_owned(), time);
+        }
+        unequipped_item
     }
 
     /// Returns a reference to the item (if any) equipped in the given EquipSlot
@@ -154,7 +182,12 @@ impl Loadout {
     }
 
     /// Swaps the contents of two loadout slots
-    pub(super) fn swap_slots(&mut self, equip_slot_a: EquipSlot, equip_slot_b: EquipSlot) {
+    pub(super) fn swap_slots(
+        &mut self,
+        equip_slot_a: EquipSlot,
+        equip_slot_b: EquipSlot,
+        time: Time,
+    ) {
         if self.slot(equip_slot_b).is_none() || self.slot(equip_slot_b).is_none() {
             // Currently all loadouts contain slots for all EquipSlots so this can never
             // happen, but if loadouts with alternate slot combinations are
@@ -163,9 +196,9 @@ impl Loadout {
             return;
         }
 
-        let item_a = self.swap(equip_slot_a, None);
-        let item_b = self.swap(equip_slot_b, item_a);
-        assert_eq!(self.swap(equip_slot_a, item_b), None);
+        let item_a = self.swap(equip_slot_a, None, time);
+        let item_b = self.swap(equip_slot_b, item_a, time);
+        assert_eq!(self.swap(equip_slot_a, item_b, time), None);
 
         // Check if items are valid in their new positions
         if !self.slot_can_hold(
@@ -176,9 +209,9 @@ impl Loadout {
             self.equipped(equip_slot_b).map(|x| x.kind()).as_deref(),
         ) {
             // If not, revert the swap
-            let item_a = self.swap(equip_slot_a, None);
-            let item_b = self.swap(equip_slot_b, item_a);
-            assert_eq!(self.swap(equip_slot_a, item_b), None);
+            let item_a = self.swap(equip_slot_a, None, time);
+            let item_b = self.swap(equip_slot_b, item_a, time);
+            assert_eq!(self.swap(equip_slot_a, item_b, time), None);
         }
     }
 
@@ -367,7 +400,7 @@ impl Loadout {
             (None, None))
     }
 
-    pub(super) fn swap_equipped_weapons(&mut self) {
+    pub(super) fn swap_equipped_weapons(&mut self, time: Time) {
         // Checks if a given slot can hold an item right now, defaults to true if
         // nothing is equipped in slot
         let valid_slot = |equip_slot| {
@@ -385,25 +418,25 @@ impl Loadout {
             && valid_slot(EquipSlot::InactiveOffhand)
         {
             // Get weapons from each slot
-            let active_mainhand = self.swap(EquipSlot::ActiveMainhand, None);
-            let active_offhand = self.swap(EquipSlot::ActiveOffhand, None);
-            let inactive_mainhand = self.swap(EquipSlot::InactiveMainhand, None);
-            let inactive_offhand = self.swap(EquipSlot::InactiveOffhand, None);
+            let active_mainhand = self.swap(EquipSlot::ActiveMainhand, None, time);
+            let active_offhand = self.swap(EquipSlot::ActiveOffhand, None, time);
+            let inactive_mainhand = self.swap(EquipSlot::InactiveMainhand, None, time);
+            let inactive_offhand = self.swap(EquipSlot::InactiveOffhand, None, time);
             // Equip weapons into new slots
             assert!(
-                self.swap(EquipSlot::ActiveMainhand, inactive_mainhand)
+                self.swap(EquipSlot::ActiveMainhand, inactive_mainhand, time)
                     .is_none()
             );
             assert!(
-                self.swap(EquipSlot::ActiveOffhand, inactive_offhand)
+                self.swap(EquipSlot::ActiveOffhand, inactive_offhand, time)
                     .is_none()
             );
             assert!(
-                self.swap(EquipSlot::InactiveMainhand, active_mainhand)
+                self.swap(EquipSlot::InactiveMainhand, active_mainhand, time)
                     .is_none()
             );
             assert!(
-                self.swap(EquipSlot::InactiveOffhand, active_offhand)
+                self.swap(EquipSlot::InactiveOffhand, active_offhand, time)
                     .is_none()
             );
         }

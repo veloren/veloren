@@ -25,6 +25,7 @@ use client::{Client, ServerInfo};
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
     comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
+    resources::Time,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
     LoadoutBuilder,
@@ -1812,10 +1813,16 @@ impl Controls {
                     inventory.replace_loadout_item(
                         EquipSlot::ActiveMainhand,
                         mainhand.map(Item::new_from_asset_expect),
+                        // Voxygen is not authoritative on inventory so we don't care if fake time
+                        // is supplied
+                        Time(0.0),
                     );
                     inventory.replace_loadout_item(
                         EquipSlot::ActiveOffhand,
                         offhand.map(Item::new_from_asset_expect),
+                        // Voxygen is not authoritative on inventory so we don't care if fake time
+                        // is supplied
+                        Time(0.0),
                     );
                 }
             },
