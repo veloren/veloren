@@ -1414,28 +1414,28 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
     // If entity was in an active trade, cancel it
     let mut trades = ecs.write_resource::<Trades>();
     let uids = ecs.read_storage::<Uid>();
-    let clients = ecs.read_storage::<Client>();
-    let mut agents = ecs.write_storage::<Agent>();
-    let mut notify_trade_party = |entity| {
-        if let Some(client) = clients.get(entity) {
-            client.send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
-        }
-        if let Some(agent) = agents.get_mut(entity) {
-            agent
-                .inbox
-                .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
-        }
-    };
     if let Some(uid) = uids.get(entity) {
-        // Notify attacked entity
-        notify_trade_party(entity);
         if let Some(trade) = trades.entity_trades.get(uid).copied() {
             trades
                 .decline_trade(trade, *uid)
                 .and_then(|uid| ecs.entity_from_uid(uid.0))
-                .map(|entity| {
-                    // Notify person trading with attacked person
-                    notify_trade_party(entity)
+                .map(|entity_b| {
+                    // Notify both parties that the trade ended
+                    let clients = ecs.read_storage::<Client>();
+                    let mut agents = ecs.write_storage::<Agent>();
+                    let mut notify_trade_party = |entity| {
+                        if let Some(client) = clients.get(entity) {
+                            client
+                                .send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
+                        }
+                        if let Some(agent) = agents.get_mut(entity) {
+                            agent
+                                .inbox
+                                .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+                        }
+                    };
+                    notify_trade_party(entity);
+                    notify_trade_party(entity_b);
                 });
         }
     }

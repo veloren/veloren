@@ -899,39 +899,47 @@ impl Inventory {
         time: Time,
     ) {
         self.loadout.damage_items(ability_map, msm);
-        self.loadout
-            .recently_unequipped_items
-            .retain(|_item, unequip_time| {
-                time.0 - unequip_time.0 <= loadout::UNEQUIP_TRACKING_DURATION
-            });
-        let inv_slots = self
-            .loadout
-            .recently_unequipped_items
-            .keys()
-            .filter_map(|item_def_id| {
-                self.slots_with_id()
-                    .find(|&(_, item)| {
-                        if let Some(item) = item {
-                            // Find an item with the matching item definition id and that is not yet
-                            // at maximum durability lost
-                            item.item_definition_id() == *item_def_id
-                                && item
-                                    .durability()
-                                    .map_or(true, |dur| dur < Item::MAX_DURABILITY)
-                        } else {
-                            false
-                        }
-                    })
-                    .map(|(slot, _)| slot)
+        self.loadout.cull_recently_unequipped_items(time);
+
+        let slots = self
+            .slots_with_id()
+            .filter(|(_slot, item)| {
+                item.as_ref().map_or(false, |item| {
+                    item.durability_lost()
+                        .map_or(false, |dur| dur < Item::MAX_DURABILITY)
+                        && self
+                            .loadout
+                            .recently_unequipped_items
+                            .contains_key(&item.item_definition_id().to_owned())
+                })
             })
+            .map(|(slot, _item)| slot)
             .collect::<Vec<_>>();
-        for inv_slot in inv_slots.iter() {
-            if let Some(Some(item)) = self.slot_mut(*inv_slot) {
-                if item.has_durability() {
+        slots.into_iter().for_each(|slot| {
+            let slot = if let Some(Some(item)) = self.slot(slot) {
+                if let Some((_unequip_time, count)) = self
+                    .loadout
+                    .recently_unequipped_items
+                    .get_mut(&item.item_definition_id().to_owned())
+                {
+                    if *count > 0 {
+                        *count -= 1;
+                        Some(slot)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+            if let Some(slot) = slot {
+                if let Some(Some(item)) = self.slot_mut(slot) {
                     item.increment_damage(ability_map, msm);
                 }
             }
-        }
+        });
     }
 
     /// Resets durability of item in specified slot

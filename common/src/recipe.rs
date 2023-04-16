@@ -976,7 +976,7 @@ impl RepairRecipe {
     }
 
     pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> {
-        let item_durability = item.durability().unwrap_or(0);
+        let item_durability = item.durability_lost().unwrap_or(0);
         self.inputs
             .iter()
             .filter_map(move |(input, original_amount)| {

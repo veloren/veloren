@@ -20,7 +20,10 @@ pub(super) const UNEQUIP_TRACKING_DURATION: f64 = 60.0;
 pub struct Loadout {
     slots: Vec<LoadoutSlot>,
     // Includes time that item was unequipped at
-    pub(super) recently_unequipped_items: HashMap<ItemDefinitionIdOwned, Time>,
+    #[serde(skip)]
+    // Tracks time unequipped at and number that have been unequipped (for things like dual
+    // wielding, rings, or other future cases)
+    pub(super) recently_unequipped_items: HashMap<ItemDefinitionIdOwned, (Time, u8)>,
 }
 
 /// NOTE: Please don't derive a PartialEq Instance for this; that's broken!
@@ -103,22 +106,26 @@ impl Loadout {
         item: Option<Item>,
         time: Time,
     ) -> Option<Item> {
-        self.recently_unequipped_items.retain(|def, unequip_time| {
-            let item_reequipped = item
-                .as_ref()
-                .map_or(false, |i| def.as_ref() == i.item_definition_id());
-            let old_unequip = time.0 - unequip_time.0 > UNEQUIP_TRACKING_DURATION;
-            // Stop tracking item if it is re-equipped or if was unequipped a while ago
-            !(item_reequipped || old_unequip)
-        });
+        if let Some(item_def_id) = item.as_ref().map(|item| item.item_definition_id()) {
+            if let Some((_unequip_time, count)) = self
+                .recently_unequipped_items
+                .get_mut(&item_def_id.to_owned())
+            {
+                *count = count.saturating_sub(1);
+            }
+        }
+        self.cull_recently_unequipped_items(time);
         let unequipped_item = self
             .slots
             .iter_mut()
             .find(|x| x.equip_slot == equip_slot)
             .and_then(|x| core::mem::replace(&mut x.slot, item));
         if let Some(unequipped_item) = unequipped_item.as_ref() {
-            self.recently_unequipped_items
-                .insert(unequipped_item.item_definition_id().to_owned(), time);
+            let entry = self
+                .recently_unequipped_items
+                .entry(unequipped_item.item_definition_id().to_owned())
+                .or_insert((time, 0));
+            *entry = (time, entry.1 + 1);
         }
         unequipped_item
     }
@@ -484,6 +491,20 @@ impl Loadout {
         {
             item.reset_durability(ability_map, msm);
         }
+    }
+
+    pub(super) fn cull_recently_unequipped_items(&mut self, time: Time) {
+        for (unequip_time, _count) in self.recently_unequipped_items.values_mut() {
+            // If somehow time went backwards or faulty unequip time supplied, set unequip
+            // time to minimum of current time and unequip time
+            if time.0 < unequip_time.0 {
+                *unequip_time = time;
+            }
+        }
+        self.recently_unequipped_items
+            .retain(|_def, (unequip_time, count)| {
+                (time.0 - unequip_time.0 < UNEQUIP_TRACKING_DURATION) || *count > 0
+            });
     }
 }
 
