@@ -1465,12 +1465,12 @@ impl Structure for AdletStronghold {
                                         yetipit_center.x + ((away1 + (s * (down / 4))) * dir1),
                                         yetipit_center.y + ((away2 + (s * (down / 4))) * dir2),
                                     )
-                                    .with_z(level - down),
+                                    .with_z(level - (2 * down)),
                                     Vec2::new(
                                         yetipit_center.x + ((away3 + (s * (down / 4))) * dir1),
                                         yetipit_center.y + ((away4 + (s * (down / 4))) * dir2),
                                     )
-                                    .with_z(level - (2 * down)),
+                                    .with_z(level - (3 * down)),
                                     yetipit_center.with_z(level - (3 * down)),
                                     6.0,
                                 )
