@@ -699,13 +699,13 @@
     Simple("common.items.armor.mail.bloodsteel.shoulder"): "voxel.armor.mail.bloodsteel.shoulder",
     Simple("common.items.armor.mail.bloodsteel.back"): "voxel.armor.mail.bloodsteel.back",
     //Orichalcum Set
-    Simple("common.items.armor.mail.orichalcum.chest"): "voxel.armor.mail.orichalcum.chest",
-    Simple("common.items.armor.mail.orichalcum.pants"): "voxel.armor.mail.orichalcum.pants",
-    Simple("common.items.armor.mail.orichalcum.belt"): "voxel.armor.mail.orichalcum.belt",
-    Simple("common.items.armor.mail.orichalcum.foot"): "voxel.armor.mail.orichalcum.foot",
-    Simple("common.items.armor.mail.orichalcum.hand"): "voxel.armor.mail.orichalcum.hand",
-    Simple("common.items.armor.mail.orichalcum.shoulder"): "voxel.armor.mail.orichalcum.shoulder",
-    Simple("common.items.armor.mail.orichalcum.back"): "voxel.armor.mail.orichalcum.back",
+    Simple("common.items.armor.mail.orichalcum.chest"): ("voxel.armor.mail.orichalcum", 0),
+    Simple("common.items.armor.mail.orichalcum.pants"): ("voxel.armor.mail.orichalcum", 1),
+    Simple("common.items.armor.mail.orichalcum.belt"): ("voxel.armor.mail.orichalcum", 2),
+    Simple("common.items.armor.mail.orichalcum.foot"): ("voxel.armor.mail.orichalcum", 3),
+    Simple("common.items.armor.mail.orichalcum.hand"): ("voxel.armor.mail.orichalcum", 4),
+    Simple("common.items.armor.mail.orichalcum.shoulder"): ("voxel.armor.mail.orichalcum", 5),
+    Simple("common.items.armor.mail.orichalcum.back"): ("voxel.armor.mail.orichalcum", 6),
     //misc
     Simple("common.items.armor.misc.pants.hunting"): "voxel.armor.misc.pants.grayscale",
     // Backs

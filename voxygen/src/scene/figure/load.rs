@@ -27,7 +27,7 @@ use common::{
     vol::{IntoFullPosIterator, ReadVol, Vox},
 };
 use hashbrown::HashMap;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use std::{fmt, hash::Hash};
 use tracing::{error, warn};
 use vek::*;
@@ -5116,8 +5116,42 @@ impl ObjectCentralSpec {
     }
 }
 
+struct ModelWithOptionalIndex(String, u32);
+
+impl<'de> Deserialize<'de> for ModelWithOptionalIndex {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct StringWithOptionalIndex;
+        use serde::de;
+
+        impl<'de> de::Visitor<'de> for StringWithOptionalIndex {
+            type Value = ModelWithOptionalIndex;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("model_spec or (spec, index)")
+            }
+
+            fn visit_str<E: de::Error>(self, model: &str) -> Result<Self::Value, E> {
+                Ok(ModelWithOptionalIndex(model.into(), DEFAULT_INDEX))
+            }
+
+            fn visit_seq<A: de::SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+                if let Some(spec) = seq.next_element::<String>()? {
+                    if let Some(num) = seq.next_element::<u32>()? {
+                        Ok(ModelWithOptionalIndex(spec, num))
+                    } else {
+                        Err(de::Error::missing_field("index"))
+                    }
+                } else {
+                    Err(de::Error::missing_field("spec"))
+                }
+            }
+        }
+        deserializer.deserialize_any(StringWithOptionalIndex {})
+    }
+}
+
 #[derive(Deserialize)]
-struct ItemDropCentralSpec(HashMap<ItemKey, String>);
+struct ItemDropCentralSpec(HashMap<ItemKey, ModelWithOptionalIndex>);
 
 make_vox_spec!(
     item_drop::Body,
@@ -5148,17 +5182,17 @@ make_vox_spec!(
 
 impl ItemDropCentralSpec {
     fn mesh_bone0(&self, item_drop: &item_drop::Body, item_key: &ItemKey) -> BoneMeshes {
-        let coin_pouch = "voxel.object.pouch".to_string();
+        let coin_pouch = ModelWithOptionalIndex("voxel.object.pouch".to_string(), DEFAULT_INDEX);
 
         if let Some(spec) = match item_drop {
             item_drop::Body::CoinPouch => Some(&coin_pouch),
             _ => self.0.get(item_key),
         } {
-            let full_spec: String = ["voxygen.", spec.as_str()].concat();
+            let full_spec: String = ["voxygen.", spec.0.as_str()].concat();
             let segment = match item_drop {
                 item_drop::Body::Armor(_) => MatSegment::from_vox_model_index(
                     &graceful_load_vox_fullspec(&full_spec).read().0,
-                    0,
+                    spec.1 as usize,
                 )
                 .map(|mat_cell| match mat_cell {
                     MatCell::None => None,
@@ -5166,7 +5200,7 @@ impl ItemDropCentralSpec {
                     MatCell::Normal(data) => data.is_hollow().then_some(MatCell::None),
                 })
                 .to_segment(|_| Default::default()),
-                _ => graceful_load_segment_fullspec(&full_spec, DEFAULT_INDEX),
+                _ => graceful_load_segment_fullspec(&full_spec, spec.1),
             };
             let offset = segment_center(&segment).unwrap_or_default();
             (segment, match item_drop {
