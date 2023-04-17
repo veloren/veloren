@@ -810,7 +810,7 @@ impl Structure for AdletStronghold {
                             let outside_wolfs = 2
                                 + (RandomField::new(0)
                                     .get((igloo_pos - 1).with_z(alt as i32 - 5 + height_handle))
-                                    % 5) as i32;
+                                    % 3) as i32;
                             for _ in 0..outside_wolfs {
                                 let igloo_mob_spawn =
                                     (igloo_pos - 1).with_z(alt as i32 - 5 + height_handle);
@@ -1057,7 +1057,7 @@ impl Structure for AdletStronghold {
                 AdletStructure::Bonfire => {
                     let bonfire_pos = wpos;
                     let fire_fill = Fill::Sampling(Arc::new(|bonfire_pos| {
-                        Some(match (RandomField::new(0).get(bonfire_pos)) % 24 {
+                        Some(match (RandomField::new(0).get(bonfire_pos)) % 200 {
                             0 => Block::air(SpriteKind::Ember),
                             _ => Block::air(SpriteKind::FireBlock),
                         })
@@ -1653,8 +1653,8 @@ impl Structure for AdletStronghold {
                         let rand_field = RandomField::new(1).get(wpos.with_z(alt as i32));
                         match RandomField::new(0).get(wpos.with_z(alt as i32)) % 4 {
                             0 => (AnimalPenKind::Bear, 1 + rand_field % 2),
-                            1 => (AnimalPenKind::Wolf, 2 + rand_field % 3),
-                            _ => (AnimalPenKind::Rat, 5 + rand_field % 5),
+                            1 => (AnimalPenKind::Wolf, 2 + rand_field % 2),
+                            _ => (AnimalPenKind::Rat, 3 + rand_field % 3),
                         }
                     };
                     for _ in 0..num {
