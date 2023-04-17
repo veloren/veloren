@@ -149,6 +149,18 @@ impl FindDist<Vec3<f32>> for Cylinder {
     }
 }
 
+impl FindDist<Cylinder> for Vec3<f32> {
+    #[inline]
+    fn approx_in_range(self, other: Cylinder, range: f32) -> bool {
+        other.approx_in_range(self, range)
+    }
+
+    #[inline]
+    fn min_distance(self, other: Cylinder) -> f32 {
+        other.min_distance(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

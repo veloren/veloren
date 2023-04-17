@@ -21,13 +21,12 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
-    terrain::{SpriteKind, TerrainGrid, UnlockKind},
+    terrain::{TerrainGrid, UnlockKind},
     util::Dir,
     vol::ReadVol,
 };
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
-use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::PI,
@@ -782,52 +781,6 @@ pub fn attempt_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
 pub fn attempt_sit(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() {
         update.character = CharacterState::Sit;
-    }
-}
-
-pub fn sprite_mount_points(
-    sprite_kind: SpriteKind,
-    pos: Vec3<i32>,
-    ori: u8,
-) -> impl ExactSizeIterator<Item = (Vec3<f32>, Vec3<f32>)> {
-    let mat = Mat4::identity()
-        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
-        .translated_3d(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0));
-    sprite_kind
-        .mount_offsets()
-        .iter()
-        .map(move |(pos, dir)| ((mat * pos.with_w(1.0)).xyz(), (mat * dir.with_w(0.0)).xyz()))
-}
-
-const SPRITE_MOUNT_RANGE: f32 = 2.0;
-pub const SPRITE_MOUNT_RANGE_SQR: f32 = SPRITE_MOUNT_RANGE * SPRITE_MOUNT_RANGE;
-
-pub fn attempt_mount_sprite(data: &JoinData<'_>, update: &mut StateUpdate, pos: Vec3<i32>) {
-    if let Some((kind, ori)) = data
-        .terrain
-        .get(pos)
-        .ok()
-        .and_then(|block| block.get_sprite().zip(block.get_ori()))
-    {
-        if let Some((mount_pos, mount_dir)) = sprite_mount_points(kind, pos, ori)
-            .min_by_key(|(pos, _)| OrderedFloat(data.pos.0.distance_squared(*pos)))
-        {
-            if reach_block(
-                data.pos.0,
-                pos,
-                SPRITE_MOUNT_RANGE_SQR,
-                data.body,
-                data.terrain,
-            ) {
-                update.character = CharacterState::MountSprite(mount_sprite::Data {
-                    static_data: mount_sprite::StaticData {
-                        mount_pos,
-                        mount_dir,
-                        sprite_pos: pos,
-                    },
-                });
-            }
-        }
     }
 }
 

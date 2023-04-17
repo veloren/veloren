@@ -12,6 +12,7 @@ use common::{
         Controller, Health, InputKind, Scale,
     },
     event::{EventBus, ServerEvent},
+    mounting::Volume,
     path::TraversalConfig,
 };
 use common_base::prof_span;
@@ -69,6 +70,7 @@ impl<'a> System<'a> for Sys {
             read_data.rtsim_entities.maybe(),
             !&read_data.is_mounts,
             read_data.is_riders.maybe(),
+            read_data.is_volume_riders.maybe(),
         )
             .par_join()
             .for_each_init(
@@ -93,6 +95,7 @@ impl<'a> System<'a> for Sys {
                     rtsim_entity,
                     _,
                     is_rider,
+                    is_volume_rider,
                 )| {
                     let mut event_emitter = event_bus.emitter();
                     let mut rng = thread_rng();
@@ -103,6 +106,16 @@ impl<'a> System<'a> for Sys {
                             read_data
                                 .uid_allocator
                                 .retrieve_entity_internal(is_rider.mount.into())
+                        })
+                        .or_else(|| {
+                            is_volume_rider.and_then(|is_volume_rider| {
+                                match is_volume_rider.pos.kind {
+                                    Volume::Terrain => None,
+                                    Volume::Entity(uid) => {
+                                        read_data.uid_allocator.retrieve_entity_internal(uid.into())
+                                    },
+                                }
+                            })
                         })
                         .unwrap_or(entity);
 

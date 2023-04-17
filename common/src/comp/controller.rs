@@ -9,6 +9,7 @@ use crate::{
         invite::{InviteKind, InviteResponse},
         BuffKind,
     },
+    mounting::VolumePos,
     trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
@@ -28,7 +29,7 @@ pub enum InventoryEvent {
     Sort,
     CraftRecipe {
         craft_event: CraftEvent,
-        craft_sprite: Option<Vec3<i32>>,
+        craft_sprite: Option<VolumePos>,
     },
 }
 
@@ -57,7 +58,7 @@ pub enum InventoryManip {
     Sort,
     CraftRecipe {
         craft_event: CraftEvent,
-        craft_sprite: Option<Vec3<i32>>,
+        craft_sprite: Option<VolumePos>,
     },
     SwapEquippedWeapons,
 }
@@ -143,6 +144,7 @@ pub enum ControlEvent {
     InviteResponse(InviteResponse),
     PerformTradeAction(TradeId, TradeAction),
     Mount(Uid),
+    MountVolume(VolumePos),
     Unmount,
     InventoryEvent(InventoryEvent),
     GroupManip(GroupManip),
@@ -165,7 +167,6 @@ pub enum ControlAction {
     GlideWield,
     Unwield,
     Sit,
-    MountSprite(Vec3<i32>),
     Dance,
     Sneak,
     Stand,

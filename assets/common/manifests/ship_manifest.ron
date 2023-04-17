@@ -19,6 +19,9 @@
 
         custom_indices: {
             1: Air(ChairSingle, 4),
+            2: Air(Helm, 0),
+            3: Air(Door, 4),
+            8: Air(Door, 0),
         },
     ),
     AirBalloon: (

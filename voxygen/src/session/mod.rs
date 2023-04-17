@@ -25,7 +25,7 @@ use common::{
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
     link::Is,
-    mounting::Mount,
+    mounting::{Mount, VolumePos},
     outcome::Outcome,
     recipe,
     terrain::{Block, BlockKind},
@@ -350,7 +350,8 @@ impl SessionState {
                         match inv_event {
                             InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
                                 self.hud.add_failed_block_pickup(
-                                    pos,
+                                    // TODO: Support volumes.
+                                    VolumePos::terrain(pos),
                                     HudCollectFailedReason::from_server_reason(
                                         &reason,
                                         client.state().ecs(),
@@ -887,14 +888,12 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 if client.is_riding() {
                                     client.unmount();
-                                } else if client.stand_if_mounted() {
                                 } else {
                                     if let Some(interactable) = &self.interactable {
                                         match interactable {
                                             Interactable::Block(_, pos, interaction) => {
-                                                if matches!(interaction, BlockInteraction::Mount(_))
-                                                {
-                                                    client.mount_sprite(*pos)
+                                                if matches!(interaction, BlockInteraction::Mount) {
+                                                    client.mount_volume(*pos)
                                                 }
                                             },
                                             Interactable::Entity(entity) => client.mount(*entity),
@@ -941,18 +940,25 @@ impl PlayState for SessionState {
                                                     BlockInteraction::Collect
                                                     | BlockInteraction::Unlock(_) => {
                                                         if block.is_collectible() {
-                                                            client.collect_block(*pos);
+                                                            match pos.kind {
+                                                                common::mounting::Volume::Terrain => {
+                                                                    client.collect_block(pos.pos);
+                                                                }
+                                                                common::mounting::Volume::Entity(_) => todo!(),
+                                                            }
                                                         }
                                                     },
                                                     BlockInteraction::Craft(tab) => {
                                                         self.hud.show.open_crafting_tab(
                                                             *tab,
-                                                            block.get_sprite().map(|s| (*pos, s)),
+                                                            block
+                                                                .get_sprite()
+                                                                .map(|s| (*pos, s)),
                                                         )
                                                     },
-                                                    BlockInteraction::Mount(_) => {
+                                                    BlockInteraction::Mount => {
                                                         if block.is_mountable() {
-                                                            client.mount_sprite(*pos);
+                                                            client.mount_volume(*pos)
                                                         }
                                                     },
                                                     BlockInteraction::Mine(_) => {},

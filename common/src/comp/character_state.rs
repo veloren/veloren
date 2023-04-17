@@ -130,8 +130,6 @@ pub enum CharacterState {
     /// Handles logic for interacting with a sprite, e.g. using a chest or
     /// picking a plant
     SpriteInteract(sprite_interact::Data),
-    // Mounted to a sprite
-    MountSprite(mount_sprite::Data),
     /// Runs on the wall
     Wallrun(wallrun::Data),
     /// Ice skating or skiing
@@ -472,7 +470,6 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => data.behavior(j, output_events),
             CharacterState::UseItem(data) => data.behavior(j, output_events),
             CharacterState::SpriteInteract(data) => data.behavior(j, output_events),
-            CharacterState::MountSprite(data) => data.behavior(j, output_events),
             CharacterState::Skate(data) => data.behavior(j, output_events),
             CharacterState::Music(data) => data.behavior(j, output_events),
             CharacterState::FinisherMelee(data) => data.behavior(j, output_events),
@@ -527,7 +524,6 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => data.handle_event(j, output_events, action),
             CharacterState::UseItem(data) => data.handle_event(j, output_events, action),
             CharacterState::SpriteInteract(data) => data.handle_event(j, output_events, action),
-            CharacterState::MountSprite(data) => data.handle_event(j, output_events, action),
             CharacterState::Skate(data) => data.handle_event(j, output_events, action),
             CharacterState::Music(data) => data.handle_event(j, output_events, action),
             CharacterState::FinisherMelee(data) => data.handle_event(j, output_events, action),
@@ -582,7 +578,6 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
             CharacterState::UseItem(_) => None,
             CharacterState::SpriteInteract(_) => None,
-            CharacterState::MountSprite(_) => None,
             CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Music(data) => Some(data.static_data.ability_info),
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
@@ -628,7 +623,6 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => Some(data.stage_section),
             CharacterState::UseItem(data) => Some(data.stage_section),
             CharacterState::SpriteInteract(data) => Some(data.stage_section),
-            CharacterState::MountSprite(_) => None,
             CharacterState::FinisherMelee(data) => Some(data.stage_section),
             CharacterState::Music(data) => Some(data.stage_section),
             CharacterState::DiveMelee(data) => Some(data.stage_section),
@@ -800,7 +794,6 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
-            CharacterState::MountSprite(_) => None,
             CharacterState::FinisherMelee(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
                 action: Some(data.static_data.swing_duration),
@@ -869,7 +862,6 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => Some(data.timer),
             CharacterState::UseItem(data) => Some(data.timer),
             CharacterState::SpriteInteract(data) => Some(data.timer),
-            CharacterState::MountSprite(_) => None,
             CharacterState::FinisherMelee(data) => Some(data.timer),
             CharacterState::Music(data) => Some(data.timer),
             CharacterState::DiveMelee(data) => Some(data.timer),
@@ -889,7 +881,6 @@ impl CharacterState {
             CharacterState::GlideWield(_) => None,
             CharacterState::Stunned(_) => None,
             CharacterState::Sit => None,
-            CharacterState::MountSprite(_) => None,
             CharacterState::Dance => None,
             CharacterState::BasicBlock(_) => None,
             CharacterState::Roll(_) => None,

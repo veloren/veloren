@@ -107,7 +107,7 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
-    mounting::Mount,
+    mounting::{Mount, VolumePos},
     outcome::Outcome,
     resources::{Secs, Time},
     slowjob::SlowJobPool,
@@ -710,27 +710,27 @@ pub enum Event {
 
     CraftRecipe {
         recipe_name: String,
-        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+        craft_sprite: Option<(VolumePos, SpriteKind)>,
         amount: u32,
     },
     SalvageItem {
         slot: InvSlotId,
-        salvage_pos: Vec3<i32>,
+        salvage_pos: VolumePos,
     },
     CraftModularWeapon {
         primary_slot: InvSlotId,
         secondary_slot: InvSlotId,
-        craft_sprite: Option<Vec3<i32>>,
+        craft_sprite: Option<VolumePos>,
     },
     CraftModularWeaponComponent {
         toolkind: ToolKind,
         material: InvSlotId,
         modifier: Option<InvSlotId>,
-        craft_sprite: Option<Vec3<i32>>,
+        craft_sprite: Option<VolumePos>,
     },
     RepairItem {
         item: Slot,
-        sprite_pos: Vec3<i32>,
+        sprite_pos: VolumePos,
     },
     InviteMember(Uid),
     AcceptInvite,
@@ -995,7 +995,7 @@ impl Show {
     pub fn open_crafting_tab(
         &mut self,
         tab: CraftingTab,
-        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+        craft_sprite: Option<(VolumePos, SpriteKind)>,
     ) {
         self.selected_crafting_tab(tab);
         self.crafting(true);
@@ -1289,7 +1289,7 @@ pub struct Hud {
     item_imgs: ItemImgs,
     fonts: Fonts,
     rot_imgs: ImgsRot,
-    failed_block_pickups: HashMap<Vec3<i32>, CollectFailedData>,
+    failed_block_pickups: HashMap<VolumePos, CollectFailedData>,
     failed_entity_pickups: HashMap<EcsEntity, CollectFailedData>,
     new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
@@ -2040,7 +2040,8 @@ impl Hud {
             }
 
             // Render overtime for an interactable block
-            if let Some(Interactable::Block(block, pos, interaction)) = interactable {
+            if let Some(Interactable::Block(block, pos, interaction)) = interactable 
+                && let Some((mat, _)) = pos.get_block_and_transform(&ecs.read_resource(), &ecs.read_resource(), &ecs.read_storage(), &ecs.read_storage(), &ecs.read_storage()) {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
@@ -2050,7 +2051,8 @@ impl Hud {
                     active: true,
                     pickup_failed_pulse: self.failed_block_pickups.get(pos).cloned(),
                 };
-                let pos = pos.map(|e| e as f32 + 0.5);
+
+                let pos = mat.mul_point(Vec3::broadcast(0.5));
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
                 let interaction_text = || match interaction {
@@ -2107,10 +2109,9 @@ impl Hud {
                             }
                         }
                     },
-                    BlockInteraction::Mount(_) => vec![(
-                        Some(GameInput::Interact),
-                        i18n.get_msg("hud-sit").to_string(),
-                    )],
+                    BlockInteraction::Mount => {
+                        vec![(Some(GameInput::Mount), i18n.get_msg("hud-sit").to_string())]
+                    },
                 };
 
                 // This is only done once per frame, so it's not a performance issue
@@ -4349,7 +4350,7 @@ impl Hud {
         }
     }
 
-    pub fn add_failed_block_pickup(&mut self, pos: Vec3<i32>, reason: HudCollectFailedReason) {
+    pub fn add_failed_block_pickup(&mut self, pos: VolumePos, reason: HudCollectFailedReason) {
         self.failed_block_pickups
             .insert(pos, CollectFailedData::new(self.pulse, reason));
     }
@@ -4730,16 +4731,31 @@ impl Hud {
                 .handle_event(conrod_core::event::Input::Text("\t".to_string()));
         }
 
-        // Stop selecting a sprite to perform crafting with when out of range
+        // Stop selecting a sprite to perform crafting with when out of range or sprite
+        // has been removed
         self.show.crafting_fields.craft_sprite =
-            self.show.crafting_fields.craft_sprite.filter(|(pos, _)| {
-                self.show.crafting
-                    && if let Some(player_pos) = client.position() {
-                        pos.map(|e| e as f32 + 0.5).distance(player_pos) < MAX_PICKUP_RANGE
-                    } else {
-                        false
-                    }
-            });
+            self.show
+                .crafting_fields
+                .craft_sprite
+                .filter(|(pos, sprite)| {
+                    self.show.crafting
+                        && if let Some(player_pos) = client.position() {
+                            pos.get_block_and_transform(
+                                &client.state().terrain(),
+                                &client.state().ecs().read_resource(),
+                                &client.state().read_storage(),
+                                &client.state().read_storage(),
+                                &client.state().read_storage(),
+                            )
+                            .map_or(false, |(mat, block)| {
+                                block.get_sprite() == Some(*sprite)
+                                    && mat.mul_point(Vec3::broadcast(0.5)).distance(player_pos)
+                                        < MAX_PICKUP_RANGE
+                            })
+                        } else {
+                            false
+                        }
+                });
 
         // Optimization: skip maintaining UI when it's off.
         if !self.show.ui {

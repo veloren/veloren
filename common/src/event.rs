@@ -8,6 +8,7 @@ use crate::{
         DisconnectReason, Ori, Pos,
     },
     lottery::LootSpec,
+    mounting::VolumePos,
     outcome::Outcome,
     rtsim::{RtSimEntity, RtSimVehicle},
     terrain::SpriteKind,
@@ -195,6 +196,7 @@ pub enum ServerEvent {
     InitiateInvite(EcsEntity, Uid, InviteKind),
     ProcessTradeAction(EcsEntity, TradeId, TradeAction),
     Mount(EcsEntity, EcsEntity),
+    MountVolume(EcsEntity, VolumePos),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
     /// Inserts default components for a character when loading into the game

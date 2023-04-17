@@ -1,11 +1,18 @@
 use crate::{
-    comp,
+    comp::{self, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     link::{Is, Link, LinkHandle, Role},
-    terrain::TerrainGrid,
+    terrain::{Block, TerrainGrid},
     uid::{Uid, UidAllocator},
+    vol::ReadVol,
 };
+use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
-use specs::{saveload::MarkerAllocator, Entities, Read, ReadExpect, ReadStorage, WriteStorage};
+use specs::{
+    saveload::MarkerAllocator,
+    storage::{GenericWriteStorage, MaskedStorage},
+    Component, DenseVecStorage, Entities, Read, ReadExpect, ReadStorage, Storage, Write,
+    WriteStorage,
+};
 use vek::*;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -39,6 +46,7 @@ impl Link for Mounting {
         Read<'a, UidAllocator>,
         WriteStorage<'a, Is<Mount>>,
         WriteStorage<'a, Is<Rider>>,
+        ReadStorage<'a, Is<VolumeRider>>,
     );
     type DeleteData<'a> = (
         Read<'a, UidAllocator>,
@@ -59,7 +67,7 @@ impl Link for Mounting {
 
     fn create(
         this: &LinkHandle<Self>,
-        (uid_allocator, mut is_mounts, mut is_riders): Self::CreateData<'_>,
+        (uid_allocator, mut is_mounts, mut is_riders, is_volume_rider): Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -67,8 +75,11 @@ impl Link for Mounting {
             // Forbid self-mounting
             Err(MountingError::NotMountable)
         } else if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
-            let can_mount_with =
-                |entity| is_mounts.get(entity).is_none() && is_riders.get(entity).is_none();
+            let can_mount_with = |entity| {
+                !is_mounts.contains(entity)
+                    && !is_riders.contains(entity)
+                    && !is_volume_rider.contains(entity)
+            };
 
             // Ensure that neither mount or rider are already part of a mounting
             // relationship
@@ -143,5 +154,259 @@ impl Link for Mounting {
                     force_update.update();
                 }
             });
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct VolumeRider;
+
+impl Role for VolumeRider {
+    type Link = VolumeMounting;
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub enum Volume {
+    Terrain,
+    Entity(Uid),
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub struct VolumePos {
+    pub kind: Volume,
+    pub pos: Vec3<i32>,
+}
+
+impl VolumePos {
+    pub fn terrain(block_pos: Vec3<i32>) -> Self {
+        Self {
+            kind: Volume::Terrain,
+            pos: block_pos,
+        }
+    }
+
+    pub fn entity(block_pos: Vec3<i32>, uid: Uid) -> Self {
+        Self {
+            kind: Volume::Entity(uid),
+            pos: block_pos,
+        }
+    }
+}
+
+impl VolumePos {
+    pub fn get_block_and_transform(
+        &self,
+        terrain: &TerrainGrid,
+        uid_allocator: &UidAllocator,
+        positions: &Storage<comp::Pos, impl std::ops::Deref<Target = MaskedStorage<comp::Pos>>>,
+        orientations: &Storage<comp::Ori, impl std::ops::Deref<Target = MaskedStorage<comp::Ori>>>,
+        colliders: &ReadStorage<comp::Collider>,
+    ) -> Option<(Mat4<f32>, Block)> {
+        match self.kind {
+            Volume::Terrain => Some((
+                Mat4::translation_3d(self.pos.as_()),
+                *terrain.get(self.pos).ok()?,
+            )),
+            Volume::Entity(uid) => {
+                uid_allocator
+                    .retrieve_entity_internal(uid.0)
+                    .and_then(|entity| {
+                        let collider = colliders.get(entity)?;
+                        let pos = positions.get(entity)?;
+                        let ori = orientations.get(entity)?;
+
+                        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+                        let voxel_collider = collider.get_vol(&voxel_colliders_manifest)?;
+
+                        let block = *voxel_collider.volume().get(self.pos).ok()?;
+
+                        let local_translation = voxel_collider.translation + self.pos.as_();
+
+                        let trans = Mat4::from(ori.to_quat()).translated_3d(pos.0)
+                            * Mat4::<f32>::translation_3d(local_translation);
+
+                        Some((trans, block))
+                    })
+            },
+        }
+    }
+
+    pub fn get_block(
+        &self,
+        terrain: &TerrainGrid,
+        uid_allocator: &UidAllocator,
+        colliders: &ReadStorage<comp::Collider>,
+    ) -> Option<Block> {
+        match self.kind {
+            Volume::Terrain => Some(*terrain.get(self.pos).ok()?),
+            Volume::Entity(uid) => {
+                uid_allocator
+                    .retrieve_entity_internal(uid.0)
+                    .and_then(|entity| {
+                        let collider = colliders.get(entity)?;
+
+                        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+                        let voxel_collider = collider.get_vol(&voxel_colliders_manifest)?;
+
+                        let block = *voxel_collider.volume().get(self.pos).ok()?;
+
+                        Some(block)
+                    })
+            },
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct VolumeRiders {
+    riders: HashSet<Vec3<i32>>,
+}
+
+impl Component for VolumeRiders {
+    type Storage = DenseVecStorage<Self>;
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct VolumeMounting {
+    pub pos: VolumePos,
+    pub block: Block,
+    pub rider: Uid,
+}
+
+impl Link for VolumeMounting {
+    type CreateData<'a> = (
+        Write<'a, VolumeRiders>,
+        WriteStorage<'a, VolumeRiders>,
+        WriteStorage<'a, Is<VolumeRider>>,
+        ReadStorage<'a, Is<Rider>>,
+        ReadStorage<'a, Is<Mount>>,
+        ReadExpect<'a, TerrainGrid>,
+        Read<'a, UidAllocator>,
+        ReadStorage<'a, comp::Collider>,
+    );
+    type DeleteData<'a> = (
+        Write<'a, VolumeRiders>,
+        WriteStorage<'a, VolumeRiders>,
+        WriteStorage<'a, Is<VolumeRider>>,
+        Read<'a, UidAllocator>,
+    );
+    type Error = MountingError;
+    type PersistData<'a> = (
+        Entities<'a>,
+        ReadStorage<'a, comp::Health>,
+        Read<'a, VolumeRiders>,
+        ReadStorage<'a, VolumeRiders>,
+        ReadStorage<'a, Is<VolumeRider>>,
+        ReadExpect<'a, TerrainGrid>,
+        Read<'a, UidAllocator>,
+        ReadStorage<'a, comp::Collider>,
+    );
+
+    fn create(
+        this: &LinkHandle<Self>,
+        (
+            mut terrain_riders,
+            mut volume_riders,
+            mut is_volume_riders,
+            is_riders,
+            is_mounts,
+            terrain_grid,
+            uid_allocator,
+            colliders,
+        ): Self::CreateData<'_>,
+    ) -> Result<(), Self::Error> {
+        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+
+        let riders = match this.pos.kind {
+            Volume::Terrain => &mut *terrain_riders,
+            Volume::Entity(uid) => entity(uid)
+                .and_then(|entity| volume_riders.get_mut_or_default(entity))
+                .ok_or(MountingError::NoSuchEntity)?,
+        };
+        let rider = entity(this.rider).ok_or(MountingError::NoSuchEntity)?;
+
+        if !riders.riders.contains(&this.pos.pos)
+            && !is_volume_riders.contains(rider)
+            && !is_volume_riders.contains(rider)
+            && !is_riders.contains(rider)
+            && !is_mounts.contains(rider)
+        {
+            let block = this
+                .pos
+                .get_block(&terrain_grid, &uid_allocator, &colliders)
+                .ok_or(MountingError::NoSuchEntity)?;
+
+            if block == this.block {
+                let _ = is_volume_riders.insert(rider, this.make_role());
+                riders.riders.insert(this.pos.pos);
+                Ok(())
+            } else {
+                Err(MountingError::NotMountable)
+            }
+        } else {
+            Err(MountingError::NotMountable)
+        }
+    }
+
+    fn persist(
+        this: &LinkHandle<Self>,
+        (
+            entities,
+            healths,
+            terrain_riders,
+            volume_riders,
+            is_volume_riders,
+            terrain_grid,
+            uid_allocator,
+            colliders,
+        ): Self::PersistData<'_>,
+    ) -> bool {
+        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+        let is_alive =
+            |entity| entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead);
+        let riders = match this.pos.kind {
+            Volume::Terrain => &*terrain_riders,
+            Volume::Entity(uid) => {
+                let Some(riders) = entity(uid)
+                .filter(|entity| is_alive(*entity))
+                .and_then(|entity| volume_riders.get(entity)) else {
+                    return false;
+                };
+                riders
+            },
+        };
+
+        let rider_exists = entity(this.rider).map_or(false, |rider| {
+            is_volume_riders.contains(rider) && is_alive(rider)
+        });
+        let mount_spot_exists = riders.riders.contains(&this.pos.pos);
+
+        let block_exists = this
+            .pos
+            .get_block(&terrain_grid, &uid_allocator, &colliders)
+            .map_or(false, |block| block == this.block);
+
+        rider_exists && mount_spot_exists && block_exists
+    }
+
+    fn delete(
+        this: &LinkHandle<Self>,
+        (mut terrain_riders, mut volume_riders, mut is_rider, uid_allocator): Self::DeleteData<'_>,
+    ) {
+        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+
+        let riders = match this.pos.kind {
+            Volume::Terrain => Some(&mut *terrain_riders),
+            Volume::Entity(uid) => {
+                entity(uid).and_then(|entity| volume_riders.get_mut_or_default(entity))
+            },
+        };
+
+        if let Some(riders) = riders {
+            riders.riders.remove(&this.pos.pos);
+        }
+
+        if let Some(entity) = entity(this.rider) {
+            is_rider.remove(entity);
+        }
     }
 }

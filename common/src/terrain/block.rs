@@ -428,7 +428,16 @@ impl Block {
     }
 
     #[inline]
-    pub fn is_mountable(&self) -> bool { self.get_sprite().map_or(false, |s| s.is_mountable()) }
+    pub fn is_mountable(&self) -> bool { self.mount_offset().is_some() }
+
+    /// Get the position and direction to mount this block if any.
+    pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
+        self.get_sprite().and_then(|sprite| sprite.mount_offset())
+    }
+
+    pub fn is_controller(&self) -> bool {
+        self.get_sprite().map_or(false, |sprite| sprite.is_controller())
+    }
 
     #[inline]
     pub fn is_bonkable(&self) -> bool {

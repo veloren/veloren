@@ -22,7 +22,6 @@ pub mod glide_wield;
 pub mod idle;
 pub mod leap_melee;
 pub mod leap_shockwave;
-pub mod mount_sprite;
 pub mod music;
 pub mod rapid_melee;
 pub mod repeater_ranged;

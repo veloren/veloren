@@ -14,7 +14,7 @@ use common::{
     },
     event::{EventBus, LocalEvent, ServerEvent},
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     outcome::Outcome,
     resources::{DeltaTime, Time},
     states::{
@@ -43,6 +43,7 @@ pub struct ReadData<'a> {
     beams: ReadStorage<'a, Beam>,
     uids: ReadStorage<'a, Uid>,
     is_riders: ReadStorage<'a, Is<Rider>>,
+    is_volume_riders: ReadStorage<'a, Is<VolumeRider>>,
     stats: ReadStorage<'a, Stats>,
     skill_sets: ReadStorage<'a, SkillSet>,
     active_abilities: ReadStorage<'a, ActiveAbilities>,
@@ -207,6 +208,7 @@ impl<'a> System<'a> for Sys {
                 alignment: read_data.alignments.get(entity),
                 terrain: &read_data.terrain,
                 mount_data: read_data.is_riders.get(entity),
+                volume_mount_data: read_data.is_volume_riders.get(entity),
                 stance: read_data.stances.get(entity),
             };
 

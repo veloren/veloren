@@ -9,7 +9,7 @@ use crate::{
         Stats, Vel,
     },
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
     uid::Uid,
@@ -59,14 +59,6 @@ pub trait CharacterBehavior {
     fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
-    fn mount_sprite(
-        &self,
-        data: &JoinData,
-        _output_events: &mut OutputEvents,
-        _pos: Vec3<i32>,
-    ) -> StateUpdate {
-        StateUpdate::from(data)
-    }
     // start_input has custom implementation in the following character states that
     // may also need to be modified when changes are made here: ComboMelee2
     fn start_input(
@@ -105,7 +97,7 @@ pub trait CharacterBehavior {
             ControlAction::Sit => self.sit(data, output_events),
             ControlAction::Dance => self.dance(data, output_events),
             ControlAction::Sneak => {
-                if data.mount_data.is_none() {
+                if data.mount_data.is_none() && data.volume_mount_data.is_none() {
                     self.sneak(data, output_events)
                 } else {
                     self.stand(data, output_events)
@@ -119,7 +111,6 @@ pub trait CharacterBehavior {
                 select_pos,
             } => self.start_input(data, input, target_entity, select_pos),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
-            ControlAction::MountSprite(pos) => self.mount_sprite(data, output_events, pos),
         }
     }
 }
@@ -156,6 +147,7 @@ pub struct JoinData<'a> {
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
+    pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
 }
 
@@ -185,6 +177,7 @@ pub struct JoinStruct<'a> {
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
+    pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
 }
 
@@ -228,6 +221,7 @@ impl<'a> JoinData<'a> {
             terrain: j.terrain,
             active_abilities: j.active_abilities,
             mount_data: j.mount_data,
+            volume_mount_data: j.volume_mount_data,
             stance: j.stance,
         }
     }

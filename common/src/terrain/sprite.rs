@@ -242,6 +242,7 @@ make_case_elim!(
         KeyDoor = 0xD8,
         CommonLockedChest = 0xD9,
         RepairBench = 0xDA,
+        Helm = 0xDB,
     }
 );
 
@@ -475,47 +476,40 @@ impl SpriteKind {
         matches!(self.collectible_id(), Some(Some(LootSpec::LootTable(_))))
     }
 
-    /// Is the sprite a container that will emit a mystery item?
+    /// Get the position and direction to mount this sprite if any.
     #[inline]
-    pub fn mount_offsets(&self) -> &'static [(Vec3<f32>, Vec3<f32>)] {
-        const UNIT_Y: Vec3<f32> = Vec3 {
-            x: 0.0,
-            y: -1.0,
-            z: 0.0,
-        };
+    pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
         match self {
-            SpriteKind::ChairSingle => &[(
+            SpriteKind::ChairSingle | SpriteKind::ChairDouble => Some((
                 Vec3 {
                     x: 0.0,
                     y: 0.0,
                     z: 0.5,
                 },
-                UNIT_Y,
-            )],
-            SpriteKind::ChairDouble => &[
-                (
-                    Vec3 {
-                        x: -0.5,
-                        y: 0.0,
-                        z: 0.6,
-                    },
-                    UNIT_Y,
-                ),
-                (
-                    Vec3 {
-                        x: 0.5,
-                        y: -0.1,
-                        z: 0.6,
-                    },
-                    UNIT_Y,
-                ),
-            ],
-            _ => &[],
+                -Vec3::unit_y(),
+            )),
+            SpriteKind::Helm => Some((
+                Vec3 {
+                    x: 0.0,
+                    y: -0.6,
+                    z: 0.2,
+                },
+                Vec3::unit_y(),
+            )),
+            _ => None,
         }
     }
 
     #[inline]
-    pub fn is_mountable(&self) -> bool { !self.mount_offsets().is_empty() }
+    pub fn is_mountable(&self) -> bool { self.mount_offset().is_some() }
+
+    #[inline]
+    pub fn is_controller(&self) -> bool {
+        match self {
+            SpriteKind::Helm => true,
+            _ => false,
+        }
+    }
 
     /// Which tool (if any) is needed to collect this sprite?
     #[inline]
@@ -646,6 +640,7 @@ impl SpriteKind {
                 | SpriteKind::Grave
                 | SpriteKind::Gravestone
                 | SpriteKind::MagicalBarrier
+                | SpriteKind::Helm,
         )
     }
 }

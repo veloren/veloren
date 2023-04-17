@@ -1,5 +1,7 @@
 use crate::{
-    events::interaction::handle_tame_pet, persistence::PersistedComponents, state_ext::StateExt,
+    events::interaction::{handle_mount_volume, handle_tame_pet},
+    persistence::PersistedComponents,
+    state_ext::StateExt,
     Server,
 };
 use common::event::{EventBus, ServerEvent, ServerEventDiscriminants};
@@ -136,6 +138,9 @@ impl Server {
                     handle_process_trade_action(self, entity, trade_id, action);
                 },
                 ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
+                ServerEvent::MountVolume(mounter, volume) => {
+                    handle_mount_volume(self, mounter, volume)
+                },
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
                     handle_possess(self, possessor_uid, possesse_uid)

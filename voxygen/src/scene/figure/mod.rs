@@ -43,7 +43,7 @@ use common::{
         Scale, SkillSet, Stance, Vel,
     },
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
     terrain::{Block, TerrainChunk, TerrainGrid},
@@ -830,7 +830,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
-                (is_rider, collider, stance, skillset),
+                (is_rider, is_volume_rider, collider, stance, skillset),
             ),
         ) in (
             &ecs.entities(),
@@ -850,6 +850,7 @@ impl FigureMgr {
             ecs.read_storage::<LightEmitter>().maybe(),
             (
                 ecs.read_storage::<Is<Rider>>().maybe(),
+                ecs.read_storage::<Is<VolumeRider>>().maybe(),
                 ecs.read_storage::<Collider>().maybe(),
                 ecs.read_storage::<Stance>().maybe(),
                 ecs.read_storage::<SkillSet>().maybe(),
@@ -1029,11 +1030,15 @@ impl FigureMgr {
 
             // If a mount exists, get its animated mounting transform and its position
             let mount_transform_pos = (|| -> Option<_> {
-                let mount = is_rider?.mount;
-                let mount = uid_allocator.retrieve_entity_internal(mount.into())?;
-                let body = *bodies.get(mount)?;
-                let meta = self.states.get_mut(&body, &mount)?;
-                Some((meta.mount_transform, meta.mount_world_pos))
+                if let Some(is_rider) = is_rider {
+                    let mount = is_rider.mount;
+                    let mount = uid_allocator.retrieve_entity_internal(mount.into())?;
+                    let body = *bodies.get(mount)?;
+                    let meta = self.states.get_mut(&body, &mount)?;
+                    Some((meta.mount_transform, meta.mount_world_pos))
+                } else {
+                    None
+                }
             })();
 
             let body = *body;
@@ -1111,7 +1116,7 @@ impl FigureMgr {
                         physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > 0.01, // Moving
                         physics.in_liquid().is_some(),      // In water
-                        is_rider.is_some(),
+                        is_rider.is_some() || is_volume_rider.is_some(),
                         physics.skating_active,
                     ) {
                         // Standing or Skating
@@ -2059,7 +2064,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Sit { .. } | CharacterState::MountSprite(_) => {
+                        CharacterState::Sit { .. } => {
                             anim::character::SitAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, second_tool_kind, time),
@@ -6099,7 +6104,7 @@ impl FigureMgr {
                                 pos.0.into(),
                                 ori.into_vec4().into(),
                                 vk,
-                                Arc::clone(vol),
+                                Arc::clone(&vol),
                                 tick,
                                 &slow_jobs,
                                 terrain,

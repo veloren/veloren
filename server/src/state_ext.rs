@@ -23,7 +23,7 @@ use common::{
     },
     effect::Effect,
     link::{Link, LinkHandle},
-    mounting::Mounting,
+    mounting::{Mounting, VolumeMounting},
     resources::{Secs, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
@@ -1099,6 +1099,7 @@ impl StateExt for State {
         }
 
         maintain_link::<Mounting>(self);
+        maintain_link::<VolumeMounting>(self);
     }
 
     fn delete_entity_recorded(

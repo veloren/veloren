@@ -14,10 +14,10 @@ use common::{
         tool::{AbilityMap, ToolKind},
         Inventory, LootOwner, Pos, SkillGroupKind,
     },
-    consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
+    consts::{MAX_MOUNT_RANGE, MAX_SPRITE_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     event::EventBus,
     link::Is,
-    mounting::{Mount, Mounting, Rider},
+    mounting::{Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
     outcome::Outcome,
     terrain::{Block, SpriteKind},
     uid::Uid,
@@ -103,46 +103,70 @@ pub fn handle_npc_interaction(
 pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
     let state = server.state_mut();
 
-    if state.ecs().read_storage::<Is<Rider>>().get(rider).is_none() {
-        let not_mounting_yet = state.ecs().read_storage::<Is<Mount>>().get(mount).is_none();
+    let within_range = {
+        let positions = state.ecs().read_storage::<Pos>();
+        within_mounting_range(positions.get(rider), positions.get(mount))
+    };
 
-        let within_range = || {
-            let positions = state.ecs().read_storage::<Pos>();
-            within_mounting_range(positions.get(rider), positions.get(mount))
-        };
-        let healths = state.ecs().read_storage::<comp::Health>();
-        let alive = |e| healths.get(e).map_or(true, |h| !h.is_dead);
-
-        if not_mounting_yet && within_range() && alive(rider) && alive(mount) {
-            let uids = state.ecs().read_storage::<Uid>();
-            if let (Some(rider_uid), Some(mount_uid)) =
-                (uids.get(rider).copied(), uids.get(mount).copied())
-            {
-                let is_pet = matches!(
-                    state
-                        .ecs()
-                        .read_storage::<comp::Alignment>()
-                        .get(mount),
-                    Some(comp::Alignment::Owned(owner)) if *owner == rider_uid,
-                );
-
-                let can_ride = state
+    if within_range {
+        let uids = state.ecs().read_storage::<Uid>();
+        if let (Some(rider_uid), Some(mount_uid)) =
+            (uids.get(rider).copied(), uids.get(mount).copied())
+        {
+            let is_pet = matches!(
+                state
                     .ecs()
-                    .read_storage()
-                    .get(mount)
-                    .map_or(false, |mount_body| {
-                        is_mountable(mount_body, state.ecs().read_storage().get(rider))
-                    });
+                    .read_storage::<comp::Alignment>()
+                    .get(mount),
+                Some(comp::Alignment::Owned(owner)) if *owner == rider_uid,
+            );
 
-                if is_pet && can_ride {
-                    drop(uids);
-                    drop(healths);
-                    let _ = state.link(Mounting {
-                        mount: mount_uid,
-                        rider: rider_uid,
-                    });
-                }
+            let can_ride = state
+                .ecs()
+                .read_storage()
+                .get(mount)
+                .map_or(false, |mount_body| {
+                    is_mountable(mount_body, state.ecs().read_storage().get(rider))
+                });
+
+            if is_pet && can_ride {
+                drop(uids);
+                let _ = state.link(Mounting {
+                    mount: mount_uid,
+                    rider: rider_uid,
+                });
             }
+        }
+    }
+}
+
+pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: VolumePos) {
+    let state = server.state_mut();
+
+    let block_transform = volume_pos.get_block_and_transform(
+        &state.ecs().read_resource(),
+        &state.ecs().read_resource(),
+        &state.ecs().read_storage(),
+        &state.ecs().read_storage(),
+        &state.ecs().read_storage(),
+    );
+
+    if let Some((transform, block)) = block_transform
+    && let Some(mount_offset) = block.mount_offset() {
+        let mount_pos = (Mat4::from(transform) * mount_offset.0.with_w(1.0)).xyz();
+        let within_range = {
+            let positions = state.ecs().read_storage::<Pos>();
+            positions.get(rider).map_or(false, |pos| pos.0.distance_squared(mount_pos) < MAX_SPRITE_MOUNT_RANGE * MAX_SPRITE_MOUNT_RANGE)
+        };
+
+        let maybe_uid = state.ecs().read_storage::<Uid>().get(rider).copied();
+
+        if let Some(rider) = maybe_uid && within_range {
+            let _ = state.link(VolumeMounting {
+                pos: volume_pos,
+                block,
+                rider,
+            });
         }
     }
 }
@@ -150,6 +174,7 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
 pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
     state.ecs().write_storage::<Is<Rider>>().remove(rider);
+    state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);
 }
 
 fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&Pos>) -> bool {

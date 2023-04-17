@@ -2,16 +2,17 @@ use common::{
     comp::{
         ability::Stance,
         agent::{Sound, SoundKind},
-        Body, BuffChange, ControlEvent, Controller, Pos, Scale,
+        Body, BuffChange, Collider, ControlEvent, Controller, Pos, Scale,
     },
     event::{EventBus, ServerEvent},
+    terrain::TerrainGrid,
     uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
-    Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
+    Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -20,9 +21,11 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     uid_allocator: Read<'a, UidAllocator>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
+    terrain_grid: ReadExpect<'a, TerrainGrid>,
     positions: ReadStorage<'a, Pos>,
     bodies: ReadStorage<'a, Body>,
     scales: ReadStorage<'a, Scale>,
+    colliders: ReadStorage<'a, Collider>,
 }
 
 #[derive(Default)]
@@ -51,6 +54,17 @@ impl<'a> System<'a> for Sys {
                             .retrieve_entity_internal(mountee_uid.id())
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
+                        }
+                    },
+                    ControlEvent::MountVolume(volume) => {
+                        if let Some(block) = volume.get_block(
+                            &read_data.terrain_grid,
+                            &read_data.uid_allocator,
+                            &read_data.colliders,
+                        ) {
+                            if block.is_mountable() {
+                                server_emitter.emit(ServerEvent::MountVolume(entity, volume));
+                            }
                         }
                     },
                     ControlEvent::RemoveBuff(buff_id) => {

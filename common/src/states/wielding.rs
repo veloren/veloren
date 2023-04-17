@@ -11,7 +11,6 @@ use crate::{
     },
 };
 use serde::{Deserialize, Serialize};
-use vek::Vec3;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Data {
@@ -91,12 +90,6 @@ impl CharacterBehavior for Data {
     fn sit(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_sit(data, &mut update);
-        update
-    }
-
-    fn mount_sprite(&self, data: &JoinData, _: &mut OutputEvents, pos: Vec3<i32>) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_mount_sprite(data, &mut update, pos);
         update
     }
 

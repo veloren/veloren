@@ -21,7 +21,7 @@ use common::{
     trade::Trades,
     uid::Uid,
     util::find_dist::{self, FindDist},
-    vol::ReadVol,
+    vol::ReadVol, mounting::VolumePos,
 };
 use common_net::sync::WorldSyncExt;
 use common_state::State;
@@ -745,27 +745,24 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let ability_map = &state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
 
-            let get_craft_sprite = |state, sprite_pos: Option<Vec3<i32>>| {
+            let get_craft_sprite = |state, sprite_pos: Option<VolumePos>| {
                 sprite_pos
                     .filter(|pos| {
                         let entity_cylinder = get_cylinder(state, entity);
                         let in_range = within_pickup_range(entity_cylinder, || {
-                            Some(find_dist::Cube {
-                                min: pos.as_(),
-                                side_length: 1.0,
-                            })
+                            pos.get_block_and_transform(&state.terrain(), &state.ecs().read_resource(), &state.read_storage(), &state.read_storage(), &state.read_storage()).map(|(transform, _)| transform.mul_point(Vec3::broadcast(0.5)))
                         });
                         if !in_range {
                             debug!(
                                 ?entity_cylinder,
                                 "Failed to craft recipe as not within range of required sprite, \
-                                 sprite pos: {}",
+                                 sprite pos: {:?}",
                                 pos
                             );
                         }
                         in_range
                     })
-                    .and_then(|pos| state.terrain().get(pos).ok().copied())
+                    .and_then(|pos| pos.get_block(&state.terrain(), &state.ecs().read_resource(), &state.read_storage()))
                     .and_then(|block| block.get_sprite())
             };
 
