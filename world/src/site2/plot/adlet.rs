@@ -468,10 +468,11 @@ impl Structure for AdletStronghold {
             })
         }));
         let yeti_sprites_fill = Fill::Sampling(Arc::new(|wpos| {
-            Some(match (RandomField::new(0).get(wpos)) % 60 {
-                0..=2 => Block::air(SpriteKind::Bones),
-                4..=5 => Block::air(SpriteKind::GlowIceCrystal),
-                6..=8 => Block::air(SpriteKind::IceCrystal),
+            Some(match (RandomField::new(0).get(wpos)) % 275 {
+                0..=8 => Block::air(SpriteKind::Bones),
+                9..=19 => Block::air(SpriteKind::GlowIceCrystal),
+                20..=28 => Block::air(SpriteKind::IceCrystal),
+                29..=30 => Block::air(SpriteKind::DungeonChest1),
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
@@ -945,7 +946,7 @@ impl Structure for AdletStronghold {
                                 SpriteKind::WallSconce,
                                 0_u8,
                             );
-                            let igloo_mobs = 2
+                            let igloo_mobs = 1
                                 + (RandomField::new(0)
                                     .get((igloo_pos - 1).with_z(alt as i32 - 5 + height_handle))
                                     % 2) as i32;
@@ -1300,10 +1301,10 @@ impl Structure for AdletStronghold {
                                     )
                                     .clear();
                             }
-                            let yetipit_mobs = 2
+                            let yetipit_mobs = 1
                                 + (RandomField::new(0)
                                     .get(yetipit_center.with_z(level - (3 * down) - 3))
-                                    % 4) as i32;
+                                    % 2) as i32;
                             for _ in 0..yetipit_mobs {
                                 let yetipit_mob_spawn =
                                     yetipit_center.with_z(level - (3 * down) - 3);
@@ -1611,7 +1612,7 @@ impl Structure for AdletStronghold {
                             .fill(hide_color.clone());
                     }
                     let tannery_mobs =
-                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                        1 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
                     for _ in 0..tannery_mobs {
                         let tannery_mob_spawn = wpos.with_z(alt as i32);
                         painter.spawn(random_adlet(tannery_mob_spawn.as_(), &mut rng));
@@ -1679,12 +1680,13 @@ impl Structure for AdletStronghold {
                         })
                         .fill(bone_fill.clone());
                     let cook_sprites = Fill::Sampling(Arc::new(|wpos| {
-                        Some(match (RandomField::new(0).get(wpos)) % 20 {
-                            0 => Block::air(SpriteKind::Pot),
-                            1 => Block::air(SpriteKind::Bowl),
-                            2 => Block::air(SpriteKind::Pot),
-                            3 => Block::air(SpriteKind::VialEmpty),
-                            4 => Block::air(SpriteKind::Lantern),
+                        Some(match (RandomField::new(0).get(wpos)) % 120 {
+                            0..=5 => Block::air(SpriteKind::Pot),
+                            6..=10 => Block::air(SpriteKind::Bowl),
+                            11..=15 => Block::air(SpriteKind::Pot),
+                            16..=20 => Block::air(SpriteKind::VialEmpty),
+                            21..=30 => Block::air(SpriteKind::Lantern),
+                            31..=32 => Block::air(SpriteKind::DungeonChest1),
                             _ => Block::air(SpriteKind::Empty),
                         })
                     }));
@@ -1708,7 +1710,7 @@ impl Structure for AdletStronghold {
                         .fill(bone_fill.clone());
                     painter.sprite(wpos.with_z(alt as i32 + 1), SpriteKind::FireBowlGround);
                     let cookfire_mobs =
-                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                        1 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
                     for _ in 0..cookfire_mobs {
                         let cookfire_mob_spawn = wpos.with_z(alt as i32);
                         painter.spawn(random_adlet(cookfire_mob_spawn.as_(), &mut rng));
@@ -1743,7 +1745,7 @@ impl Structure for AdletStronghold {
                         .fill(dirt_fill.clone());
                     painter.sprite(wpos.with_z(alt as i32) - 1, SpriteKind::FireBowlGround);
                     let rockhut_mobs =
-                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                        1 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
                     for _ in 0..rockhut_mobs {
                         let rockhut_mob_spawn = wpos.with_z(alt as i32);
                         painter.spawn(random_adlet(rockhut_mob_spawn.as_(), &mut rng));
@@ -1866,7 +1868,7 @@ impl Structure for AdletStronghold {
                     // FireBowl
                     painter.sprite(wpos.with_z(alt as i32), SpriteKind::FireBowlGround);
                     let bonehut_mobs =
-                        2 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
+                        1 + (RandomField::new(0).get(wpos.with_z(alt as i32)) % 2) as i32;
                     for _ in 0..bonehut_mobs {
                         let bonehut_mob_spawn = wpos.with_z(alt as i32);
                         painter.spawn(random_adlet(bonehut_mob_spawn.as_(), &mut rng));

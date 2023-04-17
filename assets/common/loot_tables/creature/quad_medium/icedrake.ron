@@ -1,0 +1,5 @@
+[
+    (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.icy_fang", 1, 2)),
+    (1.0, ItemQuantity("common.items.food.meat.tough_raw", 1, 2)),
+    (1.0, Item("common.items.crafting_ing.hide.carapace")),
+]

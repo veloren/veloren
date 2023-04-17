@@ -922,6 +922,7 @@
     Simple("common.items.log.wood"): "voxel.sprite.wood.item.wood",
     // Keys and Lockpicks
     Simple("common.items.keys.rusty_tower_key"): "voxel.object.key_rusty-0",
+    Simple("common.items.keys.bone_key"): "voxel.object.key_bone",
     Simple("common.items.utility.lockpick_0"): "voxel.object.lockpick",
     // Gliders
     Simple("common.items.glider.cloverleaf"): "voxel.glider.starter",
