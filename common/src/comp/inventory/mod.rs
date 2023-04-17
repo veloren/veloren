@@ -1,4 +1,5 @@
 use core::ops::Not;
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{cmp::Ordering, convert::TryFrom, mem, ops::Range};
@@ -9,7 +10,10 @@ use crate::{
     comp::{
         body::Body,
         inventory::{
-            item::{tool::AbilityMap, ItemDef, ItemKind, MaterialStatManifest, TagExampleInfo},
+            item::{
+                tool::AbilityMap, ItemDef, ItemDefinitionIdOwned, ItemKind, MaterialStatManifest,
+                TagExampleInfo,
+            },
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
@@ -575,6 +579,24 @@ impl Inventory {
         }
     }
 
+    fn slot_with_mutable_recently_unequipped_items(
+        &mut self,
+        inv_slot_id: InvSlotId,
+    ) -> (
+        Option<&InvSlot>,
+        &mut HashMap<ItemDefinitionIdOwned, (Time, u8)>,
+    ) {
+        match SlotId::from(inv_slot_id) {
+            SlotId::Inventory(slot_idx) => (
+                self.slots.get(slot_idx),
+                &mut self.loadout.recently_unequipped_items,
+            ),
+            SlotId::Loadout(loadout_slot_id) => self
+                .loadout
+                .inv_slot_with_mutable_recently_unequipped_items(loadout_slot_id),
+        }
+    }
+
     pub fn slot_mut(&mut self, inv_slot_id: InvSlotId) -> Option<&mut InvSlot> {
         match SlotId::from(inv_slot_id) {
             SlotId::Inventory(slot_idx) => self.slots.get_mut(slot_idx),
@@ -916,11 +938,11 @@ impl Inventory {
             .map(|(slot, _item)| slot)
             .collect::<Vec<_>>();
         slots.into_iter().for_each(|slot| {
-            let slot = if let Some(Some(item)) = self.slot(slot) {
-                if let Some((_unequip_time, count)) = self
-                    .loadout
-                    .recently_unequipped_items
-                    .get_mut(&item.item_definition_id().to_owned())
+            let slot = if let (Some(Some(item)), recently_unequipped_items) =
+                self.slot_with_mutable_recently_unequipped_items(slot)
+            {
+                if let Some((_unequip_time, count)) =
+                    recently_unequipped_items.get_mut(&item.item_definition_id())
                 {
                     if *count > 0 {
                         *count -= 1;

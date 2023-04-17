@@ -263,6 +263,22 @@ impl Loadout {
             .and_then(|item| item.slot(loadout_slot_id.slot_idx))
     }
 
+    pub(super) fn inv_slot_with_mutable_recently_unequipped_items(
+        &mut self,
+        loadout_slot_id: LoadoutSlotId,
+    ) -> (
+        Option<&InvSlot>,
+        &mut HashMap<ItemDefinitionIdOwned, (Time, u8)>,
+    ) {
+        (
+            self.slots
+                .get(loadout_slot_id.loadout_idx)
+                .and_then(|loadout_slot| loadout_slot.slot.as_ref())
+                .and_then(|item| item.slot(loadout_slot_id.slot_idx)),
+            &mut self.recently_unequipped_items,
+        )
+    }
+
     /// Returns the `InvSlot` for a given `LoadoutSlotId`
     pub(super) fn inv_slot_mut(&mut self, loadout_slot_id: LoadoutSlotId) -> Option<&mut InvSlot> {
         self.slots
