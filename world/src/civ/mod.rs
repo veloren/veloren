@@ -1345,13 +1345,6 @@ fn find_path(
             .filter_map(|p| p.map(|(node, cost)| (node, cost + 1.0)))
     };
     let satisfied = |l: &Vec2<i32>| *l == b;
-    let cluster = |l: &Vec2<i32>| {
-        let bx = l.x.div_euclid(16);
-        let by = l.y.div_euclid(16);
-        let x = l.x % 16;
-        let y = l.y % 16;
-        (Vec2::new(bx, by), (x + y * 16) as u8)
-    };
     // We use this hasher (FxHasher64) because
     // (1) we don't care about DDOS attacks (ruling out SipHash);
     // (2) we care about determinism across computers (ruling out AAHash);
@@ -1362,7 +1355,7 @@ fn find_path(
         BuildHasherDefault::<FxHasher64>::default(),
     );
     astar
-        .poll(MAX_PATH_ITERS, heuristic, neighbors, satisfied, cluster)
+        .poll(MAX_PATH_ITERS, heuristic, neighbors, satisfied)
         .into_path()
         .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }

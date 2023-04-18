@@ -78,32 +78,12 @@ struct NodeEntry<S> {
     cheapest_score: f32,
 }
 
-#[derive(Clone, Debug)]
-struct Cluster<S> {
-    // idea: if we store pointers to adjacent clusters we could avoid the hashmap entirely when
-    // accessing neighboring nodes, actually I'm not even sure what case we would need a hashmap
-    // for in this scenario if we store cluster pointer in the priority queue (or index to cluster
-    // pointer if saving space here is worth it)!
-    // TODO: we could use `(S, u8)` here?
-    // idea: if we bake in the gridness we could just store a direction (note: actually some things
-    // like bridges are not adjacent)
-    // idea: if we can gain something by making them smaller, we could allocate clusters in a Vec,
-    // this amoritizes allocation costs some, if we point to neighbors we would need to use
-    // indices although we could take advantage of that to make them smaller than pointer size
-    // (alternatively a bump allocator would work very well here)
-    // idea
-    came_from: [Option<S>; 256],
-    cheapest_score: [f32; 256],
-}
-
 #[derive(Clone)]
 pub struct Astar<S, Hasher> {
     iter: usize,
     max_iters: usize,
     potential_nodes: BinaryHeap<PathEntry<S>>, // cost, node pairs
     visited_nodes: HashMap<S, NodeEntry<S>, Hasher>,
-    clusters: HashMap<S, Box<Cluster<S>>, Hasher>,
-    start_node: S,
     cheapest_node: Option<S>,
     cheapest_cost: Option<f32>,
 }
@@ -126,13 +106,11 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
             visited_nodes: {
                 let mut s = HashMap::with_capacity_and_hasher(1, hasher.clone());
                 s.extend(core::iter::once((start.clone(), NodeEntry {
-                    came_from: start.clone(),
+                    came_from: start,
                     cheapest_score: 0.0,
                 })));
                 s
             },
-            clusters: HashMap::with_hasher(hasher),
-            start_node: start,
             cheapest_node: None,
             cheapest_cost: None,
         }
@@ -141,53 +119,23 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     pub fn poll<I>(
         &mut self,
         iters: usize,
-        // Estimate how far we are from the target? but we are given two nodes... (current,
-        // previous)
+        // Estimate how far we are from the target? but we are given two nodes...
+        // (current, previous)
         mut heuristic: impl FnMut(&S, &S) -> f32,
         // get neighboring nodes
         mut neighbors: impl FnMut(&S) -> I,
         // have we reached target?
         mut satisfied: impl FnMut(&S) -> bool,
-        // this function clusters nodes together for cache locality purposes
-        // output (cluster base, offset in cluster)
-        cluster: impl Fn(&S) -> (S, u8),
     ) -> PathResult<S>
     where
         I: Iterator<Item = (S, f32)>, // (node, transition cost)
     {
-        /*
-        if self.clusters.is_empty() {
-            let (key, index) = cluster(&self.start_node);
-            let mut came_from = std::array::from_fn(|_| None);
-            came_from[usize::from(index)] = Some(self.start_node.clone());
-            self.clusters.insert(
-                key,
-                Box::new(Cluster {
-                    came_from,
-                    cheapest_score: [0.0; 256],
-                }),
-            );
-        }
-         */
         let iter_limit = self.max_iters.min(self.iter + iters);
         while self.iter < iter_limit {
             if let Some(PathEntry { node, .. }) = self.potential_nodes.pop() {
                 if satisfied(&node) {
-                    return PathResult::Path(self.reconstruct_path_to(node, cluster));
+                    return PathResult::Path(self.reconstruct_path_to(node));
                 } else {
-                    /*
-                    let (cluster_key, index) = cluster(&node);
-                    let (node_cheapest, came_from) = self
-                        .clusters
-                        .get(&cluster_key)
-                        .map(|c| {
-                            (
-                                c.cheapest_score[usize::from(index)],
-                                c.came_from[usize::from(index)].clone().unwrap(),
-                            )
-                        })
-                        .unwrap();
-                    */
                     // we have to fetch this even though it was put into the priority queue
                     let (node_cheapest, came_from) = self
                         .visited_nodes
@@ -198,19 +146,6 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                         if neighbor == came_from {
                             continue;
                         }
-                        /*
-                        let (cluster_key, index) = cluster(&neighbor);
-                        let mut previously_visited = false;
-                        let neighbor_cheapest = self
-                            .clusters
-                            .get(&cluster_key)
-                            .and_then(|c| {
-                                previously_visited = c.came_from[usize::from(index)].is_some();
-
-                                previously_visited.then(|| c.cheapest_score[usize::from(index)])
-                            })
-                            .unwrap_or(f32::MAX);
-                        */
                         let neighbor_cheapest = self
                             .visited_nodes
                             .get(&neighbor)
@@ -220,16 +155,6 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                         let cost = node_cheapest + transition;
 
                         if cost < neighbor_cheapest {
-                            /*
-                            neighbor_entry.cheapest_score = cost;
-                            // note: unconditional insert, same cost as overwriting if it already
-                            // exists
-                            let previously_visited = self
-                                .came_from
-                                .insert(neighbor.clone(), node.clone())
-                                .is_some();
-                            self.cheapest_scores.insert(neighbor.clone(), cost);
-                            */
                             let previously_visited = self
                                 .visited_nodes
                                 .insert(neighbor.clone(), NodeEntry {
@@ -237,18 +162,6 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                                     cheapest_score: cost,
                                 })
                                 .is_some();
-                            /*
-                            let cluster_mut =
-                                self.clusters.entry(cluster_key).or_insert_with(|| {
-                                    Box::new(Cluster {
-                                        came_from: std::array::from_fn(|_| None),
-                                        cheapest_score: [0.0; 256],
-                                    })
-                                });
-                            cluster_mut.came_from[usize::from(index)] = Some(node.clone());
-                            cluster_mut.cheapest_score[usize::from(index)] = cost;
-
-                            */
                             let h = heuristic(&neighbor, &node);
                             // note that cheapest_scores does not include the heuristic
                             // priority queue does include heuristic
@@ -275,7 +188,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                 return PathResult::None(
                     self.cheapest_node
                         .clone()
-                        .map(|lc| self.reconstruct_path_to(lc, cluster))
+                        .map(|lc| self.reconstruct_path_to(lc))
                         .unwrap_or_default(),
                 );
             }
@@ -287,7 +200,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
             PathResult::Exhausted(
                 self.cheapest_node
                     .clone()
-                    .map(|lc| self.reconstruct_path_to(lc, cluster))
+                    .map(|lc| self.reconstruct_path_to(lc))
                     .unwrap_or_default(),
             )
         } else {
@@ -297,20 +210,9 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
 
     pub fn get_cheapest_cost(&self) -> Option<f32> { self.cheapest_cost }
 
-    fn reconstruct_path_to(&mut self, end: S, cluster: impl Fn(&S) -> (S, u8)) -> Path<S> {
+    fn reconstruct_path_to(&mut self, end: S) -> Path<S> {
         let mut path = vec![end.clone()];
         let mut cnode = &end;
-        /*
-        let (mut ckey, mut ci) = cluster(cnode);
-        while let Some(node) =
-            self
-                .clusters
-                .get(&ckey)
-                .and_then(|c| c.came_from[usize::from(ci)].as_ref())
-                .filter(|n| *n != cnode)
-             */
-        /*
-         */
         while let Some(node) = self
             .visited_nodes
             .get(cnode)
@@ -319,7 +221,6 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
         {
             path.push(node.clone());
             cnode = node;
-            //(ckey, ci) = cluster(cnode);
         }
         path.into_iter().rev().collect()
     }
