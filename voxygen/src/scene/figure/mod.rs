@@ -473,10 +473,15 @@ impl FigureMgrStates {
                 .count()
     }
 
-    fn get_terrain_locals<'a, Q: ?Sized>(&'a self, body: &Body, entity: &Q) -> Option<&'a BoundTerrainLocals> 
+    fn get_terrain_locals<'a, Q: ?Sized>(
+        &'a self,
+        body: &Body,
+        entity: &Q,
+    ) -> Option<&'a BoundTerrainLocals>
     where
         EcsEntity: Borrow<Q>,
-        Q: Hash + Eq, {
+        Q: Hash + Eq,
+    {
         match body {
             Body::Ship(body) => {
                 if matches!(body, ship::Body::Volume) {
@@ -486,7 +491,7 @@ impl FigureMgrStates {
                 } else {
                     None
                 }
-            }
+            },
             _ => None,
         }
     }
@@ -6345,8 +6350,9 @@ impl FigureMgr {
         // Don't render dead entities
         .filter(|(_, _, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
         {
-            if let Some((sprite_instances, data)) =
-                self.get_sprite_instances(entity, body, collider).zip(self.states.get_terrain_locals(body, &entity))
+            if let Some((sprite_instances, data)) = self
+                .get_sprite_instances(entity, body, collider)
+                .zip(self.states.get_terrain_locals(body, &entity))
             {
                 let dist = collider
                     .and_then(|collider| {
@@ -6973,8 +6979,7 @@ impl FigureMgr {
         entity: EcsEntity,
         body: &Body,
         collider: Option<&Collider>,
-    ) -> Option<
-        &'a [Instances<SpriteInstance>; SPRITE_LOD_LEVELS]> {
+    ) -> Option<&'a [Instances<SpriteInstance>; SPRITE_LOD_LEVELS]> {
         match body {
             Body::Ship(body) => {
                 if let Some(Collider::Volume(vol)) = collider {
@@ -7359,24 +7364,28 @@ pub trait FigureData: Sized {
 }
 
 impl FigureData for () {
-    fn new(_renderer: &mut Renderer) -> Self {
-        ()
-    }
+    fn new(_renderer: &mut Renderer) {}
 
-    fn update(&mut self, _renderer: &mut Renderer, _parameters: &FigureUpdateCommonParameters) {
-        ()
-    }
+    fn update(&mut self, _renderer: &mut Renderer, _parameters: &FigureUpdateCommonParameters) {}
 }
 
 impl FigureData for BoundTerrainLocals {
     fn new(renderer: &mut Renderer) -> Self {
-        renderer.create_terrain_bound_locals(&[TerrainLocals::new(Vec3::zero(), Quaternion::identity(), Vec2::zero(), 0.0)])
+        renderer.create_terrain_bound_locals(&[TerrainLocals::new(
+            Vec3::zero(),
+            Quaternion::identity(),
+            Vec2::zero(),
+            0.0,
+        )])
     }
 
     fn update(&mut self, renderer: &mut Renderer, parameters: &FigureUpdateCommonParameters) {
-        renderer.update_consts(self, &[
-            TerrainLocals::new(parameters.pos.into(), parameters.ori.into_vec4().into(), Vec2::zero(), 0.0),
-        ])
+        renderer.update_consts(self, &[TerrainLocals::new(
+            parameters.pos.into(),
+            parameters.ori.into_vec4().into(),
+            Vec2::zero(),
+            0.0,
+        )])
     }
 }
 

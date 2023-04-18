@@ -878,9 +878,7 @@ where
     pub fn get_sprites(
         &self,
         body: Skel::Body,
-    ) -> Option<
-        &[Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
-    > {
+    ) -> Option<&[Instances<SpriteInstance>; SPRITE_LOD_LEVELS]> {
         let key = FigureKey {
             body,
             item_key: None,

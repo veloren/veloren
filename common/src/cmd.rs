@@ -461,6 +461,7 @@ impl ServerChatCommand {
                     Float("x", 0.0, Required),
                     Float("y", 0.0, Required),
                     Float("z", 0.0, Required),
+                    Boolean("Force from mount", "true".to_string(), Optional),
                 ],
                 "Teleport to a position",
                 Some(Admin),
@@ -505,6 +506,7 @@ impl ServerChatCommand {
                     Float("x", 0.0, Required),
                     Float("y", 0.0, Required),
                     Float("z", 0.0, Required),
+                    Boolean("Force from mount", "true".to_string(), Optional),
                 ],
                 "Offset your current position",
                 Some(Admin),
@@ -637,7 +639,10 @@ impl ServerChatCommand {
             // Uses Message because site names can contain spaces,
             // which would be assumed to be separators otherwise
             ServerChatCommand::Site => cmd(
-                vec![SiteName(Required)],
+                vec![
+                    SiteName(Required),
+                    Boolean("Force from mount", "true".to_string(), Optional),
+                ],
                 "Teleport to a site",
                 Some(Moderator),
             ),
@@ -681,12 +686,18 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Tp => cmd(
-                vec![PlayerName(Optional)],
+                vec![
+                    PlayerName(Optional),
+                    Boolean("Force from mount", "true".to_string(), Optional),
+                ],
                 "Teleport to another player",
                 Some(Moderator),
             ),
             ServerChatCommand::RtsimTp => cmd(
-                vec![Integer("npc index", 0, Required)],
+                vec![
+                    Integer("npc index", 0, Required),
+                    Boolean("Force from mount", "true".to_string(), Optional),
+                ],
                 "Teleport to an rtsim npc",
                 Some(Moderator),
             ),
