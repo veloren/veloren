@@ -143,7 +143,7 @@ hud-skill-bow_shotgun_cost = 将使用迸发时的能量降低{ $boost }%{ $SP }
 hud-skill-bow_shotgun_arrow_count_title = 箭矢数量
 hud-skill-bow_shotgun_arrow_count = 你迸发时的箭矢数量增加{ $boost }{ $SP }
 hud-skill-bow_shotgun_spread_title = 集中
-hud-skill-bow_shotgun_spread = 将射击时的散射范围降低{ $boost }%{ $SP }
+hud-skill-bow_shotgun_spread = 将迸发时的散射范围降低{ $boost }%{ $SP }
 
 hud-skill-hmr_leap_radius_title = 震荡
 hud-skill-hmr_leap_radius = 千斤坠伤害的作用半径扩大{ $boost }米{ $SP }
