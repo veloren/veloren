@@ -55,16 +55,10 @@ pub struct Civs {
     /// (3) we have 8-byte keys (for which FxHash is fastest).
     pub track_map: DHashMap<Id<Site>, DHashMap<Id<Site>, Id<Track>>>,
 
-    // 8249 ms -> 7680 ms (change when switching to ahash)
-    // 7495 ms -> 8057 ms -> 7481 ms (ahash -> sip13 -> fxhasher)
-    // TODO: deterministic(?), this is certainly faster, presumably due to less collisions
     pub bridges: hashbrown::HashMap<
         Vec2<i32>,
         (Vec2<i32>, Id<Site>),
-        //std::hash::BuildHasherDefault<siphasher::sip::SipHasher13>,
         std::hash::BuildHasherDefault<fxhash::FxHasher64>,
-        //std::hash::BuildHasherDefault<fxhash::FxHasher>,
-        //std::hash::BuildHasherDefault<fxhash::FxHasher32>, // too many collisions!
     >,
 
     pub sites: Store<Site>,
@@ -527,8 +521,6 @@ impl Civs {
                 }
             }
         }
-
-        dbg!(CC.load(Ordering::Relaxed));
     }
 
     // TODO: Move this
@@ -1120,7 +1112,6 @@ impl Civs {
             loc: Vec2<i32>,
             site_fn: impl FnOnce(Id<Place>) -> Site,
         ) -> Id<Site> {
-            prof_span!("establish site inner");
             let place = match ctx.sim.get(loc).and_then(|site| site.place) {
                 Some(place) => place,
                 None => civs.establish_place(ctx, loc, SITE_AREA),
@@ -1132,11 +1123,15 @@ impl Civs {
         let site = establish_site(self, ctx, loc, site_fn);
 
         // Find neighbors
-        prof_span!(guard, "find neighbors");
-        const MAX_NEIGHBOR_DISTANCE: f32 = 2000.0;
+        // Note, the maximum distance that I have so far observed not hitting the
+        // iteration limit in `find_path` is 297. So I think this is a reasonible
+        // limit (although the relationship between distance and pathfinding iterations
+        // can be a bit variable).
+        const MAX_NEIGHBOR_DISTANCE: f32 = 350.0;
         let mut nearby = self
             .sites
             .iter()
+            .filter(|&(id, _)| id != site)
             .filter(|(_, p)| {
                 matches!(
                     p.kind,
@@ -1152,7 +1147,6 @@ impl Civs {
             .filter(|(_, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
-        drop(guard);
 
         if let SiteKind::Refactor
         | SiteKind::Settlement
@@ -1161,111 +1155,107 @@ impl Civs {
         | SiteKind::DesertCity
         | SiteKind::Castle = self.sites[site].kind
         {
-            for (nearby, _) in nearby.into_iter().take(5) {
+            for (nearby, _) in nearby.into_iter().take(4) {
                 prof_span!("for nearby");
-                // Find a novel path
-                let maybe_path = {
-                    prof_span!("find path");
-                    find_path(
-                        ctx,
-                        |start| self.bridges.get(&start).map(|(end, _)| *end),
-                        loc,
-                        self.sites.get(nearby).center,
-                    )
-                };
-                if maybe_path.is_some() {
-                    info!("Succeed");
-                } else {
-                    info!("Fail");
-                }
-                if let Some((path, cost)) = maybe_path {
-                    prof_span!("with path");
-                    // Find a path using existing paths
-                    if self
+                // Find a route using existing paths
+                //
+                // If the novel path isn't efficient compared to this, don't use it
+                let max_novel_cost = {
+                    let max_novel_cost = self
                         .route_between(site, nearby)
-                        // If the novel path isn't efficient compared to existing routes, don't use it
-                        .filter(|(_, route_cost)| *route_cost < cost * 3.0)
-                        .is_none()
-                    {
-                        // Write the track to the world as a path
-                        for locs in path.nodes().windows(3) {
-                            let mut randomize_offset = false;
-                            if let Some((i, _)) = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == locs[0] - locs[1])
-                            {
-                                ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
-                                    1 << ((i as u8 + 4) % 8);
-                                ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |=
-                                    1 << (i as u8);
-                                randomize_offset = true;
-                            }
+                        .map_or(f32::MAX, |(_, route_cost)| route_cost / 3.0);
+                    max_novel_cost
+                };
 
-                            if let Some((i, _)) = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == locs[2] - locs[1])
-                            {
-                                ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
-                                    1 << ((i as u8 + 4) % 8);
-                                ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |=
-                                    1 << (i as u8);
-                                randomize_offset = true;
-                            } else if !self.bridges.contains_key(&locs[1]) {
-                                //dbg!("here"); called 18 times
-                                let center = (locs[1] + locs[2]) / 2;
-                                let id =
-                                    establish_site(self, &mut ctx.reseed(), center, move |place| {
-                                        Site {
-                                            kind: SiteKind::Bridge(locs[1], locs[2]),
-                                            site_tmp: None,
-                                            center,
-                                            place,
-                                        }
-                                    });
-                                self.bridges.insert(locs[1], (locs[2], id));
-                                self.bridges.insert(locs[2], (locs[1], id));
-                            }
-                            /*
-                            let to_prev_idx = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == (locs[0] - locs[1]).map(|e| e.signum()))
-                                .expect("Track locations must be neighbors")
-                                .0;
-
-                            let to_next_idx = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == (locs[2] - locs[1]).map(|e| e.signum()))
-                                .expect("Track locations must be neighbors")
-                                .0;
-
+                let start = loc;
+                let end = self.sites.get(nearby).center;
+                // Find a novel path.
+                //
+                // We rely on the cost at least being equal to the distance, to avoid
+                // unnecessary novel pathfinding.
+                let maybe_path = ((start.distance_squared(end) as f32).sqrt() < max_novel_cost)
+                    .then(|| {
+                        prof_span!("find path");
+                        let get_bridge = |start| self.bridges.get(&start).map(|(end, _)| *end);
+                        find_path(ctx, get_bridge, start, end)
+                    })
+                    .flatten()
+                    .filter(|&(_, cost)| cost < max_novel_cost);
+                if let Some((path, cost)) = maybe_path {
+                    // Write the track to the world as a path
+                    for locs in path.nodes().windows(3) {
+                        let mut randomize_offset = false;
+                        if let Some((i, _)) = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == locs[0] - locs[1])
+                        {
                             ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
-                                1 << ((to_prev_idx as u8 + 4) % 8);
-                            ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
-                                1 << ((to_next_idx as u8 + 4) % 8);
-                            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                            chunk.path.0.neighbors |=
-                                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-                            */
-                            if randomize_offset {
-                                let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                                chunk.path.0.offset = Vec2::new(
-                                    ctx.rng.gen_range(-16..17),
-                                    ctx.rng.gen_range(-16..17),
-                                );
-                            }
+                                1 << ((i as u8 + 4) % 8);
+                            ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |= 1 << (i as u8);
+                            randomize_offset = true;
                         }
 
-                        // Take note of the track
-                        let track = self.tracks.insert(Track { cost, path });
-                        self.track_map
-                            .entry(site)
-                            .or_default()
-                            .insert(nearby, track);
+                        if let Some((i, _)) = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == locs[2] - locs[1])
+                        {
+                            ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
+                                1 << ((i as u8 + 4) % 8);
+                            ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |= 1 << (i as u8);
+                            randomize_offset = true;
+                        } else if !self.bridges.contains_key(&locs[1]) {
+                            //dbg!("here"); called 18 times
+                            let center = (locs[1] + locs[2]) / 2;
+                            let id =
+                                establish_site(self, &mut ctx.reseed(), center, move |place| {
+                                    Site {
+                                        kind: SiteKind::Bridge(locs[1], locs[2]),
+                                        site_tmp: None,
+                                        center,
+                                        place,
+                                    }
+                                });
+                            self.bridges.insert(locs[1], (locs[2], id));
+                            self.bridges.insert(locs[2], (locs[1], id));
+                        }
+                        /*
+                        let to_prev_idx = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == (locs[0] - locs[1]).map(|e| e.signum()))
+                            .expect("Track locations must be neighbors")
+                            .0;
+
+                        let to_next_idx = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == (locs[2] - locs[1]).map(|e| e.signum()))
+                            .expect("Track locations must be neighbors")
+                            .0;
+
+                        ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
+                            1 << ((to_prev_idx as u8 + 4) % 8);
+                        ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
+                            1 << ((to_next_idx as u8 + 4) % 8);
+                        let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                        chunk.path.0.neighbors |=
+                            (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+                        */
+                        if randomize_offset {
+                            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                            chunk.path.0.offset =
+                                Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
+                        }
                     }
+
+                    // Take note of the track
+                    let track = self.tracks.insert(Track { cost, path });
+                    self.track_map
+                        .entry(site)
+                        .or_default()
+                        .insert(nearby, track);
                 }
             }
         }
@@ -1341,30 +1331,18 @@ fn find_path(
     let sim = &ctx.sim;
     // NOTE: If heuristic overestimates the actual cost, then A* is not guaranteed
     // to produce the least-cost path (since it will explore partially based on
-    // the heuristic). TODO: heuristic can be larger than actual cost, since
-    // diagonals can only cost `1.0` if a path exists and since bridges have
-    // zero cost (and cover multiple tiles).
+    // the heuristic).
+    // TODO: heuristic can be larger than actual cost, since existing bridges cost
+    // 1.0 (after the 1.0 that is added to everthting), but they can cover
+    // multiple chunks.
     let heuristic = move |l: &Vec2<i32>, _: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
     let neighbors = |l: &Vec2<i32>| {
         let l = *l;
         let bridge = get_bridge(l);
-        /*
-        NEIGHBORS
-            .iter()
-            .filter_map(move |dir| walk_in_dir(sim, bridge, l, *dir))
-         */
-        /*
-         */
-        // Using walk_in_all_dirs saves ~500 ms
         let potential = walk_in_all_dirs(sim, bridge, l);
-        potential.into_iter().filter_map(|p| p)
-    };
-    // transition cost?
-    let transition = |a: &Vec2<i32>, b: &Vec2<i32>| {
-        // factoring this out: 7463 ms -> 7356 ms
-        let bridge = get_bridge(*a);
-        1.0 + walk_in_dir(sim, bridge, *a, (*b - *a).map(|e| e.signum()))
-            .map_or(10000.0, |(_, cost)| cost)
+        potential
+            .into_iter()
+            .filter_map(|p| p.map(|(node, cost)| (node, cost + 1.0)))
     };
     let satisfied = |l: &Vec2<i32>| *l == b;
     let cluster = |l: &Vec2<i32>| {
@@ -1384,21 +1362,17 @@ fn find_path(
         BuildHasherDefault::<FxHasher64>::default(),
     );
     astar
-        .poll(
-            MAX_PATH_ITERS,
-            heuristic,
-            neighbors,
-            transition,
-            satisfied,
-            cluster,
-        )
+        .poll(MAX_PATH_ITERS, heuristic, neighbors, satisfied, cluster)
         .into_path()
         .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }
 
-use core::sync::atomic::{AtomicUsize, Ordering};
-static CC: AtomicUsize = AtomicUsize::new(0);
-
+/// Return Some if travel between a location and a chunk next to it is permitted
+/// If permitted, the approximate relative const of traversal is given
+// (TODO: by whom?)
+/// Return tuple: (final location, cost)
+///
+/// For efficiency, this computes for all 8 directions at once.
 fn walk_in_all_dirs(
     sim: &WorldSim,
     bridge: Option<Vec2<i32>>,
@@ -1407,9 +1381,10 @@ fn walk_in_all_dirs(
     let mut potential = [None; 8];
 
     let mut adjacents = [a; 8];
-    for i in 0..8 {
-        adjacents[i] += NEIGHBORS[i];
-    }
+    NEIGHBORS
+        .iter()
+        .zip(&mut adjacents)
+        .for_each(|(&dir, adj)| *adj += dir);
 
     let Some(a_chunk) = sim.get(a) else { return potential };
     let mut chunks = [None; 8];
@@ -1418,6 +1393,7 @@ fn walk_in_all_dirs(
             chunks[i] = sim.get(adjacents[i]);
         }
     }
+
     for i in 0..8 {
         let Some(b_chunk) = chunks[i] else { continue };
 
@@ -1436,7 +1412,7 @@ fn walk_in_all_dirs(
     // Look for potential bridge spots in the cardinal directions if
     // `loc_suitable_for_wallking` was false for the adjacent chunk.
     for i in 0..4 {
-        // These happen to be the dirs where: dir.x == 0 || dir.y == 0
+        // These happen to be indices for dirs where: dir.x == 0 || dir.y == 0
         let i = i * 2;
         if potential[i].is_none() {
             let dir = NEIGHBORS[i];
@@ -1463,50 +1439,9 @@ fn walk_in_all_dirs(
     potential
 }
 
-/// Return Some if travel between a location and a chunk next to it is permitted
-/// If permitted, the approximate relative const of traversal is given
-// (TODO: by whom?)
-//
-// Return tuple: (final location, cost)
-fn walk_in_dir(
-    sim: &WorldSim,
-    // Is there a bridge at `a`?
-    bridge: Option<Vec2<i32>>,
-    a: Vec2<i32>,
-    dir: Vec2<i32>,
-) -> Option<(Vec2<i32>, f32)> {
-    //CC.fetch_add(1, Ordering::Relaxed);
-    if let Some(p) = bridge.filter(|p| (p - a).map(|e| e.signum()) == dir) {
-        // Traversing an existing bridge has no cost.
-        Some((p, 0.0))
-    } else if loc_suitable_for_walking(sim, a + dir) {
-        let a_chunk = sim.get(a)?;
-        let b_chunk = sim.get(a + dir)?;
-
-        let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 5.0).powi(2);
-
-        let water_cost = (b_chunk.water_alt - b_chunk.alt + 8.0).clamped(0.0, 8.0) * 3.0; // Try not to path swamps / tidal areas
-        let wild_cost = if b_chunk.path.0.is_way() {
-            0.0 // Traversing existing paths has no additional cost!
-        } else {
-            3.0 // + (1.0 - b_chunk.tree_density) * 20.0 // Prefer going through forests, for aesthetics
-        };
-        Some((a + dir, 1.0 + hill_cost + water_cost + wild_cost))
-    } else if dir.x == 0 || dir.y == 0 {
-        // if we can skip over unsuitable area with a bridge
-        (4..=5).find_map(|i| {
-            loc_suitable_for_walking(sim, a + dir * i)
-                .then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
-        })
-    } else {
-        None
-    }
-}
-
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if sim.get(loc).is_some() {
-        // 7181 ms -> 6868 ms (300 ms! almost 10% of pathfinding time)
         !NEIGHBORS
             .iter()
             .map(|n| {
