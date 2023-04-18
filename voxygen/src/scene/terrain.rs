@@ -302,7 +302,7 @@ pub fn get_sprite_instances<'a, I: 'a>(
                     light,
                     glow,
                     page,
-                    matches!(sprite, SpriteKind::Door),
+                    sprite.is_door(),
                 );
                 set_instance(lod_level, instance, wpos);
             }

@@ -243,6 +243,7 @@ make_case_elim!(
         CommonLockedChest = 0xD9,
         RepairBench = 0xDA,
         Helm = 0xDB,
+        DoorWide = 0xDC,
     }
 );
 
@@ -376,6 +377,7 @@ impl SpriteKind {
             SpriteKind::Bamboo => 9.0 / 11.0,
             SpriteKind::MagicalBarrier => 3.0,
             SpriteKind::MagicalSeal => 1.0,
+            SpriteKind::Helm => 1.7,
             _ => return None,
         })
     }
@@ -505,10 +507,12 @@ impl SpriteKind {
 
     #[inline]
     pub fn is_controller(&self) -> bool {
-        match self {
-            SpriteKind::Helm => true,
-            _ => false,
-        }
+        matches!(self, SpriteKind::Helm)
+    }
+
+    #[inline]
+    pub fn is_door(&self) -> bool {
+        matches!(self, SpriteKind::Door | SpriteKind::DoorWide | SpriteKind::DoorDark)
     }
 
     /// Which tool (if any) is needed to collect this sprite?
@@ -640,7 +644,8 @@ impl SpriteKind {
                 | SpriteKind::Grave
                 | SpriteKind::Gravestone
                 | SpriteKind::MagicalBarrier
-                | SpriteKind::Helm,
+                | SpriteKind::Helm
+                | SpriteKind::DoorWide,
         )
     }
 }

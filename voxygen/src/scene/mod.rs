@@ -31,7 +31,7 @@ use crate::{
 use client::Client;
 use common::{
     calendar::Calendar,
-    comp,
+    comp::{self, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     outcome::Outcome,
     resources::DeltaTime,
     terrain::{BlockKind, TerrainChunk, TerrainGrid},
@@ -667,6 +667,7 @@ impl Scene {
         self.trail_mgr.maintain(renderer, scene_data);
 
         // Update light constants
+        let max_light_dist = loaded_distance.powi(2) + LIGHT_DIST_RADIUS;
         lights.extend(
             (
                 &scene_data.state.ecs().read_storage::<comp::Pos>(),
@@ -690,7 +691,7 @@ impl Scene {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
                         && pos.0.distance_squared(viewpoint_pos)
-                            < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
+                            < max_light_dist
                         && h.map_or(true, |h| !h.is_dead)
                 })
                 .map(|(pos, interpolated, light_anim, _)| {
@@ -703,6 +704,43 @@ impl Scene {
                         .iter()
                         .map(|el| el.light.with_strength((el.fadeout)(el.timeout))),
                 ),
+        );
+        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+        let figure_mgr = &self.figure_mgr;
+        lights.extend(
+            (
+                &scene_data.state.ecs().entities(),
+                &scene_data.state.read_storage::<comp::Pos>(),
+                &scene_data.state.read_storage::<comp::Ori>(),
+                &scene_data.state.read_storage::<comp::Body>(),
+                &scene_data.state.read_storage::<comp::Collider>(),
+            ).join().filter_map(|(entity, pos, ori, body, collider)| {
+                let vol = collider.get_vol(&voxel_colliders_manifest)?;
+
+                let mat = Mat4::from(ori.to_quat()).translated_3d(pos.0)
+                    * Mat4::translation_3d(vol.translation);
+
+                let p = mat.inverted().mul_point(viewpoint_pos);
+                let aabb = Aabb {
+                    min: Vec3::zero(),
+                    max: vol.volume().sz.as_(),
+                };
+                if aabb.contains_point(p) || aabb.distance_to_point(p) < max_light_dist {
+                    figure_mgr
+                        .get_blocks_of_interest(entity, body, Some(collider))
+                        .map(move |(blocks_of_interest, _)| {
+                            blocks_of_interest.lights.iter().map(
+                                move |(block_offset, level)| {
+                                    let wpos = mat.mul_point(block_offset.as_() + 0.5);
+                                    (wpos, level)
+                                },
+                            ).filter(move |(wpos, _)| wpos.distance_squared(viewpoint_pos) < max_light_dist)
+                            .map(|(wpos, level)| Light::new(wpos, Rgb::white(), *level as f32 / 7.0))
+                        })
+                } else {
+                    None
+                }
+            }).flatten()
         );
         lights.sort_by_key(|light| light.get_pos().distance_squared(viewpoint_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);

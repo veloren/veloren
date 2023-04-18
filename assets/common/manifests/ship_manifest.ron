@@ -13,15 +13,22 @@
             central: ("airship_human.propeller-r"),
         ),
         bone3: (
-            offset: (-1.5, -11.0, -5.5),
+            offset: (-1.5, -10.0, -4.5),
             central: ("airship_human.rudder"),
         ),
 
         custom_indices: {
             1: Air(ChairSingle, 4),
             2: Air(Helm, 0),
-            3: Air(Door, 4),
-            8: Air(Door, 0),
+            3: Air(DoorWide, 4),
+            8: Air(DoorWide, 0),
+            9: Air(CraftingBench, 0),
+            11: Air(RepairBench, 0),
+            12: Air(DismantlingBench, 4),
+            15: Air(Anvil, 2),
+            17: Air(CookingPot, 0),
+            18: Air(WallLamp, 4),
+            23: Air(FireBowlGround, 4),
         },
     ),
     AirBalloon: (
