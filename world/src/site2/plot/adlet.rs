@@ -467,12 +467,20 @@ impl Structure for AdletStronghold {
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
-        let yeti_sprites_fill = Fill::Sampling(Arc::new(|wpos| {
+        let yetipit_sprites = Fill::Sampling(Arc::new(|wpos| {
+            Some(match (RandomField::new(0).get(wpos)) % 60 {
+                0..=2 => Block::air(SpriteKind::Bones),
+                4..=5 => Block::air(SpriteKind::GlowIceCrystal),
+                6..=8 => Block::air(SpriteKind::IceCrystal),
+                _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+            })
+        }));
+        let yetipit_sprites_deep = Fill::Sampling(Arc::new(|wpos| {
             Some(match (RandomField::new(0).get(wpos)) % 275 {
                 0..=8 => Block::air(SpriteKind::Bones),
                 9..=19 => Block::air(SpriteKind::GlowIceCrystal),
                 20..=28 => Block::air(SpriteKind::IceCrystal),
-                29..=30 => Block::air(SpriteKind::DungeonChest1),
+                29..=30 => Block::air(SpriteKind::DungeonChest2),
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
@@ -1084,7 +1092,6 @@ impl Structure for AdletStronghold {
                 AdletStructure::YetiPit => {
                     let yetipit_center = self.cavern_center;
                     let yetipit_entrance_pos = wpos;
-
                     let storeys = (3 + RandomField::new(0).get((yetipit_center).with_z(alt as i32))
                         % 2) as i32;
                     for s in 0..storeys {
@@ -1093,6 +1100,10 @@ impl Structure for AdletStronghold {
                         let room_size = (25
                             + RandomField::new(0).get((yetipit_center * s).with_z(level)) % 5)
                             as i32;
+                        let sprites_fill = match s {
+                            0..=1 => yetipit_sprites.clone(),
+                            _ => yetipit_sprites_deep.clone(),
+                        };
                         if s == (storeys - 1) {
                             // yeti room
                             painter
@@ -1124,7 +1135,7 @@ impl Structure for AdletStronghold {
                                         (room_size - r) as f32,
                                         1.0,
                                     )
-                                    .fill(yeti_sprites_fill.clone());
+                                    .fill(sprites_fill.clone());
                                 painter
                                     .cylinder_with_radius(
                                         yetipit_center.with_z(level - (3 * down) - 2 - r),
@@ -1292,7 +1303,7 @@ impl Structure for AdletStronghold {
                                         (room_size - r) as f32,
                                         1.0,
                                     )
-                                    .fill(yeti_sprites_fill.clone());
+                                    .fill(sprites_fill.clone());
                                 painter
                                     .cylinder_with_radius(
                                         yetipit_center.with_z(level - (3 * down) - 2 - r),
@@ -1680,13 +1691,12 @@ impl Structure for AdletStronghold {
                         })
                         .fill(bone_fill.clone());
                     let cook_sprites = Fill::Sampling(Arc::new(|wpos| {
-                        Some(match (RandomField::new(0).get(wpos)) % 120 {
-                            0..=5 => Block::air(SpriteKind::Pot),
-                            6..=10 => Block::air(SpriteKind::Bowl),
-                            11..=15 => Block::air(SpriteKind::Pot),
-                            16..=20 => Block::air(SpriteKind::VialEmpty),
-                            21..=30 => Block::air(SpriteKind::Lantern),
-                            31..=32 => Block::air(SpriteKind::DungeonChest1),
+                        Some(match (RandomField::new(0).get(wpos)) % 20 {
+                            0 => Block::air(SpriteKind::Pot),
+                            1 => Block::air(SpriteKind::Bowl),
+                            2 => Block::air(SpriteKind::Pot),
+                            3 => Block::air(SpriteKind::VialEmpty),
+                            4 => Block::air(SpriteKind::Lantern),
                             _ => Block::air(SpriteKind::Empty),
                         })
                     }));
@@ -1873,6 +1883,19 @@ impl Structure for AdletStronghold {
                         let bonehut_mob_spawn = wpos.with_z(alt as i32);
                         painter.spawn(random_adlet(bonehut_mob_spawn.as_(), &mut rng));
                     }
+                    // chests
+                    let chest = Fill::Sampling(Arc::new(|wpos| {
+                        Some(match (RandomField::new(0).get(wpos)) % 2 {
+                            0 => Block::air(SpriteKind::DungeonChest1),
+                            _ => Block::air(SpriteKind::Empty),
+                        })
+                    }));
+                    painter
+                        .aabb(Aabb {
+                            min: (wpos - 3).with_z(alt as i32),
+                            max: (wpos - 2).with_z((alt as i32) + 1),
+                        })
+                        .fill(chest);
                 },
                 AdletStructure::BossBoneHut => {
                     let bosshut_pos = wpos;
