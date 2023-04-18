@@ -177,9 +177,9 @@ common-abilities-sword-basic_mighty_strike = 强烈打击
     .desc =
         一个简单，但强大的斩击.
         { -requires_moderate_combo }
-common-abilities-sword-heavy_guillotine = Guillotine
+common-abilities-sword-heavy_guillotine = 断头
     .desc =
-        A strong cleave that will likely stagger what it doesn't kill
+        一个强大且容易震慑那些幸存在此剑下的生物.
         { -requires_moderate_combo }
 common-abilities-sword-agile_hundred_cuts = 百刀斩
     .desc =
