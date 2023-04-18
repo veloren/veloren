@@ -8,7 +8,6 @@ use crate::{
         segment::{generate_mesh_base_vol_figure, generate_mesh_base_vol_terrain},
     },
     render::{
-        pipelines::terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
         BoneMeshes, ColLightInfo, FigureModel, Instances, Mesh, Renderer, SpriteInstance,
         TerrainVertex,
     },
@@ -621,8 +620,6 @@ where
         &'c mut self,
         renderer: &mut Renderer,
         col_lights: &mut super::FigureColLights,
-        pos: Vec3<f32>,
-        ori: Quaternion<f32>,
         body: Skel::Body,
         extra: <Skel::Body as BodySpec>::Extra,
         tick: u64,
@@ -664,8 +661,6 @@ where
                                     col_light,
                                     (opaque, bounds),
                                     vertex_range,
-                                    pos,
-                                    ori,
                                     sprite_instances,
                                     blocks_of_interest,
                                     blocks_offset,
@@ -883,10 +878,9 @@ where
     pub fn get_sprites(
         &self,
         body: Skel::Body,
-    ) -> Option<(
-        &BoundTerrainLocals,
+    ) -> Option<
         &[Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
-    )> {
+    > {
         let key = FigureKey {
             body,
             item_key: None,
@@ -897,13 +891,15 @@ where
                 return None;
             };
 
-            Some((&model.terrain_locals, &model.sprite_instances))
+            Some(&model.sprite_instances)
         })
     }
 
+    /*
     pub fn update_terrain_locals(
         &mut self,
         renderer: &mut Renderer,
+        entity: Entity,
         body: Skel::Body,
         pos: Vec3<f32>,
         ori: Quaternion<f32>,
@@ -928,4 +924,5 @@ where
             )])
         }
     }
+    */
 }

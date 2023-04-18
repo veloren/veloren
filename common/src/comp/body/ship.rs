@@ -100,7 +100,7 @@ impl Body {
     pub fn density(&self) -> Density {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
-            _ => Density(AIR_DENSITY * 0.8 + WATER_DENSITY * 0.2), // Most boats should be buoyant
+            _ => Density(AIR_DENSITY * 0.2 + WATER_DENSITY * 0.8), // Most boats should be buoyant
         }
     }
 

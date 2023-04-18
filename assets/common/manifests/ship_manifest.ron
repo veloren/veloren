@@ -88,5 +88,9 @@
             offset: (0.0, 0.0, 0.0),
             central: ("empty"),
         ),
+
+        custom_indices: {
+            1: Air(Helm, 0),
+        },
     ),
 })

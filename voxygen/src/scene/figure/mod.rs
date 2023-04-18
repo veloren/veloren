@@ -146,7 +146,6 @@ pub struct TerrainModelEntry<const N: usize> {
 
     blocks_offset: Vec3<f32>,
 
-    terrain_locals: BoundTerrainLocals,
     sprite_instances: [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
 
     blocks_of_interest: BlocksOfInterest,
@@ -204,8 +203,8 @@ struct FigureMgrStates {
     golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
     item_drop_states: HashMap<EcsEntity, FigureState<ItemDropSkeleton>>,
-    ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton>>,
-    volume_states: HashMap<EcsEntity, FigureState<VolumeKey>>,
+    ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton, BoundTerrainLocals>>,
+    volume_states: HashMap<EcsEntity, FigureState<VolumeKey, BoundTerrainLocals>>,
     arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
 }
 
@@ -330,10 +329,12 @@ impl FigureMgrStates {
             Body::Object(_) => self.object_states.remove(entity).map(|e| e.meta),
             Body::ItemDrop(_) => self.item_drop_states.remove(entity).map(|e| e.meta),
             Body::Ship(ship) => {
-                if ship.manifest_entry().is_some() {
+                if matches!(ship, ship::Body::Volume) {
+                    self.volume_states.remove(entity).map(|e| e.meta)
+                } else if ship.manifest_entry().is_some() {
                     self.ship_states.remove(entity).map(|e| e.meta)
                 } else {
-                    self.volume_states.remove(entity).map(|e| e.meta)
+                    None
                 }
             },
             Body::Arthropod(_) => self.arthropod_states.remove(entity).map(|e| e.meta),
@@ -470,6 +471,24 @@ impl FigureMgrStates {
                 .iter()
                 .filter(|(_, c)| c.visible())
                 .count()
+    }
+
+    fn get_terrain_locals<'a, Q: ?Sized>(&'a self, body: &Body, entity: &Q) -> Option<&'a BoundTerrainLocals> 
+    where
+        EcsEntity: Borrow<Q>,
+        Q: Hash + Eq, {
+        match body {
+            Body::Ship(body) => {
+                if matches!(body, ship::Body::Volume) {
+                    self.volume_states.get(entity).map(|state| &state.extra)
+                } else if body.manifest_entry().is_some() {
+                    self.ship_states.get(entity).map(|state| &state.extra)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
     }
 }
 
@@ -6102,8 +6121,6 @@ impl FigureMgr {
                             self.volume_model_cache.get_or_create_terrain_model(
                                 renderer,
                                 &mut self.col_lights,
-                                pos.0.into(),
-                                ori.into_vec4().into(),
                                 vk,
                                 Arc::clone(vol),
                                 tick,
@@ -6126,20 +6143,11 @@ impl FigureMgr {
                             model,
                             vk,
                         );
-
-                        self.volume_model_cache.update_terrain_locals(
-                            renderer,
-                            vk,
-                            pos.0.into(),
-                            ori.into_vec4().into(),
-                        );
                         continue;
                     } else if body.manifest_entry().is_some() {
                         self.ship_model_cache.get_or_create_terrain_model(
                             renderer,
                             &mut self.col_lights,
-                            pos.0.into(),
-                            ori.into_vec4().into(),
                             body,
                             (),
                             tick,
@@ -6217,13 +6225,6 @@ impl FigureMgr {
                         state_animation_rate,
                         model,
                         body,
-                    );
-
-                    self.ship_model_cache.update_terrain_locals(
-                        renderer,
-                        body,
-                        pos.0.into(),
-                        ori.into_vec4().into(),
                     );
                 },
             }
@@ -6344,8 +6345,8 @@ impl FigureMgr {
         // Don't render dead entities
         .filter(|(_, _, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
         {
-            if let Some((data, sprite_instances)) =
-                self.get_sprite_instances(entity, body, collider)
+            if let Some((sprite_instances, data)) =
+                self.get_sprite_instances(entity, body, collider).zip(self.states.get_terrain_locals(body, &entity))
             {
                 let dist = collider
                     .and_then(|collider| {
@@ -6888,7 +6889,27 @@ impl FigureMgr {
                     )
                 }),
             Body::Ship(body) => {
-                if body.manifest_entry().is_some() {
+                if matches!(body, ship::Body::Volume) {
+                    volume_states
+                        .get(&entity)
+                        .filter(|state| filter_state(state))
+                        .map(move |state| {
+                            (
+                                state.bound(),
+                                volume_model_cache
+                                    .get_model(
+                                        col_lights,
+                                        VolumeKey { entity, mut_count },
+                                        None,
+                                        tick,
+                                        CameraMode::default(),
+                                        None,
+                                        None,
+                                    )
+                                    .map(ModelEntryRef::Terrain),
+                            )
+                        })
+                } else if body.manifest_entry().is_some() {
                     ship_states
                         .get(&entity)
                         .filter(|state| filter_state(state))
@@ -6909,25 +6930,7 @@ impl FigureMgr {
                             )
                         })
                 } else {
-                    volume_states
-                        .get(&entity)
-                        .filter(|state| filter_state(state))
-                        .map(move |state| {
-                            (
-                                state.bound(),
-                                volume_model_cache
-                                    .get_model(
-                                        col_lights,
-                                        VolumeKey { entity, mut_count },
-                                        None,
-                                        tick,
-                                        CameraMode::default(),
-                                        None,
-                                        None,
-                                    )
-                                    .map(ModelEntryRef::Terrain),
-                            )
-                        })
+                    None
                 }
             },
         } {
@@ -6970,10 +6973,8 @@ impl FigureMgr {
         entity: EcsEntity,
         body: &Body,
         collider: Option<&Collider>,
-    ) -> Option<(
-        &'a BoundTerrainLocals,
-        &'a [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
-    )> {
+    ) -> Option<
+        &'a [Instances<SpriteInstance>; SPRITE_LOD_LEVELS]> {
         match body {
             Body::Ship(body) => {
                 if let Some(Collider::Volume(vol)) = collider {
@@ -6982,8 +6983,10 @@ impl FigureMgr {
                         mut_count: vol.mut_count,
                     };
                     self.volume_model_cache.get_sprites(vk)
-                } else {
+                } else if body.manifest_entry().is_some() {
                     self.ship_model_cache.get_sprites(*body)
+                } else {
+                    None
                 }
             },
             _ => None,
@@ -7195,8 +7198,6 @@ impl FigureColLights {
         (tex, tex_size): ColLightInfo,
         (opaque, bounds): (Mesh<TerrainVertex>, math::Aabb<f32>),
         vertex_ranges: [Range<u32>; N],
-        pos: Vec3<f32>,
-        ori: Quaternion<f32>,
         sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
         blocks_of_interest: BlocksOfInterest,
         blocks_offset: Vec3<f32>,
@@ -7222,13 +7223,6 @@ impl FigureColLights {
             );
         });
 
-        let terrain_locals = renderer.create_terrain_bound_locals(&[TerrainLocals::new(
-            pos,
-            ori,
-            Vec2::zero(),
-            0.0,
-        )]);
-
         let sprite_instances =
             sprite_instances.map(|instances| renderer.create_instances(&instances));
 
@@ -7238,7 +7232,6 @@ impl FigureColLights {
             col_lights,
             lod_vertex_ranges: vertex_ranges,
             model: FigureModel { opaque: model },
-            terrain_locals,
             sprite_instances,
             blocks_of_interest,
             blocks_offset,
@@ -7320,18 +7313,19 @@ impl FigureStateMeta {
     }
 }
 
-pub struct FigureState<S> {
+pub struct FigureState<S, D = ()> {
     meta: FigureStateMeta,
     skeleton: S,
+    extra: D,
 }
 
-impl<S> Deref for FigureState<S> {
+impl<S, D> Deref for FigureState<S, D> {
     type Target = FigureStateMeta;
 
     fn deref(&self) -> &Self::Target { &self.meta }
 }
 
-impl<S> DerefMut for FigureState<S> {
+impl<S, D> DerefMut for FigureState<S, D> {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.meta }
 }
 
@@ -7358,7 +7352,35 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub ground_vel: Vec3<f32>,
 }
 
-impl<S: Skeleton> FigureState<S> {
+pub trait FigureData: Sized {
+    fn new(renderer: &mut Renderer) -> Self;
+
+    fn update(&mut self, renderer: &mut Renderer, parameters: &FigureUpdateCommonParameters);
+}
+
+impl FigureData for () {
+    fn new(_renderer: &mut Renderer) -> Self {
+        ()
+    }
+
+    fn update(&mut self, _renderer: &mut Renderer, _parameters: &FigureUpdateCommonParameters) {
+        ()
+    }
+}
+
+impl FigureData for BoundTerrainLocals {
+    fn new(renderer: &mut Renderer) -> Self {
+        renderer.create_terrain_bound_locals(&[TerrainLocals::new(Vec3::zero(), Quaternion::identity(), Vec2::zero(), 0.0)])
+    }
+
+    fn update(&mut self, renderer: &mut Renderer, parameters: &FigureUpdateCommonParameters) {
+        renderer.update_consts(self, &[
+            TerrainLocals::new(parameters.pos.into(), parameters.ori.into_vec4().into(), Vec2::zero(), 0.0),
+        ])
+    }
+}
+
+impl<S: Skeleton, D: FigureData> FigureState<S, D> {
     pub fn new(renderer: &mut Renderer, skeleton: S, body: S::Body) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
         let offsets =
@@ -7386,6 +7408,7 @@ impl<S: Skeleton> FigureState<S> {
                 bound: renderer.create_figure_bound_locals(&[FigureLocals::default()], bone_consts),
             },
             skeleton,
+            extra: D::new(renderer),
         }
     }
 
@@ -7394,7 +7417,7 @@ impl<S: Skeleton> FigureState<S> {
         renderer: &mut Renderer,
         trail_mgr: Option<&mut TrailMgr>,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
-        FigureUpdateCommonParameters {
+        parameters @ FigureUpdateCommonParameters {
             entity,
             pos,
             ori,
@@ -7614,6 +7637,7 @@ impl<S: Skeleton> FigureState<S> {
         } else {
             self.acc_vel = 0.0;
         }
+        self.extra.update(renderer, parameters);
     }
 
     pub fn bound(&self) -> &pipelines::figure::BoundLocals { &self.bound }
