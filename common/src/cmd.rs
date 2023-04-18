@@ -738,7 +738,7 @@ impl ServerChatCommand {
                 None,
             ),
             ServerChatCommand::MakeVolume => {
-                cmd(vec![], "Create a volume (experimental)", Some(Admin))
+                cmd(vec![Integer("size", 15, Optional)], "Create a volume (experimental)", Some(Admin))
             },
             ServerChatCommand::Location => {
                 cmd(vec![Any("name", Required)], "Teleport to a location", None)

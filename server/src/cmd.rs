@@ -1690,7 +1690,7 @@ fn handle_make_volume(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: Vec<String>,
+    args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use comp::body::ship::figuredata::VoxelCollider;
@@ -1698,7 +1698,11 @@ fn handle_make_volume(
     //let () = parse_args!(args);
     let pos = position(server, target, "target")?;
     let ship = comp::ship::Body::Volume;
-    let sz = Vec3::new(15, 15, 15);
+    let sz = parse_cmd_args!(args, u32).unwrap_or(15);
+    if sz < 1 || sz > 127 {
+        return Err(format!("Size has to be between 1 and 127."));
+    };
+    let sz = Vec3::broadcast(sz);
     let collider = {
         let terrain = server.state().terrain();
         comp::Collider::Volume(Arc::new(VoxelCollider::from_fn(sz, |rpos| {
@@ -1711,12 +1715,9 @@ fn handle_make_volume(
     };
     server
         .state
-        .create_ship(
-            comp::Pos(pos.0 + Vec3::unit_z() * 50.0),
-            comp::Ori::default(),
-            ship,
-            move |_| collider,
-        )
+        .create_ship(comp::Pos(pos.0 + Vec3::unit_z() * (50.0 + sz.z as f32 / 2.0)), comp::Ori::default(), ship, move |_| {
+            collider
+        })
         .build();
 
     server.notify_client(

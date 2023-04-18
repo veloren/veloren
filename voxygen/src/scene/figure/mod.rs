@@ -38,7 +38,7 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
-        ship, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
+        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST}, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
         Item, ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos,
         Scale, SkillSet, Stance, Vel,
     },
@@ -6329,33 +6329,49 @@ impl FigureMgr {
         let sprite_hid_detail_distance = sprite_render_distance * 0.35;
         let sprite_high_detail_distance = sprite_render_distance * 0.15;
 
-        for (entity, pos, body, _, collider) in (
+        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
+        for (entity, pos, ori, body, _, collider) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Collider>().maybe(),
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
         {
             if let Some((data, sprite_instances)) =
                 self.get_sprite_instances(entity, body, collider)
             {
-                let dist_sqrd = cam_pos.distance_squared(pos.0);
-                let radius = collider.map_or(f32::INFINITY, |collider| collider.bounding_radius());
+                let dist = collider.and_then(|collider| {
+                    let vol = collider.get_vol(&voxel_colliders_manifest)?;
+                    
+                    let mat = Mat4::from(ori.to_quat()).translated_3d(pos.0)
+                        * Mat4::translation_3d(vol.translation);
 
-                let dist_sqrd = dist_sqrd - radius * radius;
+                    let p = mat.inverted().mul_point(cam_pos);
+                    let aabb = Aabb {
+                        min: Vec3::zero(),
+                        max: vol.volume().sz.as_(),
+                    };
+                    Some(if aabb.contains_point(p) {
+                        0.0
+                    } else {
+                        aabb.distance_to_point(p)
+                    })
+                }).unwrap_or_else(|| pos.0.distance(cam_pos));
 
-                if dist_sqrd < sprite_render_distance.powi(2) {
-                    let lod_level = if dist_sqrd < sprite_high_detail_distance.powi(2) {
+                if dist < sprite_render_distance {
+                    let lod_level = if dist < sprite_high_detail_distance {
                         0
-                    } else if dist_sqrd < sprite_hid_detail_distance.powi(2) {
+                    } else if dist < sprite_hid_detail_distance {
                         1
-                    } else if dist_sqrd < sprite_mid_detail_distance.powi(2) {
+                    } else if dist < sprite_mid_detail_distance {
                         2
-                    } else if dist_sqrd < sprite_low_detail_distance.powi(2) {
+                    } else if dist < sprite_low_detail_distance {
                         3
                     } else {
                         4

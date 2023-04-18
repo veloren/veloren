@@ -3,7 +3,7 @@ use super::{
     load::{BodySpec, ShipBoneMeshes},
     EcsEntity,
 };
-use common::{assets, comp::ship::figuredata::VoxelCollider};
+use common::{assets, comp::ship::{figuredata::VoxelCollider, AIRSHIP_SCALE}};
 use std::{convert::TryFrom, sync::Arc};
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
@@ -41,9 +41,7 @@ impl anim::Skeleton for VolumeKey {
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
         _: Self::Body,
     ) -> anim::Offsets {
-        let scale_mat = anim::vek::Mat4::scaling_3d(1.0 / 11.0);
-
-        let bone = base_mat * scale_mat;
+        let bone = base_mat;
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             anim::make_bone(bone),
