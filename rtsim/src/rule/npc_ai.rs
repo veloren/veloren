@@ -52,10 +52,10 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
     let heuristic = |tile: &Vec2<i32>, _: &Vec2<i32>| tile.as_::<f32>().distance(end.as_());
     let mut astar = Astar::new(1000, start, BuildHasherDefault::<FxHasher64>::default());
 
-    let transition = |a: &Vec2<i32>, b: &Vec2<i32>| {
+    let transition = |a: Vec2<i32>, b: Vec2<i32>| {
         let distance = a.as_::<f32>().distance(b.as_());
-        let a_tile = site.tiles.get(*a);
-        let b_tile = site.tiles.get(*b);
+        let a_tile = site.tiles.get(a);
+        let b_tile = site.tiles.get(b);
 
         let terrain = match &b_tile.kind {
             TileKind::Empty => 3.0,
@@ -79,12 +79,12 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
         let building = if a_tile.is_building() && b_tile.is_road() {
             a_tile
                 .plot
-                .and_then(|plot| is_door_tile(plot, *a).then_some(1.0))
+                .and_then(|plot| is_door_tile(plot, a).then_some(1.0))
                 .unwrap_or(10000.0)
         } else if b_tile.is_building() && a_tile.is_road() {
             b_tile
                 .plot
-                .and_then(|plot| is_door_tile(plot, *b).then_some(1.0))
+                .and_then(|plot| is_door_tile(plot, b).then_some(1.0))
                 .unwrap_or(10000.0)
         } else if (a_tile.is_building() || b_tile.is_building()) && a_tile.plot != b_tile.plot {
             10000.0
@@ -97,10 +97,13 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
 
     let neighbors = |tile: &Vec2<i32>| {
         let tile = *tile;
-        CARDINALS.iter().map(move |c| tile + *c)
+        CARDINALS.iter().map(move |c| {
+            let n = tile + *c;
+            (n, transition(tile, n))
+        })
     };
 
-    astar.poll(1000, heuristic, neighbors, transition, |tile| {
+    astar.poll(1000, heuristic, neighbors, |tile| {
         *tile == end || site.tiles.get_known(*tile).is_none()
     })
 }
@@ -135,17 +138,22 @@ fn path_between_sites(
 
     let mut astar = Astar::new(250, start, BuildHasherDefault::<FxHasher64>::default());
 
-    let neighbors = |site: &Id<civ::Site>| world.civs().neighbors(*site);
-
-    let transition = |a: &Id<civ::Site>, b: &Id<civ::Site>| {
+    let transition = |a: Id<civ::Site>, b: Id<civ::Site>| {
         world
             .civs()
-            .track_between(*a, *b)
+            .track_between(a, b)
             .map(|(id, _)| world.civs().tracks.get(id).cost)
             .unwrap_or(f32::INFINITY)
     };
+    let neighbors = |site: &Id<civ::Site>| {
+        let site = *site;
+        world
+            .civs()
+            .neighbors(site)
+            .map(move |n| (n, transition(n, site)))
+    };
 
-    let path = astar.poll(250, heuristic, neighbors, transition, |site| *site == end);
+    let path = astar.poll(250, heuristic, neighbors, |site| *site == end);
 
     path.map(|path| {
         let path = path

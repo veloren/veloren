@@ -4,12 +4,13 @@ use core::{
     fmt,
     hash::{BuildHasher, Hash},
 };
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashMap;
 use std::collections::BinaryHeap;
 
 #[derive(Copy, Clone, Debug)]
 pub struct PathEntry<S> {
-    cost: f32,
+    // cost so far + heursitic
+    cost_estimate: f32,
     node: S,
 }
 
@@ -23,12 +24,24 @@ impl<S: Eq> Ord for PathEntry<S> {
     // This method implements reverse ordering, so that the lowest cost
     // will be ordered first
     fn cmp(&self, other: &PathEntry<S>) -> Ordering {
-        other.cost.partial_cmp(&self.cost).unwrap_or(Equal)
+        other
+            .cost_estimate
+            .partial_cmp(&self.cost_estimate)
+            .unwrap_or(Equal)
     }
 }
 
 impl<S: Eq> PartialOrd for PathEntry<S> {
     fn partial_cmp(&self, other: &PathEntry<S>) -> Option<Ordering> { Some(self.cmp(other)) }
+
+    // This is particularily hot in `BinaryHeap::pop`, so we provide this
+    // implementation.
+    //
+    // NOTE: This probably doesn't handle edge cases like `NaNs` in a consistent
+    // manner with `Ord`, but I don't think we need to care about that here(?)
+    //
+    // See note about reverse ordering above.
+    fn le(&self, other: &PathEntry<S>) -> bool { other.cost_estimate <= self.cost_estimate }
 }
 
 pub enum PathResult<T> {
@@ -56,15 +69,20 @@ impl<T> PathResult<T> {
     }
 }
 
+// If node entry exists, this was visited!
+#[derive(Clone, Debug)]
+struct NodeEntry<S> {
+    // if came_from == self this is the start node!
+    came_from: S,
+    cheapest_score: f32,
+}
+
 #[derive(Clone)]
 pub struct Astar<S, Hasher> {
     iter: usize,
     max_iters: usize,
-    potential_nodes: BinaryHeap<PathEntry<S>>,
-    came_from: HashMap<S, S, Hasher>,
-    cheapest_scores: HashMap<S, f32, Hasher>,
-    final_scores: HashMap<S, f32, Hasher>,
-    visited: HashSet<S, Hasher>,
+    potential_nodes: BinaryHeap<PathEntry<S>>, // cost, node pairs
+    visited_nodes: HashMap<S, NodeEntry<S>, Hasher>,
     cheapest_node: Option<S>,
     cheapest_cost: Option<f32>,
 }
@@ -76,10 +94,7 @@ impl<S: Clone + Eq + Hash + fmt::Debug, H: BuildHasher> fmt::Debug for Astar<S, 
             .field("iter", &self.iter)
             .field("max_iters", &self.max_iters)
             .field("potential_nodes", &self.potential_nodes)
-            .field("came_from", &self.came_from)
-            .field("cheapest_scores", &self.cheapest_scores)
-            .field("final_scores", &self.final_scores)
-            .field("visited", &self.visited)
+            .field("visited_nodes", &self.visited_nodes)
             .field("cheapest_node", &self.cheapest_node)
             .field("cheapest_cost", &self.cheapest_cost)
             .finish()
@@ -92,24 +107,16 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
             max_iters,
             iter: 0,
             potential_nodes: core::iter::once(PathEntry {
-                cost: 0.0,
+                cost_estimate: 0.0,
                 node: start.clone(),
             })
             .collect(),
-            came_from: HashMap::with_hasher(hasher.clone()),
-            cheapest_scores: {
-                let mut h = HashMap::with_capacity_and_hasher(1, hasher.clone());
-                h.extend(core::iter::once((start.clone(), 0.0)));
-                h
-            },
-            final_scores: {
-                let mut h = HashMap::with_capacity_and_hasher(1, hasher.clone());
-                h.extend(core::iter::once((start.clone(), 0.0)));
-                h
-            },
-            visited: {
-                let mut s = HashSet::with_capacity_and_hasher(1, hasher);
-                s.extend(core::iter::once(start));
+            visited_nodes: {
+                let mut s = HashMap::with_capacity_and_hasher(1, hasher.clone());
+                s.extend(core::iter::once((start.clone(), NodeEntry {
+                    came_from: start,
+                    cheapest_score: 0.0,
+                })));
                 s
             },
             cheapest_node: None,
@@ -120,13 +127,16 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     pub fn poll<I>(
         &mut self,
         iters: usize,
+        // Estimate how far we are from the target? but we are given two nodes...
+        // (current, previous)
         mut heuristic: impl FnMut(&S, &S) -> f32,
+        // get neighboring nodes
         mut neighbors: impl FnMut(&S) -> I,
-        mut transition: impl FnMut(&S, &S) -> f32,
+        // have we reached target?
         mut satisfied: impl FnMut(&S) -> bool,
     ) -> PathResult<S>
     where
-        I: Iterator<Item = S>,
+        I: Iterator<Item = (S, f32)>, // (node, transition cost)
     {
         let iter_limit = self.max_iters.min(self.iter + iters);
         while self.iter < iter_limit {
@@ -134,28 +144,48 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                 if satisfied(&node) {
                     return PathResult::Path(self.reconstruct_path_to(node));
                 } else {
-                    for neighbor in neighbors(&node) {
-                        let node_cheapest = self.cheapest_scores.get(&node).unwrap_or(&f32::MAX);
-                        let neighbor_cheapest =
-                            self.cheapest_scores.get(&neighbor).unwrap_or(&f32::MAX);
+                    let (node_cheapest, came_from) = self
+                        .visited_nodes
+                        .get(&node)
+                        .map(|n| (n.cheapest_score, n.came_from.clone()))
+                        .unwrap();
+                    for (neighbor, transition) in neighbors(&node) {
+                        if neighbor == came_from {
+                            continue;
+                        }
+                        let neighbor_cheapest = self
+                            .visited_nodes
+                            .get(&neighbor)
+                            .map_or(f32::MAX, |n| n.cheapest_score);
 
-                        let cost = node_cheapest + transition(&node, &neighbor);
-                        if cost < *neighbor_cheapest {
-                            self.came_from.insert(neighbor.clone(), node.clone());
-                            self.cheapest_scores.insert(neighbor.clone(), cost);
+                        // compute cost to traverse to each neighbor
+                        let cost = node_cheapest + transition;
+
+                        if cost < neighbor_cheapest {
+                            let previously_visited = self
+                                .visited_nodes
+                                .insert(neighbor.clone(), NodeEntry {
+                                    came_from: node.clone(),
+                                    cheapest_score: cost,
+                                })
+                                .is_some();
                             let h = heuristic(&neighbor, &node);
-                            let neighbor_cost = cost + h;
-                            self.final_scores.insert(neighbor.clone(), neighbor_cost);
+                            // note that cheapest_scores does not include the heuristic
+                            // priority queue does include heuristic
+                            let cost_estimate = cost + h;
 
                             if self.cheapest_cost.map(|cc| h < cc).unwrap_or(true) {
                                 self.cheapest_node = Some(node.clone());
                                 self.cheapest_cost = Some(h);
                             };
 
-                            if self.visited.insert(neighbor.clone()) {
+                            // TODO: I think the if here should be removed
+                            // if we hadn't already visted, add this to potential nodes, what about
+                            // its neighbors, wouldn't they need to be revisted???
+                            if !previously_visited {
                                 self.potential_nodes.push(PathEntry {
+                                    cost_estimate,
                                     node: neighbor,
-                                    cost: neighbor_cost,
                                 });
                             }
                         }
@@ -190,7 +220,12 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     fn reconstruct_path_to(&mut self, end: S) -> Path<S> {
         let mut path = vec![end.clone()];
         let mut cnode = &end;
-        while let Some(node) = self.came_from.get(cnode) {
+        while let Some(node) = self
+            .visited_nodes
+            .get(cnode)
+            .map(|n| &n.came_from)
+            .filter(|n| *n != cnode)
+        {
             path.push(node.clone());
             cnode = node;
         }

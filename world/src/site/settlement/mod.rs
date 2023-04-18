@@ -1347,15 +1347,19 @@ impl Land {
         &self,
         origin: Vec2<i32>,
         dest: Vec2<i32>,
-        mut path_cost_fn: impl FnMut(Option<&Tile>, Option<&Tile>) -> f32,
+        path_cost_fn: impl Fn(Option<&Tile>, Option<&Tile>) -> f32,
     ) -> Option<Path<Vec2<i32>>> {
         let heuristic = |pos: &Vec2<i32>, _: &Vec2<i32>| (pos - dest).map(|e| e as f32).magnitude();
+        let transition =
+            |from: Vec2<i32>, to: Vec2<i32>| path_cost_fn(self.tile_at(from), self.tile_at(to));
         let neighbors = |pos: &Vec2<i32>| {
             let pos = *pos;
-            CARDINALS.iter().map(move |dir| pos + *dir)
+            let transition = &transition;
+            CARDINALS.iter().map(move |dir| {
+                let to = pos + *dir;
+                (to, transition(pos, to))
+            })
         };
-        let transition =
-            |from: &Vec2<i32>, to: &Vec2<i32>| path_cost_fn(self.tile_at(*from), self.tile_at(*to));
         let satisfied = |pos: &Vec2<i32>| *pos == dest;
 
         // We use this hasher (FxHasher64) because
@@ -1363,7 +1367,7 @@ impl Land {
         // (2) we don't care about determinism across computers (we could use AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
         Astar::new(250, origin, BuildHasherDefault::<FxHasher64>::default())
-            .poll(250, heuristic, neighbors, transition, satisfied)
+            .poll(250, heuristic, neighbors, satisfied)
             .into_path()
     }
 

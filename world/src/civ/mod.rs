@@ -681,9 +681,12 @@ impl Civs {
                 .distance_squared(self.sites.get(b).center) as f32)
                 .sqrt()
         };
-        let neighbors = |p: &Id<Site>| self.neighbors(*p);
-        let transition = |a: &Id<Site>, b: &Id<Site>| {
-            self.tracks.get(self.track_between(*a, *b).unwrap().0).cost
+        let transition =
+            |a: Id<Site>, b: Id<Site>| self.tracks.get(self.track_between(a, b).unwrap().0).cost;
+        let neighbors = |p: &Id<Site>| {
+            let p = *p;
+            self.neighbors(p)
+                .map(move |neighbor| (neighbor, transition(p, neighbor)))
         };
         let satisfied = |p: &Id<Site>| *p == b;
         // We use this hasher (FxHasher64) because
@@ -692,7 +695,7 @@ impl Civs {
         // (3) we have 8-byte keys (for which FxHash is fastest).
         let mut astar = Astar::new(100, a, BuildHasherDefault::<FxHasher64>::default());
         astar
-            .poll(100, heuristic, neighbors, transition, satisfied)
+            .poll(100, heuristic, neighbors, satisfied)
             .into_path()
             .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
     }
@@ -1349,7 +1352,7 @@ fn find_path(
     // (1) we don't care about DDOS attacks (ruling out SipHash);
     // (2) we care about determinism across computers (ruling out AAHash);
     // (3) we have 8-byte keys (for which FxHash is fastest).
-    let mut astar = common::astar2::Astar::new(
+    let mut astar = Astar::new(
         MAX_PATH_ITERS,
         a,
         BuildHasherDefault::<FxHasher64>::default(),
