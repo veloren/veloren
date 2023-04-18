@@ -312,8 +312,9 @@ pub(super) fn select_interactable(
             .chain(volumes)
             .filter(|(wpos, volume_pos, interaction)| {
                 match interaction {
-                    Interaction::Mount => !is_volume_rider.contains(player_entity) && wpos.distance_squared(player_pos) < MAX_SPRITE_MOUNT_RANGE * MAX_SPRITE_MOUNT_RANGE && 
-                        is_volume_rider.join().find(|is_volume_rider| is_volume_rider.pos == *volume_pos).is_none(),
+                    Interaction::Mount => !is_volume_rider.contains(player_entity)
+                    && wpos.distance_squared(player_pos) < MAX_SPRITE_MOUNT_RANGE * MAX_SPRITE_MOUNT_RANGE
+                    && !is_volume_rider.join().any(|is_volume_rider| is_volume_rider.pos == *volume_pos),
                     _ => true,
                 }
             })
@@ -333,7 +334,7 @@ pub(super) fn select_interactable(
                     &ecs.read_resource::<UidAllocator>(),
                     &ecs.read_storage(),
                     block_pos,
-                    interaction.clone(),
+                    *interaction,
                 )
             })
             .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))

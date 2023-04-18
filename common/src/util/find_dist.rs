@@ -156,9 +156,7 @@ impl FindDist<Cylinder> for Vec3<f32> {
     }
 
     #[inline]
-    fn min_distance(self, other: Cylinder) -> f32 {
-        other.min_distance(self)
-    }
+    fn min_distance(self, other: Cylinder) -> f32 { other.min_distance(self) }
 }
 
 #[cfg(test)]

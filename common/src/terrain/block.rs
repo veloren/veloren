@@ -436,7 +436,8 @@ impl Block {
     }
 
     pub fn is_controller(&self) -> bool {
-        self.get_sprite().map_or(false, |sprite| sprite.is_controller())
+        self.get_sprite()
+            .map_or(false, |sprite| sprite.is_controller())
     }
 
     #[inline]

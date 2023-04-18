@@ -3,7 +3,10 @@ use super::{
     load::{BodySpec, ShipBoneMeshes},
     EcsEntity,
 };
-use common::{assets, comp::ship::{figuredata::VoxelCollider, AIRSHIP_SCALE}};
+use common::{
+    assets,
+    comp::ship::figuredata::VoxelCollider,
+};
 use std::{convert::TryFrom, sync::Arc};
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]

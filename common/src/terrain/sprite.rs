@@ -506,13 +506,14 @@ impl SpriteKind {
     pub fn is_mountable(&self) -> bool { self.mount_offset().is_some() }
 
     #[inline]
-    pub fn is_controller(&self) -> bool {
-        matches!(self, SpriteKind::Helm)
-    }
+    pub fn is_controller(&self) -> bool { matches!(self, SpriteKind::Helm) }
 
     #[inline]
     pub fn is_door(&self) -> bool {
-        matches!(self, SpriteKind::Door | SpriteKind::DoorWide | SpriteKind::DoorDark)
+        matches!(
+            self,
+            SpriteKind::Door | SpriteKind::DoorWide | SpriteKind::DoorDark
+        )
     }
 
     /// Which tool (if any) is needed to collect this sprite?

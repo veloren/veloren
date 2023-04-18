@@ -38,9 +38,10 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
-        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST}, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
-        Item, ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos,
-        Scale, SkillSet, Stance, Vel,
+        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
+        Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, Item,
+        ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale,
+        SkillSet, Stance, Vel,
     },
     link::Is,
     mounting::{Rider, VolumeRider},
@@ -6104,7 +6105,7 @@ impl FigureMgr {
                                 pos.0.into(),
                                 ori.into_vec4().into(),
                                 vk,
-                                Arc::clone(&vol),
+                                Arc::clone(vol),
                                 tick,
                                 &slow_jobs,
                                 terrain,
@@ -6346,23 +6347,25 @@ impl FigureMgr {
             if let Some((data, sprite_instances)) =
                 self.get_sprite_instances(entity, body, collider)
             {
-                let dist = collider.and_then(|collider| {
-                    let vol = collider.get_vol(&voxel_colliders_manifest)?;
-                    
-                    let mat = Mat4::from(ori.to_quat()).translated_3d(pos.0)
-                        * Mat4::translation_3d(vol.translation);
+                let dist = collider
+                    .and_then(|collider| {
+                        let vol = collider.get_vol(&voxel_colliders_manifest)?;
 
-                    let p = mat.inverted().mul_point(cam_pos);
-                    let aabb = Aabb {
-                        min: Vec3::zero(),
-                        max: vol.volume().sz.as_(),
-                    };
-                    Some(if aabb.contains_point(p) {
-                        0.0
-                    } else {
-                        aabb.distance_to_point(p)
+                        let mat = Mat4::from(ori.to_quat()).translated_3d(pos.0)
+                            * Mat4::translation_3d(vol.translation);
+
+                        let p = mat.inverted().mul_point(cam_pos);
+                        let aabb = Aabb {
+                            min: Vec3::zero(),
+                            max: vol.volume().sz.as_(),
+                        };
+                        Some(if aabb.contains_point(p) {
+                            0.0
+                        } else {
+                            aabb.distance_to_point(p)
+                        })
                     })
-                }).unwrap_or_else(|| pos.0.distance(cam_pos));
+                    .unwrap_or_else(|| pos.0.distance(cam_pos));
 
                 if dist < sprite_render_distance {
                     let lod_level = if dist < sprite_high_detail_distance {

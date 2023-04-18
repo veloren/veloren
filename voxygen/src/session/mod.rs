@@ -951,9 +951,7 @@ impl PlayState for SessionState {
                                                     BlockInteraction::Craft(tab) => {
                                                         self.hud.show.open_crafting_tab(
                                                             *tab,
-                                                            block
-                                                                .get_sprite()
-                                                                .map(|s| (*pos, s)),
+                                                            block.get_sprite().map(|s| (*pos, s)),
                                                         )
                                                     },
                                                     BlockInteraction::Mount => {

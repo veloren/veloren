@@ -243,7 +243,10 @@ pub mod figuredata {
                 AssetExt::load("common.manifests.ship_manifest")?;
             let mut colliders = HashMap::new();
             for (_, spec) in (manifest.read().0).0.iter() {
-                for (index, bone) in [&spec.bone0, &spec.bone1, &spec.bone2, &spec.bone3].iter().enumerate() {
+                for (index, bone) in [&spec.bone0, &spec.bone1, &spec.bone2, &spec.bone3]
+                    .iter()
+                    .enumerate()
+                {
                     // TODO: Currently both client and server load models and manifests from
                     // "common.voxel.". In order to support CSG procedural airships, we probably
                     // need to load them in the server and sync them as an ECS resource.

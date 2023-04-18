@@ -2040,7 +2040,7 @@ impl Hud {
             }
 
             // Render overtime for an interactable block
-            if let Some(Interactable::Block(block, pos, interaction)) = interactable 
+            if let Some(Interactable::Block(block, pos, interaction)) = interactable
                 && let Some((mat, _)) = pos.get_block_and_transform(&ecs.read_resource(), &ecs.read_resource(), &ecs.read_storage(), &ecs.read_storage(), &ecs.read_storage()) {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
