@@ -118,6 +118,40 @@ impl Animation for ShootAnimation {
                     next.foot_l.orientation = Quaternion::rotation_y(move1 * 0.3 + move2 * -0.3);
                     next.foot_r.orientation = Quaternion::rotation_y(move1 * 0.3 + move2 * -0.3);
                 },
+                Some("common.abilities.adlet.elder.trap") => {
+                    let (move1base, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    let move2abs = move2base * pullback;
+                    next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+
+                    next.hand_l.position =
+                        Vec3::new(-s_a.hand.0, s_a.hand.1 + 1.0, s_a.hand.2 + 5.0);
+                    next.hand_r.position =
+                        Vec3::new(s_a.hand.0, s_a.hand.1 + 1.0, s_a.hand.2 + 5.0);
+
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7)
+                            * Quaternion::rotation_y(0.0 + move1abs * -0.7);
+                    next.hand_l.orientation =
+                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
+
+                    next.shoulder_l.orientation =
+                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
+                    next.shoulder_r.orientation =
+                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
+                    next.head.orientation =
+                        Quaternion::rotation_x(move1abs * 0.4 + move2abs * -0.2);
+                },
                 _ => {},
             },
             Some(ToolKind::Hammer) => match ability_id {
@@ -161,40 +195,6 @@ impl Animation for ShootAnimation {
                         Quaternion::rotation_x(move1 * 0.6) * Quaternion::rotation_y(move1 * 0.5);
                     next.shoulder_r.orientation =
                         Quaternion::rotation_x(move1 * 1.4) * Quaternion::rotation_y(move1 * -0.5);
-                },
-                Some("common.abilities.adlet.elder.trap") => {
-                    let (move1base, move2base, move3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
-                        _ => (0.0, 0.0, 0.0),
-                    };
-                    let pullback = 1.0 - move3;
-                    let move1abs = move1base * pullback;
-                    let move2abs = move2base * pullback;
-                    next.main.position = Vec3::new(-10.0, -8.0, 12.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-
-                    next.hand_l.position =
-                        Vec3::new(-s_a.hand.0, s_a.hand.1 + 1.0, s_a.hand.2 + 5.0);
-                    next.hand_r.position =
-                        Vec3::new(s_a.hand.0, s_a.hand.1 + 1.0, s_a.hand.2 + 5.0);
-
-                    next.hand_r.orientation =
-                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7)
-                            * Quaternion::rotation_y(0.0 + move1abs * -0.7);
-                    next.hand_l.orientation =
-                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
-                    next.hand_r.orientation =
-                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
-
-                    next.shoulder_l.orientation =
-                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
-                    next.shoulder_r.orientation =
-                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7);
-                    next.head.orientation =
-                        Quaternion::rotation_x(move1abs * 0.4 + move2abs * -0.2);
                 },
                 _ => {},
             },

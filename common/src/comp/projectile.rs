@@ -809,7 +809,7 @@ impl ProjectileConstructor {
                 Projectile {
                     hit_solid: vec![],
                     hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
-                    time_left: Duration::from_secs(300),
+                    time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
                     is_sticky: true,

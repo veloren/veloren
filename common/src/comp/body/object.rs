@@ -436,7 +436,7 @@ impl Body {
             Body::IceBomb => 12298.0, // 2.5 m diamter but ice
             Body::LaserBeam => 80000.0,
             Body::AdletSpear => 1.5,
-            Body::AdletTrap => 1.2,
+            Body::AdletTrap => 10.0,
         };
 
         Mass(m)
