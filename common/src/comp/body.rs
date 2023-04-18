@@ -804,6 +804,7 @@ impl Body {
                 biped_large::Species::Cultistwarlock => 250,
                 biped_large::Species::Gigasfrost => 20000,
                 biped_large::Species::AdletElder => 1500,
+                biped_large::Species::Tursus => 300,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -947,11 +948,17 @@ impl Body {
             BuffKind::Frozen => match self {
                 Body::BipedLarge(b) => matches!(
                     b.species,
-                    biped_large::Species::Yeti | biped_large::Species::Gigasfrost
+                    biped_large::Species::Yeti
+                        | biped_large::Species::Gigasfrost
+                        | biped_large::Species::Tursus
                 ),
                 Body::QuadrupedLow(q) => matches!(q.species, quadruped_low::Species::Icedrake),
                 Body::BirdLarge(b) => matches!(b.species, bird_large::Species::FrostWyvern),
                 Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Boreal),
+                Body::QuadrupedMedium(b) => matches!(
+                    b.species,
+                    quadruped_medium::Species::Roshwalr | quadruped_medium::Species::Frostfang
+                ),
                 _ => false,
             },
             BuffKind::ProtectingWard => matches!(self, Body::Object(object::Body::BarrelOrgan)),

@@ -923,7 +923,6 @@ impl LoadoutBuilder {
                 | biped_large::Species::Blueoni
                 | biped_large::Species::Redoni
                 | biped_large::Species::Cavetroll
-                | biped_large::Species::Tursus
                 | biped_large::Species::Wendigo => {
                     Some("common.items.npc_armor.biped_large.generic")
                 },
@@ -931,6 +930,7 @@ impl LoadoutBuilder {
                 biped_large::Species::Dullahan => {
                     Some("common.items.npc_armor.biped_large.dullahan")
                 },
+                biped_large::Species::Tursus => Some("common.items.npc_armor.biped_large.tursus"),
                 biped_large::Species::Cultistwarlord => {
                     Some("common.items.npc_armor.biped_large.warlord")
                 },
