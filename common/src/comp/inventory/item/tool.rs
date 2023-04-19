@@ -297,7 +297,7 @@ pub enum AbilityKind<T> {
     Simple(Option<Skill>, T),
     Contextualized {
         pseudo_id: String,
-        abilities: HashMap<AbilityContext, (Option<Skill>, T)>,
+        abilities: Vec<(Vec<AbilityContext>, (Option<Skill>, T))>,
     },
 }
 
@@ -328,13 +328,13 @@ impl<T> AbilityKind<T> {
                 pseudo_id: pseudo_id.clone(),
                 abilities: abilities
                     .into_iter()
-                    .map(|(c, (s, x))| (*c, (*s, f(x))))
+                    .map(|(c, (s, x))| (c.clone(), (*s, f(x))))
                     .collect(),
             },
         }
     }
 
-    pub fn ability(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
+    pub fn ability(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
         let unlocked = |s: Option<Skill>, a| {
             // If there is a skill requirement and the skillset does not contain the
             // required skill, return None
@@ -352,13 +352,14 @@ impl<T> AbilityKind<T> {
                 // the required skill, try falling back to the ability from this input that does
                 // not require a context
                 abilities
-                    .get(&context)
-                    .and_then(|(s, a)| unlocked(*s, a))
-                    .or_else(|| {
-                        abilities
-                            .get(&AbilityContext::None)
-                            .and_then(|(s, a)| unlocked(*s, a))
+                    .iter()
+                    .find_map(|(req_contexts, (s, a))| {
+                        req_contexts
+                            .iter()
+                            .all(|req| contexts.contains(req))
+                            .then_some((s, a))
                     })
+                    .and_then(|(s, a)| unlocked(*s, a))
             },
         }
     }
@@ -371,16 +372,17 @@ pub enum AbilityContext {
     /// `AbilityContext::Stance(Stance::None)` in the ability map config
     /// files(s).
     Stance(Stance),
-    None,
 }
 
 impl AbilityContext {
-    pub fn from(stance: Option<&Stance>) -> Self {
+    pub fn from(stance: Option<&Stance>) -> Vec<Self> {
+        let mut contexts = Vec::new();
         match stance {
-            Some(Stance::None) => AbilityContext::None,
-            Some(stance) => AbilityContext::Stance(*stance),
-            None => AbilityContext::None,
+            Some(Stance::None) => {},
+            Some(stance) => contexts.push(AbilityContext::Stance(*stance)),
+            None => {},
         }
+        contexts
     }
 }
 
@@ -417,23 +419,27 @@ impl<T> AbilitySet<T> {
         }
     }
 
-    pub fn primary(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
-        self.primary.ability(skillset, context)
+    pub fn primary(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
+        self.primary.ability(skillset, contexts)
     }
 
-    pub fn secondary(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
-        self.secondary.ability(skillset, context)
+    pub fn secondary(
+        &self,
+        skillset: Option<&SkillSet>,
+        contexts: &[AbilityContext],
+    ) -> Option<&T> {
+        self.secondary.ability(skillset, contexts)
     }
 
     pub fn auxiliary(
         &self,
         index: usize,
         skillset: Option<&SkillSet>,
-        context: AbilityContext,
+        contexts: &[AbilityContext],
     ) -> Option<&T> {
         self.abilities
             .get(index)
-            .and_then(|a| a.ability(skillset, context))
+            .and_then(|a| a.ability(skillset, contexts))
     }
 }
 

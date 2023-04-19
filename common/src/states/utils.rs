@@ -1107,7 +1107,7 @@ fn handle_ability(
     output_events: &mut OutputEvents,
     input: InputKind,
 ) -> bool {
-    let context = AbilityContext::from(data.stance);
+    let contexts = AbilityContext::from(data.stance);
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
@@ -1118,7 +1118,7 @@ fn handle_ability(
                     data.skill_set,
                     Some(data.body),
                     Some(data.character),
-                    context,
+                    &contexts,
                 )
             })
             .filter(|(ability, _)| ability.requirements_paid(data, update))

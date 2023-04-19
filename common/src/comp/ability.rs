@@ -144,7 +144,7 @@ impl ActiveAbilities {
         skill_set: &SkillSet,
         body: Option<&Body>,
         char_state: Option<&CharacterState>,
-        context: AbilityContext,
+        contexts: &[AbilityContext],
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool)> {
         let ability = self.get_ability(input, inv, Some(skill_set));
@@ -168,14 +168,14 @@ impl ActiveAbilities {
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .primary(Some(skill_set), context)
+                        .primary(Some(skill_set), contexts)
                         .map(|a| a.ability.clone())
                 })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| {
                     abilities
-                        .secondary(Some(skill_set), context)
+                        .secondary(Some(skill_set), contexts)
                         .map(|a| a.ability.clone())
                 })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true))
@@ -183,7 +183,7 @@ impl ActiveAbilities {
                     ability_set(EquipSlot::ActiveMainhand)
                         .and_then(|abilities| {
                             abilities
-                                .secondary(Some(skill_set), context)
+                                .secondary(Some(skill_set), contexts)
                                 .map(|a| a.ability.clone())
                         })
                         .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false))
@@ -194,14 +194,14 @@ impl ActiveAbilities {
             Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .auxiliary(index, Some(skill_set), context)
+                        .auxiliary(index, Some(skill_set), contexts)
                         .map(|a| a.ability.clone())
                 })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
             Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| {
                     abilities
-                        .auxiliary(index, Some(skill_set), context)
+                        .auxiliary(index, Some(skill_set), contexts)
                         .map(|a| a.ability.clone())
                 })
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true)),
@@ -226,8 +226,8 @@ impl ActiveAbilities {
                     pseudo_id: _,
                     abilities,
                 } => abilities
-                    .values()
-                    .any(|(skill, _)| {
+                    .iter()
+                    .any(|(_contexts, (skill, _))| {
                         skill.map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
                     })
                     .then_some(i),
@@ -273,7 +273,7 @@ impl Ability {
         self,
         inv: Option<&'a Inventory>,
         skillset: Option<&'a SkillSet>,
-        context: AbilityContext,
+        contexts: &[AbilityContext],
     ) -> Option<&'a str> {
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
@@ -295,21 +295,21 @@ impl Ability {
         match self {
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                 abilities
-                    .primary(skillset, context)
+                    .primary(skillset, contexts)
                     .map(|a| a.id.as_str())
                     .or_else(|| contextual_id(Some(&abilities.primary)))
             }),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| {
                     abilities
-                        .secondary(skillset, context)
+                        .secondary(skillset, contexts)
                         .map(|a| a.id.as_str())
                         .or_else(|| contextual_id(Some(&abilities.secondary)))
                 })
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                         abilities
-                            .secondary(skillset, context)
+                            .secondary(skillset, contexts)
                             .map(|a| a.id.as_str())
                             .or_else(|| contextual_id(Some(&abilities.secondary)))
                     })
@@ -318,7 +318,7 @@ impl Ability {
             Ability::MainWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                     abilities
-                        .auxiliary(index, skillset, context)
+                        .auxiliary(index, skillset, contexts)
                         .map(|a| a.id.as_str())
                         .or_else(|| contextual_id(abilities.abilities.get(index)))
                 })
@@ -326,7 +326,7 @@ impl Ability {
             Ability::OffWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
                     abilities
-                        .auxiliary(index, skillset, context)
+                        .auxiliary(index, skillset, contexts)
                         .map(|a| a.id.as_str())
                         .or_else(|| contextual_id(abilities.abilities.get(index)))
                 })

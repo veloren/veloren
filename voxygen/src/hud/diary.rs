@@ -241,7 +241,7 @@ pub struct Diary<'a> {
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
-    context: AbilityContext,
+    contexts: &'a [AbilityContext],
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -287,7 +287,7 @@ impl<'a> Diary<'a> {
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
-        context: AbilityContext,
+        contexts: &'a [AbilityContext],
     ) -> Self {
         Self {
             show,
@@ -309,7 +309,7 @@ impl<'a> Diary<'a> {
             tooltip_manager,
             slot_manager,
             pulse,
-            context,
+            contexts,
             common: widget::CommonBuilder::default(),
             created_btns_top_l: 0,
             created_btns_top_r: 0,
@@ -853,7 +853,7 @@ impl<'a> Widget for Diary<'a> {
                         self.active_abilities,
                         self.inventory,
                         self.skill_set,
-                        self.context,
+                        self.contexts,
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
@@ -868,7 +868,7 @@ impl<'a> Widget for Diary<'a> {
                             Some(self.inventory),
                             Some(self.skill_set),
                         )
-                        .ability_id(Some(self.inventory), Some(self.skill_set), self.context);
+                        .ability_id(Some(self.inventory), Some(self.skill_set), self.contexts);
                     let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
                         util::ability_description(ability_id, self.localized_strings)
                     } else {
@@ -953,7 +953,7 @@ impl<'a> Widget for Diary<'a> {
                         Ability::from(a).ability_id(
                             Some(self.inventory),
                             Some(self.skill_set),
-                            self.context,
+                            self.contexts,
                         ),
                         a,
                     )
@@ -969,7 +969,7 @@ impl<'a> Widget for Diary<'a> {
                         Ability::from(a).ability_id(
                             Some(self.inventory),
                             Some(self.skill_set),
-                            self.context,
+                            self.contexts,
                         ),
                         a,
                     )
@@ -1080,7 +1080,7 @@ impl<'a> Widget for Diary<'a> {
                         self.active_abilities,
                         self.inventory,
                         self.skill_set,
-                        self.context,
+                        self.contexts,
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
