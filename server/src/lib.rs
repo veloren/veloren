@@ -83,6 +83,7 @@ use common::{
     terrain::{TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
 };
+use common_base::prof_span;
 use common_ecs::run_now;
 use common_net::{
     msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerMsg},
@@ -90,7 +91,6 @@ use common_net::{
 };
 use common_state::{BlockDiff, BuildAreas, State};
 use common_systems::add_local_systems;
-use common_base::prof_span;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
 use persistence::{
@@ -455,9 +455,7 @@ impl Server {
         // Insert the world into the ECS (todo: Maybe not an Arc?)
         let world = Arc::new(world);
         state.ecs_mut().insert(Arc::clone(&world));
-        state
-            .ecs_mut()
-            .insert(lod);
+        state.ecs_mut().insert(lod);
         state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.

@@ -112,7 +112,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
             })
             .collect(),
             visited_nodes: {
-                let mut s = HashMap::with_capacity_and_hasher(1, hasher.clone());
+                let mut s = HashMap::with_capacity_and_hasher(1, hasher);
                 s.extend(core::iter::once((start.clone(), NodeEntry {
                     came_from: start,
                     cheapest_score: 0.0,

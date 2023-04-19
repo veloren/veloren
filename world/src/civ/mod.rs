@@ -1169,12 +1169,9 @@ impl Civs {
                 // Find a route using existing paths
                 //
                 // If the novel path isn't efficient compared to this, don't use it
-                let max_novel_cost = {
-                    let max_novel_cost = self
-                        .route_between(site, nearby)
-                        .map_or(f32::MAX, |(_, route_cost)| route_cost / 3.0);
-                    max_novel_cost
-                };
+                let max_novel_cost = self
+                    .route_between(site, nearby)
+                    .map_or(f32::MAX, |(_, route_cost)| route_cost / 3.0);
 
                 let start = loc;
                 let end = self.sites.get(nearby).center;
@@ -1215,7 +1212,6 @@ impl Civs {
                             ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |= 1 << (i as u8);
                             randomize_offset = true;
                         } else if !self.bridges.contains_key(&locs[1]) {
-                            //dbg!("here"); called 18 times
                             let center = (locs[1] + locs[2]) / 2;
                             let id =
                                 establish_site(self, &mut ctx.reseed(), center, move |place| {
