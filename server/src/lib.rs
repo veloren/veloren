@@ -284,6 +284,8 @@ impl Server {
             default_chunk: Arc::new(world.generate_oob_chunk()),
         };
 
+        let lod = lod::Lod::from_world(&world, index.as_index_ref(), &pools);
+
         let mut state = State::server(
             pools,
             world.sim().map_size_lg(),
@@ -455,7 +457,7 @@ impl Server {
         state.ecs_mut().insert(Arc::clone(&world));
         state
             .ecs_mut()
-            .insert(lod::Lod::from_world(&world, index.as_index_ref()));
+            .insert(lod);
         state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.

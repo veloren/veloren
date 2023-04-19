@@ -275,6 +275,7 @@ impl Civs {
         //=== old economy is gone
 
         // Flatten ground around sites
+        prof_span!(guard, "Flatten ground around sites");
         for site in this.sites.values() {
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
@@ -339,8 +340,10 @@ impl Civs {
                 }
             }
         }
+        drop(guard);
 
         // Place sites in world
+        prof_span!(guard, "Place sites in world");
         let mut cnt = 0;
         for sim_site in this.sites.values_mut() {
             cnt += 1;
@@ -436,6 +439,7 @@ impl Civs {
             }
             debug!(?sim_site.center, "Placed site at location");
         }
+        drop(guard);
         info!(?cnt, "all sites placed");
 
         //this.display_info();
@@ -465,23 +469,25 @@ impl Civs {
             }
         }
 
+        // TODO: this looks optimizable
+
         // collect natural resources
+        prof_span!(guard, "collect natural resources");
         let sites = &mut index.sites;
-        (0..ctx.sim.map_size_lg().chunks_len())
-            .into_iter()
-            .for_each(|posi| {
-                let chpos = uniform_idx_as_vec2(ctx.sim.map_size_lg(), posi);
-                let wpos = chpos.map(|e| e as i64) * TerrainChunkSize::RECT_SIZE.map(|e| e as i64);
-                let closest_site = (*sites)
-                    .iter_mut()
-                    .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Dungeon(_)))
-                    .min_by_key(|(_id, s)| s.get_origin().map(|e| e as i64).distance_squared(wpos));
-                if let Some((_id, s)) = closest_site {
-                    let distance_squared = s.get_origin().map(|e| e as i64).distance_squared(wpos);
-                    s.economy
-                        .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
-                }
-            });
+        (0..ctx.sim.map_size_lg().chunks_len()).for_each(|posi| {
+            let chpos = uniform_idx_as_vec2(ctx.sim.map_size_lg(), posi);
+            let wpos = chpos.map(|e| e as i64) * TerrainChunkSize::RECT_SIZE.map(|e| e as i64);
+            let closest_site = (*sites)
+                .iter_mut()
+                .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Dungeon(_)))
+                .min_by_key(|(_id, s)| s.get_origin().map(|e| e as i64).distance_squared(wpos));
+            if let Some((_id, s)) = closest_site {
+                let distance_squared = s.get_origin().map(|e| e as i64).distance_squared(wpos);
+                s.economy
+                    .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
+            }
+        });
+        drop(guard);
         sites
             .iter_mut()
             .for_each(|(_, s)| s.economy.cache_economy());

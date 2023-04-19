@@ -51,6 +51,7 @@ use common::{
     },
     vol::RectVolSize,
 };
+use common_base::prof_span;
 use common_net::msg::WorldMapMsg;
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
@@ -668,6 +669,7 @@ pub struct WorldSim {
 
 impl WorldSim {
     pub fn generate(seed: u32, opts: WorldOpts, threadpool: &rayon::ThreadPool) -> Self {
+        prof_span!("WorldSim::generate");
         let calendar = opts.calendar; // separate lifetime of elements
         let world_file = opts.world_file;
 
@@ -1586,6 +1588,7 @@ impl WorldSim {
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
     pub fn get_map(&self, index: IndexRef, calendar: Option<&Calendar>) -> WorldMapMsg {
+        prof_span!("WorldSim::get_map");
         let mut map_config = MapConfig::orthographic(
             self.map_size_lg(),
             core::ops::RangeInclusive::new(CONFIG.sea_level, CONFIG.sea_level + self.max_height),
@@ -1603,6 +1606,7 @@ impl WorldSim {
         };
 
         let samples_data = {
+            prof_span!("samples data");
             let column_sample = ColumnGen::new(self);
             (0..self.map_size_lg().chunks_len())
                 .into_par_iter()
@@ -2293,10 +2297,10 @@ impl WorldSim {
         &self,
         wpos_min: Vec2<i32>,
         wpos_max: Vec2<i32>,
-    ) -> impl ParallelIterator<Item = TreeAttr> + '_ {
+    ) -> impl Iterator<Item = TreeAttr> + '_ {
         self.gen_ctx
             .structure_gen
-            .par_iter(wpos_min, wpos_max)
+            .iter(wpos_min, wpos_max)
             .filter_map(move |(wpos, seed)| {
                 let lottery = self.make_forest_lottery(wpos);
                 Some(TreeAttr {
