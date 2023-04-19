@@ -17,4 +17,5 @@ LeapMelee(
     ),
     forward_leap_strength: 20.0,
     vertical_leap_strength: 10.0,
+    specifier: None,
 )

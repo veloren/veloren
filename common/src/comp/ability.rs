@@ -595,6 +595,7 @@ pub enum CharacterAbility {
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
         damage_effect: Option<CombatEffect>,
+        specifier: Option<leap_melee::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1149,6 +1150,7 @@ impl CharacterAbility {
                 forward_leap_strength: _,
                 vertical_leap_strength: _,
                 ref mut damage_effect,
+                specifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2342,6 +2344,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 forward_leap_strength,
                 vertical_leap_strength,
                 damage_effect,
+                specifier,
                 meta: _,
             } => CharacterState::LeapMelee(leap_melee::Data {
                 static_data: leap_melee::StaticData {
@@ -2354,6 +2357,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     vertical_leap_strength: *vertical_leap_strength,
                     ability_info,
                     damage_effect: *damage_effect,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

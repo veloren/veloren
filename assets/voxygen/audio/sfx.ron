@@ -1416,6 +1416,12 @@
             threshold: 1.25,
             subtitle: "subtitle-attack-laser_beam",
         ),
+        Woosh: (
+            files: [
+                    "voxygen.audio.sfx.abilities.woosh",
+                ],
+            threshold: 0.4,
+        ),
         CyclopsCharge: (
             files: [
                     "voxygen.audio.sfx.abilities.cyclops_charge",

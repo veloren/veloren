@@ -1,7 +1,7 @@
 LeapMelee(
-    energy_cost: 35.0,
-    buildup_duration: 0.1,
-    movement_duration: 0.6,
+    energy_cost: 0.0,
+    buildup_duration: 0.5,
+    movement_duration: 0.8,
     swing_duration: 0.15,
     recover_duration: 0.2,
     melee_constructor: (
@@ -21,7 +21,7 @@ LeapMelee(
             chance: 1.0,
         ))),
     ),
-    forward_leap_strength: 20.0,
-    vertical_leap_strength: 8.0,
-    specifier: None,
+    forward_leap_strength: 30.0,
+    vertical_leap_strength: 25.0,
+    specifier: Some(ElderLeap),
 )

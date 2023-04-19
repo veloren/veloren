@@ -781,7 +781,8 @@
         primary: Simple(None, "common.abilities.adlet.elder.triplestrike"),
         secondary: Simple(None, "common.abilities.adlet.elder.dash"),
         abilities: [
-            Simple(None, "common.abilities.adlet.elder.trap")
+            Simple(None, "common.abilities.adlet.elder.trap"),
+            Simple(None, "common.abilities.adlet.elder.leap"),
         ],
     ),
 })

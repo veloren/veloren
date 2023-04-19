@@ -136,6 +136,49 @@ impl Animation for LeapAnimation {
                 },
                 _ => {},
             },
+            Some(ToolKind::Sword) => match ability_id {
+                Some("common.abilities.adlet.elder.leap") => {
+                    next.hand_l.position = Vec3::new(s_a.hhl.0 * 1.5, -s_a.hhl.1, 5.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3);
+                    next.hand_r.position = Vec3::new(s_a.hhr.0 / 2.0, 12.0, 5.0);
+                    next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3);
+                    next.main.position = Vec3::new(-6.0, 18.0, 4.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+                    next.second.position = Vec3::new(-2.0, 20.0, 4.0);
+                    next.second.orientation =
+                        Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+                    next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+                    next.control.orientation =
+                        Quaternion::rotation_x(movement2 * PI / 2.5 + movement3 * -2.3);
+                    next.upper_torso.orientation = Quaternion::rotation_x(
+                        movement1 * 0.3 + movement2 * 0.3 + movement3 * -0.9 + movement4 * 0.3,
+                    ) * Quaternion::rotation_z(
+                        movement1 * 0.5 + movement2 * 0.2 + movement3 * -0.7,
+                    );
+
+                    next.head.orientation = Quaternion::rotation_x(movement3 * 0.2)
+                        * Quaternion::rotation_y(0.0 + movement2 * -0.1)
+                        * Quaternion::rotation_z(
+                            movement1 * -0.4 + movement2 * -0.2 + movement3 * 0.6,
+                        );
+
+                    next.foot_l.position = Vec3::new(
+                        -s_a.foot.0,
+                        s_a.foot.1 + movement3 * 13.0,
+                        s_a.foot.2 + movement3 * -2.0,
+                    );
+                    next.foot_l.orientation = Quaternion::rotation_x(-0.8 + movement3 * 1.7);
+
+                    next.foot_r.position = Vec3::new(
+                        s_a.foot.0,
+                        s_a.foot.1 + 8.0 + movement3 * -13.0,
+                        s_a.foot.2 + 5.0 + movement3 * -5.0,
+                    );
+                    next.foot_r.orientation = Quaternion::rotation_x(0.9 + movement3 * -1.7);
+                },
+                _ => {},
+            },
             _ => {},
         }
 

@@ -177,6 +177,7 @@ pub enum SfxEvent {
     Yeet,
     Klonk,
     SmashKlonk,
+    Woosh,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -695,6 +696,15 @@ impl SfxMgr {
                     },
                     _ => {},
                 };
+            },
+            Outcome::Woosh { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Woosh);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e + 0.5),
+                    Some(3.0),
+                    underwater,
+                );
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
         }

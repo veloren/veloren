@@ -1,6 +1,8 @@
 use crate::{
     combat::CombatEffect,
     comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
+    event::LocalEvent,
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -22,6 +24,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
+    /// Used to specify the sfx to the frontend
+    pub specifier: Option<FrontendSpecifier>,
     /// Affects how far forward the player leaps
     pub forward_leap_strength: f32,
     /// Affects how high the player leaps
@@ -69,6 +73,12 @@ impl CharacterBehavior for Data {
                         stage_section: StageSection::Movement,
                         ..*self
                     });
+                    if let Some(FrontendSpecifier::ElderLeap) = self.static_data.specifier {
+                        // Send local event used for frontend shenanigans
+                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Woosh {
+                            pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                        }));
+                    }
                 }
             },
             StageSection::Movement => {
@@ -156,4 +166,9 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FrontendSpecifier {
+    ElderLeap,
 }
