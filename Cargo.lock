@@ -2685,6 +2685,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 dependencies = [
  "ahash 0.7.6",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.13.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
+dependencies = [
+ "ahash 0.8.0",
  "rayon",
  "serde",
 ]
@@ -6651,7 +6660,7 @@ dependencies = [
  "authc",
  "byteorder",
  "clap 3.2.22",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "image",
  "num 0.4.0",
  "quinn",
@@ -6686,7 +6695,7 @@ dependencies = [
  "fluent",
  "fluent-bundle",
  "fluent-syntax",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "intl-memoizer",
  "ron 0.8.0",
  "serde",
@@ -6713,7 +6722,7 @@ dependencies = [
  "dot_vox",
  "enum-map",
  "fxhash",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "indexmap",
  "itertools",
  "kiddo 0.1.7",
@@ -6808,7 +6817,7 @@ version = "0.10.0"
 dependencies = [
  "bincode",
  "flate2",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "image",
  "num-traits",
  "serde",
@@ -6824,7 +6833,7 @@ name = "veloren-common-state"
 version = "0.10.0"
 dependencies = [
  "bincode",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "num_cpus",
  "rayon",
  "scopeguard",
@@ -6847,7 +6856,7 @@ dependencies = [
 name = "veloren-common-systems"
 version = "0.10.0"
 dependencies = [
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "indexmap",
  "itertools",
  "ordered-float 3.1.0",
@@ -6878,7 +6887,7 @@ dependencies = [
  "crossbeam-channel",
  "futures-core",
  "futures-util",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "lazy_static",
  "lz-fear",
  "prometheus",
@@ -6906,7 +6915,7 @@ dependencies = [
  "bitflags",
  "bytes",
  "criterion",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "prometheus",
  "rand 0.8.5",
  "tokio",
@@ -6949,7 +6958,7 @@ dependencies = [
  "atomic_refcell",
  "enum-map",
  "fxhash",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "itertools",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
@@ -6979,7 +6988,7 @@ dependencies = [
  "enum-map",
  "enumset",
  "futures-util",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "humantime",
  "itertools",
  "lazy_static",
@@ -7095,7 +7104,7 @@ dependencies = [
  "gilrs",
  "glyph_brush",
  "guillotiere",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "iced_native",
  "iced_winit",
  "image",
@@ -7195,7 +7204,7 @@ dependencies = [
  "fallible-iterator",
  "flate2",
  "fxhash",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
  "image",
  "inline_tweak",
  "itertools",

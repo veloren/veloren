@@ -670,7 +670,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 );
 
                 if item.has_durability() {
-                    let durability = Item::MAX_DURABILITY - item.durability().unwrap_or(0);
+                    let durability = Item::MAX_DURABILITY - item.durability_lost().unwrap_or(0);
                     stat_text(
                         format!(
                             "{} : {}/{}",

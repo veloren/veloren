@@ -129,7 +129,7 @@ fn free_slots_minus_equipped_item_items_only_present_in_equipped_bag_slots() {
     let bag = get_test_bag(18);
     let bag1_slot = EquipSlot::Armor(ArmorSlot::Bag1);
     inv.loadout
-        .swap(bag1_slot, Some(bag.duplicate(ability_map, msm)));
+        .swap(bag1_slot, Some(bag.duplicate(ability_map, msm)), Time(0.0));
 
     assert!(inv.insert_at(InvSlotId::new(15, 0), bag).unwrap().is_none());
 
@@ -149,10 +149,11 @@ fn free_slots_minus_equipped_item() {
     let bag = get_test_bag(18);
     let bag1_slot = EquipSlot::Armor(ArmorSlot::Bag1);
     inv.loadout
-        .swap(bag1_slot, Some(bag.duplicate(ability_map, msm)));
+        .swap(bag1_slot, Some(bag.duplicate(ability_map, msm)), Time(0.0));
     inv.loadout.swap(
         EquipSlot::Armor(ArmorSlot::Bag2),
         Some(bag.duplicate(ability_map, msm)),
+        Time(0.0),
     );
 
     assert!(inv.insert_at(InvSlotId::new(16, 0), bag).unwrap().is_none());
@@ -169,7 +170,7 @@ fn get_slot_range_for_equip_slot() {
     let mut inv = Inventory::with_empty();
     let bag = get_test_bag(18);
     let bag1_slot = EquipSlot::Armor(ArmorSlot::Bag1);
-    inv.loadout.swap(bag1_slot, Some(bag));
+    inv.loadout.swap(bag1_slot, Some(bag), Time(0.0));
 
     let result = inv.get_slot_range_for_equip_slot(bag1_slot).unwrap();
 
@@ -198,7 +199,11 @@ fn can_swap_equipped_bag_into_empty_inv_slot(
 ) {
     let mut inv = Inventory::with_empty();
 
-    inv.replace_loadout_item(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(18)));
+    inv.replace_loadout_item(
+        EquipSlot::Armor(ArmorSlot::Bag1),
+        Some(get_test_bag(18)),
+        Time(0.0),
+    );
 
     fill_inv_slots(&mut inv, 18 - free_slots);
 
@@ -211,7 +216,11 @@ fn can_swap_equipped_bag_into_empty_inv_slot(
 fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_true() {
     let mut inv = Inventory::with_empty();
 
-    inv.replace_loadout_item(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(18)));
+    inv.replace_loadout_item(
+        EquipSlot::Armor(ArmorSlot::Bag1),
+        Some(get_test_bag(18)),
+        Time(0.0),
+    );
 
     fill_inv_slots(&mut inv, 35);
 
@@ -231,22 +240,26 @@ fn unequip_items_both_hands() {
     inv.replace_loadout_item(
         EquipSlot::ActiveMainhand,
         Some(sword.duplicate(ability_map, msm)),
+        Time(0.0),
     );
     inv.replace_loadout_item(
         EquipSlot::InactiveMainhand,
         Some(sword.duplicate(ability_map, msm)),
+        Time(0.0),
     );
 
     // Fill all inventory slots except one
     fill_inv_slots(&mut inv, 17);
 
-    let result = inv.unequip(EquipSlot::ActiveMainhand);
+    let result = inv.unequip(EquipSlot::ActiveMainhand, Time(0.0));
     // We have space in the inventory, so this should have unequipped
     assert_eq!(None, inv.equipped(EquipSlot::ActiveMainhand));
     assert_eq!(18, inv.populated_slots());
     assert!(result.is_ok());
 
-    let result = inv.unequip(EquipSlot::InactiveMainhand).unwrap_err();
+    let result = inv
+        .unequip(EquipSlot::InactiveMainhand, Time(0.0))
+        .unwrap_err();
     assert_eq!(SlotError::InventoryFull, result);
 
     // There is no more space in the inventory, so this should still be equipped
@@ -274,9 +287,10 @@ fn equip_replace_already_equipped_item() {
         starting_sandles
             .as_ref()
             .map(|item| item.duplicate(ability_map, msm)),
+        Time(0.0),
     );
 
-    let _ = inv.equip(InvSlotId::new(0, 0));
+    let _ = inv.equip(InvSlotId::new(0, 0), Time(0.0));
 
     // We should now have the testing boots equipped
     assert_eq!(
@@ -302,7 +316,11 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
 
     assert!(
         inv.loadout
-            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(large_bag))
+            .swap(
+                EquipSlot::Armor(ArmorSlot::Bag1),
+                Some(large_bag),
+                Time(0.0)
+            )
             .is_none()
     );
 
@@ -311,6 +329,7 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
     let result = inv.swap(
         Slot::Equip(EquipSlot::Armor(ArmorSlot::Bag1)),
         Slot::Inventory(InvSlotId::new(15, 15)),
+        Time(0.0),
     );
 
     assert_eq!(
@@ -327,15 +346,18 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots_returns_on
 
     assert!(
         inv.loadout
-            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag), Time(0.0))
             .is_none()
     );
 
     // Fill all inventory built-in slots
     fill_inv_slots(&mut inv, 18);
 
-    let result =
-        inv.swap_inventory_loadout(InvSlotId::new(15, 0), EquipSlot::Armor(ArmorSlot::Bag1));
+    let result = inv.swap_inventory_loadout(
+        InvSlotId::new(15, 0),
+        EquipSlot::Armor(ArmorSlot::Bag1),
+        Time(0.0),
+    );
 
     assert_eq!(result.len(), 1);
     // Because the slot the bag was swapped with no longer exists as it was provided
@@ -358,13 +380,14 @@ fn equip_one_bag_equipped_equip_second_bag() {
             .swap(
                 EquipSlot::Armor(ArmorSlot::Bag1),
                 Some(bag.duplicate(ability_map, msm)),
+                Time(0.0)
             )
             .is_none()
     );
 
     inv.push(bag).unwrap();
 
-    let _ = inv.equip(InvSlotId::new(0, 0));
+    let _ = inv.equip(InvSlotId::new(0, 0), Time(0.0));
 
     assert!(inv.equipped(EquipSlot::Armor(ArmorSlot::Bag2)).is_some());
 }
@@ -376,7 +399,7 @@ fn free_after_swap_equipped_item_has_more_slots() {
     let bag = get_test_bag(18);
     assert!(
         inv.loadout
-            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag), Time(0.0))
             .is_none()
     );
 
@@ -399,7 +422,7 @@ fn free_after_swap_equipped_item_has_less_slots() {
     let bag = get_test_bag(9);
     assert!(
         inv.loadout
-            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag), Time(0.0))
             .is_none()
     );
 
@@ -422,7 +445,7 @@ fn free_after_swap_equipped_item_with_slots_swapped_with_empty_inv_slot() {
     let bag = get_test_bag(9);
     assert!(
         inv.loadout
-            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag))
+            .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag), Time(0.0))
             .is_none()
     );
 
@@ -475,15 +498,18 @@ fn backpack_crash() {
 
     let backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
     inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Back), Some(backpack));
+        .swap(EquipSlot::Armor(ArmorSlot::Back), Some(backpack), Time(0.0));
 
     fill_inv_slots(&mut inv, 35);
 
     let cape = Item::new_from_asset_expect("common.items.armor.misc.back.admin");
     assert!(inv.push(cape).is_ok());
 
-    let returned_items =
-        inv.swap_inventory_loadout(InvSlotId::new(9, 17), EquipSlot::Armor(ArmorSlot::Back));
+    let returned_items = inv.swap_inventory_loadout(
+        InvSlotId::new(9, 17),
+        EquipSlot::Armor(ArmorSlot::Back),
+        Time(0.0),
+    );
     assert_eq!(18, returned_items.len());
     assert_eq!(
         ItemDefinitionId::Simple("common.items.armor.misc.back.backpack"),

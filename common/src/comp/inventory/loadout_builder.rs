@@ -9,6 +9,7 @@ use crate::{
         item::{self, Item},
         object, quadruped_low, quadruped_medium, theropod, Body,
     },
+    resources::Time,
     trade::SiteInformation,
 };
 use rand::{self, distributions::WeightedError, seq::SliceRandom, Rng};
@@ -1148,7 +1149,11 @@ impl LoadoutBuilder {
                 .map_or(true, |item| equip_slot.can_hold(&item.kind()))
         );
 
-        self.0.swap(equip_slot, item);
+        // Used when creating a loadout, so time not needed as it is used to check when
+        // stuff gets unequipped. A new loadout has never unequipped an item.
+        let time = Time(0.0);
+
+        self.0.swap(equip_slot, item, time);
         self
     }
 

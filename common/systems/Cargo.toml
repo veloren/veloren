@@ -23,7 +23,7 @@ ordered-float = { version = "3", default-features = false }
 itertools = "0.10"
 
 # Data structures
-hashbrown = { version = "0.12", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.13", features = ["rayon", "serde", "nightly"] }
 indexmap = "1.3.0"
 slab = "0.4.2"
 

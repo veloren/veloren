@@ -359,7 +359,7 @@ pub fn protec2string(stat: Protection) -> String {
 /// Gets the durability of an item in a format more intuitive for UI
 pub fn item_durability(item: &dyn ItemDesc) -> Option<u32> {
     let durability = item
-        .durability()
+        .durability_lost()
         .or_else(|| item.has_durability().then_some(0));
     durability.map(|d| Item::MAX_DURABILITY - d)
 }

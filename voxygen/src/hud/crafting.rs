@@ -1376,7 +1376,7 @@ impl<'a> Widget for Crafting<'a> {
                     let repair_slot = CraftSlot {
                         index: 0,
                         slot: self.show.crafting_fields.recipe_inputs.get(&0).copied(),
-                        requirement: |item, _, _| item.durability().map_or(false, |d| d > 0),
+                        requirement: |item, _, _| item.durability_lost().map_or(false, |d| d > 0),
                         info: None,
                     };
 
@@ -1413,7 +1413,7 @@ impl<'a> Widget for Crafting<'a> {
                     let can_repair = |item: &Item| {
                         // Check that item needs to be repaired, and that inventory has sufficient
                         // materials to repair
-                        item.durability().map_or(false, |d| d > 0)
+                        item.durability_lost().map_or(false, |d| d > 0)
                             && self.client.repair_recipe_book().repair_recipe(item).map_or(
                                 false,
                                 |recipe| {

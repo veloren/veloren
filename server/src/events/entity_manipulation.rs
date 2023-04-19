@@ -28,6 +28,7 @@ use common::{
     resources::{Secs, Time},
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
+    trade::{TradeResult, Trades},
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
@@ -508,9 +509,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
     // Modify durability on all equipped items
     if let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
-        let ability_map = state.ecs().read_resource::<AbilityMap>();
-        let msm = state.ecs().read_resource::<MaterialStatManifest>();
-        inventory.damage_items(&ability_map, &msm);
+        let ecs = state.ecs();
+        let ability_map = ecs.read_resource::<AbilityMap>();
+        let msm = ecs.read_resource::<MaterialStatManifest>();
+        let time = ecs.read_resource::<Time>();
+        inventory.damage_items(&ability_map, &msm, *time);
     }
 
     if let Some(actor) = state.entity_as_actor(entity) {
@@ -1407,6 +1410,35 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         entity,
         buff_change: buff::BuffChange::RemoveByKind(BuffKind::Saturation),
     });
+
+    // If entity was in an active trade, cancel it
+    let mut trades = ecs.write_resource::<Trades>();
+    let uids = ecs.read_storage::<Uid>();
+    if let Some(uid) = uids.get(entity) {
+        if let Some(trade) = trades.entity_trades.get(uid).copied() {
+            trades
+                .decline_trade(trade, *uid)
+                .and_then(|uid| ecs.entity_from_uid(uid.0))
+                .map(|entity_b| {
+                    // Notify both parties that the trade ended
+                    let clients = ecs.read_storage::<Client>();
+                    let mut agents = ecs.write_storage::<Agent>();
+                    let mut notify_trade_party = |entity| {
+                        if let Some(client) = clients.get(entity) {
+                            client
+                                .send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
+                        }
+                        if let Some(agent) = agents.get_mut(entity) {
+                            agent
+                                .inbox
+                                .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+                        }
+                    };
+                    notify_trade_party(entity);
+                    notify_trade_party(entity_b);
+                });
+        }
+    }
 }
 
 pub fn handle_change_ability(

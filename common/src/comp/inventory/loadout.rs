@@ -1,18 +1,29 @@
-use crate::comp::{
-    inventory::{
-        item::{self, tool::Tool, Hands, ItemKind},
-        slot::{ArmorSlot, EquipSlot},
-        InvSlot,
+use crate::{
+    comp::{
+        inventory::{
+            item::{self, tool::Tool, Hands, ItemDefinitionIdOwned, ItemKind},
+            slot::{ArmorSlot, EquipSlot},
+            InvSlot,
+        },
+        Item,
     },
-    Item,
+    resources::Time,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::ops::Range;
 use tracing::warn;
 
+pub(super) const UNEQUIP_TRACKING_DURATION: f64 = 60.0;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Loadout {
     slots: Vec<LoadoutSlot>,
+    // Includes time that item was unequipped at
+    #[serde(skip)]
+    // Tracks time unequipped at and number that have been unequipped (for things like dual
+    // wielding, rings, or other future cases)
+    pub(super) recently_unequipped_items: HashMap<ItemDefinitionIdOwned, (Time, u8)>,
 }
 
 /// NOTE: Please don't derive a PartialEq Instance for this; that's broken!
@@ -83,16 +94,40 @@ impl Loadout {
             .into_iter()
             .map(|(equip_slot, persistence_key)| LoadoutSlot::new(equip_slot, persistence_key))
             .collect(),
+            recently_unequipped_items: HashMap::new(),
         }
     }
 
     /// Replaces the item in the Loadout slot that corresponds to the given
     /// EquipSlot and returns the previous item if any
-    pub(super) fn swap(&mut self, equip_slot: EquipSlot, item: Option<Item>) -> Option<Item> {
-        self.slots
+    pub(super) fn swap(
+        &mut self,
+        equip_slot: EquipSlot,
+        item: Option<Item>,
+        time: Time,
+    ) -> Option<Item> {
+        if let Some(item_def_id) = item.as_ref().map(|item| item.item_definition_id()) {
+            if let Some((_unequip_time, count)) =
+                self.recently_unequipped_items.get_mut(&item_def_id)
+            {
+                *count = count.saturating_sub(1);
+            }
+        }
+        self.cull_recently_unequipped_items(time);
+        let unequipped_item = self
+            .slots
             .iter_mut()
             .find(|x| x.equip_slot == equip_slot)
-            .and_then(|x| core::mem::replace(&mut x.slot, item))
+            .and_then(|x| core::mem::replace(&mut x.slot, item));
+        if let Some(unequipped_item) = unequipped_item.as_ref() {
+            // TODO: Avoid this allocation when there isn't an insert
+            let entry = self
+                .recently_unequipped_items
+                .entry(unequipped_item.item_definition_id().to_owned())
+                .or_insert((time, 0));
+            *entry = (time, entry.1.saturating_add(1));
+        }
+        unequipped_item
     }
 
     /// Returns a reference to the item (if any) equipped in the given EquipSlot
@@ -154,7 +189,12 @@ impl Loadout {
     }
 
     /// Swaps the contents of two loadout slots
-    pub(super) fn swap_slots(&mut self, equip_slot_a: EquipSlot, equip_slot_b: EquipSlot) {
+    pub(super) fn swap_slots(
+        &mut self,
+        equip_slot_a: EquipSlot,
+        equip_slot_b: EquipSlot,
+        time: Time,
+    ) {
         if self.slot(equip_slot_b).is_none() || self.slot(equip_slot_b).is_none() {
             // Currently all loadouts contain slots for all EquipSlots so this can never
             // happen, but if loadouts with alternate slot combinations are
@@ -163,9 +203,9 @@ impl Loadout {
             return;
         }
 
-        let item_a = self.swap(equip_slot_a, None);
-        let item_b = self.swap(equip_slot_b, item_a);
-        assert_eq!(self.swap(equip_slot_a, item_b), None);
+        let item_a = self.swap(equip_slot_a, None, time);
+        let item_b = self.swap(equip_slot_b, item_a, time);
+        assert_eq!(self.swap(equip_slot_a, item_b, time), None);
 
         // Check if items are valid in their new positions
         if !self.slot_can_hold(
@@ -176,9 +216,9 @@ impl Loadout {
             self.equipped(equip_slot_b).map(|x| x.kind()).as_deref(),
         ) {
             // If not, revert the swap
-            let item_a = self.swap(equip_slot_a, None);
-            let item_b = self.swap(equip_slot_b, item_a);
-            assert_eq!(self.swap(equip_slot_a, item_b), None);
+            let item_a = self.swap(equip_slot_a, None, time);
+            let item_b = self.swap(equip_slot_b, item_a, time);
+            assert_eq!(self.swap(equip_slot_a, item_b, time), None);
         }
     }
 
@@ -221,6 +261,22 @@ impl Loadout {
             .get(loadout_slot_id.loadout_idx)
             .and_then(|loadout_slot| loadout_slot.slot.as_ref())
             .and_then(|item| item.slot(loadout_slot_id.slot_idx))
+    }
+
+    pub(super) fn inv_slot_with_mutable_recently_unequipped_items(
+        &mut self,
+        loadout_slot_id: LoadoutSlotId,
+    ) -> (
+        Option<&InvSlot>,
+        &mut HashMap<ItemDefinitionIdOwned, (Time, u8)>,
+    ) {
+        (
+            self.slots
+                .get(loadout_slot_id.loadout_idx)
+                .and_then(|loadout_slot| loadout_slot.slot.as_ref())
+                .and_then(|item| item.slot(loadout_slot_id.slot_idx)),
+            &mut self.recently_unequipped_items,
+        )
     }
 
     /// Returns the `InvSlot` for a given `LoadoutSlotId`
@@ -367,7 +423,7 @@ impl Loadout {
             (None, None))
     }
 
-    pub(super) fn swap_equipped_weapons(&mut self) {
+    pub(super) fn swap_equipped_weapons(&mut self, time: Time) {
         // Checks if a given slot can hold an item right now, defaults to true if
         // nothing is equipped in slot
         let valid_slot = |equip_slot| {
@@ -385,25 +441,25 @@ impl Loadout {
             && valid_slot(EquipSlot::InactiveOffhand)
         {
             // Get weapons from each slot
-            let active_mainhand = self.swap(EquipSlot::ActiveMainhand, None);
-            let active_offhand = self.swap(EquipSlot::ActiveOffhand, None);
-            let inactive_mainhand = self.swap(EquipSlot::InactiveMainhand, None);
-            let inactive_offhand = self.swap(EquipSlot::InactiveOffhand, None);
+            let active_mainhand = self.swap(EquipSlot::ActiveMainhand, None, time);
+            let active_offhand = self.swap(EquipSlot::ActiveOffhand, None, time);
+            let inactive_mainhand = self.swap(EquipSlot::InactiveMainhand, None, time);
+            let inactive_offhand = self.swap(EquipSlot::InactiveOffhand, None, time);
             // Equip weapons into new slots
             assert!(
-                self.swap(EquipSlot::ActiveMainhand, inactive_mainhand)
+                self.swap(EquipSlot::ActiveMainhand, inactive_mainhand, time)
                     .is_none()
             );
             assert!(
-                self.swap(EquipSlot::ActiveOffhand, inactive_offhand)
+                self.swap(EquipSlot::ActiveOffhand, inactive_offhand, time)
                     .is_none()
             );
             assert!(
-                self.swap(EquipSlot::InactiveMainhand, active_mainhand)
+                self.swap(EquipSlot::InactiveMainhand, active_mainhand, time)
                     .is_none()
             );
             assert!(
-                self.swap(EquipSlot::InactiveOffhand, active_offhand)
+                self.swap(EquipSlot::InactiveOffhand, active_offhand, time)
                     .is_none()
             );
         }
@@ -452,21 +508,38 @@ impl Loadout {
             item.reset_durability(ability_map, msm);
         }
     }
+
+    pub(super) fn cull_recently_unequipped_items(&mut self, time: Time) {
+        for (unequip_time, _count) in self.recently_unequipped_items.values_mut() {
+            // If somehow time went backwards or faulty unequip time supplied, set unequip
+            // time to minimum of current time and unequip time
+            if time.0 < unequip_time.0 {
+                *unequip_time = time;
+            }
+        }
+        self.recently_unequipped_items
+            .retain(|_def, (unequip_time, count)| {
+                (time.0 - unequip_time.0 < UNEQUIP_TRACKING_DURATION) && *count > 0
+            });
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::comp::{
-        inventory::{
-            item::{
-                armor::{Armor, ArmorKind, Protection},
-                ItemKind,
+    use crate::{
+        comp::{
+            inventory::{
+                item::{
+                    armor::{Armor, ArmorKind, Protection},
+                    ItemKind,
+                },
+                loadout::Loadout,
+                slot::{ArmorSlot, EquipSlot},
+                test_helpers::get_test_bag,
             },
-            loadout::Loadout,
-            slot::{ArmorSlot, EquipSlot},
-            test_helpers::get_test_bag,
+            Item,
         },
-        Item,
+        resources::Time,
     };
 
     #[test]
@@ -475,7 +548,7 @@ mod tests {
 
         let bag1_slot = EquipSlot::Armor(ArmorSlot::Bag1);
         let bag = get_test_bag(18);
-        loadout.swap(bag1_slot, Some(bag));
+        loadout.swap(bag1_slot, Some(bag), Time(0.0));
 
         let result = loadout.slot_range_for_equip_slot(bag1_slot).unwrap();
 
@@ -496,7 +569,7 @@ mod tests {
 
         let feet_slot = EquipSlot::Armor(ArmorSlot::Feet);
         let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
-        loadout.swap(feet_slot, Some(boots));
+        loadout.swap(feet_slot, Some(boots), Time(0.0));
         let result = loadout.slot_range_for_equip_slot(feet_slot);
 
         assert_eq!(None, result);
@@ -506,7 +579,11 @@ mod tests {
     fn test_get_slot_to_equip_into_second_bag_slot_free() {
         let mut loadout = Loadout::new_empty();
 
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(1)));
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag1),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
 
         let result = loadout
             .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
@@ -523,10 +600,26 @@ mod tests {
     fn test_get_slot_to_equip_into_no_bag_slots_free() {
         let mut loadout = Loadout::new_empty();
 
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(1)));
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag2), Some(get_test_bag(1)));
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag3), Some(get_test_bag(1)));
-        loadout.swap(EquipSlot::Armor(ArmorSlot::Bag4), Some(get_test_bag(1)));
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag1),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag2),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag3),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
+        loadout.swap(
+            EquipSlot::Armor(ArmorSlot::Bag4),
+            Some(get_test_bag(1)),
+            Time(0.0),
+        );
 
         let result = loadout
             .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(

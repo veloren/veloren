@@ -114,7 +114,7 @@ dot_vox = "5.1"
 enum-iterator = "1.1.0"
 guillotiere = "0.6.2"
 etagere = "0.2.7"
-hashbrown = {version = "0.12", features = ["rayon", "serde", "nightly"]}
+hashbrown = {version = "0.13", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.24", default-features = false, features = ["ico", "png"]}
 lazy_static = "1.4.0"
 native-dialog = { version = "0.6.3", optional = true }

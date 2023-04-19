@@ -20,6 +20,7 @@ use core::{
     num::{NonZeroU32, NonZeroU64},
 };
 use crossbeam_utils::atomic::AtomicCell;
+use hashbrown::Equivalent;
 use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
@@ -1213,7 +1214,7 @@ impl Item {
         }
     }
 
-    pub fn durability(&self) -> Option<u32> {
+    pub fn durability_lost(&self) -> Option<u32> {
         self.durability_lost.map(|x| x.min(Self::MAX_DURABILITY))
     }
 
@@ -1294,7 +1295,7 @@ pub trait ItemDesc {
     fn is_modular(&self) -> bool;
     fn components(&self) -> &[Item];
     fn has_durability(&self) -> bool;
-    fn durability(&self) -> Option<u32>;
+    fn durability_lost(&self) -> Option<u32>;
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier;
 
     fn tool_info(&self) -> Option<ToolKind> {
@@ -1327,7 +1328,7 @@ impl ItemDesc for Item {
 
     fn has_durability(&self) -> bool { self.has_durability() }
 
-    fn durability(&self) -> Option<u32> { self.durability() }
+    fn durability_lost(&self) -> Option<u32> { self.durability_lost() }
 
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
         self.stats_durability_multiplier()
@@ -1359,7 +1360,7 @@ impl ItemDesc for ItemDef {
         self.kind().has_durability() && self.quality != Quality::Debug
     }
 
-    fn durability(&self) -> Option<u32> { None }
+    fn durability_lost(&self) -> Option<u32> { None }
 
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier { DurabilityMultiplier(1.0) }
 }
@@ -1399,7 +1400,7 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
 
     fn has_durability(&self) -> bool { (*self).has_durability() }
 
-    fn durability(&self) -> Option<u32> { (*self).durability() }
+    fn durability_lost(&self) -> Option<u32> { (*self).durability_lost() }
 
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
         (*self).stats_durability_multiplier()
@@ -1449,6 +1450,10 @@ impl PartialEq<ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
 impl PartialEq<ItemDefinitionIdOwned> for ItemDefinitionId<'_> {
     #[inline]
     fn eq(&self, other: &ItemDefinitionIdOwned) -> bool { other == self }
+}
+
+impl Equivalent<ItemDefinitionIdOwned> for ItemDefinitionId<'_> {
+    fn equivalent(&self, key: &ItemDefinitionIdOwned) -> bool { self == key }
 }
 
 #[cfg(test)]
