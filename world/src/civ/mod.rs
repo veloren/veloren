@@ -1446,7 +1446,9 @@ fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
                 sim.get(loc + *n)
                     .map_or(false, |chunk| chunk.river.near_water())
             })
-            .fold(false, |acc, near_water| acc & near_water)
+            .fold(false, |any_near_water, near_water| {
+                any_near_water | near_water
+            })
     } else {
         false
     }
