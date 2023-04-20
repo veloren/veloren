@@ -944,7 +944,9 @@ impl PlayState for SessionState {
                                                                 common::mounting::Volume::Terrain => {
                                                                     client.collect_block(pos.pos);
                                                                 }
-                                                                common::mounting::Volume::Entity(_) => todo!(),
+                                                                common::mounting::Volume::Entity(_) => {
+                                                                    // TODO: Do we want to implement this?
+                                                                },
                                                             }
                                                         }
                                                     },
