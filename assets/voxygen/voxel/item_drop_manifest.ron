@@ -402,6 +402,7 @@
     Simple("common.items.tool.instruments.flute"): "voxel.weapon.tool.wooden_flute",
     Simple("common.items.tool.instruments.glass_flute"): "voxel.weapon.tool.glass_flute",
     Simple("common.items.tool.instruments.lyre"): "voxel.weapon.tool.wooden_lyre",
+    Simple("common.items.tool.instruments.drum"): "voxel.weapon.tool.drum",
     Simple("common.items.tool.instruments.icy_talharpa"): "voxel.weapon.tool.icy_talharpa",
     Simple("common.items.tool.instruments.washboard"): "voxel.weapon.tool.washboard",
     Simple("common.items.tool.instruments.kalimba"): "voxel.weapon.tool.wooden_kalimba",
@@ -720,6 +721,8 @@
     //Hats
     Simple("common.items.armor.witch.hat"): "voxel.armor.witch.hat",
     Simple("common.items.armor.misc.head.hog_hood"): "voxel.armor.misc.head.hog_hood",
+    Simple("common.items.armor.misc.head.howl_cowl"): "voxel.armor.misc.head.howl_cowl",
+    Simple("common.items.armor.misc.head.bear_bonnet"): "voxel.armor.misc.head.bear_bonnet",
     Simple("common.items.armor.misc.head.bamboo_twig"): "voxel.armor.misc.head.bamboo_twig",
     Simple("common.items.armor.pirate.hat"): "voxel.armor.pirate.hat",
     Simple("common.items.armor.misc.head.bandana.thief"): "voxel.armor.misc.head.bandana.thief",

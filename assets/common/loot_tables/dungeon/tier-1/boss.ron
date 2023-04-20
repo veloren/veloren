@@ -5,4 +5,6 @@
     (4.0, LootTable("common.loot_tables.armor.tier-2")),
     // Misc
     (2.0, Item("common.items.armor.misc.neck.pendant_of_protection")),
+    (1.0, Item("common.items.armor.misc.head.bear_bonnet")),
+    (1.0, Item("common.items.armor.misc.head.howl_cowl")),
 ]

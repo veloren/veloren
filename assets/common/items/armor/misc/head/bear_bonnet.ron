@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Bear Bonnet",
+    description: "Wearing the guise of a ferocious bear, its fury becomes your own.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(12.0)),
+            crit_power: Some(0.0095),
+            stealth: Some(0.21),
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

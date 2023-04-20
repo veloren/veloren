@@ -1626,6 +1626,10 @@
         "voxel.weapon.tool.wooden_lyre",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
+    Simple("common.items.tool.instruments.drum"): VoxTrans(
+        "voxel.weapon.tool.drum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     Simple("common.items.tool.instruments.icy_talharpa"): VoxTrans(
         "voxel.weapon.tool.icy_talharpa",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
@@ -2857,6 +2861,14 @@
     ),
     Simple("common.items.armor.misc.head.hog_hood"): VoxTrans(
         "voxel.armor.misc.head.hog_hood",
+        (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4,
+    ),
+    Simple("common.items.armor.misc.head.howl_cowl"): VoxTrans(
+        "voxel.armor.misc.head.howl_cowl",
+        (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4,
+    ),
+    Simple("common.items.armor.misc.head.bear_bonnet"): VoxTrans(
+        "voxel.armor.misc.head.bear_bonnet",
         (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4,
     ),
     Simple("common.items.armor.misc.head.bamboo_twig"): VoxTrans(

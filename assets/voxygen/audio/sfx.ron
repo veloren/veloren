@@ -871,6 +871,20 @@
             threshold: 0.5,
             subtitle: "subtitle-instrument_washboard",
         ),
+        Music(Instrument, Custom("Drum")): (
+            files: [
+            "voxygen.audio.sfx.instrument.drum.drum_c",
+            "voxygen.audio.sfx.instrument.drum.drum_d",
+            "voxygen.audio.sfx.instrument.drum.drum_e",
+            "voxygen.audio.sfx.instrument.drum.drum_f",
+            "voxygen.audio.sfx.instrument.drum.drum_g",
+            "voxygen.audio.sfx.instrument.drum.drum_a",
+            "voxygen.audio.sfx.instrument.drum.drum_b",
+            "voxygen.audio.sfx.instrument.drum.drum_c1",
+            ],
+            threshold: 0.5,
+            subtitle: "subtitle-instrument_drum",
+        ),
         Inventory(CollectedTool(Instrument)): (
             files: [
             "voxygen.audio.sfx.inventory.add_item",
