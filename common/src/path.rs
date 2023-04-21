@@ -653,7 +653,7 @@ where
     *astar = Some(new_astar);
 
     match path_result {
-        PathResult::Path(path) => {
+        PathResult::Path(path, _cost) => {
             *astar = None;
             (Some(path), true)
         },

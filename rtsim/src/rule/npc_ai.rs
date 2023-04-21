@@ -178,7 +178,7 @@ fn path_site(
         let end = site.wpos_tile_pos(end.as_());
 
         let nodes = match path_in_site(start, end, site) {
-            PathResult::Path(p) => p.nodes,
+            PathResult::Path(p, _c) => p.nodes,
             PathResult::Exhausted(p) => p.nodes,
             PathResult::None(_) | PathResult::Pending => return None,
         };
@@ -206,7 +206,7 @@ fn path_towns(
             path: p.nodes.into(),
             repoll: true,
         }),
-        PathResult::Path(p) => Some(PathData {
+        PathResult::Path(p, _c) => Some(PathData {
             end,
             path: p.nodes.into(),
             repoll: false,

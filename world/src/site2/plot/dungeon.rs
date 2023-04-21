@@ -567,7 +567,7 @@ impl Floor {
         // (2) we don't care about determinism across computers (we could use AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
         let mut astar = Astar::new(20000, a, BuildHasherDefault::<FxHasher64>::default());
-        let path = astar
+        let (path, _cost) = astar
             .poll(
                 FLOOR_SIZE.product() as usize + 1,
                 heuristic,

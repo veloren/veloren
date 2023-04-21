@@ -160,7 +160,7 @@ impl Site {
             }
             max_cost + (dir != old_dir) as i32 as f32 * 35.0
         };
-        let path = Astar::new(MAX_ITERS, (a, Vec2::zero()), DefaultHashBuilder::default())
+        let (path, _cost) = Astar::new(MAX_ITERS, (a, Vec2::zero()), DefaultHashBuilder::default())
             .poll(
                 MAX_ITERS,
                 &heuristic,

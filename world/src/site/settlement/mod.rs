@@ -1369,6 +1369,7 @@ impl Land {
         Astar::new(250, origin, BuildHasherDefault::<FxHasher64>::default())
             .poll(250, heuristic, neighbors, satisfied)
             .into_path()
+            .map(|(p, _c)| p)
     }
 
     /// We use this hasher (FxHasher64) because

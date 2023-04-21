@@ -47,14 +47,17 @@ impl<S: Eq> PartialOrd for PathEntry<S> {
 pub enum PathResult<T> {
     None(Path<T>),
     Exhausted(Path<T>),
-    Path(Path<T>),
+    // second field is cost
+    Path(Path<T>, f32),
     Pending,
 }
 
 impl<T> PathResult<T> {
-    pub fn into_path(self) -> Option<Path<T>> {
+    /// Returns `Some((path, cost))` if a path reaching the target was
+    /// successfully found.
+    pub fn into_path(self) -> Option<(Path<T>, f32)> {
         match self {
-            PathResult::Path(path) => Some(path),
+            PathResult::Path(path, cost) => Some((path, cost)),
             _ => None,
         }
     }
@@ -63,7 +66,7 @@ impl<T> PathResult<T> {
         match self {
             PathResult::None(p) => PathResult::None(f(p)),
             PathResult::Exhausted(p) => PathResult::Exhausted(f(p)),
-            PathResult::Path(p) => PathResult::Path(f(p)),
+            PathResult::Path(p, cost) => PathResult::Path(f(p), cost),
             PathResult::Pending => PathResult::Pending,
         }
     }
@@ -83,8 +86,10 @@ pub struct Astar<S, Hasher> {
     max_iters: usize,
     potential_nodes: BinaryHeap<PathEntry<S>>, // cost, node pairs
     visited_nodes: HashMap<S, NodeEntry<S>, Hasher>,
-    cheapest_node: Option<S>,
-    cheapest_cost: Option<f32>,
+    /// Node with the lowest heuristic value so far.
+    ///
+    /// (node, heuristic value)
+    closest_node: Option<(S, f32)>,
 }
 
 /// NOTE: Must manually derive since Hasher doesn't implement it.
@@ -95,8 +100,7 @@ impl<S: Clone + Eq + Hash + fmt::Debug, H: BuildHasher> fmt::Debug for Astar<S, 
             .field("max_iters", &self.max_iters)
             .field("potential_nodes", &self.potential_nodes)
             .field("visited_nodes", &self.visited_nodes)
-            .field("cheapest_node", &self.cheapest_node)
-            .field("cheapest_cost", &self.cheapest_cost)
+            .field("closest_node", &self.closest_node)
             .finish()
     }
 }
@@ -119,8 +123,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                 })));
                 s
             },
-            cheapest_node: None,
-            cheapest_cost: None,
+            closest_node: None,
         }
     }
 
@@ -141,14 +144,15 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
         let iter_limit = self.max_iters.min(self.iter + iters);
         while self.iter < iter_limit {
             if let Some(PathEntry { node, .. }) = self.potential_nodes.pop() {
+                let (node_cheapest, came_from) = self
+                    .visited_nodes
+                    .get(&node)
+                    .map(|n| (n.cheapest_score, n.came_from.clone()))
+                    .expect("");
+
                 if satisfied(&node) {
-                    return PathResult::Path(self.reconstruct_path_to(node));
+                    return PathResult::Path(self.reconstruct_path_to(node), node_cheapest);
                 } else {
-                    let (node_cheapest, came_from) = self
-                        .visited_nodes
-                        .get(&node)
-                        .map(|n| (n.cheapest_score, n.came_from.clone()))
-                        .unwrap();
                     for (neighbor, transition) in neighbors(&node) {
                         if neighbor == came_from {
                             continue;
@@ -174,13 +178,17 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                             // priority queue does include heuristic
                             let cost_estimate = cost + h;
 
-                            if self.cheapest_cost.map(|cc| h < cc).unwrap_or(true) {
-                                self.cheapest_node = Some(node.clone());
-                                self.cheapest_cost = Some(h);
+                            if self
+                                .closest_node
+                                .as_ref()
+                                .map(|&(_, ch)| h < ch)
+                                .unwrap_or(true)
+                            {
+                                self.closest_node = Some((node.clone(), h));
                             };
 
                             // TODO: I think the if here should be removed
-                            // if we hadn't already visted, add this to potential nodes, what about
+                            // if we hadn't already visited, add this to potential nodes, what about
                             // its neighbors, wouldn't they need to be revisted???
                             if !previously_visited {
                                 self.potential_nodes.push(PathEntry {
@@ -193,9 +201,9 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                 }
             } else {
                 return PathResult::None(
-                    self.cheapest_node
+                    self.closest_node
                         .clone()
-                        .map(|lc| self.reconstruct_path_to(lc))
+                        .map(|(lc, _)| self.reconstruct_path_to(lc))
                         .unwrap_or_default(),
                 );
             }
@@ -205,17 +213,15 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
 
         if self.iter >= self.max_iters {
             PathResult::Exhausted(
-                self.cheapest_node
+                self.closest_node
                     .clone()
-                    .map(|lc| self.reconstruct_path_to(lc))
+                    .map(|(lc, _)| self.reconstruct_path_to(lc))
                     .unwrap_or_default(),
             )
         } else {
             PathResult::Pending
         }
     }
-
-    pub fn get_cheapest_cost(&self) -> Option<f32> { self.cheapest_cost }
 
     fn reconstruct_path_to(&mut self, end: S) -> Path<S> {
         let mut path = vec![end.clone()];

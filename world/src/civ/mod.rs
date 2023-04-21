@@ -700,10 +700,7 @@ impl Civs {
         // (2) we care about determinism across computers (ruling out AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
         let mut astar = Astar::new(100, a, BuildHasherDefault::<FxHasher64>::default());
-        astar
-            .poll(100, heuristic, neighbors, satisfied)
-            .into_path()
-            .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
+        astar.poll(100, heuristic, neighbors, satisfied).into_path()
     }
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
@@ -1362,7 +1359,6 @@ fn find_path(
     astar
         .poll(MAX_PATH_ITERS, heuristic, neighbors, satisfied)
         .into_path()
-        .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }
 
 /// Return Some if travel between a location and a chunk next to it is permitted
