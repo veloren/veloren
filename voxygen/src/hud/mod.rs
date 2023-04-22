@@ -2268,10 +2268,13 @@ impl Hud {
                         let is_me = entity == me;
                         let dist_sqr = pos.distance_squared(player_pos);
                         // Determine whether to display nametag and healthbar based on whether the
-                        // entity has been damaged, is targeted/selected, or is in your group
-                        // Note: even if this passes the healthbar can be hidden in some cases if it
-                        // is at maximum
+                        // entity is mounted, has been damaged, is targeted/selected, or is in your
+                        // group
+                        // Note: even if this passes the healthbar can
+                        // be hidden in some cases if it is at maximum
                         let display_overhead_info = !is_me
+                            && (is_mount.is_none()
+                                || health.map_or(true, overhead::should_show_healthbar))
                             && (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
                                 || health.map_or(true, overhead::should_show_healthbar)
@@ -2357,14 +2360,20 @@ impl Hud {
                             if Some(*owner) == client.uid()
                                 && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
                         {
-                            let mut options =
-                                vec![(GameInput::Trade, i18n.get_msg("hud-trade").to_string())];
-                            if !client.is_riding()
-                                && is_mount.is_none()
-                                && is_mountable(body, bodies.get(client.entity()))
-                            {
-                                options
-                                    .push((GameInput::Mount, i18n.get_msg("hud-mount").to_string()))
+                            let mut options = Vec::new();
+                            if is_mount.is_none() {
+                                options.push((
+                                    GameInput::Trade,
+                                    i18n.get_msg("hud-trade").to_string(),
+                                ));
+                                if !client.is_riding()
+                                    && is_mountable(body, bodies.get(client.entity()))
+                                {
+                                    options.push((
+                                        GameInput::Mount,
+                                        i18n.get_msg("hud-mount").to_string(),
+                                    ))
+                                }
                             }
                             options
                         },
