@@ -711,7 +711,10 @@ impl Civs {
             13..=18 => SiteKind::SavannahPit,
             _ => SiteKind::Refactor,
         };
-        let site = attempt(100, || {
+        // TODO: A desert city fails all 100 attemps here on startup and each failed
+        // attempt takes ~10 ms on my machine (so overall it takes about 1
+        // second). Use less brute force method?
+        let site = attempt(/* 100 */ 15, || {
             let avoid_town_enemies =
                 ProximityRequirements::new().avoid_all_of(self.town_enemies(), 60);
             let loc = find_site_loc(ctx, &avoid_town_enemies, kind)?;
@@ -1130,7 +1133,7 @@ impl Civs {
 
         // Find neighbors
         // Note, the maximum distance that I have so far observed not hitting the
-        // iteration limit in `find_path` is 364. So I think this is a reasonible
+        // iteration limit in `find_path` is 364. So I think this is a reasonable
         // limit (although the relationship between distance and pathfinding iterations
         // can be a bit variable). Note, I have seen paths reach the iteration limit
         // with distances as small as 137, so this certainly doesn't catch all
