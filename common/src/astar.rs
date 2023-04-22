@@ -45,9 +45,19 @@ impl<S: Eq> PartialOrd for PathEntry<S> {
 }
 
 pub enum PathResult<T> {
+    /// No reachable nodes were satisfactory.
+    ///
+    /// Contains path to node with the lowest heuristic value (out of the
+    /// explored nodes).
     None(Path<T>),
+    /// Either max_iters or max_cost was reached.
+    ///
+    /// Contains path to node with the lowest heuristic value (out of the
+    /// explored nodes).
     Exhausted(Path<T>),
-    // second field is cost
+    /// Path succefully found.
+    ///
+    /// Second field is cost.
     Path(Path<T>, f32),
     Pending,
 }
@@ -84,6 +94,7 @@ struct NodeEntry<S> {
 pub struct Astar<S, Hasher> {
     iter: usize,
     max_iters: usize,
+    max_cost: f32,
     potential_nodes: BinaryHeap<PathEntry<S>>, // cost, node pairs
     visited_nodes: HashMap<S, NodeEntry<S>, Hasher>,
     /// Node with the lowest heuristic value so far.
@@ -109,6 +120,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     pub fn new(max_iters: usize, start: S, hasher: H) -> Self {
         Self {
             max_iters,
+            max_cost: f32::MAX,
             iter: 0,
             potential_nodes: core::iter::once(PathEntry {
                 cost_estimate: 0.0,
@@ -127,6 +139,11 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
         }
     }
 
+    pub fn with_max_cost(mut self, max_cost: f32) -> Self {
+        self.max_cost = max_cost;
+        self
+    }
+
     pub fn poll<I>(
         &mut self,
         iters: usize,
@@ -143,15 +160,28 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
     {
         let iter_limit = self.max_iters.min(self.iter + iters);
         while self.iter < iter_limit {
-            if let Some(PathEntry { node, .. }) = self.potential_nodes.pop() {
+            if let Some(PathEntry {
+                node,
+                cost_estimate,
+            }) = self.potential_nodes.pop()
+            {
                 let (node_cheapest, came_from) = self
                     .visited_nodes
                     .get(&node)
                     .map(|n| (n.cheapest_score, n.came_from.clone()))
-                    .expect("");
+                    .expect("All nodes in the queue should be included in visisted_nodes");
 
                 if satisfied(&node) {
                     return PathResult::Path(self.reconstruct_path_to(node), node_cheapest);
+                // Note, we assume that cost_estimate isn't an overestimation
+                // (i.e. that `heuristic` doesn't overestimate).
+                } else if cost_estimate > self.max_cost {
+                    return PathResult::Exhausted(
+                        self.closest_node
+                            .clone()
+                            .map(|(lc, _)| self.reconstruct_path_to(lc))
+                            .unwrap_or_default(),
+                    );
                 } else {
                     for (neighbor, transition) in neighbors(&node) {
                         if neighbor == came_from {
@@ -174,7 +204,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                                 })
                                 .is_some();
                             let h = heuristic(&neighbor, &node);
-                            // note that cheapest_scores does not include the heuristic
+                            // note that cheapest_score does not include the heuristic
                             // priority queue does include heuristic
                             let cost_estimate = cost + h;
 

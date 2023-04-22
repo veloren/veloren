@@ -1130,10 +1130,12 @@ impl Civs {
 
         // Find neighbors
         // Note, the maximum distance that I have so far observed not hitting the
-        // iteration limit in `find_path` is 297. So I think this is a reasonible
+        // iteration limit in `find_path` is 364. So I think this is a reasonible
         // limit (although the relationship between distance and pathfinding iterations
-        // can be a bit variable).
-        const MAX_NEIGHBOR_DISTANCE: f32 = 350.0;
+        // can be a bit variable). Note, I have seen paths reach the iteration limit
+        // with distances as small as 137, so this certainly doesn't catch all
+        // cases that would fail.
+        const MAX_NEIGHBOR_DISTANCE: f32 = 400.0;
         let mut nearby = self
             .sites
             .iter()
@@ -1173,18 +1175,8 @@ impl Civs {
                 let start = loc;
                 let end = self.sites.get(nearby).center;
                 // Find a novel path.
-                //
-                // We rely on the cost at least being equal to the distance, to avoid
-                // unnecessary novel pathfinding.
-                let maybe_path = ((start.distance_squared(end) as f32).sqrt() < max_novel_cost)
-                    .then(|| {
-                        prof_span!("find path");
-                        let get_bridge = |start| self.bridges.get(&start).map(|(end, _)| *end);
-                        find_path(ctx, get_bridge, start, end)
-                    })
-                    .flatten()
-                    .filter(|&(_, cost)| cost < max_novel_cost);
-                if let Some((path, cost)) = maybe_path {
+                let get_bridge = |start| self.bridges.get(&start).map(|(end, _)| *end);
+                if let Some((path, cost)) = find_path(ctx, get_bridge, start, end, max_novel_cost) {
                     // Write the track to the world as a path
                     for locs in path.nodes().windows(3) {
                         let mut randomize_offset = false;
@@ -1328,7 +1320,9 @@ fn find_path(
     get_bridge: impl Fn(Vec2<i32>) -> Option<Vec2<i32>>,
     a: Vec2<i32>,
     b: Vec2<i32>,
+    max_path_cost: f32,
 ) -> Option<(Path<Vec2<i32>>, f32)> {
+    prof_span!("find_path");
     const MAX_PATH_ITERS: usize = 100_000;
     let sim = &ctx.sim;
     // NOTE: If heuristic overestimates the actual cost, then A* is not guaranteed
@@ -1355,7 +1349,8 @@ fn find_path(
         MAX_PATH_ITERS,
         a,
         BuildHasherDefault::<FxHasher64>::default(),
-    );
+    )
+    .with_max_cost(max_path_cost);
     astar
         .poll(MAX_PATH_ITERS, heuristic, neighbors, satisfied)
         .into_path()
