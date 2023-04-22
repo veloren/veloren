@@ -9,7 +9,7 @@ hud-outcome-crippled = Mort: estropié(e)
 hud-outcome-frozen = Mort: glacé(e)
 hud-outcome-mysterious = Mort: secrète
 ## Buff deaths
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] est mort de{ $died_of_buff } causé par [{ $attacker }]
+hud-chat-died_of_pvp_buff_msg = [{ $victim }] est mort de { $died_of_buff } causé par [{ $attacker }]
 hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] est mort de { $died_of_buff }
 hud-chat-died_of_npc_buff_msg = [{ $victim }] est mort de { $died_of_buff } causé par { $attacker }
 ## PvP deaths

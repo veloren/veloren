@@ -28,4 +28,4 @@ hud-trade-tooltip_hint_1 = <Shift-Clique pour Ajouter/Retirer de l'échange.>
 hud-trade-tooltip_hint_2 = <Ctrl-Clique pour Équilibrer Automatiquement avec ceci.>
 hud-trade-your_offer = Votre offre
 hud-trade-their_offer = Son offre
-hud-trade-amount_input = Seléctionner un objet
+hud-trade-amount_input = Sélectionner un objet
