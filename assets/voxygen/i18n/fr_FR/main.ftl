@@ -14,7 +14,7 @@ main-notice =
     
     - Si vous avez des retours constructifs ou avez detecté un bug, vous pouvez nous contacter via Reddit, GitLab ou notre serveur communautaire Discord.
     
-    - Veloren est un logiciel open-source sous licence GPL3. Cela signifit que vous êtes libre de jouer, modfier et redistribuer le jeu comme il vous semble (licence contaminante sous GPL 3 pour toute modification)
+    - Veloren est un logiciel open-source sous licence GPL3. Cela signifie que vous êtes libre de jouer, modifier et redistribuer le jeu comme il vous semble (licence contaminante sous GPL 3 pour toute modification)
     
     - Veloren est un projet communautaire à but non-lucratif développé par des bénévoles.
     Si vous appréciez ce jeu, vous êtes les bienvenus pour rejoindre les équipes de développement ou d'artistes!
@@ -48,7 +48,7 @@ main-login-invalid_character = Le personnage sélectionné n'est pas valide
 main-login-client_crashed = Le client a planté
 main-login-not_on_whitelist = Vous devez être ajouté à la liste blanche par un Admin pour pouvoir entrer
 main-login-banned = Vous avez été banni pour la raison suivante
-main-login-kicked = Vous avez été exclus pour la raison suivante
+main-login-kicked = Vous avez été exclu pour la raison suivante
 main-login-select_language = Sélectionnez une langue
 main-login-client_version = Version du client
 main-login-server_version = Version du serveur
@@ -72,7 +72,7 @@ main-credits-contributors = Contributeurs
 loading-tips =
     .a0 = Appuyez sur '{ $gameinput-togglelantern }' pour allumer ta lanterne.
     .a1 = Appuyez sur '{ $gameinput-help }' pour voir les raccourcis clavier par défaut.
-    .a2 = Vous pouvez taper /say ou /s pour discuter aux joueurs directement à côté toi.
+    .a2 = Vous pouvez taper /say ou /s pour discuter aux joueurs directement à côté de toi.
     .a3 = Vous pouvez taper /region ou /r pour discuter avec les joueurs situés à quelques centaines de blocs de toi.
     .a4 = Pour envoyer un message privé, tapez /tell suivi par un nom de joueur puis votre message.
     .a5 = Des PNJs avec le même niveau peuvent varier en difficulté.
@@ -92,4 +92,4 @@ loading-tips =
     .a19 = Besoin de plus de sacs ou de meilleures armures pour continuer votre aventure ? Appuyez sur '{ $gameinput-crafting }' pour ouvrir le menu de craft!
     .a20 = Appuyez sur '{ $gameinput-roll }' pour rouler. Faire une roulade peut être utilisé pour se déplacer plus vite et esquiver les attaques ennemies.
     .a21 = Vous vous demandez à quoi sert un objet ? Rechercher 'input:<item name>' dans le menu de craft pour voir dans quelle(s) recette(s) il est utilisé.
-    .a22 = Vous avez trouver quelque chose de cool ? Prenez une capture d'écran à l'aide de '{ $gameinput-screenshot }'.
+    .a22 = Vous avez trouvé quelque chose de cool ? Prenez une capture d'écran à l'aide de '{ $gameinput-screenshot }'.
