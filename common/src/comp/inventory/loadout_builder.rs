@@ -1149,6 +1149,8 @@ impl LoadoutBuilder {
                 .map_or(true, |item| equip_slot.can_hold(&item.kind()))
         );
 
+        // TODO: What if `with_equipment` is used twice for the same slot. Or defaults
+        // include an item in this slot.
         // Used when creating a loadout, so time not needed as it is used to check when
         // stuff gets unequipped. A new loadout has never unequipped an item.
         let time = Time(0.0);

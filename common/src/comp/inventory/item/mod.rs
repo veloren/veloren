@@ -1456,6 +1456,10 @@ impl Equivalent<ItemDefinitionIdOwned> for ItemDefinitionId<'_> {
     fn equivalent(&self, key: &ItemDefinitionIdOwned) -> bool { self == key }
 }
 
+impl From<&ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
+    fn from(value: &ItemDefinitionId<'_>) -> Self { value.to_owned() }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -120,10 +120,9 @@ impl Loadout {
             .find(|x| x.equip_slot == equip_slot)
             .and_then(|x| core::mem::replace(&mut x.slot, item));
         if let Some(unequipped_item) = unequipped_item.as_ref() {
-            // TODO: Avoid this allocation when there isn't an insert
             let entry = self
                 .recently_unequipped_items
-                .entry(unequipped_item.item_definition_id().to_owned())
+                .entry_ref(&unequipped_item.item_definition_id())
                 .or_insert((time, 0));
             *entry = (time, entry.1.saturating_add(1));
         }
@@ -263,22 +262,6 @@ impl Loadout {
             .and_then(|item| item.slot(loadout_slot_id.slot_idx))
     }
 
-    pub(super) fn inv_slot_with_mutable_recently_unequipped_items(
-        &mut self,
-        loadout_slot_id: LoadoutSlotId,
-    ) -> (
-        Option<&InvSlot>,
-        &mut HashMap<ItemDefinitionIdOwned, (Time, u8)>,
-    ) {
-        (
-            self.slots
-                .get(loadout_slot_id.loadout_idx)
-                .and_then(|loadout_slot| loadout_slot.slot.as_ref())
-                .and_then(|item| item.slot(loadout_slot_id.slot_idx)),
-            &mut self.recently_unequipped_items,
-        )
-    }
-
     /// Returns the `InvSlot` for a given `LoadoutSlotId`
     pub(super) fn inv_slot_mut(&mut self, loadout_slot_id: LoadoutSlotId) -> Option<&mut InvSlot> {
         self.slots
@@ -317,6 +300,18 @@ impl Loadout {
         self.slots.iter_mut()
             .filter_map(|x| x.slot.as_mut().map(|item| item.slots_mut()))  // Discard loadout items that have no slots of their own
             .flat_map(|loadout_slots| loadout_slots.iter_mut()) //Collapse iter of Vec<InvSlot> to iter of InvSlot
+    }
+
+    pub(super) fn inv_slots_mut_with_mutable_recently_unequipped_items(
+        &mut self,
+    ) -> (
+        impl Iterator<Item = &mut InvSlot>,
+        &mut HashMap<ItemDefinitionIdOwned, (Time, u8)>,
+    ) {
+        let slots_mut = self.slots.iter_mut()
+            .filter_map(|x| x.slot.as_mut().map(|item| item.slots_mut()))  // Discard loadout items that have no slots of their own
+            .flat_map(|loadout_slots| loadout_slots.iter_mut()); //Collapse iter of Vec<InvSlot> to iter of InvSlot
+        (slots_mut, &mut self.recently_unequipped_items)
     }
 
     /// Gets the range of loadout-provided inventory slot indexes that are
@@ -510,15 +505,14 @@ impl Loadout {
     }
 
     pub(super) fn cull_recently_unequipped_items(&mut self, time: Time) {
-        for (unequip_time, _count) in self.recently_unequipped_items.values_mut() {
-            // If somehow time went backwards or faulty unequip time supplied, set unequip
-            // time to minimum of current time and unequip time
-            if time.0 < unequip_time.0 {
-                *unequip_time = time;
-            }
-        }
         self.recently_unequipped_items
             .retain(|_def, (unequip_time, count)| {
+                // If somehow time went backwards or faulty unequip time supplied, set unequip
+                // time to minimum of current time and unequip time
+                if time.0 < unequip_time.0 {
+                    *unequip_time = time;
+                }
+
                 (time.0 - unequip_time.0 < UNEQUIP_TRACKING_DURATION) && *count > 0
             });
     }

@@ -507,6 +507,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         true
     };
 
+    // TODO: Do we need to do this if `should_delete` is true?
     // Modify durability on all equipped items
     if let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
         let ecs = state.ecs();
@@ -1424,6 +1425,9 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
                     let clients = ecs.read_storage::<Client>();
                     let mut agents = ecs.write_storage::<Agent>();
                     let mut notify_trade_party = |entity| {
+                        // TODO: Can probably improve UX here for the user that sent the trade
+                        // invite, since right now it may seems like their request was
+                        // purposefully declined, rather than e.g. being interrupted.
                         if let Some(client) = clients.get(entity) {
                             client
                                 .send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
