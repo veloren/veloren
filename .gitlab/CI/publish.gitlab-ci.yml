@@ -60,5 +60,5 @@ pages:
   script:
     - rm -rf public
     - mkdir -p public
-    - cargo doc --no-deps --document-private-items
+    - RUSTDOCFLAGS="--enable-index-page -Zunstable-options" cargo doc --no-deps --document-private-items
     - mv target/doc/* public
