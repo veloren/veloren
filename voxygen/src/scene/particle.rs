@@ -1568,11 +1568,10 @@ impl ParticleMgr {
                 });
             }
 
-            for (entity, body, pos, ori, collider) in (
+            for (entity, body, interpolated, collider) in (
                 &ecs.entities(),
                 &ecs.read_storage::<comp::Body>(),
-                &ecs.read_storage::<comp::Pos>(),
-                &ecs.read_storage::<comp::Ori>(),
+                &ecs.read_storage::<crate::ecs::comp::Interpolated>(),
                 ecs.read_storage::<comp::Collider>().maybe(),
             )
                 .join()
@@ -1580,6 +1579,10 @@ impl ParticleMgr {
                 if let Some((blocks_of_interest, offset)) =
                     figure_mgr.get_blocks_of_interest(entity, body, collider)
                 {
+                    let mat = Mat4::from(interpolated.ori.to_quat())
+                        .translated_3d(interpolated.pos)
+                        * Mat4::translation_3d(offset);
+
                     let blocks = (particles.blocks)(blocks_of_interest);
 
                     let avg_particles = dt * blocks.len() as f32 * particles.rate;
@@ -1593,9 +1596,7 @@ impl ParticleMgr {
                                 .copied()
                                 .unwrap()
                                 .map(|e: i32| e as f32 + rng.gen::<f32>()); // Can't fail
-                            let wpos = (Mat4::from(ori.to_quat()).translated_3d(pos.0)
-                                * (rel_pos + offset).with_w(1.0))
-                            .xyz();
+                            let wpos = mat.mul_point(rel_pos);
 
                             Particle::new(
                                 Duration::from_secs_f32(particles.lifetime),

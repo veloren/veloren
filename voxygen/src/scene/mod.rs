@@ -709,17 +709,22 @@ impl Scene {
         lights.extend(
             (
                 &scene_data.state.ecs().entities(),
-                &scene_data.state.read_storage::<comp::Pos>(),
-                &scene_data.state.read_storage::<comp::Ori>(),
+                &scene_data
+                    .state
+                    .read_storage::<crate::ecs::comp::Interpolated>(),
                 &scene_data.state.read_storage::<comp::Body>(),
                 &scene_data.state.read_storage::<comp::Collider>(),
             )
                 .join()
-                .filter_map(|(entity, pos, ori, body, collider)| {
+                .filter_map(|(entity, interpolated, body, collider)| {
                     let vol = collider.get_vol(&voxel_colliders_manifest)?;
+                    let (blocks_of_interest, offset) =
+                        figure_mgr
+                            .get_blocks_of_interest(entity, body, Some(collider))?;
 
-                    let mat = Mat4::from(ori.to_quat()).translated_3d(pos.0)
-                        * Mat4::translation_3d(vol.translation);
+                    let mat = Mat4::from(interpolated.ori.to_quat())
+                        .translated_3d(interpolated.pos)
+                        * Mat4::translation_3d(offset);
 
                     let p = mat.inverted().mul_point(viewpoint_pos);
                     let aabb = Aabb {
@@ -727,23 +732,21 @@ impl Scene {
                         max: vol.volume().sz.as_(),
                     };
                     if aabb.contains_point(p) || aabb.distance_to_point(p) < max_light_dist {
-                        figure_mgr
-                            .get_blocks_of_interest(entity, body, Some(collider))
-                            .map(move |(blocks_of_interest, _)| {
-                                blocks_of_interest
-                                    .lights
-                                    .iter()
-                                    .map(move |(block_offset, level)| {
-                                        let wpos = mat.mul_point(block_offset.as_() + 0.5);
-                                        (wpos, level)
-                                    })
-                                    .filter(move |(wpos, _)| {
-                                        wpos.distance_squared(viewpoint_pos) < max_light_dist
-                                    })
-                                    .map(|(wpos, level)| {
-                                        Light::new(wpos, Rgb::white(), *level as f32 / 7.0)
-                                    })
-                            })
+                        Some(
+                            blocks_of_interest
+                                .lights
+                                .iter()
+                                .map(move |(block_offset, level)| {
+                                    let wpos = mat.mul_point(block_offset.as_() + 0.5);
+                                    (wpos, level)
+                                })
+                                .filter(move |(wpos, _)| {
+                                    wpos.distance_squared(viewpoint_pos) < max_light_dist
+                                })
+                                .map(|(wpos, level)| {
+                                    Light::new(wpos, Rgb::white(), *level as f32 / 7.0)
+                                }),
+                        )
                     } else {
                         None
                     }

@@ -2041,7 +2041,12 @@ impl Hud {
 
             // Render overtime for an interactable block
             if let Some(Interactable::Block(block, pos, interaction)) = interactable
-                && let Some((mat, _)) = pos.get_block_and_transform(&ecs.read_resource(), &ecs.read_resource(), &ecs.read_storage(), &ecs.read_storage(), &ecs.read_storage()) {
+                && let Some((mat, _)) = pos.get_block_and_transform(
+                    &ecs.read_resource(),
+                    &ecs.read_resource(),
+                    |e| ecs.read_storage::<vcomp::Interpolated>().get(e).map(|interpolated| (comp::Pos(interpolated.pos), interpolated.ori)),
+                    &ecs.read_storage(),
+                ) {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
@@ -4743,8 +4748,10 @@ impl Hud {
                             pos.get_block_and_transform(
                                 &client.state().terrain(),
                                 &client.state().ecs().read_resource(),
-                                &client.state().read_storage(),
-                                &client.state().read_storage(),
+                                |e| {
+                                   client.state().read_storage::<vcomp::Interpolated>().get(e)
+                                        .map(|interpolated| (comp::Pos(interpolated.pos), interpolated.ori))
+                                },
                                 &client.state().read_storage(),
                             )
                             .map_or(false, |(mat, block)| {

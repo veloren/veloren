@@ -248,18 +248,21 @@ pub(super) fn select_interactable(
             &ecs.entities(),
             &ecs.read_storage::<Uid>(),
             &ecs.read_storage::<comp::Body>(),
-            &ecs.read_storage::<comp::Pos>(),
-            &ecs.read_storage::<comp::Ori>(),
+            &ecs.read_storage::<crate::ecs::comp::Interpolated>(),
             &ecs.read_storage::<comp::Collider>(),
         );
 
         let volumes = volumes_data
             .join()
-            .filter_map(|(entity, uid, body, pos, ori, collider)| {
+            .filter_map(|(entity, uid, body, interpolated, collider)| {
                 let vol = collider.get_vol(&voxel_colliders_manifest)?;
+                let (blocks_of_interest, offset) =
+                    scene
+                        .figure_mgr()
+                        .get_blocks_of_interest(entity, body, Some(collider))?;
 
-                let mat = Mat4::from(ori.to_quat()).translated_3d(pos.0)
-                    * Mat4::translation_3d(vol.translation);
+                let mat = Mat4::from(interpolated.ori.to_quat()).translated_3d(interpolated.pos)
+                    * Mat4::translation_3d(offset);
 
                 let p = mat.inverted().mul_point(player_pos);
                 let aabb = Aabb {
@@ -267,17 +270,12 @@ pub(super) fn select_interactable(
                     max: vol.volume().sz.as_(),
                 };
                 if aabb.contains_point(p) || aabb.distance_to_point(p) < search_dist {
-                    scene
-                        .figure_mgr()
-                        .get_blocks_of_interest(entity, body, Some(collider))
-                        .map(move |(blocks_of_interest, _)| {
-                            blocks_of_interest.interactables.iter().map(
-                                move |(block_offset, interaction)| {
-                                    let wpos = mat.mul_point(block_offset.as_() + 0.5);
-                                    (wpos, VolumePos::entity(*block_offset, *uid), interaction)
-                                },
-                            )
-                        })
+                    Some(blocks_of_interest.interactables.iter().map(
+                        move |(block_offset, interaction)| {
+                            let wpos = mat.mul_point(block_offset.as_() + 0.5);
+                            (wpos, VolumePos::entity(*block_offset, *uid), interaction)
+                        },
+                    ))
                 } else {
                     None
                 }

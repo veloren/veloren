@@ -98,8 +98,7 @@ impl<'a> System<'a> for Sys {
             if let Some((mut mat, _)) = is_volume_rider.pos.get_block_and_transform(
                 &terrain,
                 &uid_allocator,
-                &positions,
-                &orientations,
+                |e| positions.get(e).copied().zip(orientations.get(e).copied()),
                 &colliders,
             ) {
                 let Some((mount_offset, mount_dir)) = is_volume_rider.block.mount_offset() else {

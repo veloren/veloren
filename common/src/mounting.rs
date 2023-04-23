@@ -8,10 +8,8 @@ use crate::{
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use specs::{
-    saveload::MarkerAllocator,
-    storage::{GenericWriteStorage, MaskedStorage},
-    Component, DenseVecStorage, Entities, Read, ReadExpect, ReadStorage, Storage, Write,
-    WriteStorage,
+    saveload::MarkerAllocator, storage::GenericWriteStorage, Component, DenseVecStorage, Entities,
+    Entity, Read, ReadExpect, ReadStorage, Write, WriteStorage,
 };
 use vek::*;
 
@@ -197,8 +195,7 @@ impl VolumePos {
         &self,
         terrain: &TerrainGrid,
         uid_allocator: &UidAllocator,
-        positions: &Storage<comp::Pos, impl std::ops::Deref<Target = MaskedStorage<comp::Pos>>>,
-        orientations: &Storage<comp::Ori, impl std::ops::Deref<Target = MaskedStorage<comp::Ori>>>,
+        mut read_pos_and_ori: impl FnMut(Entity) -> Option<(comp::Pos, comp::Ori)>,
         colliders: &ReadStorage<comp::Collider>,
     ) -> Option<(Mat4<f32>, Block)> {
         match self.kind {
@@ -211,8 +208,7 @@ impl VolumePos {
                     .retrieve_entity_internal(uid.0)
                     .and_then(|entity| {
                         let collider = colliders.get(entity)?;
-                        let pos = positions.get(entity)?;
-                        let ori = orientations.get(entity)?;
+                        let (pos, ori) = read_pos_and_ori(entity)?;
 
                         let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
                         let voxel_collider = collider.get_vol(&voxel_colliders_manifest)?;
