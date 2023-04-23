@@ -254,48 +254,53 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         .div(10_f32.powi(5))
         .to_string();
 
-        let get_hands = |hands| match hands {
-            Some(Hands::One) => "One",
-            Some(Hands::Two) => "Two",
-            None => "",
-        };
-
-        match item {
-            LootSpec::Item(item) => wtr.write_record([&chance, "Item", item, "", ""])?,
-            LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record([
-                &chance,
-                "Item",
-                item,
-                &lower.to_string(),
-                &upper.to_string(),
-            ])?,
-            LootSpec::LootTable(table) => {
-                wtr.write_record([&chance, "LootTable", table, "", ""])?
-            },
-            LootSpec::Nothing => wtr.write_record([&chance, "Nothing", "", ""])?,
-            LootSpec::ModularWeapon {
-                tool,
-                material,
-                hands,
-            } => wtr.write_record([
-                &chance,
-                "Modular Weapon",
-                &get_tool_kind(tool),
-                material.into(),
-                get_hands(*hands),
-            ])?,
-            LootSpec::ModularWeaponPrimaryComponent {
-                tool,
-                material,
-                hands,
-            } => wtr.write_record([
-                &chance,
-                "Modular Weapon Primary Component",
-                &get_tool_kind(tool),
-                material.into(),
-                get_hands(*hands),
-            ])?,
+        fn write_loot_spec<W: std::io::Write>(
+            wtr: &mut csv::Writer<W>,
+            loot_spec: &LootSpec<String>,
+            chance: &str,
+        ) -> Result<(), Box<dyn Error>> {
+            let get_hands = |hands| match hands {
+                Some(Hands::One) => "One",
+                Some(Hands::Two) => "Two",
+                None => "",
+            };
+            match loot_spec {
+                LootSpec::Item(item) => wtr.write_record([chance, "Item", item, "", ""])?,
+                LootSpec::LootTable(table) => {
+                    wtr.write_record([chance, "LootTable", table, "", ""])?
+                },
+                LootSpec::Nothing => wtr.write_record([chance, "Nothing", "", ""])?,
+                LootSpec::ModularWeapon {
+                    tool,
+                    material,
+                    hands,
+                } => wtr.write_record([
+                    chance,
+                    "Modular Weapon",
+                    &get_tool_kind(tool),
+                    material.into(),
+                    get_hands(*hands),
+                ])?,
+                LootSpec::ModularWeaponPrimaryComponent {
+                    tool,
+                    material,
+                    hands,
+                } => wtr.write_record([
+                    chance,
+                    "Modular Weapon Primary Component",
+                    &get_tool_kind(tool),
+                    material.into(),
+                    get_hands(*hands),
+                ])?,
+                LootSpec::MultiDrop(loot, _, _) => {
+                    // TODO: Write amount gotten somewhere?
+                    write_loot_spec(wtr, loot, chance)?;
+                },
+            }
+            Ok(())
         }
+
+        write_loot_spec(&mut wtr, item, &chance)?;
     }
 
     wtr.flush()?;
@@ -406,16 +411,6 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                         "1".to_owned(),
                     ])?;
                 },
-                LootSpec::ItemQuantity(item, lower, upper) => {
-                    wtr.write_record(&[
-                        name.clone(),
-                        asset_path.to_owned(),
-                        percent_chance,
-                        item_name(item),
-                        // Tab needed so excel doesn't think it is a date...
-                        format!("{lower}-{upper}\t"),
-                    ])?;
-                },
                 LootSpec::Nothing => {
                     wtr.write_record(&[
                         name.clone(),
@@ -477,6 +472,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                     }
                 },
                 LootSpec::LootTable(_) => unreachable!(),
+                LootSpec::MultiDrop(_, _, _) => todo!(),
             }
         }
 

@@ -1,6 +1,6 @@
 [
     // Currency
-    (30.0, ItemQuantity("common.items.utility.coins", 50, 100)),
+    (30.0, MultiDrop(Item("common.items.utility.coins"), 50, 100)),
     // Nothing
     (30.0, Nothing),
     // Special

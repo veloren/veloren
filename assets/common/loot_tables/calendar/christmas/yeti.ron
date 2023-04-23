@@ -1,4 +1,4 @@
 [
-    (3.0, ItemQuantity("common.items.food.blue_cheese", 1, 15)),
+    (3.0, MultiDrop(Item("common.items.food.blue_cheese"), 1, 15)),
     (1.0, Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap")),
 ]

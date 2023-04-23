@@ -9,7 +9,7 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        shockwave, Alignment, BehaviorCapability, Body, ItemDrop, LightEmitter, Object, Ori, Pos,
+        shockwave, Alignment, BehaviorCapability, Body, ItemDrops, LightEmitter, Object, Ori, Pos,
         Projectile, TradingBehavior, Vel, WaypointArea,
     },
     event::{EventBus, NpcBuilder, UpdateCharacterMetadata},
@@ -118,8 +118,8 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
         entity
     };
 
-    let entity = if let Some(drop_item) = npc.loot.to_item() {
-        entity.with(ItemDrop(drop_item))
+    let entity = if let Some(drop_items) = npc.loot.to_items() {
+        entity.with(ItemDrops(drop_items))
     } else {
         entity
     };

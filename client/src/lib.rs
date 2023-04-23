@@ -102,7 +102,7 @@ pub enum Event {
     },
     Disconnect,
     DisconnectionNotification(u64),
-    InventoryUpdated(InventoryUpdateEvent),
+    InventoryUpdated(Vec<InventoryUpdateEvent>),
     Kicked(String),
     Notification(Notification),
     SetViewDistance(u32),
@@ -2388,34 +2388,38 @@ impl Client {
                 self.presence = None;
                 self.clean_state();
             },
-            ServerGeneral::InventoryUpdate(inventory, event) => {
-                match event {
-                    InventoryUpdateEvent::BlockCollectFailed { .. } => {},
-                    InventoryUpdateEvent::EntityCollectFailed { .. } => {},
-                    _ => {
-                        // Push the updated inventory component to the client
-                        // FIXME: Figure out whether this error can happen under normal gameplay,
-                        // if not find a better way to handle it, if so maybe consider kicking the
-                        // client back to login?
-                        let entity = self.entity();
-                        if let Err(e) = self
-                            .state
-                            .ecs_mut()
-                            .write_storage()
-                            .insert(entity, inventory)
-                        {
-                            warn!(
-                                ?e,
-                                "Received an inventory update event for client entity, but this \
-                                 entity was not found... this may be a bug."
-                            );
-                        }
-                    },
+            ServerGeneral::InventoryUpdate(inventory, events) => {
+                let mut update_inventory = false;
+                for event in events.iter() {
+                    match event {
+                        InventoryUpdateEvent::BlockCollectFailed { .. } => {},
+                        InventoryUpdateEvent::EntityCollectFailed { .. } => {},
+                        _ => update_inventory = true,
+                    }
+                }
+                if update_inventory {
+                    // Push the updated inventory component to the client
+                    // FIXME: Figure out whether this error can happen under normal gameplay,
+                    // if not find a better way to handle it, if so maybe consider kicking the
+                    // client back to login?
+                    let entity = self.entity();
+                    if let Err(e) = self
+                        .state
+                        .ecs_mut()
+                        .write_storage()
+                        .insert(entity, inventory)
+                    {
+                        warn!(
+                            ?e,
+                            "Received an inventory update event for client entity, but this \
+                             entity was not found... this may be a bug."
+                        );
+                    }
                 }
 
                 self.update_available_recipes();
 
-                frontend_events.push(Event::InventoryUpdated(event));
+                frontend_events.push(Event::InventoryUpdated(events));
             },
             ServerGeneral::SetViewDistance(vd) => {
                 self.view_distance = Some(vd);

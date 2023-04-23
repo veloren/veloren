@@ -170,7 +170,7 @@ pub enum ServerGeneral {
     /// Trigger cleanup for when the client goes back to the `Registered` state
     /// from an ingame state
     ExitInGameSuccess,
-    InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
+    InventoryUpdate(comp::Inventory, Vec<comp::InventoryUpdateEvent>),
     /// NOTE: The client can infer that entity view distance will be at most the
     /// terrain view distance that we send here (and if lower it won't be
     /// modified). So we just need to send the terrain VD back to the client

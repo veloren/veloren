@@ -253,7 +253,7 @@ impl State {
         ecs.register::<comp::MapMarker>();
         ecs.register::<comp::Projectile>();
         ecs.register::<comp::Melee>();
-        ecs.register::<comp::ItemDrop>();
+        ecs.register::<comp::ItemDrops>();
         ecs.register::<comp::ChatMode>();
         ecs.register::<comp::Faction>();
         ecs.register::<comp::invite::Invite>();

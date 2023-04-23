@@ -92,7 +92,7 @@ pub use self::{
             self,
             item_key::ItemKey,
             tool::{self, AbilityItem},
-            Item, ItemConfig, ItemDrop,
+            Item, ItemConfig, ItemDrops,
         },
         slot, CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },

@@ -8,8 +8,9 @@ use common::{
     comp::{
         self,
         group::members,
-        item::{self, tool::AbilityMap, MaterialStatManifest},
+        item::{self, flatten_counted_items, tool::AbilityMap, MaterialStatManifest},
         slot::{self, Slot},
+        InventoryUpdate,
     },
     consts::MAX_PICKUP_RANGE,
     recipe::{
@@ -262,7 +263,12 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let mut block_change = ecs.write_resource::<common_state::BlockChange>();
 
             let block = terrain.get(sprite_pos).ok().copied();
-            let mut drop_item = None;
+            let mut drop_items = Vec::new();
+            let mut inventory_updates = ecs.write_storage();
+            let inventory_update = inventory_updates
+                .entry(entity)
+                .expect("We know entity exists since we got its inventory.")
+                .or_insert_with(InventoryUpdate::default);
 
             if let Some(block) = block {
                 if block.is_collectible() && block_change.can_set_block(sprite_pos) {
@@ -275,45 +281,37 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         );
                     }
 
-                    // If there's an item to be reclaimed from the block, add it to the inventory
-                    if let Some(item) = comp::Item::try_reclaim_from_block(block) {
-                        // NOTE: We dup the item for message purposes.
-                        let item_msg = item.duplicate(
-                            &ecs.read_resource::<AbilityMap>(),
-                            &ecs.read_resource::<MaterialStatManifest>(),
-                        );
-                        let event = match inventory.push(item) {
-                            Ok(_) => {
-                                if let Some(group_id) = ecs.read_storage::<Group>().get(entity) {
-                                    announce_loot_to_group(
-                                        group_id,
-                                        ecs,
-                                        entity,
-                                        item_msg.duplicate(
-                                            &ecs.read_resource::<AbilityMap>(),
-                                            &ecs.read_resource::<MaterialStatManifest>(),
-                                        ),
-                                    );
-                                }
-                                comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(
-                                    item_msg,
-                                ))
-                            },
-                            // The item we created was in some sense "fake" so it's safe to
-                            // drop it.
-                            Err(_) => {
-                                drop_item = Some(item_msg);
-                                comp::InventoryUpdate::new(
-                                    InventoryUpdateEvent::BlockCollectFailed {
-                                        pos: sprite_pos,
-                                        reason: CollectFailedReason::InventoryFull,
-                                    },
-                                )
-                            },
-                        };
-                        ecs.write_storage()
-                            .insert(entity, event)
-                            .expect("We know entity exists since we got its inventory.");
+                    // If there are items to be reclaimed from the block, add it to the inventory
+                    if let Some(items) = comp::Item::try_reclaim_from_block(block) {
+                        let msm = &MaterialStatManifest::load().read();
+                        let ability_map = &AbilityMap::load().read();
+                        for item in flatten_counted_items(&items, ability_map, msm) {
+                            // NOTE: We dup the item for message purposes.
+                            let item_msg = item.duplicate(ability_map, msm);
+                            match inventory.push(item) {
+                                Ok(_) => {
+                                    if let Some(group_id) = ecs.read_storage::<Group>().get(entity)
+                                    {
+                                        announce_loot_to_group(
+                                            group_id,
+                                            ecs,
+                                            entity,
+                                            item_msg.duplicate(
+                                                &ecs.read_resource::<AbilityMap>(),
+                                                &ecs.read_resource::<MaterialStatManifest>(),
+                                            ),
+                                        );
+                                    }
+                                    inventory_update
+                                        .push(InventoryUpdateEvent::Collected(item_msg));
+                                },
+                                // The item we created was in some sense "fake" so it's safe to
+                                // drop it.
+                                Err(_) => {
+                                    drop_items.push(item_msg);
+                                },
+                            }
+                        }
                     }
 
                     // We made sure earlier the block was not already modified this tick
@@ -367,10 +365,18 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                 }
             }
+            if !drop_items.is_empty() {
+                inventory_update.push(InventoryUpdateEvent::BlockCollectFailed {
+                    pos: sprite_pos,
+                    reason: CollectFailedReason::InventoryFull,
+                })
+            }
             drop(inventories);
             drop(terrain);
             drop(block_change);
-            if let Some(item) = drop_item {
+            drop(inventory_updates);
+
+            for item in drop_items {
                 state
                     .create_item_drop(Default::default(), item)
                     .with(comp::Pos(

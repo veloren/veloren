@@ -4,12 +4,12 @@
     (1.0, LootTable("common.loot_tables.armor.tier-1")),
     (0.5, Item("common.items.armor.misc.head.hog_hood")),
     // Currency
-    (3.0, ItemQuantity("common.items.utility.coins", 20, 50)),
+    (3.0, MultiDrop(Item("common.items.utility.coins"), 20, 50)),
     // Materials
-    (1.0, ItemQuantity("common.items.crafting_ing.cloth.wool", 3, 10)),
-    (1.0, ItemQuantity("common.items.crafting_ing.leather.thick_leather", 3, 10)),
-    (1.0, ItemQuantity("common.items.mineral.ingot.iron", 3, 10)),
-    (1.0, ItemQuantity("common.items.log.bamboo", 3, 10)),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.cloth.wool"), 3, 10)),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.leather.thick_leather"), 3, 10)),
+    (1.0, MultiDrop(Item("common.items.mineral.ingot.iron"), 3, 10)),
+    (1.0, MultiDrop(Item("common.items.log.bamboo"), 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.poor")),
 ]

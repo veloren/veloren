@@ -577,12 +577,20 @@ fn handle_give_item(
                     });
             }
 
-            insert_or_replace_component(
-                server,
-                target,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
-                "target",
-            )?;
+            let mut inventory_update = server
+                .state
+                .ecs_mut()
+                .write_storage::<comp::InventoryUpdate>();
+            if let Some(update) = inventory_update.get_mut(target) {
+                update.push(comp::InventoryUpdateEvent::Given);
+            } else {
+                inventory_update
+                    .insert(
+                        target,
+                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
+                    )
+                    .map_err(|_| "Entity target is dead!")?;
+            }
             res
         } else {
             Err(format!("Invalid item: {}", item_name))
@@ -686,8 +694,8 @@ fn handle_make_npc(
                     entity_builder = entity_builder.with(agent);
                 }
 
-                if let Some(drop_item) = loot.to_item() {
-                    entity_builder = entity_builder.with(comp::ItemDrop(drop_item));
+                if let Some(drop_items) = loot.to_items() {
+                    entity_builder = entity_builder.with(comp::ItemDrops(drop_items));
                 }
 
                 // Some would say it's a hack, some would say it's incomplete
