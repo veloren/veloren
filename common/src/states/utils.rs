@@ -1107,7 +1107,7 @@ fn handle_ability(
     output_events: &mut OutputEvents,
     input: InputKind,
 ) -> bool {
-    let contexts = AbilityContext::from(data.stance);
+    let contexts = AbilityContext::from(data.stance, data.inventory);
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
