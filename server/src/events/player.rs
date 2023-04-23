@@ -13,7 +13,7 @@ use common::{
 use common_base::span;
 use common_net::msg::{PlayerListUpdate, ServerGeneral};
 use common_state::State;
-use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use tracing::{debug, error, trace, warn, Instrument};
 
 pub fn handle_character_delete(
@@ -331,8 +331,8 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
     let mut delete_entity = None;
 
     if let (Some(possessor), Some(possessee)) = (
-        state.ecs().entity_from_uid(possessor_uid.into()),
-        state.ecs().entity_from_uid(possessee_uid.into()),
+        state.ecs().entity_from_uid(possessor_uid),
+        state.ecs().entity_from_uid(possessee_uid),
     ) {
         // In this section we check various invariants and can return early if any of
         // them are not met.

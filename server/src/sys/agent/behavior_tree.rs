@@ -13,10 +13,7 @@ use common::{
     rtsim::{NpcAction, RtSimEntity},
 };
 use rand::{prelude::ThreadRng, thread_rng, Rng};
-use specs::{
-    saveload::{Marker, MarkerAllocator},
-    Entity as EcsEntity,
-};
+use specs::Entity as EcsEntity;
 use vek::{Vec2, Vec3};
 
 use self::interaction::{
@@ -250,7 +247,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                 if let Some(attacker) = bdata
                     .read_data
                     .uid_allocator
-                    .retrieve_entity_internal(by.uid().0)
+                    .retrieve_entity_internal(by.uid())
                 {
                     // If target is dead or invulnerable (for now, this only
                     // means safezone), untarget them and idle.
@@ -460,7 +457,7 @@ fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
 
     if bdata.agent.target.is_none() && small_chance {
         if let Some(Alignment::Owned(owner)) = bdata.agent_data.alignment {
-            if let Some(owner) = get_entity_by_id(owner.id(), bdata.read_data) {
+            if let Some(owner) = get_entity_by_id(*owner, bdata.read_data) {
                 let owner_pos = bdata.read_data.positions.get(owner).map(|pos| pos.0);
 
                 bdata.agent.target = Some(Target::new(

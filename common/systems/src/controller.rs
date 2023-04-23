@@ -10,9 +10,8 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    saveload::{Marker, MarkerAllocator},
-    shred::ResourceId,
-    Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World,
+    WriteStorage,
 };
 use vek::*;
 
@@ -51,7 +50,7 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::Mount(mountee_uid) => {
                         if let Some(mountee_entity) = read_data
                             .uid_allocator
-                            .retrieve_entity_internal(mountee_uid.id())
+                            .retrieve_entity_internal(mountee_uid)
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
@@ -81,9 +80,8 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
                     ControlEvent::Interact(npc_uid, subject) => {
-                        if let Some(npc_entity) = read_data
-                            .uid_allocator
-                            .retrieve_entity_internal(npc_uid.id())
+                        if let Some(npc_entity) =
+                            read_data.uid_allocator.retrieve_entity_internal(npc_uid)
                         {
                             server_emitter
                                 .emit(ServerEvent::NpcInteract(entity, npc_entity, subject));

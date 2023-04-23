@@ -154,7 +154,7 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
         let clients = state.ecs().read_storage::<Client>();
         let uids = state.ecs().read_storage::<Uid>();
         let mut group_manager = state.ecs().write_resource::<comp::group::GroupManager>();
-        if let Some(owner) = state.ecs().entity_from_uid(owner_uid.into()) {
+        if let Some(owner) = state.ecs().entity_from_uid(owner_uid) {
             let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             group_manager.new_pet(
                 new_entity,

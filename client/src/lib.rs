@@ -10,9 +10,7 @@ pub use crate::error::Error;
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
 pub use specs::{
-    join::Join,
-    saveload::{Marker, MarkerAllocator},
-    Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, World, WorldExt,
+    join::Join, Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, World, WorldExt,
 };
 
 use crate::addr::ConnectionArgs;
@@ -2203,7 +2201,7 @@ impl Client {
                 self.chat_mode = m;
             },
             ServerGeneral::SetPlayerEntity(uid) => {
-                if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
+                if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
                     let old_player_entity = mem::replace(
                         &mut *self.state.ecs_mut().write_resource(),
                         PlayerEntity(Some(entity)),
@@ -2265,11 +2263,11 @@ impl Client {
             ServerGeneral::CreateEntity(entity_package) => {
                 self.state.ecs_mut().apply_entity_package(entity_package);
             },
-            ServerGeneral::DeleteEntity(entity) => {
-                if self.uid() != Some(entity) {
+            ServerGeneral::DeleteEntity(entity_uid) => {
+                if self.uid() != Some(entity_uid) {
                     self.state
                         .ecs_mut()
-                        .delete_entity_and_clear_from_uid_allocator(entity.0);
+                        .delete_entity_and_clear_from_uid_allocator(entity_uid);
                 }
             },
             ServerGeneral::Notification(n) => {

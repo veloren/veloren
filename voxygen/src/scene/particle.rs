@@ -26,7 +26,7 @@ use common::{
 use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
-use specs::{saveload::MarkerAllocator, Join, WorldExt};
+use specs::{Join, WorldExt};
 use std::{
     f32::consts::{PI, TAU},
     time::Duration,
@@ -289,7 +289,7 @@ impl ParticleMgr {
                     if target
                         .and_then(|target| {
                             ecs.read_resource::<UidAllocator>()
-                                .retrieve_entity_internal(target.0)
+                                .retrieve_entity_internal(target)
                         })
                         .and_then(|entity| {
                             ecs.read_storage::<Body>()

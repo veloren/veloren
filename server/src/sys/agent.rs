@@ -19,7 +19,7 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::thread_rng;
 use rayon::iter::ParallelIterator;
-use specs::{saveload::MarkerAllocator, Join, ParJoin, Read, WriteStorage};
+use specs::{Join, ParJoin, Read, WriteStorage};
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -105,7 +105,7 @@ impl<'a> System<'a> for Sys {
                         .and_then(|is_rider| {
                             read_data
                                 .uid_allocator
-                                .retrieve_entity_internal(is_rider.mount.into())
+                                .retrieve_entity_internal(is_rider.mount)
                         })
                         .or_else(|| {
                             is_volume_rider.and_then(|is_volume_rider| {

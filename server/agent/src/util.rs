@@ -9,15 +9,13 @@ use common::{
     },
     consts::GRAVITY,
     terrain::Block,
+    uid::Uid,
     util::Dir,
     vol::ReadVol,
 };
 use core::f32::consts::PI;
 use rand::Rng;
-use specs::{
-    saveload::{Marker, MarkerAllocator},
-    Entity as EcsEntity,
-};
+use specs::Entity as EcsEntity;
 use vek::*;
 
 pub fn is_dead_or_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
@@ -43,8 +41,8 @@ pub fn try_owner_alignment<'a>(
     alignment: Option<&'a Alignment>,
     read_data: &'a ReadData,
 ) -> Option<&'a Alignment> {
-    if let Some(Alignment::Owned(owner_uid)) = alignment {
-        if let Some(owner) = get_entity_by_id(owner_uid.id(), read_data) {
+    if let Some(&Alignment::Owned(owner_uid)) = alignment {
+        if let Some(owner) = get_entity_by_id(owner_uid, read_data) {
             return read_data.alignments.get(owner);
         }
     }
@@ -66,8 +64,8 @@ pub fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Dir>
     Dir::from_unnormalized(to_tgt)
 }
 
-pub fn get_entity_by_id(id: u64, read_data: &ReadData) -> Option<EcsEntity> {
-    read_data.uid_allocator.retrieve_entity_internal(id)
+pub fn get_entity_by_id(uid: Uid, read_data: &ReadData) -> Option<EcsEntity> {
+    read_data.uid_allocator.retrieve_entity_internal(uid)
 }
 
 /// Calculates whether the agent should continue chase or let the target escape.
@@ -198,7 +196,7 @@ pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity
         .get(entity)
         .filter(|health| health.last_change.amount < 0.0)
         .and_then(|health| health.last_change.damage_by())
-        .and_then(|damage_contributor| get_entity_by_id(damage_contributor.uid().0, read_data))
+        .and_then(|damage_contributor| get_entity_by_id(damage_contributor.uid(), read_data))
 }
 
 impl<'a> AgentData<'a> {

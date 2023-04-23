@@ -8,8 +8,8 @@ use crate::{
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use specs::{
-    saveload::MarkerAllocator, storage::GenericWriteStorage, Component, DenseVecStorage, Entities,
-    Entity, Read, ReadExpect, ReadStorage, Write, WriteStorage,
+    storage::GenericWriteStorage, Component, DenseVecStorage, Entities, Entity, Read, ReadExpect,
+    ReadStorage, Write, WriteStorage,
 };
 use vek::*;
 
@@ -69,7 +69,7 @@ impl Link for Mounting {
         this: &LinkHandle<Self>,
         (uid_allocator, is_mounts, is_riders, is_volume_rider): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
-        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid);
 
         if this.mount == this.rider {
             // Forbid self-mounting
@@ -99,7 +99,7 @@ impl Link for Mounting {
         this: &LinkHandle<Self>,
         (uid_allocator, entities, healths, bodies, is_mounts, is_riders, character_states): &mut Self::PersistData<'_>,
     ) -> bool {
-        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid);
 
         if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
             let is_alive = |entity| {
@@ -128,7 +128,7 @@ impl Link for Mounting {
         this: &LinkHandle<Self>,
         (uid_allocator, is_mounts, is_riders, positions, force_update, terrain): &mut Self::DeleteData<'_>,
     ) {
-        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid);
 
         let mount = entity(this.mount);
         let rider = entity(this.rider);
@@ -228,26 +228,24 @@ impl VolumePos {
                 comp::Ori::default(),
                 *terrain.get(self.pos).ok()?,
             )),
-            Volume::Entity(uid) => {
-                uid_allocator
-                    .retrieve_entity_internal(uid.0)
-                    .and_then(|entity| {
-                        let collider = colliders.get(entity)?;
-                        let (pos, ori) = read_pos_and_ori(entity)?;
+            Volume::Entity(uid) => uid_allocator
+                .retrieve_entity_internal(uid)
+                .and_then(|entity| {
+                    let collider = colliders.get(entity)?;
+                    let (pos, ori) = read_pos_and_ori(entity)?;
 
-                        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
-                        let voxel_collider = collider.get_vol(&voxel_colliders_manifest)?;
+                    let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+                    let voxel_collider = collider.get_vol(&voxel_colliders_manifest)?;
 
-                        let block = *voxel_collider.volume().get(self.pos).ok()?;
+                    let block = *voxel_collider.volume().get(self.pos).ok()?;
 
-                        let local_translation = voxel_collider.translation + self.pos.as_();
+                    let local_translation = voxel_collider.translation + self.pos.as_();
 
-                        let trans = Mat4::from(ori.to_quat()).translated_3d(pos.0)
-                            * Mat4::<f32>::translation_3d(local_translation);
+                    let trans = Mat4::from(ori.to_quat()).translated_3d(pos.0)
+                        * Mat4::<f32>::translation_3d(local_translation);
 
-                        Some((trans, ori, block))
-                    })
-            },
+                    Some((trans, ori, block))
+                }),
         }
     }
 
@@ -260,20 +258,18 @@ impl VolumePos {
     ) -> Option<Block> {
         match self.kind {
             Volume::Terrain => Some(*terrain.get(self.pos).ok()?),
-            Volume::Entity(uid) => {
-                uid_allocator
-                    .retrieve_entity_internal(uid.0)
-                    .and_then(|entity| {
-                        let collider = colliders.get(entity)?;
+            Volume::Entity(uid) => uid_allocator
+                .retrieve_entity_internal(uid)
+                .and_then(|entity| {
+                    let collider = colliders.get(entity)?;
 
-                        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
-                        let voxel_collider = collider.get_vol(&voxel_colliders_manifest)?;
+                    let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+                    let voxel_collider = collider.get_vol(&voxel_colliders_manifest)?;
 
-                        let block = *voxel_collider.volume().get(self.pos).ok()?;
+                    let block = *voxel_collider.volume().get(self.pos).ok()?;
 
-                        Some(block)
-                    })
-            },
+                    Some(block)
+                }),
         }
     }
 }

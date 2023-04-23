@@ -294,7 +294,7 @@ impl SessionState {
                     };
                     let target_name = match client.player_list().get(&target) {
                         Some(info) => info.player_alias.clone(),
-                        None => match client.state().ecs().entity_from_uid(target.0) {
+                        None => match client.state().ecs().entity_from_uid(target) {
                             Some(entity) => {
                                 let stats = client.state().read_storage::<Stats>();
                                 stats
@@ -362,9 +362,7 @@ impl SessionState {
                                 entity: uid,
                                 reason,
                             } => {
-                                if let Some(entity) =
-                                    client.state().ecs().entity_from_uid(uid.into())
-                                {
+                                if let Some(entity) = client.state().ecs().entity_from_uid(uid) {
                                     self.hud.add_failed_entity_pickup(
                                         entity,
                                         HudCollectFailedReason::from_server_reason(

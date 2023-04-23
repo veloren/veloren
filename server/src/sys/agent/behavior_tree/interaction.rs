@@ -14,7 +14,6 @@ use common::{
     trade::{TradeAction, TradePhase, TradeResult},
 };
 use rand::{thread_rng, Rng};
-use specs::saveload::Marker;
 
 use crate::sys::agent::util::get_entity_by_id;
 
@@ -87,7 +86,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
     }
 
     if let Some(AgentEvent::Talk(by, subject)) = agent.inbox.pop_front() {
-        let by_entity = get_entity_by_id(by.id(), read_data);
+        let by_entity = get_entity_by_id(by, read_data);
 
         if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
             if let Subject::Regular
@@ -297,7 +296,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
                 // stand still and looking towards the trading player
                 controller.push_action(ControlAction::Stand);
                 controller.push_action(ControlAction::Talk);
-                if let Some(target) = get_entity_by_id(with.id(), read_data) {
+                if let Some(target) = get_entity_by_id(with, read_data) {
                     let target_pos = read_data.positions.get(target).map(|pos| pos.0);
 
                     agent.target = Some(Target::new(
@@ -344,7 +343,7 @@ pub fn handle_inbox_trade_accepted(bdata: &mut BehaviorData) -> bool {
 
     if let Some(AgentEvent::TradeAccepted(with)) = agent.inbox.pop_front() {
         if !agent.behavior.is(BehaviorState::TRADING) {
-            if let Some(target) = get_entity_by_id(with.id(), read_data) {
+            if let Some(target) = get_entity_by_id(with, read_data) {
                 let target_pos = read_data.positions.get(target).map(|pos| pos.0);
 
                 agent.target = Some(Target::new(
@@ -561,7 +560,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
         let used = match msg {
             AgentEvent::Talk(by, _) | AgentEvent::TradeAccepted(by) => {
                 if let (Some(target), Some(speaker)) =
-                    (agent.target, get_entity_by_id(by.id(), bdata.read_data))
+                    (agent.target, get_entity_by_id(*by, bdata.read_data))
                 {
                     // in combat, speak to players that aren't the current target
                     if !target.hostile || target.target != speaker {
@@ -578,7 +577,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
             AgentEvent::TradeInvite(by) => {
                 controller.push_invite_response(InviteResponse::Decline);
                 if let (Some(target), Some(speaker)) =
-                    (agent.target, get_entity_by_id(by.id(), bdata.read_data))
+                    (agent.target, get_entity_by_id(*by, bdata.read_data))
                 {
                     // in combat, speak to players that aren't the current target
                     if !target.hostile || target.target != speaker {

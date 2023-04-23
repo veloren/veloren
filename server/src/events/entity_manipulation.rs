@@ -41,9 +41,7 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
-use specs::{
-    join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
-};
+use specs::{join::Join, Builder, Entity as EcsEntity, Entity, WorldExt};
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 use tracing::{debug, error};
 use vek::{Vec2, Vec3};
@@ -143,7 +141,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
     let get_attacker_name = |cause_of_death: KillType, by: Uid| -> KillSource {
         // Get attacker entity
-        if let Some(char_entity) = state.ecs().entity_from_uid(by.into()) {
+        if let Some(char_entity) = state.ecs().entity_from_uid(by) {
             // Check if attacker is another player or entity with stats (npc)
             if state
                 .ecs()
@@ -259,7 +257,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         for (damage_contributor, damage) in entity_health.damage_contributions() {
             match damage_contributor {
                 DamageContributor::Solo(uid) => {
-                    if let Some(attacker) = state.ecs().entity_from_uid(uid.0) {
+                    if let Some(attacker) = state.ecs().entity_from_uid(*uid) {
                         damage_contributors.insert(DamageContrib::Solo(attacker), (*damage, 0.0));
                     } else {
                         // An entity who was not in a group contributed damage but is now either
@@ -746,7 +744,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     let time = ecs.read_resource::<Time>();
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()
-            .retrieve_entity_internal(uid.into())
+            .retrieve_entity_internal(uid)
     });
 
     let explosion_volume = 6.25 * explosion.radius;
@@ -1421,7 +1419,7 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
     let mut positions = ecs.write_storage::<Pos>();
 
     let target_pos = ecs
-        .entity_from_uid(target.into())
+        .entity_from_uid(target)
         .and_then(|e| positions.get(e))
         .copied();
 
@@ -1493,7 +1491,7 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         if let Some(trade) = trades.entity_trades.get(uid).copied() {
             trades
                 .decline_trade(trade, *uid)
-                .and_then(|uid| ecs.entity_from_uid(uid.0))
+                .and_then(|uid| ecs.entity_from_uid(uid))
                 .map(|entity_b| {
                     // Notify both parties that the trade ended
                     let clients = ecs.read_storage::<Client>();

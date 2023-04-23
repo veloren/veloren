@@ -15,8 +15,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
-    World, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -92,7 +91,7 @@ impl<'a> System<'a> for Sys {
 
             let shockwave_owner = shockwave
                 .owner
-                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid));
 
             if rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {

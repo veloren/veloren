@@ -2,11 +2,7 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
-use specs::{
-    saveload::{Marker, MarkerAllocator},
-    world::EntitiesRes,
-    Component, Entity, FlaggedStorage, Join, ReadStorage, VecStorage,
-};
+use specs::{Component, Entity, FlaggedStorage, VecStorage};
 use std::{fmt, u64};
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
@@ -30,61 +26,41 @@ impl Component for Uid {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-impl Marker for Uid {
-    type Allocator = UidAllocator;
-    type Identifier = u64;
-
-    fn id(&self) -> u64 { self.0 }
-
-    fn update(&mut self, update: Self) {
-        assert_eq!(self.0, update.0);
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 pub struct UidAllocator {
-    index: u64,
-    mapping: HashMap<u64, Entity>,
+    next_id: u64,
+    mapping: HashMap<Uid, Entity>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl UidAllocator {
     pub fn new() -> Self {
         Self {
-            index: 0,
+            next_id: 0,
             mapping: HashMap::new(),
         }
     }
 
     // Useful for when a single entity is deleted because it doesn't reconstruct the
     // entire hashmap
-    pub fn remove_entity(&mut self, id: u64) -> Option<Entity> { self.mapping.remove(&id) }
+    pub fn remove_entity(&mut self, id: Uid) -> Option<Entity> { self.mapping.remove(&id) }
+
+    pub fn allocate(&mut self, entity: Entity, id: Option<Uid>) -> Uid {
+        let id = id.unwrap_or_else(|| {
+            let id = self.next_id;
+            self.next_id += 1;
+            Uid(id)
+        });
+        self.mapping.insert(id, entity);
+        id
+    }
+
+    pub fn retrieve_entity_internal(&self, id: Uid) -> Option<Entity> {
+        self.mapping.get(&id).copied()
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Default for UidAllocator {
     fn default() -> Self { Self::new() }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl MarkerAllocator<Uid> for UidAllocator {
-    fn allocate(&mut self, entity: Entity, id: Option<u64>) -> Uid {
-        let id = id.unwrap_or_else(|| {
-            let id = self.index;
-            self.index += 1;
-            id
-        });
-        self.mapping.insert(id, entity);
-        Uid(id)
-    }
-
-    fn retrieve_entity_internal(&self, id: u64) -> Option<Entity> { self.mapping.get(&id).copied() }
-
-    fn maintain(&mut self, entities: &EntitiesRes, storage: &ReadStorage<Uid>) {
-        self.mapping = (entities, storage)
-            .join()
-            .map(|(e, m)| (m.id(), e))
-            .collect();
-    }
 }

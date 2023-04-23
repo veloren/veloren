@@ -60,9 +60,7 @@ use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::{thread_rng, Rng};
-use specs::{
-    saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
-};
+use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt};
 use std::{fmt::Write, ops::DerefMut, str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
@@ -248,7 +246,7 @@ fn position_mut<T>(
                 .state
                 .ecs()
                 .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(is_rider.mount.into())
+                .retrieve_entity_internal(is_rider.mount)
         })
         .map(Ok)
         .or_else(|| {
@@ -2279,7 +2277,7 @@ fn handle_kill_npcs(
             .filter_map(|(entity, _health, (), alignment, pos)| {
                 let should_kill = kill_pets
                     || if let Some(Alignment::Owned(owned)) = alignment {
-                        ecs.entity_from_uid(owned.0)
+                        ecs.entity_from_uid(*owned)
                             .map_or(true, |owner| !players.contains(owner))
                     } else {
                         true

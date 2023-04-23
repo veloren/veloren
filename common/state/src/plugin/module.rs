@@ -5,7 +5,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use specs::saveload::MarkerAllocator;
 use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Universal, Value};
 
 use super::{
@@ -239,7 +238,7 @@ fn retrieve_action(
                     EcsAccessError::EcsPointerNotAvailable,
                 ))?
             };
-            let player = world.uid_allocator.retrieve_entity_internal(e.0).ok_or(
+            let player = world.uid_allocator.retrieve_entity_internal(e).ok_or(
                 RetrieveError::EcsAccessError(EcsAccessError::EcsEntityNotFound(e)),
             )?;
 
@@ -264,7 +263,7 @@ fn retrieve_action(
                     EcsAccessError::EcsPointerNotAvailable,
                 ))?
             };
-            let player = world.uid_allocator.retrieve_entity_internal(e.0).ok_or(
+            let player = world.uid_allocator.retrieve_entity_internal(e).ok_or(
                 RetrieveError::EcsAccessError(EcsAccessError::EcsEntityNotFound(e)),
             )?;
             Ok(RetrieveResult::GetEntityHealth(

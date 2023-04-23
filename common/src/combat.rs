@@ -29,7 +29,7 @@ use crate::{comp::Group, resources::Time};
 #[cfg(not(target_arch = "wasm32"))]
 use {
     rand::Rng,
-    specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage},
+    specs::{Entity as EcsEntity, ReadStorage},
     std::ops::{Mul, MulAssign},
     vek::*,
 };
@@ -726,7 +726,7 @@ pub fn may_harm(
             // return original entity
             // if can't get owner
             uid_allocator
-                .retrieve_entity_internal(uid.into())
+                .retrieve_entity_internal(uid)
                 .unwrap_or(entity)
         } else {
             entity

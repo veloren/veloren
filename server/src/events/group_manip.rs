@@ -148,7 +148,7 @@ pub fn handle_group(server: &mut Server, entity: Entity, manip: GroupManip) {
             let uids = state.ecs().read_storage::<Uid>();
             let alignments = state.ecs().read_storage::<comp::Alignment>();
 
-            let target = match state.ecs().entity_from_uid(uid.into()) {
+            let target = match state.ecs().entity_from_uid(uid) {
                 Some(t) => t,
                 None => {
                     // Inform of failure
@@ -254,7 +254,7 @@ pub fn handle_group(server: &mut Server, entity: Entity, manip: GroupManip) {
             let state = server.state_mut();
             let clients = state.ecs().read_storage::<Client>();
             let uids = state.ecs().read_storage::<Uid>();
-            let target = match state.ecs().entity_from_uid(uid.into()) {
+            let target = match state.ecs().entity_from_uid(uid) {
                 Some(t) => t,
                 None => {
                     // Inform of failure

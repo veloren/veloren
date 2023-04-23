@@ -30,7 +30,7 @@ pub fn handle_invite(server: &mut Server, inviter: Entity, invitee_uid: Uid, kin
     let max_group_size = server.settings().max_player_group_size;
     let state = server.state_mut();
     let clients = state.ecs().read_storage::<Client>();
-    let invitee = match state.ecs().entity_from_uid(invitee_uid.into()) {
+    let invitee = match state.ecs().entity_from_uid(invitee_uid) {
         Some(t) => t,
         None => {
             // Inform of failure
@@ -85,7 +85,7 @@ pub fn handle_invite(server: &mut Server, inviter: Entity, invitee_uid: Uid, kin
             if let Some(active_trade) = trades.entity_trades.get(&inviter_uid).copied() {
                 trades
                     .decline_trade(active_trade, inviter_uid)
-                    .and_then(|u| state.ecs().entity_from_uid(u.0))
+                    .and_then(|u| state.ecs().entity_from_uid(u))
                     .map(|e| {
                         if let Some(client) = clients.get(e) {
                             client
@@ -309,7 +309,7 @@ fn handle_invite_answer(
             if let Some(active_trade) = trades.entity_trades.get(&invitee_uid).copied() {
                 trades
                     .decline_trade(active_trade, invitee_uid)
-                    .and_then(|u| state.ecs().entity_from_uid(u.0))
+                    .and_then(|u| state.ecs().entity_from_uid(u))
                     .map(|e| {
                         if let Some(client) = clients.get(e) {
                             client

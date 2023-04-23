@@ -22,8 +22,8 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Entity, Join, ParJoin, Read,
-    ReadExpect, ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
+    World, WriteStorage,
 };
 
 #[derive(SystemData)]
@@ -506,7 +506,7 @@ fn execute_effect(
                 let damage_contributor = by.and_then(|uid| {
                     read_data
                         .uid_allocator
-                        .retrieve_entity_internal(uid.0)
+                        .retrieve_entity_internal(uid)
                         .map(|entity| {
                             DamageContributor::new(uid, read_data.groups.get(entity).cloned())
                         })

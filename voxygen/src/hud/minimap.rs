@@ -28,7 +28,7 @@ use conrod_core::{
 };
 use hashbrown::HashMap;
 use image::{DynamicImage, RgbaImage};
-use specs::{saveload::MarkerAllocator, WorldExt};
+use specs::WorldExt;
 use std::sync::Arc;
 use vek::*;
 
@@ -773,7 +773,7 @@ impl<'a> Widget for MiniMap<'a> {
                 })
             };
             for (i, &uid) in group_members.iter().copied().enumerate() {
-                let entity = uid_allocator.retrieve_entity_internal(uid.into());
+                let entity = uid_allocator.retrieve_entity_internal(uid);
                 let member_pos = entity.and_then(|entity| member_pos.get(entity));
 
                 if let Some(member_pos) = member_pos {

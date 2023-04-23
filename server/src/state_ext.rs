@@ -36,10 +36,7 @@ use common_net::{
 };
 use common_state::State;
 use rand::prelude::*;
-use specs::{
-    saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
-    Join, WorldExt,
-};
+use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
 use std::time::{Duration, Instant};
 use tracing::{trace, warn};
 use vek::*;
@@ -169,7 +166,7 @@ impl StateExt for State {
                 let groups = self.ecs().read_storage::<Group>();
 
                 let damage_contributor = source.and_then(|uid| {
-                    self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
+                    self.ecs().entity_from_uid(uid).map(|attacker_entity| {
                         DamageContributor::new(uid, groups.get(attacker_entity).cloned())
                     })
                 });
@@ -214,7 +211,7 @@ impl StateExt for State {
                     if !character_state.is_stunned() {
                         let groups = self.ecs().read_storage::<Group>();
                         let damage_contributor = source.and_then(|uid| {
-                            self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
+                            self.ecs().entity_from_uid(uid).map(|attacker_entity| {
                                 DamageContributor::new(uid, groups.get(attacker_entity).cloned())
                             })
                         });
@@ -862,16 +859,17 @@ impl StateExt for State {
             .clone()
             .map_group(|_| group_info.map_or_else(|| "???".to_string(), |i| i.name.clone()));
 
+        let uid_allocator = ecs.read_resource::<UidAllocator>();
+        let entity_from_uid = |uid| uid_allocator.retrieve_entity_internal(uid);
+
         if msg.chat_type.uid().map_or(true, |sender| {
-            (*ecs.read_resource::<UidAllocator>())
-                .retrieve_entity_internal(sender.0)
-                .map_or(false, |e| {
-                    self.validate_chat_msg(
-                        e,
-                        &msg.chat_type,
-                        msg.content().as_plain().unwrap_or_default(),
-                    )
-                })
+            entity_from_uid(sender).map_or(false, |e| {
+                self.validate_chat_msg(
+                    e,
+                    &msg.chat_type,
+                    msg.content().as_plain().unwrap_or_default(),
+                )
+            })
         }) {
             match &msg.chat_type {
                 comp::ChatType::Offline(_)
@@ -911,8 +909,7 @@ impl StateExt for State {
                             .unwrap_or_default()
                     {
                         // Send kill message to the dead player's group
-                        let killed_entity =
-                            (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                        let killed_entity = entity_from_uid(*uid);
                         let groups = ecs.read_storage::<Group>();
                         let killed_group = killed_entity.and_then(|e| groups.get(e));
                         if let Some(g) = &killed_group {
@@ -947,8 +944,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Say(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
@@ -960,8 +956,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Region(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
@@ -973,8 +968,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Npc(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
@@ -986,8 +980,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::NpcSay(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {

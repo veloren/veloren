@@ -17,8 +17,8 @@ use common::vol::ReadVol;
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
-    ReadExpect, ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage,
+    SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
         {
             let projectile_owner = projectile
                 .owner
-                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid));
 
             if physics.on_surface().is_none() && rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
@@ -104,7 +104,7 @@ impl<'a> System<'a> for Sys {
                     .and_then(|e| read_data.groups.get(e))
                     .map_or(false, |owner_group|
                         Some(owner_group) == read_data.uid_allocator
-                        .retrieve_entity_internal(other.into())
+                        .retrieve_entity_internal(other)
                         .and_then(|e| read_data.groups.get(e))
                     );
 
@@ -125,8 +125,7 @@ impl<'a> System<'a> for Sys {
 
                 let projectile = &mut *projectile;
 
-                let entity_of =
-                    |uid: Uid| read_data.uid_allocator.retrieve_entity_internal(uid.into());
+                let entity_of = |uid: Uid| read_data.uid_allocator.retrieve_entity_internal(uid);
 
                 // Don't hit if there is terrain between the projectile and where the entity was
                 // supposed to be hit by it.

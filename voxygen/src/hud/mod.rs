@@ -1247,12 +1247,11 @@ impl HudCollectFailedReason {
             CollectFailedReason::LootOwned { owner, expiry_secs } => {
                 let owner = match owner {
                     LootOwnerKind::Player(owner_uid) => {
-                        let maybe_owner_name =
-                            ecs.entity_from_uid((*owner_uid).into()).and_then(|entity| {
-                                ecs.read_storage::<comp::Stats>()
-                                    .get(entity)
-                                    .map(|stats| stats.name.clone())
-                            });
+                        let maybe_owner_name = ecs.entity_from_uid(*owner_uid).and_then(|entity| {
+                            ecs.read_storage::<comp::Stats>()
+                                .get(entity)
+                                .map(|stats| stats.name.clone())
+                        });
 
                         if let Some(name) = maybe_owner_name {
                             HudLootOwner::Name(name)
@@ -4056,7 +4055,7 @@ impl Hud {
                         let ecs = client.state().ecs();
                         let inventories = ecs.read_component::<comp::Inventory>();
                         let get_inventory = |uid: Uid| {
-                            if let Some(entity) = ecs.entity_from_uid(uid.0) {
+                            if let Some(entity) = ecs.entity_from_uid(uid) {
                                 inventories.get(entity)
                             } else {
                                 None
@@ -4914,7 +4913,7 @@ impl Hud {
                 let me = client.entity();
                 let my_uid = uids.get(me);
 
-                if let Some(entity) = ecs.entity_from_uid(info.target.0) {
+                if let Some(entity) = ecs.entity_from_uid(info.target) {
                     if let Some(floater_list) = hp_floater_lists.get_mut(entity) {
                         let hit_me = my_uid.map_or(false, |&uid| {
                             (info.target == uid) && global_state.settings.interface.sct_inc_dmg

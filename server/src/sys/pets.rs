@@ -4,9 +4,7 @@ use common::{
     uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{
-    saveload::MarkerAllocator, Entities, Entity, Join, Read, ReadExpect, ReadStorage, WriteStorage,
-};
+use specs::{Entities, Entity, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 
 /// This system is responsible for handling pets
 #[derive(Default)]
@@ -36,12 +34,12 @@ impl<'a> System<'a> for Sys {
         let lost_pets: Vec<(Entity, Pos)> = (&entities, &positions, &alignments, &pets)
             .join()
             .filter_map(|(entity, pos, alignment, _)| match alignment {
-                Alignment::Owned(owner_uid) => Some((entity, pos, owner_uid)),
+                Alignment::Owned(owner_uid) => Some((entity, pos, *owner_uid)),
                 _ => None,
             })
             .filter_map(|(pet_entity, pet_pos, owner_uid)| {
                 uid_allocator
-                    .retrieve_entity_internal(owner_uid.0)
+                    .retrieve_entity_internal(owner_uid)
                     .and_then(|owner_entity| {
                         match (positions.get(owner_entity), physics.get(owner_entity)) {
                             (Some(position), Some(physics)) => {

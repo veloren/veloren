@@ -6,10 +6,7 @@ use common::{
     uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{
-    saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage,
-};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 use tracing::error;
 use vek::*;
 
@@ -57,7 +54,7 @@ impl<'a> System<'a> for Sys {
         for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
             // ...find the rider...
             let Some((inputs_and_actions, rider)) = uid_allocator
-                .retrieve_entity_internal(is_mount.rider.id())
+                .retrieve_entity_internal(is_mount.rider)
                 .and_then(|rider| {
                     controllers
                         .get_mut(rider)

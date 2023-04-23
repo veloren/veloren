@@ -12,8 +12,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
-    ReadStorage, SystemData, World,
+    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData, World,
 };
 
 #[derive(SystemData)]
@@ -97,7 +96,7 @@ impl<'a> System<'a> for Sys {
                         let same_group = |uid: Uid| {
                             read_data
                                 .uid_allocator
-                                .retrieve_entity_internal(uid.into())
+                                .retrieve_entity_internal(uid)
                                 .and_then(|e| read_data.groups.get(e))
                                 .map_or(false, |owner_group| {
                                     Some(owner_group) == read_data.groups.get(target)
@@ -168,9 +167,7 @@ fn activate_aura(
                                     _ => None,
                                 })
                                 .and_then(|uid| {
-                                    read_data
-                                        .uid_allocator
-                                        .retrieve_entity_internal((*uid).into())
+                                    read_data.uid_allocator.retrieve_entity_internal(*uid)
                                 })
                                 .and_then(|owner| read_data.char_states.get(owner))
                                 .map_or(false, CharacterState::is_sitting))
@@ -189,7 +186,7 @@ fn activate_aura(
             let may_harm = || {
                 let owner = match source {
                     BuffSource::Character { by } => {
-                        read_data.uid_allocator.retrieve_entity_internal(by.into())
+                        read_data.uid_allocator.retrieve_entity_internal(by)
                     },
                     _ => None,
                 };

@@ -6,11 +6,7 @@ use common::{
     resources::PlayerEntity,
     uid::{Uid, UidAllocator},
 };
-use specs::{
-    saveload::{MarkedBuilder, MarkerAllocator},
-    world::Builder,
-    WorldExt,
-};
+use specs::{world::Builder, WorldExt};
 use tracing::error;
 
 pub trait WorldSyncExt {
@@ -22,9 +18,9 @@ pub trait WorldSyncExt {
     where
         C::Storage: Default + specs::storage::Tracked;
     fn create_entity_synced(&mut self) -> specs::EntityBuilder;
-    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64);
+    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: Uid);
     fn uid_from_entity(&self, entity: specs::Entity) -> Option<Uid>;
-    fn entity_from_uid(&self, uid: u64) -> Option<specs::Entity>;
+    fn entity_from_uid(&self, uid: Uid) -> Option<specs::Entity>;
     fn apply_entity_package<P: CompPacket>(
         &mut self,
         entity_package: EntityPackage<P>,
@@ -56,10 +52,15 @@ impl WorldSyncExt for specs::World {
     }
 
     fn create_entity_synced(&mut self) -> specs::EntityBuilder {
-        self.create_entity().marked::<Uid>()
+        let builder = self.create_entity();
+        let uid = builder
+            .world
+            .write_resource::<UidAllocator>()
+            .allocate(builder.entity, None);
+        builder.with(uid)
     }
 
-    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64) {
+    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: Uid) {
         // Clear from uid allocator
         let maybe_entity = self.write_resource::<UidAllocator>().remove_entity(uid);
         if let Some(entity) = maybe_entity {
@@ -75,7 +76,7 @@ impl WorldSyncExt for specs::World {
     }
 
     /// Get an entity from a UID
-    fn entity_from_uid(&self, uid: u64) -> Option<specs::Entity> {
+    fn entity_from_uid(&self, uid: Uid) -> Option<specs::Entity> {
         self.read_resource::<UidAllocator>()
             .retrieve_entity_internal(uid)
     }
@@ -108,7 +109,7 @@ impl WorldSyncExt for specs::World {
 
         // Attempt to delete entities that were marked for deletion
         deleted_entities.into_iter().for_each(|uid| {
-            self.delete_entity_and_clear_from_uid_allocator(uid);
+            self.delete_entity_and_clear_from_uid_allocator(uid.into());
         });
     }
 
@@ -118,7 +119,7 @@ impl WorldSyncExt for specs::World {
         package.comp_updates.into_iter().for_each(|(uid, update)| {
             if let Some(entity) = self
                 .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(uid)
+                .retrieve_entity_internal(uid.into())
             {
                 let force_update = player_entity == Some(entity);
                 match update {
@@ -139,6 +140,7 @@ impl WorldSyncExt for specs::World {
 
 // Private utilities
 fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: u64) -> specs::Entity {
+    let entity_uid = Uid::from(entity_uid);
     let existing_entity = specs_world
         .read_resource::<UidAllocator>()
         .retrieve_entity_internal(entity_uid);

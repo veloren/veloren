@@ -28,7 +28,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
-use specs::{saveload::MarkerAllocator, WorldExt};
+use specs::WorldExt;
 
 widget_ids! {
     pub struct Ids {
@@ -202,7 +202,7 @@ impl<'a> Widget for Group<'a> {
             None => client
                 .state()
                 .ecs()
-                .entity_from_uid(uid.0)
+                .entity_from_uid(uid)
                 .and_then(|entity| {
                     client
                         .state()
@@ -382,7 +382,7 @@ impl<'a> Widget for Group<'a> {
             let mut total_buff_count = 0;
             for (i, &uid) in group_members.iter().copied().enumerate() {
                 self.show.group = true;
-                let entity = uid_allocator.retrieve_entity_internal(uid.into());
+                let entity = uid_allocator.retrieve_entity_internal(uid);
                 let stats = entity.and_then(|entity| stats.get(entity));
                 let skill_set = entity.and_then(|entity| skill_sets.get(entity));
                 let health = entity.and_then(|entity| healths.get(entity));

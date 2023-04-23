@@ -17,8 +17,8 @@ use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::Rng;
 use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
-    ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
+    WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -95,9 +95,9 @@ impl<'a> System<'a> for Sys {
                     };
                     let end_time = creation_time + beam_segment.duration.as_secs_f64();
 
-                    let beam_owner = beam_segment.owner.and_then(|uid| {
-                        read_data.uid_allocator.retrieve_entity_internal(uid.into())
-                    });
+                    let beam_owner = beam_segment
+                        .owner
+                        .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid));
 
                     // Note: rayon makes it difficult to hold onto a thread-local RNG, if grabbing
                     // this becomes a bottleneck we can look into alternatives.

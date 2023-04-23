@@ -3,7 +3,7 @@ use common::{
     uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{saveload::MarkerAllocator, Entities, Entity, Join, Read, WriteStorage};
+use specs::{Entities, Entity, Join, Read, WriteStorage};
 use tracing::debug;
 
 // This system manages loot that exists in the world
@@ -33,7 +33,7 @@ impl<'a> System<'a> for Sys {
                 loot_owner.expired()
                     || match loot_owner.owner() {
                         LootOwnerKind::Player(uid) => uid_allocator
-                            .retrieve_entity_internal(uid.into())
+                            .retrieve_entity_internal(uid)
                             .map_or(true, |entity| !entities.is_alive(entity)),
                         LootOwnerKind::Group(group) => group_manager.group_info(group).is_none(),
                     }
