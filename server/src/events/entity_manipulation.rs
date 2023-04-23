@@ -19,13 +19,16 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         inventory::item::{AbilityMap, MaterialStatManifest},
+        item::flatten_counted_items,
         loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange, Inventory,
         Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
+    lottery::distribute_many,
     outcome::{HealthChangeInfo, Outcome},
     resources::{Secs, Time},
+    spiral::Spiral2d,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     trade::{TradeResult, Trades},
@@ -37,8 +40,7 @@ use common::{
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::BlockChange;
 use hashbrown::HashSet;
-use rand::{distributions::WeightedIndex, Rng};
-use rand_distr::Distribution;
+use rand::Rng;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
@@ -427,72 +429,88 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
         // Decide for a loot drop before turning into a lootbag
 
-        let item = {
-            let mut item_drop = state.ecs().write_storage::<comp::ItemDrop>();
-            item_drop.remove(entity).map(|comp::ItemDrop(item)| item)
+        let items = {
+            let mut item_drops = state.ecs().write_storage::<comp::ItemDrops>();
+            item_drops.remove(entity).map(|comp::ItemDrops(item)| item)
         };
 
-        if let Some(item) = item {
+        if let Some(items) = items {
             let pos = state.ecs().read_storage::<Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
                 // Remove entries where zero exp was awarded - this happens because some
                 // entities like Object bodies don't give EXP.
-                let _ = exp_awards.drain_filter(|(_, exp, _)| *exp < f32::EPSILON);
+                let mut item_receivers = HashMap::new();
+                for (entity, exp, group) in exp_awards {
+                    if exp >= f32::EPSILON {
+                        let loot_owner = if let Some(group) = group {
+                            Some(LootOwnerKind::Group(group))
+                        } else {
+                            let uid = state
+                                .ecs()
+                                .read_storage::<Body>()
+                                .get(entity)
+                                .and_then(|body| {
+                                    // Only humanoids are awarded loot ownership - if the winner
+                                    // was a
+                                    // non-humanoid NPC the loot will be free-for-all
+                                    if matches!(body, Body::Humanoid(_)) {
+                                        Some(state.ecs().read_storage::<Uid>().get(entity).cloned())
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .flatten();
 
-                let winner = if exp_awards.is_empty() {
-                    None
-                } else {
-                    // Use the awarded exp per entity as the weight distribution for drop chance
-                    // Creating the WeightedIndex can only fail if there are weights <= 0 or no
-                    // weights, which shouldn't ever happen
-                    let dist = WeightedIndex::new(exp_awards.iter().map(|x| x.1))
-                        .expect("Failed to create WeightedIndex for loot drop chance");
-                    let mut rng = rand::thread_rng();
-                    let winner = exp_awards
-                        .get(dist.sample(&mut rng))
-                        .expect("Loot distribution failed to find a winner");
-                    let (winner, group) = (winner.0, winner.2);
+                            uid.map(LootOwnerKind::Player)
+                        };
 
-                    if let Some(group) = group {
-                        Some(LootOwnerKind::Group(group))
-                    } else {
-                        let uid = state
-                            .ecs()
-                            .read_storage::<Body>()
-                            .get(winner)
-                            .and_then(|body| {
-                                // Only humanoids are awarded loot ownership - if the winner
-                                // was a
-                                // non-humanoid NPC the loot will be free-for-all
-                                if matches!(body, Body::Humanoid(_)) {
-                                    Some(state.ecs().read_storage::<Uid>().get(winner).cloned())
-                                } else {
-                                    None
-                                }
-                            })
-                            .flatten();
-
-                        uid.map(LootOwnerKind::Player)
+                        *item_receivers.entry(loot_owner).or_insert(0.0) += exp;
                     }
-                };
+                }
 
-                let item_drop_entity = state
-                    .create_item_drop(Pos(pos.0 + Vec3::unit_z() * 0.25), item)
-                    .maybe_with(vel)
-                    .build();
+                if !item_receivers.is_empty() {
+                    let msm = &MaterialStatManifest::load().read();
+                    let ability_map = &AbilityMap::load().read();
+                    let mut item_offset_spiral = Spiral2d::new();
 
-                // If there was a loot winner, assign them as the owner of the loot. There will
-                // not be a loot winner when an entity dies to environment damage and such so
-                // the loot will be free-for-all.
-                if let Some(uid) = winner {
-                    debug!("Assigned UID {:?} as the winner for the loot drop", uid);
-
-                    state
-                        .ecs()
-                        .write_storage::<LootOwner>()
-                        .insert(item_drop_entity, LootOwner::new(uid))
-                        .unwrap();
+                    let mut rng = rand::thread_rng();
+                    distribute_many(
+                        item_receivers
+                            .iter()
+                            .map(|(loot_owner, weight)| (*weight, *loot_owner)),
+                        &mut rng,
+                        &items,
+                        |(amount, _)| *amount,
+                        |(_, item), loot_owner, count| {
+                            for item in item.stacked_duplicates(ability_map, msm, count) {
+                                let offset = item_offset_spiral
+                                    .next()
+                                    .map(|offset| offset.as_::<f32>() * 0.25)
+                                    .unwrap_or_default();
+                                let item_drop_entity = state
+                                    .create_item_drop(
+                                        Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
+                                        item,
+                                    )
+                                    .maybe_with(vel)
+                                    .build();
+                                if let Some(loot_owner) = loot_owner {
+                                    debug!(
+                                        "Assigned UID {loot_owner:?} as the winner for the loot \
+                                         drop"
+                                    );
+                                    if let Err(err) = state
+                                        .ecs()
+                                        .write_storage::<LootOwner>()
+                                        .insert(item_drop_entity, LootOwner::new(loot_owner))
+                                    {
+                                        error!("Failed to set loot owner on item drop: {err}");
+                                    };
+                                }
+                            }
+                        },
+                    );
                 }
             } else {
                 error!(
@@ -1080,24 +1098,28 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
             {
                 drop(terrain);
                 drop(block_change);
-                if let Some(item) = comp::Item::try_reclaim_from_block(block) {
-                    server
-                        .state
-                        .create_object(Default::default(), match block.get_sprite() {
-                            // Create different containers depending on the original sprite
-                            Some(SpriteKind::Apple) => comp::object::Body::Apple,
-                            Some(SpriteKind::Beehive) => comp::object::Body::Hive,
-                            Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
-                            Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
-                            _ => comp::object::Body::Pouch,
-                        })
-                        .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
-                        .with(item)
-                        .maybe_with(match block.get_sprite() {
-                            Some(SpriteKind::Bomb) => Some(comp::Object::Bomb { owner }),
-                            _ => None,
-                        })
-                        .build();
+                if let Some(items) = comp::Item::try_reclaim_from_block(block) {
+                    let msm = &MaterialStatManifest::load().read();
+                    let ability_map = &AbilityMap::load().read();
+                    for item in flatten_counted_items(&items, ability_map, msm) {
+                        server
+                            .state
+                            .create_object(Default::default(), match block.get_sprite() {
+                                // Create different containers depending on the original sprite
+                                Some(SpriteKind::Apple) => comp::object::Body::Apple,
+                                Some(SpriteKind::Beehive) => comp::object::Body::Hive,
+                                Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
+                                Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
+                                _ => comp::object::Body::Pouch,
+                            })
+                            .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
+                            .with(item)
+                            .maybe_with(match block.get_sprite() {
+                                Some(SpriteKind::Bomb) => Some(comp::Object::Bomb { owner }),
+                                _ => None,
+                            })
+                            .build();
+                    }
                 }
             }
         }

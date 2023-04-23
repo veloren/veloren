@@ -8,9 +8,10 @@ use common::{
         agent::{AgentEvent, Sound, SoundKind},
         dialogue::Subject,
         inventory::slot::EquipSlot,
+        item::{flatten_counted_items, MaterialStatManifest},
         loot_owner::LootOwnerKind,
         pet::is_mountable,
-        tool::ToolKind,
+        tool::{AbilityMap, ToolKind},
         Inventory, LootOwner, Pos, SkillGroupKind,
     },
     consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
@@ -178,7 +179,10 @@ pub fn handle_mine_block(
         let block = state.terrain().get(pos).ok().copied();
         if let Some(block) = block.filter(|b| b.mine_tool().map_or(false, |t| Some(t) == tool)) {
             // Drop item if one is recoverable from the block
-            if let Some(mut item) = comp::Item::try_reclaim_from_block(block) {
+            if let Some(items) = comp::Item::try_reclaim_from_block(block) {
+                let msm = &MaterialStatManifest::load().read();
+                let ability_map = &AbilityMap::load().read();
+                let mut items: Vec<_> = flatten_counted_items(&items, ability_map, msm).collect();
                 let maybe_uid = state.ecs().uid_from_entity(entity);
 
                 if let Some(mut skillset) = state
@@ -186,12 +190,17 @@ pub fn handle_mine_block(
                     .write_storage::<comp::SkillSet>()
                     .get_mut(entity)
                 {
-                    if let (Some(tool), Some(uid), Some(exp_reward)) = (
+                    if let (Some(tool), Some(uid), exp_reward @ 1..) = (
                         tool,
                         maybe_uid,
-                        item.item_definition_id()
-                            .itemdef_id()
-                            .and_then(|id| RESOURCE_EXPERIENCE_MANIFEST.read().0.get(id).copied()),
+                        items
+                            .iter()
+                            .filter_map(|item| {
+                                item.item_definition_id().itemdef_id().and_then(|id| {
+                                    RESOURCE_EXPERIENCE_MANIFEST.read().0.get(id).copied()
+                                })
+                            })
+                            .sum(),
                     ) {
                         let skill_group = SkillGroupKind::Weapon(tool);
                         let outcome_bus = state.ecs().read_resource::<EventBus<Outcome>>();
@@ -230,26 +239,30 @@ pub fn handle_mine_block(
 
                         rng.gen_bool(chance_mod * f64::from(skill_level))
                     };
+                    for item in items.iter_mut() {
+                        let double_gain =
+                            item.item_definition_id().itemdef_id().map_or(false, |id| {
+                                (id.contains("mineral.ore.") && need_double_ore(&mut rng))
+                                    || (id.contains("mineral.gem.") && need_double_gem(&mut rng))
+                            });
 
-                    let double_gain = item.item_definition_id().itemdef_id().map_or(false, |id| {
-                        (id.contains("mineral.ore.") && need_double_ore(&mut rng))
-                            || (id.contains("mineral.gem.") && need_double_gem(&mut rng))
-                    });
-
-                    if double_gain {
-                        // Ignore non-stackable errors
-                        let _ = item.increase_amount(1);
+                        if double_gain {
+                            // Ignore non-stackable errors
+                            let _ = item.increase_amount(1);
+                        }
                     }
                 }
-                let item_drop = state
-                    .create_item_drop(Default::default(), item)
-                    .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)));
-                if let Some(uid) = maybe_uid {
-                    item_drop.with(LootOwner::new(LootOwnerKind::Player(uid)))
-                } else {
-                    item_drop
+                for item in items {
+                    let item_drop = state
+                        .create_item_drop(Default::default(), item)
+                        .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)));
+                    if let Some(uid) = maybe_uid {
+                        item_drop.with(LootOwner::new(LootOwnerKind::Player(uid)))
+                    } else {
+                        item_drop
+                    }
+                    .build();
                 }
-                .build();
             }
 
             state.set_block(pos, block.into_vacant());

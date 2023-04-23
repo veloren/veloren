@@ -74,7 +74,7 @@ impl Component for LootOwner {
     type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum LootOwnerKind {
     Player(Uid),
     Group(Group),

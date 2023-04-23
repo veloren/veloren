@@ -1,8 +1,8 @@
 [
     // Currency
-    (1.0, ItemQuantity("common.items.utility.coins", 100, 200)),
+    (1.0, MultiDrop(Item("common.items.utility.coins"), 100, 200)),
     // Food
     (1.0, LootTable("common.loot_tables.food.prepared")),
     // Cheese
-    (2.0, ItemQuantity("common.items.food.cheese", 3, 5)),
+    (2.0, MultiDrop(Item("common.items.food.cheese"), 3, 5)),
 ]

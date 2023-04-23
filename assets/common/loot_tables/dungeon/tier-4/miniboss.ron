@@ -1,6 +1,6 @@
 [
     // Currency
-    (10.0, ItemQuantity("common.items.utility.coins", 200, 500)),
+    (10.0, MultiDrop(Item("common.items.utility.coins"), 200, 500)),
     // Food
     (5.0, LootTable("common.loot_tables.food.prepared")),
     // Consumables

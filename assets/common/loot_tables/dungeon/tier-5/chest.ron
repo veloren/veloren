@@ -4,13 +4,13 @@
     (1.0, LootTable("common.loot_tables.armor.tier-4")),
     (0.1, Item("common.items.armor.cultist.bandana")),
     // Currency
-    (3.0, ItemQuantity("common.items.utility.coins", 200, 500)),
+    (3.0, MultiDrop(Item("common.items.utility.coins"), 200, 500)),
     // Materials
-    (1.0, ItemQuantity("common.items.crafting_ing.cloth.moonweave", 1, 5)),
-    (1.0, ItemQuantity("common.items.crafting_ing.hide.plate", 1, 5)),
-    (1.0, ItemQuantity("common.items.mineral.ingot.bloodsteel", 1, 5)),
-    (1.0, ItemQuantity("common.items.log.frostwood", 1, 5)),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.cloth.moonweave"), 1, 5)),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.plate"), 1, 5)),
+    (1.0, MultiDrop(Item("common.items.mineral.ingot.bloodsteel"), 1, 5)),
+    (1.0, MultiDrop(Item("common.items.log.frostwood"), 1, 5)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.good")),
-    (0.1, ItemQuantity("common.items.food.spore_corruption", 1, 3)),
+    (0.1, MultiDrop(Item("common.items.food.spore_corruption"), 1, 3)),
 ]

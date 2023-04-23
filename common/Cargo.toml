@@ -91,12 +91,17 @@ rand_chacha = "0.3"
 tracing-subscriber = { version = "0.3.7", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }
 petgraph = "0.6.0"
 
+
 [[bench]]
 name = "chonk_benchmark"
 harness = false
 
 [[bench]]
 name = "color_benchmark"
+harness = false
+
+[[bench]]
+name = "loot_benchmark"
 harness = false
 
 [[bin]]

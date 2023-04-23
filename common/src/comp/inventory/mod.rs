@@ -995,13 +995,19 @@ impl Default for InventoryUpdateEvent {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct InventoryUpdate {
-    event: InventoryUpdateEvent,
+    events: Vec<InventoryUpdateEvent>,
 }
 
 impl InventoryUpdate {
-    pub fn new(event: InventoryUpdateEvent) -> Self { Self { event } }
+    pub fn new(event: InventoryUpdateEvent) -> Self {
+        Self {
+            events: vec![event],
+        }
+    }
 
-    pub fn event(&self) -> InventoryUpdateEvent { self.event.clone() }
+    pub fn push(&mut self, event: InventoryUpdateEvent) { self.events.push(event); }
+
+    pub fn take_events(&mut self) -> Vec<InventoryUpdateEvent> { std::mem::take(&mut self.events) }
 }
 
 impl Component for InventoryUpdate {

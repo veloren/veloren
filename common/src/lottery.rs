@@ -26,6 +26,8 @@
 // Cheese drop rate = 3/X = 29.6%
 // Coconut drop rate = 1/X = 9.85%
 
+use std::hash::Hash;
+
 use crate::{
     assets::{self, AssetExt},
     comp::{inventory::item, Item},
@@ -76,12 +78,136 @@ impl<T> Lottery<T> {
     pub fn total(&self) -> f32 { self.total }
 }
 
+/// Try to distribute stacked items fairly between weighted participants.
+pub fn distribute_many<T: Copy + Eq + Hash, I>(
+    participants: impl IntoIterator<Item = (f32, T)>,
+    rng: &mut impl Rng,
+    items: &[I],
+    mut get_amount: impl FnMut(&I) -> u32,
+    mut exec_item: impl FnMut(&I, T, u32),
+) {
+    struct Participant<T> {
+        // weight / total
+        weight: f32,
+        sorted_weight: f32,
+        data: T,
+        recieved_count: u32,
+        current_recieved_count: u32,
+    }
+
+    impl<T> Participant<T> {
+        fn give(&mut self, amount: u32) {
+            self.current_recieved_count += amount;
+            self.recieved_count += amount;
+        }
+    }
+
+    // Nothing to distribute, we can return early.
+    if items.is_empty() {
+        return;
+    }
+
+    let mut total_weight = 0.0;
+
+    let mut participants = participants
+        .into_iter()
+        .map(|(weight, participant)| Participant {
+            weight,
+            sorted_weight: {
+                total_weight += weight;
+                total_weight - weight
+            },
+            data: participant,
+            recieved_count: 0,
+            current_recieved_count: 0,
+        })
+        .collect::<Vec<_>>();
+
+    let total_item_amount = items.iter().map(&mut get_amount).sum::<u32>();
+
+    let mut current_total_weight = total_weight;
+
+    for item in items.iter() {
+        let amount = get_amount(item);
+        let mut distributed = 0;
+
+        let Some(mut give) = participants
+            .iter()
+            .map(|participant| (total_item_amount as f32 * participant.weight / total_weight).ceil() as u32 - participant.recieved_count)
+            .min() else {
+            tracing::error!("Tried to distribute items to no participants.");
+            return;
+        };
+
+        while distributed < amount {
+            // Can't give more than amount, and don't give more than the average between all
+            // to keep things well distributed.
+            let max_give = (amount / participants.len() as u32).clamp(1, amount - distributed);
+            give = give.clamp(1, max_give);
+            let x = rng.gen_range(0.0..=current_total_weight);
+
+            let index = participants
+                .binary_search_by(|item| item.sorted_weight.partial_cmp(&x).unwrap())
+                .unwrap_or_else(|i| i.saturating_sub(1));
+
+            let participant_count = participants.len();
+
+            let Some(winner) = participants
+                .get_mut(index) else {
+                tracing::error!("Tried to distribute items to no participants.");
+                return;
+            };
+
+            winner.give(give);
+            distributed += give;
+
+            // If a participant has received enough, remove it.
+            if participant_count > 1
+                && winner.recieved_count as f32 / total_item_amount as f32
+                    >= winner.weight / total_weight
+            {
+                current_total_weight = index
+                    .checked_sub(1)
+                    .and_then(|i| Some(participants.get(i)?.sorted_weight))
+                    .unwrap_or(0.0);
+                let winner = participants.swap_remove(index);
+                exec_item(item, winner.data, winner.current_recieved_count);
+
+                // Keep participant weights correct so that we can binary search it.
+                for participant in &mut participants[index..] {
+                    current_total_weight += participant.weight;
+                    participant.sorted_weight = current_total_weight - participant.weight;
+                }
+
+                // Update max item give amount.
+                give = participants
+                    .iter()
+                    .map(|participant| {
+                        (total_item_amount as f32 * participant.weight / total_weight).ceil() as u32
+                            - participant.recieved_count
+                    })
+                    .min()
+                    .unwrap_or(0);
+            } else {
+                give = give.min(
+                    (total_item_amount as f32 * winner.weight / total_weight).ceil() as u32
+                        - winner.recieved_count,
+                );
+            }
+        }
+        for participant in participants.iter_mut() {
+            if participant.current_recieved_count != 0 {
+                exec_item(item, participant.data, participant.current_recieved_count);
+                participant.current_recieved_count = 0;
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum LootSpec<T: AsRef<str>> {
     /// Asset specifier
     Item(T),
-    /// Asset specifier, lower range, upper range
-    ItemQuantity(T, u32, u32),
     /// Loot table
     LootTable(T),
     /// No loot given
@@ -97,78 +223,129 @@ pub enum LootSpec<T: AsRef<str>> {
         material: item::Material,
         hands: Option<item::tool::Hands>,
     },
+    /// LootSpec, lower range, upper range
+    MultiDrop(Box<LootSpec<T>>, u32, u32),
 }
 
 impl<T: AsRef<str>> LootSpec<T> {
-    pub fn to_item(&self) -> Option<Item> {
-        let mut rng = thread_rng();
-        match self {
-            Self::Item(item) => Item::new_from_asset(item.as_ref()).map_or_else(
+    fn to_items_inner(
+        &self,
+        rng: &mut rand::rngs::ThreadRng,
+        amount: u32,
+        items: &mut Vec<(u32, Item)>,
+    ) {
+        let convert_item = |item: &T| {
+            Item::new_from_asset(item.as_ref()).map_or_else(
                 |e| {
                     warn!(?e, "error while loading item: {}", item.as_ref());
                     None
                 },
                 Some,
-            ),
-            Self::ItemQuantity(item, lower, upper) => {
-                let range = *lower..=*upper;
-                let quantity = thread_rng().gen_range(range);
-                match Item::new_from_asset(item.as_ref()) {
-                    Ok(mut item) => {
-                        // TODO: Handle multiple of an item that is unstackable
-                        if item.set_amount(quantity).is_err() {
-                            warn!("Tried to set quantity on non stackable item");
-                        }
-                        Some(item)
-                    },
-                    Err(e) => {
-                        warn!(?e, "error while loading item: {}", item.as_ref());
-                        None
-                    },
+            )
+        };
+        let mut push_item = |mut item: Item, count: u32| {
+            let count = item.amount().saturating_mul(count);
+            item.set_amount(1).expect("1 is always a valid amount.");
+            let hash = item.item_hash();
+            match items.binary_search_by_key(&hash, |(_, item)| item.item_hash()) {
+                Ok(i) => {
+                    // Since item hash can collide with other items, we search nearby items with the
+                    // same hash.
+                    // NOTE: The `ParitalEq` implementation for `Item` doesn't compare some data
+                    // like durability, or wether slots contain anything. Although since these are
+                    // Newly loaded items we don't care about comparing those for deduplication
+                    // here.
+                    let has_same_hash = |i: &usize| items[*i].1.item_hash() == hash;
+                    if let Some(i) = (i..items.len())
+                        .take_while(has_same_hash)
+                        .chain((0..i).rev().take_while(has_same_hash))
+                        .find(|i| items[*i].1 == item)
+                    {
+                        // We saturate at 4 billion items, could use u64 instead if this isn't
+                        // desirable.
+                        items[i].0 = items[i].0.saturating_add(count);
+                    } else {
+                        items.insert(i, (count, item));
+                    }
+                },
+                Err(i) => items.insert(i, (count, item)),
+            }
+        };
+
+        match self {
+            Self::Item(item) => {
+                if let Some(item) = convert_item(item) {
+                    push_item(item, amount);
                 }
             },
-            Self::LootTable(table) => Lottery::<LootSpec<String>>::load_expect(table.as_ref())
-                .read()
-                .choose()
-                .to_item(),
-            Self::Nothing => None,
+            Self::LootTable(table) => {
+                let loot_spec = Lottery::<LootSpec<String>>::load_expect(table.as_ref()).read();
+                for _ in 0..amount {
+                    loot_spec.choose().to_items_inner(rng, 1, items)
+                }
+            },
+            Self::Nothing => {},
             Self::ModularWeapon {
                 tool,
                 material,
                 hands,
-            } => item::modular::random_weapon(*tool, *material, *hands, &mut rng).map_or_else(
-                |e| {
-                    warn!(
-                        ?e,
-                        "error while creating modular weapon. Toolkind: {:?}, Material: {:?}, \
-                         Hands: {:?}",
-                        tool,
-                        material,
-                        hands,
-                    );
-                    None
-                },
-                Some,
-            ),
+            } => {
+                for _ in 0..amount {
+                    match item::modular::random_weapon(*tool, *material, *hands, rng) {
+                        Ok(item) => push_item(item, 1),
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "error while creating modular weapon. Toolkind: {:?}, Material: \
+                                 {:?}, Hands: {:?}",
+                                tool,
+                                material,
+                                hands,
+                            );
+                        },
+                    }
+                }
+            },
             Self::ModularWeaponPrimaryComponent {
                 tool,
                 material,
                 hands,
-            } => item::modular::random_weapon_primary_component(*tool, *material, *hands, &mut rng)
-                .map_or_else(
-                    |e| {
-                        warn!(
-                            ?e,
-                            "error while creating modular weapon primary component. Toolkind: \
-                             {:?}, Material: {:?}, Hands: {:?}",
-                            tool,
-                            material,
-                            hands,
-                        );
-                        None
-                    },
-                    |(comp, _)| Some(comp),
-                ),
+            } => {
+                for _ in 0..amount {
+                    match item::modular::random_weapon(*tool, *material, *hands, rng) {
+                        Ok(item) => push_item(item, 1),
+                        Err(e) => {
+                            warn!(
+                                ?e,
+                                "error while creating modular weapon primary component. Toolkind: \
+                                 {:?}, Material: {:?}, Hands: {:?}",
+                                tool,
+                                material,
+                                hands,
+                            );
+                        },
+                    }
+                }
+            },
+            Self::MultiDrop(loot_spec, lower, upper) => {
+                let sub_amount = rng.gen_range(*lower..=*upper);
+                // We saturate at 4 billion items, could use u64 instead if this isn't
+                // desirable.
+                loot_spec.to_items_inner(rng, sub_amount.saturating_mul(amount), items);
+            },
+        }
+    }
+
+    pub fn to_items(&self) -> Option<Vec<(u32, Item)>> {
+        let mut items = Vec::new();
+        self.to_items_inner(&mut thread_rng(), 1, &mut items);
+
+        if !items.is_empty() {
+            items.sort_unstable_by_key(|(amount, _)| *amount);
+
+            Some(items)
+        } else {
+            None
         }
     }
 }
@@ -187,21 +364,6 @@ pub mod tests {
         let mut rng = thread_rng();
         match item {
             LootSpec::Item(item) => {
-                Item::new_from_asset_expect(item);
-            },
-            LootSpec::ItemQuantity(item, lower, upper) => {
-                assert!(
-                    *lower > 0,
-                    "Lower quantity must be more than 0. It is {}.",
-                    lower
-                );
-                assert!(
-                    upper >= lower,
-                    "Upper quantity must be at least the value of lower quantity. Upper value: \
-                     {}, low value: {}.",
-                    upper,
-                    lower
-                );
                 Item::new_from_asset_expect(item);
             },
             LootSpec::LootTable(loot_table) => {
@@ -236,6 +398,21 @@ pub mod tests {
                         )
                     });
             },
+            LootSpec::MultiDrop(loot_spec, lower, upper) => {
+                assert!(
+                    *lower > 0,
+                    "Lower quantity must be more than 0. It is {}.",
+                    lower
+                );
+                assert!(
+                    upper >= lower,
+                    "Upper quantity must be at least the value of lower quantity. Upper value: \
+                     {}, low value: {}.",
+                    upper,
+                    lower
+                );
+                validate_loot_spec(loot_spec);
+            },
         }
     }
 
@@ -251,6 +428,26 @@ pub mod tests {
             assets::read_expect_dir::<Lottery<LootSpec<String>>>("common.loot_tables", true);
         for loot_table in loot_tables {
             validate_table_contents(loot_table.clone());
+        }
+    }
+
+    #[test]
+    fn test_distribute_many() {
+        let mut rng = thread_rng();
+
+        // Known successful case
+        for _ in 0..10 {
+            distribute_many(
+                vec![(0.4f32, "a"), (0.4, "b"), (0.2, "c")],
+                &mut rng,
+                &[("item", 10)],
+                |(_, m)| *m,
+                |_item, winner, count| match winner {
+                    "a" | "b" => assert_eq!(count, 4),
+                    "c" => assert_eq!(count, 2),
+                    _ => unreachable!(),
+                },
+            );
         }
     }
 }

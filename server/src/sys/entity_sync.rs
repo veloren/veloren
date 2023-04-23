@@ -356,10 +356,10 @@ impl<'a> System<'a> for Sys {
         // TODO: Sync clients that don't have a position?
 
         // Sync inventories
-        for (inventory, update, client) in (inventories, &inventory_updates, &clients).join() {
+        for (inventory, update, client) in (inventories, &mut inventory_updates, &clients).join() {
             client.send_fallible(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
-                update.event(),
+                update.take_events(),
             ));
         }
 

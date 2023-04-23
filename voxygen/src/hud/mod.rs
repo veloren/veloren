@@ -2128,7 +2128,17 @@ impl Hud {
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
                     .set(overitem_id, ui_widgets);
-                } else if let Some(item) = Item::try_reclaim_from_block(*block) {
+                }
+                // TODO: Handle this better. The items returned from `try_reclaim_from_block`
+                // are based on rng. We probably want some function to get only gauranteed items
+                // from `LootSpec`.
+                else if let Some((amount, mut item)) = Item::try_reclaim_from_block(*block)
+                    .into_iter()
+                    .flatten()
+                    .next()
+                {
+                    item.set_amount(amount.clamp(1, item.max_amount()))
+                        .expect("amount >= 1 and <= max_amount is always a valid amount");
                     make_overitem(
                         &item,
                         over_pos,

@@ -321,62 +321,67 @@ impl SessionState {
                             TradeResult::NotEnoughSpace => "hud-trade-result-nospace",
                         })));
                 },
-                client::Event::InventoryUpdated(inv_event) => {
+                client::Event::InventoryUpdated(inv_events) => {
                     let sfx_triggers = self.scene.sfx_mgr.triggers.read();
 
-                    let sfx_trigger_item = sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
+                    for inv_event in inv_events {
+                        let sfx_trigger_item =
+                            sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
 
-                    match inv_event {
-                        InventoryUpdateEvent::Dropped
-                        | InventoryUpdateEvent::Swapped
-                        | InventoryUpdateEvent::Given
-                        | InventoryUpdateEvent::Collected(_)
-                        | InventoryUpdateEvent::EntityCollectFailed { .. }
-                        | InventoryUpdateEvent::BlockCollectFailed { .. }
-                        | InventoryUpdateEvent::Craft => {
-                            global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
-                        },
-                        _ => global_state.audio.emit_sfx(
-                            sfx_trigger_item,
-                            client.position().unwrap_or_default(),
-                            Some(1.0),
-                            underwater,
-                        ),
-                    }
+                        match inv_event {
+                            InventoryUpdateEvent::Dropped
+                            | InventoryUpdateEvent::Swapped
+                            | InventoryUpdateEvent::Given
+                            | InventoryUpdateEvent::Collected(_)
+                            | InventoryUpdateEvent::EntityCollectFailed { .. }
+                            | InventoryUpdateEvent::BlockCollectFailed { .. }
+                            | InventoryUpdateEvent::Craft => {
+                                global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
+                            },
+                            _ => global_state.audio.emit_sfx(
+                                sfx_trigger_item,
+                                client.position().unwrap_or_default(),
+                                Some(1.0),
+                                underwater,
+                            ),
+                        }
 
-                    match inv_event {
-                        InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
-                            self.hud.add_failed_block_pickup(
-                                pos,
-                                HudCollectFailedReason::from_server_reason(
-                                    &reason,
-                                    client.state().ecs(),
-                                ),
-                            );
-                        },
-                        InventoryUpdateEvent::EntityCollectFailed {
-                            entity: uid,
-                            reason,
-                        } => {
-                            if let Some(entity) = client.state().ecs().entity_from_uid(uid.into()) {
-                                self.hud.add_failed_entity_pickup(
-                                    entity,
+                        match inv_event {
+                            InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
+                                self.hud.add_failed_block_pickup(
+                                    pos,
                                     HudCollectFailedReason::from_server_reason(
                                         &reason,
                                         client.state().ecs(),
                                     ),
                                 );
-                            }
-                        },
-                        InventoryUpdateEvent::Collected(item) => {
-                            self.hud.new_loot_message(LootMessage {
-                                amount: item.amount(),
-                                item,
-                                taken_by: "You".to_string(),
-                            });
-                        },
-                        _ => {},
-                    };
+                            },
+                            InventoryUpdateEvent::EntityCollectFailed {
+                                entity: uid,
+                                reason,
+                            } => {
+                                if let Some(entity) =
+                                    client.state().ecs().entity_from_uid(uid.into())
+                                {
+                                    self.hud.add_failed_entity_pickup(
+                                        entity,
+                                        HudCollectFailedReason::from_server_reason(
+                                            &reason,
+                                            client.state().ecs(),
+                                        ),
+                                    );
+                                }
+                            },
+                            InventoryUpdateEvent::Collected(item) => {
+                                self.hud.new_loot_message(LootMessage {
+                                    amount: item.amount(),
+                                    item,
+                                    taken_by: "You".to_string(),
+                                });
+                            },
+                            _ => {},
+                        };
+                    }
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {

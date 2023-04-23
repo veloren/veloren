@@ -921,6 +921,34 @@ impl Item {
         new_item
     }
 
+    pub fn stacked_duplicates<'a>(
+        &'a self,
+        ability_map: &'a AbilityMap,
+        msm: &'a MaterialStatManifest,
+        count: u32,
+    ) -> impl Iterator<Item = Self> + 'a {
+        let max_stack_count = count / self.max_amount();
+        let rest = count % self.max_amount();
+
+        (0..max_stack_count)
+            .map(|_| {
+                let mut item = self.duplicate(ability_map, msm);
+
+                item.set_amount(item.max_amount())
+                    .expect("max_amount() is always a valid amount.");
+
+                item
+            })
+            .chain((rest > 0).then(move || {
+                let mut item = self.duplicate(ability_map, msm);
+
+                item.set_amount(rest)
+                    .expect("anything less than max_amount() is always a valid amount.");
+
+                item
+            }))
+    }
+
     /// FIXME: HACK: In order to set the entity ID asynchronously, we currently
     /// start it at None, and then atomically set it when it's saved for the
     /// first time in the database.  Because this requires shared mutable
@@ -1167,8 +1195,8 @@ impl Item {
 
     pub fn slot_mut(&mut self, slot: usize) -> Option<&mut InvSlot> { self.slots.get_mut(slot) }
 
-    pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
-        block.get_sprite()?.collectible_id()??.to_item()
+    pub fn try_reclaim_from_block(block: Block) -> Option<Vec<(u32, Self)>> {
+        block.get_sprite()?.collectible_id()??.to_items()
     }
 
     pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {
@@ -1282,6 +1310,16 @@ impl Item {
     }
 }
 
+pub fn flatten_counted_items<'a>(
+    items: &'a [(u32, Item)],
+    ability_map: &'a AbilityMap,
+    msm: &'a MaterialStatManifest,
+) -> impl Iterator<Item = Item> + 'a {
+    items
+        .iter()
+        .flat_map(|(count, item)| item.stacked_duplicates(ability_map, msm, *count))
+}
+
 /// Provides common methods providing details about an item definition
 /// for either an `Item` containing the definition, or the actual `ItemDef`
 pub trait ItemDesc {
@@ -1370,9 +1408,9 @@ impl Component for Item {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ItemDrop(pub Item);
+pub struct ItemDrops(pub Vec<(u32, Item)>);
 
-impl Component for ItemDrop {
+impl Component for ItemDrops {
     type Storage = DenseVecStorage<Self>;
 }
 
