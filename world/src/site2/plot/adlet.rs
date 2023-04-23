@@ -2362,13 +2362,17 @@ mod tests {
         let pos = Vec3::zero();
         let mut rng = thread_rng();
 
-        gnarling_mugger(pos, &mut rng);
-        gnarling_stalker(pos, &mut rng);
-        gnarling_logger(pos, &mut rng);
-        gnarling_chieftain(pos, &mut rng);
-        deadwood(pos, &mut rng);
-        mandragora(pos, &mut rng);
-        wood_golem(pos, &mut rng);
-        harvester_boss(pos, &mut rng);
+        adlet_hunter(pos, &mut rng);
+        adlet_icepicker(pos, &mut rng);
+        adlet_tracker(pos, &mut rng);
+        random_adlet(pos, &mut rng);
+        adlet_elder(pos, &mut rng);
+        rat(pos, &mut rng);
+        wolf(pos, &mut rng);
+        bear(pos, &mut rng);
+        frostfang(pos, &mut rng);
+        roshwalr(pos, &mut rng);
+        icedrake(pos, &mut rng);
+        tursus(pos, &mut rng);
     }
 }

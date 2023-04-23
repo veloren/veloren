@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Yeti"),
+    body: RandomWith("yeti"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.tier-1.boss"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

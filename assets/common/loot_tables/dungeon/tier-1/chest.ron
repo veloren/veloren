@@ -6,7 +6,7 @@
     // Currency
     (3.0, MultiDrop(Item("common.items.utility.coins"), 20, 50)),
     // Materials
-    (2.0, MultiDrop(Item(""common.items.mineral.ore.veloritefrag", 3, 10)),
+    (2.0, MultiDrop(Item("common.items.mineral.ore.veloritefrag"), 3, 10)),
     (1.0, MultiDrop(Item("common.items.crafting_ing.cloth.wool"), 3, 10)),
     (1.0, MultiDrop(Item("common.items.crafting_ing.leather.thick_leather"), 3, 10)),
     (1.0, MultiDrop(Item("common.items.mineral.ingot.iron"), 3, 10)),

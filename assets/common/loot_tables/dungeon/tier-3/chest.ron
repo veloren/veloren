@@ -10,7 +10,7 @@
     (1.0, MultiDrop(Item("common.items.crafting_ing.hide.carapace"), 2, 6)),
     (1.0, MultiDrop(Item("common.items.mineral.ingot.cobalt"), 2, 6)),
     (1.0, MultiDrop(Item("common.items.log.ironwood"), 3, 7)),
-    (2.0, MultiDrop(Item("common.items.mineral.ore.velorite", 3, 10)),
+    (2.0, MultiDrop(Item("common.items.mineral.ore.velorite"), 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.moderate")),
 ]
