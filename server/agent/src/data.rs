@@ -603,23 +603,26 @@ impl AbilityData {
         desired_energy: f32,
     ) -> bool {
         let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
-            let range_inc = forced_movement.map_or(0.0, |fm| match fm {
-                ForcedMovement::Forward(speed) => speed * 15.0,
-                ForcedMovement::Reverse(speed) => -speed,
+            let (range_inc, min_mult) = forced_movement.map_or((0.0, 0.0), |fm| match fm {
+                ForcedMovement::Forward(speed) => (speed * 15.0, 1.0),
+                ForcedMovement::Reverse(speed) => (-speed, 1.0),
                 ForcedMovement::Leap {
                     vertical, forward, ..
-                } => {
-                    let dur = vertical * 2.0 / GRAVITY;
-                    // 0.75 factor to allow for fact that agent looks down as they approach, so
-                    // won't go as far
-                    forward * dur * 0.75
-                },
-                _ => 0.0,
+                } => (
+                    {
+                        let dur = vertical * 2.0 / GRAVITY;
+                        // 0.75 factor to allow for fact that agent looks down as they approach, so
+                        // won't go as far
+                        forward * dur * 0.75
+                    },
+                    0.0,
+                ),
+                _ => (0.0, 0.0),
             });
             let body_rad = agent_data.body.map_or(0.0, |b| b.max_radius());
             attack_data.dist_sqrd < (range + range_inc + body_rad).powi(2)
                 && attack_data.angle < angle
-                && attack_data.dist_sqrd > range_inc.powi(2)
+                && attack_data.dist_sqrd > (range_inc * min_mult).powi(2)
         };
         let energy_check = |energy: f32| {
             agent_data.energy.current() >= energy

@@ -4723,6 +4723,7 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
+        rng: &mut impl Rng,
     ) {
         const TRAP_TIMER: usize = 0;
         agent.action_state.timers[TRAP_TIMER] -= read_data.dt.0;
@@ -4731,12 +4732,19 @@ impl<'a> AgentData<'a> {
         }
         let primary = self.extract_ability(AbilityInput::Primary);
         let secondary = self.extract_ability(AbilityInput::Secondary);
+        let abilities = [
+            self.extract_ability(AbilityInput::Auxiliary(0)),
+            self.extract_ability(AbilityInput::Auxiliary(1)),
+        ];
         let could_use_input = |input| match input {
             InputKind::Primary => primary.as_ref().map_or(false, |p| {
                 p.could_use(attack_data, self, tgt_data, read_data, 0.0)
             }),
             InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
                 s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                a.could_use(attack_data, self, tgt_data, read_data, 0.0)
             }),
             _ => false,
         };
@@ -4750,12 +4758,24 @@ impl<'a> AgentData<'a> {
         } else if could_use_input(InputKind::Primary) {
             controller.push_basic_input(InputKind::Primary);
             false
-        } else if could_use_input(InputKind::Secondary) {
+        } else if could_use_input(InputKind::Secondary) && rng.gen_bool(0.5) {
             controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Ability(1)) {
+            controller.push_basic_input(InputKind::Ability(1));
             false
         } else {
             true
         };
+
+        if matches!(self.char_state, CharacterState::LeapMelee(_)) {
+            let tgt_vec = tgt_data.pos.0.xy() - self.pos.0.xy();
+            if tgt_vec.magnitude_squared() > 2_f32.powi(2) {
+                if let Some(look_dir) = Dir::from_unnormalized(Vec3::from(tgt_vec)) {
+                    controller.inputs.look_dir = look_dir;
+                }
+            }
+        }
 
         if move_forwards && attack_data.dist_sqrd > 2_f32.powi(2) {
             self.path_toward_target(

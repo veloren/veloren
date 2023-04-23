@@ -1501,7 +1501,7 @@ impl<'a> AgentData<'a> {
                 abilities,
             ),
             Tactic::AdletElder => {
-                self.handle_adlet_elder(agent, controller, &attack_data, tgt_data, read_data)
+                self.handle_adlet_elder(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
         }
     }
