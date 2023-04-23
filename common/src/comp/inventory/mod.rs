@@ -139,6 +139,18 @@ impl Inventory {
         self.slots.iter_mut().chain(self.loadout.inv_slots_mut())
     }
 
+    fn slots_mut_with_mutable_recently_unequipped_items(
+        &mut self,
+    ) -> (
+        impl Iterator<Item = &mut InvSlot>,
+        &mut HashMap<ItemDefinitionIdOwned, (Time, u8)>,
+    ) {
+        let (slots_mut, recently_unequipped) = self
+            .loadout
+            .inv_slots_mut_with_mutable_recently_unequipped_items();
+        (self.slots.iter_mut().chain(slots_mut), recently_unequipped)
+    }
+
     /// An iterator of all inventory slots and their position
     pub fn slots_with_id(&self) -> impl Iterator<Item = (InvSlotId, &InvSlot)> {
         self.slots
@@ -579,24 +591,6 @@ impl Inventory {
         }
     }
 
-    fn slot_with_mutable_recently_unequipped_items(
-        &mut self,
-        inv_slot_id: InvSlotId,
-    ) -> (
-        Option<&InvSlot>,
-        &mut HashMap<ItemDefinitionIdOwned, (Time, u8)>,
-    ) {
-        match SlotId::from(inv_slot_id) {
-            SlotId::Inventory(slot_idx) => (
-                self.slots.get(slot_idx),
-                &mut self.loadout.recently_unequipped_items,
-            ),
-            SlotId::Loadout(loadout_slot_id) => self
-                .loadout
-                .inv_slot_with_mutable_recently_unequipped_items(loadout_slot_id),
-        }
-    }
-
     pub fn slot_mut(&mut self, inv_slot_id: InvSlotId) -> Option<&mut InvSlot> {
         match SlotId::from(inv_slot_id) {
             SlotId::Inventory(slot_idx) => self.slots.get_mut(slot_idx),
@@ -912,7 +906,7 @@ impl Inventory {
         });
     }
 
-    /// Increments durability of all valid items equipped in loaodut and
+    /// Increments durability lost for all valid items equipped in loadout and
     /// recently unequipped from loadout by 1
     pub fn damage_items(
         &mut self,
@@ -923,43 +917,17 @@ impl Inventory {
         self.loadout.damage_items(ability_map, msm);
         self.loadout.cull_recently_unequipped_items(time);
 
-        let slots = self
-            .slots_with_id()
-            .filter(|(_slot, item)| {
-                item.as_ref().map_or(false, |item| {
-                    item.durability_lost()
-                        .map_or(false, |dur| dur < Item::MAX_DURABILITY)
-                        && self
-                            .loadout
-                            .recently_unequipped_items
-                            .contains_key(&item.item_definition_id())
-                })
-            })
-            .map(|(slot, _item)| slot)
-            .collect::<Vec<_>>();
-        slots.into_iter().for_each(|slot| {
-            let slot = if let (Some(Some(item)), recently_unequipped_items) =
-                self.slot_with_mutable_recently_unequipped_items(slot)
+        let (slots_mut, recently_unequipped_items) =
+            self.slots_mut_with_mutable_recently_unequipped_items();
+        slots_mut.filter_map(|slot| slot.as_mut()).for_each(|item| {
+            if item.durability_lost()
+                    .map_or(false, |dur| dur < Item::MAX_DURABILITY)
+                && let Some((_unequip_time, count)) =
+                   recently_unequipped_items.get_mut(&item.item_definition_id())
+                && *count > 0
             {
-                if let Some((_unequip_time, count)) =
-                    recently_unequipped_items.get_mut(&item.item_definition_id())
-                {
-                    if *count > 0 {
-                        *count -= 1;
-                        Some(slot)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            } else {
-                None
-            };
-            if let Some(slot) = slot {
-                if let Some(Some(item)) = self.slot_mut(slot) {
-                    item.increment_damage(ability_map, msm);
-                }
+                *count -= 1;
+                item.increment_damage(ability_map, msm);
             }
         });
     }
