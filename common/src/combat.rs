@@ -725,9 +725,7 @@ pub fn may_harm(
         if let Some(Alignment::Owned(uid)) = alignment {
             // return original entity
             // if can't get owner
-            uid_allocator
-                .retrieve_entity_internal(uid)
-                .unwrap_or(entity)
+            uid_allocator.lookup_entity(uid).unwrap_or(entity)
         } else {
             entity
         }

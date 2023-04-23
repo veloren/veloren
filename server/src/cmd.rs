@@ -246,7 +246,7 @@ fn position_mut<T>(
                 .state
                 .ecs()
                 .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(is_rider.mount)
+                .lookup_entity(is_rider.mount)
         })
         .map(Ok)
         .or_else(|| {
@@ -263,7 +263,7 @@ fn position_mut<T>(
                             .state
                             .ecs()
                             .read_resource::<UidAllocator>()
-                            .retrieve_entity_internal(uid.into())?),
+                            .lookup_entity(uid)?),
                     })
                 })
         })

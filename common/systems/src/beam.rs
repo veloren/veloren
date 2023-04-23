@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
 
                     let beam_owner = beam_segment
                         .owner
-                        .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid));
+                        .and_then(|uid| read_data.uid_allocator.lookup_entity(uid));
 
                     // Note: rayon makes it difficult to hold onto a thread-local RNG, if grabbing
                     // this becomes a bottleneck we can look into alternatives.

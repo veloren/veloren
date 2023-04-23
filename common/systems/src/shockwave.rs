@@ -91,7 +91,7 @@ impl<'a> System<'a> for Sys {
 
             let shockwave_owner = shockwave
                 .owner
-                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid));
+                .and_then(|uid| read_data.uid_allocator.lookup_entity(uid));
 
             if rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {

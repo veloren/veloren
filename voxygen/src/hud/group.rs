@@ -382,7 +382,7 @@ impl<'a> Widget for Group<'a> {
             let mut total_buff_count = 0;
             for (i, &uid) in group_members.iter().copied().enumerate() {
                 self.show.group = true;
-                let entity = uid_allocator.retrieve_entity_internal(uid);
+                let entity = uid_allocator.lookup_entity(uid);
                 let stats = entity.and_then(|entity| stats.get(entity));
                 let skill_set = entity.and_then(|entity| skill_sets.get(entity));
                 let health = entity.and_then(|entity| healths.get(entity));

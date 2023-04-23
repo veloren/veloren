@@ -569,7 +569,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                             state
                                 .ecs()
                                 .read_resource::<UidAllocator>()
-                                .retrieve_entity_internal((*entity_uid).into())
+                                .lookup_entity(*entity_uid)
                         },
                     )
                     .and_then(|killer| state.entity_as_actor(killer)),
@@ -742,10 +742,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     let settings = server.settings();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
     let time = ecs.read_resource::<Time>();
-    let owner_entity = owner.and_then(|uid| {
-        ecs.read_resource::<UidAllocator>()
-            .retrieve_entity_internal(uid)
-    });
+    let owner_entity = owner.and_then(|uid| ecs.read_resource::<UidAllocator>().lookup_entity(uid));
 
     let explosion_volume = 6.25 * explosion.radius;
     let mut emitter = server_eventbus.emitter();

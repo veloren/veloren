@@ -275,29 +275,27 @@ impl<'a> System<'a> for Sys {
                     }
                 })
                 .for_each(|(buff_id, buff, uid, aura_key)| {
-                    let replace = if let Some(aura_entity) = read_data
-                        .uid_allocator
-                        .retrieve_entity_internal((*uid).into())
-                    {
-                        if let Some(aura) = read_data
-                            .auras
-                            .get(aura_entity)
-                            .and_then(|auras| auras.auras.get(*aura_key))
-                        {
-                            if let (Some(pos), Some(aura_pos)) = (
-                                read_data.positions.get(entity),
-                                read_data.positions.get(aura_entity),
-                            ) {
-                                pos.0.distance_squared(aura_pos.0) > aura.radius.powi(2)
+                    let replace =
+                        if let Some(aura_entity) = read_data.uid_allocator.lookup_entity(*uid) {
+                            if let Some(aura) = read_data
+                                .auras
+                                .get(aura_entity)
+                                .and_then(|auras| auras.auras.get(*aura_key))
+                            {
+                                if let (Some(pos), Some(aura_pos)) = (
+                                    read_data.positions.get(entity),
+                                    read_data.positions.get(aura_entity),
+                                ) {
+                                    pos.0.distance_squared(aura_pos.0) > aura.radius.powi(2)
+                                } else {
+                                    true
+                                }
                             } else {
                                 true
                             }
                         } else {
                             true
-                        }
-                    } else {
-                        true
-                    };
+                        };
                     if replace {
                         expired_buffs.push(*buff_id);
                         server_emitter.emit(ServerEvent::Buff {
@@ -504,12 +502,9 @@ fn execute_effect(
                     ModifierKind::Fractional => health.maximum() * amount,
                 };
                 let damage_contributor = by.and_then(|uid| {
-                    read_data
-                        .uid_allocator
-                        .retrieve_entity_internal(uid)
-                        .map(|entity| {
-                            DamageContributor::new(uid, read_data.groups.get(entity).cloned())
-                        })
+                    read_data.uid_allocator.lookup_entity(uid).map(|entity| {
+                        DamageContributor::new(uid, read_data.groups.get(entity).cloned())
+                    })
                 });
                 server_emitter.emit(ServerEvent::HealthChange {
                     entity,

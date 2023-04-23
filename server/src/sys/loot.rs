@@ -33,7 +33,7 @@ impl<'a> System<'a> for Sys {
                 loot_owner.expired()
                     || match loot_owner.owner() {
                         LootOwnerKind::Player(uid) => uid_allocator
-                            .retrieve_entity_internal(uid)
+                            .lookup_entity(uid)
                             .map_or(true, |entity| !entities.is_alive(entity)),
                         LootOwnerKind::Group(group) => group_manager.group_info(group).is_none(),
                     }

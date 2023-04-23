@@ -48,9 +48,8 @@ impl<'a> System<'a> for Sys {
             for event in controller.events.drain(..) {
                 match event {
                     ControlEvent::Mount(mountee_uid) => {
-                        if let Some(mountee_entity) = read_data
-                            .uid_allocator
-                            .retrieve_entity_internal(mountee_uid)
+                        if let Some(mountee_entity) =
+                            read_data.uid_allocator.lookup_entity(mountee_uid)
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
@@ -80,9 +79,7 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
                     ControlEvent::Interact(npc_uid, subject) => {
-                        if let Some(npc_entity) =
-                            read_data.uid_allocator.retrieve_entity_internal(npc_uid)
-                        {
+                        if let Some(npc_entity) = read_data.uid_allocator.lookup_entity(npc_uid) {
                             server_emitter
                                 .emit(ServerEvent::NpcInteract(entity, npc_entity, subject));
                         }

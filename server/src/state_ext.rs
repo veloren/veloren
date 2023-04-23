@@ -860,7 +860,7 @@ impl StateExt for State {
             .map_group(|_| group_info.map_or_else(|| "???".to_string(), |i| i.name.clone()));
 
         let uid_allocator = ecs.read_resource::<UidAllocator>();
-        let entity_from_uid = |uid| uid_allocator.retrieve_entity_internal(uid);
+        let entity_from_uid = |uid| uid_allocator.lookup_entity(uid);
 
         if msg.chat_type.uid().map_or(true, |sender| {
             entity_from_uid(sender).map_or(false, |e| {

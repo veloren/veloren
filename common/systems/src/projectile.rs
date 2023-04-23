@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
         {
             let projectile_owner = projectile
                 .owner
-                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid));
+                .and_then(|uid| read_data.uid_allocator.lookup_entity(uid));
 
             if physics.on_surface().is_none() && rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
@@ -104,7 +104,7 @@ impl<'a> System<'a> for Sys {
                     .and_then(|e| read_data.groups.get(e))
                     .map_or(false, |owner_group|
                         Some(owner_group) == read_data.uid_allocator
-                        .retrieve_entity_internal(other)
+                        .lookup_entity(other)
                         .and_then(|e| read_data.groups.get(e))
                     );
 
@@ -125,7 +125,7 @@ impl<'a> System<'a> for Sys {
 
                 let projectile = &mut *projectile;
 
-                let entity_of = |uid: Uid| read_data.uid_allocator.retrieve_entity_internal(uid);
+                let entity_of = |uid: Uid| read_data.uid_allocator.lookup_entity(uid);
 
                 // Don't hit if there is terrain between the projectile and where the entity was
                 // supposed to be hit by it.

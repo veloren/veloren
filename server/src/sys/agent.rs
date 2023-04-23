@@ -102,17 +102,13 @@ impl<'a> System<'a> for Sys {
 
                     // The entity that is moving, if riding it's the mount, otherwise it's itself
                     let moving_entity = is_rider
-                        .and_then(|is_rider| {
-                            read_data
-                                .uid_allocator
-                                .retrieve_entity_internal(is_rider.mount)
-                        })
+                        .and_then(|is_rider| read_data.uid_allocator.lookup_entity(is_rider.mount))
                         .or_else(|| {
                             is_volume_rider.and_then(|is_volume_rider| {
                                 match is_volume_rider.pos.kind {
                                     Volume::Terrain => None,
                                     Volume::Entity(uid) => {
-                                        read_data.uid_allocator.retrieve_entity_internal(uid.into())
+                                        read_data.uid_allocator.lookup_entity(uid)
                                     },
                                 }
                             })

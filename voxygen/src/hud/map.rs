@@ -1251,7 +1251,7 @@ impl<'a> Widget for Map<'a> {
             })
         };
         for (i, &uid) in group_members.iter().copied().enumerate() {
-            let entity = uid_allocator.retrieve_entity_internal(uid);
+            let entity = uid_allocator.lookup_entity(uid);
             let member_pos = entity.and_then(|entity| member_pos.get(entity));
             let stats = entity.and_then(|entity| stats.get(entity));
             let name = if let Some(stats) = stats {
@@ -1324,7 +1324,7 @@ impl<'a> Widget for Map<'a> {
                     .map(|info| info.player_alias.as_str())
                     .or_else(|| {
                         uid_allocator
-                            .retrieve_entity_internal(uid)
+                            .lookup_entity(uid)
                             .and_then(|entity| stats.get(entity))
                             .map(|stats| stats.name.as_str())
                     })

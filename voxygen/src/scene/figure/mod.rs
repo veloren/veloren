@@ -1055,7 +1055,7 @@ impl FigureMgr {
             let mount_transform_pos = (|| -> Option<_> {
                 if let Some(is_rider) = is_rider {
                     let mount = is_rider.mount;
-                    let mount = uid_allocator.retrieve_entity_internal(mount)?;
+                    let mount = uid_allocator.lookup_entity(mount)?;
                     let body = *bodies.get(mount)?;
                     let meta = self.states.get_mut(&body, &mount)?;
                     Some((meta.mount_transform, meta.mount_world_pos))

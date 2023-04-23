@@ -288,8 +288,7 @@ impl ParticleMgr {
                     let ecs = scene_data.state.ecs();
                     if target
                         .and_then(|target| {
-                            ecs.read_resource::<UidAllocator>()
-                                .retrieve_entity_internal(target)
+                            ecs.read_resource::<UidAllocator>().lookup_entity(target)
                         })
                         .and_then(|entity| {
                             ecs.read_storage::<Body>()

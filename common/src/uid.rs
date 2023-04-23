@@ -55,9 +55,7 @@ impl UidAllocator {
         id
     }
 
-    pub fn retrieve_entity_internal(&self, id: Uid) -> Option<Entity> {
-        self.mapping.get(&id).copied()
-    }
+    pub fn lookup_entity(&self, id: Uid) -> Option<Entity> { self.mapping.get(&id).copied() }
 }
 
 #[cfg(not(target_arch = "wasm32"))]

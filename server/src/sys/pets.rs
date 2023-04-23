@@ -39,7 +39,7 @@ impl<'a> System<'a> for Sys {
             })
             .filter_map(|(pet_entity, pet_pos, owner_uid)| {
                 uid_allocator
-                    .retrieve_entity_internal(owner_uid)
+                    .lookup_entity(owner_uid)
                     .and_then(|owner_entity| {
                         match (positions.get(owner_entity), physics.get(owner_entity)) {
                             (Some(position), Some(physics)) => {

@@ -77,8 +77,7 @@ impl WorldSyncExt for specs::World {
 
     /// Get an entity from a UID
     fn entity_from_uid(&self, uid: Uid) -> Option<specs::Entity> {
-        self.read_resource::<UidAllocator>()
-            .retrieve_entity_internal(uid)
+        self.read_resource::<UidAllocator>().lookup_entity(uid)
     }
 
     fn apply_entity_package<P: CompPacket>(
@@ -119,7 +118,7 @@ impl WorldSyncExt for specs::World {
         package.comp_updates.into_iter().for_each(|(uid, update)| {
             if let Some(entity) = self
                 .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(uid.into())
+                .lookup_entity(uid.into())
             {
                 let force_update = player_entity == Some(entity);
                 match update {
@@ -143,7 +142,7 @@ fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: u64) -> sp
     let entity_uid = Uid::from(entity_uid);
     let existing_entity = specs_world
         .read_resource::<UidAllocator>()
-        .retrieve_entity_internal(entity_uid);
+        .lookup_entity(entity_uid);
 
     match existing_entity {
         Some(entity) => entity,

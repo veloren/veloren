@@ -54,7 +54,7 @@ impl<'a> System<'a> for Sys {
         for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
             // ...find the rider...
             let Some((inputs_and_actions, rider)) = uid_allocator
-                .retrieve_entity_internal(is_mount.rider)
+                .lookup_entity(is_mount.rider)
                 .and_then(|rider| {
                     controllers
                         .get_mut(rider)
@@ -138,7 +138,7 @@ impl<'a> System<'a> for Sys {
                 common::mounting::Volume::Terrain => Vec3::zero(),
                 common::mounting::Volume::Entity(uid) => {
                     if let Some(v) = uid_allocator
-                        .retrieve_entity_internal(uid.into())
+                        .lookup_entity(uid)
                         .and_then(|e| velocities.get(e))
                     {
                         v.0
@@ -172,7 +172,7 @@ impl<'a> System<'a> for Sys {
                     match is_volume_rider.pos.kind {
                         common::mounting::Volume::Entity(uid) => {
                             if let Some(controller) = uid_allocator
-                                .retrieve_entity_internal(uid.into())
+                                .lookup_entity(uid)
                                 .and_then(|e| controllers.get_mut(e))
                             {
                                 controller.inputs = inputs;

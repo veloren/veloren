@@ -65,7 +65,7 @@ pub fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Dir>
 }
 
 pub fn get_entity_by_id(uid: Uid, read_data: &ReadData) -> Option<EcsEntity> {
-    read_data.uid_allocator.retrieve_entity_internal(uid)
+    read_data.uid_allocator.lookup_entity(uid)
 }
 
 /// Calculates whether the agent should continue chase or let the target escape.

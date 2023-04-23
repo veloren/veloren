@@ -96,7 +96,7 @@ impl<'a> System<'a> for Sys {
                         let same_group = |uid: Uid| {
                             read_data
                                 .uid_allocator
-                                .retrieve_entity_internal(uid)
+                                .lookup_entity(uid)
                                 .and_then(|e| read_data.groups.get(e))
                                 .map_or(false, |owner_group| {
                                     Some(owner_group) == read_data.groups.get(target)
@@ -166,9 +166,7 @@ fn activate_aura(
                                     Alignment::Owned(uid) => Some(uid),
                                     _ => None,
                                 })
-                                .and_then(|uid| {
-                                    read_data.uid_allocator.retrieve_entity_internal(*uid)
-                                })
+                                .and_then(|uid| read_data.uid_allocator.lookup_entity(*uid))
                                 .and_then(|owner| read_data.char_states.get(owner))
                                 .map_or(false, CharacterState::is_sitting))
                 },
@@ -185,9 +183,7 @@ fn activate_aura(
             // when we will add this.
             let may_harm = || {
                 let owner = match source {
-                    BuffSource::Character { by } => {
-                        read_data.uid_allocator.retrieve_entity_internal(by)
-                    },
+                    BuffSource::Character { by } => read_data.uid_allocator.lookup_entity(by),
                     _ => None,
                 };
                 combat::may_harm(
