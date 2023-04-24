@@ -361,6 +361,7 @@ fn dispatch_hit(
                 |e| server_emitter.emit(e),
                 |o| outcomes_emitter.emit(o),
                 rng,
+                0,
             );
         },
         projectile::Effect::Explode(e) => {

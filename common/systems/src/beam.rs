@@ -264,6 +264,7 @@ impl<'a> System<'a> for Sys {
                                 |e| server_events.push(e),
                                 |o| outcomes.push(o),
                                 &mut rng,
+                                0,
                             );
 
                             add_hit_entities.push((beam_owner, *uid_b));

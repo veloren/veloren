@@ -254,6 +254,7 @@ impl<'a> System<'a> for Sys {
                         |e| server_emitter.emit(e),
                         |o| outcomes_emitter.emit(o),
                         &mut rng,
+                        0,
                     );
 
                     shockwave_hit_list.hit_entities.push(*uid_b);

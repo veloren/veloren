@@ -232,7 +232,7 @@ impl<'a> System<'a> for Sys {
                         };
 
                     let mut is_applied = false;
-                    for _ in 0..melee_attack.simultaneous_hits {
+                    for offset in 0..melee_attack.simultaneous_hits {
                         is_applied = melee_attack.attack.apply_attack(
                             attacker_info,
                             &target_info,
@@ -244,6 +244,7 @@ impl<'a> System<'a> for Sys {
                             |e| server_emitter.emit(e),
                             |o| outcomes_emitter.emit(o),
                             &mut rng,
+                            offset as u64,
                         ) || is_applied;
                     }
 
