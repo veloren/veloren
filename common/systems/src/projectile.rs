@@ -352,7 +352,7 @@ fn dispatch_hit(
 
             attack.apply_attack(
                 attacker_info,
-                target_info,
+                &target_info,
                 projectile_dir,
                 attack_options,
                 1.0,

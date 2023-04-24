@@ -834,6 +834,7 @@ impl Default for CharacterAbility {
                 angle: 15.0,
                 multi_target: None,
                 damage_effect: None,
+                simultaneous_hits: 1,
             },
             ori_modifier: 1.0,
             meta: Default::default(),

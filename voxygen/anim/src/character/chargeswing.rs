@@ -181,7 +181,10 @@ impl Animation for ChargeswingAnimation {
                     .rotate_y(move2 * -0.3 - tension / 100.0);
                 next.foot_r.orientation.rotate_z(move3 * -1.5);
             },
-            Some("common.abilities.sword.cleaving_spiral_slash") => {
+            Some(
+                "common.abilities.sword.cleaving_spiral_slash"
+                | "common.abilities.sword.cleaving_dual_spiral_slash",
+            ) => {
                 let (move1, tension, move2, move3) = match stage_section {
                     Some(StageSection::Charge) => (
                         anim_time.powf(0.25).min(1.0),

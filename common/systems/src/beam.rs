@@ -255,7 +255,7 @@ impl<'a> System<'a> for Sys {
 
                             beam_segment.properties.attack.apply_attack(
                                 attacker_info,
-                                target_info,
+                                &target_info,
                                 ori.look_dir(),
                                 attack_options,
                                 1.0,

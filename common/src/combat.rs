@@ -188,7 +188,7 @@ impl Attack {
     pub fn apply_attack(
         &self,
         attacker: Option<AttackerInfo>,
-        target: TargetInfo,
+        target: &TargetInfo,
         dir: Dir,
         options: AttackOptions,
         // Currently strength_modifier just modifies damage,
@@ -241,7 +241,7 @@ impl Attack {
             is_applied = true;
             let damage_reduction = Attack::compute_damage_reduction(
                 attacker.as_ref(),
-                &target,
+                target,
                 attack_source,
                 dir,
                 damage.damage,

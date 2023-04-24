@@ -272,6 +272,7 @@ impl CharacterBehavior for Data {
                         // TODO: Evaluate if we want to leave this true. State will be removed at
                         // some point anyways and this does preserve behavior
                         multi_target: Some(MultiTarget::Normal),
+                        simultaneous_hits: 1,
                         break_block: data
                             .inputs
                             .break_block_pos

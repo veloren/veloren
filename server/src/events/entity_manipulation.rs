@@ -1008,7 +1008,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         let time = server.state.ecs().read_resource::<Time>();
                         attack.apply_attack(
                             attacker_info,
-                            target_info,
+                            &target_info,
                             dir,
                             attack_options,
                             strength,

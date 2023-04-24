@@ -241,7 +241,7 @@ impl<'a> System<'a> for Sys {
 
                     shockwave.properties.attack.apply_attack(
                         attacker_info,
-                        target_info,
+                        &target_info,
                         dir,
                         attack_options,
                         1.0,

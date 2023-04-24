@@ -334,7 +334,7 @@ impl<T> AbilityKind<T> {
             } => AbilityKind::<U>::Contextualized {
                 pseudo_id: pseudo_id.clone(),
                 abilities: abilities
-                    .into_iter()
+                    .iter()
                     .map(|(c, (s, x))| (c.clone(), (*s, f(x))))
                     .collect(),
             },
