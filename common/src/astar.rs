@@ -85,9 +85,16 @@ impl<T> PathResult<T> {
 // If node entry exists, this was visited!
 #[derive(Clone, Debug)]
 struct NodeEntry<S> {
-    // if came_from == self this is the start node!
+    /// Previous node in the cheapest path (known so far) that goes from the
+    /// start to this node.
+    ///
+    /// If `came_from == self` this is the start node! (to avoid inflating the
+    /// size with `Option`)
     came_from: S,
-    cheapest_score: f32,
+    /// Cost to reach this node from the start by following the cheapest path
+    /// known so far. This is the sum of the transition costs between all the
+    /// nodes on this path.
+    cost: f32,
 }
 
 #[derive(Clone)]
@@ -131,7 +138,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                 let mut s = HashMap::with_capacity_and_hasher(1, hasher);
                 s.extend(core::iter::once((start.clone(), NodeEntry {
                     came_from: start,
-                    cheapest_score: 0.0,
+                    cost: 0.0,
                 })));
                 s
             },
@@ -165,14 +172,14 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                 cost_estimate,
             }) = self.potential_nodes.pop()
             {
-                let (node_cheapest, came_from) = self
+                let (node_cost, came_from) = self
                     .visited_nodes
                     .get(&node)
-                    .map(|n| (n.cheapest_score, n.came_from.clone()))
+                    .map(|n| (n.cost, n.came_from.clone()))
                     .expect("All nodes in the queue should be included in visisted_nodes");
 
                 if satisfied(&node) {
-                    return PathResult::Path(self.reconstruct_path_to(node), node_cheapest);
+                    return PathResult::Path(self.reconstruct_path_to(node), node_cost);
                 // Note, we assume that cost_estimate isn't an overestimation
                 // (i.e. that `heuristic` doesn't overestimate).
                 } else if cost_estimate > self.max_cost {
@@ -183,28 +190,28 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                             .unwrap_or_default(),
                     );
                 } else {
-                    for (neighbor, transition) in neighbors(&node) {
+                    for (neighbor, transition_cost) in neighbors(&node) {
                         if neighbor == came_from {
                             continue;
                         }
-                        let neighbor_cheapest = self
+                        let neighbor_cost = self
                             .visited_nodes
                             .get(&neighbor)
-                            .map_or(f32::MAX, |n| n.cheapest_score);
+                            .map_or(f32::MAX, |n| n.cost);
 
                         // compute cost to traverse to each neighbor
-                        let cost = node_cheapest + transition;
+                        let cost = node_cost + transition_cost;
 
-                        if cost < neighbor_cheapest {
+                        if cost < neighbor_cost {
                             let previously_visited = self
                                 .visited_nodes
                                 .insert(neighbor.clone(), NodeEntry {
                                     came_from: node.clone(),
-                                    cheapest_score: cost,
+                                    cost,
                                 })
                                 .is_some();
                             let h = heuristic(&neighbor, &node);
-                            // note that cheapest_score does not include the heuristic
+                            // note that `cost` field does not include the heuristic
                             // priority queue does include heuristic
                             let cost_estimate = cost + h;
 
