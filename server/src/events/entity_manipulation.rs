@@ -452,8 +452,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                                 .get(entity)
                                 .and_then(|body| {
                                     // Only humanoids are awarded loot ownership - if the winner
-                                    // was a
-                                    // non-humanoid NPC the loot will be free-for-all
+                                    // was a non-humanoid NPC the loot will be free-for-all
                                     if matches!(body, Body::Humanoid(_)) {
                                         Some(state.ecs().read_storage::<Uid>().get(entity).cloned())
                                     } else {
@@ -469,11 +468,34 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     }
                 }
 
-                if !item_receivers.is_empty() {
-                    let msm = &MaterialStatManifest::load().read();
-                    let ability_map = &AbilityMap::load().read();
-                    let mut item_offset_spiral = Spiral2d::new();
+                let mut item_offset_spiral =
+                    Spiral2d::new().map(|offset| offset.as_::<f32>() * 0.5);
 
+                let mut spawn_item = |item, loot_owner| {
+                    let offset = item_offset_spiral.next().unwrap_or_default();
+                    let item_drop_entity = state
+                        .create_item_drop(Pos(pos.0 + Vec3::unit_z() * 0.25 + offset), item)
+                        .maybe_with(vel)
+                        .build();
+                    if let Some(loot_owner) = loot_owner {
+                        debug!("Assigned UID {loot_owner:?} as the winner for the loot drop");
+                        if let Err(err) = state
+                            .ecs()
+                            .write_storage::<LootOwner>()
+                            .insert(item_drop_entity, LootOwner::new(loot_owner))
+                        {
+                            error!("Failed to set loot owner on item drop: {err}");
+                        };
+                    }
+                };
+
+                let msm = &MaterialStatManifest::load().read();
+                let ability_map = &AbilityMap::load().read();
+                if item_receivers.is_empty() {
+                    for item in flatten_counted_items(&items, ability_map, msm) {
+                        spawn_item(item, None)
+                    }
+                } else {
                     let mut rng = rand::thread_rng();
                     distribute_many(
                         item_receivers
@@ -484,30 +506,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                         |(amount, _)| *amount,
                         |(_, item), loot_owner, count| {
                             for item in item.stacked_duplicates(ability_map, msm, count) {
-                                let offset = item_offset_spiral
-                                    .next()
-                                    .map(|offset| offset.as_::<f32>() * 0.25)
-                                    .unwrap_or_default();
-                                let item_drop_entity = state
-                                    .create_item_drop(
-                                        Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
-                                        item,
-                                    )
-                                    .maybe_with(vel)
-                                    .build();
-                                if let Some(loot_owner) = loot_owner {
-                                    debug!(
-                                        "Assigned UID {loot_owner:?} as the winner for the loot \
-                                         drop"
-                                    );
-                                    if let Err(err) = state
-                                        .ecs()
-                                        .write_storage::<LootOwner>()
-                                        .insert(item_drop_entity, LootOwner::new(loot_owner))
-                                    {
-                                        error!("Failed to set loot owner on item drop: {err}");
-                                    };
-                                }
+                                spawn_item(item, loot_owner)
                             }
                         },
                     );
