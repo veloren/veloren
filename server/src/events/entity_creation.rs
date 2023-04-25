@@ -83,12 +83,15 @@ pub fn handle_loaded_character_data(
             ))),
         );
     }
-    server
-        .state
-        .update_character_data(entity, loaded_components);
-    sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
-    // We notify the client with the metadata result from the operation.
-    server.notify_client(entity, ServerGeneral::CharacterDataLoadResult(Ok(metadata)));
+    let result_msg = if let Err(err) = server.state.update_character_data(entity, loaded_components) {
+        handle_exit_igname(entity, false); // remove client from in-game state
+        ServerGeneral::CharacterDataLoadResult(Err(err))
+    } else {
+        sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
+        // We notify the client with the metadata result from the operation.
+        ServerGeneral::CharacterDataLoadResult(Ok(metadata))
+    };
+    server.notify_client(entity, result_msg));
 }
 
 pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> EcsEntity {
@@ -132,6 +135,7 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
         entity
     };
 
+    // TODO: rtsim entity added here
     let entity = if let Some(rtsim_entity) = npc.rtsim_entity {
         entity.with(rtsim_entity).with(RepositionOnChunkLoad {
             needs_ground: false,

@@ -640,7 +640,7 @@ impl StateExt for State {
 
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(view_distances, PresenceKind::Character(character_id)),
+                Presence::new(view_distances, PresenceKind::LoadingCharacter(character_id)),
             );
 
             // Tell the client its request was successful.
@@ -675,7 +675,12 @@ impl StateExt for State {
         }
     }
 
-    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
+    /// Returned error intended to be sent to the client.
+    fn update_character_data(
+        &mut self,
+        entity: EcsEntity,
+        components: PersistedComponents,
+    ) -> Result<(), String> {
         let PersistedComponents {
             body,
             stats,
@@ -687,7 +692,26 @@ impl StateExt for State {
             map_marker,
         } = components;
 
+        // TODO: CharacterId established here (update id map)
+
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
+            let result =
+                if let Some(presence) = self.ecs().write_storage::<Presence>().get_mut(entity) {
+                    if let PresenceKind::LoadingCharacter(id) = presence.kind {
+                        *presence.kind = PresenceKind::Character(id);
+                        Ok(())
+                    } else {
+                        Err("PresenceKind is not LoadingCharacter")
+                    }
+                } else {
+                    Err("Presence component missing")
+                };
+            if let Err(err) = result {
+                let err = format!("Unexpected state when applying loaded character info: {err}");
+                error!("{err}");
+                return Err(err);
+            }
+
             // Notify clients of a player list update
             self.notify_players(ServerGeneral::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
@@ -768,7 +792,7 @@ impl StateExt for State {
                     restore_pet(self.ecs(), pet_entity, entity, pet);
                 }
             } else {
-                warn!("Player has no pos, cannot load {} pets", pets.len());
+                error!("Player has no pos, cannot load {} pets", pets.len());
             }
 
             let presences = self.ecs().read_storage::<Presence>();
@@ -801,6 +825,8 @@ impl StateExt for State {
                 }
             }
         }
+
+        Ok(())
     }
 
     fn validate_chat_msg(
@@ -1145,10 +1171,25 @@ impl StateExt for State {
         // Cancel extant trades
         events::cancel_trades_for(self, entity);
 
-        let (maybe_uid, maybe_pos) = (
+        let (maybe_uid, maybe_presence, maybe_rtsim_entity, maybe_pos) = (
             self.ecs().read_storage::<Uid>().get(entity).copied(),
+            self.ecs()
+                .read_storage::<Presence>()
+                .get(entity)
+                .map(|p| p.kind),
+            self.ecs()
+                .read_storage::<RtSimEntity>()
+                .get(entity)
+                .copied(),
             self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
         );
+
+        if let Some(uid) = a {
+            if self.ecs().write_resource::<IdMaps>() 
+                .remove_entity().is_none()
+        } else {
+            warn!("Deleting entity without Uid component");
+        }
 
         let res = self.ecs_mut().delete_entity(entity);
         if res.is_ok() {

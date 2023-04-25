@@ -954,6 +954,8 @@ impl Server {
                                         active_abilities,
                                         map_marker,
                                     );
+                                    // TODO: Does this need to be a server event? E.g. we could
+                                    // just handle it here.
                                     ServerEvent::UpdateCharacterData {
                                         entity: response.target_entity,
                                         components: character_data,
@@ -962,9 +964,8 @@ impl Server {
                                 },
                                 Err(error) => {
                                     // We failed to load data for the character from the DB. Notify
-                                    // the client to push the
-                                    // state back to character selection, with the error
-                                    // to display
+                                    // the client to push the state back to character selection,
+                                    // with the error to display
                                     self.notify_client(
                                         response.target_entity,
                                         ServerGeneral::CharacterDataLoadResult(Err(

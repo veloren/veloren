@@ -439,7 +439,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                 PresenceKind::Spectator => PresenceKind::Spectator,
                 // This prevents persistence from overwriting original character info with stuff
                 // from the new character.
-                PresenceKind::Character(_) => {
+                PresenceKind::Character(_) | PresenceKind::LoadingCharacter(_) => {
                     delete_entity = Some(possessor);
                     PresenceKind::Possessor
                 },

@@ -53,16 +53,21 @@ impl WorldSyncExt for specs::World {
 
     fn create_entity_synced(&mut self) -> specs::EntityBuilder {
         let builder = self.create_entity();
+        // TODO: if we split the UidAllocator and the IdMaps into two things then we
+        // need to fetch 2 resources when creating entities.
         let uid = builder
             .world
             .write_resource::<UidAllocator>()
-            .allocate(builder.entity, None);
+            .allocate(builder.entity);
         builder.with(uid)
     }
 
+    /// This method should be used from the client-side when processing network
+    /// messages that delete entities.
+    // TODO: rename method
     fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: Uid) {
         // Clear from uid allocator
-        let maybe_entity = self.write_resource::<UidAllocator>().remove_entity(uid);
+        let maybe_entity = self.write_resource::<UidAllocator>().remove_entity_(uid);
         if let Some(entity) = maybe_entity {
             if let Err(e) = self.delete_entity(entity) {
                 error!(?e, "Failed to delete entity");
