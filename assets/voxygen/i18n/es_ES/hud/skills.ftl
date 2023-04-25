@@ -258,7 +258,7 @@ hud-skill-st_shockwave_cost = Reduce el coste de aguante en un { $boost } %{ $SP
 # Minería - Árbol de habilidades
 hud-skill-mining_title = Minería
 hud-skill-pick_strike_title = Picar
-hud-skill-pick_strike = Pica rocas con el pico para conseguir minerales, gemas y experiencia
+hud-skill-pick_strike = Usa el pico para extraer minerales y gemas de rocas y conseguir puntos de experiencia.
 hud-skill-pick_strike_speed_title = Velocidad de {{ hud-skill-pick_strike_title }}
 hud-skill-pick_strike_speed = Pica rocas más rápido{ $SP }
 hud-skill-pick_strike_oregain_title = Producción de minerales de {{ hud-skill-pick_strike_title }}
