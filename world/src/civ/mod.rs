@@ -1403,11 +1403,9 @@ fn walk_in_all_dirs(
 
     // Look for potential bridge spots in the cardinal directions if
     // `loc_suitable_for_wallking` was false for the adjacent chunk.
-    for i in 0..4 {
-        // These happen to be indices for dirs where: dir.x == 0 || dir.y == 0
-        let i = i * 2;
-        if potential[i].is_none() {
-            let dir = NEIGHBORS[i];
+    for (i, &dir) in NEIGHBORS.iter().enumerate() {
+        let is_cardinal_dir = dir.x == 0 || dir.y == 0;
+        if is_cardinal_dir && potential[i].is_none() {
             // if we can skip over unsuitable area with a bridge
             potential[i] = (4..=5).find_map(|i| {
                 loc_suitable_for_walking(sim, a + dir * i)
