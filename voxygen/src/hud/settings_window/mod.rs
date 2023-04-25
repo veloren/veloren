@@ -6,6 +6,7 @@ mod language;
 mod networking;
 mod sound;
 mod video;
+mod accessibility;
 
 use crate::{
     hud::{img_ids::Imgs, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN},
@@ -41,6 +42,7 @@ widget_ids! {
         language,
         chat,
         networking,
+        accessibility,
     }
 }
 
@@ -57,6 +59,7 @@ pub enum SettingsTab {
     Controls,
     Lang,
     Networking,
+    Accessibility,
 }
 impl SettingsTab {
     fn name_key(&self) -> &str {
@@ -69,6 +72,7 @@ impl SettingsTab {
             SettingsTab::Sound => "common-sound",
             SettingsTab::Lang => "common-languages",
             SettingsTab::Networking => "common-networking",
+            SettingsTab::Accessibility => "common-accessibility",
         }
     }
 
@@ -82,6 +86,7 @@ impl SettingsTab {
             SettingsTab::Sound => "common-sound_settings",
             SettingsTab::Lang => "common-language_settings",
             SettingsTab::Networking => "common-networking_settings",
+            SettingsTab::Accessibility => "common-accessibility_settings",
         }
     }
 }
@@ -346,6 +351,20 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
                 .wh_of(state.ids.settings_content_align)
                 .set(state.ids.networking, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
+            },
+            SettingsTab::Accessibility => {
+                for change in accessibility::Accessibility::new(
+                    global_state,
+                    imgs,
+                    fonts,
+                    localized_strings,
+                )
+                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                .wh_of(state.ids.settings_content_align)
+                .set(state.ids.accessibility, ui)
                 {
                     events.push(Event::SettingsChange(change.into()));
                 }

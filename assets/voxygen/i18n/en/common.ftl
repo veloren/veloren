@@ -12,6 +12,7 @@ common-video = Graphics
 common-sound = Sound
 common-chat = Chat
 common-networking = Networking
+common-accessibility = Accessibility
 common-resume = Resume
 common-characters = Characters
 common-close = Close
@@ -42,6 +43,7 @@ common-sound_settings = Sound Settings
 common-language_settings = Language Settings
 common-chat_settings = Chat Settings
 common-networking_settings = Networking Settings
+common-accessibility_settings = Accessibility Settings
 common-connection_lost =
     Connection lost!
     Did the server restart?
