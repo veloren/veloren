@@ -51,8 +51,10 @@ fn main() -> Result {
 
                     for x in aabb.min.x..aabb.max.x {
                         for y in aabb.min.y..aabb.max.y {
-                            // TODO: remove unwrap
-                            let col = canvas.col(Vec2::new(x, y)).unwrap().get_info();
+                            let col = canvas
+                                .col(Vec2::new(x, y))
+                                .map(|col| col.get_info())
+                                .unwrap_or_default();
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 

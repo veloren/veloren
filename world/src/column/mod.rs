@@ -1259,7 +1259,7 @@ impl ColumnSample<'_> {
 
 // For a version of ColumnSample that can easily be moved around. Feel free to
 // add non reference fields as needed.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ColInfo {
     pub alt: f32,
     pub basement: f32,
