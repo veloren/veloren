@@ -6,7 +6,6 @@ hud-chat-goodbye = ¡Adiós!
 hud-chat-chat_tab_hover_tooltip = Click derecho para opciones
 hud-chat-all = Global
 hud-chat-you = Tú
-hud-chat-mod = Mod
 
 ## Maneras de morirse
 hud-chat-default_death_msg = { $name } ha muerto

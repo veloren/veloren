@@ -84,7 +84,23 @@ buff-desc-fortitude = Ningún ataque enemigo consigue aturdirte.
 buff-title-parried = Parada
 buff-desc-parried = Tu arma ha sido parada por lo que te cuesta recuperarte.
 
+## Enfermedad de poción
+buff-title-potionsickness = Enfermedad de poción
+buff-desc-potionsickness = La pociones van curando cada vez menos con cada consumición a corto plazo.
+buff-stat-potionsickness =
+    Te curas un { $strength } % menos
+    con cada poción consecutiva que consumas.
+
+## Temerario
+buff-title-reckless = Temerario
+buff-desc-reckless = Tus ataques se vuelven más fuertes, pero tus defensas disminuyen.
+
+## Polimorfismo
+buff-title-polymorphed = Polimorfismo
+buff-desc-polymorphed = La forma de tu cuerpo ha cambiado.
+
 ## Util
 buff-text-over_seconds = durante { $dur_secs } segundos
+buff-mysterious = Efecto misterioso
 buff-text-for_seconds = durante { $dur_secs } segundos
 buff-remove = Haz click para eliminar
