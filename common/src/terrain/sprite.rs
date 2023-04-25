@@ -482,7 +482,7 @@ impl SpriteKind {
     #[inline]
     pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
         match self {
-            SpriteKind::ChairSingle | SpriteKind::ChairDouble => Some((
+            SpriteKind::ChairSingle | SpriteKind::ChairDouble | SpriteKind::Bench => Some((
                 Vec3 {
                     x: 0.0,
                     y: 0.0,

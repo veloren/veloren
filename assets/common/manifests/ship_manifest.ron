@@ -50,7 +50,7 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(Helm),
         },
     ),
     SailBoat: (
