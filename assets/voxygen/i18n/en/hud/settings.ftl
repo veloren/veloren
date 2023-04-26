@@ -151,3 +151,4 @@ hud-settings-group_only = Group only
 hud-settings-reset_chat = Reset to Defaults
 hud-settings-third_party_integrations = Third-party Integrations
 hud-settings-enable_discord_integration = Enable Discord Integration
+hud-settings-subtitles = Subtitles

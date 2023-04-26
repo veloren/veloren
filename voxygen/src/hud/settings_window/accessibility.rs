@@ -1,8 +1,9 @@
 use crate::{
     hud::{img_ids::Imgs, TEXT_COLOR},
+    render::RenderMode,
     session::settings_change::{Accessibility as AccessibilityChange, Accessibility::*},
     ui::{fonts::Fonts, ToggleButton},
-    GlobalState, render::RenderMode,
+    GlobalState,
 };
 use conrod_core::{
     color,
@@ -18,6 +19,8 @@ widget_ids! {
         flashing_lights_button,
         flashing_lights_label,
         flashing_lights_info_label,
+        subtitles_button,
+        subtitles_label,
     }
 }
 
@@ -84,7 +87,7 @@ impl<'a> Widget for Accessibility<'a> {
         // Get render mode
         let render_mode = &self.global_state.settings.graphics.render_mode;
 
-        // Disable flashing lights
+        // Flashing lights
         Text::new(
             &self
                 .localized_strings
@@ -97,11 +100,7 @@ impl<'a> Widget for Accessibility<'a> {
         .set(state.ids.flashing_lights_label, ui);
 
         let flashing_lights_enabled = ToggleButton::new(
-            self.global_state
-                .settings
-                .graphics
-                .render_mode
-                .flashing_lights_enabled,
+            render_mode.flashing_lights_enabled,
             self.imgs.checkbox,
             self.imgs.checkbox_checked,
         )
@@ -127,6 +126,29 @@ impl<'a> Widget for Accessibility<'a> {
                 flashing_lights_enabled,
                 ..render_mode.clone()
             })));
+        }
+
+        // Subtitles
+        Text::new(&self.localized_strings.get_msg("hud-settings-subtitles"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.flashing_lights_label, 10.0)
+            .color(TEXT_COLOR)
+            .set(state.ids.subtitles_label, ui);
+
+        let subtitles_enabled = ToggleButton::new(
+            self.global_state.settings.audio.subtitles,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.subtitles_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.subtitles_button, ui);
+
+        if subtitles_enabled != self.global_state.settings.audio.subtitles {
+            events.push(SetSubtitles(subtitles_enabled));
         }
 
         events

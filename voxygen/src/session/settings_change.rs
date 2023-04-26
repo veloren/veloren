@@ -175,6 +175,7 @@ pub enum Networking {
 #[derive(Clone)]
 pub enum Accessibility {
     ChangeRenderMode(Box<RenderMode>),
+    SetSubtitles(bool),
 }
 
 #[derive(Clone)]
@@ -744,7 +745,11 @@ impl SettingsChange {
             SettingsChange::Accessibility(accessibility_change) => match accessibility_change {
                 Accessibility::ChangeRenderMode(new_render_mode) => {
                     change_render_mode(*new_render_mode, &mut global_state.window, settings);
-                }
+                },
+                Accessibility::SetSubtitles(enabled) => {
+                    global_state.settings.audio.subtitles = enabled;
+                    global_state.audio.set_subtitles(enabled);
+                },
             },
         }
         global_state

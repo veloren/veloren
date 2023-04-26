@@ -139,6 +139,7 @@ fn main() {
         AudioOutput::Automatic => AudioFrontend::new(
             settings.audio.num_sfx_channels,
             settings.audio.num_ui_channels,
+            settings.audio.subtitles,
         ),
         //    AudioOutput::Device(ref dev) => Some(dev.clone()),
     };

@@ -1,3 +1,4 @@
+mod accessibility;
 mod chat;
 mod controls;
 mod gameplay;
@@ -6,7 +7,6 @@ mod language;
 mod networking;
 mod sound;
 mod video;
-mod accessibility;
 
 use crate::{
     hud::{img_ids::Imgs, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN},
@@ -356,15 +356,11 @@ impl<'a> Widget for SettingsWindow<'a> {
                 }
             },
             SettingsTab::Accessibility => {
-                for change in accessibility::Accessibility::new(
-                    global_state,
-                    imgs,
-                    fonts,
-                    localized_strings,
-                )
-                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
-                .wh_of(state.ids.settings_content_align)
-                .set(state.ids.accessibility, ui)
+                for change in
+                    accessibility::Accessibility::new(global_state, imgs, fonts, localized_strings)
+                        .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                        .wh_of(state.ids.settings_content_align)
+                        .set(state.ids.accessibility, ui)
                 {
                     events.push(Event::SettingsChange(change.into()));
                 }
