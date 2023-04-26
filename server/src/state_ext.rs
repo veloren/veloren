@@ -27,7 +27,7 @@ use common::{
     resources::{Secs, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     LoadoutBuilder, ViewDistances,
 };
 use common_net::{
@@ -38,7 +38,7 @@ use common_state::State;
 use rand::prelude::*;
 use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
 use std::time::{Duration, Instant};
-use tracing::{trace, warn};
+use tracing::{error, trace, warn};
 use vek::*;
 
 pub trait StateExt {
@@ -125,7 +125,11 @@ pub trait StateExt {
     fn initialize_spectator_data(&mut self, entity: EcsEntity, view_distances: ViewDistances);
     /// Update the components associated with the entity's current character.
     /// Performed after loading component data from the database
-    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
+    fn update_character_data(
+        &mut self,
+        entity: EcsEntity,
+        components: PersistedComponents,
+    ) -> Result<(), String>;
     /// Iterates over registered clients and send each `ServerMsg`
     fn validate_chat_msg(
         &self,
@@ -1173,6 +1177,9 @@ impl StateExt for State {
 
         let (maybe_uid, maybe_presence, maybe_rtsim_entity, maybe_pos) = (
             self.ecs().read_storage::<Uid>().get(entity).copied(),
+            // TODO: what if one of these 2 components was removed from the entity?
+            // We could simulate rlinear types at runtime with a `dev_panic!` in the drop for these
+            // components?
             self.ecs()
                 .read_storage::<Presence>()
                 .get(entity)
@@ -1184,16 +1191,28 @@ impl StateExt for State {
             self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
         );
 
-        if let Some(uid) = a {
-            if self.ecs().write_resource::<IdMaps>() 
-                .remove_entity().is_none()
+        if let Some(uid) = maybe_uid {
+            // TODO: exit_ingame for player doesn't hit this path since Uid is removed
+            self.ecs().write_resource::<IdMaps>().remove_entity(
+                Some(entity),
+                uid,
+                maybe_presence.and_then(|p| match p.kind {
+                    PresenceKind::Spectator
+                    | PresenceKind::Possessed
+                    | PresenceKind::LoadingCharacter(_) => None,
+                    PresenceKind::Character(id) => Some(id),
+                }),
+                maybe_rtsim_entity,
+            )
         } else {
-            warn!("Deleting entity without Uid component");
+            error!("Deleting entity without Uid component");
         }
 
         let res = self.ecs_mut().delete_entity(entity);
         if res.is_ok() {
             if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
+                // TODO: exit_ingame for player doesn't hit this path since Uid is removed, not
+                // sure if that is correct.
                 if let Some(region_key) = self
                     .ecs()
                     .read_resource::<common::region::RegionMap>()

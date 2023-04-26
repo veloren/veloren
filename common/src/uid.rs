@@ -62,11 +62,10 @@ mod not_wasm {
         // -- Fields below only used on the server --
         uid_allocator: UidAllocator,
 
-        // Maps below are only used on the server.
         /// Character IDs.
         cid_mapping: HashMap<CharacterId, Entity>,
         /// Rtsim Entities.
-        rid_mapping: HashMap<RtsimEntity, Entity>,
+        rid_mapping: HashMap<RtSimEntity, Entity>,
     }
 
     impl IdMaps {
@@ -84,12 +83,12 @@ mod not_wasm {
 
         /// Given a `CharacterId` retrieve the corresponding `Entity`.
         pub fn cid_entity(&self, id: CharacterId) -> Option<Entity> {
-            self.uid_mapping.get(&id).copied()
+            self.cid_mapping.get(&id).copied()
         }
 
         /// Given a `RtSimEntity` retrieve the corresponding `Entity`.
         pub fn rid_entity(&self, id: RtSimEntity) -> Option<Entity> {
-            self.uid_mapping.get(&id).copied()
+            self.rid_mapping.get(&id).copied()
         }
 
         // TODO: I think this is suitable to use on both the client and the server.
@@ -105,17 +104,19 @@ mod not_wasm {
             expected_entity: Option<Entity>,
             uid: Uid,
             cid: Option<CharacterId>,
-            rid: Option<RtsimEntity>,
+            rid: Option<RtSimEntity>,
         ) -> Option<Entity> {
             #[cold]
             #[inline(never)]
             fn unexpected_entity<ID>() {
-                error!("Provided was {kind} mapped to an unexpected entity!");
+                let kind = core::any::type_name::<ID>();
+                error!("Provided {kind} was mapped to an unexpected entity!");
             }
             #[cold]
             #[inline(never)]
             fn not_present<ID>() {
-                error!("Provided was {kind} not mapped to any entity!");
+                let kind = core::any::type_name::<ID>();
+                error!("Provided {kind} was not mapped to any entity!");
             }
 
             fn remove<ID: Hash + Eq>(
@@ -124,8 +125,8 @@ mod not_wasm {
                 expected: Option<Entity>,
             ) -> Option<Entity> {
                 if let Some(id) = id {
-                    if let Some(e) = mapping.remove(id) {
-                        if Some(expected) = expected && e != expected {
+                    if let Some(e) = mapping.remove(&id) {
+                        if expected.map_or(true, |expected| e != expected) {
                             unexpected_entity::<ID>();
                         }
                         Some(e)

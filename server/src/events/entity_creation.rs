@@ -83,15 +83,19 @@ pub fn handle_loaded_character_data(
             ))),
         );
     }
-    let result_msg = if let Err(err) = server.state.update_character_data(entity, loaded_components) {
-        handle_exit_igname(entity, false); // remove client from in-game state
+
+    let result_msg = if let Err(err) = server
+        .state
+        .update_character_data(entity, loaded_components)
+    {
+        handle_exit_ingame(server, entity, false); // remove client from in-game state
         ServerGeneral::CharacterDataLoadResult(Err(err))
     } else {
         sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
         // We notify the client with the metadata result from the operation.
         ServerGeneral::CharacterDataLoadResult(Ok(metadata))
     };
-    server.notify_client(entity, result_msg));
+    server.notify_client(entity, result_msg);
 }
 
 pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> EcsEntity {

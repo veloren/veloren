@@ -2221,6 +2221,7 @@ impl Client {
                     if let Some(presence) = self.presence {
                         self.presence = Some(match presence {
                             PresenceKind::Spectator => PresenceKind::Spectator,
+                            PresenceKind::LoadingCharacter(_) => PresenceKind::Possessor,
                             PresenceKind::Character(_) => PresenceKind::Possessor,
                             PresenceKind::Possessor => PresenceKind::Possessor,
                         });
@@ -2748,12 +2749,12 @@ impl Client {
 
         // Recreate client entity with Uid
         let entity_builder = self.state.ecs_mut().create_entity();
-        let uid = entity_builder
+        entity_builder
             .world
             .write_resource::<IdMaps>()
-            .allocate(entity_builder.entity, Some(client_uid));
+            .add_entity(client_uid, entity_builder.entity);
 
-        let entity = entity_builder.with(uid).build();
+        let entity = entity_builder.with(client_uid).build();
         self.state.ecs().write_resource::<PlayerEntity>().0 = Some(entity);
     }
 

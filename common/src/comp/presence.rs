@@ -31,10 +31,10 @@ impl Component for Presence {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PresenceKind {
     Spectator,
-    Character(CharacterId),
     // Note: we don't know if this character ID is valid and associated with the respective player
     // until it the character has loaded successfully.
     LoadingCharacter(CharacterId),
+    Character(CharacterId),
     Possessor,
 }
 

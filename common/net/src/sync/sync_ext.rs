@@ -66,10 +66,12 @@ impl WorldSyncExt for specs::World {
 
     /// This method should be used from the client-side when processing network
     /// messages that delete entities.
-    // TODO: rename method
+    // TODO: rename method, document called from client only
     fn delete_entity_and_clear_from_id_maps(&mut self, uid: Uid) {
         // Clear from uid allocator
-        let maybe_entity = self.write_resource::<IdMaps>().remove_entity_(uid);
+        let maybe_entity = self
+            .write_resource::<IdMaps>()
+            .remove_entity(None, uid, None, None);
         if let Some(entity) = maybe_entity {
             if let Err(e) = self.delete_entity(entity) {
                 error!(?e, "Failed to delete entity");
@@ -142,19 +144,24 @@ impl WorldSyncExt for specs::World {
 }
 
 // Private utilities
+//
+// Only used on the client.
 fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: u64) -> specs::Entity {
     let entity_uid = Uid::from(entity_uid);
     let existing_entity = specs_world.read_resource::<IdMaps>().uid_entity(entity_uid);
 
+    // TODO: Are there any expected cases where there is an existing entity with
+    // this UID? If not, we may want to log an error. Otherwise, it may be useful to
+    // document these cases.
     match existing_entity {
         Some(entity) => entity,
         None => {
             let entity_builder = specs_world.create_entity();
-            let uid = entity_builder
+            entity_builder
                 .world
                 .write_resource::<IdMaps>()
-                .allocate(entity_builder.entity, Some(entity_uid));
-            entity_builder.with(uid).build()
+                .add_entity(entity_uid, entity_builder.entity);
+            entity_builder.with(entity_uid).build()
         },
     }
 }

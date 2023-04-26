@@ -80,6 +80,8 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         let ecs = state.ecs();
         Some((
             ecs.write_storage::<Client>().remove(entity)?,
+            // TODO: we need to handle the case where the UID component is removed but there may be
+            // a character ID mapping that also needs to be removed!
             ecs.write_storage::<Uid>().remove(entity)?,
             ecs.write_storage::<comp::Player>().remove(entity)?,
         ))
@@ -107,6 +109,10 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             .write_resource::<IdMaps>()
             .allocate(entity_builder.entity, Some(uid.into()));
         let new_entity = entity_builder.with(uid).build();
+
+        // Note, since the Uid has been removed from the old entity, that prevents
+        // `delete_entity_recorded` from making any changes to the group (TODO double check this
+        // logic) 
         if let Some(group) = maybe_group {
             let mut group_manager = state.ecs().write_resource::<group::GroupManager>();
             if group_manager
