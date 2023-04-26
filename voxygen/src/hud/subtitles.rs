@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
 
-use crate::ui::fonts::Fonts;
+use crate::{settings::Settings, ui::fonts::Fonts};
 use client::Client;
 use common::comp;
 use conrod_core::{
-    widget::{self, Text},
-    widget_ids, Colorable, Positionable, Widget, WidgetCommon,
+    widget::{self, Id, Rectangle, Text},
+    widget_ids, Colorable, Positionable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
 
@@ -13,15 +13,16 @@ use vek::{Vec2, Vec3};
 
 widget_ids! {
     struct Ids {
-        subtitle_box,
         subtitle_box_bg,
         subtitle_message[],
+        subtitle_dir[],
     }
 }
 
 #[derive(WidgetCommon)]
 pub struct Subtitles<'a> {
     client: &'a Client,
+    settings: &'a Settings,
 
     fonts: &'a Fonts,
 
@@ -36,12 +37,14 @@ pub struct Subtitles<'a> {
 impl<'a> Subtitles<'a> {
     pub fn new(
         client: &'a Client,
+        settings: &'a Settings,
         new_subtitles: &'a mut VecDeque<Subtitle>,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
     ) -> Self {
         Self {
             client,
+            settings,
             fonts,
             new_subtitles,
             common: widget::CommonBuilder::default(),
@@ -123,21 +126,26 @@ impl<'a> Widget for Subtitles<'a> {
             s.ids
                 .subtitle_message
                 .resize(s.subtitles.len(), &mut ui.widget_id_generator());
+            s.ids
+                .subtitle_dir
+                .resize(s.subtitles.len(), &mut ui.widget_id_generator());
         });
 
-        let mut subtitles = state
-            .ids
-            .subtitle_message
-            .iter()
-            .zip(state.subtitles.iter());
-
-        let fade_amount = |t: &Subtitle| ((t.show_until - time) * 1.5).clamp(0.0, 1.0) as f32;
+        let color = |t: &Subtitle| {
+            conrod_core::Color::Rgba(
+                0.9,
+                1.0,
+                1.0,
+                ((t.show_until - time) * 1.5).clamp(0.0, 1.0) as f32,
+            )
+        };
 
         let player_dir = player_dir.xy().try_normalized().unwrap_or(Vec2::unit_y());
         let player_right = Vec2::new(player_dir.y, -player_dir.x);
 
-        let message = |subtitle: &Subtitle| {
-            let message = self.localized_strings.get_msg(&subtitle.localization);
+        let message = |subtitle: &Subtitle| self.localized_strings.get_msg(&subtitle.localization);
+
+        let dir = |subtitle: &Subtitle, id: &Id, dir_id: &Id, ui: &mut UiCell| {
             let is_right = subtitle.position.and_then(|pos| {
                 let dist = pos.distance(player_pos);
                 let dir = (pos - player_pos) / dist;
@@ -149,41 +157,69 @@ impl<'a> Widget for Subtitles<'a> {
                     Some(dir.xy().dot(player_right) >= 0.0)
                 }
             });
-
             match is_right {
-                Some(true) => format!("   {message} >"),
-                Some(false) => format!("< {message}   "),
-                None => format!("   {message}   "),
+                Some(true) => Text::new(">  ")
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .parent(state.ids.subtitle_box_bg)
+                    .align_right_of(state.ids.subtitle_box_bg)
+                    .align_middle_y_of(*id)
+                    .color(color(subtitle))
+                    .set(*dir_id, ui),
+                Some(false) => Text::new("  <")
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .parent(state.ids.subtitle_box_bg)
+                    .align_left_of(state.ids.subtitle_box_bg)
+                    .align_middle_y_of(*id)
+                    .color(color(subtitle))
+                    .set(*dir_id, ui),
+                None => Text::new("")
+                    .font_size(self.fonts.cyri.scale(14))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .parent(state.ids.subtitle_box_bg)
+                    .color(color(subtitle))
+                    .set(*dir_id, ui),
             }
         };
 
-        if let Some((id, subtitle)) = subtitles.next() {
+        Rectangle::fill([200.0, 2.0 + 22.0 * state.subtitles.len() as f64])
+            .rgba(0.0, 0.0, 0.0, self.settings.chat.chat_opacity)
+            .bottom_right_with_margins_on(ui.window, 40.0, 50.0)
+            .set(state.ids.subtitle_box_bg, ui);
+
+        let mut subtitles = state
+            .ids
+            .subtitle_message
+            .iter()
+            .zip(state.ids.subtitle_dir.iter())
+            .zip(state.subtitles.iter());
+
+        if let Some(((id, dir_id), subtitle)) = subtitles.next() {
             Text::new(&message(subtitle))
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
+                .parent(state.ids.subtitle_box_bg)
                 .center_justify()
-                .bottom_right_with_margins(40.0, 50.0)
-                .color(conrod_core::Color::Rgba(
-                    0.9,
-                    1.0,
-                    1.0,
-                    fade_amount(subtitle),
-                ))
+                .mid_bottom_with_margin_on(state.ids.subtitle_box_bg, 6.0)
+                .color(color(subtitle))
                 .set(*id, ui);
+
+            dir(subtitle, id, dir_id, ui);
+
             let mut last_id = *id;
-            for (id, subtitle) in subtitles {
+            for ((id, dir_id), subtitle) in subtitles {
                 Text::new(&message(subtitle))
                     .font_size(self.fonts.cyri.scale(14))
                     .font_id(self.fonts.cyri.conrod_id)
-                    .center_justify()
-                    .up_from(last_id, 10.0)
-                    .color(conrod_core::Color::Rgba(
-                        0.9,
-                        1.0,
-                        1.0,
-                        fade_amount(subtitle),
-                    ))
+                    .parent(state.ids.subtitle_box_bg)
+                    .up_from(last_id, 8.0)
+                    .align_middle_x_of(last_id)
+                    .color(color(subtitle))
                     .set(*id, ui);
+
+                dir(subtitle, id, dir_id, ui);
+
                 last_id = *id;
             }
         }

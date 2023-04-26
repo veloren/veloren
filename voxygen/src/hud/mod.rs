@@ -3349,8 +3349,14 @@ impl Hud {
         }
 
         if global_state.settings.audio.subtitles {
-            Subtitles::new(client, &mut global_state.audio.subtitles, &self.fonts, i18n)
-                .set(self.ids.subtitles, ui_widgets);
+            Subtitles::new(
+                client,
+                &global_state.settings,
+                &mut global_state.audio.subtitles,
+                &self.fonts,
+                i18n,
+            )
+            .set(self.ids.subtitles, ui_widgets);
         } else {
             global_state.audio.subtitles.clear();
         }
