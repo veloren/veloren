@@ -9,7 +9,7 @@ use common::{
     outcome::Outcome,
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     vol::ReadVol,
     GroupTarget,
 };
@@ -31,7 +31,7 @@ pub struct ReadData<'a> {
     time: Read<'a, Time>,
     dt: Read<'a, DeltaTime>,
     terrain: ReadExpect<'a, TerrainGrid>,
-    uid_allocator: Read<'a, UidAllocator>,
+    id_maps: Read<'a, IdMaps>,
     cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
 
                     let beam_owner = beam_segment
                         .owner
-                        .and_then(|uid| read_data.uid_allocator.lookup_entity(uid));
+                        .and_then(|uid| read_data.id_maps.uid_entity(uid));
 
                     // Note: rayon makes it difficult to hold onto a thread-local RNG, if grabbing
                     // this becomes a bottleneck we can look into alternatives.
@@ -243,7 +243,7 @@ impl<'a> System<'a> for Sys {
                             let may_harm = combat::may_harm(
                                 &read_data.alignments,
                                 &read_data.players,
-                                &read_data.uid_allocator,
+                                &read_data.id_maps,
                                 beam_owner,
                                 target,
                             );

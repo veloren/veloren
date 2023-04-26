@@ -8,7 +8,7 @@ use wasmer::{Function, Memory, Value};
 
 use common::{
     comp::{Health, Player},
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
 };
 
 use super::errors::{MemoryAllocationError, PluginModuleError};
@@ -18,7 +18,7 @@ pub struct EcsWorld<'a, 'b> {
     pub health: EcsComponentAccess<'a, 'b, Health>,
     pub uid: EcsComponentAccess<'a, 'b, Uid>,
     pub player: EcsComponentAccess<'a, 'b, Player>,
-    pub uid_allocator: &'b Read<'a, UidAllocator>,
+    pub id_maps: &'b Read<'a, IdMaps>,
 }
 
 pub enum EcsComponentAccess<'a, 'b, T: Component> {

@@ -410,7 +410,7 @@ mod tests {
     use hashbrown::HashMap;
 
     use super::*;
-    use common::{comp::slot::InvSlotId, uid::UidAllocator};
+    use common::{comp::slot::InvSlotId, uid::IdMaps};
 
     use specs::{Builder, World};
 
@@ -423,7 +423,7 @@ mod tests {
         merchant_inv_size: usize,
     ) -> (World, EcsEntity, EcsEntity) {
         let mut mockworld = World::new();
-        mockworld.insert(UidAllocator::new());
+        mockworld.insert(IdMaps::new());
         mockworld.insert(MaterialStatManifest::load().cloned());
         mockworld.insert(AbilityMap::load().cloned());
         mockworld.register::<Inventory>();
@@ -442,10 +442,10 @@ mod tests {
         {
             use specs::saveload::MarkerAllocator;
             let mut uids = mockworld.write_component::<Uid>();
-            let mut uid_allocator = mockworld.write_resource::<UidAllocator>();
-            uids.insert(player, uid_allocator.allocate(player, None))
+            let mut id_maps = mockworld.write_resource::<IdMaps>();
+            uids.insert(player, id_maps.allocate(player, None))
                 .expect("inserting player uid failed");
-            uids.insert(merchant, uid_allocator.allocate(merchant, None))
+            uids.insert(merchant, id_maps.allocate(merchant, None))
                 .expect("inserting merchant uid failed");
         }
 

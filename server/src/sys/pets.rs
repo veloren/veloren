@@ -1,7 +1,7 @@
 use common::{
     comp::{Alignment, Pet, PhysicsState, Pos},
     terrain::TerrainGrid,
-    uid::UidAllocator,
+    uid::IdMaps,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Entity, Join, Read, ReadExpect, ReadStorage, WriteStorage};
@@ -17,7 +17,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Pet>,
         ReadStorage<'a, PhysicsState>,
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
     );
 
     const NAME: &'static str = "pets";
@@ -26,7 +26,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, terrain, mut positions, alignments, pets, physics, uid_allocator): Self::SystemData,
+        (entities, terrain, mut positions, alignments, pets, physics, id_maps): Self::SystemData,
     ) {
         const LOST_PET_DISTANCE_THRESHOLD: f32 = 200.0;
 
@@ -38,8 +38,8 @@ impl<'a> System<'a> for Sys {
                 _ => None,
             })
             .filter_map(|(pet_entity, pet_pos, owner_uid)| {
-                uid_allocator
-                    .lookup_entity(owner_uid)
+                id_maps
+                    .uid_entity(owner_uid)
                     .and_then(|owner_entity| {
                         match (positions.get(owner_entity), physics.get(owner_entity)) {
                             (Some(position), Some(physics)) => {

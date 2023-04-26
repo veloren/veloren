@@ -20,7 +20,7 @@ use common::{
     spiral::Spiral2d,
     states::{self, utils::StageSection},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
-    uid::UidAllocator,
+    uid::IdMaps,
     vol::{ReadVol, RectRasterableVol, SizedVol},
 };
 use common_base::span;
@@ -288,7 +288,7 @@ impl ParticleMgr {
                     let ecs = scene_data.state.ecs();
                     if target
                         .and_then(|target| {
-                            ecs.read_resource::<UidAllocator>().lookup_entity(target)
+                            ecs.read_resource::<IdMaps>().uid_entity(target)
                         })
                         .and_then(|entity| {
                             ecs.read_storage::<Body>()

@@ -6,8 +6,10 @@ use std::{fmt, u64};
 use {
     crate::character::CharacterId,
     crate::rtsim::RtSimEntity,
+    core::hash::Hash,
     hashbrown::HashMap,
     specs::{Component, Entity, FlaggedStorage, VecStorage},
+    tracing::error,
 };
 
 // TODO: could we switch this to `NonZeroU64`?
@@ -35,25 +37,19 @@ mod not_wasm {
         type Storage = FlaggedStorage<Self, VecStorage<Self>>;
     }
 
-    // NOTE: This is technically only needed by the server code server. Keeping here
-    // for now since this is related to the other code here.
     #[derive(Debug)]
-    pub struct UidAllocator {
+    struct UidAllocator {
         /// Next Uid.
         next_uid: u64,
     }
 
     impl UidAllocator {
-        pub fn new() -> Self { Self { next_uid: 0 } }
+        fn new() -> Self { Self { next_uid: 0 } }
 
-        pub fn allocate(&mut self, entity: Entity, id: Option<Uid>) -> Uid {
-            let id = id.unwrap_or_else(|| {
-                let id = self.next_uid;
-                self.next_uid += 1;
-                Uid(id)
-            });
-            self.uid_mapping.insert(id, entity);
-            id
+        fn allocate(&mut self) -> Uid {
+            let id = self.next_uid;
+            self.next_uid += 1;
+            Uid(id)
         }
     }
 
@@ -63,6 +59,9 @@ mod not_wasm {
         /// network).
         uid_mapping: HashMap<Uid, Entity>,
 
+        // -- Fields below only used on the server --
+        uid_allocator: UidAllocator,
+
         // Maps below are only used on the server.
         /// Character IDs.
         cid_mapping: HashMap<CharacterId, Entity>,
@@ -70,34 +69,37 @@ mod not_wasm {
         rid_mapping: HashMap<RtsimEntity, Entity>,
     }
 
-    impl IdManager {
+    impl IdMaps {
         pub fn new() -> Self {
             Self {
                 uid_mapping: HashMap::new(),
+                uid_allocator: UidAllocator::new(),
                 cid_mapping: HashMap::new(),
                 rid_mapping: HashMap::new(),
             }
         }
 
-        /// Given a `Uid` retrieve the corresponding `Entity`
+        /// Given a `Uid` retrieve the corresponding `Entity`.
         pub fn uid_entity(&self, id: Uid) -> Option<Entity> { self.uid_mapping.get(&id).copied() }
 
-        /// Given a `CharacterId` retrieve the corresponding `Entity`
+        /// Given a `CharacterId` retrieve the corresponding `Entity`.
         pub fn cid_entity(&self, id: CharacterId) -> Option<Entity> {
             self.uid_mapping.get(&id).copied()
         }
 
-        /// Given a `Uid` retrieve the corresponding `Entity`
+        /// Given a `RtSimEntity` retrieve the corresponding `Entity`.
         pub fn rid_entity(&self, id: RtSimEntity) -> Option<Entity> {
             self.uid_mapping.get(&id).copied()
         }
 
+        // TODO: I think this is suitable to use on both the client and the server.
         // NOTE: This is only used on the client? Do we not remove on the server?
         // NOTE: We need UID mapping also on the client but we don't need the other
         // mappings on the client!
         //
         // Useful for when a single entity is deleted because it doesn't reconstruct the
         // entire hashmap
+        /// Returns the `Entity` that the provided `Uid` was mapped to.
         pub fn remove_entity(
             &mut self,
             expected_entity: Option<Entity>,
@@ -108,12 +110,12 @@ mod not_wasm {
             #[cold]
             #[inline(never)]
             fn unexpected_entity<ID>() {
-                error!("{kind} mapped to an unexpected entity!");
+                error!("Provided was {kind} mapped to an unexpected entity!");
             }
             #[cold]
             #[inline(never)]
             fn not_present<ID>() {
-                error!("{kind} not mapped to any entity!");
+                error!("Provided was {kind} not mapped to any entity!");
             }
 
             fn remove<ID: Hash + Eq>(
@@ -143,50 +145,42 @@ mod not_wasm {
             maybe_entity
         }
 
-        // TODO: we probably need separate methods here
-        // TODO: document what methods are called only on the client or the server
-        pub fn add_entity(
-            &mut self,
-            entity: Entity,
-            uid: Uid,
-            cid: Option<CharacterId>,
-            rid: Option<RtSimEntity>,
-        ) {
-            #[cold]
-            #[inline(never)]
-            fn already_present<ID>() {
-                let kind = core::any::type_name::<ID>();
-                error!("{kind} already mapped to an entity!!!");
-            }
-
-            fn insert<ID: Hash + Eq>(
-                mapping: &mut HashMap<ID, Entity>,
-                new_id: ID,
-                entity: Entity,
-            ) {
-                if let Some(_previous_entity) = mapping.insert(new_id, entity) {
-                    already_present::<ID>();
-                }
-            }
-
-            insert(&mut self.uid_mapping, uid, entity);
-            if let Some(cid) = cid {
-                insert(&mut self.cid_mapping, cid, entity);
-            }
-            if let Some(rid) = rid {
-                insert(&mut self.rid_mapping, rid, entity);
-            }
+        /// Only used on the client (server solely uses `Self::allocate` to
+        /// allocate and add Uid mappings).
+        pub fn add_entity(&mut self, uid: Uid, entity: Entity) {
+            Self::insert(&mut self.uid_mapping, uid, entity);
         }
 
+        /// Only used on the server.
+        pub fn add_character(&mut self, cid: CharacterId, entity: Entity) {
+            Self::insert(&mut self.cid_mapping, cid, entity);
+        }
+
+        /// Only used on the server.
+        pub fn add_rtsim(&mut self, rid: RtSimEntity, entity: Entity) {
+            Self::insert(&mut self.rid_mapping, rid, entity);
+        }
+
+        /// Allocates a new `Uid` and links it to the provided entity.
+        ///
+        /// Only used on the server.
         pub fn allocate(&mut self, entity: Entity) -> Uid {
-            let id = id.unwrap_or_else(|| {
-                let id = self.next_uid;
-                self.next_uid += 1;
-                Uid(id)
-            });
-            // TODO: not sure we want to insert here?
-            self.uid_mapping.insert(id, entity);
-            id
+            let uid = self.uid_allocator.allocate();
+            self.uid_mapping.insert(uid, entity);
+            uid
+        }
+
+        #[cold]
+        #[inline(never)]
+        fn already_present<ID>() {
+            let kind = core::any::type_name::<ID>();
+            error!("Provided {kind} was already mapped to an entity!!!");
+        }
+
+        fn insert<ID: Hash + Eq>(mapping: &mut HashMap<ID, Entity>, new_id: ID, entity: Entity) {
+            if let Some(_previous_entity) = mapping.insert(new_id, entity) {
+                Self::already_present::<ID>();
+            }
         }
     }
 

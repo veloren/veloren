@@ -47,7 +47,7 @@ use common::{
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
@@ -245,8 +245,8 @@ fn position_mut<T>(
             server
                 .state
                 .ecs()
-                .read_resource::<UidAllocator>()
-                .lookup_entity(is_rider.mount)
+                .read_resource::<IdMaps>()
+                .uid_entity(is_rider.mount)
         })
         .map(Ok)
         .or_else(|| {
@@ -262,8 +262,8 @@ fn position_mut<T>(
                         common::mounting::Volume::Entity(uid) => Ok(server
                             .state
                             .ecs()
-                            .read_resource::<UidAllocator>()
-                            .lookup_entity(uid)?),
+                            .read_resource::<IdMaps>()
+                            .uid_entity(uid)?),
                     })
                 })
         })

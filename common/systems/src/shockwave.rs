@@ -8,7 +8,7 @@ use common::{
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     resources::{DeltaTime, Time},
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     util::Dir,
     GroupTarget,
 };
@@ -26,7 +26,7 @@ pub struct ReadData<'a> {
     time: Read<'a, Time>,
     players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
-    uid_allocator: Read<'a, UidAllocator>,
+    id_maps: Read<'a, IdMaps>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     orientations: ReadStorage<'a, Ori>,
@@ -91,7 +91,7 @@ impl<'a> System<'a> for Sys {
 
             let shockwave_owner = shockwave
                 .owner
-                .and_then(|uid| read_data.uid_allocator.lookup_entity(uid));
+                .and_then(|uid| read_data.id_maps.uid_entity(uid));
 
             if rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
@@ -228,7 +228,7 @@ impl<'a> System<'a> for Sys {
                     let may_harm = combat::may_harm(
                         &read_data.alignments,
                         &read_data.players,
-                        &read_data.uid_allocator,
+                        &read_data.id_maps,
                         shockwave_owner,
                         target,
                     );

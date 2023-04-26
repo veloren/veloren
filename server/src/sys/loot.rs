@@ -1,6 +1,6 @@
 use common::{
     comp::{group::GroupManager, loot_owner::LootOwnerKind, LootOwner},
-    uid::UidAllocator,
+    uid::IdMaps,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Entity, Join, Read, WriteStorage};
@@ -13,7 +13,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         WriteStorage<'a, LootOwner>,
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         Read<'a, GroupManager>,
     );
 
@@ -23,7 +23,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, mut loot_owners, uid_allocator, group_manager): Self::SystemData,
+        (entities, mut loot_owners, id_maps, group_manager): Self::SystemData,
     ) {
         // Find and remove expired loot ownership. Loot ownership is expired when either
         // the expiry time has passed, or the owner no longer exists
@@ -32,8 +32,8 @@ impl<'a> System<'a> for Sys {
             .filter(|(_, loot_owner)| {
                 loot_owner.expired()
                     || match loot_owner.owner() {
-                        LootOwnerKind::Player(uid) => uid_allocator
-                            .lookup_entity(uid)
+                        LootOwnerKind::Player(uid) => id_maps
+                            .uid_entity(uid)
                             .map_or(true, |entity| !entities.is_alive(entity)),
                         LootOwnerKind::Group(group) => group_manager.group_info(group).is_none(),
                     }

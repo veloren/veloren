@@ -47,7 +47,7 @@ use common::{
         TerrainGrid,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     vol::RectVolSize,
     weather::{Weather, WeatherGrid},
 };
@@ -2267,7 +2267,7 @@ impl Client {
                 if self.uid() != Some(entity_uid) {
                     self.state
                         .ecs_mut()
-                        .delete_entity_and_clear_from_uid_allocator(entity_uid);
+                        .delete_entity_and_clear_from_id_maps(entity_uid);
                 }
             },
             ServerGeneral::Notification(n) => {
@@ -2744,13 +2744,13 @@ impl Client {
         // Clear ecs of all entities
         self.state.ecs_mut().delete_all();
         self.state.ecs_mut().maintain();
-        self.state.ecs_mut().insert(UidAllocator::default());
+        self.state.ecs_mut().insert(IdMaps::default());
 
         // Recreate client entity with Uid
         let entity_builder = self.state.ecs_mut().create_entity();
         let uid = entity_builder
             .world
-            .write_resource::<UidAllocator>()
+            .write_resource::<IdMaps>()
             .allocate(entity_builder.entity, Some(client_uid));
 
         let entity = entity_builder.with(uid).build();

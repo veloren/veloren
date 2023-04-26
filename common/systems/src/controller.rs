@@ -6,7 +6,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     terrain::TerrainGrid,
-    uid::UidAllocator,
+    uid::IdMaps,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
@@ -18,7 +18,7 @@ use vek::*;
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
-    uid_allocator: Read<'a, UidAllocator>,
+    id_maps: Read<'a, IdMaps>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     terrain_grid: ReadExpect<'a, TerrainGrid>,
     positions: ReadStorage<'a, Pos>,
@@ -48,16 +48,14 @@ impl<'a> System<'a> for Sys {
             for event in controller.events.drain(..) {
                 match event {
                     ControlEvent::Mount(mountee_uid) => {
-                        if let Some(mountee_entity) =
-                            read_data.uid_allocator.lookup_entity(mountee_uid)
-                        {
+                        if let Some(mountee_entity) = read_data.id_maps.uid_entity(mountee_uid) {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
                     },
                     ControlEvent::MountVolume(volume) => {
                         if let Some(block) = volume.get_block(
                             &read_data.terrain_grid,
-                            &read_data.uid_allocator,
+                            &read_data.id_maps,
                             &read_data.colliders,
                         ) {
                             if block.is_mountable() {
@@ -79,7 +77,7 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
                     ControlEvent::Interact(npc_uid, subject) => {
-                        if let Some(npc_entity) = read_data.uid_allocator.lookup_entity(npc_uid) {
+                        if let Some(npc_entity) = read_data.id_maps.uid_entity(npc_uid) {
                             server_emitter
                                 .emit(ServerEvent::NpcInteract(entity, npc_entity, subject));
                         }

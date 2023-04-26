@@ -10,7 +10,7 @@ use common::{
     outcome::Outcome,
     resources::Time,
     terrain::TerrainGrid,
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     util::{find_dist::Cylinder, Dir},
     vol::ReadVol,
     GroupTarget,
@@ -27,7 +27,7 @@ use vek::*;
 pub struct ReadData<'a> {
     time: Read<'a, Time>,
     terrain: ReadExpect<'a, TerrainGrid>,
-    uid_allocator: Read<'a, UidAllocator>,
+    id_maps: Read<'a, IdMaps>,
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
     uids: ReadStorage<'a, Uid>,
@@ -213,7 +213,7 @@ impl<'a> System<'a> for Sys {
                     let may_harm = combat::may_harm(
                         &read_data.alignments,
                         &read_data.players,
-                        &read_data.uid_allocator,
+                        &read_data.id_maps,
                         Some(attacker),
                         target,
                     );

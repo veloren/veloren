@@ -2,7 +2,7 @@ use crate::{
     comp::{self, pet::is_mountable, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     link::{Is, Link, LinkHandle, Role},
     terrain::{Block, TerrainGrid},
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     vol::ReadVol,
 };
 use hashbrown::HashSet;
@@ -41,13 +41,13 @@ pub enum MountingError {
 
 impl Link for Mounting {
     type CreateData<'a> = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Is<Mount>>,
         WriteStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<VolumeRider>>,
     );
     type DeleteData<'a> = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Is<Mount>>,
         WriteStorage<'a, Is<Rider>>,
         WriteStorage<'a, comp::Pos>,
@@ -56,7 +56,7 @@ impl Link for Mounting {
     );
     type Error = MountingError;
     type PersistData<'a> = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         Entities<'a>,
         ReadStorage<'a, comp::Health>,
         ReadStorage<'a, comp::Body>,
@@ -67,9 +67,9 @@ impl Link for Mounting {
 
     fn create(
         this: &LinkHandle<Self>,
-        (uid_allocator, is_mounts, is_riders, is_volume_rider): &mut Self::CreateData<'_>,
+        (id_maps, is_mounts, is_riders, is_volume_rider): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
-        let entity = |uid: Uid| uid_allocator.lookup_entity(uid);
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         if this.mount == this.rider {
             // Forbid self-mounting
@@ -97,9 +97,9 @@ impl Link for Mounting {
 
     fn persist(
         this: &LinkHandle<Self>,
-        (uid_allocator, entities, healths, bodies, is_mounts, is_riders, character_states): &mut Self::PersistData<'_>,
+        (id_maps, entities, healths, bodies, is_mounts, is_riders, character_states): &mut Self::PersistData<'_>,
     ) -> bool {
-        let entity = |uid: Uid| uid_allocator.lookup_entity(uid);
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
             let is_alive = |entity| {
@@ -126,9 +126,11 @@ impl Link for Mounting {
 
     fn delete(
         this: &LinkHandle<Self>,
-        (uid_allocator, is_mounts, is_riders, positions, force_update, terrain): &mut Self::DeleteData<'_>,
+        (id_maps, is_mounts, is_riders, positions, force_update, terrain): &mut Self::DeleteData<
+            '_,
+        >,
     ) {
-        let entity = |uid: Uid| uid_allocator.lookup_entity(uid);
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         let mount = entity(this.mount);
         let rider = entity(this.rider);
@@ -218,7 +220,7 @@ impl VolumePos {
     pub fn get_block_and_transform(
         &self,
         terrain: &TerrainGrid,
-        uid_allocator: &UidAllocator,
+        id_maps: &IdMaps,
         mut read_pos_and_ori: impl FnMut(Entity) -> Option<(comp::Pos, comp::Ori)>,
         colliders: &ReadStorage<comp::Collider>,
     ) -> Option<(Mat4<f32>, comp::Ori, Block)> {
@@ -228,7 +230,7 @@ impl VolumePos {
                 comp::Ori::default(),
                 *terrain.get(self.pos).ok()?,
             )),
-            Volume::Entity(uid) => uid_allocator.lookup_entity(uid).and_then(|entity| {
+            Volume::Entity(uid) => id_maps.uid_entity(uid).and_then(|entity| {
                 let collider = colliders.get(entity)?;
                 let (pos, ori) = read_pos_and_ori(entity)?;
 
@@ -251,12 +253,12 @@ impl VolumePos {
     pub fn get_block(
         &self,
         terrain: &TerrainGrid,
-        uid_allocator: &UidAllocator,
+        id_maps: &IdMaps,
         colliders: &ReadStorage<comp::Collider>,
     ) -> Option<Block> {
         match self.kind {
             Volume::Terrain => Some(*terrain.get(self.pos).ok()?),
-            Volume::Entity(uid) => uid_allocator.lookup_entity(uid).and_then(|entity| {
+            Volume::Entity(uid) => id_maps.uid_entity(uid).and_then(|entity| {
                 let collider = colliders.get(entity)?;
 
                 let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
@@ -293,14 +295,14 @@ impl Link for VolumeMounting {
         WriteStorage<'a, Is<VolumeRider>>,
         ReadStorage<'a, Is<Rider>>,
         ReadExpect<'a, TerrainGrid>,
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         ReadStorage<'a, comp::Collider>,
     );
     type DeleteData<'a> = (
         Write<'a, VolumeRiders>,
         WriteStorage<'a, VolumeRiders>,
         WriteStorage<'a, Is<VolumeRider>>,
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
     );
     type Error = MountingError;
     type PersistData<'a> = (
@@ -310,7 +312,7 @@ impl Link for VolumeMounting {
         ReadStorage<'a, VolumeRiders>,
         ReadStorage<'a, Is<VolumeRider>>,
         ReadExpect<'a, TerrainGrid>,
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         ReadStorage<'a, comp::Collider>,
     );
 
@@ -322,11 +324,11 @@ impl Link for VolumeMounting {
             is_volume_riders,
             is_riders,
             terrain_grid,
-            uid_allocator,
+            id_maps,
             colliders,
         ): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
-        let entity = |uid: Uid| uid_allocator.lookup_entity(uid);
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         let riders = match this.pos.kind {
             Volume::Terrain => &mut *terrain_riders,
@@ -343,7 +345,7 @@ impl Link for VolumeMounting {
         {
             let block = this
                 .pos
-                .get_block(terrain_grid, uid_allocator, colliders)
+                .get_block(terrain_grid, id_maps, colliders)
                 .ok_or(MountingError::NoSuchEntity)?;
 
             if block == this.block {
@@ -367,11 +369,11 @@ impl Link for VolumeMounting {
             volume_riders,
             is_volume_riders,
             terrain_grid,
-            uid_allocator,
+            id_maps,
             colliders,
         ): &mut Self::PersistData<'_>,
     ) -> bool {
-        let entity = |uid: Uid| uid_allocator.lookup_entity(uid);
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
         let is_alive =
             |entity| entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead);
         let riders = match this.pos.kind {
@@ -393,7 +395,7 @@ impl Link for VolumeMounting {
 
         let block_exists = this
             .pos
-            .get_block(terrain_grid, uid_allocator, colliders)
+            .get_block(terrain_grid, id_maps, colliders)
             .map_or(false, |block| block == this.block);
 
         rider_exists && mount_spot_exists && block_exists
@@ -401,9 +403,9 @@ impl Link for VolumeMounting {
 
     fn delete(
         this: &LinkHandle<Self>,
-        (terrain_riders, volume_riders, is_rider, uid_allocator): &mut Self::DeleteData<'_>,
+        (terrain_riders, volume_riders, is_rider, id_maps): &mut Self::DeleteData<'_>,
     ) {
-        let entity = |uid: Uid| uid_allocator.lookup_entity(uid);
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         let riders = match this.pos.kind {
             Volume::Terrain => Some(&mut **terrain_riders),

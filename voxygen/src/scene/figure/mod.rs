@@ -48,7 +48,7 @@ use common::{
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
-    uid::UidAllocator,
+    uid::IdMaps,
     util::Dir,
     vol::{ReadVol, RectRasterableVol},
 };
@@ -829,7 +829,7 @@ impl FigureMgr {
 
         let mut update_buf = [Default::default(); anim::MAX_BONE_COUNT];
 
-        let uid_allocator = ecs.read_resource::<UidAllocator>();
+        let id_maps = ecs.read_resource::<IdMaps>();
 
         let bodies = ecs.read_storage::<Body>();
 
@@ -1055,7 +1055,7 @@ impl FigureMgr {
             let mount_transform_pos = (|| -> Option<_> {
                 if let Some(is_rider) = is_rider {
                     let mount = is_rider.mount;
-                    let mount = uid_allocator.lookup_entity(mount)?;
+                    let mount = id_maps.uid_entity(mount)?;
                     let body = *bodies.get(mount)?;
                     let meta = self.states.get_mut(&body, &mount)?;
                     Some((meta.mount_transform, meta.mount_world_pos))

@@ -19,7 +19,7 @@ use crate::{
     outcome::Outcome,
     resources::Secs,
     states::utils::StageSection,
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     util::Dir,
 };
 
@@ -714,7 +714,7 @@ impl Attack {
 pub fn may_harm(
     alignments: &ReadStorage<Alignment>,
     players: &ReadStorage<Player>,
-    uid_allocator: &UidAllocator,
+    id_maps: &IdMaps,
     attacker: Option<EcsEntity>,
     target: EcsEntity,
 ) -> bool {
@@ -725,7 +725,7 @@ pub fn may_harm(
         if let Some(Alignment::Owned(uid)) = alignment {
             // return original entity
             // if can't get owner
-            uid_allocator.lookup_entity(uid).unwrap_or(entity)
+            id_maps.uid_entity(uid).unwrap_or(entity)
         } else {
             entity
         }

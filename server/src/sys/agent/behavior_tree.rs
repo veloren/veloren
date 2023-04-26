@@ -244,7 +244,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                 && health.last_change.amount < 0.0 =>
         {
             if let Some(by) = health.last_change.damage_by() {
-                if let Some(attacker) = bdata.read_data.uid_allocator.lookup_entity(by.uid()) {
+                if let Some(attacker) = bdata.read_data.id_maps.uid_entity(by.uid()) {
                     // If target is dead or invulnerable (for now, this only
                     // means safezone), untarget them and idle.
                     if is_dead_or_invulnerable(attacker, bdata.read_data) {

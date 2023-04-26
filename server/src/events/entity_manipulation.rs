@@ -32,7 +32,7 @@ use common::{
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     trade::{TradeResult, Trades},
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     util::Dir,
     vol::ReadVol,
     Damage, DamageKind, DamageSource, Explosion, GroupTarget, RadiusEffect,
@@ -568,8 +568,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                          | DamageContributor::Group { entity_uid, .. })| {
                             state
                                 .ecs()
-                                .read_resource::<UidAllocator>()
-                                .lookup_entity(*entity_uid)
+                                .read_resource::<IdMaps>()
+                                .uid_entity(*entity_uid)
                         },
                     )
                     .and_then(|killer| state.entity_as_actor(killer)),
@@ -742,7 +742,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     let settings = server.settings();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
     let time = ecs.read_resource::<Time>();
-    let owner_entity = owner.and_then(|uid| ecs.read_resource::<UidAllocator>().lookup_entity(uid));
+    let owner_entity = owner.and_then(|uid| ecs.read_resource::<IdMaps>().uid_entity(uid));
 
     let explosion_volume = 6.25 * explosion.radius;
     let mut emitter = server_eventbus.emitter();
@@ -947,7 +947,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let combos = &ecs.read_storage::<comp::Combo>();
                 let inventories = &ecs.read_storage::<Inventory>();
                 let alignments = &ecs.read_storage::<Alignment>();
-                let uid_allocator = &ecs.read_resource::<UidAllocator>();
+                let id_maps = &ecs.read_resource::<IdMaps>();
                 let players = &ecs.read_storage::<Player>();
                 let buffs = &ecs.read_storage::<comp::Buffs>();
                 let stats = &ecs.read_storage::<comp::Stats>();
@@ -1043,7 +1043,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         let may_harm = combat::may_harm(
                             alignments,
                             players,
-                            uid_allocator,
+                            id_maps,
                             owner_entity,
                             entity_b,
                         );
@@ -1072,7 +1072,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             },
             RadiusEffect::Entity(mut effect) => {
                 let alignments = &ecs.read_storage::<Alignment>();
-                let uid_allocator = &ecs.read_resource::<UidAllocator>();
+                let id_maps = &ecs.read_resource::<IdMaps>();
                 let players = &ecs.read_storage::<Player>();
                 for (entity_b, pos_b, body_b_maybe) in (
                     &ecs.entities(),
@@ -1104,7 +1104,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     //
                     // This can be changed later.
                     let may_harm = || {
-                        combat::may_harm(alignments, players, uid_allocator, owner_entity, entity_b)
+                        combat::may_harm(alignments, players, id_maps, owner_entity, entity_b)
                             || owner_entity.map_or(true, |entity_a| entity_a == entity_b)
                     };
                     if strength > 0.0 {

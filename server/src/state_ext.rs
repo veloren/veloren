@@ -27,7 +27,7 @@ use common::{
     resources::{Secs, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     LoadoutBuilder, ViewDistances,
 };
 use common_net::{
@@ -885,8 +885,8 @@ impl StateExt for State {
             .clone()
             .map_group(|_| group_info.map_or_else(|| "???".to_string(), |i| i.name.clone()));
 
-        let uid_allocator = ecs.read_resource::<UidAllocator>();
-        let entity_from_uid = |uid| uid_allocator.lookup_entity(uid);
+        let id_maps = ecs.read_resource::<IdMaps>();
+        let entity_from_uid = |uid| id_maps.uid_entity(uid);
 
         if msg.chat_type.uid().map_or(true, |sender| {
             entity_from_uid(sender).map_or(false, |e| {

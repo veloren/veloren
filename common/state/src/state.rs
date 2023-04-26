@@ -4,7 +4,7 @@ use crate::plugin::memory_manager::EcsWorld;
 use crate::plugin::PluginMgr;
 use crate::{BuildArea, NoDurabilityArea};
 #[cfg(feature = "plugins")]
-use common::uid::UidAllocator;
+use common::uid::IdMaps;
 use common::{
     calendar::Calendar,
     comp,
@@ -309,7 +309,7 @@ impl State {
                     entities: &ecs.entities(),
                     health: ecs.read_component().into(),
                     uid: ecs.read_component().into(),
-                    uid_allocator: &ecs.read_resource::<UidAllocator>().into(),
+                    id_maps: &ecs.read_resource::<IdMaps>().into(),
                     player: ecs.read_component().into(),
                 };
                 if let Err(e) = plugin_mgr

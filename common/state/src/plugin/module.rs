@@ -240,8 +240,8 @@ fn retrieve_action(
             };
             let player =
                 world
-                    .uid_allocator
-                    .lookup_entity(e)
+                    .id_maps
+                    .uid_entity(e)
                     .ok_or(RetrieveError::EcsAccessError(
                         EcsAccessError::EcsEntityNotFound(e),
                     ))?;
@@ -269,8 +269,8 @@ fn retrieve_action(
             };
             let player =
                 world
-                    .uid_allocator
-                    .lookup_entity(e)
+                    .id_maps
+                    .uid_entity(e)
                     .ok_or(RetrieveError::EcsAccessError(
                         EcsAccessError::EcsEntityNotFound(e),
                     ))?;

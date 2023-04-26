@@ -21,7 +21,7 @@ use common::{
     rtsim::{Actor, RtSimEntity},
     states::utils::{ForcedMovement, StageSection},
     terrain::TerrainGrid,
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
 };
 use specs::{
     shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage,
@@ -284,7 +284,7 @@ impl SwordTactics {
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     pub entities: Entities<'a>,
-    pub uid_allocator: Read<'a, UidAllocator>,
+    pub id_maps: Read<'a, IdMaps>,
     pub dt: Read<'a, DeltaTime>,
     pub time: Read<'a, Time>,
     pub cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,

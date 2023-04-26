@@ -123,7 +123,7 @@ use crate::settings::Protocol;
 
 #[cfg(feature = "plugins")]
 use {
-    common::uid::UidAllocator,
+    common::uid::IdMaps,
     common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
 };
 
@@ -1219,7 +1219,7 @@ impl Server {
                     entities: &self.state.ecs().entities(),
                     health: self.state.ecs().read_component().into(),
                     uid: self.state.ecs().read_component().into(),
-                    uid_allocator: &self.state.ecs().read_resource::<UidAllocator>().into(),
+                    id_maps: &self.state.ecs().read_resource::<IdMaps>().into(),
                     player: self.state.ecs().read_component().into(),
                 };
                 let uid = if let Some(uid) = ecs_world.uid.get(entity).copied() {

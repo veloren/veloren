@@ -8,7 +8,7 @@ use common::{
     comp,
     comp::{group, pet::is_tameable, Presence, PresenceKind},
     resources::Time,
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
 };
 use common_base::span;
 use common_net::msg::{PlayerListUpdate, ServerGeneral};
@@ -101,10 +101,10 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             None => entity_builder,
         };
 
-        // Ensure UidAllocator maps this uid to the new entity
+        // Ensure IdMaps maps this uid to the new entity
         let uid = entity_builder
             .world
-            .write_resource::<UidAllocator>()
+            .write_resource::<IdMaps>()
             .allocate(entity_builder.entity, Some(uid.into()));
         let new_entity = entity_builder.with(uid).build();
         if let Some(group) = maybe_group {

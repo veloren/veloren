@@ -8,7 +8,7 @@ use common::{
     event::{Emitter, EventBus, ServerEvent},
     outcome::Outcome,
     resources::{DeltaTime, Time},
-    uid::{Uid, UidAllocator},
+    uid::{Uid, IdMaps},
     util::Dir,
     GroupTarget,
 };
@@ -31,7 +31,7 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
-    uid_allocator: Read<'a, UidAllocator>,
+    id_maps: Read<'a, IdMaps>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
         {
             let projectile_owner = projectile
                 .owner
-                .and_then(|uid| read_data.uid_allocator.lookup_entity(uid));
+                .and_then(|uid| read_data.id_maps.uid_entity(uid));
 
             if physics.on_surface().is_none() && rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
@@ -103,8 +103,8 @@ impl<'a> System<'a> for Sys {
                     // if there is at least one touching entity
                     .and_then(|e| read_data.groups.get(e))
                     .map_or(false, |owner_group|
-                        Some(owner_group) == read_data.uid_allocator
-                        .lookup_entity(other)
+                        Some(owner_group) == read_data.id_maps
+                        .uid_entity(other)
                         .and_then(|e| read_data.groups.get(e))
                     );
 
@@ -125,7 +125,7 @@ impl<'a> System<'a> for Sys {
 
                 let projectile = &mut *projectile;
 
-                let entity_of = |uid: Uid| read_data.uid_allocator.lookup_entity(uid);
+                let entity_of = |uid: Uid| read_data.id_maps.uid_entity(uid);
 
                 // Don't hit if there is terrain between the projectile and where the entity was
                 // supposed to be hit by it.
@@ -333,7 +333,7 @@ fn dispatch_hit(
             let may_harm = combat::may_harm(
                 &read_data.alignments,
                 &read_data.players,
-                &read_data.uid_allocator,
+                &read_data.id_maps,
                 owner,
                 target,
             );

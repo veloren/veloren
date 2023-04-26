@@ -1240,9 +1240,9 @@ impl<'a> Widget for Map<'a> {
             .collect::<Vec<_>>();
         let group_size = group_members.len();
         //let in_group = !group_members.is_empty();
-        let uid_allocator = client_state
+        let id_maps = client_state
             .ecs()
-            .read_resource::<common_net::sync::UidAllocator>();
+            .read_resource::<common_net::sync::IdMaps>();
         if state.ids.member_indicators.len() < group_size {
             state.update(|s| {
                 s.ids
@@ -1251,7 +1251,7 @@ impl<'a> Widget for Map<'a> {
             })
         };
         for (i, &uid) in group_members.iter().copied().enumerate() {
-            let entity = uid_allocator.lookup_entity(uid);
+            let entity = id_maps.uid_entity(uid);
             let member_pos = entity.and_then(|entity| member_pos.get(entity));
             let stats = entity.and_then(|entity| stats.get(entity));
             let name = if let Some(stats) = stats {
@@ -1323,8 +1323,8 @@ impl<'a> Widget for Map<'a> {
                     .get(&uid)
                     .map(|info| info.player_alias.as_str())
                     .or_else(|| {
-                        uid_allocator
-                            .lookup_entity(uid)
+                        id_maps
+                            .uid_entity(uid)
                             .and_then(|entity| stats.get(entity))
                             .map(|stats| stats.name.as_str())
                     })
