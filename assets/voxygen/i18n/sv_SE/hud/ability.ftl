@@ -44,8 +44,8 @@ common-abilities-sword-heavy_slam = Tung Smäll
     .desc = Ett tungt hugg över huvudet som kan laddas upp för att få fienden att vackla mer
 common-abilities-sword-agile_perforate = Perforera
     .desc = Ett snabbt virrvarr av lätta attacker
-common-abilities-sword-defensive_parry = Parera
-    .desc = Om det görs vid rätt tid kan det slå bort närstridshugg
+common-abilities-sword-defensive_vital_jab = Defensivt Dödligt Hugg
+    .desc = Ett snabbt laddat hugg som gör mer skada mot parerade fiender
 common-abilities-sword-crippling_deep_rend = Djupt Sår
     .desc = Ett hugg riktat mot ett redan öppet sår, gör mer skada mot blödande fiender
 common-abilities-sword-cleaving_spiral_slash = Spiralhugg
@@ -158,9 +158,9 @@ common-abilities-sword-cleaving_bladestorm = Storm av Svärdsblad
     .desc =
         Överrumpla dina fiender med flera cykliska svärdshugg
         Kräver en måttlig mängd kombo för att använda
-common-abilities-sword-heavy_windmill_slash = Virvelvindhugg
+common-abilities-sword-heavy_sweep = Tungt Svep
     .desc =
-        Dubbla hugg över ditt huvud som kan få fienden att vackla mycket
+        Ett tungt brett svepande hugg som gör mer skada mot vacklande fiender
         Påbörjar tung hållning
 common-abilities-sword-heavy_pommel_strike = Pommelsslag
     .desc =

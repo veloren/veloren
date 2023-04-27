@@ -76,7 +76,11 @@ buff-stat-potionsickness =
 ## Reckless
 buff-title-reckless = Hänsynslös
 buff-desc-reckless = Dina attacker är kraftfullare, men du lämnar ditt försvar öppet.
+## Polymorped
+buff-title-polymorphed = Polymorferad
+buff-desc-polymorphed = Din kropp byter form
 ## Util
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder
+buff-mysterious = Mysterisk effekt
 buff-remove = Klicka för att ta bort
