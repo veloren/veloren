@@ -103,6 +103,7 @@ common-stats-energy_reward = Energibelöning
 common-stats-crit_power = Kritisk Kraft
 common-stats-stealth = Smygning
 common-stats-slots = Packningutrymme
+common-stats-durability = Hållbarhet
 common-material-metal = Metall
 common-material-wood = Trä
 common-material-stone = Sten
