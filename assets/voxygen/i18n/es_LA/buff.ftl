@@ -67,6 +67,18 @@ buff-desc-fortitude = Puedes evitar tambalear.
 ## Parried
 buff-title-parried = Interrupción
 buff-desc-parried = Fuiste interrumpido y ahora eres lento para recuperarte.
+## Potion sickness
+buff-title-potionsickness = Sobredosis de pociones
+buff-desc-potionsickness =  Las pociones te curan menos después de haber consumido una recientemente
+buff-stat-potionsickness =
+    Disminuye la cantidad de curación de las
+    Siguientes pociones en un { $strength }%.
+## Reckless
+buff-title-reckless = Temerario
+buff-desc-reckless = Tus ataques son más poderosos, pero dejas tus defensas abiertas.
+## Polymorped
+buff-title-polymorphed = Polimorfia
+buff-desc-polymorphed = Tu cuerpo cambia de forma.
 ## Util
 buff-text-over_seconds = durante { $dur_secs } segundos
 buff-text-for_seconds = por { $dur_secs } segundos
