@@ -61,6 +61,25 @@ buff-desc-wet =地面变得湿滑，让你很难停下来.
 ## Ensnared
 buff-title-ensnared = 陷阱
 buff-desc-ensnared =你的腿受到束缚，阻碍了你的移动.
+## Fortitude
+buff-title-fortitude = 刚毅
+buff-desc-fortitude = 你对于震慑的承受能力更强大，并且受到的伤害月多对其他目标的震慑威力也提升了.
+## Parried
+buff-title-parried = 被格挡
+buff-desc-parried = 你被格挡了，你的恢复更加缓慢.
+## Potion sickness
+buff-title-potionsickness = 药水厌倦
+buff-desc-potionsickness = 因为你最近喝了一瓶药，药水给予的恢复量更少了.
+buff-stat-potionsickness =
+    将其他药水获得的恢复量降低{ $strength }%.
+## Reckless
+buff-title-reckless = 狂热
+buff-desc-reckless = 你的攻击更加强大, 但对于你的防御疏忽关照(防御降低).
+## Polymorped
+buff-title-polymorphed = 形态转换
+buff-desc-polymorphed = 你的身体转换了形态.
+## Util
+buff-mysterious = 神秘效果
 ## Util
 buff-text-over_seconds = { $dur_secs } 秒后结束
 buff-text-for_seconds = 持续 { $dur_secs } 秒

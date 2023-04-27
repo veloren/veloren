@@ -4,10 +4,12 @@ hud-skill-not_unlocked = 尚未解锁
 hud-skill-req_sp ={"\u000A"}
     
     需要 { $number } 技能点
+
 hud-skill-inc_health_title = 增强生命
 hud-skill-inc_health = 最大生命值提高{ $boost }{ $SP }
 hud-skill-inc_energy_title = 增强耐力/法力
 hud-skill-inc_energy = 最大耐力提升{ $boost }{ $SP }
+
 hud-skill-unlck_sword_title = 解锁双手剑专精
 hud-skill-unlck_sword = 解锁双手剑技能树{ $SP }
 hud-skill-unlck_axe_title = 解锁双手斧专精
@@ -20,8 +22,10 @@ hud-skill-unlck_staff_title = 解锁火焰法杖专精
 hud-skill-unlck_staff = 解锁火焰法杖技能树{ $SP }
 hud-skill-unlck_sceptre_title = 解锁生命权杖专精
 hud-skill-unlck_sceptre = 解锁生命权杖技能树{ $SP }
+
 hud-skill-dodge_title = 闪避
 hud-skill-dodge = 翻滚可以躲避敌人的攻击{ $SP }
+
 hud-skill-roll_energy_title = 体术(翻滚)
 hud-skill-roll_energy = 减少每次翻滚需要消耗的耐力{ $boost }%{ $SP }
 hud-skill-roll_speed_title = 迅捷
@@ -29,6 +33,7 @@ hud-skill-roll_speed = 加快{ $boost }%的翻滚速度{ $SP }
 hud-skill-roll_dur_title = 飞身跃入
 hud-skill-roll_dur = 翻滚可躲避敌人攻击的时间延长{ $boost }%{ $SP }
 
+hud-skill-set_as_exp_bar = 设置为当前经验条
 hud-skill-climbing_title = 攀爬
 hud-skill-climbing = 你能够攀爬岩壁
 hud-skill-climbing_cost_title = 体术(攀爬)
@@ -111,34 +116,34 @@ hud-skill-bow_charged_title = 蓄力射击
 hud-skill-bow_charged = 因为你愿意花更长时间蓄力以造成更大伤害
 hud-skill-bow_charged_damage_title = 伤害提升
 hud-skill-bow_charged_damage = 蓄力箭矢造成的伤害提升{ $boost }%{ $SP }
-hud-skill-bow_charged_energy_regen_title = Charged Regen
-hud-skill-bow_charged_energy_regen = Increases energy recovery by { $boost }%{ $SP }
+hud-skill-bow_charged_energy_regen_title = 能量回复
+hud-skill-bow_charged_energy_regen = 每次击中敌人回复的能量增加{ $boost }%{ $SP }
 hud-skill-bow_charged_knockback_title = 冲击强化
 hud-skill-bow_charged_knockback = 蓄力箭矢击退的效果提高{ $boost }%{ $SP }
-hud-skill-bow_charged_move_speed_title = 灵巧
-hud-skill-bow_charged_move_speed = 蓄力时的移动速度提高{ $boost }%{ $SP }
+hud-skill-bow_charged_move_title = 灵巧
+hud-skill-bow_charged_move = 蓄力时的移动速度提高{ $boost }%{ $SP }
 hud-skill-bow_charged_speed_title = 专注
 hud-skill-bow_charged_speed = 蓄力效果达到最大化的速度加快{ $boost }%{ $SP }
 
-hud-skill-bow_repeater_title = Repeater
-hud-skill-bow_repeater = Shoots faster the longer you fire for
+hud-skill-bow_repeater_title = 持续发射
+hud-skill-bow_repeater = 你发射的时间越长，发射速度越快
 hud-skill-bow_repeater_damage_title = 伤害提升
 hud-skill-bow_repeater_damage = 每支箭矢造成的伤害提升{ $boost }%{ $SP }
 hud-skill-bow_repeater_cost_title = 耐力节省
 hud-skill-bow_repeater_cost = 施展腾空击需要消耗的耐力减少{ $boost }%{ $SP }
-hud-skill-bow_repeater_speed_title = Repeater Speed
-hud-skill-bow_repeater_speed = Increases the rate at which you fire arrows by { $boost }%{ $SP }
+hud-skill-bow_repeater_speed_title = 速度提升
+hud-skill-bow_repeater_speed = 将射箭速度提高{ $boost }%{ $SP }
 
-hud-skill-bow_shotgun_unlock_title = Unlocks Shotgun
-hud-skill-bow_shotgun_unlock = Unlocks ability to fire multiple arrows at once{ $SP }
-hud-skill-bow_shotgun_damage_title = Shotgun Damage
-hud-skill-bow_shotgun_damage = Increases the damage done by { $boost }%{ $SP }
-hud-skill-bow_shotgun_cost_title = Shotgun Cost
-hud-skill-bow_shotgun_cost = Decreases the cost of shotgun by { $boost }%{ $SP }
-hud-skill-bow_shotgun_arrow_count_title = Shotgun Arrows
-hud-skill-bow_shotgun_arrow_count = Increases the number of arrows in the burst by { $boost }{ $SP }
-hud-skill-bow_shotgun_spread_title = Shotgun Spread
-hud-skill-bow_shotgun_spread = Decreases the spread of the arrows by { $boost }%{ $SP }
+hud-skill-bow_shotgun_unlock_title = 解锁迸发
+hud-skill-bow_shotgun_unlock = 解锁一次发射多支箭矢的能力{ $SP }
+hud-skill-bow_shotgun_damage_title = 伤害提升
+hud-skill-bow_shotgun_damage = 将迸发的伤害提升{ $boost }%{ $SP }
+hud-skill-bow_shotgun_cost_title = 耐力节省
+hud-skill-bow_shotgun_cost = 将使用迸发时的能量降低{ $boost }%{ $SP }
+hud-skill-bow_shotgun_arrow_count_title = 箭矢数量
+hud-skill-bow_shotgun_arrow_count = 你迸发时的箭矢数量增加{ $boost }{ $SP }
+hud-skill-bow_shotgun_spread_title = 集中
+hud-skill-bow_shotgun_spread = 将迸发时的散射范围降低{ $boost }%{ $SP }
 
 hud-skill-hmr_leap_radius_title = 震荡
 hud-skill-hmr_leap_radius = 千斤坠伤害的作用半径扩大{ $boost }米{ $SP }
@@ -248,13 +253,18 @@ hud-skill-axe_leap_cost_title = 耐力节省
 hud-skill-axe_leap_cost = 施展飞身一击需要消耗的耐力减少{ $boost }%{ $SP }
 hud-skill-axe_leap_distance_title = 奋力一跃
 hud-skill-axe_leap_distance = 跳跃距离提升{ $boost }%{ $SP }
-hud-skill-mining_title = Mining
-hud-skill-pick_strike_title = Pickaxe Strike
-hud-skill-pick_strike = Hit rocks with the pickaxe to gain ore, gems and experience
-hud-skill-pick_strike_speed_title = Pickaxe Strike Speed
-hud-skill-pick_strike_speed = Mine rocks faster{ $SP }
-hud-skill-pick_strike_oregain_title = Pickaxe Strike Ore Yield
-hud-skill-pick_strike_oregain = Chance to gain extra ore ({ $boost }% per level){ $SP }
-hud-skill-pick_strike_gemgain_title = Pickaxe Strike Gem Yield
-hud-skill-pick_strike_gemgain = Chance to gain extra gems ({ $boost }% per level){ $SP }
+
+
+hud-skill-mining_title = 挖矿
+hud-skill-pick_strike_title = 镐击
+hud-skill-pick_strike = 使用你的镐子敲打石头来获得矿物，宝石和经验
+
+hud-skill-pick_strike_speed_title = 敲击速度
+hud-skill-pick_strike_speed = 挖矿速度提升{ $SP }
+
+hud-skill-pick_strike_oregain_title = 更多矿物
+hud-skill-pick_strike_oregain = 有几率获得额外的矿物 (每级提升 { $boost }%){ $SP }
+
+hud-skill-pick_strike_gemgain_title = 更多宝石
+hud-skill-pick_strike_gemgain = 有几率获得额外的宝石 (每级提升 { $boost }%){ $SP }
 
