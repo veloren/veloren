@@ -826,6 +826,48 @@ impl Structure for AdletStronghold {
                             }
                         },
                         _ => {
+                            // top decor bone with some hide
+                            painter
+                                .aabb(Aabb {
+                                    min: igloo_pos
+                                        .with_z((alt as i32) + bones_size + height_handle),
+                                    max: (igloo_pos + 1)
+                                        .with_z((alt as i32) + bones_size + 3 + height_handle),
+                                })
+                                .fill(bone_fill.clone());
+                            painter
+                                .aabb(Aabb {
+                                    min: Vec2::new(igloo_pos.x, igloo_pos.y - 1)
+                                        .with_z((alt as i32) + bones_size + 3 + height_handle),
+                                    max: Vec2::new(igloo_pos.x + 1, igloo_pos.y + 2)
+                                        .with_z((alt as i32) + bones_size + 4 + height_handle),
+                                })
+                                .fill(bone_fill.clone());
+                            painter
+                                .aabb(Aabb {
+                                    min: igloo_pos
+                                        .with_z((alt as i32) + bones_size + 3 + height_handle),
+                                    max: (igloo_pos + 1)
+                                        .with_z((alt as i32) + bones_size + 4 + height_handle),
+                                })
+                                .clear();
+                            let top_color = Fill::Sampling(Arc::new(|igloo_pos| {
+                                Some(match (RandomField::new(0).get(igloo_pos)) % 10 {
+                                    0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
+                                    1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
+                                    2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
+                                    3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
+                                    _ => Block::new(BlockKind::Rock, Rgb::new(200, 160, 140)),
+                                })
+                            }));
+                            painter
+                                .aabb(Aabb {
+                                    min: (igloo_pos - 1)
+                                        .with_z((alt as i32) + bones_size - 1 + height_handle),
+                                    max: (igloo_pos + 2)
+                                        .with_z((alt as i32) + bones_size + 1 + height_handle),
+                                })
+                                .fill(top_color.clone());
                             // igloo snow
                             painter
                                 .sphere_with_radius(igloo_pos.with_z(alt as i32 - 1), igloo_size)
@@ -974,45 +1016,6 @@ impl Structure for AdletStronghold {
                             2.0,
                         )
                         .fill(snow_ice_fill.clone());
-                    // top decor bone with some hide
-                    painter
-                        .aabb(Aabb {
-                            min: igloo_pos.with_z((alt as i32) + bones_size + height_handle),
-                            max: (igloo_pos + 1)
-                                .with_z((alt as i32) + bones_size + 3 + height_handle),
-                        })
-                        .fill(bone_fill.clone());
-                    painter
-                        .aabb(Aabb {
-                            min: Vec2::new(igloo_pos.x, igloo_pos.y - 1)
-                                .with_z((alt as i32) + bones_size + 3 + height_handle),
-                            max: Vec2::new(igloo_pos.x + 1, igloo_pos.y + 2)
-                                .with_z((alt as i32) + bones_size + 4 + height_handle),
-                        })
-                        .fill(bone_fill.clone());
-                    painter
-                        .aabb(Aabb {
-                            min: igloo_pos.with_z((alt as i32) + bones_size + 3 + height_handle),
-                            max: (igloo_pos + 1)
-                                .with_z((alt as i32) + bones_size + 4 + height_handle),
-                        })
-                        .clear();
-                    let top_color = Fill::Sampling(Arc::new(|igloo_pos| {
-                        Some(match (RandomField::new(0).get(igloo_pos)) % 10 {
-                            0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
-                            1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
-                            2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
-                            3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
-                            _ => Block::new(BlockKind::Rock, Rgb::new(200, 160, 140)),
-                        })
-                    }));
-                    painter
-                        .aabb(Aabb {
-                            min: (igloo_pos - 1).with_z((alt as i32) + bones_size + height_handle),
-                            max: (igloo_pos + 2)
-                                .with_z((alt as i32) + bones_size + 1 + height_handle),
-                        })
-                        .fill(top_color.clone());
 
                     // FireBowl
                     painter.sprite(
@@ -1763,6 +1766,42 @@ impl Structure for AdletStronghold {
                 },
                 AdletStructure::BoneHut => {
                     let hut_radius = 5;
+                    // top decor bone with some hide
+                    painter
+                        .aabb(Aabb {
+                            min: wpos.with_z((alt as i32) + hut_radius + 4),
+                            max: (wpos + 1).with_z((alt as i32) + hut_radius + 7),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: Vec2::new(wpos.x, wpos.y - 1)
+                                .with_z((alt as i32) + hut_radius + 7),
+                            max: Vec2::new(wpos.x + 1, wpos.y + 2)
+                                .with_z((alt as i32) + hut_radius + 8),
+                        })
+                        .fill(bone_fill.clone());
+                    painter
+                        .aabb(Aabb {
+                            min: wpos.with_z((alt as i32) + hut_radius + 7),
+                            max: (wpos + 1).with_z((alt as i32) + hut_radius + 8),
+                        })
+                        .clear();
+                    let top_color = Fill::Sampling(Arc::new(|wpos| {
+                        Some(match (RandomField::new(0).get(wpos)) % 10 {
+                            0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
+                            1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
+                            2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
+                            3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
+                            _ => Block::new(BlockKind::Rock, Rgb::new(200, 160, 140)),
+                        })
+                    }));
+                    painter
+                        .aabb(Aabb {
+                            min: (wpos - 1).with_z((alt as i32) + hut_radius + 3),
+                            max: (wpos + 2).with_z((alt as i32) + hut_radius + 5),
+                        })
+                        .fill(top_color.clone());
                     // 4 hide pieces
                     for dir in CARDINALS {
                         let hide_size =
@@ -1832,42 +1871,6 @@ impl Structure for AdletStronghold {
                         }))
                         .clear();
 
-                    // top decor bone with some hide
-                    painter
-                        .aabb(Aabb {
-                            min: wpos.with_z((alt as i32) + hut_radius + 4),
-                            max: (wpos + 1).with_z((alt as i32) + hut_radius + 7),
-                        })
-                        .fill(bone_fill.clone());
-                    painter
-                        .aabb(Aabb {
-                            min: Vec2::new(wpos.x, wpos.y - 1)
-                                .with_z((alt as i32) + hut_radius + 7),
-                            max: Vec2::new(wpos.x + 1, wpos.y + 2)
-                                .with_z((alt as i32) + hut_radius + 8),
-                        })
-                        .fill(bone_fill.clone());
-                    painter
-                        .aabb(Aabb {
-                            min: wpos.with_z((alt as i32) + hut_radius + 7),
-                            max: (wpos + 1).with_z((alt as i32) + hut_radius + 8),
-                        })
-                        .clear();
-                    let top_color = Fill::Sampling(Arc::new(|wpos| {
-                        Some(match (RandomField::new(0).get(wpos)) % 10 {
-                            0 => Block::new(BlockKind::Wood, Rgb::new(73, 29, 0)),
-                            1 => Block::new(BlockKind::Wood, Rgb::new(78, 67, 43)),
-                            2 => Block::new(BlockKind::Wood, Rgb::new(83, 74, 41)),
-                            3 => Block::new(BlockKind::Wood, Rgb::new(14, 36, 34)),
-                            _ => Block::new(BlockKind::Rock, Rgb::new(200, 160, 140)),
-                        })
-                    }));
-                    painter
-                        .aabb(Aabb {
-                            min: (wpos - 1).with_z((alt as i32) + hut_radius + 4),
-                            max: (wpos + 2).with_z((alt as i32) + hut_radius + 5),
-                        })
-                        .fill(top_color.clone());
                     // WallSconce
                     painter.rotated_sprite(
                         Vec2::new(wpos.x - hut_radius + 1, wpos.y + hut_radius - 2)
