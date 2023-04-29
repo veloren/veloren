@@ -1847,9 +1847,9 @@ dependencies = [
 
 [[package]]
 name = "enum-map"
-version = "2.4.1"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5a56d54c8dd9b3ad34752ed197a4eb2a6601bc010808eb097a04a58ae4c43e1"
+checksum = "988f0d17a0fa38291e5f41f71ea8d46a5d5497b9054d5a759fae2cbb819f2356"
 dependencies = [
  "enum-map-derive",
  "serde",
@@ -1857,9 +1857,9 @@ dependencies = [
 
 [[package]]
 name = "enum-map-derive"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9045e2676cd5af83c3b167d917b0a5c90a4d8e266e2683d6631b235c457fc27"
+checksum = "2a4da76b3b6116d758c7ba93f7ec6a35d2e2cf24feda76c6e38a375f4d5c59f2"
 dependencies = [
  "proc-macro2 1.0.43",
  "quote 1.0.21",
@@ -4335,9 +4335,9 @@ dependencies = [
 
 [[package]]
 name = "paste"
-version = "1.0.8"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9423e2b32f7a043629287a536f21951e8c6a82482d0acb1eeebfc90bc2225b22"
+checksum = "9f746c4065a8fa3fe23974dd82f15431cc8d40779821001404d10d2e79ca7d79"
 
 [[package]]
 name = "peeking_take_while"
@@ -5130,9 +5130,9 @@ dependencies = [
 
 [[package]]
 name = "rmp-serde"
-version = "1.1.0"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25786b0d276110195fa3d6f3f31299900cf71dfbd6c28450f3f58a0e7f7a347e"
+checksum = "c5b13be192e0220b8afb7222aa5813cb62cc269ebb5cac346ca6487681d2913e"
 dependencies = [
  "byteorder",
  "rmp",
