@@ -146,6 +146,7 @@ pub enum ControlEvent {
     Mount(Uid),
     MountVolume(VolumePos),
     Unmount,
+    ToggleStay(Uid),
     InventoryEvent(InventoryEvent),
     GroupManip(GroupManip),
     RemoveBuff(BuffKind),

@@ -63,6 +63,13 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                     },
+                    ControlEvent::ToggleStay(pet_uid) => {
+                        if let Some(pet_entity) = read_data
+                            .uid_allocator
+                            .retrieve_entity_internal(pet_uid.id()){
+                                server_emitter.emit(ServerEvent::ToggleStay(pet_entity));
+                            }
+                    }
                     ControlEvent::RemoveBuff(buff_id) => {
                         server_emitter.emit(ServerEvent::Buff {
                             entity,

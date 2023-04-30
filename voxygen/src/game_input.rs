@@ -81,6 +81,8 @@ pub enum GameInput {
     ToggleLantern,
     #[strum(serialize = "gameinput-mount")]
     Mount,
+    #[strum(serialize = "gameinput-stayfollow")]
+    StayFollow,
     #[strum(serialize = "gameinput-chat")]
     Chat,
     #[strum(serialize = "gameinput-command")]

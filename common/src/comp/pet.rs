@@ -1,7 +1,8 @@
 use crate::comp::{body::Body, phys::Mass, quadruped_medium, quadruped_small};
 use crossbeam_utils::atomic::AtomicCell;
-use specs::Component;
+use specs::{Component, DerefFlaggedStorage};
 use std::{num::NonZeroU64, sync::Arc};
+use serde::{Deserialize, Serialize};
 
 pub type PetId = AtomicCell<Option<NonZeroU64>>;
 
@@ -106,4 +107,34 @@ impl Component for Pet {
     // has an `Arc` pointer which is the same size on 64-bit platforms. So it
     // isn't worth using `DenseVecStorage` here.
     type Storage = specs::VecStorage<Self>;
+}
+
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum StayFollow{
+    Stay,
+    Follow,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq,  Serialize, Deserialize)]
+pub struct PetState{
+    pub stay: bool,
+}
+
+impl Default for PetState {
+    fn default() -> Self {
+        Self {
+            stay: false,
+        }
+    }
+}
+
+impl PetState {
+    pub fn get_state(&self) -> bool{
+        self.stay
+    }
+}
+
+impl Component for PetState {
+    type Storage = DerefFlaggedStorage<Self>;
 }

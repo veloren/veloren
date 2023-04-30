@@ -148,6 +148,7 @@ impl ControlSettings {
             GameInput::Sneak => Some(KeyMouse::Key(VirtualKeyCode::LShift)),
             GameInput::ToggleLantern => Some(KeyMouse::Key(VirtualKeyCode::G)),
             GameInput::Mount => Some(KeyMouse::Key(VirtualKeyCode::F)),
+            GameInput::StayFollow => Some(KeyMouse::Key(VirtualKeyCode::V)),
             GameInput::Map => Some(KeyMouse::Key(VirtualKeyCode::M)),
             GameInput::Bag => Some(KeyMouse::Key(VirtualKeyCode::B)),
             GameInput::Trade => Some(KeyMouse::Key(VirtualKeyCode::T)),

@@ -33,6 +33,7 @@ gameinput-climbdown = Climb Down
 gameinput-wallleap = Wall Leap
 gameinput-togglelantern = Toggle Lantern
 gameinput-mount = Mount
+gameinput-stay = Stay/Follow
 gameinput-chat = Chat
 gameinput-command = Command
 gameinput-escape = Escape

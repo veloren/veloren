@@ -938,6 +938,38 @@ impl PlayState for SessionState {
                                     }
                                 }
                             },
+                            GameInput::StayFollow if state => {
+                                let mut client = self.client.borrow_mut();
+                                let player_pos = client
+                                    .state()
+                                    .read_storage::<Pos>()
+                                        .get(client.entity())
+                                        .copied();
+                                    if let Some(player_pos) = player_pos {
+                                        // Find closest mountable entity
+                                        let closest_pet = (
+                                            &client.state().ecs().entities(),
+                                            &client.state().ecs().read_storage::<Pos>(),
+                                            // TODO: More cleverly filter by things that can actually be mounted
+                                            client.state().ecs().read_storage::<comp::Alignment>().maybe(),
+                                        )
+                                            .join()
+                                            .filter(|(entity, _, _)| *entity != client.entity())
+                                            .filter(|(_, _, alignment)| matches!(alignment, Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()))
+                                            .map(|(entity, pos, _)| {
+                                                (entity, player_pos.0.distance_squared(pos.0))
+                                            })
+                                            .filter(|(_, dist_sqr)| {
+                                                *dist_sqr < MAX_MOUNT_RANGE.powi(2)
+                                            })
+                                            .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
+                                        if let Some((pet_entity, _)) = closest_pet
+                                        {
+                                            client.toggle_stay(pet_entity);
+                                        }
+                                        }
+                                        
+                            },
                             GameInput::Interact => {
                                 if state {
                                     let mut client = self.client.borrow_mut();

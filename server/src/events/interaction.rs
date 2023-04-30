@@ -10,7 +10,7 @@ use common::{
         inventory::slot::EquipSlot,
         item::{flatten_counted_items, MaterialStatManifest},
         loot_owner::LootOwnerKind,
-        pet::is_mountable,
+        pet::{is_mountable, PetState},
         tool::{AbilityMap, ToolKind},
         Inventory, LootOwner, Pos, SkillGroupKind,
     },
@@ -200,6 +200,18 @@ pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
     state.ecs().write_storage::<Is<Rider>>().remove(rider);
     state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);
+}
+
+pub fn handle_toggle_stay(server: &mut Server, pet: EcsEntity){
+    let state = server.state_mut();
+    if state.ecs()
+        .read_storage::<PetState>()
+        .get(pet)
+        .map_or(false, |s| s.stay){
+        let _ = state.ecs().write_storage::<PetState>().insert(pet, PetState { stay: false });
+    } else {
+        let _ = state.ecs().write_storage::<PetState>().insert(pet, PetState { stay: true });
+    }
 }
 
 fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&Pos>) -> bool {

@@ -203,6 +203,7 @@ impl State {
         ecs.register::<Is<Mount>>();
         ecs.register::<Is<Rider>>();
         ecs.register::<Is<VolumeRider>>();
+        ecs.register::<comp::pet::PetState>();
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Density>();
         ecs.register::<comp::Collider>();

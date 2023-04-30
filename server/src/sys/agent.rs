@@ -71,6 +71,7 @@ impl<'a> System<'a> for Sys {
             !&read_data.is_mounts,
             read_data.is_riders.maybe(),
             read_data.is_volume_riders.maybe(),
+            read_data.pet_states.maybe(),
         )
             .par_join()
             .for_each_init(
@@ -96,6 +97,7 @@ impl<'a> System<'a> for Sys {
                     _,
                     is_rider,
                     is_volume_rider,
+                    pet_state,
                 )| {
                     let mut event_emitter = event_bus.emitter();
                     let mut rng = thread_rng();
@@ -158,6 +160,8 @@ impl<'a> System<'a> for Sys {
                         .map_or(false, |item| {
                             matches!(&*item.kind(), comp::item::ItemKind::Glider)
                         });
+                    let is_stay = pet_state
+                        .map_or(false, |s| s.stay);
 
                     let is_gliding = matches!(
                         read_data.char_states.get(entity),
@@ -229,6 +233,7 @@ impl<'a> System<'a> for Sys {
                         light_emitter,
                         glider_equipped,
                         is_gliding,
+                        is_stay,
                         health: read_data.healths.get(entity),
                         char_state,
                         active_abilities,
