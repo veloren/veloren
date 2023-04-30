@@ -116,17 +116,9 @@ pub enum StayFollow{
     Follow,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq,  Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq,  Serialize, Deserialize, Default)]
 pub struct PetState{
     pub stay: bool,
-}
-
-impl Default for PetState {
-    fn default() -> Self {
-        Self {
-            stay: false,
-        }
-    }
 }
 
 impl PetState {
