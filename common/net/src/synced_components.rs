@@ -107,7 +107,6 @@ synced_components!(reexport_comps);
 
 use crate::sync::{NetSync, SyncFrom};
 
-
 // These are synced from any entity within range.
 impl NetSync for PetStates {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;

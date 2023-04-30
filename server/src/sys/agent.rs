@@ -160,8 +160,7 @@ impl<'a> System<'a> for Sys {
                         .map_or(false, |item| {
                             matches!(&*item.kind(), comp::item::ItemKind::Glider)
                         });
-                    let is_stay = pet_state
-                        .map_or(false, |s| s.stay);
+                    let is_stay = pet_state.map_or(false, |s| s.stay);
 
                     let is_gliding = matches!(
                         read_data.char_states.get(entity),

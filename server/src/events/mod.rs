@@ -23,7 +23,7 @@ use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
     handle_create_sprite, handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction,
-    handle_sound, handle_unmount, handle_toggle_stay, 
+    handle_sound, handle_toggle_stay, handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};

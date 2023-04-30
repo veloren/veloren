@@ -202,15 +202,23 @@ pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);
 }
 
-pub fn handle_toggle_stay(server: &mut Server, pet: EcsEntity){
+pub fn handle_toggle_stay(server: &mut Server, pet: EcsEntity) {
     let state = server.state_mut();
-    if state.ecs()
+    if state
+        .ecs()
         .read_storage::<PetState>()
         .get(pet)
-        .map_or(false, |s| s.stay){
-        let _ = state.ecs().write_storage::<PetState>().insert(pet, PetState { stay: false });
+        .map_or(false, |s| s.stay)
+    {
+        let _ = state
+            .ecs()
+            .write_storage::<PetState>()
+            .insert(pet, PetState { stay: false });
     } else {
-        let _ = state.ecs().write_storage::<PetState>().insert(pet, PetState { stay: true });
+        let _ = state
+            .ecs()
+            .write_storage::<PetState>()
+            .insert(pet, PetState { stay: true });
     }
 }
 

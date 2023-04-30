@@ -408,7 +408,7 @@ fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
             let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
             let stay = bdata.agent_data.is_stay;
-            if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) && !stay{
+            if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) && !stay {
                 bdata
                     .agent_data
                     .follow(bdata.agent, bdata.controller, bdata.read_data, tgt_pos);
@@ -432,7 +432,7 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
                     false
                 };
             let stay = bdata.agent_data.is_stay;
-            if owner_recently_attacked && !stay{
+            if owner_recently_attacked && !stay {
                 bdata.agent_data.attack_target_attacker(
                     bdata.agent,
                     bdata.read_data,

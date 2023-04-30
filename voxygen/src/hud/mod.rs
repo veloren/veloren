@@ -2317,13 +2317,12 @@ impl Hud {
                         poise,
                         (alignment, is_mount, is_rider, stance),
                     )| {
-
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
                         let is_me = entity == me;
                         let dist_sqr = pos.distance_squared(player_pos);
-                        
+
                         // Determine whether to display nametag and healthbar based on whether the
                         // entity is mounted, has been damaged, is targeted/selected, or is in your
                         // group
@@ -2433,32 +2432,22 @@ impl Hud {
                                         i18n.get_msg("hud-mount").to_string(),
                                     ));
                                 }
-
                             }
-                            let p = entity;
-                                    
-                            let s = is_stay.get(p)
-                                .map(|st| st.stay);
-                            match s {
-                                Some(false) => {
-                                    options.push((
-                                        GameInput::StayFollow,
-                                        i18n.get_msg("hud-stay").to_string(),
-                                    ))
-                                },
-                                Some(true) => {
-                                    options.push((
-                                        GameInput::StayFollow,
-                                        i18n.get_msg("hud-follow").to_string(),
-                                    ))
-                                },
-                                None => {
-                                    options.push((
-                                        GameInput::StayFollow,
-                                        i18n.get_msg("hud-stay").to_string(),
-                                    ))
-                                    },
-                            }      
+                            let pet_stay = is_stay.get(entity).map(|st| st.stay);
+                            match pet_stay {
+                                Some(false) => options.push((
+                                    GameInput::StayFollow,
+                                    i18n.get_msg("hud-stay").to_string(),
+                                )),
+                                Some(true) => options.push((
+                                    GameInput::StayFollow,
+                                    i18n.get_msg("hud-follow").to_string(),
+                                )),
+                                None => options.push((
+                                    GameInput::StayFollow,
+                                    i18n.get_msg("hud-stay").to_string(),
+                                )),
+                            }
                             options
                         },
                         _ => Vec::new(),

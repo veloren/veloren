@@ -1477,7 +1477,7 @@ impl Client {
 
     pub fn unmount(&mut self) { self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Unmount)); }
 
-    pub fn toggle_stay(&mut self, entity: EcsEntity){
+    pub fn toggle_stay(&mut self, entity: EcsEntity) {
         if let Some(uid) = self.state.read_component_copied(entity) {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::ToggleStay(uid)));
         }

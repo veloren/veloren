@@ -1,5 +1,5 @@
 use common::{
-    comp::{Alignment, Pet, PhysicsState, Pos, pet::PetState},
+    comp::{pet::PetState, Alignment, Pet, PhysicsState, Pos},
     terrain::TerrainGrid,
     uid::IdMaps,
 };
@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
         (entities, terrain, mut positions, alignments, pets, pet_state, physics, id_maps): Self::SystemData,
     ) {
         const LOST_PET_DISTANCE_THRESHOLD: f32 = 200.0;
-        
+
         // Find pets that are too far away from their owner
         let lost_pets: Vec<(Entity, Pos)> = (&entities, &positions, &alignments, &pets)
             .join()
@@ -56,7 +56,7 @@ impl<'a> System<'a> for Sys {
             })
             .map(|(entity, owner_pos, _, _)| (entity, *owner_pos))
             .collect();
-        
+
         for (pet_entity, owner_pos) in lost_pets.iter() {
             let stay = pet_state.get(*pet_entity).map_or(false, |f| f.stay);
             if let Some(mut pet_pos) = positions.get_mut(*pet_entity) && !stay{
