@@ -224,15 +224,16 @@ impl Data {
         // Spawn monsters into the world
         for _ in 0..100 {
             // Try a few times to find a location that's not underwater
-            if let Some(pos) = (0..10)
+            if let Some(wpos) = (0..10)
                 .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
                 .find(|pos| world.sim().get(*pos).map_or(false, |c| !c.is_underwater()))
+                .map(|pos| {
+                    let wpos2d = pos.cpos_to_wpos_center();
+                    wpos2d
+                        .map(|e| e as f32 + 0.5)
+                        .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                })
             {
-                let wpos2d = pos.cpos_to_wpos_center();
-                let wpos = wpos2d
-                    .map(|e| e as f32 + 0.5)
-                    .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0));
-
                 let species = match rng.gen_range(0..3) {
                     0 => comp::body::biped_large::Species::Cyclops,
                     1 => comp::body::biped_large::Species::Wendigo,

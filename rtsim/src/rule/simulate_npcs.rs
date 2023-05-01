@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{self, Body},
-    rtsim::{Actor, NpcAction, NpcActivity, Personality, Role},
+    rtsim::{Actor, NpcAction, NpcActivity, Personality},
     terrain::CoordinateConversions,
 };
 use rand::prelude::*;
@@ -92,62 +92,62 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                             .with_home(site_id)
                             .with_faction(npc.faction),
                         );
-                        Some((npc_id, site_id))
+                        Some((npc_id, Some(site_id)))
                     } else {
                         warn!("No site found for respawning humanoid");
                         None
                     }
                 },
-                Body::BirdLarge(_) => {
-                    if let Some((site_id, site)) = data
-                        .sites
-                        .iter()
-                        .filter(|(id, site)| {
-                            Some(*id) != npc.home
-                                && site.world_site.map_or(false, |s| {
-                                    matches!(ctx.index.sites.get(s).kind, SiteKind::Dungeon(_))
-                                })
-                        })
-                        .min_by_key(|(_, site)| site.population.len())
-                    {
-                        let rand_wpos = |rng: &mut ChaChaRng| {
-                            let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
-                            wpos2d
-                                .map(|e| e as f32 + 0.5)
-                                .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
-                        };
-                        let species = [
-                            comp::body::bird_large::Species::Phoenix,
-                            comp::body::bird_large::Species::Cockatrice,
-                            comp::body::bird_large::Species::Roc,
-                        ]
-                        .choose(&mut rng)
-                        .unwrap();
-                        let npc_id = data.npcs.create_npc(
-                            Npc::new(
-                                rng.gen(),
-                                rand_wpos(&mut rng),
-                                Body::BirdLarge(comp::body::bird_large::Body::random_with(
-                                    &mut rng, species,
-                                )),
-                                Role::Wild,
-                            )
-                            .with_home(site_id),
-                        );
-                        Some((npc_id, site_id))
-                    } else {
-                        warn!("No site found for respawning bird");
-                        None
-                    }
-                },
                 body => {
-                    error!("Tried to respawn rtsim NPC with invalid body: {:?}", body);
-                    None
+                    let home = npc.home.and_then(|_| {
+                        data.sites
+                            .iter()
+                            .filter(|(id, site)| {
+                                Some(*id) != npc.home
+                                    && site.world_site.map_or(false, |s| {
+                                        matches!(ctx.index.sites.get(s).kind, SiteKind::Dungeon(_))
+                                    })
+                            })
+                            .min_by_key(|(_, site)| site.population.len())
+                    });
+
+                    let wpos = if let Some((_, home)) = home {
+                        let wpos2d = home.wpos.map(|e| e + rng.gen_range(-10..10));
+                        wpos2d
+                            .map(|e| e as f32 + 0.5)
+                            .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                    } else {
+                        let pos = (0..10)
+                            .map(|_| {
+                                ctx.world
+                                    .sim()
+                                    .get_size()
+                                    .map(|sz| rng.gen_range(0..sz as i32))
+                            })
+                            .find(|pos| {
+                                ctx.world
+                                    .sim()
+                                    .get(*pos)
+                                    .map_or(false, |c| !c.is_underwater())
+                            })
+                            .unwrap_or(ctx.world.sim().get_size().as_() / 2);
+                        let wpos2d = pos.cpos_to_wpos_center();
+                        wpos2d
+                            .map(|e| e as f32 + 0.5)
+                            .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                    };
+
+                    let home = home.map(|(site_id, _)| site_id);
+
+                    let npc_id = data.npcs.create_npc(
+                        Npc::new(rng.gen(), wpos, body, npc.role.clone()).with_home(home),
+                    );
+                    Some((npc_id, home))
                 },
             };
 
             // Add the NPC to their home site
-            if let Some((npc_id, home_site)) = details {
+            if let Some((npc_id, Some(home_site))) = details {
                 if let Some(home) = data.sites.get_mut(home_site) {
                     home.population.insert(npc_id);
                 }

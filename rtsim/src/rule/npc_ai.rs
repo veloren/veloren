@@ -975,7 +975,9 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
             Some(report_id) if !ctx.known_reports.contains(&report_id) => {
                 #[allow(clippy::single_match)]
                 match ctx.state.data().reports.get(report_id).map(|r| r.kind) {
-                    Some(ReportKind::Death { killer, actor, .. }) => {
+                    Some(ReportKind::Death { killer, actor, .. })
+                        if matches!(&ctx.npc.role, Role::Civilised(_)) =>
+                    {
                         // TODO: Don't report self
                         let phrase = if let Some(killer) = killer {
                             // TODO: For now, we don't make sentiment changes if the killer was an
@@ -1015,7 +1017,8 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
                             ctx.controller.say(killer, Content::localized(phrase))
                         }));
                     },
-                    None => {}, // Stale report, ignore
+                    Some(ReportKind::Death { .. }) => {}, // We don't care about death
+                    None => {},                           // Stale report, ignore
                 }
             },
             Some(_) => {}, // Reports we already know of are ignored
@@ -1069,11 +1072,11 @@ fn humanoid() -> impl Action {
                 ctx.npc.profession(),
                 Some(Profession::Adventurer(_) | Profession::Merchant)
             ) {
-                adventure().boxed()
+                adventure().l().l()
             } else if let Some(home) = ctx.npc.home {
-                villager(home).boxed()
+                villager(home).r().l()
             } else {
-                idle().boxed() // Homeless
+                idle().r() // Homeless
             };
 
             casual(action.interrupt_with(react_to_events))
@@ -1123,10 +1126,28 @@ fn bird_large() -> impl Action {
     })
 }
 
+fn monster() -> impl Action {
+    let mut bearing = Vec2::zero();
+    now(move |ctx| {
+        bearing = bearing
+            .map(|e| e + ctx.rng.gen_range(-0.1..0.1))
+            .try_normalized()
+            .unwrap_or_default();
+        goto_2d(ctx.npc.wpos.xy() + bearing * 24.0, 0.7, 8.0)
+            .debug(move || format!("Moving with a bearing of {:?}", bearing))
+    })
+    .repeat()
+    .map(|_| ())
+}
+
 fn think() -> impl Action {
-    choose(|ctx| match ctx.npc.body {
-        common::comp::Body::Humanoid(_) => casual(humanoid()),
-        common::comp::Body::BirdLarge(_) => casual(bird_large()),
-        _ => casual(socialize()),
+    now(|ctx| match ctx.npc.body {
+        common::comp::Body::Humanoid(_) => humanoid().l().l().l(),
+        common::comp::Body::BirdLarge(_) => bird_large().r().l().l(),
+        _ => match &ctx.npc.role {
+            Role::Civilised(_) => socialize().l().r().l(),
+            Role::Monster => monster().r().r().l(),
+            Role::Wild => idle().r(),
+        },
     })
 }
