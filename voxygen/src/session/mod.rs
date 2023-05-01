@@ -963,7 +963,7 @@ impl PlayState for SessionState {
                                             *dist_sqr < MAX_MOUNT_RANGE.powi(2)
                                         })
                                         .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
-                                    if let Some((pet_entity, _)) = closest_pet {
+                                    if let Some((pet_entity, _)) = closest_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
                                         client.toggle_stay(pet_entity);
                                     }
                                 }

@@ -25,7 +25,7 @@ use self::interaction::{
 use super::{
     consts::{
         DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_PATROL_DIST,
-        NORMAL_FLEE_DIR_DIST, NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
+        MAX_STAY_DISTANCE, NORMAL_FLEE_DIR_DIST, NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
         STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, ReadData, TargetData},
@@ -406,13 +406,25 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
-            let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
             let stay = bdata.agent_data.is_stay;
-            if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) && !stay {
-                bdata
+            if stay {
+                let stay_pos = bdata.agent_data.stay_pos.map_or(Pos(Vec3::zero()), |v| v);
+                let distance_from_stay = stay_pos.0.distance_squared(bdata.agent_data.pos.0);
+
+                if distance_from_stay > (MAX_STAY_DISTANCE).powi(2) {
+                    bdata
+                    .agent_data
+                    .follow(bdata.agent, bdata.controller, bdata.read_data, &stay_pos);
+                    return true;
+                }
+            } else {
+                let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
+                if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) {
+                    bdata
                     .agent_data
                     .follow(bdata.agent, bdata.controller, bdata.read_data, tgt_pos);
-                return true;
+                    return true;
+                }
             }
         }
     }

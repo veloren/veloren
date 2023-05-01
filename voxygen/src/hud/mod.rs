@@ -2432,21 +2432,21 @@ impl Hud {
                                         i18n.get_msg("hud-mount").to_string(),
                                     ));
                                 }
-                            }
-                            let pet_stay = is_stay.get(entity).map(|st| st.stay);
-                            match pet_stay {
-                                Some(false) => options.push((
-                                    GameInput::StayFollow,
-                                    i18n.get_msg("hud-stay").to_string(),
-                                )),
-                                Some(true) => options.push((
-                                    GameInput::StayFollow,
-                                    i18n.get_msg("hud-follow").to_string(),
-                                )),
-                                None => options.push((
-                                    GameInput::StayFollow,
-                                    i18n.get_msg("hud-stay").to_string(),
-                                )),
+                                let pet_stay = is_stay.get(entity).map(|st| st.stay);
+                                match pet_stay {
+                                    Some(false) => options.push((
+                                        GameInput::StayFollow,
+                                        i18n.get_msg("hud-stay").to_string(),
+                                    )),
+                                    Some(true) => options.push((
+                                        GameInput::StayFollow,
+                                        i18n.get_msg("hud-follow").to_string(),
+                                    )),
+                                    None => options.push((
+                                        GameInput::StayFollow,
+                                        i18n.get_msg("hud-stay").to_string(),
+                                    )),
+                                }
                             }
                             options
                         },

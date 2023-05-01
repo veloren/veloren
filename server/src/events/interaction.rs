@@ -213,12 +213,19 @@ pub fn handle_toggle_stay(server: &mut Server, pet: EcsEntity) {
         let _ = state
             .ecs()
             .write_storage::<PetState>()
-            .insert(pet, PetState { stay: false });
+            .insert(pet, PetState {
+                stay: false,
+                stay_pos: None,
+            });
     } else {
+        let current_pos = state.ecs().read_storage::<Pos>().get(pet).copied();
         let _ = state
             .ecs()
             .write_storage::<PetState>()
-            .insert(pet, PetState { stay: true });
+            .insert(pet, PetState {
+                stay: true,
+                stay_pos: current_pos,
+            });
     }
 }
 

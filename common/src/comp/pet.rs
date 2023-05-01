@@ -1,4 +1,4 @@
-use crate::comp::{body::Body, phys::Mass, quadruped_medium, quadruped_small};
+use crate::comp::{body::Body, phys::Mass, quadruped_medium, quadruped_small, Pos};
 use crossbeam_utils::atomic::AtomicCell;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
@@ -109,15 +109,10 @@ impl Component for Pet {
     type Storage = specs::VecStorage<Self>;
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum StayFollow {
-    Stay,
-    Follow,
-}
-
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct PetState {
     pub stay: bool,
+    pub stay_pos: Option<Pos>,
 }
 
 impl Component for PetState {
