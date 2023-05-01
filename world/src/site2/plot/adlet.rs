@@ -541,7 +541,7 @@ impl Structure for AdletStronghold {
                 min: (self.entrance - 12).with_z(self.cavern_alt as i32 - 40),
                 max: (self.entrance + 12).with_z(self.cavern_alt as i32 - 10),
             })
-            .fill(snow_ice_air_fill.clone());
+            .fill(snow_ice_fill.clone());
 
         let valid_entrance = painter.segment_prism(tunnel_start, tunnel_end, 20.0, 30.0);
         painter
@@ -737,7 +737,7 @@ impl Structure for AdletStronghold {
                                 max: (igloo_pos + 15).with_z(alt as i32 + 8 + height_handle),
                             })),
                     };
-                    foundation.fill(snow_ice_air_fill.clone());
+                    foundation.fill(snow_ice_fill.clone());
                     foundation.intersect(cavern).clear();
                     // Platform
                     painter
