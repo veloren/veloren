@@ -12,8 +12,8 @@ use common::{
     comp::{self, Body},
     grid::Grid,
     resources::TimeOfDay,
-    rtsim::{Personality, WorldSettings},
-    terrain::TerrainChunkSize,
+    rtsim::{Personality, Role, WorldSettings},
+    terrain::{CoordinateConversions, TerrainChunkSize},
     vol::RectVolSize,
 };
 use rand::prelude::*;
@@ -124,20 +124,20 @@ impl Data {
                             rng.gen(),
                             rand_wpos(&mut rng, matches_buildings),
                             random_humanoid(&mut rng),
+                            Role::Civilised(Some(match rng.gen_range(0..20) {
+                                0 => Profession::Hunter,
+                                1 => Profession::Blacksmith,
+                                2 => Profession::Chef,
+                                3 => Profession::Alchemist,
+                                5..=8 => Profession::Farmer,
+                                9..=10 => Profession::Herbalist,
+                                11..=16 => Profession::Guard,
+                                _ => Profession::Adventurer(rng.gen_range(0..=3)),
+                            })),
                         )
                         .with_faction(site.faction)
                         .with_home(site_id)
-                        .with_personality(Personality::random(&mut rng))
-                        .with_profession(match rng.gen_range(0..20) {
-                            0 => Profession::Hunter,
-                            1 => Profession::Blacksmith,
-                            2 => Profession::Chef,
-                            3 => Profession::Alchemist,
-                            5..=8 => Profession::Farmer,
-                            9..=10 => Profession::Herbalist,
-                            11..=16 => Profession::Guard,
-                            _ => Profession::Adventurer(rng.gen_range(0..=3)),
-                        }),
+                        .with_personality(Personality::random(&mut rng)),
                     );
                 }
             } else {
@@ -147,11 +147,11 @@ impl Data {
                             rng.gen(),
                             rand_wpos(&mut rng, matches_buildings),
                             random_humanoid(&mut rng),
+                            Role::Civilised(Some(Profession::Cultist)),
                         )
                         .with_personality(Personality::random_evil(&mut rng))
                         .with_faction(site.faction)
-                        .with_home(site_id)
-                        .with_profession(Profession::Cultist),
+                        .with_home(site_id),
                     );
                 }
             }
@@ -163,10 +163,10 @@ impl Data {
                             rng.gen(),
                             rand_wpos(&mut rng, matches_plazas),
                             random_humanoid(&mut rng),
+                            Role::Civilised(Some(Profession::Merchant)),
                         )
                         .with_home(site_id)
-                        .with_personality(Personality::random_good(&mut rng))
-                        .with_profession(Profession::Merchant),
+                        .with_personality(Personality::random_good(&mut rng)),
                     );
                 }
             }
@@ -178,11 +178,15 @@ impl Data {
                     .create_vehicle(Vehicle::new(wpos, comp::body::ship::Body::DefaultAirship));
 
                 this.npcs.create_npc(
-                    Npc::new(rng.gen(), wpos, random_humanoid(&mut rng))
-                        .with_home(site_id)
-                        .with_profession(Profession::Captain)
-                        .with_personality(Personality::random_good(&mut rng))
-                        .steering(vehicle_id),
+                    Npc::new(
+                        rng.gen(),
+                        wpos,
+                        random_humanoid(&mut rng),
+                        Role::Civilised(Some(Profession::Captain)),
+                    )
+                    .with_home(site_id)
+                    .with_personality(Personality::random_good(&mut rng))
+                    .steering(vehicle_id),
                 );
             }
         }
@@ -211,10 +215,41 @@ impl Data {
                     rng.gen(),
                     rand_wpos(&mut rng),
                     Body::BirdLarge(comp::body::bird_large::Body::random_with(&mut rng, species)),
+                    Role::Wild,
                 )
                 .with_home(site_id),
             );
         }
+
+        // Spawn monsters into the world
+        for _ in 0..100 {
+            // Try a few times to find a location that's not underwater
+            if let Some(pos) = (0..10)
+                .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
+                .find(|pos| world.sim().get(*pos).map_or(false, |c| !c.is_underwater()))
+            {
+                let wpos2d = pos.cpos_to_wpos_center();
+                let wpos = wpos2d
+                    .map(|e| e as f32 + 0.5)
+                    .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0));
+
+                let species = match rng.gen_range(0..3) {
+                    0 => comp::body::biped_large::Species::Cyclops,
+                    1 => comp::body::biped_large::Species::Wendigo,
+                    _ => comp::body::biped_large::Species::Werewolf,
+                };
+
+                this.npcs.create_npc(Npc::new(
+                    rng.gen(),
+                    wpos,
+                    Body::BipedLarge(comp::body::biped_large::Body::random_with(
+                        &mut rng, &species,
+                    )),
+                    Role::Monster,
+                ));
+            }
+        }
+
         info!("Generated {} rtsim NPCs.", this.npcs.len());
 
         this

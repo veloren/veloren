@@ -102,4 +102,14 @@ impl Distance {
             Distance::NextTo => "just around",
         }
     }
+
+    pub fn localize_npc(&self) -> Content {
+        Content::localized(match self {
+            Self::VeryFar => "npc-speech-dist_very_far",
+            Self::Far => "npc-speech-dist_far",
+            Self::Ahead => "npc-speech-dist_ahead",
+            Self::Near => "npc-speech-dist_near",
+            Self::NextTo => "npc-speech-dist_near_to",
+        })
+    }
 }

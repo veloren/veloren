@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("cyclops"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.biped_large.default"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

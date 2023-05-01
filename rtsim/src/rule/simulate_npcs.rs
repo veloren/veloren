@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{self, Body},
-    rtsim::{Actor, NpcAction, NpcActivity, Personality},
+    rtsim::{Actor, NpcAction, NpcActivity, Personality, Role},
     terrain::CoordinateConversions,
 };
 use rand::prelude::*;
@@ -82,11 +82,15 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                             Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
                         };
                         let npc_id = data.spawn_npc(
-                            Npc::new(rng.gen(), rand_wpos(&mut rng), random_humanoid(&mut rng))
-                                .with_personality(Personality::random(&mut rng))
-                                .with_home(site_id)
-                                .with_faction(npc.faction)
-                                .with_profession(npc.profession.clone()),
+                            Npc::new(
+                                rng.gen(),
+                                rand_wpos(&mut rng),
+                                random_humanoid(&mut rng),
+                                npc.role.clone(),
+                            )
+                            .with_personality(Personality::random(&mut rng))
+                            .with_home(site_id)
+                            .with_faction(npc.faction),
                         );
                         Some((npc_id, site_id))
                     } else {
@@ -126,6 +130,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                                 Body::BirdLarge(comp::body::bird_large::Body::random_with(
                                     &mut rng, species,
                                 )),
+                                Role::Wild,
                             )
                             .with_home(site_id),
                         );

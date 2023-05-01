@@ -80,6 +80,7 @@ impl TerrainChunkSize {
 pub trait CoordinateConversions {
     fn wpos_to_cpos(&self) -> Self;
     fn cpos_to_wpos(&self) -> Self;
+    fn cpos_to_wpos_center(&self) -> Self;
 }
 
 impl CoordinateConversions for Vec2<i32> {
@@ -90,6 +91,13 @@ impl CoordinateConversions for Vec2<i32> {
 
     #[inline]
     fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32) }
+
+    #[inline]
+    fn cpos_to_wpos_center(&self) -> Self {
+        self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
+            e * sz as i32 + sz as i32 / 2
+        })
+    }
 }
 
 impl CoordinateConversions for Vec2<f32> {
@@ -98,6 +106,13 @@ impl CoordinateConversions for Vec2<f32> {
 
     #[inline]
     fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as f32) }
+
+    #[inline]
+    fn cpos_to_wpos_center(&self) -> Self {
+        self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
+            e * sz as f32 + sz as f32 / 2.0
+        })
+    }
 }
 
 impl CoordinateConversions for Vec2<f64> {
@@ -106,6 +121,13 @@ impl CoordinateConversions for Vec2<f64> {
 
     #[inline]
     fn cpos_to_wpos(&self) -> Self { self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as f64) }
+
+    #[inline]
+    fn cpos_to_wpos_center(&self) -> Self {
+        self.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
+            e * sz as f64 + sz as f64 / 2.0
+        })
+    }
 }
 
 // TerrainChunkMeta

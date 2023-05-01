@@ -18,6 +18,7 @@ pub mod theropod;
 
 use crate::{
     assets::{self, Asset},
+    comp::Content,
     consts::{HUMAN_DENSITY, WATER_DENSITY},
     make_case_elim,
     npc::NpcKind,
@@ -1075,6 +1076,13 @@ impl Body {
             _ => [0.0, 0.0, 0.0],
         }
         .into()
+    }
+
+    pub fn localize(&self) -> Content {
+        match self {
+            Self::BipedLarge(biped_large) => biped_large.localize(),
+            _ => Content::localized("body-generic"),
+        }
     }
 }
 

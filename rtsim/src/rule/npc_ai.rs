@@ -11,9 +11,12 @@ use crate::{
 };
 use common::{
     astar::{Astar, PathResult},
-    comp::{compass::Direction, Content},
+    comp::{
+        compass::{Direction, Distance},
+        Content,
+    },
     path::Path,
-    rtsim::{Actor, ChunkResource, Profession, SiteId},
+    rtsim::{Actor, ChunkResource, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
     terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
@@ -543,15 +546,16 @@ fn socialize() -> impl Action {
     now(|ctx| {
         // Skip most socialising actions if we're not loaded
         if matches!(ctx.npc.mode, SimulationMode::Loaded) && ctx.rng.gen_bool(0.002) {
+            // Sometimes dance
             if ctx.rng.gen_bool(0.15) {
-                return Either::Left(
-                    just(|ctx| ctx.controller.do_dance())
-                        .repeat()
-                        .stop_if(timeout(6.0))
-                        .debug(|| "dancing")
-                        .map(|_| ())
-                        .boxed(),
-                );
+                return just(|ctx| ctx.controller.do_dance())
+                    .repeat()
+                    .stop_if(timeout(6.0))
+                    .debug(|| "dancing")
+                    .map(|_| ())
+                    .l()
+                    .l();
+            // Talk to nearby NPCs
             } else if let Some(other) = ctx
                 .state
                 .data()
@@ -559,31 +563,44 @@ fn socialize() -> impl Action {
                 .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
                 .choose(&mut ctx.rng)
             {
-                return Either::Left(
-                    just(move |ctx| ctx.controller.say(other, if ctx.rng.gen_bool(0.3)
-                        && let Some(current_site) = ctx.npc.current_site
-                        && let Some(current_site) = ctx.state.data().sites.get(current_site)
-                        && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
-                        && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
-                        && let Some(mention_site_name) = mention_site.world_site
-                            .map(|ws| ctx.index.sites.get(ws).name().to_string())
-                    {
-                        Content::localized_with_args("npc-speech-tell_site", [
-                            ("site", Content::Plain(mention_site_name)),
-                            ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
-                        ])
-                    } else {
-                        ctx.npc.personality.get_generic_comment(&mut ctx.rng)
-                    }))
-                    // After greeting the actor, wait for a while
+                // Mention nearby sites
+                let comment = if ctx.rng.gen_bool(0.3)
+                    && let Some(current_site) = ctx.npc.current_site
+                    && let Some(current_site) = ctx.state.data().sites.get(current_site)
+                    && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
+                    && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
+                    && let Some(mention_site_name) = mention_site.world_site
+                        .map(|ws| ctx.index.sites.get(ws).name().to_string())
+                {
+                    Content::localized_with_args("npc-speech-tell_site", [
+                        ("site", Content::Plain(mention_site_name)),
+                        ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
+                        ("dist", Distance::from_length(mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                    ])
+                // Mention nearby monsters
+                } else if ctx.rng.gen_bool(0.3)
+                    && let Some(monster) = ctx.state.data().npcs
+                        .values()
+                        .filter(|other| matches!(&other.role, Role::Monster))
+                        .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
+                {
+                    Content::localized_with_args("npc-speech-tell_monster", [
+                        ("body", monster.body.localize()),
+                        ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
+                        ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                    ])
+                } else {
+                    ctx.npc.personality.get_generic_comment(&mut ctx.rng)
+                };
+                return just(move |ctx| ctx.controller.say(other, comment.clone()))
+                    // After talking, wait for a while
                     .then(idle().repeat().stop_if(timeout(4.0)))
                     .map(|_| ())
-                    .boxed(),
-                );
+                    .r().l();
             }
         }
 
-        Either::Right(idle())
+        idle().r()
     })
 }
 
@@ -611,7 +628,7 @@ fn adventure() -> impl Action {
             .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
             .map(|(site_id, _)| site_id)
         {
-            let wait_time = if matches!(ctx.npc.profession, Some(Profession::Merchant)) {
+            let wait_time = if matches!(ctx.npc.profession(), Some(Profession::Merchant)) {
                 60.0 * 15.0
             } else {
                 60.0 * 3.0
@@ -729,7 +746,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
         }
 
         if DayPeriod::from(ctx.time_of_day.0).is_dark()
-            && !matches!(ctx.npc.profession, Some(Profession::Guard))
+            && !matches!(ctx.npc.profession(), Some(Profession::Guard))
         {
             return important(
                 now(move |ctx| {
@@ -769,7 +786,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                 .debug(|| "find somewhere to sleep"),
             );
         // Villagers with roles should perform those roles
-        } else if matches!(ctx.npc.profession, Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
+        } else if matches!(ctx.npc.profession(), Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
         {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
@@ -782,7 +799,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Hunter)) && ctx.rng.gen_bool(0.8) {
+        } else if matches!(ctx.npc.profession(), Some(Profession::Hunter)) && ctx.rng.gen_bool(0.8) {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
                     just(|ctx| {
@@ -798,7 +815,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Guard)) && ctx.rng.gen_bool(0.7) {
+        } else if matches!(ctx.npc.profession(), Some(Profession::Guard)) && ctx.rng.gen_bool(0.7) {
             if let Some(plaza_wpos) = choose_plaza(ctx, visiting_site) {
                 return casual(
                     travel_to_point(plaza_wpos, 0.4)
@@ -816,7 +833,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Merchant)) && ctx.rng.gen_bool(0.8)
+        } else if matches!(ctx.npc.profession(), Some(Profession::Merchant)) && ctx.rng.gen_bool(0.8)
         {
             return casual(
                 just(|ctx| {
@@ -1049,7 +1066,7 @@ fn humanoid() -> impl Action {
             }
         } else {
             let action = if matches!(
-                ctx.npc.profession,
+                ctx.npc.profession(),
                 Some(Profession::Adventurer(_) | Profession::Merchant)
             ) {
                 adventure().boxed()
