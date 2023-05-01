@@ -56,15 +56,13 @@ pub struct Sentiments {
 
 impl Sentiments {
     /// Return the sentiment that is felt toward the given target.
-    pub fn toward(&self, target: impl Into<Target>) -> Sentiment {
-        self.map.get(&target.into()).copied().unwrap_or_default()
+    pub fn toward(&self, target: impl Into<Target>) -> &Sentiment {
+        self.map.get(&target.into()).unwrap_or(&Sentiment::DEFAULT)
     }
 
-    /// Change the sentiment toward the given target by the given amount,
-    /// capping out at the given value.
-    pub fn change_by(&mut self, target: impl Into<Target>, change: f32, cap: f32) {
-        let target = target.into();
-        self.map.entry(target).or_default().change_by(change, cap);
+    /// Return the sentiment that is felt toward the given target.
+    pub fn toward_mut(&mut self, target: impl Into<Target>) -> &mut Sentiment {
+        self.map.entry(target.into()).or_default()
     }
 
     /// Progressively decay the sentiment back to a neutral sentiment.
@@ -134,6 +132,7 @@ impl Sentiment {
     /// Substantial positive sentiments: NPC may go out of their way to help
     /// actors associated with the target, greet them, etc.
     pub const ALLY: f32 = 0.3;
+    const DEFAULT: Self = Self { positivity: 0 };
     /// Very negative sentiments: NPC may confront the actor, get aggressive
     /// with them, or even use force against them.
     pub const ENEMY: f32 = -0.6;
@@ -150,7 +149,7 @@ impl Sentiment {
     /// Minor positive sentiments: NPC might be more willing to provide
     /// information, give better trade deals, etc.
     pub const POSITIVE: f32 = 0.1;
-    /// Substantial positive sentiments: NPC may reject attempts to trade or
+    /// Substantial negative sentiments: NPC may reject attempts to trade or
     /// avoid actors associated with the target, insult them, but will not
     /// use physical force.
     pub const RIVAL: f32 = -0.3;
@@ -161,7 +160,9 @@ impl Sentiment {
 
     fn value(&self) -> f32 { self.positivity as f32 * (1.0 / 126.0) }
 
-    fn change_by(&mut self, change: f32, cap: f32) {
+    /// Change the sentiment toward the given target by the given amount,
+    /// capping out at the given value.
+    pub fn change_by(&mut self, change: f32, cap: f32) {
         // There's a bit of ceremony here for two reasons:
         // 1) Very small changes should not be rounded to 0
         // 2) Sentiment should never (over/under)flow
@@ -173,6 +174,21 @@ impl Sentiment {
             } else {
                 self.positivity.saturating_sub(abs).max(-cap)
             };
+        }
+    }
+
+    /// Limit the sentiment to the given value, either positive or negative. The
+    /// resulting sentiment is guaranteed to be less than the cap (at least,
+    /// as judged by [`Sentiment::is`]).
+    pub fn limit_below(&mut self, cap: f32) {
+        if cap > 0.0 {
+            self.positivity = self
+                .positivity
+                .min(((cap.min(1.0) * 126.0) as i8 - 1).max(0));
+        } else {
+            self.positivity = self
+                .positivity
+                .max(((-cap.max(-1.0) * 126.0) as i8 + 1).min(0));
         }
     }
 

@@ -972,7 +972,17 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
                                     // killed.
                                     change *= -1.0;
                                 }
-                                ctx.sentiments.change_by(killer, change, Sentiment::VILLAIN);
+                                ctx.sentiments
+                                    .toward_mut(killer)
+                                    .change_by(change, Sentiment::VILLAIN);
+                            }
+
+                            // This is a murder of a player. Feel bad for the player and stop
+                            // attacking them.
+                            if let Actor::Character(_) = actor {
+                                ctx.sentiments
+                                    .toward_mut(actor)
+                                    .limit_below(Sentiment::ENEMY)
                             }
 
                             if ctx.sentiments.toward(actor).is(Sentiment::ENEMY) {
