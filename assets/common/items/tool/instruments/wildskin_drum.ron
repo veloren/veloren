@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Drum",
-    description: "Primitive drum.",
+    name: "Wildskin Drum",
+    description: "one, two, you know what to do!",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: Common,
+    quality: Legendary,
     tags: [Utility],
-    ability_spec: Some(Custom("Drum")),
+    ability_spec: Some(Custom("WildskinDrum")),
 )

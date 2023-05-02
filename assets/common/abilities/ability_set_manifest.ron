@@ -698,9 +698,9 @@
         secondary: Simple(None, "common.abilities.music.lyre"),
         abilities: [],
     ),
-    Custom("Drum"): (
-        primary: Simple(None, "common.abilities.music.drum"),
-        secondary: Simple(None, "common.abilities.music.drum"),
+    Custom("WildskinDrum"): (
+        primary: Simple(None, "common.abilities.music.wildskin_drum"),
+        secondary: Simple(None, "common.abilities.music.wildskin_drum"),
         abilities: [],
     ),
     Custom("IcyTalharpa"): (

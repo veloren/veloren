@@ -80,7 +80,7 @@ subtitle-instrument_sitar = Sitar playing
 subtitle-instrument_guitar = Guitar playing
 subtitle-instrument_dark_guitar = Dark Guitar playing
 subtitle-instrument_washboard = Washboard playing
-subtitle-instrument_drum = Drum playing
+subtitle-instrument_wildskin_drum = Wildskin Drum playing
 subtitle-pickup_instrument = Pickup instrument
 
 subtitle-explosion = Explosion

@@ -1626,8 +1626,8 @@
         "voxel.weapon.tool.wooden_lyre",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Simple("common.items.tool.instruments.drum"): VoxTrans(
-        "voxel.weapon.tool.drum",
+    Simple("common.items.tool.instruments.wildskin_drum"): VoxTrans(
+        "voxel.weapon.tool.wildskin_drum",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     Simple("common.items.tool.instruments.icy_talharpa"): VoxTrans(

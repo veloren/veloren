@@ -401,6 +401,6 @@
         (Item("common.items.tool.instruments.melodica"),1),
         (Item("common.items.tool.instruments.sitar"),1),
         (Item("common.items.tool.instruments.washboard"),1),
-        (Item("common.items.tool.instruments.drum"),1),
+        (Item("common.items.tool.instruments.wildskin_drum"),1),
     ],
 })

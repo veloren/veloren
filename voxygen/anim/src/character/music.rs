@@ -194,7 +194,7 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_z(PI / -3.0);
                     },
                     Some("common.abilities.music.lyre")
-                    | Some("common.abilities.music.drum")
+                    | Some("common.abilities.music.wildskin_drum")
                     | Some("common.abilities.music.icy_talharpa") => {
                         next.hand_l.position = Vec3::new(
                             3.0 - s_a.hand.0,
