@@ -707,10 +707,7 @@ impl Civs {
             13..=18 => SiteKind::SavannahPit,
             _ => SiteKind::Refactor,
         };
-        // TODO: A desert city fails all 100 attemps here on startup and each failed
-        // attempt takes ~10 ms on my machine (so overall it takes about 1
-        // second). Use less brute force method?
-        let site = attempt(/* 100 */ 15, || {
+        let site = attempt(100, || {
             let avoid_town_enemies =
                 ProximityRequirements::new().avoid_all_of(self.town_enemies(), 60);
             let loc = find_site_loc(ctx, &avoid_town_enemies, kind)?;
@@ -1433,19 +1430,18 @@ fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     }
 }
 
-/// Return true if a site could be constructed between a location and a chunk
-/// next to it is permitted (TODO: by whom?)
-fn site_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>, site_kind: SiteKind) -> bool {
-    loc_suitable_for_site(sim, a, site_kind) && loc_suitable_for_site(sim, a + dir, site_kind)
-}
-
 /// Return true if a position is suitable for site construction (TODO:
 /// criteria?)
-fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) -> bool {
+fn loc_suitable_for_site(
+    sim: &WorldSim,
+    loc: Vec2<i32>,
+    site_kind: SiteKind,
+    is_suitable_loc: bool,
+) -> bool {
     fn check_chunk_occupation(sim: &WorldSim, loc: Vec2<i32>, radius: i32) -> bool {
         for x in (-radius)..radius {
             for y in (-radius)..radius {
-                let check_loc = loc + Vec2::new(x, y).cpos_to_wpos();
+                let check_loc = loc + Vec2::new(x, y);
                 if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
                     return false;
                 }
@@ -1453,8 +1449,9 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
         }
         true
     }
-    let not_occupied = check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
-    site_kind.is_suitable_loc(loc, sim) && not_occupied
+    let not_occupied = || check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
+    // only check occupation if the location is suitable
+    is_suitable_loc && not_occupied()
 }
 
 /// Attempt to search for a location that's suitable for site construction
@@ -1474,16 +1471,15 @@ fn find_site_loc(
             )
         });
 
-        if proximity_reqs.satisfied_by(test_loc) {
-            if loc_suitable_for_site(ctx.sim, test_loc, site_kind) {
+        let is_suitable_loc = site_kind.is_suitable_loc(test_loc, ctx.sim);
+        if is_suitable_loc && proximity_reqs.satisfied_by(test_loc) {
+            if loc_suitable_for_site(ctx.sim, test_loc, site_kind, is_suitable_loc) {
                 return Some(test_loc);
             }
 
-            loc = ctx.sim.get(test_loc).and_then(|c| {
-                site_kind
-                    .is_suitable_loc(test_loc, ctx.sim)
-                    .then_some(c.downhill?.wpos_to_cpos())
-            });
+            // If the current location is suitable and meets proximity requirements,
+            // try nearby spot downhill.
+            loc = ctx.sim.get(test_loc).and_then(|c| c.downhill);
         }
     }
 
