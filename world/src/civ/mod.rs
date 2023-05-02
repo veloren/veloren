@@ -55,11 +55,7 @@ pub struct Civs {
     /// (3) we have 8-byte keys (for which FxHash is fastest).
     pub track_map: DHashMap<Id<Site>, DHashMap<Id<Site>, Id<Track>>>,
 
-    pub bridges: hashbrown::HashMap<
-        Vec2<i32>,
-        (Vec2<i32>, Id<Site>),
-        std::hash::BuildHasherDefault<fxhash::FxHasher64>,
-    >,
+    pub bridges: DHashMap<Vec2<i32>, (Vec2<i32>, Id<Site>)>,
 
     pub sites: Store<Site>,
     pub caves: Store<CaveInfo>,
@@ -1372,11 +1368,7 @@ fn walk_in_all_dirs(
 ) -> [Option<(Vec2<i32>, f32)>; 8] {
     let mut potential = [None; 8];
 
-    let mut adjacents = [a; 8];
-    NEIGHBORS
-        .iter()
-        .zip(&mut adjacents)
-        .for_each(|(&dir, adj)| *adj += dir);
+    let adjacents = NEIGHBORS.map(|dir| a + dir);
 
     let Some(a_chunk) = sim.get(a) else { return potential };
     let mut chunks = [None; 8];
@@ -1432,15 +1424,10 @@ fn walk_in_all_dirs(
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if sim.get(loc).is_some() {
-        !NEIGHBORS
-            .iter()
-            .map(|n| {
-                sim.get(loc + *n)
-                    .map_or(false, |chunk| chunk.river.near_water())
-            })
-            .fold(false, |any_near_water, near_water| {
-                any_near_water | near_water
-            })
+        NEIGHBORS.iter().all(|n| {
+            sim.get(loc + *n)
+                .map_or(false, |chunk| !chunk.river.near_water())
+        })
     } else {
         false
     }
