@@ -47,7 +47,7 @@ use common::{
     mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
-    terrain::{Block, TerrainChunk, TerrainGrid, SpriteKind},
+    terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
     uid::UidAllocator,
     util::Dir,
     vol::{ReadVol, RectRasterableVol},
@@ -2171,7 +2171,9 @@ impl FigureMgr {
                             )
                         },
                         _ => {
-                            if let Some(sprite) = is_volume_rider.and_then(|is_volume_rider| is_volume_rider.block.get_sprite()) {
+                            if let Some(sprite) = is_volume_rider
+                                .and_then(|is_volume_rider| is_volume_rider.block.get_sprite())
+                            {
                                 match sprite {
                                     SpriteKind::Helm => {
                                         anim::character::DanceAnimation::update_skeleton(
@@ -2181,21 +2183,19 @@ impl FigureMgr {
                                             &mut state_animation_rate,
                                             skeleton_attr,
                                         )
-                                    }
-                                    _ => {
-                                        anim::character::SitAnimation::update_skeleton(
-                                            &target_base,
-                                            (active_tool_kind, second_tool_kind, time),
-                                            state.state_time,
-                                            &mut state_animation_rate,
-                                            skeleton_attr,
-                                        )
-                                    }
+                                    },
+                                    _ => anim::character::SitAnimation::update_skeleton(
+                                        &target_base,
+                                        (active_tool_kind, second_tool_kind, time),
+                                        state.state_time,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    ),
                                 }
                             } else {
                                 target_base
                             }
-                        }
+                        },
                     };
 
                     state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);

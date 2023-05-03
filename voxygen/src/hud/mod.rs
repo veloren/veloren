@@ -4749,8 +4749,13 @@ impl Hud {
                                 &client.state().terrain(),
                                 &client.state().ecs().read_resource(),
                                 |e| {
-                                   client.state().read_storage::<vcomp::Interpolated>().get(e)
-                                        .map(|interpolated| (comp::Pos(interpolated.pos), interpolated.ori))
+                                    client
+                                        .state()
+                                        .read_storage::<vcomp::Interpolated>()
+                                        .get(e)
+                                        .map(|interpolated| {
+                                            (comp::Pos(interpolated.pos), interpolated.ori)
+                                        })
                                 },
                                 &client.state().read_storage(),
                             )

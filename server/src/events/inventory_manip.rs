@@ -754,7 +754,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             pos.get_block_and_transform(
                                 &state.terrain(),
                                 &state.ecs().read_resource(),
-                                |e| state.read_storage().get(e).copied().zip(state.read_storage().get(e).copied()),
+                                |e| {
+                                    state
+                                        .read_storage()
+                                        .get(e)
+                                        .copied()
+                                        .zip(state.read_storage().get(e).copied())
+                                },
                                 &state.read_storage(),
                             )
                             .map(|(mat, _)| mat.mul_point(Vec3::broadcast(0.5)))

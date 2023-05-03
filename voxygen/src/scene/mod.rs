@@ -719,8 +719,7 @@ impl Scene {
                 .filter_map(|(entity, interpolated, body, collider)| {
                     let vol = collider.get_vol(&voxel_colliders_manifest)?;
                     let (blocks_of_interest, offset) =
-                        figure_mgr
-                            .get_blocks_of_interest(entity, body, Some(collider))?;
+                        figure_mgr.get_blocks_of_interest(entity, body, Some(collider))?;
 
                     let mat = Mat4::from(interpolated.ori.to_quat())
                         .translated_3d(interpolated.pos)

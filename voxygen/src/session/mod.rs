@@ -350,7 +350,7 @@ impl SessionState {
                         match inv_event {
                             InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
                                 self.hud.add_failed_block_pickup(
-                                    // TODO: Support volumes.
+                                    // TODO: Possibly support volumes.
                                     VolumePos::terrain(pos),
                                     HudCollectFailedReason::from_server_reason(
                                         &reason,

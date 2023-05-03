@@ -117,6 +117,9 @@ where
     (Mesh::new(), Mesh::new(), Mesh::new(), bounds)
 }
 
+//    /// NOTE: bone_idx must be in [0, 15] (may be bumped to [0, 31] at some
+//    /// point).
+// TODO: this function name...
 pub fn generate_mesh_base_vol_terrain<'a: 'b, 'b, V: 'a>(
     vol: V,
     (greedy, opaque_mesh, offs, scale, bone_idx): (

@@ -16,7 +16,8 @@ use common::{
     terrain::{Block, TerrainGrid, UnlockKind},
     uid::{Uid, UidAllocator},
     util::find_dist::{Cube, Cylinder, FindDist},
-    vol::ReadVol, CachedSpatialGrid,
+    vol::ReadVol,
+    CachedSpatialGrid,
 };
 use common_base::span;
 
@@ -197,7 +198,6 @@ pub(super) fn select_interactable(
             player_char_state,
         );
 
-
         let spacial_grid = ecs.read_resource::<CachedSpatialGrid>();
 
         let entities = ecs.entities();
@@ -211,9 +211,9 @@ pub(super) fn select_interactable(
             !&is_mount,
             (stats.mask() | items.mask()).maybe(),
         )
-        .join();
+            .join();
 
-        let closest_interactable_entity =  spacial_grid.0.in_circle_aabr(player_pos.xy(), MAX_PICKUP_RANGE)
+        let closest_interactable_entity = spacial_grid.0.in_circle_aabr(player_pos.xy(), MAX_PICKUP_RANGE)
             .filter(|&e| e != player_entity) // skip the player's entity 
             .filter_map(|e| entity_data.get(e, &entities))
             .filter_map(|(e, p, b, s, c, cs, _, has_stats_or_item)| {

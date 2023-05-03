@@ -194,6 +194,9 @@ pub mod figuredata {
         pub bone2: ShipCentralSubSpec,
         pub bone3: ShipCentralSubSpec,
 
+        // TODO: Use StructureBlock here instead. Which would require passing `IndexRef` and
+        // `Calendar` when loading the voxel colliders, which wouldn't work while it's stored in a
+        // static.
         #[serde(default)]
         pub custom_indices: HashMap<u8, DeBlock>,
     }

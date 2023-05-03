@@ -146,7 +146,13 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
     let block_transform = volume_pos.get_block_and_transform(
         &state.terrain(),
         &state.ecs().read_resource(),
-        |e| state.read_storage().get(e).copied().zip(state.read_storage().get(e).copied()),
+        |e| {
+            state
+                .read_storage()
+                .get(e)
+                .copied()
+                .zip(state.read_storage().get(e).copied())
+        },
         &state.read_storage(),
     );
 
