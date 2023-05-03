@@ -9,8 +9,6 @@ mod diary;
 mod esc_menu;
 mod group;
 mod hotbar;
-pub mod img_ids;
-pub mod item_imgs;
 mod loot_scroller;
 mod map;
 mod minimap;
@@ -23,7 +21,11 @@ mod settings_window;
 mod skillbar;
 mod slots;
 mod social;
+mod subtitles;
 mod trade;
+
+pub mod img_ids;
+pub mod item_imgs;
 pub mod util;
 
 pub use crafting::CraftingTab;
@@ -31,6 +33,7 @@ pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
 pub use loot_scroller::LootMessage;
 pub use settings_window::ScaleChange;
+pub use subtitles::Subtitle;
 
 use bag::Bag;
 use buffs::BuffsBar;
@@ -54,6 +57,7 @@ use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
 use social::Social;
+use subtitles::Subtitles;
 use trade::Trade;
 
 use crate::{
@@ -328,6 +332,7 @@ widget_ids! {
         settings_window,
         group_window,
         item_info,
+        subtitles,
 
         // Free look indicator
         free_look_txt,
@@ -1451,7 +1456,7 @@ impl Hud {
     fn update_layout(
         &mut self,
         client: &Client,
-        global_state: &GlobalState,
+        global_state: &mut GlobalState,
         debug_info: &Option<DebugInfo>,
         dt: Duration,
         info: HudInfo,
@@ -3341,6 +3346,18 @@ impl Hud {
                     },
                 }
             }
+        }
+
+        if global_state.settings.audio.subtitles {
+            Subtitles::new(
+                client,
+                &global_state.settings,
+                &global_state.audio.get_listener().clone(),
+                &mut global_state.audio.subtitles,
+                &self.fonts,
+                i18n,
+            )
+            .set(self.ids.subtitles, ui_widgets);
         }
 
         self.new_messages = VecDeque::new();

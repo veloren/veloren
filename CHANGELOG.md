@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs will migrate to new towns if they are dissatisfied with their current town
 - Female humanoids now have a greeting sound effect
 - Loot that drops multiple items is now distributed fairly between damage contributors.
+- Added accessibility settings tab.
+- Setting to enable subtitles describing sfx.
 
 ### Changed
 

@@ -14,17 +14,19 @@ use fader::Fader;
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::load_ogg;
-use std::time::Duration;
+use std::{collections::VecDeque, time::Duration};
 use tracing::{debug, error};
 
 use common::assets::{AssetExt, AssetHandle};
 use rodio::{source::Source, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
 
+use crate::hud::Subtitle;
+
 #[derive(Default, Clone)]
 pub struct Listener {
-    pos: Vec3<f32>,
-    ori: Vec3<f32>,
+    pub pos: Vec3<f32>,
+    pub ori: Vec3<f32>,
 
     ear_left_rpos: Vec3<f32>,
     ear_right_rpos: Vec3<f32>,
@@ -53,12 +55,20 @@ pub struct AudioFrontend {
     music_spacing: f32,
     listener: Listener,
 
+    pub subtitles_enabled: bool,
+    pub subtitles: VecDeque<Subtitle>,
+
     mtm: AssetHandle<MusicTransitionManifest>,
 }
 
 impl AudioFrontend {
     /// Construct with given device
-    pub fn new(/* dev: String, */ num_sfx_channels: usize, num_ui_channels: usize) -> Self {
+    pub fn new(
+        /* dev: String, */
+        num_sfx_channels: usize,
+        num_ui_channels: usize,
+        subtitles: bool,
+    ) -> Self {
         // Commented out until audio device switcher works
         //let audio_device = get_device_raw(&dev);
 
@@ -106,6 +116,8 @@ impl AudioFrontend {
             music_spacing: 1.0,
             listener: Listener::default(),
             mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
+            subtitles: VecDeque::new(),
+            subtitles_enabled: subtitles,
         }
     }
 
@@ -129,6 +141,8 @@ impl AudioFrontend {
             music_spacing: 1.0,
             listener: Listener::default(),
             mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
+            subtitles: VecDeque::new(),
+            subtitles_enabled: false,
         }
     }
 
@@ -223,9 +237,9 @@ impl AudioFrontend {
     /// Errors if no sounds are found
     fn get_sfx_file<'a>(
         trigger_item: Option<(&'a SfxEvent, &'a SfxTriggerItem)>,
-    ) -> Option<&'a str> {
+    ) -> Option<(&'a str, f32, Option<&'a str>)> {
         trigger_item.map(|(event, item)| {
-            match item.files.len() {
+            let file = match item.files.len() {
                 0 => {
                     debug!("Sfx event {:?} is missing audio file.", event);
                     "voxygen.audio.sfx.placeholder"
@@ -239,7 +253,12 @@ impl AudioFrontend {
                     let rand_step = rand::random::<usize>() % item.files.len();
                     &item.files[rand_step]
                 },
-            }
+            };
+
+            // NOTE: Threshold here is meant to give subtitles some idea of the duration of
+            // the audio, it doesn't have to be perfect but in the future, if possible we
+            // might want to switch it out for the actual duration.
+            (file, item.threshold, item.subtitle.as_deref())
         })
     }
 
@@ -252,11 +271,11 @@ impl AudioFrontend {
         volume: Option<f32>,
         underwater: bool,
     ) {
-        if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
+        if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
+            self.emit_subtitle(subtitle, Some(position), dur);
             // Play sound in empty channel at given position
-            if self.audio_stream.is_some() {
+            if self.audio_stream.is_some() && self.sfx_enabled() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
-
                 let listener = self.listener.clone();
                 if let Some(channel) = self.get_sfx_channel() {
                     channel.set_pos(position);
@@ -286,11 +305,11 @@ impl AudioFrontend {
         freq: Option<u32>,
         underwater: bool,
     ) {
-        if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
+        if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
+            self.emit_subtitle(subtitle, Some(position), dur);
             // Play sound in empty channel at given position
-            if self.audio_stream.is_some() {
+            if self.audio_stream.is_some() && self.sfx_enabled() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
-
                 let listener = self.listener.clone();
                 if let Some(channel) = self.get_sfx_channel() {
                     channel.set_pos(position);
@@ -321,17 +340,37 @@ impl AudioFrontend {
         trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
         volume: Option<f32>,
     ) {
-        if let Some(sfx_file) = Self::get_sfx_file(trigger_item) {
+        if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
+            self.emit_subtitle(subtitle, None, dur);
             // Play sound in empty channel
-            if self.audio_stream.is_some() {
+            if self.audio_stream.is_some() && self.sfx_enabled() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
-
                 if let Some(channel) = self.get_ui_channel() {
                     channel.play(sound);
                 }
             }
         } else {
             debug!("Missing sfx trigger config for external sfx event.",);
+        }
+    }
+
+    pub fn emit_subtitle(
+        &mut self,
+        subtitle: Option<&str>,
+        position: Option<Vec3<f32>>,
+        duration: f32,
+    ) {
+        if self.subtitles_enabled {
+            if let Some(subtitle) = subtitle {
+                self.subtitles.push_back(Subtitle {
+                    localization: subtitle.to_string(),
+                    position,
+                    show_for: duration as f64,
+                });
+                if self.subtitles.len() > 10 {
+                    self.subtitles.pop_front();
+                }
+            }
         }
     }
 
@@ -446,6 +485,8 @@ impl AudioFrontend {
         }
     }
 
+    pub fn get_listener(&self) -> &Listener { &self.listener }
+
     /// Switches the playing music to the title music, which is pinned to a
     /// specific sound file (veloren_title_tune.ogg)
     pub fn play_title_music(&mut self) {
@@ -503,6 +544,8 @@ impl AudioFrontend {
     }
 
     pub fn set_music_spacing(&mut self, multiplier: f32) { self.music_spacing = multiplier }
+
+    pub fn set_subtitles(&mut self, enabled: bool) { self.subtitles_enabled = enabled }
 
     /// Updates master volume in all channels
     pub fn set_master_volume(&mut self, master_volume: f32) {

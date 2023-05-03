@@ -23,6 +23,7 @@ fn config_but_played_since_threshold_no_emit() {
     let trigger_item = SfxTriggerItem {
         files: vec![String::from("some.path.to.sfx.file")],
         threshold: 1.0,
+        subtitle: None,
     };
 
     // Triggered a 'Run' 0 seconds ago
@@ -47,6 +48,7 @@ fn config_and_not_played_since_threshold_emits() {
     let trigger_item = SfxTriggerItem {
         files: vec![String::from("some.path.to.sfx.file")],
         threshold: 0.5,
+        subtitle: None,
     };
 
     let previous_state = PreviousEntityState {
@@ -70,6 +72,7 @@ fn same_previous_event_elapsed_emits() {
     let trigger_item = SfxTriggerItem {
         files: vec![String::from("some.path.to.sfx.file")],
         threshold: 0.5,
+        subtitle: None,
     };
 
     let previous_state = PreviousEntityState {

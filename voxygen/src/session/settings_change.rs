@@ -173,6 +173,12 @@ pub enum Networking {
 }
 
 #[derive(Clone)]
+pub enum Accessibility {
+    ChangeRenderMode(Box<RenderMode>),
+    SetSubtitles(bool),
+}
+
+#[derive(Clone)]
 pub enum SettingsChange {
     Audio(Audio),
     Chat(Chat),
@@ -183,6 +189,7 @@ pub enum SettingsChange {
     Interface(Interface),
     Language(Language),
     Networking(Networking),
+    Accessibility(Accessibility),
 }
 
 macro_rules! settings_change_from {
@@ -201,6 +208,7 @@ settings_change_from!(Graphics);
 settings_change_from!(Interface);
 settings_change_from!(Language);
 settings_change_from!(Networking);
+settings_change_from!(Accessibility);
 
 impl SettingsChange {
     pub fn process(self, global_state: &mut GlobalState, session_state: &mut SessionState) {
@@ -732,6 +740,15 @@ impl SettingsChange {
                         global_state.discord.clear_activity();
                         global_state.discord = Discord::Inactive;
                     }
+                },
+            },
+            SettingsChange::Accessibility(accessibility_change) => match accessibility_change {
+                Accessibility::ChangeRenderMode(new_render_mode) => {
+                    change_render_mode(*new_render_mode, &mut global_state.window, settings);
+                },
+                Accessibility::SetSubtitles(enabled) => {
+                    global_state.settings.audio.subtitles = enabled;
+                    global_state.audio.set_subtitles(enabled);
                 },
             },
         }

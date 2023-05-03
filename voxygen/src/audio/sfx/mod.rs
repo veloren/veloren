@@ -328,6 +328,9 @@ pub struct SfxTriggerItem {
     pub files: Vec<String>,
     /// The time to wait before repeating this SfxEvent
     pub threshold: f32,
+
+    #[serde(default)]
+    pub subtitle: Option<String>,
 }
 
 #[derive(Deserialize, Default)]
@@ -369,7 +372,7 @@ impl SfxMgr {
     ) {
         // Checks if the SFX volume is set to zero or audio is disabled
         // This prevents us from running all the following code unnecessarily
-        if !audio.sfx_enabled() {
+        if !audio.sfx_enabled() && !audio.subtitles_enabled {
             return;
         }
 
@@ -401,7 +404,7 @@ impl SfxMgr {
         client: &Client,
         underwater: bool,
     ) {
-        if !audio.sfx_enabled() {
+        if !audio.sfx_enabled() && !audio.subtitles_enabled {
             return;
         }
         let triggers = self.triggers.read();
