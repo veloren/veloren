@@ -46,7 +46,7 @@ macro_rules! synced_components {
             beam_segment: BeamSegment,
             alignment: Alignment,
             stance: Stance,
-            pet_state: PetStates,
+            pet_state: PetState,
             // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
             // from other entities (e.g. just keys needed to show appearance
             // based on their loadout). Also, it looks like this actually has
@@ -74,9 +74,9 @@ macro_rules! reexport_comps {
     ($($name:ident: $type:ident,)*) => {
         mod inner {
             pub use common::comp::*;
+            pub use common::comp::pet::PetState;
             use common::link::Is;
             use common::mounting::{Mount, Rider, VolumeRider};
-            use common::comp::pet::PetState;
             // We alias these because the identifier used for the
             // component's type is reused as an enum variant name
             // in the macro's that we pass to `synced_components!`.
@@ -86,7 +86,6 @@ macro_rules! reexport_comps {
             pub type IsMount = Is<Mount>;
             pub type IsRider = Is<Rider>;
             pub type IsVolumeRider = Is<VolumeRider>;
-            pub type PetStates = PetState;
         }
 
         // Re-export all the component types. So that uses of `synced_components!` outside this
@@ -108,7 +107,7 @@ synced_components!(reexport_comps);
 use crate::sync::{NetSync, SyncFrom};
 
 // These are synced from any entity within range.
-impl NetSync for PetStates {
+impl NetSync for PetState {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

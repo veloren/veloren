@@ -406,7 +406,7 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
-            let stay = bdata.agent_data.is_stay;
+            let stay = bdata.agent_data.stay_pos.is_some();
             if stay {
                 let stay_pos = bdata.agent_data.stay_pos.map_or(Pos(Vec3::zero()), |v| v);
                 let distance_from_stay = stay_pos.0.distance_squared(bdata.agent_data.pos.0);
@@ -443,7 +443,7 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
                 } else {
                     false
                 };
-            let stay = bdata.agent_data.is_stay;
+            let stay = bdata.agent_data.stay_pos.is_some();
             if owner_recently_attacked && !stay {
                 bdata.agent_data.attack_target_attacker(
                     bdata.agent,

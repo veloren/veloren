@@ -161,8 +161,6 @@ impl<'a> System<'a> for Sys {
                             matches!(&*item.kind(), comp::item::ItemKind::Glider)
                         });
 
-                    let is_stay = pet_state.map_or(false, |s| s.stay);
-
                     let stay_pos = pet_state.and_then(|s| s.stay_pos);
 
                     let is_gliding = matches!(
@@ -235,7 +233,6 @@ impl<'a> System<'a> for Sys {
                         light_emitter,
                         glider_equipped,
                         is_gliding,
-                        is_stay,
                         stay_pos,
                         health: read_data.healths.get(entity),
                         char_state,

@@ -144,7 +144,9 @@ impl Server {
                     handle_mount_volume(self, mounter, volume)
                 },
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
-                ServerEvent::ToggleStay(pet) => handle_toggle_stay(self, pet),
+                ServerEvent::ToggleStay(command_giver, pet) => {
+                    handle_toggle_stay(self, command_giver, pet)
+                },
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
                     handle_possess(self, possessor_uid, possesse_uid)
                 },

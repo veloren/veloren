@@ -111,7 +111,6 @@ impl Component for Pet {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct PetState {
-    pub stay: bool,
     pub stay_pos: Option<Pos>,
 }
 

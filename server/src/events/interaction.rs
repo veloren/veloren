@@ -202,29 +202,34 @@ pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);
 }
 
-pub fn handle_toggle_stay(server: &mut Server, pet: EcsEntity) {
+pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: EcsEntity) {
     let state = server.state_mut();
-    if state
+    let mut is_owner = false;
+    let positions = state.ecs().read_storage::<Pos>();
+    if let Some(owner_uid) = state.ecs().uid_from_entity(command_giver) {
+        is_owner = matches!(
+            state
+                .ecs()
+                .read_storage::<comp::Alignment>()
+                .get(pet),
+            Some(comp::Alignment::Owned(pet_owner)) if *pet_owner == owner_uid,
+        );
+    }
+    let prev_pet_pos = state
         .ecs()
         .read_storage::<PetState>()
         .get(pet)
-        .map_or(false, |s| s.stay)
-    {
+        .and_then(|s| s.stay_pos);
+    let mut new_pet_pos = None;
+    if prev_pet_pos.is_none() {
+        new_pet_pos = state.ecs().read_storage::<Pos>().get(pet).copied();
+    }
+    if is_owner && within_mounting_range(positions.get(command_giver), positions.get(pet)) {
         let _ = state
             .ecs()
             .write_storage::<PetState>()
             .insert(pet, PetState {
-                stay: false,
-                stay_pos: None,
-            });
-    } else {
-        let current_pos = state.ecs().read_storage::<Pos>().get(pet).copied();
-        let _ = state
-            .ecs()
-            .write_storage::<PetState>()
-            .insert(pet, PetState {
-                stay: true,
-                stay_pos: current_pos,
+                stay_pos: new_pet_pos,
             });
     }
 }

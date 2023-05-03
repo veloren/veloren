@@ -68,7 +68,7 @@ impl<'a> System<'a> for Sys {
                             .id_maps
                             .uid_entity(pet_uid)
                         {
-                            server_emitter.emit(ServerEvent::ToggleStay(pet_entity));
+                            server_emitter.emit(ServerEvent::ToggleStay(entity, pet_entity));
                         }
                     },
                     ControlEvent::RemoveBuff(buff_id) => {

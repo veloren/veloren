@@ -58,7 +58,10 @@ impl<'a> System<'a> for Sys {
             .collect();
 
         for (pet_entity, owner_pos) in lost_pets.iter() {
-            let stay = pet_state.get(*pet_entity).map_or(false, |f| f.stay);
+            let stay = pet_state
+                .get(*pet_entity)
+                .and_then(|f| f.stay_pos)
+                .is_some();
             if let Some(mut pet_pos) = positions.get_mut(*pet_entity) && !stay{
                 // Move the pets to their owner's position
                 // TODO: Create a teleportation event to handle this instead of
