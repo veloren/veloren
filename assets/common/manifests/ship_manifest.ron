@@ -45,7 +45,7 @@
             central: ("empty"),
         ),
         bone3: (
-            offset: (-1.5, -6.0, -5.0),
+            offset: (-1.5, -6.0, -6.0),
             central: ("air_balloon.rudder"),
         ),
 
