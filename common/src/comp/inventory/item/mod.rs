@@ -330,7 +330,7 @@ impl ItemKind {
     // Used for inventory sorting, what comes before the first colon (:) is used as
     // a broader category
     pub fn get_itemkind_string(&self) -> String {
-        let result = match self {
+        match self {
             // Using tool and toolkind to sort tools by kind
             ItemKind::Tool(tool) => format!("Tool: {:?}", tool.kind),
             ItemKind::ModularComponent(modular_component) => {
@@ -346,8 +346,7 @@ impl ItemKind {
             ItemKind::Utility { kind } => format!("Utility: {:?}", kind),
             ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
             ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
-        };
-        result
+        }
     }
 
     pub fn has_durability(&self) -> bool {

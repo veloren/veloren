@@ -786,7 +786,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     })
                     .and_then(|r| {
                         let items = (0..amount)
-                            .into_iter()
                             .filter_map(|_| {
                                 r.craft_simple(
                                     &mut inventory,

@@ -503,7 +503,7 @@ impl Timer {
     /// Reset the timer for the given action, returning true if the timer was
     /// not already reset.
     pub fn reset(&mut self, action: TimerAction) -> bool {
-        std::mem::replace(&mut self.action_starts[Self::idx_for(action)], None).is_some()
+        self.action_starts[Self::idx_for(action)].take().is_some()
     }
 
     /// Start the timer for the given action, even if it was already started.

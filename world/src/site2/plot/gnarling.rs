@@ -112,7 +112,6 @@ impl GnarlingFortification {
 
         let num_points = (wall_radius / 15).max(5);
         let outer_wall_corners = (0..num_points)
-            .into_iter()
             .map(|a| {
                 let angle = a as f32 / num_points as f32 * core::f32::consts::TAU;
                 Vec2::new(angle.cos(), angle.sin()).map(|a| (a * wall_radius as f32) as i32)
@@ -448,7 +447,6 @@ impl Structure for GnarlingFortification {
             const SECTIONS_PER_WALL_SEGMENT: usize = 8;
 
             (0..(SECTIONS_PER_WALL_SEGMENT as i32))
-                .into_iter()
                 .map(move |a| {
                     let get_point =
                         |a| point + (next_point - point) * a / (SECTIONS_PER_WALL_SEGMENT as i32);

@@ -6,7 +6,6 @@
     array_methods,
     array_zip,
     drain_filter,
-    once_cell,
     trait_alias,
     option_get_or_insert_default,
     map_try_insert,

@@ -81,7 +81,6 @@ lazy_static! {
                     .map(|skill| {
                         let max_level = skill.max_level();
                         (1..=max_level)
-                            .into_iter()
                             .map(|level| skill.skill_cost(level))
                             .sum::<u16>()
                     })

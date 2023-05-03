@@ -1190,10 +1190,7 @@ fn main() {
                 if !SKIP_VOLGRID {
                     let _ = volgrid.insert(spiralpos, Arc::new(chunk));
 
-                    if (1usize..20)
-                        .into_iter()
-                        .any(|i| (2 * i + 1) * (2 * i + 1) == count)
-                    {
+                    if (1usize..20).any(|i| (2 * i + 1) * (2 * i + 1) == count) {
                         use std::fs::File;
                         let mut f = File::create(&format!("chonkjpegs/{}_{}.jpg", sitename, count))
                             .unwrap();

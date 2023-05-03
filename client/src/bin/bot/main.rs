@@ -117,7 +117,6 @@ impl BotClient {
     pub fn handle_register(&mut self, prefix: &str, password: &str, count: Option<usize>) {
         let usernames = match count {
             Some(n) => (0..n)
-                .into_iter()
                 .map(|i| format!("{}{:03}", prefix, i))
                 .collect::<Vec<String>>(),
             None => vec![prefix.to_string()],

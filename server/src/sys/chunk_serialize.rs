@@ -110,7 +110,6 @@ impl<'a> System<'a> for Sys {
                     .get_key_arc_real(chunk_key)
                     .map(|chunk| (Arc::clone(chunk), chunk_key, meta))
             })
-            .into_iter()
             .peekable();
 
         while chunks_iter.peek().is_some() {
