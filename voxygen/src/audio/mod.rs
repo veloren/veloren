@@ -255,6 +255,9 @@ impl AudioFrontend {
                 },
             };
 
+            // NOTE: Threshold here is meant to give subtitles some idea of the duration of
+            // the audio, it doesn't have to be perfect but in the future, if possible we
+            // might want to switch it out for the actual duration.
             (file, item.threshold, item.subtitle.as_deref())
         })
     }

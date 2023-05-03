@@ -289,9 +289,7 @@ impl<'a> Widget for Subtitles<'a> {
                 subtitles
                     .subtitles
                     .iter()
-                    .filter_map(|(localization, data)| {
-                        Some((localization, data.last()?))
-                    })
+                    .filter_map(|(localization, data)| Some((localization, data.last()?)))
                     .filter(|(_, data)| {
                         data.position.map_or(true, |pos| {
                             pos.distance_squared(listener_pos)
