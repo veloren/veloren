@@ -289,15 +289,14 @@ impl<'a> Widget for Subtitles<'a> {
                 subtitles
                     .subtitles
                     .iter()
-                    .filter_map(|(localization, data)| Some((localization, data.last()?)))
-                    .filter(|(_, data)| {
-                        data.position.map_or(true, |pos| {
-                            pos.distance_squared(listener_pos)
-                                < MAX_SUBTITLE_DIST * MAX_SUBTITLE_DIST
-                        })
-                    })
-                    .map(|(localization, data)| {
-                        (self.localized_strings.get_msg(localization), data)
+                    .filter_map(|(localization, data)| {
+                        let data = data.last()?;
+                        data.position
+                            .map_or(true, |pos| {
+                                pos.distance_squared(listener_pos)
+                                    < MAX_SUBTITLE_DIST * MAX_SUBTITLE_DIST
+                            })
+                            .then(|| (self.localized_strings.get_msg(localization), data))
                     }),
             );
 
