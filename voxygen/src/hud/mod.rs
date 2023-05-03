@@ -3352,13 +3352,12 @@ impl Hud {
             Subtitles::new(
                 client,
                 &global_state.settings,
+                &global_state.audio.get_listener().clone(),
                 &mut global_state.audio.subtitles,
                 &self.fonts,
                 i18n,
             )
             .set(self.ids.subtitles, ui_widgets);
-        } else {
-            global_state.audio.subtitles.clear();
         }
 
         self.new_messages = VecDeque::new();

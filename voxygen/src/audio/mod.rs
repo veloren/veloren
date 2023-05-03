@@ -25,8 +25,8 @@ use crate::hud::Subtitle;
 
 #[derive(Default, Clone)]
 pub struct Listener {
-    pos: Vec3<f32>,
-    ori: Vec3<f32>,
+    pub pos: Vec3<f32>,
+    pub ori: Vec3<f32>,
 
     ear_left_rpos: Vec3<f32>,
     ear_right_rpos: Vec3<f32>,
@@ -64,7 +64,8 @@ pub struct AudioFrontend {
 impl AudioFrontend {
     /// Construct with given device
     pub fn new(
-        /* dev: String, */ num_sfx_channels: usize,
+        /* dev: String, */
+        num_sfx_channels: usize,
         num_ui_channels: usize,
         subtitles: bool,
     ) -> Self {
@@ -268,15 +269,7 @@ impl AudioFrontend {
         underwater: bool,
     ) {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
-            if self.subtitles_enabled {
-                if let Some(subtitle) = subtitle {
-                    self.subtitles.push_back(Subtitle {
-                        localization: subtitle.to_string(),
-                        position: Some(position),
-                        show_until: dur.max(1.5) as f64,
-                    })
-                }
-            }
+            self.emit_subtitle(subtitle, Some(position), dur);
             // Play sound in empty channel at given position
             if self.audio_stream.is_some() && self.sfx_enabled() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
@@ -310,15 +303,7 @@ impl AudioFrontend {
         underwater: bool,
     ) {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
-            if self.subtitles_enabled {
-                if let Some(subtitle) = subtitle {
-                    self.subtitles.push_back(Subtitle {
-                        localization: subtitle.to_string(),
-                        position: Some(position),
-                        show_until: dur.max(1.5) as f64,
-                    })
-                }
-            }
+            self.emit_subtitle(subtitle, Some(position), dur);
             // Play sound in empty channel at given position
             if self.audio_stream.is_some() && self.sfx_enabled() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
@@ -353,15 +338,7 @@ impl AudioFrontend {
         volume: Option<f32>,
     ) {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
-            if self.subtitles_enabled {
-                if let Some(subtitle) = subtitle {
-                    self.subtitles.push_back(Subtitle {
-                        localization: subtitle.to_string(),
-                        position: None,
-                        show_until: dur.max(1.5) as f64,
-                    })
-                }
-            }
+            self.emit_subtitle(subtitle, None, dur);
             // Play sound in empty channel
             if self.audio_stream.is_some() && self.sfx_enabled() {
                 let sound = load_ogg(sfx_file).amplify(volume.unwrap_or(1.0));
@@ -371,6 +348,26 @@ impl AudioFrontend {
             }
         } else {
             debug!("Missing sfx trigger config for external sfx event.",);
+        }
+    }
+
+    pub fn emit_subtitle(
+        &mut self,
+        subtitle: Option<&str>,
+        position: Option<Vec3<f32>>,
+        duration: f32,
+    ) {
+        if self.subtitles_enabled {
+            if let Some(subtitle) = subtitle {
+                self.subtitles.push_back(Subtitle {
+                    localization: subtitle.to_string(),
+                    position,
+                    show_for: duration as f64,
+                });
+                if self.subtitles.len() > 10 {
+                    self.subtitles.pop_front();
+                }
+            }
         }
     }
 
@@ -484,6 +481,8 @@ impl AudioFrontend {
             }
         }
     }
+
+    pub fn get_listener(&self) -> &Listener { &self.listener }
 
     /// Switches the playing music to the title music, which is pinned to a
     /// specific sound file (veloren_title_tune.ogg)
