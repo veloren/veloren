@@ -644,22 +644,26 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
 
-    //adlet placeholder
+    // inuit inspired location names for adlet stronghold
     pub fn generate_adlet(mut self) -> String {
-        let start = ["gn", "kr", "k", "r", "t", "kn", "tr", "kt", "gr"];
-        let middle = [
-            "t", "tt", "k", "kk", "r", "r", "rl", "lm", "km", "tm", "kn", "kr", "tr", "nk", "gn",
-            "kl", "kt", "lt", "arln", "ln", "k't", "k'n", "k'm", "g'm", "l'k", "t'n", "r'k",
-            "n'kr", "k R", "t K", "rl Gn", "rl K", "k Gn", "t M", "t N", "r K", "r N", "k M",
-            "k T", "rl T", "t Kn", "r Kn",
+        let start = [
+            "p", "k", "h", "q", "s", "t", "y", "n", "m", "an", "ap", "ang", "am", "at", "arn",
+            "ats", "av", "aj", "in", "ikk", "ig", "im", "iq", "uak", "ual", "uj", "uk", "um", "ul",
+            "unn", "ut", "adl",
         ];
-        let vowel = ["e", "a", "i", "o"];
+        let middle = [
+            "m", "k", "n", "ks", "gl", "ll", "g", "l", "t", "nn", "kt", "tt", "rj", "rl", "ts",
+            "qt", "ng", "gg", "ss", "kk",
+        ];
+        let vowel = ["a", "i", "u", "ia", "ui", "ua", "aa", "uu"];
         let end = [
-            "arak", "orok", "arok", "orak", "attak", "akarl", "okarl", "atok", "anak", "etak",
-            "orek", "arek", "atik", "arik", "etik", "arlak", "arlek", "otek", "almek", "arlnok",
-            "arlnak", "okorl", "eknok", "ottok", "erlek", "akkat", "okkar", "attor", "ittor",
-            "aktor", "okomor", "imor", "inork", "inor", "amakkor", "ikkor", "amarl", "omarl",
-            "ikkarl", "okkarl", "emekk", "akatak", "okatak",
+            "uktu", "akut", "ukut", "aakut", "uvit", "avit", "ivit", "anuq", "attiq", "aqtuq",
+            "akka", "ikka", "ipit", "ugit", "agit", "uvusi", "avusi", "ivusi", "aali", "uli",
+            "aluk", "uluk", "alu", "uipit", "unga", "asuna", "uulik", "ivun", "avun", "adlet",
+            "adlit", "anit", "unit", "aluit", "angit", "arluut", "uluut", "araaq", "anait",
+            "uqsuit", "aruq", "ualik", "auti", "aliit", "igiit", "aana", "akkuq", "amali", "igit",
+            "irniq", "aasi", "ashi", "asik", "ukkit", "ajuq", "anook", "ivak", "attiq", "iksik",
+            "aaluk", "anik", "usuuq",
         ];
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
