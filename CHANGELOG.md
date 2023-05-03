@@ -46,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added accessibility settings tab.
 - Setting to enable subtitles describing sfx.
 - Item drops that are spatially close and compatible will now merge with one-another to reduce performance problems.
+- Airships can now have sprites, which can be interacted with.
+- Some sprites can be sat on.
 
 ### Changed
 
