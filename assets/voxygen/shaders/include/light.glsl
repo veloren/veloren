@@ -199,7 +199,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float computed_shadow = ShadowCalculationPoint(i, -difference, wnorm, wpos/*, light_distance*/);
         // directed_light += is_direct ? max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light : vec3(0.0);
         // Non-physically emulate ambient light nearby
-        float ambiance = (dot(-wnorm, direct_light_dir) * 0.5 + 0.5) * strength;
+        float ambiance = mix(0.05, 0.5, (dot(wnorm, direct_light_dir) + 1.0) * 0.5) * strength;
         #ifdef FIGURE_SHADER
             // Non-physical hack. Subtle, but allows lanterns to glow nicely
             // TODO: Make lanterns use glowing cells instead
