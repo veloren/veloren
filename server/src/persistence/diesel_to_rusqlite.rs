@@ -1,5 +1,4 @@
 use crate::persistence::{error::PersistenceError, VelorenConnection};
-use rusqlite::NO_PARAMS;
 use tracing::{debug, info};
 
 /// Performs a one-time migration from diesel to refinery migrations. Copies
@@ -23,7 +22,7 @@ pub(crate) fn migrate_from_diesel(
     ",
     )?;
 
-    let diesel_migrations_table_exists = stmt.query_row(NO_PARAMS, |row| {
+    let diesel_migrations_table_exists = stmt.query_row([], |row| {
         let row_count: i32 = row.get(0)?;
         Ok(row_count > 0)
     })?;
