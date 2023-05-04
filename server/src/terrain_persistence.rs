@@ -10,13 +10,25 @@ use std::{
     fs::File,
     io::{self, Read as _, Write as _},
     path::PathBuf,
+    time::{Duration, Instant},
 };
 use tracing::{debug, error, info, warn};
 use vek::*;
 
+const UNLOAD_DELAY: Duration = Duration::from_secs(600); // Wait 10 minutes until unloading chunk from IO
+
 pub struct TerrainPersistence {
     path: PathBuf,
-    chunks: HashMap<Vec2<i32>, Chunk>,
+    chunks: HashMap<Vec2<i32>, LoadedChunk>,
+    /// A cache of recently unloaded chunks
+    cached_chunks: HashMap<Vec2<i32>, (Instant, Chunk)>,
+}
+
+/// Wrapper over a [`Chunk`] that keeps track of modifications
+#[derive(Default)]
+pub struct LoadedChunk {
+    chunk: Chunk,
+    modified: bool,
 }
 
 impl TerrainPersistence {
@@ -39,15 +51,16 @@ impl TerrainPersistence {
         Self {
             path,
             chunks: HashMap::default(),
+            cached_chunks: HashMap::default(),
         }
     }
 
     /// Apply persistence changes to a newly generated chunk.
     pub fn apply_changes(&mut self, key: Vec2<i32>, terrain_chunk: &mut TerrainChunk) {
-        let chunk = self.load_chunk(key);
+        let loaded_chunk = self.load_chunk(key);
 
         let mut resets = Vec::new();
-        for (rpos, new_block) in chunk.blocks() {
+        for (rpos, new_block) in loaded_chunk.chunk.blocks() {
             if let Err(e) = terrain_chunk.map(rpos, |block| {
                 if block == new_block {
                     resets.push(rpos);
@@ -63,17 +76,27 @@ impl TerrainPersistence {
 
         // Reset any unchanged blocks (this is an optimisation only)
         for rpos in resets {
-            chunk.reset_block(rpos);
+            loaded_chunk.chunk.reset_block(rpos);
+            loaded_chunk.modified = true;
         }
     }
 
     /// Maintain terrain persistence (writing changes changes back to
-    /// filesystem, etc.)
+    /// filesystem, unload cached chunks, etc.)
     pub fn maintain(&mut self) {
         // Currently, this does nothing because filesystem writeback occurs on
         // chunk unload However, this is not a particularly reliable
         // mechanism (it doesn't survive power loss, say). Later, a more
         // reliable strategy should be implemented here.
+
+        // Remove chunks from cache that are older than [`UNLOAD_DELAY`]
+        let now = Instant::now();
+
+        self.cached_chunks = self
+            .cached_chunks
+            .drain()
+            .filter(|(_, (unloaded, _))| unloaded.duration_since(now) > UNLOAD_DELAY)
+            .collect();
     }
 
     fn path_for(&self, key: Vec2<i32>) -> PathBuf {
@@ -82,9 +105,18 @@ impl TerrainPersistence {
         path
     }
 
-    fn load_chunk(&mut self, key: Vec2<i32>) -> &mut Chunk {
+    fn load_chunk(&mut self, key: Vec2<i32>) -> &mut LoadedChunk {
         let path = self.path_for(key);
         self.chunks.entry(key).or_insert_with(|| {
+            // If the chunk has been recently unloaded and is still cached, dont read it
+            // from disk
+            if let Some((_, chunk)) = self.cached_chunks.remove(&key) {
+                return LoadedChunk {
+                    chunk,
+                    modified: false,
+                };
+            }
+
             File::open(&path)
                 .ok()
                 .map(|f| {
@@ -95,10 +127,10 @@ impl TerrainPersistence {
                                 "Failed to read data for chunk {:?} from file: {:?}",
                                 key, err
                             );
-                            return Chunk::default();
+                            return LoadedChunk::default();
                         },
                     };
-                    match Chunk::deserialize_from(io::Cursor::new(bytes)) {
+                    let chunk = match Chunk::deserialize_from(io::Cursor::new(bytes)) {
                         Some(chunk) => chunk,
                         None => {
                             // Find an untaken name for a backup
@@ -120,6 +152,12 @@ impl TerrainPersistence {
                             }
                             Chunk::default()
                         },
+                    };
+
+                    LoadedChunk {
+                        chunk,
+
+                        modified: false,
                     }
                 })
                 .unwrap_or_default()
@@ -127,9 +165,26 @@ impl TerrainPersistence {
     }
 
     pub fn unload_chunk(&mut self, key: Vec2<i32>) {
-        if let Some(chunk) = self.chunks.remove(&key) {
+        self.chunks.remove(&key);
+
+        if let Some(LoadedChunk { chunk, modified }) = self.chunks.remove(&key) {
+            let now = Instant::now();
+
+            match (self.cached_chunks.get_mut(&key), modified) {
+                // Chunk exists in cache but has been modified -> full save
+                (Some(cached), true) => *cached = (now, chunk.clone()),
+                // Chunk exists in cache but has not been modified -> update timestamp
+                (Some((last_unload, _)), false) => *last_unload = now,
+                // Not in cache -> save to cache!
+                _ => {
+                    self.cached_chunks.insert(key, (now, chunk.clone()));
+                },
+            }
+
             // No need to write if no blocks have ever been written
-            if chunk.blocks.is_empty() {
+            // Prevent unecesarry IO by only writing the chunk to disk if blocks have
+            // changed
+            if chunk.blocks.is_empty() || !modified {
                 return;
             }
 
@@ -159,9 +214,12 @@ impl TerrainPersistence {
         let key = pos
             .xy()
             .map2(TerrainChunk::RECT_SIZE, |e, sz| e.div_euclid(sz as i32));
-        self.load_chunk(key)
+        let loaded_chunk = self.load_chunk(key);
+        loaded_chunk
+            .chunk
             .blocks
             .insert(pos - key * TerrainChunk::RECT_SIZE.map(|e| e as i32), block);
+        loaded_chunk.modified = true;
     }
 }
 
@@ -169,7 +227,7 @@ impl Drop for TerrainPersistence {
     fn drop(&mut self) { self.unload_all(); }
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Chunk {
     blocks: HashMap<Vec3<i32>, Block>,
 }
