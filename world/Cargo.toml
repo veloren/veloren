@@ -34,7 +34,7 @@ lazy_static = "1.4.0"
 tracing = { version = "0.1", default-features = false }
 rand = "0.8"
 rand_chacha = "0.3"
-arr_macro = "0.1.2"
+arr_macro = "0.2.1"
 packed_simd = { package = "packed_simd_2", version = "0.3.8", optional = true }
 rayon = "1.5"
 serde = { version = "1.0.110", features = ["derive"] }
@@ -49,7 +49,7 @@ deflate = { version = "1.0.0", optional = true }
 flate2 = { version = "1.0.20", optional = true }
 num-traits = { version = "0.2", optional = true }
 fallible-iterator = { version = "0.2.0", optional = true }
-rstar = { version = "0.9", optional = true }
+rstar = { version = "0.10", optional = true }
 clap = { version = "3.1.8", optional = true }
 
 

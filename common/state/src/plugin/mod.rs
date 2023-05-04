@@ -3,6 +3,7 @@ pub mod memory_manager;
 pub mod module;
 pub mod wasm_env;
 
+use bincode::ErrorKind;
 use common::assets::ASSETS_PATH;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -57,10 +58,13 @@ impl Plugin {
             .collect::<Result<HashMap<_, _>, _>>()
             .map_err(PluginError::Io)?;
 
-        let data = toml::de::from_slice::<PluginData>(
-            files
-                .get(Path::new("plugin.toml"))
-                .ok_or(PluginError::NoConfig)?,
+        let data = toml::de::from_str::<PluginData>(
+            std::str::from_utf8(
+                files
+                    .get(Path::new("plugin.toml"))
+                    .ok_or(PluginError::NoConfig)?,
+            )
+            .map_err(|e| PluginError::Encoding(Box::new(ErrorKind::InvalidUtf8Encoding(e))))?,
         )
         .map_err(PluginError::Toml)?;
 

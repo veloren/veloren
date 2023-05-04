@@ -197,7 +197,7 @@ impl VoxelImageEncoding for PngEncoding {
         let mut buf = Vec::new();
         let png = image::codecs::png::PngEncoder::new_with_quality(
             &mut buf,
-            CompressionType::Rle,
+            CompressionType::Fast,
             FilterType::Up,
         );
         png.write_image(
@@ -297,7 +297,7 @@ impl VoxelImageEncoding for MixedEncoding {
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Rle,
+                CompressionType::Fast,
                 FilterType::Up,
             );
             png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
@@ -634,7 +634,7 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Rle,
+                CompressionType::Fast,
                 FilterType::Up,
             );
             png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
