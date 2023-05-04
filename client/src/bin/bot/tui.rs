@@ -26,12 +26,15 @@ impl Tui {
 
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_millis(20));
-            let mut readline =
-                rustyline::Editor::<(), rustyline::history::FileHistory>::with_history(
-                    Default::default(),
-                    Default::default(),
-                )
-                .unwrap();
+            let config = rustyline::config::Builder::new()
+                .max_history_size(1000)
+                .unwrap()
+                .build();
+            let mut readline = rustyline::Editor::<(), _>::with_history(
+                config,
+                rustyline::history::MemHistory::with_config(config),
+            )
+            .unwrap();
             while let Ok(cmd) = readline.readline("\n\nbotclient> ") {
                 let keep_going = Self::process_command(&cmd, &mut commands_s);
                 readline.add_history_entry(cmd).unwrap();
@@ -77,7 +80,7 @@ impl Tui {
                     Some(("register", matches)) => command_s.try_send(Cmd::Register {
                         prefix: matches.get_one::<String>("prefix").unwrap().to_string(),
                         password: matches.get_one::<String>("password").unwrap().to_string(),
-                        count: matches.get_one::<usize>("count").cloned(),
+                        count: matches.get_one::<usize>("count").copied(),
                     }),
                     Some(("login", matches)) => command_s.try_send(Cmd::Login {
                         prefix: matches.get_one::<String>("prefix").unwrap().to_string(),

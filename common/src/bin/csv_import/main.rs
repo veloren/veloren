@@ -1,11 +1,11 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![allow(clippy::expect_fun_call)] //TODO: evaluate to remove this and use `unwrap_or_else(panic!(...))` instead
 
+use clap::Parser;
 use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::Serialize;
 use std::{error::Error, fs::File, io::Write};
-use structopt::StructOpt;
 
 use veloren_common::{
     assets::ASSETS_PATH,
@@ -19,7 +19,7 @@ use veloren_common::{
     },
 };
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Cli {
     /// Available arguments: "armor-stats", "weapon-stats"
     function: String,
@@ -463,7 +463,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let args = Cli::from_args();
+    let args = Cli::parse();
     if args.function.eq_ignore_ascii_case("armor-stats") {
         if get_input(
             "

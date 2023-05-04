@@ -2,6 +2,7 @@ use clap::Parser;
 use common::comp;
 use server::persistence::SqlLogMode;
 use std::sync::mpsc::Sender;
+use strum::VariantNames;
 use tracing::error;
 
 #[derive(Clone, Debug, Parser)]
@@ -11,7 +12,7 @@ pub enum Admin {
         /// Name of the admin to whom to assign a role
         username: String,
         /// role to assign to the admin
-        #[arg(ignore_case = true, value_parser = SqlLogMode::variants())]
+        #[arg(ignore_case = true, value_parser = clap::builder::PossibleValuesParser::new(comp::AdminRole::VARIANTS))]
         role: comp::AdminRole,
     },
     Remove {
