@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("cyclops"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.biped_large.default"),
+    loot: LootTable("common.loot_tables.dungeon.tier-4.miniboss"),
     inventory: (
         loadout: FromBody,
     ),
