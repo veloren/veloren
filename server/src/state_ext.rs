@@ -349,21 +349,18 @@ impl StateExt for State {
             nearby_items.sort_by_key(|(_, dist_sqrd)| (dist_sqrd * 1000.0) as i32);
             for (nearby, _) in nearby_items {
                 // Only merge if the loot owner is the same
-                if loot_owners.get(nearby).map(|lo| lo.owner()) == loot_owner.map(|lo| lo.owner()) {
-                    if items
+                if loot_owners.get(nearby).map(|lo| lo.owner()) == loot_owner.map(|lo| lo.owner())
+                    && items
                         .get(nearby)
                         .map_or(false, |nearby_item| nearby_item.can_merge(&item))
-                    {
-                        // Merging can occur! Perform the merge:
-                        items
-                            .get_mut(nearby)
-                            .expect("we know that the item exists")
-                            .try_merge(item)
-                            .expect(
-                                "`try_merge` should succeed because `can_merge` returned `true`",
-                            );
-                        return None;
-                    }
+                {
+                    // Merging can occur! Perform the merge:
+                    items
+                        .get_mut(nearby)
+                        .expect("we know that the item exists")
+                        .try_merge(item)
+                        .expect("`try_merge` should succeed because `can_merge` returned `true`");
+                    return None;
                 }
             }
             // Only if merging items fails do we give up and create a new item
