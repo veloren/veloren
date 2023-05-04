@@ -947,31 +947,32 @@ impl PlayState for SessionState {
                                     .get(client.entity())
                                     .copied();
 
-                                let mut close_pet = (None, None);
+                                let mut close_pet = None;
                                 if let Some(player_pos) = player_pos {
                                     let alignment =
                                         client.state().ecs().read_storage::<comp::Alignment>();
                                     let spatial_grid =
                                         client.state().ecs().read_resource::<CachedSpatialGrid>();
-                                    spatial_grid.0
+                                    close_pet = spatial_grid.0
                                         .in_circle_aabr(player_pos.0.xy(), MAX_MOUNT_RANGE)
-                                        .for_each(|e| {
-                                            client
+                                        .filter(|e|
+                                            *e != client.entity()
+                                        )
+                                        .filter(|e|
+                                            matches!(alignment.get(*e), Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid())
+                                        )
+                                        .min_by_key(|e| {
+                                            OrderedFloat(client
                                                 .state()
                                                 .read_storage::<Pos>()
-                                                .get(e)
-                                                .map(|x|{
-                                                    let distance = player_pos.0.distance_squared(x.0);
-                                                    if distance < close_pet.1.map_or(MAX_MOUNT_RANGE * MAX_MOUNT_RANGE, |x| x) && e != client.entity()
-                                                    && matches!(alignment.get(e), Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()) {
-                                                        close_pet.0 = Some(e);
-                                                        close_pet.1 = Some(distance);
-                                                    }
+                                                .get(*e)
+                                                .map_or(MAX_MOUNT_RANGE * MAX_MOUNT_RANGE, |x| {
+                                                    player_pos.0.distance_squared(x.0)
                                                 }
-                                            );
+                                            ))
                                         });
                                 }
-                                if let (Some(pet_entity), _) = close_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
+                                if let Some(pet_entity)= close_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
                                     client.toggle_stay(pet_entity);
                                 }
                             },
