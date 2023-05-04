@@ -1158,15 +1158,31 @@ impl Item {
         }
     }
 
+    /// Return `true` if `other` can be merged into this item. This is generally
+    /// only possible if the item has a compatible item ID and is stackable,
+    /// along with any other similarity checks.
+    pub fn can_merge(&self, other: &Item) -> bool {
+        if self.is_stackable()
+            && let ItemBase::Simple(other_item_def) = &other.item_base
+            && self.is_same_item_def(other_item_def)
+            && u32::from(self.amount)
+                .checked_add(other.amount())
+                .filter(|&amount| amount <= self.max_amount())
+                .is_some()
+        {
+            true
+        } else {
+            false
+        }
+    }
+
     /// Try to merge `other` into this item. This is generally only possible if
     /// the item has a compatible item ID and is stackable, along with any
     /// other similarity checks.
     pub fn try_merge(&mut self, other: Item) -> Result<(), Item> {
-        if self.is_stackable()
-            && let ItemBase::Simple(other_item_def) = &other.item_base
-            && self.is_same_item_def(other_item_def)
-        {
-            self.increase_amount(other.amount()).map_err(|_| other)?;
+        if self.can_merge(&other) {
+            self.increase_amount(other.amount())
+                .expect("`can_merge` succeeded but `increase_amount` did not");
             Ok(())
         } else {
             Err(other)

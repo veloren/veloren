@@ -323,7 +323,7 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         vel: comp::Vel,
-        mut item: Item,
+        item: Item,
         loot_owner: Option<LootOwner>,
     ) -> Option<EcsEntity> {
         {
@@ -340,7 +340,7 @@ impl StateExt for State {
                 .read_resource::<common::CachedSpatialGrid>()
                 .0
                 .in_circle_aabr(pos.0.xy(), MAX_MERGE_DIST)
-                .filter(|entity| items.get(*entity).is_some())
+                .filter(|entity| items.contains(*entity))
                 .filter_map(|entity| {
                     Some((entity, positions.get(entity)?.0.distance_squared(pos.0)))
                 })
@@ -350,11 +350,19 @@ impl StateExt for State {
             for (nearby, _) in nearby_items {
                 // Only merge if the loot owner is the same
                 if loot_owners.get(nearby).map(|lo| lo.owner()) == loot_owner.map(|lo| lo.owner()) {
-                    if let Some(mut nearby_item) = items.get_mut(nearby) {
-                        match nearby_item.try_merge(item) {
-                            Ok(()) => return None, // Merging was successful!
-                            Err(rejected_item) => item = rejected_item,
-                        }
+                    if items
+                        .get(nearby)
+                        .map_or(false, |nearby_item| nearby_item.can_merge(&item))
+                    {
+                        // Merging can occur! Perform the merge:
+                        items
+                            .get_mut(nearby)
+                            .expect("we know that the item exists")
+                            .try_merge(item)
+                            .expect(
+                                "`try_merge` should succeed because `can_merge` returned `true`",
+                            );
+                        return None;
                     }
                 }
             }
