@@ -543,38 +543,55 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
     move |ctx| ctx.time.0 > *timeout.get_or_insert(ctx.time.0 + time)
 }
 
-fn talk_to(tgt: Actor, subject: Option<Subject>) -> impl Action {
+fn talk_to(tgt: Actor, _subject: Option<Subject>) -> impl Action {
     now(move |ctx| {
-        // Mention nearby sites
-        let comment = if ctx.rng.gen_bool(0.3)
-            && let Some(current_site) = ctx.npc.current_site
-            && let Some(current_site) = ctx.state.data().sites.get(current_site)
-            && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
-            && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
-            && let Some(mention_site_name) = mention_site.world_site
-                .map(|ws| ctx.index.sites.get(ws).name().to_string())
-        {
-            Content::localized_with_args("npc-speech-tell_site", [
-                ("site", Content::Plain(mention_site_name)),
-                ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
-                ("dist", Distance::from_length(mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
-            ])
-        // Mention nearby monsters
-        } else if ctx.rng.gen_bool(0.3)
-            && let Some(monster) = ctx.state.data().npcs
-                .values()
-                .filter(|other| matches!(&other.role, Role::Monster))
-                .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
-        {
-            Content::localized_with_args("npc-speech-tell_monster", [
-                ("body", monster.body.localize()),
-                ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
-                ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
-            ])
+        if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
+            // Cut off the conversation sometimes to avoid infinite conversations (but only
+            // if the target is an NPC!) TODO: Don't special case this, have
+            // some sort of 'bored of conversation' system
+            idle().l()
         } else {
-            ctx.npc.personality.get_generic_comment(&mut ctx.rng)
-        };
-        just(move |ctx| ctx.controller.say(tgt, comment.clone()))
+            // Mention nearby sites
+            let comment = if ctx.rng.gen_bool(0.3)
+                && let Some(current_site) = ctx.npc.current_site
+                && let Some(current_site) = ctx.state.data().sites.get(current_site)
+                && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
+                && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
+                && let Some(mention_site_name) = mention_site.world_site
+                    .map(|ws| ctx.index.sites.get(ws).name().to_string())
+            {
+                Content::localized_with_args("npc-speech-tell_site", [
+                    ("site", Content::Plain(mention_site_name)),
+                    ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
+                    ("dist", Distance::from_length(mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                ])
+            // Mention nearby monsters
+            } else if ctx.rng.gen_bool(0.3)
+                && let Some(monster) = ctx.state.data().npcs
+                    .values()
+                    .filter(|other| matches!(&other.role, Role::Monster))
+                    .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
+            {
+                Content::localized_with_args("npc-speech-tell_monster", [
+                    ("body", monster.body.localize()),
+                    ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
+                    ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                ])
+            } else {
+                ctx.npc.personality.get_generic_comment(&mut ctx.rng)
+            };
+            // TODO: Don't special-case players
+            let wait = if matches!(tgt, Actor::Character(_)) {
+                0.0
+            } else {
+                1.5
+            };
+            idle()
+                .repeat()
+                .stop_if(timeout(wait))
+                .then(just(move |ctx| ctx.controller.say(tgt, comment.clone())))
+                .r()
+        }
     })
 }
 

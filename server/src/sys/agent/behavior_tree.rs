@@ -4,6 +4,7 @@ use common::{
             AgentEvent, AwarenessState, Target, TimerAction, DEFAULT_INTERACTION_TIME,
             TRADE_INTERACTION_TIME,
         },
+        dialogue::Subject,
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, ControlAction,
         ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
     },
@@ -494,8 +495,13 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                             .timer
                             .start(bdata.read_data.time.0, TimerAction::Interact);
                         bdata.controller.push_action(ControlAction::Stand);
-                    }
 
+                        if let Some(target_uid) = bdata.read_data.uids.get(target) {
+                            bdata
+                                .controller
+                                .push_event(ControlEvent::Interact(*target_uid, Subject::Regular));
+                        }
+                    }
                     bdata.controller.push_utterance(UtteranceKind::Greeting);
                     bdata.agent_data.chat_npc(msg, bdata.event_emitter);
                 }

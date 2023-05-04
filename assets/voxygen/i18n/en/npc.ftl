@@ -277,7 +277,7 @@ npc-speech-dir_south_east = south-east
 npc-speech-dir_south = south
 npc-speech-dir_south_west = south-west
 npc-speech-dir_west = west
-npc-speech-dir_north_west = very far away
+npc-speech-dir_north_west = north-west
 
 npc-speech-dist_very_far = very far away
 npc-speech-dist_far = far away
