@@ -254,8 +254,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                     Arg::new("database")
                         .required(true)
                         .help("File to generate/resume generation"),
-                    Arg::new("ymin").long("ymin").takes_value(true),
-                    Arg::new("ymax").long("ymax").takes_value(true),
+                    Arg::new("ymin").long("ymin"),
+                    Arg::new("ymax").long("ymax"),
                 ]),
         )
         .subcommand(
@@ -267,14 +267,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let matches = app.clone().get_matches();
     match matches.subcommand() {
         Some(("generate", matches)) => {
-            let db_path = matches.value_of("database").expect("database is required");
-            let ymin = matches.value_of("ymin").and_then(|x| i32::from_str(x).ok());
-            let ymax = matches.value_of("ymax").and_then(|x| i32::from_str(x).ok());
+            let db_path = matches
+                .get_one::<String>("database")
+                .expect("database is required");
+            let ymin = matches.get_one::<i32>("ymin").cloned();
+            let ymax = matches.get_one::<i32>("ymax").cloned();
             generate(db_path, ymin, ymax)?;
         },
         Some(("palette", matches)) => {
-            let conn =
-                Connection::open(matches.value_of("database").expect("database is required"))?;
+            let conn = Connection::open(
+                matches
+                    .get_one::<String>("database")
+                    .expect("database is required"),
+            )?;
             palette(conn)?;
         },
         _ => {

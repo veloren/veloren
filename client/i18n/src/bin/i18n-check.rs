@@ -19,9 +19,12 @@ fn main() {
     let i18n_directory = root.join("assets/voxygen/i18n");
     let reference = ReferenceLanguage::at(&i18n_directory.join(REFERENCE_LANG));
 
-    let code = args.value_of("CODE").expect("arg is required");
+    let code = args
+        .get_one::<String>("CODE")
+        .expect("arg is required")
+        .to_string();
     let lang = Language {
-        code: code.to_owned(),
+        code: code.clone(),
         path: root.join(i18n_directory.join(code)),
     };
     let stats = reference.compare_with(&lang);

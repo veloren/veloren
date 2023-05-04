@@ -38,12 +38,12 @@ num_cpus = "1.0"
 tracing = "0.1"
 vek = { version = "0.15.8", features = ["serde"] }
 futures-util = "0.3.7"
-tokio = { version = "1.15", default-features = false, features = ["rt"] }
+tokio = { version = "1.24", default-features = false, features = ["rt"] }
 prometheus-hyper = "0.1.4"
 quinn = "0.8"
 rustls = { version = "0.20", default-features = false }
 rustls-pemfile = { version = "1", default-features = false }
-atomicwrites = "0.3.0"
+atomicwrites = "0.4"
 chrono = { version = "0.4.22", features = ["serde"] }
 chrono-tz = { version = "0.8", features = ["serde"] }
 drop_guard = { version = "0.3.0" }
@@ -66,7 +66,7 @@ rand_distr = "0.4.0"
 enumset = "1.0.8"
 enum-map = "2.4"
 noise = { version = "0.7", default-features = false }
-censor = "0.2"
+censor = "0.3"
 
 rusqlite = { version = "0.28.0", features = ["array", "vtab", "bundled", "trace"] }
 refinery = { version = "0.8.8", features = ["rusqlite"] }

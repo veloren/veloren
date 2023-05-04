@@ -35,11 +35,11 @@ common-net = { package = "veloren-common-net", path = "../common/net" }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
 world = { package = "veloren-world", path = "../world", optional = true }
 
-tokio = { version = "1.15", default-features = false, features = ["rt-multi-thread"] }
+tokio = { version = "1.24", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 cansi = "2.2.1"
-clap = { version = "3.1.8", features = ["derive"] }
-crossterm = "0.25"
+clap = { version = "4.2", features = ["derive"] }
+crossterm = "0.26"
 lazy_static = "1"
 signal-hook = "0.3.6"
 shell-words = "1.0.0"

@@ -24,7 +24,7 @@ serde = { version = "1.0" }
 socket2 = "0.5.2"
 #sending
 crossbeam-channel = "0.5"
-tokio = { version = "1.15", default-features = false, features = ["io-util", "macros", "rt", "net", "time"] }
+tokio = { version = "1.24", default-features = false, features = ["io-util", "macros", "rt", "net", "time"] }
 tokio-stream = { version = "0.1.2", default-features = false }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false, features = ["attributes"]}
@@ -40,7 +40,7 @@ rand = { version = "0.8" }
 quinn = { version = "0.8", optional = true }
 rustls = "0.20.1"
 #stream flags
-bitflags = "1.2.1"
+bitflags = "2.2.1"
 lz-fear = { version = "0.1.1", optional = true }
 # async traits
 async-trait = "0.1.42"
@@ -50,9 +50,9 @@ hashbrown = { version = "0.13" }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.3.7", default-features = false, features = ["env-filter", "fmt", "time", "ansi", "smallvec"] }
-tokio = { version = "1.15", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
+tokio = { version = "1.24", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
 futures-util = { version = "0.3.7", default-features = false, features = ["sink", "std"] }
-clap = { version = "3.1.8", default-features = false, features = ["std", "color", "suggestions"] }
+clap = { version = "4.2", default-features = false, features = ["std", "color", "suggestions"] }
 shellexpand = "3.1.0"
 serde = { version = "1.0", features = ["derive"] }
 prometheus-hyper = "0.1.2"
