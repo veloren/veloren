@@ -3,6 +3,7 @@ use super::{
     vec2_as_uniform_idx, TerrainChunkSize, NEIGHBOR_DELTA, TERRAIN_CHUNK_BLOCKS_LG,
 };
 use crate::vol::RectVolSize;
+use common_base::prof_span;
 use core::{f32, f64, iter, ops::RangeInclusive};
 use vek::*;
 
@@ -451,6 +452,7 @@ impl<'a> MapConfig<'a> {
         sample_wpos: impl Fn(Vec2<i32>) -> f32,
         mut write_pixel: impl FnMut(Vec2<usize>, (u8, u8, u8, u8)),
     ) -> MapDebug {
+        prof_span!("MapConfig::generate");
         let MapConfig {
             map_size_lg,
             dimensions,

@@ -24,7 +24,7 @@ use common::{
     vol::{ReadVol, WriteVol},
     weather::{Weather, WeatherGrid},
 };
-use common_base::span;
+use common_base::{prof_span, span};
 use common_ecs::{PhysicsMetrics, SysMetrics};
 use common_net::sync::{interpolation as sync_interp, WorldSyncExt};
 use core::{convert::identity, time::Duration};
@@ -179,6 +179,7 @@ impl State {
         map_size_lg: MapSizeLg,
         default_chunk: Arc<TerrainChunk>,
     ) -> specs::World {
+        prof_span!("State::setup_ecs_world");
         let mut ecs = specs::World::new();
         // Uids for sync
         ecs.register_sync_marker();

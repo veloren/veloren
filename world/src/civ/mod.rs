@@ -21,6 +21,7 @@ use common::{
     },
     vol::RectVolSize,
 };
+use common_base::prof_span;
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
 use fxhash::FxHasher64;
 use rand::prelude::*;
@@ -160,7 +161,7 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 
 impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim, index: &mut Index) -> Self {
-        common_base::prof_span!("Civs::generate");
+        prof_span!("Civs::generate");
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let name_rng = rng.clone();
@@ -181,14 +182,18 @@ impl Civs {
         // this.generate_caves(&mut ctx);
 
         info!("starting civilisation creation");
+        prof_span!(guard, "create civs");
         for _ in 0..initial_civ_count {
+            prof_span!("create civ");
             debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
                 warn!("Failed to find starting site for civilisation.");
             }
         }
+        drop(guard);
         info!(?initial_civ_count, "all civilisations created");
 
+        prof_span!(guard, "find locations and establish sites");
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (loc, kind) = match ctx.rng.gen_range(0..64) {
@@ -260,11 +265,13 @@ impl Civs {
                 }))
             });
         }
+        drop(guard);
 
         // Tick
         //=== old economy is gone
 
         // Flatten ground around sites
+        prof_span!(guard, "Flatten ground around sites");
         for site in this.sites.values() {
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
@@ -329,8 +336,10 @@ impl Civs {
                 }
             }
         }
+        drop(guard);
 
         // Place sites in world
+        prof_span!(guard, "Place sites in world");
         let mut cnt = 0;
         for sim_site in this.sites.values_mut() {
             cnt += 1;
@@ -426,6 +435,7 @@ impl Civs {
             }
             debug!(?sim_site.center, "Placed site at location");
         }
+        drop(guard);
         info!(?cnt, "all sites placed");
 
         //this.display_info();
@@ -455,23 +465,25 @@ impl Civs {
             }
         }
 
+        // TODO: this looks optimizable
+
         // collect natural resources
+        prof_span!(guard, "collect natural resources");
         let sites = &mut index.sites;
-        (0..ctx.sim.map_size_lg().chunks_len())
-            .into_iter()
-            .for_each(|posi| {
-                let chpos = uniform_idx_as_vec2(ctx.sim.map_size_lg(), posi);
-                let wpos = chpos.map(|e| e as i64) * TerrainChunkSize::RECT_SIZE.map(|e| e as i64);
-                let closest_site = (*sites)
-                    .iter_mut()
-                    .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Dungeon(_)))
-                    .min_by_key(|(_id, s)| s.get_origin().map(|e| e as i64).distance_squared(wpos));
-                if let Some((_id, s)) = closest_site {
-                    let distance_squared = s.get_origin().map(|e| e as i64).distance_squared(wpos);
-                    s.economy
-                        .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
-                }
-            });
+        (0..ctx.sim.map_size_lg().chunks_len()).for_each(|posi| {
+            let chpos = uniform_idx_as_vec2(ctx.sim.map_size_lg(), posi);
+            let wpos = chpos.map(|e| e as i64) * TerrainChunkSize::RECT_SIZE.map(|e| e as i64);
+            let closest_site = (*sites)
+                .iter_mut()
+                .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Dungeon(_)))
+                .min_by_key(|(_id, s)| s.get_origin().map(|e| e as i64).distance_squared(wpos));
+            if let Some((_id, s)) = closest_site {
+                let distance_squared = s.get_origin().map(|e| e as i64).distance_squared(wpos);
+                s.economy
+                    .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
+            }
+        });
+        drop(guard);
         sites
             .iter_mut()
             .for_each(|(_, s)| s.economy.cache_economy());
@@ -671,9 +683,12 @@ impl Civs {
                 .distance_squared(self.sites.get(b).center) as f32)
                 .sqrt()
         };
-        let neighbors = |p: &Id<Site>| self.neighbors(*p);
-        let transition = |a: &Id<Site>, b: &Id<Site>| {
-            self.tracks.get(self.track_between(*a, *b).unwrap().0).cost
+        let transition =
+            |a: Id<Site>, b: Id<Site>| self.tracks.get(self.track_between(a, b).unwrap().0).cost;
+        let neighbors = |p: &Id<Site>| {
+            let p = *p;
+            self.neighbors(p)
+                .map(move |neighbor| (neighbor, transition(p, neighbor)))
         };
         let satisfied = |p: &Id<Site>| *p == b;
         // We use this hasher (FxHasher64) because
@@ -681,10 +696,7 @@ impl Civs {
         // (2) we care about determinism across computers (ruling out AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
         let mut astar = Astar::new(100, a, BuildHasherDefault::<FxHasher64>::default());
-        astar
-            .poll(100, heuristic, neighbors, transition, satisfied)
-            .into_path()
-            .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
+        astar.poll(100, heuristic, neighbors, satisfied).into_path()
     }
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
@@ -730,7 +742,7 @@ impl Civs {
 
     /// Adds lake POIs and names them
     fn name_biomes(&mut self, ctx: &mut GenCtx<impl Rng>) {
-        common_base::prof_span!("name_biomes");
+        prof_span!("name_biomes");
         let map_size_lg = ctx.sim.map_size_lg();
         let world_size = map_size_lg.chunks();
         let mut biomes: Vec<(common::terrain::BiomeKind, Vec<usize>)> = Vec::new();
@@ -769,7 +781,7 @@ impl Civs {
             biomes.push((biome, filled));
         }
 
-        common_base::prof_span!("after flood fill");
+        prof_span!("after flood fill");
         let mut biome_count = 0;
         for biome in biomes {
             let name = match biome.0 {
@@ -1013,7 +1025,7 @@ impl Civs {
 
     /// Adds mountain POIs and name them
     fn name_peaks(&mut self, ctx: &mut GenCtx<impl Rng>) {
-        common_base::prof_span!("name_peaks");
+        prof_span!("name_peaks");
         let map_size_lg = ctx.sim.map_size_lg();
         const MIN_MOUNTAIN_ALT: f32 = 600.0;
         const MIN_MOUNTAIN_CHAOS: f32 = 0.35;
@@ -1093,6 +1105,7 @@ impl Civs {
         loc: Vec2<i32>,
         site_fn: impl FnOnce(Id<Place>) -> Site,
     ) -> Id<Site> {
+        prof_span!("establish_site");
         const SITE_AREA: Range<usize> = 1..4; //64..256;
 
         fn establish_site(
@@ -1112,10 +1125,17 @@ impl Civs {
         let site = establish_site(self, ctx, loc, site_fn);
 
         // Find neighbors
-        const MAX_NEIGHBOR_DISTANCE: f32 = 2000.0;
+        // Note, the maximum distance that I have so far observed not hitting the
+        // iteration limit in `find_path` is 364. So I think this is a reasonable
+        // limit (although the relationship between distance and pathfinding iterations
+        // can be a bit variable). Note, I have seen paths reach the iteration limit
+        // with distances as small as 137, so this certainly doesn't catch all
+        // cases that would fail.
+        const MAX_NEIGHBOR_DISTANCE: f32 = 400.0;
         let mut nearby = self
             .sites
             .iter()
+            .filter(|&(id, _)| id != site)
             .filter(|(_, p)| {
                 matches!(
                     p.kind,
@@ -1139,99 +1159,93 @@ impl Civs {
         | SiteKind::DesertCity
         | SiteKind::Castle = self.sites[site].kind
         {
-            for (nearby, _) in nearby.into_iter().take(5) {
-                // Find a novel path
-                if let Some((path, cost)) = find_path(
-                    ctx,
-                    |start| self.bridges.get(&start).map(|(end, _)| *end),
-                    loc,
-                    self.sites.get(nearby).center,
-                ) {
-                    // Find a path using existing paths
-                    if self
-                        .route_between(site, nearby)
-                        // If the novel path isn't efficient compared to existing routes, don't use it
-                        .filter(|(_, route_cost)| *route_cost < cost * 3.0)
-                        .is_none()
-                    {
-                        // Write the track to the world as a path
-                        for locs in path.nodes().windows(3) {
-                            let mut randomize_offset = false;
-                            if let Some((i, _)) = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == locs[0] - locs[1])
-                            {
-                                ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
-                                    1 << ((i as u8 + 4) % 8);
-                                ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |=
-                                    1 << (i as u8);
-                                randomize_offset = true;
-                            }
+            for (nearby, _) in nearby.into_iter().take(4) {
+                prof_span!("for nearby");
+                // Find a route using existing paths
+                //
+                // If the novel path isn't efficient compared to this, don't use it
+                let max_novel_cost = self
+                    .route_between(site, nearby)
+                    .map_or(f32::MAX, |(_, route_cost)| route_cost / 3.0);
 
-                            if let Some((i, _)) = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == locs[2] - locs[1])
-                            {
-                                ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
-                                    1 << ((i as u8 + 4) % 8);
-                                ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |=
-                                    1 << (i as u8);
-                                randomize_offset = true;
-                            } else if !self.bridges.contains_key(&locs[1]) {
-                                let center = (locs[1] + locs[2]) / 2;
-                                let id =
-                                    establish_site(self, &mut ctx.reseed(), center, move |place| {
-                                        Site {
-                                            kind: SiteKind::Bridge(locs[1], locs[2]),
-                                            site_tmp: None,
-                                            center,
-                                            place,
-                                        }
-                                    });
-                                self.bridges.insert(locs[1], (locs[2], id));
-                                self.bridges.insert(locs[2], (locs[1], id));
-                            }
-                            /*
-                            let to_prev_idx = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == (locs[0] - locs[1]).map(|e| e.signum()))
-                                .expect("Track locations must be neighbors")
-                                .0;
-
-                            let to_next_idx = NEIGHBORS
-                                .iter()
-                                .enumerate()
-                                .find(|(_, dir)| **dir == (locs[2] - locs[1]).map(|e| e.signum()))
-                                .expect("Track locations must be neighbors")
-                                .0;
-
+                let start = loc;
+                let end = self.sites.get(nearby).center;
+                // Find a novel path.
+                let get_bridge = |start| self.bridges.get(&start).map(|(end, _)| *end);
+                if let Some((path, cost)) = find_path(ctx, get_bridge, start, end, max_novel_cost) {
+                    // Write the track to the world as a path
+                    for locs in path.nodes().windows(3) {
+                        let mut randomize_offset = false;
+                        if let Some((i, _)) = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == locs[0] - locs[1])
+                        {
                             ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
-                                1 << ((to_prev_idx as u8 + 4) % 8);
-                            ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
-                                1 << ((to_next_idx as u8 + 4) % 8);
-                            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                            chunk.path.0.neighbors |=
-                                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-                            */
-                            if randomize_offset {
-                                let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                                chunk.path.0.offset = Vec2::new(
-                                    ctx.rng.gen_range(-16..17),
-                                    ctx.rng.gen_range(-16..17),
-                                );
-                            }
+                                1 << ((i as u8 + 4) % 8);
+                            ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |= 1 << (i as u8);
+                            randomize_offset = true;
                         }
 
-                        // Take note of the track
-                        let track = self.tracks.insert(Track { cost, path });
-                        self.track_map
-                            .entry(site)
-                            .or_default()
-                            .insert(nearby, track);
+                        if let Some((i, _)) = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == locs[2] - locs[1])
+                        {
+                            ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
+                                1 << ((i as u8 + 4) % 8);
+                            ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |= 1 << (i as u8);
+                            randomize_offset = true;
+                        } else if !self.bridges.contains_key(&locs[1]) {
+                            let center = (locs[1] + locs[2]) / 2;
+                            let id =
+                                establish_site(self, &mut ctx.reseed(), center, move |place| {
+                                    Site {
+                                        kind: SiteKind::Bridge(locs[1], locs[2]),
+                                        site_tmp: None,
+                                        center,
+                                        place,
+                                    }
+                                });
+                            self.bridges.insert(locs[1], (locs[2], id));
+                            self.bridges.insert(locs[2], (locs[1], id));
+                        }
+                        /*
+                        let to_prev_idx = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == (locs[0] - locs[1]).map(|e| e.signum()))
+                            .expect("Track locations must be neighbors")
+                            .0;
+
+                        let to_next_idx = NEIGHBORS
+                            .iter()
+                            .enumerate()
+                            .find(|(_, dir)| **dir == (locs[2] - locs[1]).map(|e| e.signum()))
+                            .expect("Track locations must be neighbors")
+                            .0;
+
+                        ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
+                            1 << ((to_prev_idx as u8 + 4) % 8);
+                        ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
+                            1 << ((to_next_idx as u8 + 4) % 8);
+                        let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                        chunk.path.0.neighbors |=
+                            (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+                        */
+                        if randomize_offset {
+                            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                            chunk.path.0.offset =
+                                Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
+                        }
                     }
+
+                    // Take note of the track
+                    let track = self.tracks.insert(Track { cost, path });
+                    self.track_map
+                        .entry(site)
+                        .or_default()
+                        .insert(nearby, track);
                 }
             }
         }
@@ -1302,21 +1316,25 @@ fn find_path(
     get_bridge: impl Fn(Vec2<i32>) -> Option<Vec2<i32>>,
     a: Vec2<i32>,
     b: Vec2<i32>,
+    max_path_cost: f32,
 ) -> Option<(Path<Vec2<i32>>, f32)> {
+    prof_span!("find_path");
     const MAX_PATH_ITERS: usize = 100_000;
     let sim = &ctx.sim;
+    // NOTE: If heuristic overestimates the actual cost, then A* is not guaranteed
+    // to produce the least-cost path (since it will explore partially based on
+    // the heuristic).
+    // TODO: heuristic can be larger than actual cost, since existing bridges cost
+    // 1.0 (after the 1.0 that is added to everthting), but they can cover
+    // multiple chunks.
     let heuristic = move |l: &Vec2<i32>, _: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
-    let get_bridge = &get_bridge;
     let neighbors = |l: &Vec2<i32>| {
         let l = *l;
-        NEIGHBORS
-            .iter()
-            .filter_map(move |dir| walk_in_dir(sim, get_bridge, l, *dir))
-            .map(move |(p, _)| p)
-    };
-    let transition = |a: &Vec2<i32>, b: &Vec2<i32>| {
-        1.0 + walk_in_dir(sim, get_bridge, *a, (*b - *a).map(|e| e.signum()))
-            .map_or(10000.0, |(_, cost)| cost)
+        let bridge = get_bridge(l);
+        let potential = walk_in_all_dirs(sim, bridge, l);
+        potential
+            .into_iter()
+            .filter_map(|p| p.map(|(node, cost)| (node, cost + 1.0)))
     };
     let satisfied = |l: &Vec2<i32>| *l == b;
     // We use this hasher (FxHasher64) because
@@ -1327,73 +1345,103 @@ fn find_path(
         MAX_PATH_ITERS,
         a,
         BuildHasherDefault::<FxHasher64>::default(),
-    );
+    )
+    .with_max_cost(max_path_cost);
     astar
-        .poll(MAX_PATH_ITERS, heuristic, neighbors, transition, satisfied)
+        .poll(MAX_PATH_ITERS, heuristic, neighbors, satisfied)
         .into_path()
-        .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
 }
 
 /// Return Some if travel between a location and a chunk next to it is permitted
 /// If permitted, the approximate relative const of traversal is given
 // (TODO: by whom?)
-fn walk_in_dir(
+/// Return tuple: (final location, cost)
+///
+/// For efficiency, this computes for all 8 directions at once.
+fn walk_in_all_dirs(
     sim: &WorldSim,
-    get_bridge: impl Fn(Vec2<i32>) -> Option<Vec2<i32>>,
+    bridge: Option<Vec2<i32>>,
     a: Vec2<i32>,
-    dir: Vec2<i32>,
-) -> Option<(Vec2<i32>, f32)> {
-    if let Some(p) = get_bridge(a).filter(|p| (p - a).map(|e| e.signum()) == dir) {
-        // Traversing an existing bridge has no cost.
-        Some((p, 0.0))
-    } else if loc_suitable_for_walking(sim, a + dir) {
-        let a_chunk = sim.get(a)?;
-        let b_chunk = sim.get(a + dir)?;
+) -> [Option<(Vec2<i32>, f32)>; 8] {
+    let mut potential = [None; 8];
+
+    let adjacents = NEIGHBORS.map(|dir| a + dir);
+
+    let Some(a_chunk) = sim.get(a) else { return potential };
+    let mut chunks = [None; 8];
+    for i in 0..8 {
+        if loc_suitable_for_walking(sim, adjacents[i]) {
+            chunks[i] = sim.get(adjacents[i]);
+        }
+    }
+
+    for i in 0..8 {
+        let Some(b_chunk) = chunks[i] else { continue };
 
         let hill_cost = ((b_chunk.alt - a_chunk.alt).abs() / 5.0).powi(2);
-
         let water_cost = (b_chunk.water_alt - b_chunk.alt + 8.0).clamped(0.0, 8.0) * 3.0; // Try not to path swamps / tidal areas
         let wild_cost = if b_chunk.path.0.is_way() {
             0.0 // Traversing existing paths has no additional cost!
         } else {
             3.0 // + (1.0 - b_chunk.tree_density) * 20.0 // Prefer going through forests, for aesthetics
         };
-        Some((a + dir, 1.0 + hill_cost + water_cost + wild_cost))
-    } else if dir.x == 0 || dir.y == 0 {
-        (4..=5).find_map(|i| {
-            loc_suitable_for_walking(sim, a + dir * i)
-                .then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
-        })
-    } else {
-        None
+
+        let cost = 1.0 + hill_cost + water_cost + wild_cost;
+        potential[i] = Some((adjacents[i], cost));
     }
+
+    // Look for potential bridge spots in the cardinal directions if
+    // `loc_suitable_for_wallking` was false for the adjacent chunk.
+    for (i, &dir) in NEIGHBORS.iter().enumerate() {
+        let is_cardinal_dir = dir.x == 0 || dir.y == 0;
+        if is_cardinal_dir && potential[i].is_none() {
+            // if we can skip over unsuitable area with a bridge
+            potential[i] = (4..=5).find_map(|i| {
+                loc_suitable_for_walking(sim, a + dir * i)
+                    .then(|| (a + dir * i, 120.0 + (i - 4) as f32 * 10.0))
+            });
+        }
+    }
+
+    // If current position is a bridge, skip to its destination.
+    if let Some(p) = bridge {
+        let dir = (p - a).map(|e| e.signum());
+        if let Some((dir_index, _)) = NEIGHBORS
+            .iter()
+            .enumerate()
+            .find(|(_, n_dir)| **n_dir == dir)
+        {
+            potential[dir_index] = Some((p, 0.0));
+        }
+    }
+
+    potential
 }
 
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if sim.get(loc).is_some() {
-        !NEIGHBORS.iter().any(|n| {
+        NEIGHBORS.iter().all(|n| {
             sim.get(loc + *n)
-                .map_or(false, |chunk| chunk.river.near_water())
+                .map_or(false, |chunk| !chunk.river.near_water())
         })
     } else {
         false
     }
 }
 
-/// Return true if a site could be constructed between a location and a chunk
-/// next to it is permitted (TODO: by whom?)
-fn site_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>, site_kind: SiteKind) -> bool {
-    loc_suitable_for_site(sim, a, site_kind) && loc_suitable_for_site(sim, a + dir, site_kind)
-}
-
 /// Return true if a position is suitable for site construction (TODO:
 /// criteria?)
-fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) -> bool {
+fn loc_suitable_for_site(
+    sim: &WorldSim,
+    loc: Vec2<i32>,
+    site_kind: SiteKind,
+    is_suitable_loc: bool,
+) -> bool {
     fn check_chunk_occupation(sim: &WorldSim, loc: Vec2<i32>, radius: i32) -> bool {
         for x in (-radius)..radius {
             for y in (-radius)..radius {
-                let check_loc = loc + Vec2::new(x, y).cpos_to_wpos();
+                let check_loc = loc + Vec2::new(x, y);
                 if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
                     return false;
                 }
@@ -1401,8 +1449,9 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
         }
         true
     }
-    let not_occupied = check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
-    site_kind.is_suitable_loc(loc, sim) && not_occupied
+    let not_occupied = || check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
+    // only check occupation if the location is suitable
+    is_suitable_loc && not_occupied()
 }
 
 /// Attempt to search for a location that's suitable for site construction
@@ -1411,6 +1460,7 @@ fn find_site_loc(
     proximity_reqs: &ProximityRequirements,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
+    prof_span!("find_site_loc");
     const MAX_ATTEMPTS: usize = 10000;
     let mut loc = None;
     for _ in 0..MAX_ATTEMPTS {
@@ -1421,16 +1471,15 @@ fn find_site_loc(
             )
         });
 
-        if proximity_reqs.satisfied_by(test_loc) {
-            if loc_suitable_for_site(ctx.sim, test_loc, site_kind) {
+        let is_suitable_loc = site_kind.is_suitable_loc(test_loc, ctx.sim);
+        if is_suitable_loc && proximity_reqs.satisfied_by(test_loc) {
+            if loc_suitable_for_site(ctx.sim, test_loc, site_kind, is_suitable_loc) {
                 return Some(test_loc);
             }
 
-            loc = ctx.sim.get(test_loc).and_then(|c| {
-                site_kind
-                    .is_suitable_loc(test_loc, ctx.sim)
-                    .then_some(c.downhill?.wpos_to_cpos())
-            });
+            // If the current location is suitable and meets proximity requirements,
+            // try nearby spot downhill.
+            loc = ctx.sim.get(test_loc).and_then(|c| c.downhill);
         }
     }
 

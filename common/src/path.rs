@@ -537,6 +537,17 @@ where
     };
 
     let heuristic = |pos: &Vec3<i32>, _: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
+    let transition = |a: Vec3<i32>, b: Vec3<i32>| {
+        let crow_line = LineSegment2 {
+            start: startf.xy(),
+            end: endf.xy(),
+        };
+
+        // Modify the heuristic a little in order to prefer paths that take us on a
+        // straight line toward our target. This means we get smoother movement.
+        1.0 + crow_line.distance_to_point(b.xy().map(|e| e as f32)) * 0.025
+            + (b.z - a.z - 1).max(0) as f32 * 10.0
+    };
     let neighbors = |pos: &Vec3<i32>| {
         let pos = *pos;
         const DIRS: [Vec3<i32>; 17] = [
@@ -616,7 +627,10 @@ where
                                 .map(|b| !b.is_solid())
                                 .unwrap_or(true)))
             })
-            .map(move |(pos, dir)| pos + dir)
+            .map(|(pos, dir)| {
+                let destination = pos + dir;
+                (destination, transition(pos, destination))
+            })
         // .chain(
         //     DIAGONALS
         //         .iter()
@@ -627,17 +641,6 @@ where
         // )
     };
 
-    let transition = |a: &Vec3<i32>, b: &Vec3<i32>| {
-        let crow_line = LineSegment2 {
-            start: startf.xy(),
-            end: endf.xy(),
-        };
-
-        // Modify the heuristic a little in order to prefer paths that take us on a
-        // straight line toward our target. This means we get smoother movement.
-        1.0 + crow_line.distance_to_point(b.xy().map(|e| e as f32)) * 0.025
-            + (b.z - a.z - 1).max(0) as f32 * 10.0
-    };
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
@@ -645,12 +648,12 @@ where
         Some(astar) => astar,
     };
 
-    let path_result = new_astar.poll(100, heuristic, neighbors, transition, satisfied);
+    let path_result = new_astar.poll(100, heuristic, neighbors, satisfied);
 
     *astar = Some(new_astar);
 
     match path_result {
-        PathResult::Path(path) => {
+        PathResult::Path(path, _cost) => {
             *astar = None;
             (Some(path), true)
         },

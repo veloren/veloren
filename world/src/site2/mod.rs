@@ -160,18 +160,23 @@ impl Site {
             }
             max_cost + (dir != old_dir) as i32 as f32 * 35.0
         };
-        let path = Astar::new(MAX_ITERS, (a, Vec2::zero()), DefaultHashBuilder::default())
+        let (path, _cost) = Astar::new(MAX_ITERS, (a, Vec2::zero()), DefaultHashBuilder::default())
             .poll(
                 MAX_ITERS,
                 &heuristic,
                 |(tile, _)| {
                     let tile = *tile;
-                    CARDINALS.iter().map(move |dir| (tile + *dir, *dir))
-                },
-                |(a, _), (b, _)| {
-                    let alt_a = land.get_alt_approx(self.tile_center_wpos(*a));
-                    let alt_b = land.get_alt_approx(self.tile_center_wpos(*b));
-                    (alt_a - alt_b).abs() / TILE_SIZE as f32
+                    let this = &self;
+                    CARDINALS.iter().map(move |dir| {
+                        let neighbor = (tile + *dir, *dir);
+
+                        // Transition cost
+                        let alt_a = land.get_alt_approx(this.tile_center_wpos(tile));
+                        let alt_b = land.get_alt_approx(this.tile_center_wpos(neighbor.0));
+                        let cost = (alt_a - alt_b).abs() / TILE_SIZE as f32;
+
+                        (neighbor, cost)
+                    })
                 },
                 |(tile, _)| *tile == b,
             )

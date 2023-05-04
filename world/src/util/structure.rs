@@ -1,5 +1,4 @@
 use super::{RandomField, Sampler};
-use rayon::prelude::*;
 use vek::*;
 
 #[derive(Clone)]
@@ -69,11 +68,7 @@ impl StructureGen2d {
 
     /// Note: Generates all possible closest samples for elements in the range
     /// of min to max, *exclusive.*
-    pub fn par_iter(
-        &self,
-        min: Vec2<i32>,
-        max: Vec2<i32>,
-    ) -> impl ParallelIterator<Item = StructureField> {
+    pub fn iter(&self, min: Vec2<i32>, max: Vec2<i32>) -> impl Iterator<Item = StructureField> {
         let freq = self.freq;
         let spread = self.spread;
         let spread_mul = Self::spread_mul(spread);
@@ -102,7 +97,7 @@ impl StructureGen2d {
         let x_field = self.x_field;
         let y_field = self.y_field;
         let seed_field = self.seed_field;
-        (0..len).into_par_iter().map(move |xy| {
+        (0..len).map(move |xy| {
             let index = min_index + Vec2::new((xy % xlen as u64) as i32, (xy / xlen as u64) as i32);
             Self::index_to_sample_internal(
                 freq,

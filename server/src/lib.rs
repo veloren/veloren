@@ -83,6 +83,7 @@ use common::{
     terrain::{TerrainChunk, TerrainChunkSize},
     vol::RectRasterableVol,
 };
+use common_base::prof_span;
 use common_ecs::run_now;
 use common_net::{
     msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerMsg},
@@ -221,6 +222,7 @@ impl Server {
         data_dir: &std::path::Path,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
+        prof_span!("Server::new");
         info!("Server data dir is: {}", data_dir.display());
         if settings.auth_server_address.is_none() {
             info!("Authentication is disabled");
@@ -281,6 +283,8 @@ impl Server {
             pois: Vec::new(),
             default_chunk: Arc::new(world.generate_oob_chunk()),
         };
+
+        let lod = lod::Lod::from_world(&world, index.as_index_ref(), &pools);
 
         let mut state = State::server(
             pools,
@@ -451,9 +455,7 @@ impl Server {
         // Insert the world into the ECS (todo: Maybe not an Arc?)
         let world = Arc::new(world);
         state.ecs_mut().insert(Arc::clone(&world));
-        state
-            .ecs_mut()
-            .insert(lod::Lod::from_world(&world, index.as_index_ref()));
+        state.ecs_mut().insert(lod);
         state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.

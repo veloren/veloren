@@ -23,13 +23,13 @@ pub use self::{
 
 pub use common::grid::Grid;
 
-use fxhash::FxHasher32;
+use fxhash::{FxHasher32, FxHasher64};
 use hashbrown::{HashMap, HashSet};
 use std::hash::BuildHasherDefault;
 use vek::*;
 
 // Deterministic HashMap and HashSet
-pub type DHashMap<K, V> = HashMap<K, V, BuildHasherDefault<FxHasher32>>;
+pub type DHashMap<K, V> = HashMap<K, V, BuildHasherDefault<FxHasher64>>;
 pub type DHashSet<T> = HashSet<T, BuildHasherDefault<FxHasher32>>;
 
 pub fn attempt<T>(max_iters: usize, mut f: impl FnMut() -> Option<T>) -> Option<T> {

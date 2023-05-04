@@ -55,11 +55,11 @@ use common::{
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
+use common_base::prof_span;
 use common_net::msg::{world_msg, WorldMapMsg};
 use enum_map::EnumMap;
 use rand::{prelude::*, Rng};
 use rand_chacha::ChaCha8Rng;
-use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use std::time::Duration;
 use vek::*;
@@ -110,6 +110,7 @@ impl World {
         opts: sim::WorldOpts,
         threadpool: &rayon::ThreadPool,
     ) -> (Self, IndexOwned) {
+        prof_span!("World::generate");
         // NOTE: Generating index first in order to quickly fail if the color manifest
         // is broken.
         threadpool.install(|| {
@@ -136,6 +137,7 @@ impl World {
     }
 
     pub fn get_map_data(&self, index: IndexRef, threadpool: &rayon::ThreadPool) -> WorldMapMsg {
+        prof_span!("World::get_map_data");
         threadpool.install(|| {
             // we need these numbers to create unique ids for cave ends
             let num_sites = self.civs().sites().count() as u64;
@@ -562,6 +564,7 @@ impl World {
         let mut objects = Vec::new();
 
         // Add trees
+        prof_span!(guard, "add trees");
         objects.append(
             &mut self
                 .sim()
@@ -600,6 +603,7 @@ impl World {
                 })
                 .collect(),
         );
+        drop(guard);
 
         // Add buildings
         objects.extend(

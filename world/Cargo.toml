@@ -73,6 +73,9 @@ name = "chunk_compression_benchmarks"
 required-features = ["bin_compression"]
 
 [[example]]
+name = "world_generate_time"
+
+[[example]]
 name = "world_block_statistics"
 required-features = ["bin_compression"]
 

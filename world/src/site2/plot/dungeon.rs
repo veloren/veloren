@@ -545,18 +545,21 @@ impl Floor {
     fn create_route(&mut self, _ctx: &mut GenCtx<impl Rng>, a: Vec2<i32>, b: Vec2<i32>) {
         let heuristic =
             move |l: &Vec2<i32>, _: &Vec2<i32>| (l - b).map(|e| e.abs()).reduce_max() as f32;
-        let neighbors = |l: &Vec2<i32>| {
-            let l = *l;
-            CARDINALS
-                .iter()
-                .map(move |dir| l + dir)
-                .filter(|pos| self.tiles.get(*pos).is_some())
-        };
-        let transition = |_a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
+        let transition = |_a: Vec2<i32>, b: Vec2<i32>| match self.tiles.get(b) {
             Some(Tile::Room(_)) | Some(Tile::Tunnel) => 1.0,
             Some(Tile::Solid) => 25.0,
             Some(Tile::UpStair(_, _)) | Some(Tile::DownStair(_)) => 0.0,
             _ => 100000.0,
+        };
+        let neighbors = |l: &Vec2<i32>| {
+            let l = *l;
+            CARDINALS
+                .iter()
+                .map(move |dir| {
+                    let dest = l + dir;
+                    (dest, transition(l, dest))
+                })
+                .filter(|&(pos, _)| self.tiles.get(pos).is_some())
         };
         let satisfied = |l: &Vec2<i32>| *l == b;
         // We use this hasher (FxHasher64) because
@@ -564,12 +567,11 @@ impl Floor {
         // (2) we don't care about determinism across computers (we could use AAHash);
         // (3) we have 8-byte keys (for which FxHash is fastest).
         let mut astar = Astar::new(20000, a, BuildHasherDefault::<FxHasher64>::default());
-        let path = astar
+        let (path, _cost) = astar
             .poll(
                 FLOOR_SIZE.product() as usize + 1,
                 heuristic,
                 neighbors,
-                transition,
                 satisfied,
             )
             .into_path()

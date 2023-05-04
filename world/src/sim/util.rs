@@ -3,6 +3,7 @@ use common::{
     terrain::{neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
+use common_base::prof_span;
 use noise::{MultiFractal, NoiseFn, Perlin, Seedable};
 use num::Float;
 use rayon::prelude::*;
@@ -374,6 +375,7 @@ pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
     to_angle: impl Fn(F) -> A + Sync,
     to_height: impl Fn(F) -> H + Sync,
 ) -> Result<[HorizonMap<A, H>; 2], ()> {
+    prof_span!("get_horizon_map");
     if maxh < minh {
         // maxh must be greater than minh
         return Err(());
