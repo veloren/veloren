@@ -377,17 +377,18 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             drop(inventory_updates);
 
             for item in drop_items {
-                state
-                    .create_item_drop(Default::default(), item)
-                    .with(comp::Pos(
+                state.create_item_drop(
+                    comp::Pos(
                         Vec3::new(
                             sprite_pos.x as f32,
                             sprite_pos.y as f32,
                             sprite_pos.z as f32,
                         ) + Vec3::one().with_z(0.0) * 0.5,
-                    ))
-                    .with(comp::Vel(Vec3::zero()))
-                    .build();
+                    ),
+                    comp::Vel(Vec3::zero()),
+                    item,
+                    None,
+                );
             }
         },
         comp::InventoryManip::Use(slot) => {
@@ -890,15 +891,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let items_were_crafted = if let Some(crafted_items) = crafted_items {
                 for item in crafted_items {
                     if let Err(item) = inventory.push(item) {
-                        dropped_items.push((
-                            state
-                                .read_component_copied::<comp::Pos>(entity)
-                                .unwrap_or_default(),
-                            state
-                                .read_component_copied::<comp::Ori>(entity)
-                                .unwrap_or_default(),
-                            item.duplicate(ability_map, &msm),
-                        ));
+                        if let Some(pos) = state.read_component_copied::<comp::Pos>(entity) {
+                            dropped_items.push((
+                                pos,
+                                state
+                                    .read_component_copied::<comp::Ori>(entity)
+                                    .unwrap_or_default(),
+                                item.duplicate(ability_map, &msm),
+                            ));
+                        }
                     }
                 }
                 true
@@ -940,11 +941,12 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         });
 
-        state
-            .create_item_drop(Default::default(), item)
-            .with(comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()))
-            .with(comp::Vel(Vec3::zero()))
-            .build();
+        state.create_item_drop(
+            comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()),
+            comp::Vel(Vec3::zero()),
+            item,
+            None,
+        );
     }
 
     let mut rng = rand::thread_rng();
@@ -963,12 +965,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         let uid = state.read_component_copied::<Uid>(entity);
 
         let mut new_entity = state
-            .create_object(Default::default(), match kind {
+            .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match kind {
                 item::Throwable::Bomb => comp::object::Body::Bomb,
                 item::Throwable::Firework(reagent) => comp::object::Body::for_firework(reagent),
                 item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
             })
-            .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
             .with(comp::Vel(vel));
 
         match kind {

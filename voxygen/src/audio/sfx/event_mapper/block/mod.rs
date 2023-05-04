@@ -56,210 +56,209 @@ impl EventMapper for BlockEventMapper {
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
         // Get the player position and chunk
-        let player_pos = state
-            .read_component_copied::<Pos>(player_entity)
-            .unwrap_or_default();
-        let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
-            (e.floor() as i32).div_euclid(sz as i32)
-        });
+        if let Some(player_pos) = state.read_component_copied::<Pos>(player_entity) {
+            let player_chunk = player_pos.0.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                (e.floor() as i32).div_euclid(sz as i32)
+            });
 
-        // For determining if underground/crickets should chirp
-        let (terrain_alt, temp) = match client.current_chunk() {
-            Some(chunk) => (chunk.meta().alt(), chunk.meta().temp()),
-            None => (0.0, 0.0),
-        };
+            // For determining if underground/crickets should chirp
+            let (terrain_alt, temp) = match client.current_chunk() {
+                Some(chunk) => (chunk.meta().alt(), chunk.meta().temp()),
+                None => (0.0, 0.0),
+            };
 
-        struct BlockSounds<'a> {
-            // The function to select the blocks of interest that we should emit from
-            blocks: fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>],
-            // The range, in chunks, that the particles should be generated in from the player
-            range: usize,
-            // The sound of the generated particle
-            sfx: SfxEvent,
-            // The volume of the sfx
-            volume: f32,
-            // Condition that must be true to play
-            cond: fn(&State) -> bool,
-        }
-
-        let sounds: &[BlockSounds] = &[
-            BlockSounds {
-                blocks: |boi| &boi.leaves,
-                range: 1,
-                sfx: SfxEvent::Birdcall,
-                volume: 1.0,
-                cond: |st| st.get_day_period().is_light(),
-            },
-            BlockSounds {
-                blocks: |boi| &boi.leaves,
-                range: 1,
-                sfx: SfxEvent::Owl,
-                volume: 1.0,
-                cond: |st| st.get_day_period().is_dark(),
-            },
-            BlockSounds {
-                blocks: |boi| &boi.slow_river,
-                range: 1,
-                sfx: SfxEvent::RunningWaterSlow,
-                volume: 1.2,
-                cond: |_| true,
-            },
-            BlockSounds {
-                blocks: |boi| &boi.fast_river,
-                range: 1,
-                sfx: SfxEvent::RunningWaterFast,
-                volume: 1.5,
-                cond: |_| true,
-            },
-            //BlockSounds {
-            //    blocks: |boi| &boi.embers,
-            //    range: 1,
-            //    sfx: SfxEvent::Embers,
-            //    volume: 0.15,
-            //    //volume: 0.05,
-            //    cond: |_| true,
-            //    //cond: |st| st.get_day_period().is_dark(),
-            //},
-            BlockSounds {
-                blocks: |boi| &boi.frogs,
-                range: 1,
-                sfx: SfxEvent::Frog,
-                volume: 0.8,
-                cond: |st| st.get_day_period().is_dark(),
-            },
-            //BlockSounds {
-            //    blocks: |boi| &boi.flowers,
-            //    range: 4,
-            //    sfx: SfxEvent::LevelUp,
-            //    volume: 1.0,
-            //    cond: |st| st.get_day_period().is_dark(),
-            //},
-            BlockSounds {
-                blocks: |boi| &boi.cricket1,
-                range: 1,
-                sfx: SfxEvent::Cricket1,
-                volume: 0.33,
-                cond: |st| st.get_day_period().is_dark(),
-            },
-            BlockSounds {
-                blocks: |boi| &boi.cricket2,
-                range: 1,
-                sfx: SfxEvent::Cricket2,
-                volume: 0.33,
-                cond: |st| st.get_day_period().is_dark(),
-            },
-            BlockSounds {
-                blocks: |boi| &boi.cricket3,
-                range: 1,
-                sfx: SfxEvent::Cricket3,
-                volume: 0.33,
-                cond: |st| st.get_day_period().is_dark(),
-            },
-            BlockSounds {
-                blocks: |boi| &boi.beehives,
-                range: 1,
-                sfx: SfxEvent::Bees,
-                volume: 0.5,
-                cond: |st| st.get_day_period().is_light(),
-            },
-        ];
-
-        // Iterate through each kind of block of interest
-        for sounds in sounds.iter() {
-            // If the timing condition is false, continue
-            // or if the player is far enough underground, continue
-            // TODO Address bird hack properly. See TODO on line 190
-            if !(sounds.cond)(state)
-                || player_pos.0.z < (terrain_alt - 30.0)
-                || (sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995))
-                || (sounds.sfx == SfxEvent::Owl && thread_rng().gen_bool(0.998))
-                || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.95))
-                //Crickets will not chirp below 5 Celsius
-                || (sounds.sfx == SfxEvent::Cricket1 && (temp < -0.33))
-                || (sounds.sfx == SfxEvent::Cricket2 && (temp < -0.33))
-                || (sounds.sfx == SfxEvent::Cricket3 && (temp < -0.33))
-            {
-                continue;
+            struct BlockSounds<'a> {
+                // The function to select the blocks of interest that we should emit from
+                blocks: fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>],
+                // The range, in chunks, that the particles should be generated in from the player
+                range: usize,
+                // The sound of the generated particle
+                sfx: SfxEvent,
+                // The volume of the sfx
+                volume: f32,
+                // Condition that must be true to play
+                cond: fn(&State) -> bool,
             }
 
-            // For chunks surrounding the player position
-            for offset in Spiral2d::new().take((sounds.range * 2 + 1).pow(2)) {
-                let chunk_pos = player_chunk + offset;
+            let sounds: &[BlockSounds] = &[
+                BlockSounds {
+                    blocks: |boi| &boi.leaves,
+                    range: 1,
+                    sfx: SfxEvent::Birdcall,
+                    volume: 1.0,
+                    cond: |st| st.get_day_period().is_light(),
+                },
+                BlockSounds {
+                    blocks: |boi| &boi.leaves,
+                    range: 1,
+                    sfx: SfxEvent::Owl,
+                    volume: 1.0,
+                    cond: |st| st.get_day_period().is_dark(),
+                },
+                BlockSounds {
+                    blocks: |boi| &boi.slow_river,
+                    range: 1,
+                    sfx: SfxEvent::RunningWaterSlow,
+                    volume: 1.2,
+                    cond: |_| true,
+                },
+                BlockSounds {
+                    blocks: |boi| &boi.fast_river,
+                    range: 1,
+                    sfx: SfxEvent::RunningWaterFast,
+                    volume: 1.5,
+                    cond: |_| true,
+                },
+                //BlockSounds {
+                //    blocks: |boi| &boi.embers,
+                //    range: 1,
+                //    sfx: SfxEvent::Embers,
+                //    volume: 0.15,
+                //    //volume: 0.05,
+                //    cond: |_| true,
+                //    //cond: |st| st.get_day_period().is_dark(),
+                //},
+                BlockSounds {
+                    blocks: |boi| &boi.frogs,
+                    range: 1,
+                    sfx: SfxEvent::Frog,
+                    volume: 0.8,
+                    cond: |st| st.get_day_period().is_dark(),
+                },
+                //BlockSounds {
+                //    blocks: |boi| &boi.flowers,
+                //    range: 4,
+                //    sfx: SfxEvent::LevelUp,
+                //    volume: 1.0,
+                //    cond: |st| st.get_day_period().is_dark(),
+                //},
+                BlockSounds {
+                    blocks: |boi| &boi.cricket1,
+                    range: 1,
+                    sfx: SfxEvent::Cricket1,
+                    volume: 0.33,
+                    cond: |st| st.get_day_period().is_dark(),
+                },
+                BlockSounds {
+                    blocks: |boi| &boi.cricket2,
+                    range: 1,
+                    sfx: SfxEvent::Cricket2,
+                    volume: 0.33,
+                    cond: |st| st.get_day_period().is_dark(),
+                },
+                BlockSounds {
+                    blocks: |boi| &boi.cricket3,
+                    range: 1,
+                    sfx: SfxEvent::Cricket3,
+                    volume: 0.33,
+                    cond: |st| st.get_day_period().is_dark(),
+                },
+                BlockSounds {
+                    blocks: |boi| &boi.beehives,
+                    range: 1,
+                    sfx: SfxEvent::Bees,
+                    volume: 0.5,
+                    cond: |st| st.get_day_period().is_light(),
+                },
+            ];
 
-                // Get all the blocks of interest in this chunk
-                terrain.get(chunk_pos).map(|chunk_data| {
-                    // Get the positions of the blocks of type sounds
-                    let blocks = (sounds.blocks)(&chunk_data.blocks_of_interest);
+            // Iterate through each kind of block of interest
+            for sounds in sounds.iter() {
+                // If the timing condition is false, continue
+                // or if the player is far enough underground, continue
+                // TODO Address bird hack properly. See TODO on line 190
+                if !(sounds.cond)(state)
+                    || player_pos.0.z < (terrain_alt - 30.0)
+                    || (sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995))
+                    || (sounds.sfx == SfxEvent::Owl && thread_rng().gen_bool(0.998))
+                    || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.95))
+                    //Crickets will not chirp below 5 Celsius
+                    || (sounds.sfx == SfxEvent::Cricket1 && (temp < -0.33))
+                    || (sounds.sfx == SfxEvent::Cricket2 && (temp < -0.33))
+                    || (sounds.sfx == SfxEvent::Cricket3 && (temp < -0.33))
+                {
+                    continue;
+                }
 
-                    let absolute_pos: Vec3<i32> =
-                        Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+                // For chunks surrounding the player position
+                for offset in Spiral2d::new().take((sounds.range * 2 + 1).pow(2)) {
+                    let chunk_pos = player_chunk + offset;
 
-                    // Replace all RunningWater blocks with just one random one per tick
-                    let blocks = if sounds.sfx == SfxEvent::RunningWaterSlow
-                        || sounds.sfx == SfxEvent::RunningWaterFast
-                    {
-                        blocks
-                            .choose(&mut thread_rng())
-                            .map(std::slice::from_ref)
-                            .unwrap_or(&[])
-                    } else {
-                        blocks
-                    };
+                    // Get all the blocks of interest in this chunk
+                    terrain.get(chunk_pos).map(|chunk_data| {
+                        // Get the positions of the blocks of type sounds
+                        let blocks = (sounds.blocks)(&chunk_data.blocks_of_interest);
 
-                    // Iterate through each individual block
-                    for block in blocks {
-                        // TODO Address this hack properly, potentially by making a new
-                        // block of interest type which picks fewer leaf blocks
-                        // Hack to reduce the number of bird, frog, and water sounds
-                        if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
-                            && thread_rng().gen_bool(0.9995))
-                            || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.75))
-                            || (sounds.sfx == SfxEvent::RunningWaterSlow
-                                && thread_rng().gen_bool(0.5))
+                        let absolute_pos: Vec3<i32> =
+                            Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+
+                        // Replace all RunningWater blocks with just one random one per tick
+                        let blocks = if sounds.sfx == SfxEvent::RunningWaterSlow
+                            || sounds.sfx == SfxEvent::RunningWaterFast
                         {
-                            continue;
-                        }
-                        let block_pos: Vec3<i32> = absolute_pos + block;
-                        let internal_state = self.history.entry(block_pos).or_default();
+                            blocks
+                                .choose(&mut thread_rng())
+                                .map(std::slice::from_ref)
+                                .unwrap_or(&[])
+                        } else {
+                            blocks
+                        };
 
-                        let block_pos = block_pos.map(|x| x as f32);
-
-                        if Self::should_emit(
-                            internal_state,
-                            triggers.get_key_value(&sounds.sfx),
-                            temp,
-                        ) {
-                            // If the camera is within SFX distance
-                            if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
-                                let underwater = state
-                                    .terrain()
-                                    .get(cam_pos.map(|e| e.floor() as i32))
-                                    .map(|b| b.is_liquid())
-                                    .unwrap_or(false);
-
-                                let sfx_trigger_item = triggers.get_key_value(&sounds.sfx);
-                                if sounds.sfx == SfxEvent::RunningWaterFast {
-                                    audio.emit_filtered_sfx(
-                                        sfx_trigger_item,
-                                        block_pos,
-                                        Some(sounds.volume),
-                                        Some(8000),
-                                        underwater,
-                                    );
-                                } else {
-                                    audio.emit_sfx(
-                                        sfx_trigger_item,
-                                        block_pos,
-                                        Some(sounds.volume),
-                                        underwater,
-                                    );
-                                }
+                        // Iterate through each individual block
+                        for block in blocks {
+                            // TODO Address this hack properly, potentially by making a new
+                            // block of interest type which picks fewer leaf blocks
+                            // Hack to reduce the number of bird, frog, and water sounds
+                            if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
+                                && thread_rng().gen_bool(0.9995))
+                                || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.75))
+                                || (sounds.sfx == SfxEvent::RunningWaterSlow
+                                    && thread_rng().gen_bool(0.5))
+                            {
+                                continue;
                             }
-                            internal_state.time = Instant::now();
-                            internal_state.event = sounds.sfx.clone();
+                            let block_pos: Vec3<i32> = absolute_pos + block;
+                            let internal_state = self.history.entry(block_pos).or_default();
+
+                            let block_pos = block_pos.map(|x| x as f32);
+
+                            if Self::should_emit(
+                                internal_state,
+                                triggers.get_key_value(&sounds.sfx),
+                                temp,
+                            ) {
+                                // If the camera is within SFX distance
+                                if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
+                                    let underwater = state
+                                        .terrain()
+                                        .get(cam_pos.map(|e| e.floor() as i32))
+                                        .map(|b| b.is_liquid())
+                                        .unwrap_or(false);
+
+                                    let sfx_trigger_item = triggers.get_key_value(&sounds.sfx);
+                                    if sounds.sfx == SfxEvent::RunningWaterFast {
+                                        audio.emit_filtered_sfx(
+                                            sfx_trigger_item,
+                                            block_pos,
+                                            Some(sounds.volume),
+                                            Some(8000),
+                                            underwater,
+                                        );
+                                    } else {
+                                        audio.emit_sfx(
+                                            sfx_trigger_item,
+                                            block_pos,
+                                            Some(sounds.volume),
+                                            underwater,
+                                        );
+                                    }
+                                }
+                                internal_state.time = Instant::now();
+                                internal_state.event = sounds.sfx.clone();
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
     }

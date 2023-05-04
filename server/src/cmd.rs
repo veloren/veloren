@@ -503,16 +503,16 @@ fn handle_drop_all(
     for item in item_to_place {
         let vel = Vec3::new(rng.gen_range(-0.1..0.1), rng.gen_range(-0.1..0.1), 0.5);
 
-        server
-            .state
-            .create_item_drop(Default::default(), item)
-            .with(comp::Pos(Vec3::new(
+        server.state.create_item_drop(
+            comp::Pos(Vec3::new(
                 pos.0.x + rng.gen_range(5.0..10.0),
                 pos.0.y + rng.gen_range(5.0..10.0),
                 pos.0.z + 5.0,
-            )))
-            .with(comp::Vel(vel))
-            .build();
+            )),
+            comp::Vel(vel),
+            item,
+            None,
+        );
     }
 
     Ok(())

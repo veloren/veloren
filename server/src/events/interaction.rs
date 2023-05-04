@@ -1,4 +1,4 @@
-use specs::{world::WorldExt, Builder, Entity as EcsEntity, Join};
+use specs::{world::WorldExt, Entity as EcsEntity, Join};
 use vek::*;
 
 use common::{
@@ -253,15 +253,13 @@ pub fn handle_mine_block(
                     }
                 }
                 for item in items {
-                    let item_drop = state
-                        .create_item_drop(Default::default(), item)
-                        .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)));
-                    if let Some(uid) = maybe_uid {
-                        item_drop.with(LootOwner::new(LootOwnerKind::Player(uid)))
-                    } else {
-                        item_drop
-                    }
-                    .build();
+                    let loot_owner = maybe_uid.map(LootOwnerKind::Player).map(LootOwner::new);
+                    state.create_item_drop(
+                        Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
+                        comp::Vel(Vec3::zero()),
+                        item,
+                        loot_owner,
+                    );
                 }
             }
 

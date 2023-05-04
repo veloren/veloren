@@ -1158,6 +1158,21 @@ impl Item {
         }
     }
 
+    /// Try to merge `other` into this item. This is generally only possible if
+    /// the item has a compatible item ID and is stackable, along with any
+    /// other similarity checks.
+    pub fn try_merge(&mut self, other: Item) -> Result<(), Item> {
+        if self.is_stackable()
+            && let ItemBase::Simple(other_item_def) = &other.item_base
+            && self.is_same_item_def(other_item_def)
+        {
+            self.increase_amount(other.amount()).map_err(|_| other)?;
+            Ok(())
+        } else {
+            Err(other)
+        }
+    }
+
     pub fn num_slots(&self) -> u16 { self.item_base.num_slots() }
 
     /// NOTE: invariant that amount() ≤ max_amount(), 1 ≤ max_amount(),

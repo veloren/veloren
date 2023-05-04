@@ -12,7 +12,7 @@ use std::sync::Arc;
 use vek::*;
 
 /// Position
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
