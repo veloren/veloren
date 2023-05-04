@@ -13,13 +13,13 @@ use common::{
     grid::Grid,
     resources::TimeOfDay,
     rtsim::{Personality, Role, WorldSettings},
-    terrain::{CoordinateConversions, TerrainChunkSize},
+    terrain::{BiomeKind, CoordinateConversions, TerrainChunkSize},
     vol::RectVolSize,
 };
 use rand::prelude::*;
 use tracing::info;
 use vek::*;
-use world::{site::SiteKind, site2::PlotKind, IndexRef, World};
+use world::{site::SiteKind, site2::PlotKind, IndexRef, World, CONFIG};
 
 impl Data {
     pub fn generate(settings: &WorldSettings, world: &World, index: IndexRef) -> Self {
@@ -224,21 +224,35 @@ impl Data {
         // Spawn monsters into the world
         for _ in 0..100 {
             // Try a few times to find a location that's not underwater
-            if let Some(wpos) = (0..10)
+            if let Some((wpos, chunk)) = (0..10)
                 .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
-                .find(|pos| world.sim().get(*pos).map_or(false, |c| !c.is_underwater()))
-                .map(|pos| {
+                .find_map(|pos| Some((pos, world.sim().get(pos).filter(|c| !c.is_underwater())?)))
+                .map(|(pos, chunk)| {
                     let wpos2d = pos.cpos_to_wpos_center();
-                    wpos2d
-                        .map(|e| e as f32 + 0.5)
-                        .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
+                    (
+                        wpos2d
+                            .map(|e| e as f32 + 0.5)
+                            .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0)),
+                        chunk,
+                    )
                 })
             {
-                let species = match rng.gen_range(0..3) {
-                    0 => comp::body::biped_large::Species::Cyclops,
-                    1 => comp::body::biped_large::Species::Wendigo,
-                    _ => comp::body::biped_large::Species::Werewolf,
-                };
+                let biome = chunk.get_biome();
+                let Some(species) = [
+                    Some(comp::body::biped_large::Species::Ogre),
+                    Some(comp::body::biped_large::Species::Cyclops),
+                    Some(comp::body::biped_large::Species::Wendigo).filter(|_| biome == BiomeKind::Taiga),
+                    Some(comp::body::biped_large::Species::Cavetroll),
+                    Some(comp::body::biped_large::Species::Mountaintroll).filter(|_| biome == BiomeKind::Mountain),
+                    Some(comp::body::biped_large::Species::Swamptroll).filter(|_| biome == BiomeKind::Swamp),
+                    Some(comp::body::biped_large::Species::Blueoni),
+                    Some(comp::body::biped_large::Species::Redoni),
+                    Some(comp::body::biped_large::Species::Tursus).filter(|_| chunk.temp < CONFIG.snow_temp),
+                ]
+                    .into_iter()
+                    .flatten()
+                    .choose(&mut rng)
+                else { continue };
 
                 this.npcs.create_npc(Npc::new(
                     rng.gen(),

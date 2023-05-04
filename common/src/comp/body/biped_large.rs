@@ -26,9 +26,16 @@ impl Body {
 
     pub fn localize(&self) -> Content {
         Content::localized(match &self.species {
+            Species::Ogre => "body-biped_large-ogre",
             Species::Cyclops => "body-biped_large-cyclops",
             Species::Wendigo => "body-biped_large-wendigo",
             Species::Werewolf => "body-biped_large-werewolf",
+            Species::Cavetroll => "body-biped_large-cave_troll",
+            Species::Mountaintroll => "body-biped_large-mountain_troll",
+            Species::Swamptroll => "body-biped_large-swamp_troll",
+            Species::Blueoni => "body-biped_large-blue_oni",
+            Species::Redoni => "body-biped_large-red_oni",
+            Species::Tursus => "body-biped_large-tursus",
             _ => "body-generic",
         })
     }

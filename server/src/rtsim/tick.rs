@@ -170,12 +170,23 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
                 _ => unimplemented!(),
             },
             Body::BipedLarge(body) => match body.species {
+                comp::biped_large::Species::Ogre => "common.entity.wild.aggressive.ogre",
                 comp::biped_large::Species::Cyclops => "common.entity.wild.aggressive.cyclops",
                 comp::biped_large::Species::Wendigo => "common.entity.wild.aggressive.wendigo",
                 comp::biped_large::Species::Werewolf => "common.entity.wild.aggressive.werewolf",
-                _ => unimplemented!(),
+                comp::biped_large::Species::Cavetroll => "common.entity.wild.aggressive.cave_troll",
+                comp::biped_large::Species::Mountaintroll => {
+                    "common.entity.wild.aggressive.mountain_troll"
+                },
+                comp::biped_large::Species::Swamptroll => {
+                    "common.entity.wild.aggressive.swamp_troll"
+                },
+                comp::biped_large::Species::Blueoni => "common.entity.wild.aggressive.blue_oni",
+                comp::biped_large::Species::Redoni => "common.entity.wild.aggressive.red_oni",
+                comp::biped_large::Species::Tursus => "common.entity.wild.aggressive.tursus",
+                species => unimplemented!("rtsim spawning for {:?}", species),
             },
-            _ => unimplemented!(),
+            body => unimplemented!("rtsim spawning for {:?}", body),
         };
         let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
             .with_body(BodyBuilder::Exact(npc.body));

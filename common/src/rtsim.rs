@@ -290,8 +290,11 @@ pub enum ChunkResource {
 // identifiers for the sake of rtsim persistence
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Role {
+    #[serde(rename = "0")]
     Civilised(Option<Profession>),
+    #[serde(rename = "1")]
     Wild,
+    #[serde(rename = "2")]
     Monster,
 }
 
