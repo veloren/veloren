@@ -32,6 +32,7 @@ use common::{
     trade::TradeResult,
     util::{Dir, Plane},
     vol::ReadVol,
+    CachedSpatialGrid,
 };
 use common_base::{prof_span, span};
 use common_net::{msg::server::InviteAnswer, sync::WorldSyncExt};
@@ -945,27 +946,33 @@ impl PlayState for SessionState {
                                     .read_storage::<Pos>()
                                     .get(client.entity())
                                     .copied();
+
+                                let mut close_pet = (None, None);
                                 if let Some(player_pos) = player_pos {
-                                    // Find closest mountable entity
-                                    let closest_pet = (
-                                        &client.state().ecs().entities(),
-                                        &client.state().ecs().read_storage::<Pos>(),
-                                        // TODO: More cleverly filter by things that can actually be mounted
-                                        client.state().ecs().read_storage::<comp::Alignment>().maybe(),
-                                    )
-                                        .join()
-                                        .filter(|(entity, _, _)| *entity != client.entity())
-                                        .filter(|(_, _, alignment)| matches!(alignment, Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()))
-                                        .map(|(entity, pos, _)| {
-                                            (entity, player_pos.0.distance_squared(pos.0))
-                                        })
-                                        .filter(|(_, dist_sqr)| {
-                                            *dist_sqr < MAX_MOUNT_RANGE.powi(2)
-                                        })
-                                        .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
-                                    if let Some((pet_entity, _)) = closest_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
-                                        client.toggle_stay(pet_entity);
-                                    }
+                                    let alignment =
+                                        client.state().ecs().read_storage::<comp::Alignment>();
+                                    let spatial_grid =
+                                        client.state().ecs().read_resource::<CachedSpatialGrid>();
+                                    spatial_grid.0
+                                        .in_circle_aabr(player_pos.0.xy(), MAX_MOUNT_RANGE)
+                                        .for_each(|e| {
+                                            client
+                                                .state()
+                                                .read_storage::<Pos>()
+                                                .get(e)
+                                                .map(|x|{
+                                                    let distance = player_pos.0.distance_squared(x.0);
+                                                    if distance < close_pet.1.map_or(MAX_MOUNT_RANGE * MAX_MOUNT_RANGE, |x| x) && e != client.entity()
+                                                    && matches!(alignment.get(e), Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()) {
+                                                        close_pet.0 = Some(e);
+                                                        close_pet.1 = Some(distance);
+                                                    }
+                                                }
+                                            );
+                                        });
+                                }
+                                if let (Some(pet_entity), _) = close_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
+                                    client.toggle_stay(pet_entity);
                                 }
                             },
                             GameInput::Interact => {
