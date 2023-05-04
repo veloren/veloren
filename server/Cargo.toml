@@ -38,14 +38,14 @@ num_cpus = "1.0"
 tracing = "0.1"
 vek = { version = "0.15.8", features = ["serde"] }
 futures-util = "0.3.7"
-tokio = { version = "1.14", default-features = false, features = ["rt"] }
+tokio = { version = "1.15", default-features = false, features = ["rt"] }
 prometheus-hyper = "0.1.4"
 quinn = "0.8"
 rustls = { version = "0.20", default-features = false }
 rustls-pemfile = { version = "1", default-features = false }
 atomicwrites = "0.3.0"
 chrono = { version = "0.4.22", features = ["serde"] }
-chrono-tz = { version = "0.6", features = ["serde"] }
+chrono-tz = { version = "0.8", features = ["serde"] }
 drop_guard = { version = "0.3.0" }
 humantime = "2.1.0"
 itertools = "0.10"

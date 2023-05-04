@@ -30,7 +30,7 @@ specs = { version = "0.18", features = ["serde", "storage-event-control", "deriv
 # Plugins
 scopeguard = "1.1.0"
 serde = { version = "1.0.110", features = ["derive"], optional = true }
-toml = { version = "0.5.7", optional = true }
+toml = { version = "0.7", optional = true }
 tar = { version = "0.4.37", optional = true }
 wasmer = { version = "2.0.0", optional = true, default-features = false, features = ["wat", "default-cranelift", "default-universal"] }
 bincode = { version = "1.3.1", optional = true }

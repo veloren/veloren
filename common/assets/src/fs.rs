@@ -1,8 +1,8 @@
-use std::{borrow::Cow, fs, io};
+use std::{fs, io};
 
 use assets_manager::{
     hot_reloading::{DynUpdateSender, EventSender, FsWatcherBuilder},
-    source::{DirEntry, FileSystem as RawFs, Source},
+    source::{DirEntry, FileContent, FileSystem as RawFs, Source},
     BoxedError,
 };
 
@@ -43,7 +43,7 @@ impl FileSystem {
 }
 
 impl Source for FileSystem {
-    fn read(&self, id: &str, ext: &str) -> io::Result<Cow<[u8]>> {
+    fn read(&self, id: &str, ext: &str) -> io::Result<FileContent> {
         if let Some(dir) = &self.override_dir {
             match dir.read(id, ext) {
                 Ok(content) => return Ok(content),

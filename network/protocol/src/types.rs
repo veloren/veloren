@@ -24,6 +24,7 @@ bitflags! {
     /// see the consts in this `struct` for
     ///
     /// [`Streams`]: crate::api::Stream
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Promises: u8 {
         /// this will guarantee that the order of messages which are send on one side,
         /// is the same when received on the other.
@@ -44,7 +45,7 @@ bitflags! {
 }
 
 impl Promises {
-    pub const fn to_le_bytes(self) -> [u8; 1] { self.bits.to_le_bytes() }
+    pub const fn to_le_bytes(self) -> [u8; 1] { self.bits().to_le_bytes() }
 }
 
 pub(crate) const VELOREN_MAGIC_NUMBER: [u8; 7] = *b"VELOREN";

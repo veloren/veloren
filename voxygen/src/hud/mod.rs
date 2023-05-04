@@ -2666,11 +2666,12 @@ impl Hud {
             .set(self.ids.loaded_distance, ui_widgets);
             // Time
             let time_in_seconds = client.state().get_time_of_day();
-            let current_time = NaiveTime::from_num_seconds_from_midnight(
+            let current_time = NaiveTime::from_num_seconds_from_midnight_opt(
                 // Wraps around back to 0s if it exceeds 24 hours (24 hours = 86400s)
                 (time_in_seconds as u64 % 86400) as u32,
                 0,
-            );
+            )
+            .expect("time always valid");
             Text::new(&format!("Time: {}", current_time.format("%H:%M")))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.loaded_distance, V_PAD)

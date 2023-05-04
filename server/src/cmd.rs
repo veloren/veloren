@@ -952,24 +952,43 @@ fn handle_time(
     };
 
     let time = parse_cmd_args!(args, String);
+    const EMSG: &str = "time always valid";
     let new_time = match time.as_deref() {
-        Some("midnight") => {
-            next_cycle(NaiveTime::from_hms(0, 0, 0).num_seconds_from_midnight() as f64)
-        },
-        Some("night") => {
-            next_cycle(NaiveTime::from_hms(20, 0, 0).num_seconds_from_midnight() as f64)
-        },
-        Some("dawn") => next_cycle(NaiveTime::from_hms(5, 0, 0).num_seconds_from_midnight() as f64),
-        Some("morning") => {
-            next_cycle(NaiveTime::from_hms(8, 0, 0).num_seconds_from_midnight() as f64)
-        },
-        Some("day") => next_cycle(NaiveTime::from_hms(10, 0, 0).num_seconds_from_midnight() as f64),
-        Some("noon") => {
-            next_cycle(NaiveTime::from_hms(12, 0, 0).num_seconds_from_midnight() as f64)
-        },
-        Some("dusk") => {
-            next_cycle(NaiveTime::from_hms(17, 0, 0).num_seconds_from_midnight() as f64)
-        },
+        Some("midnight") => next_cycle(
+            NaiveTime::from_hms_opt(0, 0, 0)
+                .expect(EMSG)
+                .num_seconds_from_midnight() as f64,
+        ),
+        Some("night") => next_cycle(
+            NaiveTime::from_hms_opt(20, 0, 0)
+                .expect(EMSG)
+                .num_seconds_from_midnight() as f64,
+        ),
+        Some("dawn") => next_cycle(
+            NaiveTime::from_hms_opt(5, 0, 0)
+                .expect(EMSG)
+                .num_seconds_from_midnight() as f64,
+        ),
+        Some("morning") => next_cycle(
+            NaiveTime::from_hms_opt(8, 0, 0)
+                .expect(EMSG)
+                .num_seconds_from_midnight() as f64,
+        ),
+        Some("day") => next_cycle(
+            NaiveTime::from_hms_opt(10, 0, 0)
+                .expect(EMSG)
+                .num_seconds_from_midnight() as f64,
+        ),
+        Some("noon") => next_cycle(
+            NaiveTime::from_hms_opt(12, 0, 0)
+                .expect(EMSG)
+                .num_seconds_from_midnight() as f64,
+        ),
+        Some("dusk") => next_cycle(
+            NaiveTime::from_hms_opt(17, 0, 0)
+                .expect(EMSG)
+                .num_seconds_from_midnight() as f64,
+        ),
         Some(n) => match n.parse::<f64>() {
             Ok(n) => {
                 if n < 0.0 {

@@ -234,7 +234,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Rle,
+                CompressionType::Fast,
                 FilterType::Up,
             );
             png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
@@ -249,7 +249,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Rle,
+                CompressionType::Fast,
                 FilterType::Sub,
             );
             png.write_image(
@@ -510,7 +510,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
-                CompressionType::Rle,
+                CompressionType::Fast,
                 FilterType::Up,
             );
             png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)

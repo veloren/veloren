@@ -498,7 +498,7 @@ impl assets::DirLoadable for FindManifests {
 
         let mut specifiers = Vec::new();
 
-        let source = cache.source();
+        let source = cache.raw_source();
         source.read_dir(specifier, &mut |entry| {
             if let DirEntry::Directory(spec) = entry {
                 let manifest_spec = [spec, ".", "_manifest"].concat();
