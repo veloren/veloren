@@ -13,10 +13,11 @@ use common::{
     astar::{Astar, PathResult},
     comp::{
         compass::{Direction, Distance},
+        dialogue::Subject,
         Content,
     },
     path::Path,
-    rtsim::{Actor, ChunkResource, Profession, Role, SiteId},
+    rtsim::{Actor, ChunkResource, NpcInput, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
     terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
@@ -542,6 +543,41 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
     move |ctx| ctx.time.0 > *timeout.get_or_insert(ctx.time.0 + time)
 }
 
+fn talk_to(tgt: Actor, subject: Option<Subject>) -> impl Action {
+    now(move |ctx| {
+        // Mention nearby sites
+        let comment = if ctx.rng.gen_bool(0.3)
+            && let Some(current_site) = ctx.npc.current_site
+            && let Some(current_site) = ctx.state.data().sites.get(current_site)
+            && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
+            && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
+            && let Some(mention_site_name) = mention_site.world_site
+                .map(|ws| ctx.index.sites.get(ws).name().to_string())
+        {
+            Content::localized_with_args("npc-speech-tell_site", [
+                ("site", Content::Plain(mention_site_name)),
+                ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
+                ("dist", Distance::from_length(mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+            ])
+        // Mention nearby monsters
+        } else if ctx.rng.gen_bool(0.3)
+            && let Some(monster) = ctx.state.data().npcs
+                .values()
+                .filter(|other| matches!(&other.role, Role::Monster))
+                .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
+        {
+            Content::localized_with_args("npc-speech-tell_monster", [
+                ("body", monster.body.localize()),
+                ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
+                ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+            ])
+        } else {
+            ctx.npc.personality.get_generic_comment(&mut ctx.rng)
+        };
+        just(move |ctx| ctx.controller.say(tgt, comment.clone()))
+    })
+}
+
 fn socialize() -> impl Action {
     now(|ctx| {
         // Skip most socialising actions if we're not loaded
@@ -563,36 +599,7 @@ fn socialize() -> impl Action {
                 .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
                 .choose(&mut ctx.rng)
             {
-                // Mention nearby sites
-                let comment = if ctx.rng.gen_bool(0.3)
-                    && let Some(current_site) = ctx.npc.current_site
-                    && let Some(current_site) = ctx.state.data().sites.get(current_site)
-                    && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
-                    && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
-                    && let Some(mention_site_name) = mention_site.world_site
-                        .map(|ws| ctx.index.sites.get(ws).name().to_string())
-                {
-                    Content::localized_with_args("npc-speech-tell_site", [
-                        ("site", Content::Plain(mention_site_name)),
-                        ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
-                        ("dist", Distance::from_length(mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
-                    ])
-                // Mention nearby monsters
-                } else if ctx.rng.gen_bool(0.3)
-                    && let Some(monster) = ctx.state.data().npcs
-                        .values()
-                        .filter(|other| matches!(&other.role, Role::Monster))
-                        .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
-                {
-                    Content::localized_with_args("npc-speech-tell_monster", [
-                        ("body", monster.body.localize()),
-                        ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
-                        ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
-                    ])
-                } else {
-                    ctx.npc.personality.get_generic_comment(&mut ctx.rng)
-                };
-                return just(move |ctx| ctx.controller.say(other, comment.clone()))
+                return talk_to(other, None)
                     // After talking, wait for a while
                     .then(idle().repeat().stop_if(timeout(4.0)))
                     .map(|_| ())
@@ -972,7 +979,7 @@ fn captain() -> impl Action {
 fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
     loop {
         match ctx.inbox.pop_front() {
-            Some(report_id) if !ctx.known_reports.contains(&report_id) => {
+            Some(NpcInput::Report(report_id)) if !ctx.known_reports.contains(&report_id) => {
                 #[allow(clippy::single_match)]
                 match ctx.state.data().reports.get(report_id).map(|r| r.kind) {
                     Some(ReportKind::Death { killer, actor, .. })
@@ -1013,15 +1020,17 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
                             "npc-speech-witness_death"
                         };
                         ctx.known_reports.insert(report_id);
-                        break Some(just(move |ctx| {
-                            ctx.controller.say(killer, Content::localized(phrase))
-                        }));
+                        break Some(
+                            just(move |ctx| ctx.controller.say(killer, Content::localized(phrase)))
+                                .l(),
+                        );
                     },
                     Some(ReportKind::Death { .. }) => {}, // We don't care about death
                     None => {},                           // Stale report, ignore
                 }
             },
-            Some(_) => {}, // Reports we already know of are ignored
+            Some(NpcInput::Report(_)) => {}, // Reports we already know of are ignored
+            Some(NpcInput::Interaction(by, subject)) => break Some(talk_to(by, Some(subject)).r()),
             None => break None,
         }
     }

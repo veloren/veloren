@@ -40,6 +40,14 @@ impl PresenceKind {
     /// certain in-game messages from the client such as control inputs
     /// should be handled.
     pub fn controlling_char(&self) -> bool { matches!(self, Self::Character(_) | Self::Possessor) }
+
+    pub fn character_id(&self) -> Option<CharacterId> {
+        if let Self::Character(character_id) = self {
+            Some(*character_id)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

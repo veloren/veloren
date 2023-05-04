@@ -1,6 +1,6 @@
 use crate::{
     ai::Action,
-    data::{ReportId, Reports, Sentiments},
+    data::{Reports, Sentiments},
     gen::name,
 };
 pub use common::rtsim::{NpcId, Profession};
@@ -9,8 +9,8 @@ use common::{
     comp,
     grid::Grid,
     rtsim::{
-        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, Personality, Role, SiteId,
-        VehicleId,
+        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, NpcInput, Personality, ReportId,
+        Role, SiteId, VehicleId,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -121,7 +121,7 @@ pub struct Npc {
     #[serde(skip)]
     pub controller: Controller,
     #[serde(skip)]
-    pub inbox: VecDeque<ReportId>,
+    pub inbox: VecDeque<NpcInput>,
 
     /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the
     /// server, loaded corresponds to being within a loaded chunk). When in

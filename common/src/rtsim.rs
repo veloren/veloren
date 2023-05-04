@@ -3,7 +3,10 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
-use crate::{character::CharacterId, comp::Content};
+use crate::{
+    character::CharacterId,
+    comp::{dialogue::Subject, Content},
+};
 use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;
@@ -18,6 +21,8 @@ slotmap::new_key_type! { pub struct VehicleId; }
 slotmap::new_key_type! { pub struct SiteId; }
 
 slotmap::new_key_type! { pub struct FactionId; }
+
+slotmap::new_key_type! { pub struct ReportId; }
 
 #[derive(Copy, Clone, Debug)]
 pub struct RtSimEntity(pub NpcId);
@@ -256,6 +261,13 @@ pub enum NpcAction {
     Say(Option<Actor>, Content),
     /// Attack the given target
     Attack(Actor),
+}
+
+// Represents a message passed back to rtsim from an agent's brain
+#[derive(Clone, Debug)]
+pub enum NpcInput {
+    Report(ReportId),
+    Interaction(Actor, Subject),
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field

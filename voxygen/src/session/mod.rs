@@ -15,6 +15,7 @@ use client::{self, Client};
 use common::{
     comp,
     comp::{
+        dialogue::Subject,
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDesc},
@@ -959,7 +960,7 @@ impl PlayState for SessionState {
                                                     // TODO: maybe start crafting instead?
                                                     client.toggle_sit();
                                                 } else {
-                                                    client.npc_interact(*entity);
+                                                    client.npc_interact(*entity, Subject::Regular);
                                                 }
                                             },
                                         }

@@ -66,12 +66,13 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::DisableLantern => {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
-                    ControlEvent::Interact(npc_uid) => {
+                    ControlEvent::Interact(npc_uid, subject) => {
                         if let Some(npc_entity) = read_data
                             .uid_allocator
                             .retrieve_entity_internal(npc_uid.id())
                         {
-                            server_emitter.emit(ServerEvent::NpcInteract(entity, npc_entity));
+                            server_emitter
+                                .emit(ServerEvent::NpcInteract(entity, npc_entity, subject));
                         }
                     },
                     ControlEvent::InitiateInvite(inviter_uid, kind) => {

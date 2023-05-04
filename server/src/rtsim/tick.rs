@@ -3,7 +3,7 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, Body, Presence, PresenceKind},
+    comp::{self, Agent, Body, Presence, PresenceKind},
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
@@ -314,7 +314,10 @@ impl<'a> System<'a> for Sys {
                                 .with_health(health)
                                 .with_poise(poise)
                                 .with_inventory(inventory)
-                                .with_agent(agent)
+                                .with_agent(agent.map(|agent| Agent {
+                                    rtsim_outbox: Some(Default::default()),
+                                    ..agent
+                                }))
                                 .with_scale(scale)
                                 .with_loot(loot)
                                 .with_rtsim(RtSimEntity(npc_id)),
@@ -373,7 +376,10 @@ impl<'a> System<'a> for Sys {
                             .with_health(health)
                             .with_poise(poise)
                             .with_inventory(inventory)
-                            .with_agent(agent)
+                            .with_agent(agent.map(|agent| Agent {
+                                rtsim_outbox: Some(Default::default()),
+                                ..agent
+                            }))
                             .with_scale(scale)
                             .with_loot(loot)
                             .with_rtsim(RtSimEntity(npc_id)),
@@ -417,6 +423,9 @@ impl<'a> System<'a> for Sys {
                             .rtsim_controller
                             .actions
                             .extend(std::mem::take(&mut npc.controller.actions));
+                        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
+                            npc.inbox.append(rtsim_outbox);
+                        }
                     }
                 });
         }

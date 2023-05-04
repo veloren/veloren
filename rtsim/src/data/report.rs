@@ -4,7 +4,7 @@ use slotmap::HopSlotMap;
 use std::ops::Deref;
 use vek::*;
 
-slotmap::new_key_type! { pub struct ReportId; }
+pub use common::rtsim::ReportId;
 
 /// Represents a single piece of information known by an rtsim entity.
 ///

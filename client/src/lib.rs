@@ -23,6 +23,7 @@ use common::{
         self,
         chat::KillSource,
         controller::CraftEvent,
+        dialogue::Subject,
         group,
         inventory::item::{modular, tool, ItemKind},
         invite::{InviteKind, InviteResponse},
@@ -1132,14 +1133,16 @@ impl Client {
         }
     }
 
-    pub fn npc_interact(&mut self, npc_entity: EcsEntity) {
+    pub fn npc_interact(&mut self, npc_entity: EcsEntity, subject: Subject) {
         // If we're dead, exit before sending message
         if self.is_dead() {
             return;
         }
 
         if let Some(uid) = self.state.read_component_copied(npc_entity) {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(uid)));
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(
+                uid, subject,
+            )));
         }
     }
 

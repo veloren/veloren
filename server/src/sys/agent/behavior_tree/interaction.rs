@@ -10,7 +10,7 @@ use common::{
         UtteranceKind,
     },
     event::ServerEvent,
-    rtsim::PersonalityTrait,
+    rtsim::{Actor, NpcInput, PersonalityTrait},
     trade::{TradeAction, TradePhase, TradeResult},
 };
 use rand::{thread_rng, Rng};
@@ -87,8 +87,26 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
     }
 
     if let Some(AgentEvent::Talk(by, subject)) = agent.inbox.pop_front() {
+        let by_entity = get_entity_by_id(by.id(), read_data);
+
+        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
+            if let Subject::Regular
+                | Subject::Mood
+                | Subject::Work = subject
+                && let Some(by_entity) = by_entity
+                && let Some(actor) = read_data.presences
+                    .get(by_entity)
+                    .and_then(|p| p.kind.character_id().map(Actor::Character))
+                    .or_else(|| Some(Actor::Npc(read_data.rtsim_entities
+                        .get(by_entity)?.0)))
+            {
+                rtsim_outbox.push_back(NpcInput::Interaction(actor, subject));
+                return false;
+            }
+        }
+
         if agent.allowed_to_speak() {
-            if let Some(target) = get_entity_by_id(by.id(), read_data) {
+            if let Some(target) = by_entity {
                 let target_pos = read_data.positions.get(target).map(|pos| pos.0);
 
                 agent.target = Some(Target::new(
@@ -216,15 +234,18 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                         if let Some(src_pos) = read_data.positions.get(target) {
                             // TODO: Localise
                             let msg = if let Some(person_pos) = person.origin {
-                                let distance = Distance::from_dir(person_pos.xy() - src_pos.0.xy());
+                                let distance =
+                                    Distance::from_dir(person_pos.xy().as_() - src_pos.0.xy());
                                 match distance {
                                     Distance::NextTo | Distance::Near => {
                                         format!(
                                             "{} ? I think he's {} {} from here!",
                                             person.name(),
                                             distance.name(),
-                                            Direction::from_dir(person_pos.xy() - src_pos.0.xy(),)
-                                                .name()
+                                            Direction::from_dir(
+                                                person_pos.xy().as_() - src_pos.0.xy()
+                                            )
+                                            .name()
                                         )
                                     },
                                     _ => {

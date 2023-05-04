@@ -5,7 +5,10 @@ use crate::{
     },
     RtState,
 };
-use common::resources::{Time, TimeOfDay};
+use common::{
+    resources::{Time, TimeOfDay},
+    rtsim::NpcInput,
+};
 use hashbrown::HashSet;
 use itertools::Either;
 use rand_chacha::ChaChaRng;
@@ -26,7 +29,7 @@ pub struct NpcCtx<'a> {
     pub npc_id: NpcId,
     pub npc: &'a Npc,
     pub controller: &'a mut Controller,
-    pub inbox: &'a mut VecDeque<ReportId>, // TODO: Allow more inbox items
+    pub inbox: &'a mut VecDeque<NpcInput>, // TODO: Allow more inbox items
     pub sentiments: &'a mut Sentiments,
     pub known_reports: &'a mut HashSet<ReportId>,
 
