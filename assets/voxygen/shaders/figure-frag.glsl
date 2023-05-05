@@ -167,7 +167,9 @@ void main() {
     // If the figure is large enough to be 'terrain-like', we apply a noise effect to it
     #ifndef EXPERIMENTAL_NONOISE
         if (scale >= 0.5) {
-            float noise = hash(vec4(floor(m_pos * 3.0 - f_norm * 0.5), 0));
+            // TODO: Fix this, it isn't cprrect to use `f_norm` here. Would need something like
+            // `m_norm` which is a normal relative to the figure.
+            float noise = hash(vec4(floor(m_pos * 3.0 - vec3(0.5, 0, 0) - f_norm * 0.1), 0));
 
             const float A = 0.055;
             const float W_INV = 1 / (1 + A);
