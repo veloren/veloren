@@ -37,10 +37,7 @@ layout(set = 0, binding = 15) restrict readonly buffer sprite_verts {
 
 layout (std140, set = 3, binding = 0)
 uniform u_terrain_locals {
-    vec4 model_mat0;
-    vec4 model_mat1;
-    vec4 model_mat2;
-    vec4 model_mat3;
+    mat4 model_mat;
     ivec4 atlas_offs;
     float load_time;
 };
@@ -92,12 +89,6 @@ float wind_wave(float off, float scaling, float speed, float strength) {
 }
 
 void main() {
-    mat4 model_mat;
-    model_mat[0] = model_mat0;
-    model_mat[1] = model_mat1;
-    model_mat[2] = model_mat2;
-    model_mat[3] = model_mat3;
-
     // Matrix to transform this sprite instance from model space to chunk space
     mat4 inst_mat;
     inst_mat[0] = inst_mat0;

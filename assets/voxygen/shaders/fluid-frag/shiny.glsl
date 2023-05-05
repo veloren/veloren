@@ -42,10 +42,7 @@ layout(location = 2) in vec2 f_vel;
 
 layout(std140, set = 2, binding = 0)
 uniform u_locals {
-    vec4 model_mat0;
-    vec4 model_mat1;
-    vec4 model_mat2;
-    vec4 model_mat3;
+    mat4 model_mat;
     ivec4 atlas_offs;
     float load_time;
 };

@@ -26,10 +26,7 @@ layout(location = 1) in uint v_vel;
 
 layout(std140, set = 2, binding = 0)
 uniform u_locals {
-    vec4 model_mat0;
-    vec4 model_mat1;
-    vec4 model_mat2;
-    vec4 model_mat3;
+    mat4 model_mat;
     ivec4 atlas_offs;
     float load_time;
 };
@@ -54,11 +51,6 @@ layout(location = 2) out vec2 f_vel;
 const float EXTRA_NEG_Z = 65536.0/*65536.1*/;
 
 void main() {
-    mat4 model_mat;
-    model_mat[0] = model_mat0;
-    model_mat[1] = model_mat1;
-    model_mat[2] = model_mat2;
-    model_mat[3] = model_mat3;
     vec3 rel_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0x1FFFFu) - EXTRA_NEG_Z);
     f_pos = (model_mat * vec4(rel_pos, 1.0)).xyz - focus_off.xyz;
 
