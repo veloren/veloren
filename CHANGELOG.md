@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loot that drops multiple items is now distributed fairly between damage contributors.
 - Added accessibility settings tab.
 - Setting to enable subtitles describing sfx.
+- Item drops that are spatially close and compatible will now merge with one-another to reduce performance problems.
 
 ### Changed
 

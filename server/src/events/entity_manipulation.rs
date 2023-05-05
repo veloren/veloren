@@ -473,20 +473,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
                 let mut spawn_item = |item, loot_owner| {
                     let offset = item_offset_spiral.next().unwrap_or_default();
-                    let item_drop_entity = state
-                        .create_item_drop(Pos(pos.0 + Vec3::unit_z() * 0.25 + offset), item)
-                        .maybe_with(vel)
-                        .build();
-                    if let Some(loot_owner) = loot_owner {
-                        debug!("Assigned UID {loot_owner:?} as the winner for the loot drop");
-                        if let Err(err) = state
-                            .ecs()
-                            .write_storage::<LootOwner>()
-                            .insert(item_drop_entity, LootOwner::new(loot_owner))
-                        {
-                            error!("Failed to set loot owner on item drop: {err}");
-                        };
-                    }
+                    state.create_item_drop(
+                        Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
+                        vel.unwrap_or(comp::Vel(Vec3::zero())),
+                        item,
+                        if let Some(loot_owner) = loot_owner {
+                            debug!("Assigned UID {loot_owner:?} as the winner for the loot drop");
+                            Some(LootOwner::new(loot_owner))
+                        } else {
+                            None
+                        },
+                    );
                 };
 
                 let msm = &MaterialStatManifest::load().read();
@@ -1103,15 +1100,17 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
                     for item in flatten_counted_items(&items, ability_map, msm) {
                         server
                             .state
-                            .create_object(Default::default(), match block.get_sprite() {
-                                // Create different containers depending on the original sprite
-                                Some(SpriteKind::Apple) => comp::object::Body::Apple,
-                                Some(SpriteKind::Beehive) => comp::object::Body::Hive,
-                                Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
-                                Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
-                                _ => comp::object::Body::Pouch,
-                            })
-                            .with(Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
+                            .create_object(
+                                Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
+                                match block.get_sprite() {
+                                    // Create different containers depending on the original sprite
+                                    Some(SpriteKind::Apple) => comp::object::Body::Apple,
+                                    Some(SpriteKind::Beehive) => comp::object::Body::Hive,
+                                    Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
+                                    Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
+                                    _ => comp::object::Body::Pouch,
+                                },
+                            )
                             .with(item)
                             .maybe_with(match block.get_sprite() {
                                 Some(SpriteKind::Bomb) => Some(comp::Object::Bomb { owner }),

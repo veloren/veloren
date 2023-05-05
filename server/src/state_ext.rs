@@ -19,7 +19,7 @@ use common::{
         self,
         item::{ItemKind, MaterialStatManifest},
         skills::{GeneralSkill, Skill},
-        ChatType, Group, Inventory, Item, Player, Poise, Presence, PresenceKind,
+        ChatType, Group, Inventory, Item, LootOwner, Player, Poise, Presence, PresenceKind,
     },
     effect::Effect,
     link::{Link, LinkHandle},
@@ -60,7 +60,15 @@ pub trait StateExt {
     ) -> EcsEntityBuilder;
     /// Build a static object entity
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
-    fn create_item_drop(&mut self, pos: comp::Pos, item: Item) -> EcsEntityBuilder;
+    /// Create an item drop or merge the item with an existing drop, if a
+    /// suitable candidate exists.
+    fn create_item_drop(
+        &mut self,
+        pos: comp::Pos,
+        vel: comp::Vel,
+        item: Item,
+        loot_owner: Option<LootOwner>,
+    ) -> Option<EcsEntity>;
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
         pos: comp::Pos,
@@ -311,7 +319,53 @@ impl StateExt for State {
             .with(body)
     }
 
-    fn create_item_drop(&mut self, pos: comp::Pos, item: Item) -> EcsEntityBuilder {
+    fn create_item_drop(
+        &mut self,
+        pos: comp::Pos,
+        vel: comp::Vel,
+        item: Item,
+        loot_owner: Option<LootOwner>,
+    ) -> Option<EcsEntity> {
+        {
+            const MAX_MERGE_DIST: f32 = 1.5;
+
+            // First, try to identify possible candidates for item merging
+            // We limit our search to just a few blocks and we prioritise merging with the
+            // closest
+            let positions = self.ecs().read_storage::<comp::Pos>();
+            let loot_owners = self.ecs().read_storage::<LootOwner>();
+            let mut items = self.ecs().write_storage::<Item>();
+            let mut nearby_items = self
+                .ecs()
+                .read_resource::<common::CachedSpatialGrid>()
+                .0
+                .in_circle_aabr(pos.0.xy(), MAX_MERGE_DIST)
+                .filter(|entity| items.contains(*entity))
+                .filter_map(|entity| {
+                    Some((entity, positions.get(entity)?.0.distance_squared(pos.0)))
+                })
+                .filter(|(_, dist_sqrd)| *dist_sqrd < MAX_MERGE_DIST.powi(2))
+                .collect::<Vec<_>>();
+            nearby_items.sort_by_key(|(_, dist_sqrd)| (dist_sqrd * 1000.0) as i32);
+            for (nearby, _) in nearby_items {
+                // Only merge if the loot owner is the same
+                if loot_owners.get(nearby).map(|lo| lo.owner()) == loot_owner.map(|lo| lo.owner())
+                    && items
+                        .get(nearby)
+                        .map_or(false, |nearby_item| nearby_item.can_merge(&item))
+                {
+                    // Merging can occur! Perform the merge:
+                    items
+                        .get_mut(nearby)
+                        .expect("we know that the item exists")
+                        .try_merge(item)
+                        .expect("`try_merge` should succeed because `can_merge` returned `true`");
+                    return None;
+                }
+            }
+            // Only if merging items fails do we give up and create a new item
+        }
+
         let item_drop = comp::item_drop::Body::from(&item);
         let body = comp::Body::ItemDrop(item_drop);
         let light_emitter = match &*item.kind() {
@@ -323,17 +377,21 @@ impl StateExt for State {
             }),
             _ => None,
         };
-        self.ecs_mut()
-            .create_entity_synced()
-            .with(item)
-            .with(pos)
-            .with(comp::Vel(Vec3::zero()))
-            .with(item_drop.orientation(&mut thread_rng()))
-            .with(item_drop.mass())
-            .with(item_drop.density())
-            .with(body.collider())
-            .with(body)
-            .maybe_with(light_emitter)
+        Some(
+            self.ecs_mut()
+                .create_entity_synced()
+                .with(item)
+                .with(pos)
+                .with(vel)
+                .with(item_drop.orientation(&mut thread_rng()))
+                .with(item_drop.mass())
+                .with(item_drop.density())
+                .with(body.collider())
+                .with(body)
+                .maybe_with(loot_owner)
+                .maybe_with(light_emitter)
+                .build(),
+        )
     }
 
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
