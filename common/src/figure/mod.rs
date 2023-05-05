@@ -9,7 +9,7 @@ pub use self::{
 };
 
 use crate::{
-    terrain::{Block, BlockKind},
+    terrain::{Block, BlockKind, SpriteKind},
     vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,
 };
@@ -24,7 +24,7 @@ impl From<Segment> for TerrainSegment {
             Err(_) | Ok(Cell::Empty) => Block::empty(),
             Ok(cell) => {
                 if cell.is_hollow() {
-                    Block::empty()
+                    Block::air(SpriteKind::Empty)
                 } else if cell.is_glowy() {
                     Block::new(BlockKind::GlowingRock, cell.get_color().unwrap())
                 } else {

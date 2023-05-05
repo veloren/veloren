@@ -161,7 +161,7 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
         let mount_pos = (mat * mount_offset.0.with_w(1.0)).xyz();
         let within_range = {
             let positions = state.ecs().read_storage::<Pos>();
-            positions.get(rider).map_or(false, |pos| pos.0.distance_squared(mount_pos) < MAX_SPRITE_MOUNT_RANGE * MAX_SPRITE_MOUNT_RANGE)
+            positions.get(rider).map_or(false, |pos| pos.0.distance_squared(mount_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2))
         };
 
         let maybe_uid = state.ecs().read_storage::<Uid>().get(rider).copied();

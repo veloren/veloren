@@ -119,7 +119,7 @@ pub struct Block {
 }
 
 impl Vox for Block {
-    fn empty() -> Self { Block::empty() }
+    fn empty() -> Self { Block::air(SpriteKind::Empty) }
 
     fn is_empty(&self) -> bool { self.is_air() && self.get_sprite().is_none() }
 }

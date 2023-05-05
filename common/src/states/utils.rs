@@ -854,7 +854,7 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpda
     }
 }
 
-fn reach_block(
+fn can_reach_block(
     player_pos: Vec3<f32>,
     block_pos: Vec3<i32>,
     range: f32,
@@ -975,7 +975,7 @@ pub fn handle_manipulate_loadout(
             let sprite_interact =
                 sprite_at_pos.and_then(Option::<sprite_interact::SpriteInteractKind>::from);
             if let Some(sprite_interact) = sprite_interact {
-                if reach_block(
+                if can_reach_block(
                     data.pos.0,
                     sprite_pos,
                     MAX_PICKUP_RANGE,
