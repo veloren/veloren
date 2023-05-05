@@ -518,6 +518,16 @@ impl Structure for AdletStronghold {
         };
         // Platform
         painter
+            .line(
+                tunnel_start + Vec3::new(0.0, 0.0, 5.0),
+                {
+                    let end = tunnel_start + (dir.to_vec2().as_().with_z(1.0) * 20.0);
+                    end.with_z(end.z + 5.0)
+                },
+                10.0,
+            )
+            .clear();
+        painter
             .sphere(Aabb {
                 min: (self.entrance - 15).with_z(self.cavern_alt as i32 - 15),
                 max: (self.entrance + 15).with_z(self.cavern_alt as i32 + 15),
