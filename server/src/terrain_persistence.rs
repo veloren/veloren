@@ -4,24 +4,24 @@ use common::{
     vol::{RectRasterableVol, WriteVol},
 };
 use hashbrown::HashMap;
+use schnellru::{Limiter, LruMap};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     any::{type_name, Any},
     fs::File,
     io::{self, Read as _, Write as _},
     path::PathBuf,
-    time::{Duration, Instant},
 };
 use tracing::{debug, error, info, warn};
 use vek::*;
 
-const UNLOAD_DELAY: Duration = Duration::from_secs(600); // Wait 10 minutes until unloading chunk from IO
+const MAX_BLOCK_CACHE: usize = 5_000_000;
 
 pub struct TerrainPersistence {
     path: PathBuf,
     chunks: HashMap<Vec2<i32>, LoadedChunk>,
     /// A cache of recently unloaded chunks
-    cached_chunks: HashMap<Vec2<i32>, (Instant, Chunk)>,
+    cached_chunks: LruMap<Vec2<i32>, Chunk, ByBlockLimiter>,
 }
 
 /// Wrapper over a [`Chunk`] that keeps track of modifications
@@ -51,7 +51,7 @@ impl TerrainPersistence {
         Self {
             path,
             chunks: HashMap::default(),
-            cached_chunks: HashMap::default(),
+            cached_chunks: LruMap::new(ByBlockLimiter::new(MAX_BLOCK_CACHE)),
         }
     }
 
@@ -74,29 +74,24 @@ impl TerrainPersistence {
             }
         }
 
+        let removed = resets.len();
+
         // Reset any unchanged blocks (this is an optimisation only)
         for rpos in resets {
             loaded_chunk.chunk.reset_block(rpos);
             loaded_chunk.modified = true;
         }
+
+        self.cached_chunks.limiter_mut().remove_blocks(removed);
     }
 
     /// Maintain terrain persistence (writing changes changes back to
-    /// filesystem, unload cached chunks, etc.)
+    /// filesystem, etc.)
     pub fn maintain(&mut self) {
         // Currently, this does nothing because filesystem writeback occurs on
         // chunk unload However, this is not a particularly reliable
         // mechanism (it doesn't survive power loss, say). Later, a more
         // reliable strategy should be implemented here.
-
-        // Remove chunks from cache that are older than [`UNLOAD_DELAY`]
-        let now = Instant::now();
-
-        self.cached_chunks = self
-            .cached_chunks
-            .drain()
-            .filter(|(_, (unloaded, _))| unloaded.duration_since(now) > UNLOAD_DELAY)
-            .collect();
     }
 
     fn path_for(&self, key: Vec2<i32>) -> PathBuf {
@@ -110,7 +105,7 @@ impl TerrainPersistence {
         self.chunks.entry(key).or_insert_with(|| {
             // If the chunk has been recently unloaded and is still cached, dont read it
             // from disk
-            if let Some((_, chunk)) = self.cached_chunks.remove(&key) {
+            if let Some(chunk) = self.cached_chunks.remove(&key) {
                 return LoadedChunk {
                     chunk,
                     modified: false,
@@ -165,26 +160,16 @@ impl TerrainPersistence {
     }
 
     pub fn unload_chunk(&mut self, key: Vec2<i32>) {
-        self.chunks.remove(&key);
-
         if let Some(LoadedChunk { chunk, modified }) = self.chunks.remove(&key) {
-            let now = Instant::now();
-
-            match (self.cached_chunks.get_mut(&key), modified) {
-                // Chunk exists in cache but has been modified -> full save
-                (Some(cached), true) => *cached = (now, chunk.clone()),
-                // Chunk exists in cache but has not been modified -> update timestamp
-                (Some((last_unload, _)), false) => *last_unload = now,
-                // Not in cache -> save to cache!
+            match (self.cached_chunks.peek(&key), modified) {
+                (Some(_), false) => {},
                 _ => {
-                    self.cached_chunks.insert(key, (now, chunk.clone()));
+                    self.cached_chunks.insert(key, chunk.clone());
                 },
             }
 
-            // No need to write if no blocks have ever been written
-            // Prevent unecesarry IO by only writing the chunk to disk if blocks have
-            // changed
-            if chunk.blocks.is_empty() || !modified {
+            // Prevent any uneccesarry IO when nothing in this chunk has changed
+            if !modified {
                 return;
             }
 
@@ -215,11 +200,17 @@ impl TerrainPersistence {
             .xy()
             .map2(TerrainChunk::RECT_SIZE, |e, sz| e.div_euclid(sz as i32));
         let loaded_chunk = self.load_chunk(key);
-        loaded_chunk
+        let old_block = loaded_chunk
             .chunk
             .blocks
             .insert(pos - key * TerrainChunk::RECT_SIZE.map(|e| e as i32), block);
-        loaded_chunk.modified = true;
+        if old_block != Some(block) {
+            loaded_chunk.modified = true;
+
+            if old_block.is_none() {
+                self.cached_chunks.limiter_mut().add_block();
+            }
+        }
     }
 }
 
@@ -244,6 +235,89 @@ impl Chunk {
     }
 
     fn reset_block(&mut self, rpos: Vec3<i32>) { self.blocks.remove(&rpos); }
+
+    /// Get the number of blocks this chunk contains
+    fn len(&self) -> usize { self.blocks.len() }
+}
+
+/// LRU limiter that limits by the number of blocks
+///
+/// > **Warning**: Make sure to call [`add_block`] and [`remove_block`] when
+/// > performing direct mutations to a chunk
+struct ByBlockLimiter {
+    /// Maximum number of blocks that can be contained
+    block_limit: usize,
+    /// Total number of blocks that are currently contained in the LRU
+    counted_blocks: usize,
+}
+
+impl Limiter<Vec2<i32>, Chunk> for ByBlockLimiter {
+    type KeyToInsert<'a> = Vec2<i32>;
+    type LinkType = u32;
+
+    fn is_over_the_limit(&self, _length: usize) -> bool { false }
+
+    fn on_insert(
+        &mut self,
+        _length: usize,
+        key: Self::KeyToInsert<'_>,
+        chunk: Chunk,
+    ) -> Option<(Vec2<i32>, Chunk)> {
+        let chunk_size = chunk.len();
+
+        if self.counted_blocks + chunk_size > self.block_limit {
+            None
+        } else {
+            self.counted_blocks += chunk_size;
+            Some((key, chunk))
+        }
+    }
+
+    fn on_replace(
+        &mut self,
+        _length: usize,
+        _old_key: &mut Vec2<i32>,
+        _new_key: Self::KeyToInsert<'_>,
+        old_chunk: &mut Chunk,
+        new_chunk: &mut Chunk,
+    ) -> bool {
+        let old_size = old_chunk.len() as isize; // I assume chunks are never larger than a few thousand blocks anyways, cast should be OK
+        let new_size = new_chunk.len() as isize;
+        let new_total = self.counted_blocks.wrapping_add_signed(new_size - old_size);
+
+        if new_total > self.block_limit {
+            false
+        } else {
+            self.counted_blocks = new_total;
+            true
+        }
+    }
+
+    fn on_removed(&mut self, _key: &mut Vec2<i32>, chunk: &mut Chunk) {
+        self.counted_blocks -= chunk.len();
+    }
+
+    fn on_cleared(&mut self) { self.counted_blocks = 0; }
+
+    fn on_grow(&mut self, _new_memory_usage: usize) -> bool { true }
+}
+
+impl ByBlockLimiter {
+    /// Creates a new by-block limit
+    fn new(block_limit: usize) -> Self {
+        Self {
+            block_limit,
+            counted_blocks: 0,
+        }
+    }
+
+    /// This function should only be used when it is guaranteed that a block has
+    /// been added
+    fn add_block(&mut self) { self.counted_blocks += 1; }
+
+    /// This function should only be used when it is guaranteed that this number
+    /// of blocks has been removed
+    fn remove_blocks(&mut self, removed: usize) { self.counted_blocks -= removed; }
 }
 
 /// # Adding a new chunk format version
