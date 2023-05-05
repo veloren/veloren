@@ -110,7 +110,7 @@ pub struct ArgvApp {
     #[arg(long)]
     /// Run without auth enabled
     pub no_auth: bool,
-    #[arg(default_value_t, long, short, value_parser = SqlLogMode::variants())]
+    #[arg(default_value_t, long, short, value_parser = clap::value_parser!(SqlLogMode))]
     /// Enables SQL logging
     pub sql_log_mode: SqlLogMode,
     #[command(subcommand)]
