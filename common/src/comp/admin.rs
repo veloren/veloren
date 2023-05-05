@@ -12,7 +12,6 @@ pub enum AdminRole {
     Admin = 1,
 }
 
-
 impl core::str::FromStr for AdminRole {
     type Err = &'static str;
 

@@ -44,7 +44,7 @@ quinn = "0.8"
 rustls = { version = "0.20", default-features = false }
 rustls-pemfile = { version = "1", default-features = false }
 atomicwrites = "0.4"
-chrono = { version = "0.4.22", features = ["serde"] }
+chrono = { version = "0.4.24", default-features=false, features = ["clock", "std", "wasmbind", "serde"] }
 chrono-tz = { version = "0.8", features = ["serde"] }
 drop_guard = { version = "0.3.0" }
 humantime = "2.1.0"
