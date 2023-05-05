@@ -29,7 +29,7 @@ serde = { version = "1.0.110", features = ["derive", "rc"] }
 enum-map = "2.4"
 vek = { version = "0.15.8", features = ["serde"] }
 cfg-if = "1.0.0"
-chrono = "0.4.22"
+chrono = { version = "0.4.24", default-features=false, features = ["clock", "std", "wasmbind", "serde"] }
 chrono-tz = "0.8"
 itertools = "0.10"
 sha2 = "0.10"
