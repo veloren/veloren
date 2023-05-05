@@ -951,7 +951,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Gnarling => (Some(0), i18n.get_msg("hud-map-gnarling")),
                 SiteKind::ChapelSite => (Some(3), i18n.get_msg("hud-map-chapel_site")),
                 SiteKind::Bridge => (None, i18n.get_msg("hud-map-bridge")),
-                SiteKind::Adlet => (Some(0), i18n.get_msg("hud-map-adlet")),
+                SiteKind::Adlet => (Some(1), i18n.get_msg("hud-map-adlet")),
             };
             let desc = desc.into_owned() + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
