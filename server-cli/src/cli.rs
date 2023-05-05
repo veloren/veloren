@@ -2,7 +2,6 @@ use clap::Parser;
 use common::comp;
 use server::persistence::SqlLogMode;
 use std::sync::mpsc::Sender;
-use strum::VariantNames;
 use tracing::error;
 
 #[derive(Clone, Debug, Parser)]
@@ -12,7 +11,7 @@ pub enum Admin {
         /// Name of the admin to whom to assign a role
         username: String,
         /// role to assign to the admin
-        #[arg(ignore_case = true, value_parser = clap::builder::PossibleValuesParser::new(comp::AdminRole::VARIANTS))]
+        #[arg(ignore_case = true, value_parser =  clap::value_parser!(comp::AdminRole))]
         role: comp::AdminRole,
     },
     Remove {
@@ -63,7 +62,7 @@ pub enum Message {
     },
     /// Enable or disable sql logging
     SqlLogMode {
-        #[arg(default_value_t, value_parser = SqlLogMode::variants())]
+        #[arg(default_value_t, value_parser = clap::value_parser!(SqlLogMode))]
         mode: SqlLogMode,
     },
     /// Disconnects all connected clients
@@ -110,7 +109,7 @@ pub struct ArgvApp {
     #[arg(long)]
     /// Run without auth enabled
     pub no_auth: bool,
-    #[arg(default_value_t, long, short, value_parser = SqlLogMode::variants())]
+    #[arg(default_value_t, long, short, value_parser = clap::value_parser!(SqlLogMode))]
     /// Enables SQL logging
     pub sql_log_mode: SqlLogMode,
     #[command(subcommand)]
