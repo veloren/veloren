@@ -96,7 +96,7 @@ gilrs = {version = "0.10.0", features = ["serde-serialize"]}
 server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = ["worldgen"] }
 
 # CLI
-clap = { version = "3.2.20", features = ["derive"] }
+clap = { version = "4.2", features = ["derive"] }
 
 # Utility
 assets_manager = {version = "0.10", features = ["ab_glyph"]}
@@ -130,7 +130,7 @@ slab = "0.4.2"
 strum = { version = "0.24", features = ["derive"] }
 tracing = "0.1"
 treeculler = "0.2"
-tokio = { version = "1.15", default-features = false, features = ["rt-multi-thread"] }
+tokio = { version = "1.24", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 inline_tweak = "1.0.2"
 itertools = "0.10.0"

@@ -1,11 +1,11 @@
 #![deny(clippy::clone_on_ref_ptr)]
 
+use clap::Parser;
 use std::{
     error::Error,
     io::Write,
     ops::{Div, Mul},
 };
-use structopt::StructOpt;
 
 use veloren_common::{
     assets::{self, AssetExt},
@@ -24,7 +24,7 @@ use veloren_common::{
 
 use vek::Vec3;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Cli {
     /// Available arguments: "armor-stats", "weapon-stats", "all-items",
     /// "loot-table", "entity-drops"
@@ -496,7 +496,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let args = Cli::from_args();
+    let args = Cli::parse();
     if args.function.eq_ignore_ascii_case("armor-stats") {
         if let Err(e) = armor_stats() {
             println!("Error: {}\n", e)

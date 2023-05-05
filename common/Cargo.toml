@@ -8,8 +8,8 @@ edition = "2021"
 no-assets = []
 hot-reloading = ["common-assets/hot-reloading"]
 simd = ["vek/platform_intrinsics"]
-bin_csv = ["ron", "csv", "structopt"]
-bin_graphviz = ["petgraph", "structopt"]
+bin_csv = ["ron", "csv", "clap"]
+bin_graphviz = ["petgraph", "clap"]
 bin_cmd_doc_gen = []
 bin_asset_migrate = ["ron"]
 rrt_pathfinding = ["kiddo"]
@@ -40,7 +40,6 @@ strum = { version = "0.24", features = ["derive"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
-clap = "2.33"
 crossbeam-utils = "0.8.1"
 bitflags = "1.2"
 crossbeam-channel = "0.5"
@@ -67,11 +66,11 @@ serde_repr = "0.1.6"
 ron = { version = "0.7", default-features = false, optional = true }
 # csv export
 csv = { version = "1.1.3", optional = true }
-structopt = { version = "0.3.13", optional = true }
 # graphviz exporters
 petgraph = { version = "0.6", optional = true }
 # K-d trees used for RRT pathfinding
 kiddo = { version = "0.2", optional = true }
+clap = { version = "4.2", optional = true }
 
 # Data structures
 hashbrown = { version = "0.13", features = ["rayon", "serde", "nightly"] }
@@ -90,7 +89,6 @@ rand_chacha = "0.3"
 #test
 tracing-subscriber = { version = "0.3.7", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }
 petgraph = "0.6.0"
-
 
 [[bench]]
 name = "chonk_benchmark"

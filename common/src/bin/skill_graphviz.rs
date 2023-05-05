@@ -1,10 +1,10 @@
+use clap::Parser;
 use hashbrown::HashMap;
 use petgraph::{
     dot::{Config, Dot},
     Graph,
 };
 use std::{fs::File, io::Write};
-use structopt::StructOpt;
 use veloren_common::comp::{
     item::tool::ToolKind,
     skillset::{
@@ -12,14 +12,14 @@ use veloren_common::comp::{
     },
 };
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Cli {
     /// Available arguments: "sword"
     skill_group: String,
 }
 
 fn main() {
-    let args = Cli::from_args();
+    let args = Cli::parse();
     let skill_group = match args.skill_group.as_str() {
         "sword" => SkillGroupKind::Weapon(ToolKind::Sword),
         _ => {

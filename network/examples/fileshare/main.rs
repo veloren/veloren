@@ -24,22 +24,21 @@ fn main() {
             Arg::new("port")
                 .short('p')
                 .long("port")
-                .takes_value(true)
                 .default_value("15006")
+                .value_parser(clap::value_parser!(u16))
                 .help("port to listen on"),
         )
         .arg(
             Arg::new("trace")
                 .short('t')
                 .long("trace")
-                .takes_value(true)
                 .default_value("warn")
-                .possible_values(["trace", "debug", "info", "warn", "error"])
+                .value_parser(["trace", "debug", "info", "warn", "error"])
                 .help("set trace level, not this has a performance impact!"),
         )
         .get_matches();
 
-    let trace = matches.value_of("trace").unwrap();
+    let trace = matches.get_one::<String>("trace").unwrap();
     let filter = EnvFilter::from_default_env()
         .add_directive(trace.parse().unwrap())
         .add_directive("fileshare::server=trace".parse().unwrap())
@@ -49,7 +48,7 @@ fn main() {
         .with_env_filter(filter)
         .init();
 
-    let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
+    let port = matches.get_one::<u32>("port").unwrap();
     let address = ListenAddr::Tcp(format!("{}:{}", "127.0.0.1", port).parse().unwrap());
     let runtime = Arc::new(Runtime::new().unwrap());
 
@@ -70,7 +69,7 @@ fn file_exists(file: &str) -> Result<(), String> {
     }
 }
 
-fn get_options<'a>() -> Command<'a> {
+fn get_options() -> Command {
     Command::new("")
         .no_binary_name(true)
         .subcommand_required(true)
@@ -87,10 +86,7 @@ fn get_options<'a>() -> Command<'a> {
                     Arg::new("ip:port")
                         .help("ip and port to connect to, example '127.0.0.1:1231'")
                         .required(true)
-                        .validator(|ipport| match ipport.parse::<std::net::SocketAddr>() {
-                            Ok(_) => Ok(()),
-                            Err(e) => Err(format!("must be valid Ip:Port combination {:?}", e)),
-                        }),
+                        .value_parser(clap::value_parser!(std::net::SocketAddr)),
                 ),
         )
         .subcommand(Command::new("list").about("lists all available files on the network"))
@@ -101,7 +97,7 @@ fn get_options<'a>() -> Command<'a> {
                     Arg::new("file")
                         .help("file to serve")
                         .required(true)
-                        .validator(file_exists),
+                        .value_parser(file_exists),
                 ),
         )
         .subcommand(
@@ -115,10 +111,7 @@ fn get_options<'a>() -> Command<'a> {
                     Arg::new("id")
                         .help("id to download. get the id from the `list` command")
                         .required(true)
-                        .validator(|id| match id.parse::<u32>() {
-                            Ok(_) => Ok(()),
-                            Err(e) => Err(format!("must be a number {:?}", e)),
-                        }),
+                        .value_parser(clap::value_parser!(u32)),
                 )
                 .arg(Arg::new("file").help("local path to store the file to")),
         )
@@ -156,7 +149,7 @@ async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
             },
             Some(("connect", connect_matches)) => {
                 let socketaddr = connect_matches
-                    .value_of("ip:port")
+                    .get_one::<String>("ip:port")
                     .unwrap()
                     .parse()
                     .unwrap();
@@ -172,7 +165,7 @@ async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                     .unwrap();
             },
             Some(("serve", serve_matches)) => {
-                let path = shellexpand::tilde(serve_matches.value_of("file").unwrap());
+                let path = shellexpand::tilde(serve_matches.get_one::<String>("file").unwrap());
                 let path: PathBuf = path.parse().unwrap();
                 if let Some(fileinfo) = FileInfo::new(&path).await {
                     cmd_sender.send(LocalCommand::Serve(fileinfo)).unwrap();
@@ -182,8 +175,8 @@ async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                 cmd_sender.send(LocalCommand::List).unwrap();
             },
             Some(("get", get_matches)) => {
-                let id: u32 = get_matches.value_of("id").unwrap().parse().unwrap();
-                let file = get_matches.value_of("file");
+                let id = *get_matches.get_one::<u32>("id").unwrap();
+                let file = get_matches.get_one::<String>("file");
                 cmd_sender
                     .send(LocalCommand::Get(id, file.map(|s| s.to_string())))
                     .unwrap();

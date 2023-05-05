@@ -22,8 +22,7 @@ fn main() {
             Arg::new("mode")
                 .short('m')
                 .long("mode")
-                .takes_value(true)
-                .possible_values(["server", "client", "both"])
+                .value_parser(["server", "client", "both"])
                 .default_value("both")
                 .help(
                     "choose whether you want to start the server or client or both needed for \
@@ -34,23 +33,20 @@ fn main() {
             Arg::new("port")
                 .short('p')
                 .long("port")
-                .takes_value(true)
                 .default_value("52000")
                 .help("port to listen on"),
         )
         .arg(
             Arg::new("ip")
                 .long("ip")
-                .takes_value(true)
                 .default_value("127.0.0.1")
                 .help("ip to listen and connect to"),
         )
         .arg(
             Arg::new("protocol")
                 .long("protocol")
-                .takes_value(true)
                 .default_value("tcp")
-                .possible_values(["tcp", "upd", "mpsc"])
+                .value_parser(["tcp", "upd", "mpsc"])
                 .help(
                     "underlying protocol used for this test, mpsc can only combined with mode=both",
                 ),
@@ -59,23 +55,22 @@ fn main() {
             Arg::new("trace")
                 .short('t')
                 .long("trace")
-                .takes_value(true)
                 .default_value("warn")
-                .possible_values(["trace", "debug", "info", "warn", "error"])
+                .value_parser(["trace", "debug", "info", "warn", "error"])
                 .help("set trace level, not this has a performance impact!"),
         )
         .get_matches();
 
-    let trace = matches.value_of("trace").unwrap();
+    let trace = matches.get_one::<String>("trace").unwrap();
     let filter = EnvFilter::from_default_env().add_directive(trace.parse().unwrap());
     tracing_subscriber::FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .with_env_filter(filter)
         .init();
 
-    let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
-    let ip: &str = matches.value_of("ip").unwrap();
-    let addresses = match matches.value_of("protocol") {
+    let port = matches.get_one::<u16>("port").unwrap();
+    let ip: &str = matches.get_one::<String>("ip").unwrap();
+    let addresses = match matches.get_one::<String>("protocol").map(|s| s.as_str()) {
         Some("tcp") => (
             ListenAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
             ConnectAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
@@ -88,7 +83,7 @@ fn main() {
     };
 
     let mut background = None;
-    match matches.value_of("mode") {
+    match matches.get_one::<String>("mode").map(|s| s.as_str()) {
         Some("server") => server(addresses.0),
         Some("client") => client(addresses.1),
         Some("both") => {

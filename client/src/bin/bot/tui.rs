@@ -26,10 +26,18 @@ impl Tui {
 
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_millis(20));
-            let mut readline = rustyline::Editor::<()>::new().unwrap();
+            let config = rustyline::config::Builder::new()
+                .max_history_size(1000)
+                .unwrap()
+                .build();
+            let mut readline = rustyline::Editor::<(), _>::with_history(
+                config,
+                rustyline::history::MemHistory::with_config(config),
+            )
+            .unwrap();
             while let Ok(cmd) = readline.readline("\n\nbotclient> ") {
                 let keep_going = Self::process_command(&cmd, &mut commands_s);
-                readline.add_history_entry(cmd);
+                readline.add_history_entry(cmd).unwrap();
                 if !keep_going {
                     break;
                 }
@@ -65,22 +73,20 @@ impl Tui {
                     .args(&[Arg::new("prefix").required(true)]),
             )
             .try_get_matches_from(cmd.split(' '));
-        use clap::ErrorKind::*;
+        use clap::error::ErrorKind::*;
         match matches {
             Ok(matches) => {
                 if match matches.subcommand() {
                     Some(("register", matches)) => command_s.try_send(Cmd::Register {
-                        prefix: matches.value_of("prefix").unwrap().to_string(),
-                        password: matches.value_of("password").unwrap().to_string(),
-                        count: matches
-                            .value_of("count")
-                            .and_then(|x| x.parse::<usize>().ok()),
+                        prefix: matches.get_one::<String>("prefix").unwrap().to_string(),
+                        password: matches.get_one::<String>("password").unwrap().to_string(),
+                        count: matches.get_one::<usize>("count").copied(),
                     }),
                     Some(("login", matches)) => command_s.try_send(Cmd::Login {
-                        prefix: matches.value_of("prefix").unwrap().to_string(),
+                        prefix: matches.get_one::<String>("prefix").unwrap().to_string(),
                     }),
                     Some(("ingame", matches)) => command_s.try_send(Cmd::InGame {
-                        prefix: matches.value_of("prefix").unwrap().to_string(),
+                        prefix: matches.get_one::<String>("prefix").unwrap().to_string(),
                     }),
                     _ => Ok(()),
                 }
