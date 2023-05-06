@@ -24,7 +24,7 @@ serde = { version = "1.0" }
 socket2 = "0.5.2"
 #sending
 crossbeam-channel = "0.5"
-tokio = { version = "1.24", default-features = false, features = ["io-util", "macros", "rt", "net", "time"] }
+tokio = { version = "1.20", default-features = false, features = ["io-util", "macros", "rt", "net", "time"] }
 tokio-stream = { version = "0.1.2", default-features = false }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false, features = ["attributes"]}
@@ -50,7 +50,7 @@ hashbrown = { version = "0.13" }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.3.7", default-features = false, features = ["env-filter", "fmt", "time", "ansi", "smallvec"] }
-tokio = { version = "1.24", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
+tokio = { version = "1.20", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
 futures-util = { version = "0.3.7", default-features = false, features = ["sink", "std"] }
 clap = { version = "4.2", default-features = false, features = ["std", "color", "suggestions"] }
 shellexpand = "3.1.0"
