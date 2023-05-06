@@ -133,10 +133,11 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
                 });
 
             let is_stay = state
-                    .ecs()
-                    .read_storage::<PetState>()
-                    .get(mount)
-                    .and_then(|x| x.stay_pos).is_some();
+                .ecs()
+                .read_storage::<PetState>()
+                .get(mount)
+                .and_then(|x| x.stay_pos)
+                .is_some();
 
             if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride && !is_stay {
                 drop(uids);
@@ -230,8 +231,10 @@ pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: Ec
     if prev_pet_pos.is_none() {
         new_pet_pos = state.ecs().read_storage::<Pos>().get(pet).copied();
     }
-    if is_owner && within_mounting_range(positions.get(command_giver), positions.get(pet))
-        && state.ecs().read_storage::<Is<Mount>>().get(pet).is_none() {
+    if is_owner
+        && within_mounting_range(positions.get(command_giver), positions.get(pet))
+        && state.ecs().read_storage::<Is<Mount>>().get(pet).is_none()
+    {
         let _ = state
             .ecs()
             .write_storage::<PetState>()
