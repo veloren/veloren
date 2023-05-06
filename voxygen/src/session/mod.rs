@@ -956,12 +956,7 @@ impl PlayState for SessionState {
                                                             block.get_sprite().map(|s| (*pos, s)),
                                                         )
                                                     },
-                                                    BlockInteraction::Mount => {
-                                                        if block.is_mountable() {
-                                                            client.mount_volume(*pos)
-                                                        }
-                                                    },
-                                                    BlockInteraction::Mine(_) => {},
+                                                    BlockInteraction::Mine(_) | BlockInteraction::Mount => {},
                                                 }
                                             },
                                             Interactable::Entity(entity) => {

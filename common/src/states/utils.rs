@@ -357,6 +357,9 @@ pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
 
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
+    if data.volume_mount_data.is_some() {
+        return;
+    }
     let submersion = data
         .physics
         .in_liquid()
