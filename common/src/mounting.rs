@@ -191,6 +191,10 @@ impl VolumePos {
 }
 
 impl VolumePos {
+    /// Retrieves the block and matrix transformation for this `VolumeBlock`
+    ///
+    /// The transform is located in the blocks minimum position relative to the
+    /// volume.
     pub fn get_block_and_transform(
         &self,
         terrain: &TerrainGrid,
@@ -226,6 +230,7 @@ impl VolumePos {
         }
     }
 
+    /// Get the block at this `VolumePos`.
     pub fn get_block(
         &self,
         terrain: &TerrainGrid,

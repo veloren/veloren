@@ -157,8 +157,11 @@ where
     let greedy_size_cross = greedy_size;
     let draw_delta = lower_bound;
 
-    let get_light = |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_fluid()) as i32 as f32;
-    let get_ao = |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(false, |vox| vox.is_opaque()) as i32 as f32;
+    let get_light =
+        |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_fluid()) as i32 as f32;
+    let get_ao = |vol: &mut V, pos: Vec3<i32>| {
+        vol.get(pos).map_or(false, |vox| vox.is_opaque()) as i32 as f32
+    };
     let get_glow = |vol: &mut V, pos: Vec3<i32>| {
         vol.get(pos)
             .ok()

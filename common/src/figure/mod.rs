@@ -21,7 +21,7 @@ pub type TerrainSegment = Dyna<Block, ()>;
 impl From<Segment> for TerrainSegment {
     fn from(value: Segment) -> Self {
         TerrainSegment::from_fn(value.sz, (), |pos| match value.get(pos) {
-            Err(_) | Ok(Cell::Empty) => Block::empty(),
+            Err(_) | Ok(Cell::Empty) => Block::air(SpriteKind::Empty),
             Ok(cell) => {
                 if cell.is_hollow() {
                     Block::air(SpriteKind::Empty)

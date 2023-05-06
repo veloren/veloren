@@ -854,6 +854,7 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpda
     }
 }
 
+/// Checks if a block can be reached from a position.
 fn can_reach_block(
     player_pos: Vec3<f32>,
     block_pos: Vec3<i32>,

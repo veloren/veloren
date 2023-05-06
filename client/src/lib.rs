@@ -1470,6 +1470,7 @@ impl Client {
         }
     }
 
+    /// Mount a block at a `VolumePos`.
     pub fn mount_volume(&mut self, volume_pos: VolumePos) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::MountVolume(
             volume_pos,
