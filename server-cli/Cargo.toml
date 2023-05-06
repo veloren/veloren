@@ -35,7 +35,7 @@ common-net = { package = "veloren-common-net", path = "../common/net" }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
 world = { package = "veloren-world", path = "../world", optional = true }
 
-tokio = { version = "1.24", default-features = false, features = ["rt-multi-thread"] }
+tokio = { version = "1.20", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 cansi = "2.2.1"
 clap = { version = "4.2", features = ["derive"] }
