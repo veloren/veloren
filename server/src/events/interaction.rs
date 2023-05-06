@@ -230,7 +230,8 @@ pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: Ec
     if prev_pet_pos.is_none() {
         new_pet_pos = state.ecs().read_storage::<Pos>().get(pet).copied();
     }
-    if is_owner && within_mounting_range(positions.get(command_giver), positions.get(pet)) {
+    if is_owner && within_mounting_range(positions.get(command_giver), positions.get(pet))
+        && state.ecs().read_storage::<Is<Mount>>().get(pet).is_none() {
         let _ = state
             .ecs()
             .write_storage::<PetState>()

@@ -958,6 +958,9 @@ impl PlayState for SessionState {
                                             matches!(client.state().ecs().read_storage::<comp::Alignment>().get(*e),
                                                 Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid())
                                         )
+                                        .filter(|e|
+                                            client.state().ecs().read_storage::<Is<Mount>>().get(*e).is_none()
+                                        )
                                         .min_by_key(|e| {
                                             OrderedFloat(client
                                                 .state()
