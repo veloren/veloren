@@ -1294,7 +1294,10 @@ impl Floor {
                             lights = painter.prim(Primitive::translate(lights, 3 * Vec3::unit_z()));
                             pillar = painter.prim(Primitive::union(pillar, base));
                         }
-                        pillars.push((tile_center, pillar, lights));
+                        // Specifically don't include pillars in Minotaur arena
+                        if !(room.kind == RoomKind::Boss && self.difficulty == 4) {
+                            pillars.push((tile_center, pillar, lights));
+                        }
                     }
                 }
 

@@ -2510,6 +2510,17 @@ impl<'a> AgentData<'a> {
 
         if agent.action_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize]
             > health_fraction
+            && (matches!(self.char_state, CharacterState::BasicSummon(_))
+                || entities_have_line_of_sight(
+                    self.pos,
+                    self.body,
+                    self.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                ))
+        // TODO: Better check for if there's room to spawn summons
         {
             // Summon minions at particular thresholds of health
             controller.push_basic_input(InputKind::Ability(2));
@@ -2548,14 +2559,63 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Secondary);
                 }
             } else {
-                self.path_toward_target(
-                    agent,
-                    controller,
-                    tgt_data.pos.0,
-                    read_data,
-                    Path::Separate,
-                    None,
-                );
+                // If close in with bad line of sight, take countermeasures against cheesing
+                // Fairly simple tactic: Punish with vortex forcing any nearby target that can
+                // be hit to retreat. If a vortex wouldn't hit the target, just blink, with a
+                // 50% chance to throw a single necrotic sphere, first.
+                if matches!(
+                    read_data
+                        .terrain
+                        .ray(
+                            self.pos.0 + Vec3::unit_z() * 0.5,
+                            tgt_data.pos.0 + Vec3::unit_z() * 0.5
+                        )
+                        .until(|b| b.is_filled())
+                        .cast()
+                        .1,
+                    Ok(None)
+                ) {
+                    // Punish with vortex attack, hopefully forcing attacker to retreat
+                    controller.push_basic_input(InputKind::Secondary);
+                } else {
+                    // Genuinely no LOS, handle it as if target is far away, but just throw 0-1
+                    // spheres and then teleport, since they're not likely to hit.
+                    let num_fireballs = &mut agent.action_state.int_counters
+                        [ActionStateICounters::ICounterNumFireballs as usize];
+                    if *num_fireballs % 2 == 0 {
+                        controller.push_action(ControlAction::StartInput {
+                            input: InputKind::Ability(0),
+                            target_entity: agent
+                                .target
+                                .as_ref()
+                                .and_then(|t| read_data.uids.get(t.target))
+                                .copied(),
+                            select_pos: None,
+                        });
+                        if matches!(self.char_state, CharacterState::Blink(_)) {
+                            *num_fireballs = rand::random::<u8>() % 4;
+                        }
+                    } else if matches!(self.char_state, CharacterState::Wielding(_)) {
+                        *num_fireballs -= 1;
+                        controller.push_action(ControlAction::StartInput {
+                            input: InputKind::Ability(1),
+                            target_entity: agent
+                                .target
+                                .as_ref()
+                                .and_then(|t| read_data.uids.get(t.target))
+                                .copied(),
+                            select_pos: None,
+                        });
+                    }
+                    self.path_toward_target(
+                        agent,
+                        controller,
+                        tgt_data.pos.0,
+                        read_data,
+                        Path::Separate,
+                        None,
+                    );
+                }
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // If too far from target, throw a random number of necrotic spheres at them and
