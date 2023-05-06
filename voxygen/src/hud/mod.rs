@@ -2426,23 +2426,23 @@ impl Hud {
                                 ));
                                 if !client.is_riding()
                                     && is_mountable(body, bodies.get(client.entity()))
+                                    && pet_state.get(entity).and_then(|st| st.stay_pos).is_none()
                                 {
                                     options.push((
                                         GameInput::Mount,
                                         i18n.get_msg("hud-mount").to_string(),
                                     ));
                                 }
-                                let pet_stay =
-                                    pet_state.get(entity).and_then(|st| st.stay_pos).is_some();
-                                match pet_stay {
-                                    false => options.push((
-                                        GameInput::StayFollow,
-                                        i18n.get_msg("hud-stay").to_string(),
-                                    )),
-                                    true => options.push((
+                                if pet_state.get(entity).and_then(|st| st.stay_pos).is_some() {
+                                    options.push((
                                         GameInput::StayFollow,
                                         i18n.get_msg("hud-follow").to_string(),
-                                    )),
+                                    ));
+                                } else {
+                                    options.push((
+                                        GameInput::StayFollow,
+                                        i18n.get_msg("hud-stay").to_string(),
+                                    ));
                                 }
                             }
                             options

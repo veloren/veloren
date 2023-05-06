@@ -949,17 +949,14 @@ impl PlayState for SessionState {
 
                                 let mut close_pet = None;
                                 if let Some(player_pos) = player_pos {
-                                    let alignment =
-                                        client.state().ecs().read_storage::<comp::Alignment>();
-                                    let spatial_grid =
-                                        client.state().ecs().read_resource::<CachedSpatialGrid>();
-                                    close_pet = spatial_grid.0
+                                    close_pet = client.state().ecs().read_resource::<CachedSpatialGrid>().0
                                         .in_circle_aabr(player_pos.0.xy(), MAX_MOUNT_RANGE)
                                         .filter(|e|
                                             *e != client.entity()
                                         )
                                         .filter(|e|
-                                            matches!(alignment.get(*e), Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid())
+                                            matches!(client.state().ecs().read_storage::<comp::Alignment>().get(*e),
+                                                Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid())
                                         )
                                         .min_by_key(|e| {
                                             OrderedFloat(client
