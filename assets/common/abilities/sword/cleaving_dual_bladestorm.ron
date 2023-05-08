@@ -1,0 +1,22 @@
+RapidMelee(
+    buildup_duration: 0.3,
+    swing_duration: 0.15,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Slash(
+            damage: 6,
+            poise: 10,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        range: 4.0,
+        angle: 360.0,
+        multi_target: Some(Normal),
+        simultaneous_hits: 2,
+    ),
+    energy_cost: 3.33,
+    max_strikes: Some(6),
+    move_modifier: 0.8,
+    ori_modifier: 1.0,
+    minimum_combo: 10,
+)

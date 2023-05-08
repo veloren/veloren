@@ -757,7 +757,7 @@ impl<'a> AgentData<'a> {
         );
 
         let attack_failed = if attempt_attack {
-            let context = AbilityContext::from(self.stance);
+            let contexts = AbilityContext::from(self.stance, Some(self.inventory));
             let extract_ability = |input: AbilityInput| {
                 AbilityData::from_ability(
                     &self
@@ -768,7 +768,7 @@ impl<'a> AgentData<'a> {
                             self.skill_set,
                             self.body,
                             Some(self.char_state),
-                            context,
+                            &contexts,
                         )
                         .unwrap_or_default()
                         .0,
@@ -1437,7 +1437,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
         }
-        let context = AbilityContext::from(self.stance);
+        let contexts = AbilityContext::from(self.stance, Some(self.inventory));
         let extract_ability = |input: AbilityInput| {
             self.active_abilities
                 .activate_ability(
@@ -1446,7 +1446,7 @@ impl<'a> AgentData<'a> {
                     self.skill_set,
                     self.body,
                     Some(self.char_state),
-                    context,
+                    &contexts,
                 )
                 .unwrap_or_default()
                 .0

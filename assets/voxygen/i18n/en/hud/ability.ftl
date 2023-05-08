@@ -44,12 +44,16 @@ common-abilities-sword-heavy_slam = Heavy Slam
     .desc = A strong overhead slash that can be charged to be more staggering
 common-abilities-sword-agile_perforate = Perforate
     .desc = A rapid flurry of light attacks
+common-abilities-sword-agile_dual_perforate = Perforate
+    .desc = A rapid flurry of light attacks with both swords
 common-abilities-sword-defensive_vital_jab = Defensive Vital Jab
     .desc = A quickly charged jab that does more damage against parried foes
 common-abilities-sword-crippling_deep_rend = Deep Rend
     .desc = A strike aimed at an already open wound, deals more damage to bleeding enemies
 common-abilities-sword-cleaving_spiral_slash = Spiral Slash
     .desc = Sweep your blade fully around you to hit anyone nearby
+common-abilities-sword-cleaving_dual_spiral_slash = Spiral Slash
+    .desc = Sweep both of your blades fully around you to hit anyone nearby
 veloren-core-pseudo_abilities-sword-crescent_slash = Crescent Slash
     .desc =
         An upwards diagonal slash
@@ -130,6 +134,18 @@ common-abilities-sword-crippling_cross_cut = Crippling Cross Cut
     .desc = A right and left slash that can bleed
 common-abilities-sword-cleaving_cross_cut = Cleaving Cross Cut
     .desc = A right and left slash which cleave through enemies
+common-abilities-sword-basic_dual_cross_cut = Basic Cross Cut
+    .desc = A simultaneous basic right and left slash
+common-abilities-sword-heavy_dual_cross_cut = Heavy Cross Cut
+    .desc = A simultaneous right and left slash that can each stagger
+common-abilities-sword-agile_dual_cross_cut = Agile Cross Cut
+    .desc = A simultaneous quick right and left slash
+common-abilities-sword-defensive_dual_cross_cut = Defensive Cross Cut
+    .desc = A simultaneous parrying right and left slash
+common-abilities-sword-crippling_dual_cross_cut = Crippling Cross Cut
+    .desc = A simultaneous right and left slash that can bleed
+common-abilities-sword-cleaving_dual_cross_cut = Cleaving Cross Cut
+    .desc = A simultaneous right and left slash which cleave through enemies
 veloren-core-pseudo_abilities-sword-finisher = Finisher
     .desc =
         An ability that consumes combo and is meant to end a fight
@@ -157,6 +173,10 @@ common-abilities-sword-crippling_mutilate = Mutilate
 common-abilities-sword-cleaving_bladestorm = Bladestorm
     .desc =
         Decimate your enemies with multiple cyclic swings of your sword
+        Requires a moderate amount of combo to use
+common-abilities-sword-cleaving_dual_bladestorm = Bladestorm
+    .desc =
+        Decimate your enemies with multiple cyclic swings of both of your swords
         Requires a moderate amount of combo to use
 common-abilities-sword-heavy_sweep = Heavy Sweep
     .desc =
@@ -194,6 +214,10 @@ common-abilities-sword-cleaving_whirlwind_slice = Whirlwind Slice
     .desc =
         Strike all surrounding enemies with circular attacks
         Enters cleaving stance
+common-abilities-sword-cleaving_dual_whirlwind_slice = Whirlwind Slice
+    .desc =
+        Strike all surrounding enemies with circular attacks using both of your swords
+        Enters cleaving stance
 common-abilities-sword-cleaving_earth_splitter = Earth Splitter
     .desc =
         Split the earth, if used while falling will have a much stronger impact
@@ -213,6 +237,10 @@ common-abilities-sword-agile_dancing_edge = Dancing Edge
 common-abilities-sword-agile_flurry = Flurry
     .desc =
         Multiple rapid stabs
+        Requires agile stance
+common-abilities-sword-agile_dual_flurry = Flurry
+    .desc =
+        Multiple rapid stabs with both swords
         Requires agile stance
 common-abilities-sword-defensive_stalwart_sword = Stalwart Sword
     .desc =

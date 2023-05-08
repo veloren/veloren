@@ -231,21 +231,25 @@ impl<'a> System<'a> for Sys {
                             1.0
                         };
 
-                    let is_applied = melee_attack.attack.apply_attack(
-                        attacker_info,
-                        target_info,
-                        dir,
-                        attack_options,
-                        strength,
-                        AttackSource::Melee,
-                        *read_data.time,
-                        |e| server_emitter.emit(e),
-                        |o| outcomes_emitter.emit(o),
-                        &mut rng,
-                    );
+                    let mut is_applied = false;
+                    for offset in 0..melee_attack.simultaneous_hits {
+                        is_applied = melee_attack.attack.apply_attack(
+                            attacker_info,
+                            &target_info,
+                            dir,
+                            attack_options,
+                            strength,
+                            AttackSource::Melee,
+                            *read_data.time,
+                            |e| server_emitter.emit(e),
+                            |o| outcomes_emitter.emit(o),
+                            &mut rng,
+                            offset as u64,
+                        ) || is_applied;
+                    }
 
                     if is_applied {
-                        melee_attack.hit_count += 1;
+                        melee_attack.hit_count += melee_attack.simultaneous_hits;
                     }
                 }
             }

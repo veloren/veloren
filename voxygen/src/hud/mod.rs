@@ -3018,7 +3018,7 @@ impl Hud {
             bodies.get(entity),
         ) {
             let stance = stances.get(entity);
-            let context = AbilityContext::from(stance);
+            let contexts = AbilityContext::from(stance, Some(inventory));
             match Skillbar::new(
                 client,
                 &info,
@@ -3044,7 +3044,7 @@ impl Hud {
                 i18n,
                 &msm,
                 self.floaters.combo_floater,
-                context,
+                &contexts,
                 combos.get(entity),
                 char_states.get(entity),
                 stance,
@@ -3522,7 +3522,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
-                let context = AbilityContext::from(stances.get(entity));
+                let contexts = AbilityContext::from(stances.get(entity), Some(inventory));
                 for event in Diary::new(
                     &self.show,
                     client,
@@ -3543,7 +3543,7 @@ impl Hud {
                     tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
-                    context,
+                    &contexts,
                 )
                 .set(self.ids.diary, ui_widgets)
                 {

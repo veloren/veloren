@@ -352,7 +352,7 @@ fn dispatch_hit(
 
             attack.apply_attack(
                 attacker_info,
-                target_info,
+                &target_info,
                 projectile_dir,
                 attack_options,
                 1.0,
@@ -361,6 +361,7 @@ fn dispatch_hit(
                 |e| server_emitter.emit(e),
                 |o| outcomes_emitter.emit(o),
                 rng,
+                0,
             );
         },
         projectile::Effect::Explode(e) => {

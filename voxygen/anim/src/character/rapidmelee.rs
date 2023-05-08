@@ -42,7 +42,9 @@ impl Animation for RapidMeleeAnimation {
         match ability_id {
             Some(
                 "common.abilities.sword.cleaving_whirlwind_slice"
-                | "common.abilities.sword.cleaving_bladestorm",
+                | "common.abilities.sword.cleaving_bladestorm"
+                | "common.abilities.sword.cleaving_dual_whirlwind_slice"
+                | "common.abilities.sword.cleaving_dual_bladestorm",
             ) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
@@ -133,6 +135,57 @@ impl Animation for RapidMeleeAnimation {
                 next.shorts.orientation.rotate_z(move2 * 0.7);
                 next.control.orientation.rotate_z(move2 * 1.2);
                 next.control.position += Vec3::new(0.0, move2 * 12.0, 0.0);
+            },
+            Some(
+                "common.abilities.sword.agile_dual_perforate"
+                | "common.abilities.sword.agile_dual_flurry",
+            ) => {
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Action) => (
+                        1.0,
+                        anim_time.min(0.5).mul(2.0).powi(2) - anim_time.max(0.5).sub(0.5).mul(2.0),
+                        0.0,
+                    ),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+                let dir = if current_strike % 2 == 1 { 1.0 } else { -1.0 };
+
+                next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                next.hand_r.position = Vec3::new(-s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                next.hand_r.orientation = Quaternion::rotation_x(s_a.shl.3);
+                next.control_l.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                next.control_l.orientation = Quaternion::rotation_x(s_a.sc.3);
+                next.control_r.position = Vec3::new(-s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                next.control_r.orientation = Quaternion::rotation_x(s_a.sc.3);
+
+                next.control_l.orientation.rotate_x(move1 * -1.1);
+                next.control_l.orientation.rotate_z(move1 * 0.7);
+                next.control_l.position += Vec3::new(move1 * 1.0, move1 * -1.0, move1 * 4.0);
+                next.control_r.orientation.rotate_x(move1 * -1.1);
+                next.control_r.orientation.rotate_z(move1 * -0.7);
+                next.control_r.position += Vec3::new(move1 * -1.0, move1 * -1.0, move1 * 4.0);
+
+                next.chest.orientation.rotate_z(move2 * -1.2 * dir);
+                next.head.orientation.rotate_z(move2 * 0.6 * dir);
+                next.belt.orientation.rotate_z(move2 * 0.3 * dir);
+                next.shorts.orientation.rotate_z(move2 * 0.7 * dir);
+                next.control_l
+                    .orientation
+                    .rotate_z(move2 * 1.2 * dir.max(0.0));
+                next.control_l.position += Vec3::new(0.0, move2 * 18.0 * dir.max(0.0), 0.0);
+                next.control_r
+                    .orientation
+                    .rotate_z(move2 * 1.2 * dir.min(0.0));
+                next.control_r.position += Vec3::new(0.0, move2 * 18.0 * -(dir.min(0.0)), 0.0);
+                next.control_l.orientation.rotate_z(move1 * -0.7);
+                next.control_r.orientation.rotate_z(move1 * 0.7);
             },
             Some("common.abilities.sword.agile_hundred_cuts") => {
                 let (move1, move2, move3) = match stage_section {

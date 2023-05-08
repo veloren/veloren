@@ -313,7 +313,7 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
     combo_floater: Option<ComboFloater>,
-    context: AbilityContext,
+    contexts: &'a [AbilityContext],
     combo: Option<&'a Combo>,
     char_state: Option<&'a CharacterState>,
     stance: Option<&'a Stance>,
@@ -346,7 +346,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
         combo_floater: Option<ComboFloater>,
-        context: AbilityContext,
+        contexts: &'a [AbilityContext],
         combo: Option<&'a Combo>,
         char_state: Option<&'a CharacterState>,
         stance: Option<&'a Stance>,
@@ -377,7 +377,7 @@ impl<'a> Skillbar<'a> {
             localized_strings,
             msm,
             combo_floater,
-            context,
+            contexts,
             combo,
             char_state,
             stance,
@@ -940,7 +940,7 @@ impl<'a> Skillbar<'a> {
             self.skillset,
             self.active_abilities,
             self.body,
-            self.context,
+            self.contexts,
             self.combo,
             self.char_state,
             self.stance,
@@ -1025,7 +1025,7 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _, context, _, _, _) =
+            let (hotbar, inventory, _, skill_set, active_abilities, _, contexts, _, _, _) =
                 content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
@@ -1039,7 +1039,7 @@ impl<'a> Skillbar<'a> {
                                 Ability::from(*a).ability_id(
                                     Some(inventory),
                                     Some(skill_set),
-                                    context,
+                                    contexts,
                                 )
                             })
                     })
@@ -1114,7 +1114,7 @@ impl<'a> Skillbar<'a> {
             Ability::from(a.primary).ability_id(
                 Some(self.inventory),
                 Some(self.skillset),
-                self.context,
+                self.contexts,
             )
         });
 
@@ -1144,7 +1144,7 @@ impl<'a> Skillbar<'a> {
             Ability::from(a.secondary).ability_id(
                 Some(self.inventory),
                 Some(self.skillset),
-                self.context,
+                self.contexts,
             )
         });
 
@@ -1166,7 +1166,7 @@ impl<'a> Skillbar<'a> {
                         self.skillset,
                         Some(self.body),
                         self.char_state,
-                        self.context,
+                        self.contexts,
                     )
                 })
                 .map_or(false, |(a, _)| {

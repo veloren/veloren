@@ -4,7 +4,14 @@
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
     comp::{
-        ability::Stance, item::DurabilityMultiplier, skills::Skill, CharacterAbility, SkillSet,
+        ability::Stance,
+        inventory::{
+            item::{DurabilityMultiplier, ItemKind},
+            slot::EquipSlot,
+            Inventory,
+        },
+        skills::Skill,
+        CharacterAbility, SkillSet,
     },
 };
 use hashbrown::HashMap;
@@ -297,7 +304,7 @@ pub enum AbilityKind<T> {
     Simple(Option<Skill>, T),
     Contextualized {
         pseudo_id: String,
-        abilities: HashMap<AbilityContext, (Option<Skill>, T)>,
+        abilities: Vec<(Vec<AbilityContext>, (Option<Skill>, T))>,
     },
 }
 
@@ -327,14 +334,14 @@ impl<T> AbilityKind<T> {
             } => AbilityKind::<U>::Contextualized {
                 pseudo_id: pseudo_id.clone(),
                 abilities: abilities
-                    .into_iter()
-                    .map(|(c, (s, x))| (*c, (*s, f(x))))
+                    .iter()
+                    .map(|(c, (s, x))| (c.clone(), (*s, f(x))))
                     .collect(),
             },
         }
     }
 
-    pub fn ability(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
+    pub fn ability(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
         let unlocked = |s: Option<Skill>, a| {
             // If there is a skill requirement and the skillset does not contain the
             // required skill, return None
@@ -347,19 +354,15 @@ impl<T> AbilityKind<T> {
             AbilityKind::Contextualized {
                 pseudo_id: _,
                 abilities,
-            } => {
-                // In the event that the ability from the current context is not unlocked with
-                // the required skill, try falling back to the ability from this input that does
-                // not require a context
-                abilities
-                    .get(&context)
-                    .and_then(|(s, a)| unlocked(*s, a))
-                    .or_else(|| {
-                        abilities
-                            .get(&AbilityContext::None)
-                            .and_then(|(s, a)| unlocked(*s, a))
-                    })
-            },
+            } => abilities
+                .iter()
+                .filter_map(|(req_contexts, (s, a))| unlocked(*s, a).map(|a| (req_contexts, a)))
+                .find_map(|(req_contexts, a)| {
+                    req_contexts
+                        .iter()
+                        .all(|req| contexts.contains(req))
+                        .then_some(a)
+                }),
         }
     }
 }
@@ -371,16 +374,32 @@ pub enum AbilityContext {
     /// `AbilityContext::Stance(Stance::None)` in the ability map config
     /// files(s).
     Stance(Stance),
-    None,
+    DualWieldingSameKind,
 }
 
 impl AbilityContext {
-    pub fn from(stance: Option<&Stance>) -> Self {
+    pub fn from(stance: Option<&Stance>, inv: Option<&Inventory>) -> Vec<Self> {
+        let mut contexts = Vec::new();
         match stance {
-            Some(Stance::None) => AbilityContext::None,
-            Some(stance) => AbilityContext::Stance(*stance),
-            None => AbilityContext::None,
+            Some(Stance::None) => {},
+            Some(stance) => contexts.push(AbilityContext::Stance(*stance)),
+            None => {},
         }
+        if let Some(inv) = inv {
+            let tool_kind = |slot| {
+                inv.equipped(slot).and_then(|i| {
+                    if let ItemKind::Tool(tool) = &*i.kind() {
+                        Some(tool.kind)
+                    } else {
+                        None
+                    }
+                })
+            };
+            if tool_kind(EquipSlot::ActiveMainhand) == tool_kind(EquipSlot::ActiveOffhand) {
+                contexts.push(AbilityContext::DualWieldingSameKind)
+            }
+        }
+        contexts
     }
 }
 
@@ -417,23 +436,27 @@ impl<T> AbilitySet<T> {
         }
     }
 
-    pub fn primary(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
-        self.primary.ability(skillset, context)
+    pub fn primary(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
+        self.primary.ability(skillset, contexts)
     }
 
-    pub fn secondary(&self, skillset: Option<&SkillSet>, context: AbilityContext) -> Option<&T> {
-        self.secondary.ability(skillset, context)
+    pub fn secondary(
+        &self,
+        skillset: Option<&SkillSet>,
+        contexts: &[AbilityContext],
+    ) -> Option<&T> {
+        self.secondary.ability(skillset, contexts)
     }
 
     pub fn auxiliary(
         &self,
         index: usize,
         skillset: Option<&SkillSet>,
-        context: AbilityContext,
+        contexts: &[AbilityContext],
     ) -> Option<&T> {
         self.abilities
             .get(index)
-            .and_then(|a| a.ability(skillset, context))
+            .and_then(|a| a.ability(skillset, contexts))
     }
 }
 

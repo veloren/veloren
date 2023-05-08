@@ -22,6 +22,7 @@ pub struct Melee {
     pub hit_count: u32,
     pub multi_target: Option<MultiTarget>,
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
+    pub simultaneous_hits: u32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -49,6 +50,8 @@ impl Component for Melee {
     type Storage = VecStorage<Self>;
 }
 
+fn default_simultaneous_hits() -> u32 { 1 }
+
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MeleeConstructor {
@@ -61,6 +64,8 @@ pub struct MeleeConstructor {
     pub angle: f32,
     pub multi_target: Option<MultiTarget>,
     pub damage_effect: Option<CombatEffect>,
+    #[serde(default = "default_simultaneous_hits")]
+    pub simultaneous_hits: u32,
 }
 
 impl MeleeConstructor {
@@ -306,6 +311,7 @@ impl MeleeConstructor {
             hit_count: 0,
             multi_target: self.multi_target,
             break_block: None,
+            simultaneous_hits: self.simultaneous_hits,
         }
     }
 

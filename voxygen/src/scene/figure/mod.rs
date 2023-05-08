@@ -931,12 +931,12 @@ impl FigureMgr {
             let second_tool_spec = second_tool_spec.as_deref();
             let hands = (active_tool_hand, second_tool_hand);
 
-            let context = AbilityContext::from(stance);
+            let contexts = AbilityContext::from(stance, inventory);
 
             let ability_id = character.and_then(|c| {
                 c.ability_info()
                     .and_then(|a| a.ability)
-                    .and_then(|a| a.ability_id(inventory, skillset, context))
+                    .and_then(|a| a.ability_id(inventory, skillset, &contexts))
             });
 
             let move_dir = {

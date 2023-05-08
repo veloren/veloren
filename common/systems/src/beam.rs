@@ -255,7 +255,7 @@ impl<'a> System<'a> for Sys {
 
                             beam_segment.properties.attack.apply_attack(
                                 attacker_info,
-                                target_info,
+                                &target_info,
                                 ori.look_dir(),
                                 attack_options,
                                 1.0,
@@ -264,6 +264,7 @@ impl<'a> System<'a> for Sys {
                                 |e| server_events.push(e),
                                 |o| outcomes.push(o),
                                 &mut rng,
+                                0,
                             );
 
                             add_hit_entities.push((beam_owner, *uid_b));

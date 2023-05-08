@@ -188,7 +188,7 @@ impl Attack {
     pub fn apply_attack(
         &self,
         attacker: Option<AttackerInfo>,
-        target: TargetInfo,
+        target: &TargetInfo,
         dir: Dir,
         options: AttackOptions,
         // Currently strength_modifier just modifies damage,
@@ -199,6 +199,7 @@ impl Attack {
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
         rng: &mut rand::rngs::ThreadRng,
+        damage_instance_offset: u64,
     ) -> bool {
         // TODO: Maybe move this higher and pass it as argument into this function?
         let msm = &MaterialStatManifest::load().read();
@@ -238,10 +239,11 @@ impl Attack {
             .filter(|d| d.target.map_or(true, |t| t == target_group))
             .filter(|d| !avoid_damage(d))
         {
+            let damage_instance = damage.instance + damage_instance_offset;
             is_applied = true;
             let damage_reduction = Attack::compute_damage_reduction(
                 attacker.as_ref(),
-                &target,
+                target,
                 attack_source,
                 dir,
                 damage.damage,
@@ -256,7 +258,7 @@ impl Attack {
                 self.crit_multiplier,
                 strength_modifier * damage_modifier,
                 time,
-                damage.instance,
+                damage_instance,
             );
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
@@ -282,7 +284,7 @@ impl Attack {
                                     cause: Some(damage.damage.source),
                                     time,
                                     crit: is_crit,
-                                    instance: damage.instance,
+                                    instance: damage_instance,
                                 };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
@@ -331,7 +333,7 @@ impl Attack {
                                     amount: health_change,
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
-                                    instance: damage.instance,
+                                    instance: damage_instance,
                                     crit: is_crit,
                                     time,
                                 };
