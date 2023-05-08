@@ -1423,8 +1423,10 @@ impl Site {
                             }
                             let mut last_block = None;
 
-                            // TODO: Don't unwrap here
-                            let col = canvas.col(wpos).unwrap().get_info();
+                            let col = canvas
+                                .col(wpos)
+                                .map(|col| col.get_info())
+                                .unwrap_or_default();
 
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);

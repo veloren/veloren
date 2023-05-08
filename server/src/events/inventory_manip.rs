@@ -322,7 +322,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     // TODO: Abstract this code into a generalised way to do block updates?
                     if matches!(
                         block.get_sprite(),
-                        Some(SpriteKind::Keyhole) | Some(SpriteKind::BoneKeyhole)
+                        Some(SpriteKind::Keyhole | SpriteKind::BoneKeyhole)
                     ) {
                         let dirs = [
                             Vec3::unit_x(),
