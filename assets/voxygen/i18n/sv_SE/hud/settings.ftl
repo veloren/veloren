@@ -151,3 +151,4 @@ hud-settings-group_only = Endast grupp
 hud-settings-reset_chat = Återställ till standard
 hud-settings-third_party_integrations = Tredjepartsintegrationer
 hud-settings-enable_discord_integration = Aktivera Discord-Integration
+hud-settings-subtitles = Undertexter

@@ -44,12 +44,16 @@ common-abilities-sword-heavy_slam = Tung Smäll
     .desc = Ett tungt hugg över huvudet som kan laddas upp för att få fienden att vackla mer
 common-abilities-sword-agile_perforate = Perforera
     .desc = Ett snabbt virrvarr av lätta attacker
+common-abilities-sword-agile_dual_perforate = Perforera
+    .desc = Ett snabbt virrvarr av lätta attacker med båda svärd
 common-abilities-sword-defensive_vital_jab = Defensivt Dödligt Hugg
     .desc = Ett snabbt laddat hugg som gör mer skada mot parerade fiender
 common-abilities-sword-crippling_deep_rend = Djupt Sår
     .desc = Ett hugg riktat mot ett redan öppet sår, gör mer skada mot blödande fiender
 common-abilities-sword-cleaving_spiral_slash = Spiralhugg
     .desc = Svep ditt blad hela vägen runt dig för att träffa alla i närheten
+common-abilities-sword-cleaving_dual_spiral_slash = Spiralhugg
+    .desc = Svep båda dina blad hela vägen runt dig för att träffa alla i närheten
 veloren-core-pseudo_abilities-sword-crescent_slash = Halvmåneshugg
     .desc =
         Ett uppåtriktat diagonellt hugg
@@ -130,6 +134,18 @@ common-abilities-sword-crippling_cross_cut = Förlamande Korshugg
     .desc = Ett hugg åt höger och vänster som kan få fienden att blöda
 common-abilities-sword-cleaving_cross_cut = Klyvande Korshugg
     .desc = Ett hugg åt höger och vänster som kan klyva genom fiender
+common-abilities-sword-basic_dual_cross_cut = Grundläggande Korshugg
+    .desc = Ett grundläggande hugg åt både höger och vänster samtidigt
+common-abilities-sword-heavy_dual_cross_cut = Tungt Korshugg
+    .desc = Ett hugg åt både höger och vänster samtidigt som kan få fienden att vackla
+common-abilities-sword-agile_dual_cross_cut = Smidigt Korshugg
+    .desc = Ett snabbt hugg åt både höger och vänster samtidigt
+common-abilities-sword-defensive_dual_cross_cut = Defensivt Korshugg
+    .desc = Ett parerande hugg åt både höger och vänster samtidigt
+common-abilities-sword-crippling_dual_cross_cut = Förlamande Korshugg
+    .desc = Ett hugg åt både höger och vänster samtidigt som kan få fienden att blöda
+common-abilities-sword-cleaving_dual_cross_cut = Klyvande Korshugg
+    .desc = Ett hugg åt både höger och vänster samtidigt som kan klyva genom fiender
 veloren-core-pseudo_abilities-sword-finisher = Avslutande Hugg
     .desc =
         En förmåga som använder upp kombo och är tänkt att användas för att avsluta en strid
@@ -156,8 +172,12 @@ common-abilities-sword-crippling_mutilate = Lemlästa
         Kräver en måttlig mängd kombo för att använda
 common-abilities-sword-cleaving_bladestorm = Storm av Svärdsblad
     .desc =
-        Överrumpla dina fiender med flera cykliska svärdshugg
+        Överrumpla dina fiender med flera cykliska hugg med ditt svärd
         Kräver en måttlig mängd kombo för att använda
+common-abilities-sword-cleaving_dual_bladestorm = Storm av Svärdsblad
+    .desc =
+    Överrumpla dina fiender med flera cykliska hugg med båda dina svärd
+            Kräver en måttlig mängd kombo för att använda
 common-abilities-sword-heavy_sweep = Tungt Svep
     .desc =
         Ett tungt brett svepande hugg som gör mer skada mot vacklande fiender
@@ -192,7 +212,11 @@ common-abilities-sword-crippling_hamstring = Förlama
         Påbörjar förlamande hållning
 common-abilities-sword-cleaving_whirlwind_slice = Virvelvindssnitt
     .desc =
-        Hugg alla fiender runtom dig mecirkulära attacker
+    Hugg cirkulärt alla fiender runtom dig
+        Påbörjar klyvande hållning
+common-abilities-sword-cleaving_dual_whirlwind_slice = Virvelvindssnitt
+    .desc =
+        Hugg cirkulärt alla fiender runtom dig med båda svärd
         Påbörjar klyvande hållning
 common-abilities-sword-cleaving_earth_splitter = Jordsklyvare
     .desc =
@@ -213,6 +237,10 @@ common-abilities-sword-agile_dancing_edge = Dansande Egg
 common-abilities-sword-agile_flurry = Virrvarr
     .desc =
         Flera snabba hugg
+        Kräver smidigt hållning
+common-abilities-sword-agile_dual_flurry = Flurry
+    .desc =
+        Flera snabba hugg med båda svärd
         Kräver smidigt hållning
 common-abilities-sword-defensive_stalwart_sword = Stabilt Svärd
     .desc =

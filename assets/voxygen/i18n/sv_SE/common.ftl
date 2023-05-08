@@ -12,6 +12,7 @@ common-video = Grafik
 common-sound = Ljud
 common-chat = Chatt
 common-networking = Nätverk
+common-accessibility = Tillgänglighet
 common-resume = Återgå
 common-characters = Rollpersoner
 common-close = Stäng
@@ -42,6 +43,7 @@ common-sound_settings = Ljudinställningar
 common-language_settings = Språkinställningar
 common-chat_settings = Chattinställningar
 common-networking_settings = Nätverksinställningar
+common-accessibility_settings = Tillgänglighetsinställningar
 common-connection_lost =
     Anslutningen förlorades!
     Startade servern om?
