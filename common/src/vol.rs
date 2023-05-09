@@ -13,12 +13,12 @@ pub trait RectVolSize: Clone {
 }
 
 /// A voxel.
-pub trait Vox: Sized + Clone + PartialEq {
-    fn empty() -> Self;
-    fn is_empty(&self) -> bool;
+pub trait FilledVox: Sized + Clone + PartialEq {
+    fn default_non_filled() -> Self;
+    fn is_filled(&self) -> bool;
 
     #[must_use]
-    fn or(self, other: Self) -> Self { if self.is_empty() { other } else { self } }
+    fn or(self, other: Self) -> Self { if self.is_filled() { self } else { other } }
 }
 
 /// A volume that contains voxel data.

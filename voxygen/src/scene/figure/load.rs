@@ -27,7 +27,7 @@ use common::{
     },
     figure::{Cell, DynaUnionizer, MatCell, MatSegment, Material, Segment},
     terrain::Block,
-    vol::{IntoFullPosIterator, ReadVol, Vox},
+    vol::{IntoFullPosIterator, ReadVol},
     volumes::dyna::Dyna,
 };
 use hashbrown::HashMap;
@@ -357,7 +357,7 @@ impl HumHeadSpec {
             .maybe_add(beard)
             .maybe_add(accessory)
             .maybe_add(helmet)
-            .unify_with(|v| if v.is_hollow() { Cell::empty() } else { v });
+            .unify_with(|v| if v.is_hollow() { Cell::Empty } else { v });
         (
             head,
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),

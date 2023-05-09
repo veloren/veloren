@@ -4,7 +4,7 @@ use crate::{
     consts::FRIC_GROUND,
     lottery::LootSpec,
     make_case_elim, rtsim,
-    vol::Vox,
+    vol::FilledVox,
 };
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
@@ -118,10 +118,10 @@ pub struct Block {
     attr: [u8; 3],
 }
 
-impl Vox for Block {
-    fn empty() -> Self { Block::air(SpriteKind::Empty) }
+impl FilledVox for Block {
+    fn default_non_filled() -> Self { Block::air(SpriteKind::Empty) }
 
-    fn is_empty(&self) -> bool { self.is_air() && self.get_sprite().is_none() }
+    fn is_filled(&self) -> bool { self.kind.is_filled() }
 }
 
 impl Deref for Block {

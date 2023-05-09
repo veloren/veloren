@@ -1,7 +1,7 @@
 use common::{
     figure::Segment,
     util::{linear_to_srgba, srgb_to_linear},
-    vol::{IntoFullVolIterator, ReadVol, SizedVol, Vox},
+    vol::{FilledVox, IntoFullVolIterator, ReadVol, SizedVol},
 };
 use euc::{buffer::Buffer2d, rasterizer, Pipeline};
 use image::{DynamicImage, RgbaImage};
@@ -263,24 +263,24 @@ fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
         if let Some(col) = vox.get_color() {
             let col = col.map(|e| e as f32 / 255.0);
 
-            let is_empty = |pos| segment.get(pos).map(|v| v.is_empty()).unwrap_or(true);
+            let is_filled = |pos| segment.get(pos).map(|v| v.is_filled()).unwrap_or(false);
 
             let occluders = |unit_x, unit_y, dir| {
                 // Would be nice to generate unit_x and unit_y from a given direction.
                 [
-                    !is_empty(pos + dir - unit_x),
-                    !is_empty(pos + dir - unit_x - unit_y),
-                    !is_empty(pos + dir - unit_y),
-                    !is_empty(pos + dir + unit_x - unit_y),
-                    !is_empty(pos + dir + unit_x),
-                    !is_empty(pos + dir + unit_x + unit_y),
-                    !is_empty(pos + dir + unit_y),
-                    !is_empty(pos + dir - unit_x + unit_y),
+                    is_filled(pos + dir - unit_x),
+                    is_filled(pos + dir - unit_x - unit_y),
+                    is_filled(pos + dir - unit_y),
+                    is_filled(pos + dir + unit_x - unit_y),
+                    is_filled(pos + dir + unit_x),
+                    is_filled(pos + dir + unit_x + unit_y),
+                    is_filled(pos + dir + unit_y),
+                    is_filled(pos + dir - unit_x + unit_y),
                 ]
             };
 
             // -x
-            if is_empty(pos - Vec3::unit_x()) {
+            if !is_filled(pos - Vec3::unit_x()) {
                 vertices.extend_from_slice(&create_quad(
                     offs + pos.map(|e| e as f32) + Vec3::unit_y(),
                     -Vec3::unit_y(),
@@ -291,7 +291,7 @@ fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
                 ));
             }
             // +x
-            if is_empty(pos + Vec3::unit_x()) {
+            if !is_filled(pos + Vec3::unit_x()) {
                 vertices.extend_from_slice(&create_quad(
                     offs + pos.map(|e| e as f32) + Vec3::unit_x(),
                     Vec3::unit_y(),
@@ -302,7 +302,7 @@ fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
                 ));
             }
             // -y
-            if is_empty(pos - Vec3::unit_y()) {
+            if !is_filled(pos - Vec3::unit_y()) {
                 vertices.extend_from_slice(&create_quad(
                     offs + pos.map(|e| e as f32),
                     Vec3::unit_x(),
@@ -313,7 +313,7 @@ fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
                 ));
             }
             // +y
-            if is_empty(pos + Vec3::unit_y()) {
+            if !is_filled(pos + Vec3::unit_y()) {
                 vertices.extend_from_slice(&create_quad(
                     offs + pos.map(|e| e as f32) + Vec3::unit_y(),
                     Vec3::unit_z(),
@@ -324,7 +324,7 @@ fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
                 ));
             }
             // -z
-            if is_empty(pos - Vec3::unit_z()) {
+            if !is_filled(pos - Vec3::unit_z()) {
                 vertices.extend_from_slice(&create_quad(
                     offs + pos.map(|e| e as f32),
                     Vec3::unit_y(),
@@ -335,7 +335,7 @@ fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
                 ));
             }
             // +z
-            if is_empty(pos + Vec3::unit_z()) {
+            if !is_filled(pos + Vec3::unit_z()) {
                 vertices.extend_from_slice(&create_quad(
                     offs + pos.map(|e| e as f32) + Vec3::unit_z(),
                     Vec3::unit_x(),

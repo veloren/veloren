@@ -10,7 +10,7 @@ pub use self::{
 
 use crate::{
     terrain::{Block, BlockKind, SpriteKind},
-    vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
+    vol::{FilledVox, IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, WriteVol},
     volumes::dyna::Dyna,
 };
 use dot_vox::DotVoxData;
@@ -65,7 +65,7 @@ impl Segment {
 
             let mut segment = Segment::filled(
                 Vec3::new(model.size.x, model.size.y, model.size.z),
-                Cell::empty(),
+                Cell::Empty,
                 (),
             );
 
@@ -96,7 +96,7 @@ impl Segment {
 
             segment
         } else {
-            Segment::filled(Vec3::zero(), Cell::empty(), ())
+            Segment::filled(Vec3::zero(), Cell::Empty, ())
         }
     }
 
@@ -130,9 +130,9 @@ impl Segment {
 
 // TODO: move
 /// A `Dyna` builder that combines Dynas
-pub struct DynaUnionizer<V: Vox>(Vec<(Dyna<V, ()>, Vec3<i32>)>);
+pub struct DynaUnionizer<V: FilledVox>(Vec<(Dyna<V, ()>, Vec3<i32>)>);
 
-impl<V: Vox + Copy> DynaUnionizer<V> {
+impl<V: FilledVox + Copy> DynaUnionizer<V> {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self { DynaUnionizer(Vec::new()) }
 
@@ -154,7 +154,10 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
 
     pub fn unify_with(self, mut f: impl FnMut(V) -> V) -> (Dyna<V, ()>, Vec3<i32>) {
         if self.0.is_empty() {
-            return (Dyna::filled(Vec3::zero(), V::empty(), ()), Vec3::zero());
+            return (
+                Dyna::filled(Vec3::zero(), V::default_non_filled(), ()),
+                Vec3::zero(),
+            );
         }
 
         // Determine size of the new Dyna
@@ -167,12 +170,12 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         }
         let new_size = (max_point - min_point).map(|e| e as u32);
         // Allocate new segment
-        let mut combined = Dyna::filled(new_size, V::empty(), ());
+        let mut combined = Dyna::filled(new_size, V::default_non_filled(), ());
         // Copy segments into combined
         let origin = min_point.map(|e| -e);
         for (dyna, offset) in self.0 {
             for (pos, vox) in dyna.full_vol_iter() {
-                if !vox.is_empty() {
+                if vox.is_filled() {
                     combined.set(origin + offset + pos, f(*vox)).unwrap();
                 }
             }
@@ -186,7 +189,7 @@ pub type MatSegment = Dyna<MatCell, ()>;
 
 impl MatSegment {
     pub fn to_segment(&self, map: impl Fn(Material) -> Rgb<u8>) -> Segment {
-        let mut vol = Dyna::filled(self.size(), Cell::empty(), ());
+        let mut vol = Dyna::filled(self.size(), Cell::Empty, ());
         for (pos, vox) in self.full_vol_iter() {
             let data = match vox {
                 MatCell::None => continue,
@@ -236,7 +239,7 @@ impl MatSegment {
 
             let mut vol = Dyna::filled(
                 Vec3::new(model.size.x, model.size.y, model.size.z),
-                MatCell::empty(),
+                MatCell::None,
                 (),
             );
 
@@ -282,7 +285,7 @@ impl MatSegment {
 
             vol
         } else {
-            Dyna::filled(Vec3::zero(), MatCell::empty(), ())
+            Dyna::filled(Vec3::zero(), MatCell::None, ())
         }
     }
 }

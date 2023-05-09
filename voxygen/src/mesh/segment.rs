@@ -10,7 +10,7 @@ use crate::{
 use common::{
     figure::Cell,
     terrain::Block,
-    vol::{BaseVol, ReadVol, SizedVol, Vox},
+    vol::{BaseVol, FilledVox, ReadVol, SizedVol},
 };
 use core::convert::TryFrom;
 use vek::*;
@@ -56,19 +56,18 @@ where
     let draw_delta = lower_bound;
 
     let get_light = |vol: &mut V, pos: Vec3<i32>| {
-        if vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true) {
+        if vol.get(pos).map_or(true, |vox| !vox.is_filled()) {
             1.0
         } else {
             0.0
         }
     };
     let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
-    let get_opacity = |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_empty());
+    let get_opacity =
+        |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| !vox.is_filled());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
         should_draw_greedy(pos, delta, uv, |vox| {
-            vol.get(vox)
-                .map(|vox| *vox)
-                .unwrap_or_else(|_| Cell::empty())
+            vol.get(vox).map(|vox| *vox).unwrap_or_else(|_| Cell::Empty)
         })
     };
     let create_opaque = |atlas_pos, pos, norm| {
@@ -270,13 +269,13 @@ where
     let (flat, flat_get) = {
         let (w, h, d) = (greedy_size + 2).into_tuple();
         let flat = {
-            let mut flat = vec![Cell::empty(); (w * h * d) as usize];
+            let mut flat = vec![Cell::Empty; (w * h * d) as usize];
             let mut i = 0;
             for x in -1..greedy_size.x + 1 {
                 for y in -1..greedy_size.y + 1 {
                     for z in -1..greedy_size.z + 1 {
                         let wpos = lower_bound + Vec3::new(x, y, z);
-                        let block = vol.get(wpos).map(|b| *b).unwrap_or_else(|_| Cell::empty());
+                        let block = vol.get(wpos).map(|b| *b).unwrap_or_else(|_| Cell::Empty);
                         flat[i] = block;
                         i += 1;
                     }
@@ -304,7 +303,7 @@ where
     let draw_delta = Vec3::new(1, 1, 1);
 
     let get_light = move |flat: &mut _, pos: Vec3<i32>| {
-        if flat_get(flat, pos).is_empty() {
+        if !flat_get(flat, pos).is_filled() {
             1.0
         } else {
             0.0
@@ -314,7 +313,7 @@ where
     let get_color = move |flat: &mut _, pos: Vec3<i32>| {
         flat_get(flat, pos).get_color().unwrap_or_else(Rgb::zero)
     };
-    let get_opacity = move |flat: &mut _, pos: Vec3<i32>| flat_get(flat, pos).is_empty();
+    let get_opacity = move |flat: &mut _, pos: Vec3<i32>| !flat_get(flat, pos).is_filled();
     let should_draw = move |flat: &mut _, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
         should_draw_greedy_ao(vertical_stripes, pos, delta, uv, |vox| flat_get(flat, vox))
     };
@@ -391,7 +390,7 @@ where
     let draw_delta = lower_bound;
 
     let get_light = |vol: &mut V, pos: Vec3<i32>| {
-        if vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true) {
+        if vol.get(pos).map_or(true, |vox| !vox.is_filled()) {
             1.0
         } else {
             0.0
@@ -404,12 +403,11 @@ where
             .and_then(|vox| vox.get_color())
             .unwrap_or_else(Rgb::zero)
     };
-    let get_opacity = |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_empty());
+    let get_opacity =
+        |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| !vox.is_filled());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
         should_draw_greedy(pos, delta, uv, |vox| {
-            vol.get(vox)
-                .map(|vox| *vox)
-                .unwrap_or_else(|_| Cell::empty())
+            vol.get(vox).map(|vox| *vox).unwrap_or_else(|_| Cell::Empty)
         })
     };
     let create_opaque = |_atlas_pos, pos: Vec3<f32>, norm| ParticleVertex::new(pos, norm);
@@ -452,8 +450,8 @@ fn should_draw_greedy(
 ) -> Option<(bool, /* u8 */ ())> {
     let from = flat_get(pos - delta);
     let to = flat_get(pos);
-    let from_opaque = !from.is_empty();
-    if from_opaque != to.is_empty() {
+    let from_opaque = from.is_filled();
+    if from_opaque != !to.is_filled() {
         None
     } else {
         // If going from transparent to opaque, backward facing; otherwise, forward
@@ -471,8 +469,8 @@ fn should_draw_greedy_ao(
 ) -> Option<(bool, bool)> {
     let from = flat_get(pos - delta);
     let to = flat_get(pos);
-    let from_opaque = !from.is_empty();
-    if from_opaque != to.is_empty() {
+    let from_opaque = from.is_filled();
+    if from_opaque != !to.is_filled() {
         None
     } else {
         let faces_forward = from_opaque;
