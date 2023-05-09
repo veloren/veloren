@@ -1,0 +1,11 @@
+body-generic = creature
+body-biped_large-ogre = ogre
+body-biped_large-cyclops = cyclops
+body-biped_large-wendigo = wendigo
+body-biped_large-werewolf = werewolf
+body-biped_large-cave_troll = cave troll
+body-biped_large-mountain_troll = mountain troll
+body-biped_large-swamp_troll = swamp troll
+body-biped_large-blue_oni = blue oni
+body-biped_large-red_oni = red oni
+body-biped_large-tursus = tursus

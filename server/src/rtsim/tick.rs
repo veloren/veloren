@@ -3,7 +3,7 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, Body, Presence, PresenceKind},
+    comp::{self, Agent, Body, Presence, PresenceKind},
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
@@ -138,13 +138,13 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
     let pos = comp::Pos(npc.wpos);
 
     let mut rng = npc.rng(Npc::PERM_ENTITY_CONFIG);
-    if let Some(ref profession) = npc.profession {
+    if let Some(profession) = npc.profession() {
         let economy = npc.home.and_then(|home| {
             let site = sites.get(home)?.world_site?;
             index.sites.get(site).trade_information(site.id())
         });
 
-        let config_asset = humanoid_config(profession);
+        let config_asset = humanoid_config(&profession);
 
         let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
             .with_body(BodyBuilder::Exact(npc.body));
@@ -156,9 +156,9 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
                 comp::Alignment::Npc
             })
             .with_economy(economy.as_ref())
-            .with_lazy_loadout(profession_extra_loadout(npc.profession.as_ref()))
+            .with_lazy_loadout(profession_extra_loadout(Some(&profession)))
             .with_alias(npc.get_name())
-            .with_agent_mark(profession_agent_mark(npc.profession.as_ref()))
+            .with_agent_mark(profession_agent_mark(Some(&profession)))
     } else {
         let config_asset = match npc.body {
             Body::BirdLarge(body) => match body.species {
@@ -169,14 +169,29 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
                 // which limits what species are used
                 _ => unimplemented!(),
             },
-            _ => unimplemented!(),
+            Body::BipedLarge(body) => match body.species {
+                comp::biped_large::Species::Ogre => "common.entity.wild.aggressive.ogre",
+                comp::biped_large::Species::Cyclops => "common.entity.wild.aggressive.cyclops",
+                comp::biped_large::Species::Wendigo => "common.entity.wild.aggressive.wendigo",
+                comp::biped_large::Species::Werewolf => "common.entity.wild.aggressive.werewolf",
+                comp::biped_large::Species::Cavetroll => "common.entity.wild.aggressive.cave_troll",
+                comp::biped_large::Species::Mountaintroll => {
+                    "common.entity.wild.aggressive.mountain_troll"
+                },
+                comp::biped_large::Species::Swamptroll => {
+                    "common.entity.wild.aggressive.swamp_troll"
+                },
+                comp::biped_large::Species::Blueoni => "common.entity.wild.aggressive.blue_oni",
+                comp::biped_large::Species::Redoni => "common.entity.wild.aggressive.red_oni",
+                comp::biped_large::Species::Tursus => "common.entity.wild.aggressive.tursus",
+                species => unimplemented!("rtsim spawning for {:?}", species),
+            },
+            body => unimplemented!("rtsim spawning for {:?}", body),
         };
         let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
             .with_body(BodyBuilder::Exact(npc.body));
 
-        EntityInfo::at(pos.0)
-            .with_entity_config(entity_config, Some(config_asset), &mut rng)
-            .with_alignment(comp::Alignment::Wild)
+        EntityInfo::at(pos.0).with_entity_config(entity_config, Some(config_asset), &mut rng)
     }
 }
 
@@ -299,7 +314,10 @@ impl<'a> System<'a> for Sys {
                                 .with_health(health)
                                 .with_poise(poise)
                                 .with_inventory(inventory)
-                                .with_agent(agent)
+                                .with_agent(agent.map(|agent| Agent {
+                                    rtsim_outbox: Some(Default::default()),
+                                    ..agent
+                                }))
                                 .with_scale(scale)
                                 .with_loot(loot)
                                 .with_rtsim(RtSimEntity(npc_id)),
@@ -358,7 +376,10 @@ impl<'a> System<'a> for Sys {
                             .with_health(health)
                             .with_poise(poise)
                             .with_inventory(inventory)
-                            .with_agent(agent)
+                            .with_agent(agent.map(|agent| Agent {
+                                rtsim_outbox: Some(Default::default()),
+                                ..agent
+                            }))
                             .with_scale(scale)
                             .with_loot(loot)
                             .with_rtsim(RtSimEntity(npc_id)),
@@ -402,6 +423,9 @@ impl<'a> System<'a> for Sys {
                             .rtsim_controller
                             .actions
                             .extend(std::mem::take(&mut npc.controller.actions));
+                        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
+                            npc.inbox.append(rtsim_outbox);
+                        }
                     }
                 });
         }

@@ -3,6 +3,7 @@ use crate::{
     event::{EventCtx, OnDeath},
     RtState, Rule, RuleError,
 };
+use common::rtsim::NpcInput;
 
 pub struct ReportEvents;
 
@@ -38,7 +39,7 @@ fn on_death(ctx: EventCtx<ReportEvents, OnDeath>) {
             // data structure in their own time.
             for npc_id in nearby {
                 if let Some(npc) = data.npcs.get_mut(npc_id) {
-                    npc.inbox.push_back(report);
+                    npc.inbox.push_back(NpcInput::Report(report));
                 }
             }
         }

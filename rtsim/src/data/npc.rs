@@ -1,6 +1,6 @@
 use crate::{
     ai::Action,
-    data::{ReportId, Reports, Sentiments},
+    data::{Reports, Sentiments},
     gen::name,
 };
 pub use common::rtsim::{NpcId, Profession};
@@ -9,7 +9,8 @@ use common::{
     comp,
     grid::Grid,
     rtsim::{
-        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, Personality, SiteId, VehicleId,
+        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, NpcInput, Personality, ReportId,
+        Role, SiteId, VehicleId,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -96,7 +97,7 @@ pub struct Npc {
     pub wpos: Vec3<f32>,
 
     pub body: comp::Body,
-    pub profession: Option<Profession>,
+    pub role: Role,
     pub home: Option<SiteId>,
     pub faction: Option<FactionId>,
     pub riding: Option<Riding>,
@@ -120,7 +121,7 @@ pub struct Npc {
     #[serde(skip)]
     pub controller: Controller,
     #[serde(skip)]
-    pub inbox: VecDeque<ReportId>,
+    pub inbox: VecDeque<NpcInput>,
 
     /// Whether the NPC is in simulated or loaded mode (when rtsim is run on the
     /// server, loaded corresponds to being within a loaded chunk). When in
@@ -138,7 +139,7 @@ impl Clone for Npc {
         Self {
             seed: self.seed,
             wpos: self.wpos,
-            profession: self.profession.clone(),
+            role: self.role.clone(),
             home: self.home,
             faction: self.faction,
             riding: self.riding.clone(),
@@ -162,14 +163,14 @@ impl Npc {
     pub const PERM_ENTITY_CONFIG: u32 = 1;
     const PERM_NAME: u32 = 0;
 
-    pub fn new(seed: u32, wpos: Vec3<f32>, body: comp::Body) -> Self {
+    pub fn new(seed: u32, wpos: Vec3<f32>, body: comp::Body, role: Role) -> Self {
         Self {
             seed,
             wpos,
             body,
             personality: Default::default(),
             sentiments: Default::default(),
-            profession: None,
+            role,
             home: None,
             faction: None,
             riding: None,
@@ -190,11 +191,15 @@ impl Npc {
         self
     }
 
-    // TODO: have a dedicated `NpcBuilder` type for this.
-    pub fn with_profession(mut self, profession: impl Into<Option<Profession>>) -> Self {
-        self.profession = profession.into();
-        self
-    }
+    // // TODO: have a dedicated `NpcBuilder` type for this.
+    // pub fn with_profession(mut self, profession: impl Into<Option<Profession>>)
+    // -> Self {     if let Role::Humanoid(p) = &mut self.role {
+    //         *p = profession.into();
+    //     } else {
+    //         panic!("Tried to assign profession {:?} to NPC, but has role {:?},
+    // which cannot have a profession", profession.into(), self.role);     }
+    //     self
+    // }
 
     // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn with_home(mut self, home: impl Into<Option<SiteId>>) -> Self {
@@ -231,6 +236,13 @@ impl Npc {
     // TODO: Don't make this depend on deterministic RNG, actually persist names
     // once we've decided that we want to
     pub fn get_name(&self) -> String { name::generate(&mut self.rng(Self::PERM_NAME)) }
+
+    pub fn profession(&self) -> Option<Profession> {
+        match &self.role {
+            Role::Civilised(profession) => profession.clone(),
+            Role::Monster | Role::Wild => None,
+        }
+    }
 
     pub fn cleanup(&mut self, reports: &Reports) {
         // Clear old or superfluous sentiments

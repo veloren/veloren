@@ -11,9 +11,13 @@ use crate::{
 };
 use common::{
     astar::{Astar, PathResult},
-    comp::{compass::Direction, Content},
+    comp::{
+        compass::{Direction, Distance},
+        dialogue::Subject,
+        Content,
+    },
     path::Path,
-    rtsim::{Actor, ChunkResource, Profession, SiteId},
+    rtsim::{Actor, ChunkResource, NpcInput, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
     terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
@@ -547,19 +551,72 @@ fn timeout(time: f64) -> impl FnMut(&mut NpcCtx) -> bool + Clone + Send + Sync {
     move |ctx| ctx.time.0 > *timeout.get_or_insert(ctx.time.0 + time)
 }
 
+fn talk_to(tgt: Actor, _subject: Option<Subject>) -> impl Action {
+    now(move |ctx| {
+        if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
+            // Cut off the conversation sometimes to avoid infinite conversations (but only
+            // if the target is an NPC!) TODO: Don't special case this, have
+            // some sort of 'bored of conversation' system
+            idle().l()
+        } else {
+            // Mention nearby sites
+            let comment = if ctx.rng.gen_bool(0.3)
+                && let Some(current_site) = ctx.npc.current_site
+                && let Some(current_site) = ctx.state.data().sites.get(current_site)
+                && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
+                && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
+                && let Some(mention_site_name) = mention_site.world_site
+                    .map(|ws| ctx.index.sites.get(ws).name().to_string())
+            {
+                Content::localized_with_args("npc-speech-tell_site", [
+                    ("site", Content::Plain(mention_site_name)),
+                    ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
+                    ("dist", Distance::from_length(mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                ])
+            // Mention nearby monsters
+            } else if ctx.rng.gen_bool(0.3)
+                && let Some(monster) = ctx.state.data().npcs
+                    .values()
+                    .filter(|other| matches!(&other.role, Role::Monster))
+                    .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
+            {
+                Content::localized_with_args("npc-speech-tell_monster", [
+                    ("body", monster.body.localize()),
+                    ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
+                    ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                ])
+            } else {
+                ctx.npc.personality.get_generic_comment(&mut ctx.rng)
+            };
+            // TODO: Don't special-case players
+            let wait = if matches!(tgt, Actor::Character(_)) {
+                0.0
+            } else {
+                1.5
+            };
+            idle()
+                .repeat()
+                .stop_if(timeout(wait))
+                .then(just(move |ctx| ctx.controller.say(tgt, comment.clone())))
+                .r()
+        }
+    })
+}
+
 fn socialize() -> impl Action {
     now(|ctx| {
         // Skip most socialising actions if we're not loaded
         if matches!(ctx.npc.mode, SimulationMode::Loaded) && ctx.rng.gen_bool(0.002) {
+            // Sometimes dance
             if ctx.rng.gen_bool(0.15) {
-                return Either::Left(
-                    just(|ctx| ctx.controller.do_dance())
-                        .repeat()
-                        .stop_if(timeout(6.0))
-                        .debug(|| "dancing")
-                        .map(|_| ())
-                        .boxed(),
-                );
+                return just(|ctx| ctx.controller.do_dance())
+                    .repeat()
+                    .stop_if(timeout(6.0))
+                    .debug(|| "dancing")
+                    .map(|_| ())
+                    .l()
+                    .l();
+            // Talk to nearby NPCs
             } else if let Some(other) = ctx
                 .state
                 .data()
@@ -567,31 +624,15 @@ fn socialize() -> impl Action {
                 .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
                 .choose(&mut ctx.rng)
             {
-                return Either::Left(
-                    just(move |ctx| ctx.controller.say(other, if ctx.rng.gen_bool(0.3)
-                        && let Some(current_site) = ctx.npc.current_site
-                        && let Some(current_site) = ctx.state.data().sites.get(current_site)
-                        && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
-                        && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
-                        && let Some(mention_site_name) = mention_site.world_site
-                            .map(|ws| ctx.index.sites.get(ws).name().to_string())
-                    {
-                        Content::localized_with_args("npc-speech-tell_site", [
-                            ("site", Content::Plain(mention_site_name)),
-                            ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
-                        ])
-                    } else {
-                        ctx.npc.personality.get_generic_comment(&mut ctx.rng)
-                    }))
-                    // After greeting the actor, wait for a while
+                return talk_to(other, None)
+                    // After talking, wait for a while
                     .then(idle().repeat().stop_if(timeout(4.0)))
                     .map(|_| ())
-                    .boxed(),
-                );
+                    .r().l();
             }
         }
 
-        Either::Right(idle())
+        idle().r()
     })
 }
 
@@ -619,7 +660,7 @@ fn adventure() -> impl Action {
             .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
             .map(|(site_id, _)| site_id)
         {
-            let wait_time = if matches!(ctx.npc.profession, Some(Profession::Merchant)) {
+            let wait_time = if matches!(ctx.npc.profession(), Some(Profession::Merchant)) {
                 60.0 * 15.0
             } else {
                 60.0 * 3.0
@@ -737,7 +778,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
         }
 
         if DayPeriod::from(ctx.time_of_day.0).is_dark()
-            && !matches!(ctx.npc.profession, Some(Profession::Guard))
+            && !matches!(ctx.npc.profession(), Some(Profession::Guard))
         {
             return important(
                 now(move |ctx| {
@@ -777,7 +818,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                 .debug(|| "find somewhere to sleep"),
             );
         // Villagers with roles should perform those roles
-        } else if matches!(ctx.npc.profession, Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
+        } else if matches!(ctx.npc.profession(), Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
         {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
@@ -790,7 +831,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Hunter)) && ctx.rng.gen_bool(0.8) {
+        } else if matches!(ctx.npc.profession(), Some(Profession::Hunter)) && ctx.rng.gen_bool(0.8) {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(
                     just(|ctx| {
@@ -806,7 +847,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                     .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Guard)) && ctx.rng.gen_bool(0.7) {
+        } else if matches!(ctx.npc.profession(), Some(Profession::Guard)) && ctx.rng.gen_bool(0.7) {
             if let Some(plaza_wpos) = choose_plaza(ctx, visiting_site) {
                 return casual(
                     travel_to_point(plaza_wpos, 0.4)
@@ -824,7 +865,7 @@ fn villager(visiting_site: SiteId) -> impl Action {
                         .map(|_| ()),
                 );
             }
-        } else if matches!(ctx.npc.profession, Some(Profession::Merchant)) && ctx.rng.gen_bool(0.8)
+        } else if matches!(ctx.npc.profession(), Some(Profession::Merchant)) && ctx.rng.gen_bool(0.8)
         {
             return casual(
                 just(|ctx| {
@@ -963,10 +1004,12 @@ fn captain() -> impl Action {
 fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
     loop {
         match ctx.inbox.pop_front() {
-            Some(report_id) if !ctx.known_reports.contains(&report_id) => {
+            Some(NpcInput::Report(report_id)) if !ctx.known_reports.contains(&report_id) => {
                 #[allow(clippy::single_match)]
                 match ctx.state.data().reports.get(report_id).map(|r| r.kind) {
-                    Some(ReportKind::Death { killer, actor, .. }) => {
+                    Some(ReportKind::Death { killer, actor, .. })
+                        if matches!(&ctx.npc.role, Role::Civilised(_)) =>
+                    {
                         // TODO: Don't report self
                         let phrase = if let Some(killer) = killer {
                             // TODO: For now, we don't make sentiment changes if the killer was an
@@ -1002,14 +1045,17 @@ fn check_inbox(ctx: &mut NpcCtx) -> Option<impl Action> {
                             "npc-speech-witness_death"
                         };
                         ctx.known_reports.insert(report_id);
-                        break Some(just(move |ctx| {
-                            ctx.controller.say(killer, Content::localized(phrase))
-                        }));
+                        break Some(
+                            just(move |ctx| ctx.controller.say(killer, Content::localized(phrase)))
+                                .l(),
+                        );
                     },
-                    None => {}, // Stale report, ignore
+                    Some(ReportKind::Death { .. }) => {}, // We don't care about death
+                    None => {},                           // Stale report, ignore
                 }
             },
-            Some(_) => {}, // Reports we already know of are ignored
+            Some(NpcInput::Report(_)) => {}, // Reports we already know of are ignored
+            Some(NpcInput::Interaction(by, subject)) => break Some(talk_to(by, Some(subject)).r()),
             None => break None,
         }
     }
@@ -1057,14 +1103,14 @@ fn humanoid() -> impl Action {
             }
         } else {
             let action = if matches!(
-                ctx.npc.profession,
+                ctx.npc.profession(),
                 Some(Profession::Adventurer(_) | Profession::Merchant)
             ) {
-                adventure().boxed()
+                adventure().l().l()
             } else if let Some(home) = ctx.npc.home {
-                villager(home).boxed()
+                villager(home).r().l()
             } else {
-                idle().boxed() // Homeless
+                idle().r() // Homeless
             };
 
             casual(action.interrupt_with(react_to_events))
@@ -1114,10 +1160,28 @@ fn bird_large() -> impl Action {
     })
 }
 
+fn monster() -> impl Action {
+    let mut bearing = Vec2::zero();
+    now(move |ctx| {
+        bearing = bearing
+            .map(|e| e + ctx.rng.gen_range(-0.1..0.1))
+            .try_normalized()
+            .unwrap_or_default();
+        goto_2d(ctx.npc.wpos.xy() + bearing * 24.0, 0.7, 8.0)
+            .debug(move || format!("Moving with a bearing of {:?}", bearing))
+    })
+    .repeat()
+    .map(|_| ())
+}
+
 fn think() -> impl Action {
-    choose(|ctx| match ctx.npc.body {
-        common::comp::Body::Humanoid(_) => casual(humanoid()),
-        common::comp::Body::BirdLarge(_) => casual(bird_large()),
-        _ => casual(socialize()),
+    now(|ctx| match ctx.npc.body {
+        common::comp::Body::Humanoid(_) => humanoid().l().l().l(),
+        common::comp::Body::BirdLarge(_) => bird_large().r().l().l(),
+        _ => match &ctx.npc.role {
+            Role::Civilised(_) => socialize().l().r().l(),
+            Role::Monster => monster().r().r().l(),
+            Role::Wild => idle().r(),
+        },
     })
 }

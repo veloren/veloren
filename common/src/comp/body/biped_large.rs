@@ -1,4 +1,4 @@
-use crate::{make_case_elim, make_proj_elim};
+use crate::{comp::Content, make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
@@ -22,6 +22,22 @@ impl Body {
     pub fn random_with(rng: &mut impl rand::Rng, &species: &Species) -> Self {
         let body_type = *ALL_BODY_TYPES.choose(rng).unwrap();
         Self { species, body_type }
+    }
+
+    pub fn localize(&self) -> Content {
+        Content::localized(match &self.species {
+            Species::Ogre => "body-biped_large-ogre",
+            Species::Cyclops => "body-biped_large-cyclops",
+            Species::Wendigo => "body-biped_large-wendigo",
+            Species::Werewolf => "body-biped_large-werewolf",
+            Species::Cavetroll => "body-biped_large-cave_troll",
+            Species::Mountaintroll => "body-biped_large-mountain_troll",
+            Species::Swamptroll => "body-biped_large-swamp_troll",
+            Species::Blueoni => "body-biped_large-blue_oni",
+            Species::Redoni => "body-biped_large-red_oni",
+            Species::Tursus => "body-biped_large-tursus",
+            _ => "body-generic",
+        })
     }
 }
 

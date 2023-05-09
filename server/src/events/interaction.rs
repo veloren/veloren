@@ -78,7 +78,12 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
     }
 }
 
-pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_entity: EcsEntity) {
+pub fn handle_npc_interaction(
+    server: &mut Server,
+    interactor: EcsEntity,
+    npc_entity: EcsEntity,
+    subject: Subject,
+) {
     let state = server.state_mut();
     if let Some(agent) = state
         .ecs()
@@ -89,7 +94,7 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
             if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
                 agent
                     .inbox
-                    .push_back(AgentEvent::Talk(interactor_uid, Subject::Regular));
+                    .push_back(AgentEvent::Talk(interactor_uid, subject));
             }
         }
     }

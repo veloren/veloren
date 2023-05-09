@@ -1,23 +1,24 @@
+use serde::{Deserialize, Serialize};
 use vek::{Vec2, Vec3};
 
 use super::Item;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AskedLocation {
     pub name: String,
     pub origin: Vec2<i32>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PersonType {
     Merchant,
     Villager { name: String },
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AskedPerson {
     pub person_type: PersonType,
-    pub origin: Option<Vec3<f32>>,
+    pub origin: Option<Vec3<i32>>,
 }
 
 impl AskedPerson {
@@ -30,7 +31,7 @@ impl AskedPerson {
 }
 
 /// Conversation subject
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Subject {
     /// Using simple interaction with NPC
     /// This is meant to be the default behavior of talking

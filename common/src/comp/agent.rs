@@ -4,7 +4,7 @@ use crate::{
         quadruped_small, ship, Body, UtteranceKind,
     },
     path::Chaser,
-    rtsim::RtSimController,
+    rtsim::{NpcInput, RtSimController},
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
@@ -569,6 +569,8 @@ pub struct Agent {
     /// required and reset each time the flee timer is reset.
     pub flee_from_pos: Option<Pos>,
     pub awareness: Awareness,
+    /// Inputs sent up to rtsim
+    pub rtsim_outbox: Option<VecDeque<NpcInput>>,
 }
 
 #[derive(Clone, Debug)]
@@ -673,6 +675,7 @@ impl Agent {
             position_pid_controller: None,
             flee_from_pos: None,
             awareness: Awareness::new(0.0),
+            rtsim_outbox: None,
         }
     }
 

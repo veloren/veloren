@@ -3,7 +3,10 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
-use crate::{character::CharacterId, comp::Content};
+use crate::{
+    character::CharacterId,
+    comp::{dialogue::Subject, Content},
+};
 use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;
@@ -18,6 +21,8 @@ slotmap::new_key_type! { pub struct VehicleId; }
 slotmap::new_key_type! { pub struct SiteId; }
 
 slotmap::new_key_type! { pub struct FactionId; }
+
+slotmap::new_key_type! { pub struct ReportId; }
 
 #[derive(Copy, Clone, Debug)]
 pub struct RtSimEntity(pub NpcId);
@@ -258,6 +263,13 @@ pub enum NpcAction {
     Attack(Actor),
 }
 
+// Represents a message passed back to rtsim from an agent's brain
+#[derive(Clone, Debug)]
+pub enum NpcInput {
+    Report(ReportId),
+    Interaction(Actor, Subject),
+}
+
 // Note: the `serde(name = "...")` is to minimise the length of field
 // identifiers for the sake of rtsim persistence
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, enum_map::Enum)]
@@ -284,6 +296,18 @@ pub enum ChunkResource {
     Gem, // Amethyst, diamond, etc.
     #[serde(rename = "a")]
     Ore, // Iron, copper, etc.
+}
+
+// Note: the `serde(name = "...")` is to minimise the length of field
+// identifiers for the sake of rtsim persistence
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Role {
+    #[serde(rename = "0")]
+    Civilised(Option<Profession>),
+    #[serde(rename = "1")]
+    Wild,
+    #[serde(rename = "2")]
+    Monster,
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field

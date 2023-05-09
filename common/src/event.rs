@@ -3,6 +3,7 @@ use crate::{
     comp::{
         self,
         agent::Sound,
+        dialogue::Subject,
         invite::{InviteKind, InviteResponse},
         DisconnectReason, Ori, Pos,
     },
@@ -189,7 +190,7 @@ pub enum ServerEvent {
     },
     EnableLantern(EcsEntity),
     DisableLantern(EcsEntity),
-    NpcInteract(EcsEntity, EcsEntity),
+    NpcInteract(EcsEntity, EcsEntity, Subject),
     InviteResponse(EcsEntity, InviteResponse),
     InitiateInvite(EcsEntity, Uid, InviteKind),
     ProcessTradeAction(EcsEntity, TradeId, TradeAction),

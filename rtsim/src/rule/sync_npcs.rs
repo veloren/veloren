@@ -2,7 +2,11 @@ use crate::{
     event::{EventCtx, OnDeath, OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
-use common::{grid::Grid, rtsim::Actor, terrain::CoordinateConversions};
+use common::{
+    grid::Grid,
+    rtsim::{Actor, NpcInput},
+    terrain::CoordinateConversions,
+};
 
 pub struct SyncNpcs;
 
@@ -124,7 +128,8 @@ fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
                 npc.inbox.extend(site.known_reports
                     .iter()
                     .copied()
-                    .filter(|report| !npc.known_reports.contains(report)));
+                    .filter(|report| !npc.known_reports.contains(report))
+                    .map(NpcInput::Report));
             }
         }
 

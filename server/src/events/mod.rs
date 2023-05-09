@@ -123,8 +123,8 @@ impl Server {
                 },
                 ServerEvent::EnableLantern(entity) => handle_lantern(self, entity, true),
                 ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
-                ServerEvent::NpcInteract(interactor, target) => {
-                    handle_npc_interaction(self, interactor, target)
+                ServerEvent::NpcInteract(interactor, target, subject) => {
+                    handle_npc_interaction(self, interactor, target, subject)
                 },
                 ServerEvent::InitiateInvite(interactor, target, kind) => {
                     handle_invite(self, interactor, target, kind)

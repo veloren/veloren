@@ -12,14 +12,14 @@ use common::{
     comp::{self, Body},
     grid::Grid,
     resources::TimeOfDay,
-    rtsim::{Personality, WorldSettings},
-    terrain::TerrainChunkSize,
+    rtsim::{Personality, Role, WorldSettings},
+    terrain::{BiomeKind, CoordinateConversions, TerrainChunkSize},
     vol::RectVolSize,
 };
 use rand::prelude::*;
 use tracing::info;
 use vek::*;
-use world::{site::SiteKind, site2::PlotKind, IndexRef, World};
+use world::{site::SiteKind, site2::PlotKind, IndexRef, World, CONFIG};
 
 impl Data {
     pub fn generate(settings: &WorldSettings, world: &World, index: IndexRef) -> Self {
@@ -124,20 +124,20 @@ impl Data {
                             rng.gen(),
                             rand_wpos(&mut rng, matches_buildings),
                             random_humanoid(&mut rng),
+                            Role::Civilised(Some(match rng.gen_range(0..20) {
+                                0 => Profession::Hunter,
+                                1 => Profession::Blacksmith,
+                                2 => Profession::Chef,
+                                3 => Profession::Alchemist,
+                                5..=8 => Profession::Farmer,
+                                9..=10 => Profession::Herbalist,
+                                11..=16 => Profession::Guard,
+                                _ => Profession::Adventurer(rng.gen_range(0..=3)),
+                            })),
                         )
                         .with_faction(site.faction)
                         .with_home(site_id)
-                        .with_personality(Personality::random(&mut rng))
-                        .with_profession(match rng.gen_range(0..20) {
-                            0 => Profession::Hunter,
-                            1 => Profession::Blacksmith,
-                            2 => Profession::Chef,
-                            3 => Profession::Alchemist,
-                            5..=8 => Profession::Farmer,
-                            9..=10 => Profession::Herbalist,
-                            11..=16 => Profession::Guard,
-                            _ => Profession::Adventurer(rng.gen_range(0..=3)),
-                        }),
+                        .with_personality(Personality::random(&mut rng)),
                     );
                 }
             } else {
@@ -147,11 +147,11 @@ impl Data {
                             rng.gen(),
                             rand_wpos(&mut rng, matches_buildings),
                             random_humanoid(&mut rng),
+                            Role::Civilised(Some(Profession::Cultist)),
                         )
                         .with_personality(Personality::random_evil(&mut rng))
                         .with_faction(site.faction)
-                        .with_home(site_id)
-                        .with_profession(Profession::Cultist),
+                        .with_home(site_id),
                     );
                 }
             }
@@ -163,10 +163,10 @@ impl Data {
                             rng.gen(),
                             rand_wpos(&mut rng, matches_plazas),
                             random_humanoid(&mut rng),
+                            Role::Civilised(Some(Profession::Merchant)),
                         )
                         .with_home(site_id)
-                        .with_personality(Personality::random_good(&mut rng))
-                        .with_profession(Profession::Merchant),
+                        .with_personality(Personality::random_good(&mut rng)),
                     );
                 }
             }
@@ -178,11 +178,15 @@ impl Data {
                     .create_vehicle(Vehicle::new(wpos, comp::body::ship::Body::DefaultAirship));
 
                 this.npcs.create_npc(
-                    Npc::new(rng.gen(), wpos, random_humanoid(&mut rng))
-                        .with_home(site_id)
-                        .with_profession(Profession::Captain)
-                        .with_personality(Personality::random_good(&mut rng))
-                        .steering(vehicle_id),
+                    Npc::new(
+                        rng.gen(),
+                        wpos,
+                        random_humanoid(&mut rng),
+                        Role::Civilised(Some(Profession::Captain)),
+                    )
+                    .with_home(site_id)
+                    .with_personality(Personality::random_good(&mut rng))
+                    .steering(vehicle_id),
                 );
             }
         }
@@ -211,10 +215,56 @@ impl Data {
                     rng.gen(),
                     rand_wpos(&mut rng),
                     Body::BirdLarge(comp::body::bird_large::Body::random_with(&mut rng, species)),
+                    Role::Wild,
                 )
                 .with_home(site_id),
             );
         }
+
+        // Spawn monsters into the world
+        for _ in 0..100 {
+            // Try a few times to find a location that's not underwater
+            if let Some((wpos, chunk)) = (0..10)
+                .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
+                .find_map(|pos| Some((pos, world.sim().get(pos).filter(|c| !c.is_underwater())?)))
+                .map(|(pos, chunk)| {
+                    let wpos2d = pos.cpos_to_wpos_center();
+                    (
+                        wpos2d
+                            .map(|e| e as f32 + 0.5)
+                            .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0)),
+                        chunk,
+                    )
+                })
+            {
+                let biome = chunk.get_biome();
+                let Some(species) = [
+                    Some(comp::body::biped_large::Species::Ogre),
+                    Some(comp::body::biped_large::Species::Cyclops),
+                    Some(comp::body::biped_large::Species::Wendigo).filter(|_| biome == BiomeKind::Taiga),
+                    Some(comp::body::biped_large::Species::Cavetroll),
+                    Some(comp::body::biped_large::Species::Mountaintroll).filter(|_| biome == BiomeKind::Mountain),
+                    Some(comp::body::biped_large::Species::Swamptroll).filter(|_| biome == BiomeKind::Swamp),
+                    Some(comp::body::biped_large::Species::Blueoni),
+                    Some(comp::body::biped_large::Species::Redoni),
+                    Some(comp::body::biped_large::Species::Tursus).filter(|_| chunk.temp < CONFIG.snow_temp),
+                ]
+                    .into_iter()
+                    .flatten()
+                    .choose(&mut rng)
+                else { continue };
+
+                this.npcs.create_npc(Npc::new(
+                    rng.gen(),
+                    wpos,
+                    Body::BipedLarge(comp::body::biped_large::Body::random_with(
+                        &mut rng, &species,
+                    )),
+                    Role::Monster,
+                ));
+            }
+        }
+
         info!("Generated {} rtsim NPCs.", this.npcs.len());
 
         this

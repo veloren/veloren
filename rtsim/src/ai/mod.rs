@@ -5,8 +5,12 @@ use crate::{
     },
     RtState,
 };
-use common::resources::{Time, TimeOfDay};
+use common::{
+    resources::{Time, TimeOfDay},
+    rtsim::NpcInput,
+};
 use hashbrown::HashSet;
+use itertools::Either;
 use rand_chacha::ChaChaRng;
 use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow};
 use world::{IndexRef, World};
@@ -25,7 +29,7 @@ pub struct NpcCtx<'a> {
     pub npc_id: NpcId,
     pub npc: &'a Npc,
     pub controller: &'a mut Controller,
-    pub inbox: &'a mut VecDeque<ReportId>, // TODO: Allow more inbox items
+    pub inbox: &'a mut VecDeque<NpcInput>, // TODO: Allow more inbox items
     pub sentiments: &'a mut Sentiments,
     pub known_reports: &'a mut HashSet<ReportId>,
 
@@ -227,6 +231,22 @@ pub trait Action<R = ()>: Any + Send + Sync {
     {
         Debug(self, mk_info, PhantomData)
     }
+
+    #[must_use]
+    fn l<Rhs>(self) -> Either<Self, Rhs>
+    where
+        Self: Sized,
+    {
+        Either::Left(self)
+    }
+
+    #[must_use]
+    fn r<Lhs>(self) -> Either<Lhs, Self>
+    where
+        Self: Sized,
+    {
+        Either::Right(self)
+    }
 }
 
 impl<R: 'static> Action<R> for Box<dyn Action<R>> {
@@ -246,11 +266,11 @@ impl<R: 'static> Action<R> for Box<dyn Action<R>> {
     fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> { (**self).tick(ctx) }
 }
 
-impl<R: 'static, A: Action<R>, B: Action<R>> Action<R> for itertools::Either<A, B> {
+impl<R: 'static, A: Action<R>, B: Action<R>> Action<R> for Either<A, B> {
     fn is_same(&self, other: &Self) -> bool {
         match (self, other) {
-            (itertools::Either::Left(x), itertools::Either::Left(y)) => x.is_same(y),
-            (itertools::Either::Right(x), itertools::Either::Right(y)) => x.is_same(y),
+            (Either::Left(x), Either::Left(y)) => x.is_same(y),
+            (Either::Right(x), Either::Right(y)) => x.is_same(y),
             _ => false,
         }
     }
@@ -259,22 +279,22 @@ impl<R: 'static, A: Action<R>, B: Action<R>> Action<R> for itertools::Either<A, 
 
     fn backtrace(&self, bt: &mut Vec<String>) {
         match self {
-            itertools::Either::Left(x) => x.backtrace(bt),
-            itertools::Either::Right(x) => x.backtrace(bt),
+            Either::Left(x) => x.backtrace(bt),
+            Either::Right(x) => x.backtrace(bt),
         }
     }
 
     fn reset(&mut self) {
         match self {
-            itertools::Either::Left(x) => x.reset(),
-            itertools::Either::Right(x) => x.reset(),
+            Either::Left(x) => x.reset(),
+            Either::Right(x) => x.reset(),
         }
     }
 
     fn tick(&mut self, ctx: &mut NpcCtx) -> ControlFlow<R> {
         match self {
-            itertools::Either::Left(x) => x.tick(ctx),
-            itertools::Either::Right(x) => x.tick(ctx),
+            Either::Left(x) => x.tick(ctx),
+            Either::Right(x) => x.tick(ctx),
         }
     }
 }

@@ -45,7 +45,7 @@ use common::{
     outcome::Outcome,
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay},
-    rtsim::Actor,
+    rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
     vol::ReadVol,
@@ -1269,7 +1269,7 @@ fn handle_rtsim_info(
 
         let _ = writeln!(&mut info, "-- General Information --");
         let _ = writeln!(&mut info, "Seed: {}", npc.seed);
-        let _ = writeln!(&mut info, "Profession: {:?}", npc.profession);
+        let _ = writeln!(&mut info, "Role: {:?}", npc.role);
         let _ = writeln!(&mut info, "Home: {:?}", npc.home);
         let _ = writeln!(&mut info, "Faction: {:?}", npc.faction);
         let _ = writeln!(&mut info, "Personality: {:?}", npc.personality);
@@ -1321,10 +1321,14 @@ fn handle_rtsim_npc(
             .enumerate()
             .filter(|(idx, npc)| {
                 let tags = [
-                    npc.profession
-                        .as_ref()
+                    npc.profession()
                         .map(|p| format!("{:?}", p))
                         .unwrap_or_default(),
+                    match &npc.role {
+                        Role::Civilised(_) => "civilised".to_string(),
+                        Role::Wild => "wild".to_string(),
+                        Role::Monster => "monster".to_string(),
+                    },
                     format!("{:?}", npc.mode),
                     format!("{}", idx),
                 ];
