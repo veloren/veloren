@@ -56,11 +56,7 @@ where
     let draw_delta = lower_bound;
 
     let get_light = |vol: &mut V, pos: Vec3<i32>| {
-        if vol.get(pos).map_or(true, |vox| !vox.is_filled()) {
-            1.0
-        } else {
-            0.0
-        }
+        vol.get(pos).map_or(true, |vox| !vox.is_filled()) as i32 as f32
     };
     let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
     let get_opacity =
@@ -302,13 +298,8 @@ where
     let greedy_size_cross = greedy_size;
     let draw_delta = Vec3::new(1, 1, 1);
 
-    let get_light = move |flat: &mut _, pos: Vec3<i32>| {
-        if !flat_get(flat, pos).is_filled() {
-            1.0
-        } else {
-            0.0
-        }
-    };
+    let get_light =
+        move |flat: &mut _, pos: Vec3<i32>| !flat_get(flat, pos).is_filled() as i32 as f32;
     let get_glow = |_flat: &mut _, _pos: Vec3<i32>| 0.0;
     let get_color = move |flat: &mut _, pos: Vec3<i32>| {
         flat_get(flat, pos).get_color().unwrap_or_else(Rgb::zero)
@@ -390,11 +381,7 @@ where
     let draw_delta = lower_bound;
 
     let get_light = |vol: &mut V, pos: Vec3<i32>| {
-        if vol.get(pos).map_or(true, |vox| !vox.is_filled()) {
-            1.0
-        } else {
-            0.0
-        }
+        vol.get(pos).map_or(true, |vox| !vox.is_filled()) as i32 as f32
     };
     let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
     let get_color = |vol: &mut V, pos: Vec3<i32>| {
