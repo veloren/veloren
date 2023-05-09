@@ -227,15 +227,10 @@ fn position_mut<T>(
     server: &mut Server,
     entity: EcsEntity,
     descriptor: &str,
-    force_from_mount: Option<bool>,
+    force_from_volume: Option<bool>,
     f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
 ) -> CmdResult<T> {
-    let entity = if force_from_mount.unwrap_or(false) {
-        server
-            .state
-            .ecs()
-            .write_storage::<Is<Rider>>()
-            .remove(entity);
+    let entity = if force_from_volume.unwrap_or(true) {
         server
             .state
             .ecs()
@@ -860,10 +855,10 @@ fn handle_jump(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(x), Some(y), Some(z), force_from_mount) =
+    if let (Some(x), Some(y), Some(z), force_from_volume) =
         parse_cmd_args!(args, f32, f32, f32, bool)
     {
-        position_mut(server, target, "target", force_from_mount, |current_pos| {
+        position_mut(server, target, "target", force_from_volume, |current_pos| {
             current_pos.0 += Vec3::new(x, y, z)
         })
     } else {
@@ -878,10 +873,10 @@ fn handle_goto(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(x), Some(y), Some(z), force_from_mount) =
+    if let (Some(x), Some(y), Some(z), force_from_volume) =
         parse_cmd_args!(args, f32, f32, f32, bool)
     {
-        position_mut(server, target, "target", force_from_mount, |current_pos| {
+        position_mut(server, target, "target", force_from_volume, |current_pos| {
             current_pos.0 = Vec3::new(x, y, z)
         })
     } else {
@@ -899,7 +894,7 @@ fn handle_site(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     #[cfg(feature = "worldgen")]
-    if let (Some(dest_name), force_from_mount) = parse_cmd_args!(args, String, bool) {
+    if let (Some(dest_name), force_from_volume) = parse_cmd_args!(args, String, bool) {
         let site = server
             .world
             .civs()
@@ -916,7 +911,7 @@ fn handle_site(
             false,
         );
 
-        position_mut(server, target, "target", force_from_mount, |current_pos| {
+        position_mut(server, target, "target", force_from_volume, |current_pos| {
             current_pos.0 = site_pos
         })
     } else {
@@ -1240,7 +1235,7 @@ fn handle_tp(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let (player, force_from_mount) = parse_cmd_args!(args, String, bool);
+    let (player, force_from_volume) = parse_cmd_args!(args, String, bool);
     let player = if let Some(alias) = player {
         find_alias(server.state.ecs(), &alias)?.0
     } else if client != target {
@@ -1249,7 +1244,7 @@ fn handle_tp(
         return Err(action.help_string());
     };
     let player_pos = position(server, player, "player")?;
-    position_mut(server, target, "target", force_from_mount, |target_pos| {
+    position_mut(server, target, "target", force_from_volume, |target_pos| {
         *target_pos = player_pos
     })
 }
@@ -1262,7 +1257,7 @@ fn handle_rtsim_tp(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::RtSim;
-    let (npc_index, force_from_mount) = parse_cmd_args!(args, u32, bool);
+    let (npc_index, force_from_volume) = parse_cmd_args!(args, u32, bool);
     let pos = if let Some(id) = npc_index {
         // TODO: Take some other identifier than an integer to this command.
         server
@@ -1279,7 +1274,7 @@ fn handle_rtsim_tp(
     } else {
         return Err(action.help_string());
     };
-    position_mut(server, target, "target", force_from_mount, |target_pos| {
+    position_mut(server, target, "target", force_from_volume, |target_pos| {
         target_pos.0 = pos;
     })
 }

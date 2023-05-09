@@ -461,7 +461,7 @@ impl ServerChatCommand {
                     Float("x", 0.0, Required),
                     Float("y", 0.0, Required),
                     Float("z", 0.0, Required),
-                    Boolean("Force from mount", "true".to_string(), Optional),
+                    Boolean("Force from ship", "true".to_string(), Optional),
                 ],
                 "Teleport to a position",
                 Some(Admin),
@@ -506,7 +506,7 @@ impl ServerChatCommand {
                     Float("x", 0.0, Required),
                     Float("y", 0.0, Required),
                     Float("z", 0.0, Required),
-                    Boolean("Force from mount", "true".to_string(), Optional),
+                    Boolean("Force from ship", "true".to_string(), Optional),
                 ],
                 "Offset your current position",
                 Some(Admin),
@@ -641,7 +641,7 @@ impl ServerChatCommand {
             ServerChatCommand::Site => cmd(
                 vec![
                     SiteName(Required),
-                    Boolean("Force from mount", "true".to_string(), Optional),
+                    Boolean("Force from ship", "true".to_string(), Optional),
                 ],
                 "Teleport to a site",
                 Some(Moderator),
@@ -688,7 +688,7 @@ impl ServerChatCommand {
             ServerChatCommand::Tp => cmd(
                 vec![
                     PlayerName(Optional),
-                    Boolean("Force from mount", "true".to_string(), Optional),
+                    Boolean("Force from ship", "true".to_string(), Optional),
                 ],
                 "Teleport to another player",
                 Some(Moderator),
@@ -696,7 +696,7 @@ impl ServerChatCommand {
             ServerChatCommand::RtsimTp => cmd(
                 vec![
                     Integer("npc index", 0, Required),
-                    Boolean("Force from mount", "true".to_string(), Optional),
+                    Boolean("Force from ship", "true".to_string(), Optional),
                 ],
                 "Teleport to an rtsim npc",
                 Some(Moderator),
