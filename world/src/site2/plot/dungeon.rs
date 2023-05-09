@@ -948,7 +948,7 @@ pub fn inscribed_polystar(
         use std::f32::consts::TAU;
         let rpos: Vec2<f32> = pos.xy().as_() - origin.as_();
         let is_border = rpos.magnitude_squared() > (radius - 2.0).powi(2);
-        let is_line = (0..sides).into_iter().any(|i| {
+        let is_line = (0..sides).any(|i| {
             let f = |j: f32| {
                 let t = j * TAU / sides as f32;
                 radius * Vec2::new(t.cos(), t.sin())

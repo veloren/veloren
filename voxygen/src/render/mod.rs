@@ -70,12 +70,13 @@ pub trait Vertex: Clone + bytemuck::Pod {
 
 use serde::{Deserialize, Serialize};
 /// Anti-aliasing modes
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum AaMode {
     /// Fast approximate antialiasing.
     ///
     /// This is a screen-space technique, and therefore works fine with greedy
     /// meshing.
+    #[default]
     Fxaa,
     /// Multisampling AA, up to 4 samples per pixel.
     ///
@@ -121,12 +122,8 @@ impl AaMode {
     }
 }
 
-impl Default for AaMode {
-    fn default() -> Self { AaMode::Fxaa }
-}
-
 /// Cloud modes
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CloudMode {
     /// No clouds. As cheap as it gets.
     None,
@@ -144,6 +141,7 @@ pub enum CloudMode {
     Ultra,
     /// Lots of detail with good-but-costly derivation of parameters.
     #[serde(other)]
+    #[default]
     High,
 }
 
@@ -151,12 +149,8 @@ impl CloudMode {
     pub fn is_enabled(&self) -> bool { *self != CloudMode::None }
 }
 
-impl Default for CloudMode {
-    fn default() -> Self { CloudMode::High }
-}
-
 /// Fluid modes
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum FluidMode {
     /// "Low" water.  This water implements no waves, no reflections, no
     /// diffraction, and no light attenuation through water.  As a result,
@@ -180,32 +174,26 @@ pub enum FluidMode {
     /// which causes attenuation to be computed incorrectly; this can be
     /// addressed by using shadow maps (at least for terrain).
     #[serde(other)]
+    #[default]
     Medium,
 }
 
-impl Default for FluidMode {
-    fn default() -> Self { FluidMode::Medium }
-}
-
 /// Reflection modes
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum ReflectionMode {
     /// No or minimal reflections.
     Low,
     /// High quality reflections with screen-space raycasting and
     /// all the bells & whistles.
+    #[default]
     High,
     // Medium quality screen-space reflections.
     #[serde(other)]
     Medium,
 }
 
-impl Default for ReflectionMode {
-    fn default() -> Self { ReflectionMode::High }
-}
-
 /// Lighting modes
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum LightingMode {
     /// Ashikhmin-Shirley BRDF lighting model.  Attempts to generate a
     /// physically plausible (to some extent) lighting distribution.
@@ -222,11 +210,8 @@ pub enum LightingMode {
     /// Standard Blinn-Phong shading, combing Lambertian diffuse reflections and
     /// specular highlights.
     #[serde(other)]
+    #[default]
     BlinnPhong,
-}
-
-impl Default for LightingMode {
-    fn default() -> Self { LightingMode::BlinnPhong }
 }
 
 /// Shadow map settings.
@@ -314,7 +299,7 @@ impl From<PresentMode> for wgpu::PresentMode {
 
 /// Bloom factor
 /// Controls fraction of output image luminosity that is blurred bloom
-#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum BloomFactor {
     Low,
     High,
@@ -322,11 +307,8 @@ pub enum BloomFactor {
     Custom(f32),
     // other variant has to be placed last
     #[serde(other)]
+    #[default]
     Medium,
-}
-
-impl Default for BloomFactor {
-    fn default() -> Self { Self::Medium }
 }
 
 impl BloomFactor {

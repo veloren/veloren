@@ -321,7 +321,7 @@ macro_rules! make_case_elim {
                 elim.reduce(((self,), context))
             }
 
-            pub fn elim_case_pure<'a, 'b, Type>(&'a self, cases: &'b $mod::PureCases<Type>) -> &'b Type
+            pub fn elim_case_pure<'a, Type>(&self, cases: &'a $mod::PureCases<Type>) -> &'a Type
             {
                 let (expr, ()) = self.elim(cases, ());
                 expr
@@ -425,7 +425,7 @@ macro_rules! make_proj_elim {
                 elim.reduce(((self,), context))
             }
 
-            pub fn elim_proj_pure<'a, 'b, Type>(&'a self, cases: &'b $mod::PureProj<Type>) -> &'b Type
+            pub fn elim_proj_pure<'a, Type>(&self, cases: &'a $mod::PureProj<Type>) -> &'a Type
             {
                 let (expr, ()) = self.elim(cases, ());
                 expr

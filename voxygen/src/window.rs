@@ -1359,16 +1359,14 @@ impl Window {
     pub fn scale_factor(&self) -> f64 { self.scale_factor }
 }
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Default, Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum FullscreenMode {
     Exclusive,
     #[serde(other)]
+    #[default]
     Borderless,
 }
 
-impl Default for FullscreenMode {
-    fn default() -> Self { FullscreenMode::Borderless }
-}
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct FullScreenSettings {

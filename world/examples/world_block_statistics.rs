@@ -85,12 +85,9 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
     let (tx, rx) = mpsc::channel();
     rayon::spawn(move || {
         let coords: Vec<_> = (ymin.unwrap_or(1)..ymax.unwrap_or(sz.y as i32))
-            .into_iter()
             .flat_map(move |y| {
                 let tx = tx.clone();
-                (1..sz.x as i32)
-                    .into_iter()
-                    .map(move |x| (tx.clone(), x, y))
+                (1..sz.x as i32).map(move |x| (tx.clone(), x, y))
             })
             .collect();
         coords.into_par_iter().for_each(|(tx, x, y)| {

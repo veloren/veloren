@@ -112,8 +112,7 @@ impl SkillSetBuilder {
     pub fn with_skill(mut self, skill: Skill, level: u16) -> Self {
         let Some(group) = skill.skill_group_kind() else {
             let err = format!(
-                "Tried to add skill: {:?} which does not have an associated skill group.",
-                skill
+                "Tried to add skill: {skill:?} which does not have an associated skill group."
             );
             common_base::dev_panic!(err, or return self);
         };
@@ -121,8 +120,7 @@ impl SkillSetBuilder {
         let SkillSetBuilder(ref mut skill_set) = self;
         if skill_is_applied(skill_set, skill, level) {
             let err = format!(
-                "Tried to add skill: {:?} with level {:?} which is already applied",
-                skill, level,
+                "Tried to add skill: {skill:?} with level {level:?} which is already applied"
             );
             common_base::dev_panic!(err, or return self);
         }
@@ -135,9 +133,8 @@ impl SkillSetBuilder {
         }
         if !skill_is_applied(skill_set, skill, level) {
             let err = format!(
-                "Failed to add skill: {:?}. Verify that it has the appropriate skill group \
-                 available and meets all prerequisite skills.",
-                skill
+                "Failed to add skill: {skill:?}. Verify that it has the appropriate skill group \
+                 available and meets all prerequisite skills."
             );
             common_base::dev_panic!(err);
         }

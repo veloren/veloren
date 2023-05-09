@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, EnumIter)]
+#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, EnumIter)]
 pub enum BiomeKind {
+    #[default]
     Void,
     Lake,
     Grassland,
@@ -15,8 +16,4 @@ pub enum BiomeKind {
     Forest,
     Savannah,
     Taiga,
-}
-
-impl Default for BiomeKind {
-    fn default() -> BiomeKind { BiomeKind::Void }
 }

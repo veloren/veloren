@@ -218,7 +218,6 @@ pub fn local_cells(map_size_lg: MapSizeLg, posi: usize) -> impl Clone + Iterator
     let grid_size = 3i32;
     let grid_bounds = 2 * grid_size + 1;
     (0..grid_bounds * grid_bounds)
-        .into_iter()
         .map(move |index| {
             Vec2::new(
                 pos.x + (index % grid_bounds) - grid_size,

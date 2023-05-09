@@ -105,24 +105,6 @@ impl ModularBase {
         msm: &MaterialStatManifest,
         durability_multiplier: DurabilityMultiplier,
     ) -> Cow<ItemKind> {
-        fn resolve_stats(
-            components: &[Item],
-            msm: &MaterialStatManifest,
-            durability_multiplier: DurabilityMultiplier,
-        ) -> tool::Stats {
-            components
-                .iter()
-                .filter_map(|comp| {
-                    if let ItemKind::ModularComponent(mod_comp) = &*comp.kind() {
-                        mod_comp.tool_stats(comp.components(), msm)
-                    } else {
-                        None
-                    }
-                })
-                .fold(tool::Stats::one(), |a, b| a * b)
-                * durability_multiplier
-        }
-
         let toolkind = components
             .iter()
             .find_map(|comp| match &*comp.kind() {
@@ -134,11 +116,23 @@ impl ModularBase {
             })
             .unwrap_or(ToolKind::Empty);
 
+        let stats: tool::Stats = components
+            .iter()
+            .filter_map(|comp| {
+                if let ItemKind::ModularComponent(mod_comp) = &*comp.kind() {
+                    mod_comp.tool_stats(comp.components(), msm)
+                } else {
+                    None
+                }
+            })
+            .fold(tool::Stats::one(), |a, b| a * b)
+            * durability_multiplier;
+
         match self {
             ModularBase::Tool => Cow::Owned(ItemKind::Tool(Tool::new(
                 toolkind,
                 Self::resolve_hands(components),
-                resolve_stats(components, msm, durability_multiplier),
+                stats,
             ))),
         }
     }
