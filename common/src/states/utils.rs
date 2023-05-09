@@ -890,6 +890,12 @@ fn can_reach_block(
             BuildHasherDefault::<FxHasher64>::default(),
         );
 
+        // Transition uses manhattan distance as the cost, with a slightly lower cost
+        // for z transitions
+        let transition = |a: Vec3<i32>, b: Vec3<i32>| {
+            let (a, b) = (a.map(|x| x as f32), b.map(|x| x as f32));
+            ((a - b) * Vec3::new(1.0, 1.0, 0.9)).map(|e| e.abs()).sum()
+        };
         // Neighbors are all neighboring blocks that are air
         let neighbors = |pos: &Vec3<i32>| {
             const DIRS: [Vec3<i32>; 6] = [
@@ -901,24 +907,23 @@ fn can_reach_block(
                 Vec3::new(0, 0, -1),
             ];
             let pos = *pos;
-            DIRS.iter().map(move |dir| dir + pos).filter(|pos| {
-                terrain
-                    .get(*pos)
-                    .ok()
-                    .map_or(false, |block| !block.is_filled())
-            })
+            DIRS.iter()
+                .map(move |dir| {
+                    let dest = dir + pos;
+                    (dest, transition(pos, dest))
+                })
+                .filter(|(pos, _)| {
+                    terrain
+                        .get(*pos)
+                        .ok()
+                        .map_or(false, |block| !block.is_filled())
+                })
         };
-        // Transition uses manhattan distance as the cost, with a slightly lower cost
-        // for z transitions
-        let transition = |a: Vec3<i32>, b: Vec3<i32>| {
-            let (a, b) = (a.map(|x| x as f32), b.map(|x| x as f32));
-            ((a - b) * Vec3::new(1.0, 1.0, 0.9)).map(|e| e.abs()).sum()
-        };
-        // Pathing satisfied when it reaches the block position
+        // Pathing satisfied when it reaches the sprite position
         let satisfied = |pos: &Vec3<i32>| *pos == block_pos;
 
         astar
-            .poll(iters, heuristic, neighbors, transition, satisfied)
+            .poll(iters, heuristic, neighbors, satisfied)
             .into_path()
             .is_some()
     } else {
