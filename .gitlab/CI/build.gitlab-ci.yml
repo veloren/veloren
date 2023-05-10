@@ -110,8 +110,8 @@ coverage:
     - source ./.gitlab/scripts/windows-x86_64.sh
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-    - cp /usr/lib/gcc/x86_64-w64-mingw32/7.3-posix/libgcc_s_seh-1.dll $CI_PROJECT_DIR
-    - cp /usr/lib/gcc/x86_64-w64-mingw32/7.3-posix/libstdc++-6.dll $CI_PROJECT_DIR
+    - cp /usr/lib/gcc/x86_64-w64-mingw32/9.3-posix/libgcc_s_seh-1.dll $CI_PROJECT_DIR
+    - cp /usr/lib/gcc/x86_64-w64-mingw32/9.3-posix/libstdc++-6.dll $CI_PROJECT_DIR
     - cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll $CI_PROJECT_DIR
   artifacts:
     paths:
