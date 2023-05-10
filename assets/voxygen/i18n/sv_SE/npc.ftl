@@ -278,3 +278,9 @@ npc-speech-dir_south = söderut
 npc-speech-dir_south_west = sydvästerut
 npc-speech-dir_west = västerut
 npc-speech-dir_north_west = nordvästerut
+
+npc-speech-dist_very_far = väldigt långt bort
+npc-speech-dist_far = långt bort
+npc-speech-dist_ahead = en bit bort
+npc-speech-dist_near = nära
+npc-speech-dist_near_to = väldigt nära
