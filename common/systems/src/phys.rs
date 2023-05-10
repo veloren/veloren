@@ -9,7 +9,7 @@ use common::{
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     outcome::Outcome,
     resources::DeltaTime,
     states,
@@ -122,6 +122,7 @@ pub struct PhysicsRead<'a> {
     masses: ReadStorage<'a, Mass>,
     colliders: ReadStorage<'a, Collider>,
     is_ridings: ReadStorage<'a, Is<Rider>>,
+    is_volume_ridings: ReadStorage<'a, Is<VolumeRider>>,
     projectiles: ReadStorage<'a, Projectile>,
     char_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
@@ -335,6 +336,7 @@ impl<'a> PhysicsData<'a> {
             &read.masses,
             &read.colliders,
             read.is_ridings.maybe(),
+            read.is_volume_ridings.maybe(),
             read.stickies.maybe(),
             read.immovables.maybe(),
             &mut write.physics_states,
@@ -359,6 +361,7 @@ impl<'a> PhysicsData<'a> {
                     mass,
                     collider,
                     is_riding,
+                    is_volume_riding,
                     sticky,
                     immovable,
                     physics,
@@ -491,7 +494,9 @@ impl<'a> PhysicsData<'a> {
                                             mass: *mass_other,
                                         },
                                         vel,
-                                        is_riding.is_some() || other_is_riding_maybe.is_some(),
+                                        is_riding.is_some()
+                                            || is_volume_riding.is_some()
+                                            || other_is_riding_maybe.is_some(),
                                     );
                                 }
                             },
@@ -546,11 +551,7 @@ impl<'a> PhysicsData<'a> {
         )
             .join()
         {
-            let vol = match collider {
-                Collider::Voxel { id } => voxel_colliders_manifest.colliders.get(id),
-                Collider::Volume(vol) => Some(&**vol),
-                _ => None,
-            };
+            let vol = collider.get_vol(&voxel_colliders_manifest);
 
             if let Some(vol) = vol {
                 let sphere = voxel_collider_bounding_sphere(vol, pos, ori);
@@ -587,6 +588,7 @@ impl<'a> PhysicsData<'a> {
             !&write.pos_vel_ori_defers, // This is the one we are adding
             write.previous_phys_cache.mask(),
             !&read.is_ridings,
+            !&read.is_volume_ridings,
         )
             .join()
             .map(|t| (t.0, *t.2, *t.3, *t.4))
@@ -619,6 +621,7 @@ impl<'a> PhysicsData<'a> {
             &read.densities,
             read.scales.maybe(),
             !&read.is_ridings,
+            !&read.is_volume_ridings,
         )
             .par_join()
             .for_each_init(
@@ -637,6 +640,7 @@ impl<'a> PhysicsData<'a> {
                     mass,
                     density,
                     scale,
+                    _,
                     _,
                 )| {
                     let in_loaded_chunk = read
@@ -749,6 +753,7 @@ impl<'a> PhysicsData<'a> {
             &mut write.pos_vel_ori_defers,
             previous_phys_cache,
             !&read.is_ridings,
+            !&read.is_volume_ridings,
         )
             .par_join()
             .filter(|tuple| tuple.3.is_voxel() == terrain_like_entities)
@@ -771,6 +776,7 @@ impl<'a> PhysicsData<'a> {
                     mut physics_state,
                     pos_vel_ori_defer,
                     previous_cache,
+                    _,
                     _,
                 )| {
                     let mut land_on_ground = None;
@@ -1061,13 +1067,8 @@ impl<'a> PhysicsData<'a> {
                                     return;
                                 }
 
-                                let voxel_collider = match collider_other {
-                                    Collider::Voxel { id } => {
-                                        voxel_colliders_manifest.colliders.get(id)
-                                    },
-                                    Collider::Volume(vol) => Some(&**vol),
-                                    _ => None,
-                                };
+                                let voxel_collider =
+                                    collider_other.get_vol(&voxel_colliders_manifest);
 
                                 // use bounding cylinder regardless of our collider
                                 // TODO: extract point-terrain collision above to its own

@@ -1,4 +1,4 @@
-use crate::vol::{BaseVol, ReadVol, SizedVol, Vox};
+use crate::vol::{BaseVol, FilledVox, ReadVol, SizedVol};
 use vek::*;
 
 pub struct Scaled<V> {
@@ -13,7 +13,7 @@ impl<V: BaseVol> BaseVol for Scaled<V> {
 
 impl<V: ReadVol> ReadVol for Scaled<V>
 where
-    V::Vox: Vox,
+    V::Vox: FilledVox,
 {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
@@ -43,7 +43,7 @@ where
             })
             .flatten()
             .map(|offs| self.inner.get(pos + offs))
-            .find(|vox| vox.as_ref().map(|v| !v.is_empty()).unwrap_or(false))
+            .find(|vox| vox.as_ref().map_or(false, |v| v.is_filled()))
             .unwrap_or_else(|| self.inner.get(pos))
     }
 }

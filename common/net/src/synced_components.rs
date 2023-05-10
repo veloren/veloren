@@ -34,6 +34,7 @@ macro_rules! synced_components {
             group: Group,
             is_mount: IsMount,
             is_rider: IsRider,
+            is_volume_rider: IsVolumeRider,
             mass: Mass,
             density: Density,
             collider: Collider,
@@ -72,7 +73,7 @@ macro_rules! reexport_comps {
         mod inner {
             pub use common::comp::*;
             use common::link::Is;
-            use common::mounting::{Mount, Rider};
+            use common::mounting::{Mount, Rider, VolumeRider};
 
             // We alias these because the identifier used for the
             // component's type is reused as an enum variant name
@@ -82,6 +83,7 @@ macro_rules! reexport_comps {
             // we can't just re-export all the types directly from `common::comp`.
             pub type IsMount = Is<Mount>;
             pub type IsRider = Is<Rider>;
+            pub type IsVolumeRider = Is<VolumeRider>;
         }
 
         // Re-export all the component types. So that uses of `synced_components!` outside this
@@ -175,6 +177,10 @@ impl NetSync for IsMount {
 }
 
 impl NetSync for IsRider {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for IsVolumeRider {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

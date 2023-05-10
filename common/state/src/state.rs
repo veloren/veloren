@@ -9,7 +9,7 @@ use common::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     link::Is,
-    mounting::{Mount, Rider},
+    mounting::{Mount, Rider, VolumeRider, VolumeRiders},
     outcome::Outcome,
     region::RegionMap,
     resources::{
@@ -201,6 +201,7 @@ impl State {
         ecs.register::<comp::Scale>();
         ecs.register::<Is<Mount>>();
         ecs.register::<Is<Rider>>();
+        ecs.register::<Is<VolumeRider>>();
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Density>();
         ecs.register::<comp::Collider>();
@@ -260,6 +261,7 @@ impl State {
         ecs.register::<comp::invite::Invite>();
         ecs.register::<comp::invite::PendingInvites>();
         ecs.register::<comp::Beam>();
+        ecs.register::<VolumeRiders>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
@@ -294,6 +296,7 @@ impl State {
         ecs.insert(PhysicsMetrics::default());
         ecs.insert(Trades::default());
         ecs.insert(PlayerPhysicsSettings::default());
+        ecs.insert(VolumeRiders::default());
 
         // Load plugins from asset directory
         #[cfg(feature = "plugins")]

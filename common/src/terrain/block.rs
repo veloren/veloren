@@ -4,6 +4,7 @@ use crate::{
     consts::FRIC_GROUND,
     lottery::LootSpec,
     make_case_elim, rtsim,
+    vol::FilledVox,
 };
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
@@ -115,6 +116,12 @@ impl BlockKind {
 pub struct Block {
     kind: BlockKind,
     attr: [u8; 3],
+}
+
+impl FilledVox for Block {
+    fn default_non_filled() -> Self { Block::air(SpriteKind::Empty) }
+
+    fn is_filled(&self) -> bool { self.kind.is_filled() }
 }
 
 impl Deref for Block {
@@ -418,6 +425,19 @@ impl Block {
     #[inline]
     pub fn is_collectible(&self) -> bool {
         self.collectible_id().is_some() && self.mine_tool().is_none()
+    }
+
+    #[inline]
+    pub fn is_mountable(&self) -> bool { self.mount_offset().is_some() }
+
+    /// Get the position and direction to mount this block if any.
+    pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
+        self.get_sprite().and_then(|sprite| sprite.mount_offset())
+    }
+
+    pub fn is_controller(&self) -> bool {
+        self.get_sprite()
+            .map_or(false, |sprite| sprite.is_controller())
     }
 
     #[inline]

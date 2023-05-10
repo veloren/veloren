@@ -1,6 +1,6 @@
 use std::num::NonZeroU8;
 
-use crate::vol::Vox;
+use crate::vol::FilledVox;
 use vek::*;
 
 const GLOWY: u8 = 1 << 1;
@@ -72,15 +72,10 @@ impl Cell {
     }
 }
 
-impl Vox for Cell {
-    fn empty() -> Self { Cell::Empty }
+impl FilledVox for Cell {
+    fn default_non_filled() -> Self { Cell::Empty }
 
-    fn is_empty(&self) -> bool {
-        match self {
-            Cell::Filled(_) => false,
-            Cell::Empty => true,
-        }
-    }
+    fn is_filled(&self) -> bool { matches!(self, Cell::Filled(_)) }
 }
 
 #[cfg(test)]

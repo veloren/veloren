@@ -9,7 +9,7 @@ use crate::{
         Stats, Vel,
     },
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
     uid::Uid,
@@ -97,7 +97,7 @@ pub trait CharacterBehavior {
             ControlAction::Sit => self.sit(data, output_events),
             ControlAction::Dance => self.dance(data, output_events),
             ControlAction::Sneak => {
-                if data.mount_data.is_none() {
+                if data.mount_data.is_none() && data.volume_mount_data.is_none() {
                     self.sneak(data, output_events)
                 } else {
                     self.stand(data, output_events)
@@ -147,6 +147,7 @@ pub struct JoinData<'a> {
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
+    pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
 }
 
@@ -176,6 +177,7 @@ pub struct JoinStruct<'a> {
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
     pub mount_data: Option<&'a Is<Rider>>,
+    pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
 }
 
@@ -219,6 +221,7 @@ impl<'a> JoinData<'a> {
             terrain: j.terrain,
             active_abilities: j.active_abilities,
             mount_data: j.mount_data,
+            volume_mount_data: j.volume_mount_data,
             stance: j.stance,
         }
     }

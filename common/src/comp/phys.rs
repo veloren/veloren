@@ -1,4 +1,4 @@
-use super::{Fluid, Ori};
+use super::{ship::figuredata::ShipSpec, Fluid, Ori};
 use crate::{
     comp::{body::ship::figuredata::VoxelCollider, inventory::item::armor::Friction},
     consts::WATER_DENSITY,
@@ -126,6 +126,14 @@ pub enum Collider {
 
 impl Collider {
     pub fn is_voxel(&self) -> bool { matches!(self, Collider::Voxel { .. } | Collider::Volume(_)) }
+
+    pub fn get_vol<'a>(&'a self, ship_spec: &'a ShipSpec) -> Option<&'a VoxelCollider> {
+        match self {
+            Collider::Voxel { id } => ship_spec.colliders.get(id),
+            Collider::Volume(vol) => Some(&**vol),
+            _ => None,
+        }
+    }
 
     pub fn bounding_radius(&self) -> f32 {
         match self {

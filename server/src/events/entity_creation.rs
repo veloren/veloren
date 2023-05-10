@@ -9,16 +9,18 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        ship::figuredata::VOXEL_COLLIDER_MANIFEST,
         shockwave, Alignment, BehaviorCapability, Body, ItemDrops, LightEmitter, Object, Ori, Pos,
         Projectile, TradingBehavior, Vel, WaypointArea,
     },
     event::{EventBus, NpcBuilder, UpdateCharacterMetadata},
-    mounting::Mounting,
+    mounting::{Mounting, Volume, VolumeMounting, VolumePos},
     outcome::Outcome,
     resources::{Secs, Time},
     rtsim::RtSimVehicle,
     uid::Uid,
     util::Dir,
+    vol::IntoFullVolIterator,
     ViewDistances,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
@@ -200,9 +202,30 @@ pub fn handle_create_ship(
     driver: Option<NpcBuilder>,
     passengers: Vec<NpcBuilder>,
 ) {
-    let mut entity = server
-        .state
-        .create_ship(pos, ori, ship, |ship| ship.make_collider());
+    let collider = ship.make_collider();
+    let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
+    // TODO: Find better solution for this, maybe something like a serverside block
+    // of interests.
+    let (mut steering, mut seats) = {
+        let mut steering = Vec::new();
+        let mut seats = Vec::new();
+
+        for (pos, block) in collider
+            .get_vol(&voxel_colliders_manifest)
+            .iter()
+            .flat_map(|voxel_collider| voxel_collider.volume().full_vol_iter())
+        {
+            match (block.is_controller(), block.is_mountable()) {
+                (true, true) => steering.push((pos, *block)),
+                (false, true) => seats.push((pos, *block)),
+                _ => {},
+            }
+        }
+        (steering.into_iter(), seats.into_iter())
+    };
+
+    let mut entity = server.state.create_ship(pos, ori, ship, |_| collider);
     /*
     if let Some(mut agent) = agent {
         let (kp, ki, kd) = pid_coefficients(&Body::Ship(ship));
@@ -221,10 +244,26 @@ pub fn handle_create_ship(
         let npc_entity = handle_create_npc(server, pos, driver);
 
         let uids = server.state.ecs().read_storage::<Uid>();
-        if let (Some(rider_uid), Some(mount_uid)) =
-            (uids.get(npc_entity).copied(), uids.get(entity).copied())
-        {
-            drop(uids);
+        let (rider_uid, mount_uid) = uids
+            .get(npc_entity)
+            .copied()
+            .zip(uids.get(entity).copied())
+            .expect("Couldn't get Uid from newly created ship and npc");
+        drop(uids);
+
+        if let Some((steering_pos, steering_block)) = steering.next() {
+            server
+                .state
+                .link(VolumeMounting {
+                    pos: VolumePos {
+                        kind: Volume::Entity(mount_uid),
+                        pos: steering_pos,
+                    },
+                    block: steering_block,
+                    rider: rider_uid,
+                })
+                .expect("Failed to link driver to ship");
+        } else {
             server
                 .state
                 .link(Mounting {
@@ -232,13 +271,32 @@ pub fn handle_create_ship(
                     rider: rider_uid,
                 })
                 .expect("Failed to link driver to ship");
-        } else {
-            panic!("Couldn't get Uid from newly created ship and npc");
         }
     }
 
     for passenger in passengers {
-        handle_create_npc(server, Pos(pos.0 + Vec3::unit_z() * 5.0), passenger);
+        let npc_entity = handle_create_npc(server, Pos(pos.0 + Vec3::unit_z() * 5.0), passenger);
+        if let Some((rider_pos, rider_block)) = seats.next() {
+            let uids = server.state.ecs().read_storage::<Uid>();
+            let (rider_uid, mount_uid) = uids
+                .get(npc_entity)
+                .copied()
+                .zip(uids.get(entity).copied())
+                .expect("Couldn't get Uid from newly created ship and npc");
+            drop(uids);
+
+            server
+                .state
+                .link(VolumeMounting {
+                    pos: VolumePos {
+                        kind: Volume::Entity(mount_uid),
+                        pos: rider_pos,
+                    },
+                    block: rider_block,
+                    rider: rider_uid,
+                })
+                .expect("Failed to link passanger to ship");
+        }
     }
 }
 

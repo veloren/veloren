@@ -11,9 +11,9 @@ use crate::{
     render::{
         pipelines::{self, ColLights},
         AltIndices, ColLightInfo, CullingMode, FirstPassDrawer, FluidVertex, GlobalModel,
-        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup,
-        SpriteInstance, SpriteVertex, SpriteVerts, TerrainLocals, TerrainShadowDrawer,
-        TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteDrawer,
+        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts, TerrainLocals,
+        TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -45,7 +45,7 @@ use treeculler::{BVol, Frustum, AABB};
 use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
-const SPRITE_LOD_LEVELS: usize = 5;
+pub const SPRITE_LOD_LEVELS: usize = 5;
 
 // For rain occlusion we only need to render the closest chunks.
 /// How many chunks are maximally rendered for rain occlusion.
@@ -182,7 +182,7 @@ struct SpriteConfig<Model> {
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
 #[derive(Deserialize)]
 #[serde(try_from = "HashMap<SpriteKind, Option<SpriteConfig<String>>>")]
-struct SpriteSpec([Option<SpriteConfig<String>>; 256]);
+pub struct SpriteSpec([Option<SpriteConfig<String>>; 256]);
 
 impl SpriteSpec {
     fn get(&self, kind: SpriteKind) -> Option<&SpriteConfig<String>> {
@@ -240,6 +240,76 @@ impl assets::Asset for SpriteSpec {
     const EXTENSION: &'static str = "ron";
 }
 
+pub fn get_sprite_instances<'a, I: 'a>(
+    lod_levels: &'a mut [I; SPRITE_LOD_LEVELS],
+    set_instance: impl Fn(&mut I, SpriteInstance, Vec3<i32>),
+    blocks: impl Iterator<Item = (Vec3<f32>, Block)>,
+    mut to_wpos: impl FnMut(Vec3<f32>) -> Vec3<i32>,
+    mut light_map: impl FnMut(Vec3<i32>) -> f32,
+    mut glow_map: impl FnMut(Vec3<i32>) -> f32,
+    sprite_data: &HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>,
+    sprite_config: &SpriteSpec,
+) {
+    prof_span!("extract sprite_instances");
+    for (rel_pos, block) in blocks {
+        let Some(sprite) = block.get_sprite() else {
+            continue;
+        };
+
+        let Some(cfg) = sprite_config.get(sprite) else {
+            continue;
+        };
+
+        let wpos = to_wpos(rel_pos);
+        let seed = (wpos.x as u64)
+            .overflowing_mul(3)
+            .0
+            .overflowing_add((wpos.y as u64).overflowing_mul(7).0)
+            .0
+            .overflowing_add((wpos.x as u64).overflowing_mul(wpos.y as u64).0)
+            .0; // Awful PRNG
+
+        let ori = (block.get_ori().unwrap_or((seed % 4) as u8 * 2)) & 0b111;
+        let variation = seed as usize % cfg.variations.len();
+        let key = (sprite, variation);
+
+        // NOTE: Safe because we called sprite_config_for already.
+        // NOTE: Safe because 0 ≤ ori < 8
+        let light = light_map(wpos);
+        let glow = glow_map(wpos);
+
+        for (lod_level, sprite_data) in lod_levels.iter_mut().zip(&sprite_data[&key]) {
+            let mat = Mat4::identity()
+                // Scaling for different LOD resolutions
+                .scaled_3d(sprite_data.scale)
+                // Offset
+                .translated_3d(sprite_data.offset)
+                .scaled_3d(SPRITE_SCALE)
+                .rotated_z(f32::consts::PI * 0.25 * ori as f32)
+                .translated_3d(
+                    rel_pos + Vec3::new(0.5, 0.5, 0.0)
+                );
+            // Add an instance for each page in the sprite model
+            for page in sprite_data.vert_pages.clone() {
+                // TODO: could be more efficient to create once and clone while
+                // modifying vert_page
+                let instance = SpriteInstance::new(
+                    mat,
+                    cfg.wind_sway,
+                    sprite_data.scale.z,
+                    rel_pos.as_(),
+                    ori,
+                    light,
+                    glow,
+                    page,
+                    sprite.is_door(),
+                );
+                set_instance(lod_level, instance, wpos);
+            }
+        }
+    }
+}
+
 /// Function executed by worker threads dedicated to chunk meshing.
 
 /// skip_remesh is either None (do the full remesh, including recomputing the
@@ -257,7 +327,12 @@ fn mesh_worker(
     sprite_config: &SpriteSpec,
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
-    let blocks_of_interest = BlocksOfInterest::from_chunk(&chunk);
+    let blocks_of_interest = BlocksOfInterest::from_blocks(
+        chunk.iter_changed().map(|(pos, block)| (pos, *block)),
+        chunk.meta().river_velocity().magnitude_squared(),
+        chunk.meta().temp(),
+        chunk.meta().humidity(),
+    );
 
     let mesh;
     let (light_map, glow_map) = if let Some((light_map, glow_map)) = &skip_remesh {
@@ -292,7 +367,9 @@ fn mesh_worker(
         let mesh = mesh.as_ref().unwrap();
         (&*mesh.light_map, &*mesh.glow_map)
     };
-
+    let to_wpos = |rel_pos: Vec3<f32>| {
+        Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos.as_()
+    };
     MeshWorkerResponse {
         pos,
         // Extract sprite locations from volume
@@ -312,77 +389,31 @@ fn mesh_worker(
                     (c.meta().alt() - SHALLOW_ALT, c.meta().alt() - DEEP_ALT)
                 });
 
-            for x in 0..TerrainChunk::RECT_SIZE.x as i32 {
-                for y in 0..TerrainChunk::RECT_SIZE.y as i32 {
-                    for z in z_bounds.0 as i32..z_bounds.1 as i32 + 1 {
-                        let rel_pos = Vec3::new(x, y, z);
-                        let wpos = Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32))
-                            + rel_pos;
-
-                        let block = if let Ok(block) = volume.get(wpos) {
-                            block
-                        } else {
-                            continue;
-                        };
-                        let sprite = if let Some(sprite) = block.get_sprite() {
-                            sprite
-                        } else {
-                            continue;
-                        };
-
-                        if let Some(cfg) = sprite_config.get(sprite) {
-                            let seed = wpos.x as u64 * 3
-                                + wpos.y as u64 * 7
-                                + wpos.x as u64 * wpos.y as u64; // Awful PRNG
-                            let ori = (block.get_ori().unwrap_or((seed % 4) as u8 * 2)) & 0b111;
-                            let variation = seed as usize % cfg.variations.len();
-                            let key = (sprite, variation);
-                            // NOTE: Safe because we called sprite_config_for already.
-                            // NOTE: Safe because 0 ≤ ori < 8
-                            let light = light_map(wpos);
-                            let glow = glow_map(wpos);
-
-                            for ((deep_level, shallow_level, surface_level), sprite_data) in
-                                instances.iter_mut().zip(&sprite_data[&key])
-                            {
-                                let mat = Mat4::identity()
-                                    // Scaling for different LOD resolutions
-                                    .scaled_3d(sprite_data.scale)
-                                    // Offset
-                                    .translated_3d(sprite_data.offset)
-                                    .scaled_3d(SPRITE_SCALE)
-                                    .rotated_z(f32::consts::PI * 0.25 * ori as f32)
-                                    .translated_3d(
-                                        rel_pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)
-                                    );
-                                // Add an instance for each page in the sprite model
-                                for page in sprite_data.vert_pages.clone() {
-                                    // TODO: could be more efficient to create once and clone while
-                                    // modifying vert_page
-                                    let instance = SpriteInstance::new(
-                                        mat,
-                                        cfg.wind_sway,
-                                        sprite_data.scale.z,
-                                        rel_pos,
-                                        ori,
-                                        light,
-                                        glow,
-                                        page,
-                                        matches!(sprite, SpriteKind::Door | SpriteKind::DoorDark),
-                                    );
-                                    if (wpos.z as f32) < deep_alt {
-                                        deep_level.push(instance);
-                                    } else if wpos.z as f32 > underground_alt {
-                                        surface_level.push(instance);
-                                    } else {
-                                        shallow_level.push(instance);
-                                    }
-                                }
-                            }
-                        }
+            get_sprite_instances(
+                &mut instances,
+                |(deep_level, shallow_level, surface_level), instance, wpos| {
+                    if (wpos.z as f32) < deep_alt {
+                        deep_level.push(instance);
+                    } else if wpos.z as f32 > underground_alt {
+                        surface_level.push(instance);
+                    } else {
+                        shallow_level.push(instance);
                     }
-                }
-            }
+                },
+                (0..TerrainChunk::RECT_SIZE.x as i32)
+                    .flat_map(|x| {
+                        (0..TerrainChunk::RECT_SIZE.y as i32).flat_map(move |y| {
+                            (z_bounds.0 as i32..z_bounds.1 as i32)
+                                .map(move |z| Vec3::new(x, y, z).as_())
+                        })
+                    })
+                    .filter_map(|rel_pos| Some((rel_pos, *volume.get(to_wpos(rel_pos)).ok()?))),
+                to_wpos,
+                light_map,
+                glow_map,
+                sprite_data,
+                sprite_config,
+            );
 
             instances.map(|(deep_level, shallow_level, surface_level)| {
                 let deep_end = deep_level.len();
@@ -406,7 +437,7 @@ fn mesh_worker(
     }
 }
 
-struct SpriteData {
+pub struct SpriteData {
     // Sprite vert page ranges that need to be drawn
     vert_pages: core::ops::Range<u32>,
     // Scale
@@ -433,7 +464,7 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     /// FIXME: This could possibly become an `AssetHandle<SpriteSpec>`, to get
     /// hot-reloading for free, but I am not sure if sudden changes of this
     /// value would break something
-    sprite_config: Arc<SpriteSpec>,
+    pub sprite_config: Arc<SpriteSpec>,
     chunks: HashMap<Vec2<i32>, TerrainChunkData>,
     /// Temporary storage for dead chunks that might still be shadowing chunks
     /// in view.  We wait until either the chunk definitely cannot be
@@ -463,9 +494,9 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
 
     // GPU data
     // Maps sprite kind + variant to data detailing how to render it
-    sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
-    sprite_globals: SpriteGlobalsBindGroup,
-    sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
+    pub sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
+    pub sprite_globals: SpriteGlobalsBindGroup,
+    pub sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
     /// As stated previously, this is always the very latest texture into which
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
@@ -1207,12 +1238,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
                     let sprite_instances =
                         response.sprite_instances.map(|(instances, alt_indices)| {
-                            (
-                                renderer
-                                    .create_instances(&instances)
-                                    .expect("Failed to upload chunk sprite instances to the GPU!"),
-                                alt_indices,
-                            )
+                            (renderer.create_instances(&instances), alt_indices)
                         });
 
                     if let Some(mesh) = response.mesh {
@@ -1282,6 +1308,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                         e as f32 * sz as f32
                                     }),
                                 ),
+                                Quaternion::identity(),
                                 atlas_offs,
                                 load_time,
                             )]),
@@ -1694,15 +1721,16 @@ impl<V: RectRasterableVol> Terrain<V> {
             });
     }
 
-    pub fn render_translucent<'a>(
+    pub fn render_sprites<'a>(
         &'a self,
-        drawer: &mut FirstPassDrawer<'a>,
+        sprite_drawer: &mut SpriteDrawer<'_, 'a>,
         focus_pos: Vec3<f32>,
         cam_pos: Vec3<f32>,
         sprite_render_distance: f32,
         culling_mode: CullingMode,
     ) {
-        span!(_guard, "render_translucent", "Terrain::render_translucent");
+        span!(_guard, "render_sprites", "Terrain::render_sprites");
+
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
@@ -1715,9 +1743,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .take(self.chunks.len());
 
-        // Terrain sprites
-        // TODO: move to separate functions
-        span!(guard, "Terrain sprites");
         let chunk_size = V::RECT_SIZE.map(|e| e as f32);
 
         let sprite_low_detail_distance = sprite_render_distance * 0.75;
@@ -1725,7 +1750,6 @@ impl<V: RectRasterableVol> Terrain<V> {
         let sprite_hid_detail_distance = sprite_render_distance * 0.35;
         let sprite_high_detail_distance = sprite_render_distance * 0.15;
 
-        let mut sprite_drawer = drawer.draw_sprites(&self.sprite_globals, &self.sprite_col_lights);
         chunk_iter
             .clone()
             .filter(|(_, _, c)| c.visible.is_visible())
@@ -1772,15 +1796,32 @@ impl<V: RectRasterableVol> Terrain<V> {
                     );
                 }
             });
-        drop(sprite_drawer);
-        drop(guard);
+    }
+
+    pub fn render_translucent<'a>(
+        &'a self,
+        drawer: &mut FirstPassDrawer<'a>,
+        focus_pos: Vec3<f32>,
+    ) {
+        span!(_guard, "render_translucent", "Terrain::render_translucent");
+        let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
+            (e as i32).div_euclid(sz as i32)
+        });
+
+        // Avoid switching textures
+        let chunk_iter = Spiral2d::new()
+            .filter_map(|rpos| {
+                let pos = focus_chunk + rpos;
+                self.chunks.get(&pos).map(|c| (pos, c))
+            })
+            .take(self.chunks.len());
 
         // Translucent
         span!(guard, "Fluid chunks");
         let mut fluid_drawer = drawer.draw_fluid();
         chunk_iter
-            .filter(|(_, _, chunk)| chunk.visible.is_visible())
-            .filter_map(|(_, _, chunk)| {
+            .filter(|(_, chunk)| chunk.visible.is_visible())
+            .filter_map(|(_, chunk)| {
                 chunk
                     .fluid_model
                     .as_ref()

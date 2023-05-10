@@ -25,6 +25,7 @@ use common::{
         slot::{InvSlotId, Slot},
         Inventory,
     },
+    mounting::VolumePos,
     recipe::{ComponentKey, Recipe, RecipeInput},
     terrain::SpriteKind,
 };
@@ -123,7 +124,7 @@ pub enum Event {
 pub struct CraftingShow {
     pub crafting_tab: CraftingTab,
     pub crafting_search_key: Option<String>,
-    pub craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    pub craft_sprite: Option<(VolumePos, SpriteKind)>,
     pub salvage: bool,
     pub initialize_repair: bool,
     // TODO: Maybe try to do something that doesn't need to allocate?

@@ -8,7 +8,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     resources::{PlayerPhysicsSetting, PlayerPhysicsSettings},
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
@@ -52,6 +52,7 @@ impl Sys {
         terrain: &ReadExpect<'_, TerrainGrid>,
         can_build: &ReadStorage<'_, CanBuild>,
         is_rider: &ReadStorage<'_, Is<Rider>>,
+        is_volume_rider: &ReadStorage<'_, Is<VolumeRider>>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
         skill_set: &mut Option<Cow<'_, SkillSet>>,
         healths: &ReadStorage<'_, Health>,
@@ -126,6 +127,7 @@ impl Sys {
                     && force_updates.get(entity).map_or(true, |force_update| force_update.counter() == force_counter)
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && is_rider.get(entity).is_none()
+                    && is_volume_rider.get(entity).is_none()
                     && player_physics_setting
                         .as_ref()
                         .map_or(true, |s| s.client_authoritative())
@@ -322,6 +324,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
         ReadStorage<'a, Is<Rider>>,
+        ReadStorage<'a, Is<VolumeRider>>,
         WriteStorage<'a, SkillSet>,
         ReadStorage<'a, Health>,
         Write<'a, BlockChange>,
@@ -353,6 +356,7 @@ impl<'a> System<'a> for Sys {
             can_build,
             force_updates,
             is_rider,
+            is_volume_rider,
             mut skill_sets,
             healths,
             mut block_changes,
@@ -430,6 +434,7 @@ impl<'a> System<'a> for Sys {
                             &terrain,
                             &can_build,
                             &is_rider,
+                            &is_volume_rider,
                             &force_updates,
                             &mut skill_set,
                             &healths,

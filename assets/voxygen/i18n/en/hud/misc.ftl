@@ -52,3 +52,4 @@ hud-talk = Talk
 hud-trade = Trade
 hud-mount = Mount
 hud-sit = Sit
+hud-steer = Steer

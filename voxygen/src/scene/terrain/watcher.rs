@@ -1,5 +1,5 @@
 use crate::hud::CraftingTab;
-use common::terrain::{BlockKind, SpriteKind, TerrainChunk};
+use common::terrain::{Block, BlockKind, SpriteKind};
 use common_base::span;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -11,6 +11,7 @@ pub enum Interaction {
     /// twigs).
     Collect,
     Craft(CraftingTab),
+    Mount,
 }
 
 pub enum FireplaceType {
@@ -57,7 +58,12 @@ pub struct BlocksOfInterest {
 }
 
 impl BlocksOfInterest {
-    pub fn from_chunk(chunk: &TerrainChunk) -> Self {
+    pub fn from_blocks(
+        blocks: impl Iterator<Item = (Vec3<i32>, Block)>,
+        river_speed_sq: f32,
+        temperature: f32,
+        humidity: f32,
+    ) -> Self {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
         let mut drip = Vec::new();
@@ -84,9 +90,7 @@ impl BlocksOfInterest {
 
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
-        let river_speed_sq = chunk.meta().river_velocity().magnitude_squared();
-
-        chunk.iter_changed().for_each(|(pos, block)| {
+        blocks.for_each(|(pos, block)| {
             match block.kind() {
                 BlockKind::Leaves if rng.gen_range(0..16) == 0 => leaves.push(pos),
                 BlockKind::WeakRock if rng.gen_range(0..6) == 0 => drip.push(pos),
@@ -168,6 +172,7 @@ impl BlocksOfInterest {
                     Some(SpriteKind::RepairBench) => {
                         interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
+                    _ if block.is_mountable() => interactables.push((pos, Interaction::Mount)),
                     _ => {},
                 },
             }
@@ -214,8 +219,8 @@ impl BlocksOfInterest {
             frogs,
             interactables,
             lights,
-            temperature: chunk.meta().temp(),
-            humidity: chunk.meta().humidity(),
+            temperature,
+            humidity,
         }
     }
 }

@@ -12,6 +12,7 @@ use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt};
 use strum::EnumIter;
+use vek::Vec3;
 
 make_case_elim!(
     sprite_kind,
@@ -241,6 +242,8 @@ make_case_elim!(
         KeyDoor = 0xD8,
         CommonLockedChest = 0xD9,
         RepairBench = 0xDA,
+        Helm = 0xDB,
+        DoorWide = 0xDC,
     }
 );
 
@@ -374,6 +377,7 @@ impl SpriteKind {
             SpriteKind::Bamboo => 9.0 / 11.0,
             SpriteKind::MagicalBarrier => 3.0,
             SpriteKind::MagicalSeal => 1.0,
+            SpriteKind::Helm => 1.7,
             _ => return None,
         })
     }
@@ -472,6 +476,44 @@ impl SpriteKind {
     #[inline]
     pub fn is_container(&self) -> bool {
         matches!(self.collectible_id(), Some(Some(LootSpec::LootTable(_))))
+    }
+
+    /// Get the position and direction to mount this sprite if any.
+    #[inline]
+    pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
+        match self {
+            SpriteKind::ChairSingle | SpriteKind::ChairDouble | SpriteKind::Bench => Some((
+                Vec3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.5,
+                },
+                -Vec3::unit_y(),
+            )),
+            SpriteKind::Helm => Some((
+                Vec3 {
+                    x: 0.0,
+                    y: -0.6,
+                    z: 0.2,
+                },
+                Vec3::unit_y(),
+            )),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn is_mountable(&self) -> bool { self.mount_offset().is_some() }
+
+    #[inline]
+    pub fn is_controller(&self) -> bool { matches!(self, SpriteKind::Helm) }
+
+    #[inline]
+    pub fn is_door(&self) -> bool {
+        matches!(
+            self,
+            SpriteKind::Door | SpriteKind::DoorWide | SpriteKind::DoorDark
+        )
     }
 
     /// Which tool (if any) is needed to collect this sprite?
@@ -603,6 +645,8 @@ impl SpriteKind {
                 | SpriteKind::Grave
                 | SpriteKind::Gravestone
                 | SpriteKind::MagicalBarrier
+                | SpriteKind::Helm
+                | SpriteKind::DoorWide,
         )
     }
 }

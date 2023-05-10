@@ -138,9 +138,7 @@ impl Lod {
                     .into_iter()
                     .map(|(kind, instances)| {
                         (kind, ObjectGroup {
-                            instances: renderer
-                                .create_instances(&instances)
-                                .expect("Renderer error?!"),
+                            instances: renderer.create_instances(&instances),
                             z_range: z_range.clone(),
                             frustum_last_plane_index: 0,
                             visible: false,

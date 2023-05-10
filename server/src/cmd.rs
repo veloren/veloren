@@ -40,7 +40,7 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::{EntityConfig, EntityInfo},
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
@@ -227,21 +227,47 @@ fn position_mut<T>(
     server: &mut Server,
     entity: EcsEntity,
     descriptor: &str,
+    dismount_volume: Option<bool>,
     f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
 ) -> CmdResult<T> {
-    let entity = server
-        .state
-        .ecs()
-        .read_storage::<Is<Rider>>()
-        .get(entity)
-        .and_then(|is_rider| {
-            server
+    let entity = if dismount_volume.unwrap_or(true) {
+        server
+            .state
+            .ecs()
+            .write_storage::<Is<VolumeRider>>()
+            .remove(entity);
+        entity
+    } else {
+        server
+            .state
+            .read_storage::<Is<Rider>>()
+            .get(entity)
+            .and_then(|is_rider| {
+                server
+                    .state
+                    .ecs()
+                    .read_resource::<UidAllocator>()
+                    .retrieve_entity_internal(is_rider.mount.into())
+            })
+            .or(server
                 .state
-                .ecs()
-                .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(is_rider.mount.into())
-        })
-        .unwrap_or(entity);
+                .read_storage::<Is<VolumeRider>>()
+                .get(entity)
+                .and_then(|volume_rider| {
+                    Some(match volume_rider.pos.kind {
+                        common::mounting::Volume::Terrain => {
+                            Err("Tried to move the world.".to_string())
+                        },
+                        common::mounting::Volume::Entity(uid) => Ok(server
+                            .state
+                            .ecs()
+                            .read_resource::<UidAllocator>()
+                            .retrieve_entity_internal(uid.into())?),
+                    })
+                })
+                .transpose()?)
+            .unwrap_or(entity)
+    };
 
     let mut maybe_pos = None;
 
@@ -829,8 +855,9 @@ fn handle_jump(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(x), Some(y), Some(z)) = parse_cmd_args!(args, f32, f32, f32) {
-        position_mut(server, target, "target", |current_pos| {
+    if let (Some(x), Some(y), Some(z), dismount_volume) = parse_cmd_args!(args, f32, f32, f32, bool)
+    {
+        position_mut(server, target, "target", dismount_volume, |current_pos| {
             current_pos.0 += Vec3::new(x, y, z)
         })
     } else {
@@ -845,8 +872,9 @@ fn handle_goto(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(x), Some(y), Some(z)) = parse_cmd_args!(args, f32, f32, f32) {
-        position_mut(server, target, "target", |current_pos| {
+    if let (Some(x), Some(y), Some(z), dismount_volume) = parse_cmd_args!(args, f32, f32, f32, bool)
+    {
+        position_mut(server, target, "target", dismount_volume, |current_pos| {
             current_pos.0 = Vec3::new(x, y, z)
         })
     } else {
@@ -864,7 +892,7 @@ fn handle_site(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     #[cfg(feature = "worldgen")]
-    if let Some(dest_name) = parse_cmd_args!(args, String) {
+    if let (Some(dest_name), dismount_volume) = parse_cmd_args!(args, String, bool) {
         let site = server
             .world
             .civs()
@@ -881,7 +909,7 @@ fn handle_site(
             false,
         );
 
-        position_mut(server, target, "target", |current_pos| {
+        position_mut(server, target, "target", dismount_volume, |current_pos| {
             current_pos.0 = site_pos
         })
     } else {
@@ -906,7 +934,7 @@ fn handle_respawn(
         .ok_or("No waypoint set")?
         .get_pos();
 
-    position_mut(server, target, "target", |current_pos| {
+    position_mut(server, target, "target", Some(true), |current_pos| {
         current_pos.0 = waypoint;
     })
 }
@@ -1205,7 +1233,8 @@ fn handle_tp(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let player = if let Some(alias) = parse_cmd_args!(args, String) {
+    let (player, dismount_volume) = parse_cmd_args!(args, String, bool);
+    let player = if let Some(alias) = player {
         find_alias(server.state.ecs(), &alias)?.0
     } else if client != target {
         client
@@ -1213,7 +1242,7 @@ fn handle_tp(
         return Err(action.help_string());
     };
     let player_pos = position(server, player, "player")?;
-    position_mut(server, target, "target", |target_pos| {
+    position_mut(server, target, "target", dismount_volume, |target_pos| {
         *target_pos = player_pos
     })
 }
@@ -1226,7 +1255,8 @@ fn handle_rtsim_tp(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::RtSim;
-    let pos = if let Some(id) = parse_cmd_args!(args, u32) {
+    let (npc_index, dismount_volume) = parse_cmd_args!(args, u32, bool);
+    let pos = if let Some(id) = npc_index {
         // TODO: Take some other identifier than an integer to this command.
         server
             .state
@@ -1242,7 +1272,7 @@ fn handle_rtsim_tp(
     } else {
         return Err(action.help_string());
     };
-    position_mut(server, target, "target", |target_pos| {
+    position_mut(server, target, "target", dismount_volume, |target_pos| {
         target_pos.0 = pos;
     })
 }
@@ -1689,7 +1719,7 @@ fn handle_make_volume(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: Vec<String>,
+    args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use comp::body::ship::figuredata::VoxelCollider;
@@ -1697,7 +1727,11 @@ fn handle_make_volume(
     //let () = parse_args!(args);
     let pos = position(server, target, "target")?;
     let ship = comp::ship::Body::Volume;
-    let sz = Vec3::new(15, 15, 15);
+    let sz = parse_cmd_args!(args, u32).unwrap_or(15);
+    if !(1..=127).contains(&sz) {
+        return Err("Size has to be between 1 and 127.".to_string());
+    };
+    let sz = Vec3::broadcast(sz);
     let collider = {
         let terrain = server.state().terrain();
         comp::Collider::Volume(Arc::new(VoxelCollider::from_fn(sz, |rpos| {
@@ -1711,7 +1745,7 @@ fn handle_make_volume(
     server
         .state
         .create_ship(
-            comp::Pos(pos.0 + Vec3::unit_z() * 50.0),
+            comp::Pos(pos.0 + Vec3::unit_z() * (50.0 + sz.z as f32 / 2.0)),
             comp::Ori::default(),
             ship,
             move |_| collider,
@@ -3930,7 +3964,7 @@ fn handle_location(
     if let Some(name) = parse_cmd_args!(args, String) {
         let loc = server.state.ecs().read_resource::<Locations>().get(&name);
         match loc {
-            Ok(loc) => position_mut(server, target, "target", |target_pos| {
+            Ok(loc) => position_mut(server, target, "target", Some(true), |target_pos| {
                 target_pos.0 = loc;
             }),
             Err(e) => Err(e.to_string()),

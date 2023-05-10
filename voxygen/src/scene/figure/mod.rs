@@ -9,9 +9,14 @@ pub use volume::VolumeKey;
 use crate::{
     ecs::comp::Interpolated,
     render::{
-        pipelines::{self, trail, ColLights},
-        ColLightInfo, FigureBoneData, FigureDrawer, FigureLocals, FigureModel, FigureShadowDrawer,
-        Mesh, Quad, RenderError, Renderer, SubModel, TerrainVertex,
+        pipelines::{
+            self,
+            terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
+            trail, ColLights,
+        },
+        AltIndices, ColLightInfo, CullingMode, FigureBoneData, FigureDrawer, FigureLocals,
+        FigureModel, FigureShadowDrawer, Instances, Mesh, Quad, RenderError, Renderer,
+        SpriteDrawer, SpriteInstance, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -33,15 +38,16 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
-        ship, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
-        Item, ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos,
-        Scale, SkillSet, Stance, Vel,
+        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
+        Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, Item,
+        ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale,
+        SkillSet, Stance, Vel,
     },
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
-    terrain::{Block, TerrainChunk, TerrainGrid},
+    terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
     uid::UidAllocator,
     util::Dir,
     vol::{ReadVol, RectRasterableVol},
@@ -61,6 +67,8 @@ use std::sync::Arc;
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
+use super::terrain::{BlocksOfInterest, SPRITE_LOD_LEVELS};
+
 const DAMAGE_FADE_COEFFICIENT: f64 = 15.0;
 const MOVING_THRESHOLD: f32 = 0.2;
 const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
@@ -74,6 +82,14 @@ pub type FigureModelRef<'a> = (
     SubModel<'a, TerrainVertex>,
     &'a ColLights<pipelines::figure::Locals>,
 );
+
+pub trait ModelEntry {
+    fn allocation(&self) -> &guillotiere::Allocation;
+
+    fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>>;
+
+    fn col_lights(&self) -> &ColLights<pipelines::figure::Locals>;
+}
 
 /// An entry holding enough information to draw or destroy a figure in a
 /// particular cache.
@@ -95,13 +111,79 @@ pub struct FigureModelEntry<const N: usize> {
     model: FigureModel,
 }
 
-impl<const N: usize> FigureModelEntry<N> {
-    pub fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>> {
+impl<const N: usize> ModelEntry for FigureModelEntry<N> {
+    fn allocation(&self) -> &guillotiere::Allocation { &self.allocation }
+
+    fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>> {
         // Note: Range doesn't impl Copy even for trivially Cloneable things
         self.model
             .opaque
             .as_ref()
             .map(|m| m.submodel(self.lod_vertex_ranges[lod].clone()))
+    }
+
+    fn col_lights(&self) -> &ColLights<pipelines::figure::Locals> { &self.col_lights }
+}
+
+/// An entry holding enough information to draw or destroy a figure in a
+/// particular cache.
+pub struct TerrainModelEntry<const N: usize> {
+    /// The estimated bounds of this figure, in voxels.  This may not be very
+    /// useful yet.
+    _bounds: math::Aabb<f32>,
+    /// Hypothetical texture atlas allocation data for the current figure.
+    /// Will be useful if we decide to use a packed texture atlas for figures
+    /// like we do for terrain.
+    allocation: guillotiere::Allocation,
+    /// Texture used to store color/light information for this figure entry.
+    /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
+     * LOD levels. */
+    col_lights: ColLights<pipelines::figure::Locals>,
+    /// Vertex ranges stored in this figure entry; there may be several for one
+    /// figure, because of LOD models.
+    lod_vertex_ranges: [Range<u32>; N],
+    model: FigureModel,
+
+    blocks_offset: Vec3<f32>,
+
+    sprite_instances: [Instances<SpriteInstance>; SPRITE_LOD_LEVELS],
+
+    blocks_of_interest: BlocksOfInterest,
+}
+
+impl<const N: usize> ModelEntry for TerrainModelEntry<N> {
+    fn allocation(&self) -> &guillotiere::Allocation { &self.allocation }
+
+    fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>> {
+        // Note: Range doesn't impl Copy even for trivially Cloneable things
+        self.model
+            .opaque
+            .as_ref()
+            .map(|m| m.submodel(self.lod_vertex_ranges[lod].clone()))
+    }
+
+    fn col_lights(&self) -> &ColLights<pipelines::figure::Locals> { &self.col_lights }
+}
+
+#[derive(Clone, Copy)]
+pub enum ModelEntryRef<'a, const N: usize> {
+    Figure(&'a FigureModelEntry<N>),
+    Terrain(&'a TerrainModelEntry<N>),
+}
+
+impl<'a, const N: usize> ModelEntryRef<'a, N> {
+    fn lod_model(&self, lod: usize) -> Option<SubModel<'a, TerrainVertex>> {
+        match self {
+            ModelEntryRef::Figure(e) => e.lod_model(lod),
+            ModelEntryRef::Terrain(e) => e.lod_model(lod),
+        }
+    }
+
+    fn col_lights(&self) -> &'a ColLights<pipelines::figure::Locals> {
+        match self {
+            ModelEntryRef::Figure(e) => e.col_lights(),
+            ModelEntryRef::Terrain(e) => e.col_lights(),
+        }
     }
 }
 
@@ -121,8 +203,8 @@ struct FigureMgrStates {
     golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
     item_drop_states: HashMap<EcsEntity, FigureState<ItemDropSkeleton>>,
-    ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton>>,
-    volume_states: HashMap<EcsEntity, FigureState<VolumeKey>>,
+    ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton, BoundTerrainLocals>>,
+    volume_states: HashMap<EcsEntity, FigureState<VolumeKey, BoundTerrainLocals>>,
     arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
 }
 
@@ -247,10 +329,12 @@ impl FigureMgrStates {
             Body::Object(_) => self.object_states.remove(entity).map(|e| e.meta),
             Body::ItemDrop(_) => self.item_drop_states.remove(entity).map(|e| e.meta),
             Body::Ship(ship) => {
-                if ship.manifest_entry().is_some() {
+                if matches!(ship, ship::Body::Volume) {
+                    self.volume_states.remove(entity).map(|e| e.meta)
+                } else if ship.manifest_entry().is_some() {
                     self.ship_states.remove(entity).map(|e| e.meta)
                 } else {
-                    self.volume_states.remove(entity).map(|e| e.meta)
+                    None
                 }
             },
             Body::Arthropod(_) => self.arthropod_states.remove(entity).map(|e| e.meta),
@@ -387,6 +471,29 @@ impl FigureMgrStates {
                 .iter()
                 .filter(|(_, c)| c.visible())
                 .count()
+    }
+
+    fn get_terrain_locals<'a, Q: ?Sized>(
+        &'a self,
+        body: &Body,
+        entity: &Q,
+    ) -> Option<&'a BoundTerrainLocals>
+    where
+        EcsEntity: Borrow<Q>,
+        Q: Hash + Eq,
+    {
+        match body {
+            Body::Ship(body) => {
+                if matches!(body, ship::Body::Volume) {
+                    self.volume_states.get(entity).map(|state| &state.extra)
+                } else if body.manifest_entry().is_some() {
+                    self.ship_states.get(entity).map(|state| &state.extra)
+                } else {
+                    None
+                }
+            },
+            _ => None,
+        }
     }
 }
 
@@ -748,7 +855,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
-                (is_rider, collider, stance, skillset),
+                (is_rider, is_volume_rider, collider, stance, skillset),
             ),
         ) in (
             &ecs.entities(),
@@ -768,6 +875,7 @@ impl FigureMgr {
             ecs.read_storage::<LightEmitter>().maybe(),
             (
                 ecs.read_storage::<Is<Rider>>().maybe(),
+                ecs.read_storage::<Is<VolumeRider>>().maybe(),
                 ecs.read_storage::<Collider>().maybe(),
                 ecs.read_storage::<Stance>().maybe(),
                 ecs.read_storage::<SkillSet>().maybe(),
@@ -947,11 +1055,15 @@ impl FigureMgr {
 
             // If a mount exists, get its animated mounting transform and its position
             let mount_transform_pos = (|| -> Option<_> {
-                let mount = is_rider?.mount;
-                let mount = uid_allocator.retrieve_entity_internal(mount.into())?;
-                let body = *bodies.get(mount)?;
-                let meta = self.states.get_mut(&body, &mount)?;
-                Some((meta.mount_transform, meta.mount_world_pos))
+                if let Some(is_rider) = is_rider {
+                    let mount = is_rider.mount;
+                    let mount = uid_allocator.retrieve_entity_internal(mount.into())?;
+                    let body = *bodies.get(mount)?;
+                    let meta = self.states.get_mut(&body, &mount)?;
+                    Some((meta.mount_transform, meta.mount_world_pos))
+                } else {
+                    None
+                }
             })();
 
             let body = *body;
@@ -1029,7 +1141,7 @@ impl FigureMgr {
                         physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > 0.01, // Moving
                         physics.in_liquid().is_some(),      // In water
-                        is_rider.is_some(),
+                        is_rider.is_some() || is_volume_rider.is_some(),
                         physics.skating_active,
                     ) {
                         // Standing or Skating
@@ -2058,7 +2170,32 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        _ => target_base,
+                        _ => {
+                            if let Some(sprite) = is_volume_rider
+                                .and_then(|is_volume_rider| is_volume_rider.block.get_sprite())
+                            {
+                                match sprite {
+                                    SpriteKind::Helm => {
+                                        anim::character::DanceAnimation::update_skeleton(
+                                            &target_base,
+                                            (active_tool_kind, second_tool_kind, time),
+                                            state.state_time,
+                                            &mut state_animation_rate,
+                                            skeleton_attr,
+                                        )
+                                    },
+                                    _ => anim::character::SitAnimation::update_skeleton(
+                                        &target_base,
+                                        (active_tool_kind, second_tool_kind, time),
+                                        state.state_time,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    ),
+                                }
+                            } else {
+                                target_base
+                            }
+                        },
                     };
 
                     state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
@@ -6002,23 +6139,24 @@ impl FigureMgr {
                     );
                 },
                 Body::Ship(body) => {
+                    let Some(terrain) = terrain else {
+                        continue;
+                    };
                     let (model, skeleton_attr) = if let Some(Collider::Volume(vol)) = collider {
                         let vk = VolumeKey {
                             entity,
                             mut_count: vol.mut_count,
                         };
-                        let (model, _skeleton_attr) = self.volume_model_cache.get_or_create_model(
-                            renderer,
-                            &mut self.col_lights,
-                            vk,
-                            inventory,
-                            Arc::clone(vol),
-                            tick,
-                            viewpoint_camera_mode,
-                            viewpoint_character_state,
-                            &slow_jobs,
-                            None,
-                        );
+                        let (model, _skeleton_attr) =
+                            self.volume_model_cache.get_or_create_terrain_model(
+                                renderer,
+                                &mut self.col_lights,
+                                vk,
+                                Arc::clone(vol),
+                                tick,
+                                &slow_jobs,
+                                terrain,
+                            );
 
                         let state = self
                             .states
@@ -6035,26 +6173,22 @@ impl FigureMgr {
                             model,
                             vk,
                         );
-
-                        break;
+                        continue;
                     } else if body.manifest_entry().is_some() {
-                        self.ship_model_cache.get_or_create_model(
+                        self.ship_model_cache.get_or_create_terrain_model(
                             renderer,
                             &mut self.col_lights,
                             body,
-                            inventory,
                             (),
                             tick,
-                            viewpoint_camera_mode,
-                            viewpoint_character_state,
                             &slow_jobs,
-                            None,
+                            terrain,
                         )
                     } else {
                         // No way to determine model (this is okay, we might just not have received
                         // the `Collider` for the entity yet. Wait until the
                         // next tick.
-                        break;
+                        continue;
                     };
 
                     let state = self.states.ship_states.entry(entity).or_insert_with(|| {
@@ -6213,11 +6347,90 @@ impl FigureMgr {
         })
     }
 
+    pub fn render_sprites<'a>(
+        &'a self,
+        drawer: &mut SpriteDrawer<'_, 'a>,
+        state: &State,
+        cam_pos: Vec3<f32>,
+        sprite_render_distance: f32,
+    ) {
+        span!(_guard, "render", "FigureManager::render_sprites");
+        let ecs = state.ecs();
+        let sprite_low_detail_distance = sprite_render_distance * 0.75;
+        let sprite_mid_detail_distance = sprite_render_distance * 0.5;
+        let sprite_hid_detail_distance = sprite_render_distance * 0.35;
+        let sprite_high_detail_distance = sprite_render_distance * 0.15;
+
+        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
+        for (entity, pos, ori, body, _, collider) in (
+            &ecs.entities(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Ori>(),
+            &ecs.read_storage::<Body>(),
+            ecs.read_storage::<Health>().maybe(),
+            ecs.read_storage::<Collider>().maybe(),
+        )
+            .join()
+        // Don't render dead entities
+        .filter(|(_, _, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
+        {
+            if let Some((sprite_instances, data)) = self
+                .get_sprite_instances(entity, body, collider)
+                .zip(self.states.get_terrain_locals(body, &entity))
+            {
+                let dist = collider
+                    .and_then(|collider| {
+                        let vol = collider.get_vol(&voxel_colliders_manifest)?;
+
+                        let mat = Mat4::from(ori.to_quat()).translated_3d(pos.0)
+                            * Mat4::translation_3d(vol.translation);
+
+                        let p = mat.inverted().mul_point(cam_pos);
+                        let aabb = Aabb {
+                            min: Vec3::zero(),
+                            max: vol.volume().sz.as_(),
+                        };
+                        Some(if aabb.contains_point(p) {
+                            0.0
+                        } else {
+                            aabb.distance_to_point(p)
+                        })
+                    })
+                    .unwrap_or_else(|| pos.0.distance(cam_pos));
+
+                if dist < sprite_render_distance {
+                    let lod_level = if dist < sprite_high_detail_distance {
+                        0
+                    } else if dist < sprite_hid_detail_distance {
+                        1
+                    } else if dist < sprite_mid_detail_distance {
+                        2
+                    } else if dist < sprite_low_detail_distance {
+                        3
+                    } else {
+                        4
+                    };
+
+                    drawer.draw(
+                        data,
+                        &sprite_instances[lod_level],
+                        &AltIndices {
+                            deep_end: 0,
+                            underground_end: 0,
+                        },
+                        CullingMode::None,
+                    )
+                }
+            }
+        }
+    }
+
     pub fn render<'a>(
         &'a self,
         drawer: &mut FigureDrawer<'_, 'a>,
         state: &State,
-        player_entity: EcsEntity,
+        viewpoint_entity: EcsEntity,
         tick: u64,
         (camera, figure_lod_render_distance): CameraData,
     ) {
@@ -6225,7 +6438,7 @@ impl FigureMgr {
         let ecs = state.ecs();
 
         let character_state_storage = state.read_storage::<CharacterState>();
-        let character_state = character_state_storage.get(player_entity);
+        let character_state = character_state_storage.get(viewpoint_entity);
         let items = ecs.read_storage::<Item>();
         for (entity, pos, body, _, inventory, scale, collider) in (
             &ecs.entities(),
@@ -6240,7 +6453,7 @@ impl FigureMgr {
         // Don't render dead entities
         .filter(|(_, _, _, health, _, _, _)| health.map_or(true, |h| !h.is_dead))
         // Don't render player
-        .filter(|(entity, _, _, _, _, _, _)| *entity != player_entity)
+        .filter(|(entity, _, _, _, _, _, _)| *entity != viewpoint_entity)
         {
             if let Some((bound, model, col_lights)) = self.get_model_for_render(
                 tick,
@@ -6273,7 +6486,7 @@ impl FigureMgr {
         &'a self,
         drawer: &mut FigureDrawer<'_, 'a>,
         state: &State,
-        player_entity: EcsEntity,
+        viewpoint_entity: EcsEntity,
         tick: u64,
         (camera, figure_lod_render_distance): CameraData,
     ) {
@@ -6281,28 +6494,28 @@ impl FigureMgr {
         let ecs = state.ecs();
 
         let character_state_storage = state.read_storage::<CharacterState>();
-        let character_state = character_state_storage.get(player_entity);
+        let character_state = character_state_storage.get(viewpoint_entity);
         let items = ecs.read_storage::<Item>();
 
         if let (Some(pos), Some(body), scale) = (
-            ecs.read_storage::<Pos>().get(player_entity),
-            ecs.read_storage::<Body>().get(player_entity),
-            ecs.read_storage::<Scale>().get(player_entity),
+            ecs.read_storage::<Pos>().get(viewpoint_entity),
+            ecs.read_storage::<Body>().get(viewpoint_entity),
+            ecs.read_storage::<Scale>().get(viewpoint_entity),
         ) {
             let healths = state.read_storage::<Health>();
-            let health = healths.get(player_entity);
+            let health = healths.get(viewpoint_entity);
             if health.map_or(false, |h| h.is_dead) {
                 return;
             }
 
             let inventory_storage = ecs.read_storage::<Inventory>();
-            let inventory = inventory_storage.get(player_entity);
+            let inventory = inventory_storage.get(viewpoint_entity);
 
             if let Some((bound, model, col_lights)) = self.get_model_for_render(
                 tick,
                 camera,
                 character_state,
-                player_entity,
+                viewpoint_entity,
                 body,
                 scale.copied(),
                 inventory,
@@ -6312,7 +6525,7 @@ impl FigureMgr {
                 0,
                 |state| state.visible(),
                 if matches!(body, Body::ItemDrop(_)) {
-                    items.get(player_entity).map(ItemKey::from)
+                    items.get(viewpoint_entity).map(ItemKey::from)
                 } else {
                     None
                 },
@@ -6408,15 +6621,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::QuadrupedSmall(body) => quadruped_small_states
@@ -6425,15 +6640,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        quadruped_small_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        quadruped_small_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::QuadrupedMedium(body) => quadruped_medium_states
@@ -6442,15 +6659,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        quadruped_medium_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        quadruped_medium_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::QuadrupedLow(body) => quadruped_low_states
@@ -6459,15 +6678,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        quadruped_low_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        quadruped_low_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::BirdMedium(body) => bird_medium_states
@@ -6476,15 +6697,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        bird_medium_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        bird_medium_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::FishMedium(body) => fish_medium_states
@@ -6493,15 +6716,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        fish_medium_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        fish_medium_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::Theropod(body) => theropod_states
@@ -6510,15 +6735,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        theropod_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        theropod_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::Dragon(body) => dragon_states
@@ -6527,15 +6754,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        dragon_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        dragon_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::BirdLarge(body) => bird_large_states
@@ -6544,15 +6773,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        bird_large_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        bird_large_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::FishSmall(body) => fish_small_states
@@ -6561,15 +6792,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        fish_small_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        fish_small_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::BipedLarge(body) => biped_large_states
@@ -6578,15 +6811,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        biped_large_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        biped_large_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::BipedSmall(body) => biped_small_states
@@ -6595,15 +6830,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        biped_small_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        biped_small_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::Golem(body) => golem_states
@@ -6612,15 +6849,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        golem_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        golem_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::Arthropod(body) => arthropod_states
@@ -6629,15 +6868,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        arthropod_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        arthropod_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::Object(body) => object_states
@@ -6646,15 +6887,17 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        object_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            None,
-                        ),
+                        object_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::ItemDrop(body) => item_drop_states
@@ -6663,54 +6906,62 @@ impl FigureMgr {
                 .map(move |state| {
                     (
                         state.bound(),
-                        item_drop_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            viewpoint_camera_mode,
-                            character_state,
-                            item_key,
-                        ),
+                        item_drop_model_cache
+                            .get_model(
+                                col_lights,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                item_key,
+                            )
+                            .map(ModelEntryRef::Figure),
                     )
                 }),
             Body::Ship(body) => {
-                if body.manifest_entry().is_some() {
-                    ship_states
-                        .get(&entity)
-                        .filter(|state| filter_state(state))
-                        .map(move |state| {
-                            (
-                                state.bound(),
-                                ship_model_cache.get_model(
-                                    col_lights,
-                                    body,
-                                    inventory,
-                                    tick,
-                                    viewpoint_camera_mode,
-                                    character_state,
-                                    None,
-                                ),
-                            )
-                        })
-                } else {
+                if matches!(body, ship::Body::Volume) {
                     volume_states
                         .get(&entity)
                         .filter(|state| filter_state(state))
                         .map(move |state| {
                             (
                                 state.bound(),
-                                volume_model_cache.get_model(
-                                    col_lights,
-                                    VolumeKey { entity, mut_count },
-                                    inventory,
-                                    tick,
-                                    viewpoint_camera_mode,
-                                    character_state,
-                                    None,
-                                ),
+                                volume_model_cache
+                                    .get_model(
+                                        col_lights,
+                                        VolumeKey { entity, mut_count },
+                                        None,
+                                        tick,
+                                        CameraMode::default(),
+                                        None,
+                                        None,
+                                    )
+                                    .map(ModelEntryRef::Terrain),
                             )
                         })
+                } else if body.manifest_entry().is_some() {
+                    ship_states
+                        .get(&entity)
+                        .filter(|state| filter_state(state))
+                        .map(move |state| {
+                            (
+                                state.bound(),
+                                ship_model_cache
+                                    .get_model(
+                                        col_lights,
+                                        body,
+                                        None,
+                                        tick,
+                                        CameraMode::default(),
+                                        None,
+                                        None,
+                                    )
+                                    .map(ModelEntryRef::Terrain),
+                            )
+                        })
+                } else {
+                    None
                 }
             },
         } {
@@ -6745,6 +6996,52 @@ impl FigureMgr {
         } else {
             // trace!("Body has no saved figure");
             None
+        }
+    }
+
+    fn get_sprite_instances<'a>(
+        &'a self,
+        entity: EcsEntity,
+        body: &Body,
+        collider: Option<&Collider>,
+    ) -> Option<&'a [Instances<SpriteInstance>; SPRITE_LOD_LEVELS]> {
+        match body {
+            Body::Ship(body) => {
+                if let Some(Collider::Volume(vol)) = collider {
+                    let vk = VolumeKey {
+                        entity,
+                        mut_count: vol.mut_count,
+                    };
+                    self.volume_model_cache.get_sprites(vk)
+                } else if body.manifest_entry().is_some() {
+                    self.ship_model_cache.get_sprites(*body)
+                } else {
+                    None
+                }
+            },
+            _ => None,
+        }
+    }
+
+    pub fn get_blocks_of_interest<'a>(
+        &'a self,
+        entity: EcsEntity,
+        body: &Body,
+        collider: Option<&Collider>,
+    ) -> Option<(&'a BlocksOfInterest, Vec3<f32>)> {
+        match body {
+            Body::Ship(body) => {
+                if let Some(Collider::Volume(vol)) = collider {
+                    let vk = VolumeKey {
+                        entity,
+                        mut_count: vol.mut_count,
+                    };
+                    self.volume_model_cache.get_blocks_of_interest(vk)
+                } else {
+                    self.ship_model_cache.get_blocks_of_interest(*body)
+                }
+            },
+            _ => None,
         }
     }
 
@@ -6866,10 +7163,10 @@ impl FigureColLights {
     /// Find the correct texture for this model entry.
     pub fn texture<'a, const N: usize>(
         &'a self,
-        model: &'a FigureModelEntry<N>,
+        model: ModelEntryRef<'a, N>,
     ) -> &'a ColLights<pipelines::figure::Locals> {
         /* &self.col_lights */
-        &model.col_lights
+        model.col_lights()
     }
 
     /// NOTE: Panics if the opaque model's length does not fit in a u32.
@@ -6914,6 +7211,60 @@ impl FigureColLights {
             col_lights,
             lod_vertex_ranges: vertex_ranges,
             model: FigureModel { opaque: model },
+        }
+    }
+
+    /// NOTE: Panics if the opaque model's length does not fit in a u32.
+    /// This is part of the function contract.
+    ///
+    /// NOTE: Panics if the vertex range bounds are not in range of the opaque
+    /// model stored in the BoneMeshes parameter.  This is part of the
+    /// function contract.
+    ///
+    /// NOTE: Panics if the provided mesh is empty. FIXME: do something else
+    pub fn create_terrain<const N: usize>(
+        &mut self,
+        renderer: &mut Renderer,
+        (tex, tex_size): ColLightInfo,
+        (opaque, bounds): (Mesh<TerrainVertex>, math::Aabb<f32>),
+        vertex_ranges: [Range<u32>; N],
+        sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
+        blocks_of_interest: BlocksOfInterest,
+        blocks_offset: Vec3<f32>,
+    ) -> TerrainModelEntry<N> {
+        span!(_guard, "create_figure", "FigureColLights::create_figure");
+        let atlas = &mut self.atlas;
+        let allocation = atlas
+            .allocate(guillotiere::Size::new(tex_size.x as i32, tex_size.y as i32))
+            .expect("Not yet implemented: allocate new atlas on allocation failure.");
+        let col_lights = pipelines::shadow::create_col_lights(renderer, &(tex, tex_size));
+        let col_lights = renderer.figure_bind_col_light(col_lights);
+        let model_len = u32::try_from(opaque.vertices().len())
+            .expect("The model size for this figure does not fit in a u32!");
+        let model = renderer.create_model(&opaque);
+
+        vertex_ranges.iter().for_each(|range| {
+            assert!(
+                range.start <= range.end && range.end <= model_len,
+                "The provided vertex range for figure mesh {:?} does not fit in the model, which \
+                 is of size {:?}!",
+                range,
+                model_len
+            );
+        });
+
+        let sprite_instances =
+            sprite_instances.map(|instances| renderer.create_instances(&instances));
+
+        TerrainModelEntry {
+            _bounds: bounds,
+            allocation,
+            col_lights,
+            lod_vertex_ranges: vertex_ranges,
+            model: FigureModel { opaque: model },
+            sprite_instances,
+            blocks_of_interest,
+            blocks_offset,
         }
     }
 
@@ -6992,18 +7343,19 @@ impl FigureStateMeta {
     }
 }
 
-pub struct FigureState<S> {
+pub struct FigureState<S, D = ()> {
     meta: FigureStateMeta,
     skeleton: S,
+    extra: D,
 }
 
-impl<S> Deref for FigureState<S> {
+impl<S, D> Deref for FigureState<S, D> {
     type Target = FigureStateMeta;
 
     fn deref(&self) -> &Self::Target { &self.meta }
 }
 
-impl<S> DerefMut for FigureState<S> {
+impl<S, D> DerefMut for FigureState<S, D> {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.meta }
 }
 
@@ -7030,7 +7382,39 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub ground_vel: Vec3<f32>,
 }
 
-impl<S: Skeleton> FigureState<S> {
+pub trait FigureData: Sized {
+    fn new(renderer: &mut Renderer) -> Self;
+
+    fn update(&mut self, renderer: &mut Renderer, parameters: &FigureUpdateCommonParameters);
+}
+
+impl FigureData for () {
+    fn new(_renderer: &mut Renderer) {}
+
+    fn update(&mut self, _renderer: &mut Renderer, _parameters: &FigureUpdateCommonParameters) {}
+}
+
+impl FigureData for BoundTerrainLocals {
+    fn new(renderer: &mut Renderer) -> Self {
+        renderer.create_terrain_bound_locals(&[TerrainLocals::new(
+            Vec3::zero(),
+            Quaternion::identity(),
+            Vec2::zero(),
+            0.0,
+        )])
+    }
+
+    fn update(&mut self, renderer: &mut Renderer, parameters: &FigureUpdateCommonParameters) {
+        renderer.update_consts(self, &[TerrainLocals::new(
+            parameters.pos.into(),
+            parameters.ori.into_vec4().into(),
+            Vec2::zero(),
+            0.0,
+        )])
+    }
+}
+
+impl<S: Skeleton, D: FigureData> FigureState<S, D> {
     pub fn new(renderer: &mut Renderer, skeleton: S, body: S::Body) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
         let offsets =
@@ -7058,15 +7442,16 @@ impl<S: Skeleton> FigureState<S> {
                 bound: renderer.create_figure_bound_locals(&[FigureLocals::default()], bone_consts),
             },
             skeleton,
+            extra: D::new(renderer),
         }
     }
 
-    pub fn update<const N: usize>(
+    pub fn update(
         &mut self,
         renderer: &mut Renderer,
         trail_mgr: Option<&mut TrailMgr>,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
-        FigureUpdateCommonParameters {
+        parameters @ FigureUpdateCommonParameters {
             entity,
             pos,
             ori,
@@ -7084,7 +7469,7 @@ impl<S: Skeleton> FigureState<S> {
             ground_vel,
         }: &FigureUpdateCommonParameters,
         state_animation_rate: f32,
-        model: Option<&FigureModelEntry<N>>,
+        model: Option<&impl ModelEntry>,
         // TODO: there is the potential to drop the optional body from the common params and just
         // use this one but we need to add a function to the skelton trait or something in order to
         // get the rider offset
@@ -7152,7 +7537,7 @@ impl<S: Skeleton> FigureState<S> {
             }
         };
 
-        let atlas_offs = model.allocation.rectangle.min;
+        let atlas_offs = model.allocation().rectangle.min;
 
         let (light, glow) = terrain
             .map(|t| {
@@ -7286,6 +7671,7 @@ impl<S: Skeleton> FigureState<S> {
         } else {
             self.acc_vel = 0.0;
         }
+        self.extra.update(renderer, parameters);
     }
 
     pub fn bound(&self) -> &pipelines::figure::BoundLocals { &self.bound }

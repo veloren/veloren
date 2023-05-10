@@ -31,7 +31,7 @@ use crate::{
 use client::Client;
 use common::{
     calendar::Calendar,
-    comp,
+    comp::{self, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     outcome::Outcome,
     resources::DeltaTime,
     terrain::{BlockKind, TerrainChunk, TerrainGrid},
@@ -655,13 +655,19 @@ impl Scene {
         lights.clear();
 
         // Maintain the particles.
-        self.particle_mgr
-            .maintain(renderer, scene_data, &self.terrain, lights);
+        self.particle_mgr.maintain(
+            renderer,
+            scene_data,
+            &self.terrain,
+            &self.figure_mgr,
+            lights,
+        );
 
         // Maintain the trails.
         self.trail_mgr.maintain(renderer, scene_data);
 
         // Update light constants
+        let max_light_dist = loaded_distance.powi(2) + LIGHT_DIST_RADIUS;
         lights.extend(
             (
                 &scene_data.state.ecs().read_storage::<comp::Pos>(),
@@ -684,8 +690,7 @@ impl Scene {
                 .filter(|(pos, _, light_anim, h)| {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
-                        && pos.0.distance_squared(viewpoint_pos)
-                            < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
+                        && pos.0.distance_squared(viewpoint_pos) < max_light_dist
                         && h.map_or(true, |h| !h.is_dead)
                 })
                 .map(|(pos, interpolated, light_anim, _)| {
@@ -698,6 +703,54 @@ impl Scene {
                         .iter()
                         .map(|el| el.light.with_strength((el.fadeout)(el.timeout))),
                 ),
+        );
+        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+        let figure_mgr = &self.figure_mgr;
+        lights.extend(
+            (
+                &scene_data.state.ecs().entities(),
+                &scene_data
+                    .state
+                    .read_storage::<crate::ecs::comp::Interpolated>(),
+                &scene_data.state.read_storage::<comp::Body>(),
+                &scene_data.state.read_storage::<comp::Collider>(),
+            )
+                .join()
+                .filter_map(|(entity, interpolated, body, collider)| {
+                    let vol = collider.get_vol(&voxel_colliders_manifest)?;
+                    let (blocks_of_interest, offset) =
+                        figure_mgr.get_blocks_of_interest(entity, body, Some(collider))?;
+
+                    let mat = Mat4::from(interpolated.ori.to_quat())
+                        .translated_3d(interpolated.pos)
+                        * Mat4::translation_3d(offset);
+
+                    let p = mat.inverted().mul_point(viewpoint_pos);
+                    let aabb = Aabb {
+                        min: Vec3::zero(),
+                        max: vol.volume().sz.as_(),
+                    };
+                    if aabb.contains_point(p) || aabb.distance_to_point(p) < max_light_dist {
+                        Some(
+                            blocks_of_interest
+                                .lights
+                                .iter()
+                                .map(move |(block_offset, level)| {
+                                    let wpos = mat.mul_point(block_offset.as_() + 0.5);
+                                    (wpos, level)
+                                })
+                                .filter(move |(wpos, _)| {
+                                    wpos.distance_squared(viewpoint_pos) < max_light_dist
+                                })
+                                .map(|(wpos, level)| {
+                                    Light::new(wpos, Rgb::white(), *level as f32 / 7.0)
+                                }),
+                        )
+                    } else {
+                        None
+                    }
+                })
+                .flatten(),
         );
         lights.sort_by_key(|light| light.get_pos().distance_squared(viewpoint_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
@@ -1347,14 +1400,28 @@ impl Scene {
             // Render the skybox.
             first_pass.draw_skybox(&self.skybox.model);
 
-            // Draws translucent terrain and sprites
-            self.terrain.render_translucent(
-                &mut first_pass,
+            // Draws sprites
+            let mut sprite_drawer = first_pass.draw_sprites(
+                &self.terrain.sprite_globals,
+                &self.terrain.sprite_col_lights,
+            );
+            self.figure_mgr.render_sprites(
+                &mut sprite_drawer,
+                state,
+                cam_pos,
+                scene_data.sprite_render_distance,
+            );
+            self.terrain.render_sprites(
+                &mut sprite_drawer,
                 focus_pos,
                 cam_pos,
                 scene_data.sprite_render_distance,
                 culling_mode,
             );
+            drop(sprite_drawer);
+
+            // Draws translucent
+            self.terrain.render_translucent(&mut first_pass, focus_pos);
 
             // Render particle effects.
             self.particle_mgr

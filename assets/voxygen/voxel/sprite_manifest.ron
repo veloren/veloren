@@ -1871,6 +1871,16 @@ DoorDark: Some((
     ],
     wind_sway: 0.0,
 )),
+DoorWide: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.door.door-wide",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Bed
 Bed: Some((
     variations: [
@@ -1920,6 +1930,17 @@ ChairDouble: Some((
             model: "voxygen.voxel.sprite.furniture.chair_double-1",
             offset: (-9.5, -4.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Helm
+Helm: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.helm",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0.0,

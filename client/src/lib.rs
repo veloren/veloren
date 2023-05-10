@@ -37,7 +37,7 @@ use common::{
     grid::Grid,
     link::Is,
     lod,
-    mounting::Rider,
+    mounting::{Rider, VolumePos, VolumeRider},
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook, RepairRecipeBook},
     resources::{GameMode, PlayerEntity, Time, TimeOfDay},
@@ -1185,7 +1185,7 @@ impl Client {
         &mut self,
         recipe: &str,
         slots: Vec<(u32, InvSlotId)>,
-        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+        craft_sprite: Option<(VolumePos, SpriteKind)>,
         amount: u32,
     ) -> bool {
         let (can_craft, required_sprite) = self.can_craft_recipe(recipe, amount);
@@ -1217,7 +1217,7 @@ impl Client {
 
     /// Salvage the item in the given inventory slot. `salvage_pos` should be
     /// the location of a relevant crafting station within range of the player.
-    pub fn salvage_item(&mut self, slot: InvSlotId, salvage_pos: Vec3<i32>) -> bool {
+    pub fn salvage_item(&mut self, slot: InvSlotId, salvage_pos: VolumePos) -> bool {
         let is_salvageable = self.can_salvage_item(slot);
         if is_salvageable {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
@@ -1239,7 +1239,7 @@ impl Client {
         &mut self,
         primary_component: InvSlotId,
         secondary_component: InvSlotId,
-        sprite_pos: Option<Vec3<i32>>,
+        sprite_pos: Option<VolumePos>,
     ) -> bool {
         let inventories = self.inventories();
         let inventory = inventories.get(self.entity());
@@ -1288,7 +1288,7 @@ impl Client {
         material: InvSlotId,
         modifier: Option<InvSlotId>,
         slots: Vec<(u32, InvSlotId)>,
-        sprite_pos: Option<Vec3<i32>>,
+        sprite_pos: Option<VolumePos>,
     ) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
             InventoryEvent::CraftRecipe {
@@ -1309,7 +1309,7 @@ impl Client {
         &mut self,
         item: Slot,
         slots: Vec<(u32, InvSlotId)>,
-        sprite_pos: Vec3<i32>,
+        sprite_pos: VolumePos,
     ) -> bool {
         let is_repairable = {
             let inventories = self.inventories();
@@ -1448,6 +1448,12 @@ impl Client {
             .read_storage::<Is<Rider>>()
             .get(self.entity())
             .is_some()
+            || self
+                .state
+                .ecs()
+                .read_storage::<Is<VolumeRider>>()
+                .get(self.entity())
+                .is_some()
     }
 
     pub fn is_lantern_enabled(&self) -> bool {
@@ -1462,6 +1468,13 @@ impl Client {
         if let Some(uid) = self.state.read_component_copied(entity) {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Mount(uid)));
         }
+    }
+
+    /// Mount a block at a `VolumePos`.
+    pub fn mount_volume(&mut self, volume_pos: VolumePos) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::MountVolume(
+            volume_pos,
+        )));
     }
 
     pub fn unmount(&mut self) { self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Unmount)); }

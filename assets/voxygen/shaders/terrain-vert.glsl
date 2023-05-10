@@ -30,10 +30,10 @@ layout(location = 1) in uint v_atlas_pos;
 
 layout (std140, set = 3, binding = 0)
 uniform u_locals {
-    vec3 model_offs;
-    float load_time;
+    mat4 model_mat;
     // TODO: consider whether these need to be signed
     ivec4 atlas_offs;
+    float load_time;
 };
 
 //struct ShadowLocals {
@@ -73,7 +73,7 @@ void main() {
     // over it (if this vertex to see if it intersects.
     // f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
     vec3 f_chunk_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
-    f_pos = f_chunk_pos + model_offs - focus_off.xyz;
+    f_pos = (model_mat * vec4(f_chunk_pos, 1.0)).xyz - focus_off.xyz;
 
     f_load_time = load_time;
 

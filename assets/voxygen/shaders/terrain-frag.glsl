@@ -52,9 +52,9 @@ uniform sampler s_col_light;
 
 layout (std140, set = 3, binding = 0)
 uniform u_locals {
-    vec3 model_offs;
-    float load_time;
+    mat4 model_mat;
     ivec4 atlas_offs;
+    float load_time;
 };
 
 layout(location = 0) out vec4 tgt_color;
@@ -452,7 +452,8 @@ void main() {
     // light_reflection_factorplight_reflection_factor
 
     // vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
-    vec3 f_chunk_pos = f_pos - (model_offs - focus_off.xyz);
+
+    vec3 f_chunk_pos = f_pos - (model_mat[3].xyz - focus_off.xyz);
     #ifdef EXPERIMENTAL_NONOISE
         float noise = 0.0;
     #else

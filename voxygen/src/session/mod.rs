@@ -25,7 +25,7 @@ use common::{
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
     link::Is,
-    mounting::Mount,
+    mounting::{Mount, VolumePos},
     outcome::Outcome,
     recipe,
     terrain::{Block, BlockKind},
@@ -350,7 +350,8 @@ impl SessionState {
                         match inv_event {
                             InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
                                 self.hud.add_failed_block_pickup(
-                                    pos,
+                                    // TODO: Possibly support volumes.
+                                    VolumePos::terrain(pos),
                                     HudCollectFailedReason::from_server_reason(
                                         &reason,
                                         client.state().ecs(),
@@ -888,6 +889,16 @@ impl PlayState for SessionState {
                                 if client.is_riding() {
                                     client.unmount();
                                 } else {
+                                    if let Some(interactable) = &self.interactable {
+                                        match interactable {
+                                            Interactable::Block(_, pos, interaction) => {
+                                                if matches!(interaction, BlockInteraction::Mount) {
+                                                    client.mount_volume(*pos)
+                                                }
+                                            },
+                                            Interactable::Entity(entity) => client.mount(*entity),
+                                        }
+                                    }
                                     let player_pos = client
                                         .state()
                                         .read_storage::<Pos>()
@@ -921,15 +932,22 @@ impl PlayState for SessionState {
                             },
                             GameInput::Interact => {
                                 if state {
+                                    let mut client = self.client.borrow_mut();
                                     if let Some(interactable) = &self.interactable {
-                                        let mut client = self.client.borrow_mut();
                                         match interactable {
                                             Interactable::Block(block, pos, interaction) => {
                                                 match interaction {
                                                     BlockInteraction::Collect
                                                     | BlockInteraction::Unlock(_) => {
                                                         if block.is_collectible() {
-                                                            client.collect_block(*pos);
+                                                            match pos.kind {
+                                                                common::mounting::Volume::Terrain => {
+                                                                    client.collect_block(pos.pos);
+                                                                }
+                                                                common::mounting::Volume::Entity(_) => {
+                                                                    // TODO: Do we want to implement this?
+                                                                },
+                                                            }
                                                         }
                                                     },
                                                     BlockInteraction::Craft(tab) => {
@@ -938,7 +956,8 @@ impl PlayState for SessionState {
                                                             block.get_sprite().map(|s| (*pos, s)),
                                                         )
                                                     },
-                                                    BlockInteraction::Mine(_) => {},
+                                                    BlockInteraction::Mine(_)
+                                                    | BlockInteraction::Mount => {},
                                                 }
                                             },
                                             Interactable::Entity(entity) => {

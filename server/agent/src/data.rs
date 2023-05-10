@@ -10,7 +10,7 @@ use common::{
         SkillSet, Stance, Stats, Vel,
     },
     link::Is,
-    mounting::{Mount, Rider},
+    mounting::{Mount, Rider, VolumeRider},
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity},
@@ -236,6 +236,7 @@ pub struct ReadData<'a> {
     pub bodies: ReadStorage<'a, Body>,
     pub is_mounts: ReadStorage<'a, Is<Mount>>,
     pub is_riders: ReadStorage<'a, Is<Rider>>,
+    pub is_volume_riders: ReadStorage<'a, Is<VolumeRider>>,
     pub time_of_day: Read<'a, TimeOfDay>,
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]

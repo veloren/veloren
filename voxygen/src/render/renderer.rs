@@ -1266,13 +1266,10 @@ impl Renderer {
     }
 
     /// Create a new set of instances with the provided values.
-    pub fn create_instances<T: Copy + bytemuck::Pod>(
-        &mut self,
-        vals: &[T],
-    ) -> Result<Instances<T>, RenderError> {
+    pub fn create_instances<T: Copy + bytemuck::Pod>(&mut self, vals: &[T]) -> Instances<T> {
         let mut instances = Instances::new(&self.device, vals.len());
         instances.update(&self.queue, vals, 0);
-        Ok(instances)
+        instances
     }
 
     /// Ensure that the quad index buffer is large enough for a quad vertex

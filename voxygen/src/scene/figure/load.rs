@@ -1,4 +1,6 @@
-use super::cache::{FigureKey, ToolKey};
+use super::cache::{
+    FigureKey, FigureModelEntryFuture, ModelEntryFuture, TerrainModelEntryFuture, ToolKey,
+};
 use common::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset, ReloadWatcher, Ron},
     comp::{
@@ -19,12 +21,14 @@ use common::{
         quadruped_small::{self, BodyType as QSBodyType, Species as QSSpecies},
         ship::{
             self,
-            figuredata::{ShipCentralSubSpec, ShipSpec},
+            figuredata::{ShipSpec, VoxelCollider},
         },
         theropod::{self, BodyType as TBodyType, Species as TSpecies},
     },
     figure::{Cell, DynaUnionizer, MatCell, MatSegment, Material, Segment},
-    vol::{IntoFullPosIterator, ReadVol, Vox},
+    terrain::Block,
+    vol::{IntoFullPosIterator, ReadVol},
+    volumes::dyna::Dyna,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Deserializer};
@@ -108,6 +112,8 @@ pub trait BodySpec: Sized {
     /// place it behind an [`Arc`].
     type Manifests: Send + Sync + Clone;
     type Extra: Send + Sync;
+    type BoneMesh;
+    type ModelEntryFuture<const N: usize>: ModelEntryFuture<N>;
 
     /// Initialize all the specifications for this Body.
     fn load_spec() -> Result<Self::Manifests, assets::Error>;
@@ -126,7 +132,7 @@ pub trait BodySpec: Sized {
         key: &FigureKey<Self>,
         manifests: &Self::Manifests,
         extra: Self::Extra,
-    ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT];
+    ) -> [Option<Self::BoneMesh>; anim::MAX_BONE_COUNT];
 }
 
 macro_rules! make_vox_spec {
@@ -152,6 +158,8 @@ macro_rules! make_vox_spec {
             type Spec = $Spec;
             type Manifests = AssetHandle<Self::Spec>;
             type Extra = ();
+            type BoneMesh = BoneMeshes;
+            type ModelEntryFuture<const N: usize> = FigureModelEntryFuture<N>;
 
             fn load_spec() -> Result<Self::Manifests, assets::Error> {
                 Self::Spec::load("")
@@ -349,7 +357,7 @@ impl HumHeadSpec {
             .maybe_add(beard)
             .maybe_add(accessory)
             .maybe_add(helmet)
-            .unify_with(|v| if v.is_hollow() { Cell::empty() } else { v });
+            .unify_with(|v| if v.is_hollow() { Cell::Empty } else { v });
         (
             head,
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
@@ -5258,30 +5266,31 @@ fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
     }
 }
 
-fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec>(
+pub type ShipBoneMeshes = (Dyna<Block, ()>, Vec3<f32>);
+
+fn mesh_ship_bone<'a, K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> Option<&'a VoxelCollider>>(
     map: &HashMap<K, V>,
     obj: &K,
     f: F,
-) -> BoneMeshes {
+) -> Option<ShipBoneMeshes> {
     let spec = match map.get(obj) {
         Some(spec) => spec,
         None => {
             error!("No specification exists for {:?}", obj);
-            return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+
+            return None;
         },
     };
     let bone = f(spec);
-    let central = graceful_load_segment_fullspec(
-        &format!("common.voxel.{}", &bone.central.0),
-        bone.model_index,
-    );
 
-    (central, Vec3::from(bone.offset))
+    bone.map(|bone| (bone.volume().clone(), bone.translation))
 }
 
 impl BodySpec for ship::Body {
+    type BoneMesh = ShipBoneMeshes;
     type Extra = ();
     type Manifests = AssetHandle<Self::Spec>;
+    type ModelEntryFuture<const N: usize> = TerrainModelEntryFuture<N>;
     type Spec = ShipSpec;
 
     fn load_spec() -> Result<Self::Manifests, assets::Error> { Self::Spec::load("") }
@@ -5292,14 +5301,15 @@ impl BodySpec for ship::Body {
         FigureKey { body, .. }: &FigureKey<Self>,
         manifests: &Self::Manifests,
         _: Self::Extra,
-    ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
-        let spec = &*manifests.read();
-        let map = &(spec.central.read().0).0;
+    ) -> [Option<Self::BoneMesh>; anim::MAX_BONE_COUNT] {
+        let spec = manifests.read();
+        let spec = &*spec;
+        let map = &spec.central.read().0.0;
         [
-            Some(mesh_ship_bone(map, body, |spec| &spec.bone0)),
-            Some(mesh_ship_bone(map, body, |spec| &spec.bone1)),
-            Some(mesh_ship_bone(map, body, |spec| &spec.bone2)),
-            Some(mesh_ship_bone(map, body, |spec| &spec.bone3)),
+            mesh_ship_bone(map, body, |ship| spec.colliders.get(&ship.bone0.central.0)),
+            mesh_ship_bone(map, body, |ship| spec.colliders.get(&ship.bone1.central.0)),
+            mesh_ship_bone(map, body, |ship| spec.colliders.get(&ship.bone2.central.0)),
+            mesh_ship_bone(map, body, |ship| spec.colliders.get(&ship.bone3.central.0)),
             None,
             None,
             None,

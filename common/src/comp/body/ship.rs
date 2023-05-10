@@ -100,7 +100,7 @@ impl Body {
     pub fn density(&self) -> Density {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
-            _ => Density(AIR_DENSITY * 0.8 + WATER_DENSITY * 0.2), // Most boats should be buoyant
+            _ => Density(AIR_DENSITY * 0.2 + WATER_DENSITY * 0.8), // Most boats should be buoyant
         }
     }
 
@@ -146,17 +146,17 @@ pub const AIRSHIP_SCALE: f32 = 11.0;
 pub mod figuredata {
     use crate::{
         assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
-        figure::cell::Cell,
+        figure::TerrainSegment,
         terrain::{
             block::{Block, BlockKind},
             sprite::SpriteKind,
+            structure::load_base_structure,
         },
-        volumes::dyna::{ColumnAccess, Dyna},
     };
     use hashbrown::HashMap;
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
-    use vek::Vec3;
+    use vek::{Rgb, Vec3};
 
     #[derive(Deserialize)]
     pub struct VoxSimple(pub String);
@@ -165,17 +165,45 @@ pub mod figuredata {
     pub struct ShipCentralSpec(pub HashMap<super::Body, SidedShipCentralVoxSpec>);
 
     #[derive(Deserialize)]
+    pub enum DeBlock {
+        Block(BlockKind),
+        Air(SpriteKind, #[serde(default)] u8),
+        Water(SpriteKind, #[serde(default)] u8),
+    }
+
+    impl DeBlock {
+        fn to_block(&self, color: Rgb<u8>) -> Block {
+            match *self {
+                DeBlock::Block(block) => Block::new(block, color),
+                DeBlock::Air(sprite, ori) => {
+                    let block = Block::new(BlockKind::Air, color).with_sprite(sprite);
+                    block.with_ori(ori).unwrap_or(block)
+                },
+                DeBlock::Water(sprite, ori) => {
+                    let block = Block::new(BlockKind::Water, color).with_sprite(sprite);
+                    block.with_ori(ori).unwrap_or(block)
+                },
+            }
+        }
+    }
+
+    #[derive(Deserialize)]
     pub struct SidedShipCentralVoxSpec {
         pub bone0: ShipCentralSubSpec,
         pub bone1: ShipCentralSubSpec,
         pub bone2: ShipCentralSubSpec,
         pub bone3: ShipCentralSubSpec,
+
+        // TODO: Use StructureBlock here instead. Which would require passing `IndexRef` and
+        // `Calendar` when loading the voxel colliders, which wouldn't work while it's stored in a
+        // static.
+        #[serde(default)]
+        pub custom_indices: HashMap<u8, DeBlock>,
     }
 
     #[derive(Deserialize)]
     pub struct ShipCentralSubSpec {
         pub offset: [f32; 3],
-        pub phys_offset: [f32; 3],
         pub central: VoxSimple,
         #[serde(default)]
         pub model_index: u32,
@@ -190,7 +218,7 @@ pub mod figuredata {
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct VoxelCollider {
-        pub(super) dyna: Dyna<Block, (), ColumnAccess>,
+        pub(super) dyna: TerrainSegment,
         pub translation: Vec3<f32>,
         /// This value should be incremented every time the volume is mutated
         /// and can be used to keep track of volume changes.
@@ -200,13 +228,13 @@ pub mod figuredata {
     impl VoxelCollider {
         pub fn from_fn<F: FnMut(Vec3<i32>) -> Block>(sz: Vec3<u32>, f: F) -> Self {
             Self {
-                dyna: Dyna::from_fn(sz, (), f),
+                dyna: TerrainSegment::from_fn(sz, (), f),
                 translation: -sz.map(|e| e as f32) / 2.0,
                 mut_count: 0,
             }
         }
 
-        pub fn volume(&self) -> &Dyna<Block, (), ColumnAccess> { &self.dyna }
+        pub fn volume(&self) -> &TerrainSegment { &self.dyna }
     }
 
     impl assets::Compound for ShipSpec {
@@ -218,27 +246,32 @@ pub mod figuredata {
                 AssetExt::load("common.manifests.ship_manifest")?;
             let mut colliders = HashMap::new();
             for (_, spec) in (manifest.read().0).0.iter() {
-                for bone in [&spec.bone0, &spec.bone1, &spec.bone2].iter() {
+                for (index, bone) in [&spec.bone0, &spec.bone1, &spec.bone2, &spec.bone3]
+                    .iter()
+                    .enumerate()
+                {
                     // TODO: Currently both client and server load models and manifests from
                     // "common.voxel.". In order to support CSG procedural airships, we probably
                     // need to load them in the server and sync them as an ECS resource.
                     let vox =
                         cache.load::<DotVoxAsset>(&["common.voxel.", &bone.central.0].concat())?;
-                    let dyna = Dyna::<Cell, (), ColumnAccess>::from_vox(
-                        &vox.read().0,
-                        false,
-                        bone.model_index as usize,
-                    );
-                    let dyna = dyna.map_into(|cell| {
-                        if let Some(rgb) = cell.get_color() {
-                            Block::new(BlockKind::Misc, rgb)
+
+                    let base_structure = load_base_structure(&vox.read().0, |col| col);
+                    let dyna = base_structure.vol.map_into(|cell| {
+                        if let Some(i) = cell {
+                            let color = base_structure.palette[u8::from(i) as usize];
+                            if let Some(block) = spec.custom_indices.get(&i.get()) && index == 0 {
+                                block.to_block(color)
+                            } else {
+                                Block::new(BlockKind::Misc, color)
+                            }
                         } else {
-                            Block::air(SpriteKind::Empty)
+                            Block::empty()
                         }
                     });
                     let collider = VoxelCollider {
                         dyna,
-                        translation: Vec3::from(bone.offset) + Vec3::from(bone.phys_offset),
+                        translation: Vec3::from(bone.offset),
                         mut_count: 0,
                     };
                     colliders.insert(bone.central.0.clone(), collider);

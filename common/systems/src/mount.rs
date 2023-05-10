@@ -1,14 +1,16 @@
 use common::{
-    comp::{Body, ControlAction, Controller, InputKind, Ori, Pos, Scale, Vel},
+    comp::{Body, Collider, ControlAction, Controller, InputKind, Ori, Pos, Scale, Vel},
     link::Is,
-    mounting::Mount,
+    mounting::{Mount, VolumeRider},
+    terrain::TerrainGrid,
     uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadStorage, WriteStorage,
+    Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage,
 };
+use tracing::error;
 use vek::*;
 
 /// This system is responsible for controlling mounts
@@ -17,14 +19,17 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, UidAllocator>,
+        ReadExpect<'a, TerrainGrid>,
         Entities<'a>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Is<Mount>>,
+        ReadStorage<'a, Is<VolumeRider>>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Scale>,
+        ReadStorage<'a, Collider>,
     );
 
     const NAME: &'static str = "mount";
@@ -35,14 +40,17 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             uid_allocator,
+            terrain,
             entities,
             mut controllers,
             is_mounts,
+            is_volume_riders,
             mut positions,
             mut velocities,
             mut orientations,
             bodies,
             scales,
+            colliders,
         ): Self::SystemData,
     ) {
         // For each mount...
@@ -82,6 +90,87 @@ impl<'a> System<'a> for Sys {
             if let Some(controller) = controllers.get_mut(entity) {
                 controller.inputs = inputs;
                 controller.actions = actions;
+            }
+        }
+
+        // For each volume rider.
+        for (entity, is_volume_rider) in (&entities, &is_volume_riders).join() {
+            if let Some((mut mat, _)) = is_volume_rider.pos.get_block_and_transform(
+                &terrain,
+                &uid_allocator,
+                |e| positions.get(e).copied().zip(orientations.get(e).copied()),
+                &colliders,
+            ) {
+                let Some((mount_offset, mount_dir)) = is_volume_rider.block.mount_offset() else {
+                    error!("Mounted on unmountable block");
+                    continue;
+                };
+
+                if let Some(ori) = is_volume_rider.block.get_ori() {
+                    mat *= Mat4::identity()
+                        .translated_3d(mount_offset)
+                        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+                        .translated_3d(Vec3::new(0.5, 0.5, 0.0));
+                } else {
+                    mat *= Mat4::identity().translated_3d(mount_offset + Vec3::new(0.5, 0.5, 0.0));
+                }
+
+                if let Some(pos) = positions.get_mut(entity) {
+                    pos.0 = mat.mul_point(Vec3::zero());
+                }
+                if let Some(ori) = orientations.get_mut(entity) {
+                    *ori = Ori::from_unnormalized_vec(mat.mul_direction(mount_dir))
+                        .unwrap_or_default();
+                }
+            }
+            let v = match is_volume_rider.pos.kind {
+                common::mounting::Volume::Terrain => Vec3::zero(),
+                common::mounting::Volume::Entity(uid) => {
+                    if let Some(v) = uid_allocator
+                        .retrieve_entity_internal(uid.into())
+                        .and_then(|e| velocities.get(e))
+                    {
+                        v.0
+                    } else {
+                        Vec3::zero()
+                    }
+                },
+            };
+            if let Some(vel) = velocities.get_mut(entity) {
+                vel.0 = v;
+            }
+
+            let inputs = controllers.get_mut(entity).map(|c| {
+                let actions: Vec<_> = c
+                    .actions
+                    .drain_filter(|action| match action {
+                        ControlAction::StartInput { input: i, .. }
+                        | ControlAction::CancelInput(i) => {
+                            matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)
+                        },
+                        _ => false,
+                    })
+                    .collect();
+                let inputs = c.inputs.clone();
+
+                (actions, inputs)
+            });
+
+            if is_volume_rider.block.is_controller() {
+                if let Some((actions, inputs)) = inputs {
+                    match is_volume_rider.pos.kind {
+                        common::mounting::Volume::Entity(uid) => {
+                            if let Some(controller) = uid_allocator
+                                .retrieve_entity_internal(uid.into())
+                                .and_then(|e| controllers.get_mut(e))
+                            {
+                                controller.inputs = inputs;
+                                controller.actions = actions;
+                            }
+                        },
+                        common::mounting::Volume::Terrain => {},
+                    }
+                }
             }
         }
     }

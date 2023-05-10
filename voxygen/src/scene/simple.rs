@@ -1,5 +1,5 @@
 use crate::{
-    mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_terrain},
+    mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_figure},
     render::{
         create_skybox_mesh, BoneMeshes, Consts, FigureModel, FirstPassDrawer, GlobalModel, Globals,
         GlobalsBindGroup, Light, LodData, Mesh, Model, PointLightMatrix, RainOcclusionLocals,
@@ -34,6 +34,8 @@ use common::{
 use vek::*;
 use winit::event::MouseButton;
 
+use super::figure::{ModelEntry, ModelEntryRef};
+
 struct VoidVol;
 impl BaseVol for VoidVol {
     type Error = ();
@@ -51,7 +53,7 @@ fn generate_mesh(
     bone_idx: u8,
 ) -> BoneMeshes {
     let (opaque, _, /* shadow */ _, bounds) =
-        generate_mesh_base_vol_terrain(segment, (greedy, mesh, offset, Vec3::one(), bone_idx));
+        generate_mesh_base_vol_figure(segment, (greedy, mesh, offset, Vec3::one(), bone_idx));
     (opaque /* , shadow */, bounds)
 }
 
@@ -385,14 +387,22 @@ impl Scene {
 
             if let Some((model, figure_state)) = model.zip(self.figure_state.as_ref()) {
                 if let Some(lod) = model.lod_model(0) {
-                    figure_drawer.draw(lod, figure_state.bound(), self.col_lights.texture(model));
+                    figure_drawer.draw(
+                        lod,
+                        figure_state.bound(),
+                        self.col_lights.texture(ModelEntryRef::Figure(model)),
+                    );
                 }
             }
         }
 
         if let Some((model, state)) = &self.backdrop {
             if let Some(lod) = model.lod_model(0) {
-                figure_drawer.draw(lod, state.bound(), self.col_lights.texture(model));
+                figure_drawer.draw(
+                    lod,
+                    state.bound(),
+                    self.col_lights.texture(ModelEntryRef::Figure(model)),
+                );
             }
         }
         drop(figure_drawer);

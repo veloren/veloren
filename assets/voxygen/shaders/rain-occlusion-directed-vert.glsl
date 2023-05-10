@@ -48,9 +48,9 @@ layout(location = 0) in uint v_pos_norm;
 // Light projection matrices.
 layout (std140, set = 1,  binding = 0)
 uniform u_locals {
-    vec3 model_offs;
-    float load_time;
+    mat4 model_mat;
     ivec4 atlas_offs;
+    float load_time;
 };
 
 // out vec4 shadowMapCoord;
@@ -59,7 +59,7 @@ const float EXTRA_NEG_Z = 32768.0;
 
 void main() {
     vec3 f_chunk_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
-    vec3 f_pos = f_chunk_pos + (model_offs - focus_off.xyz);
+    vec3 f_pos = (model_mat * vec4(f_chunk_pos, 1.0)).xyz - focus_off.xyz;
     
     gl_Position = rain_occlusion_matrices * vec4(f_pos, 1.0);
 }

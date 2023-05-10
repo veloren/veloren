@@ -357,6 +357,9 @@ pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
 
 /// Handles updating `Components` to move player based on state of `JoinData`
 pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
+    if data.volume_mount_data.is_some() {
+        return;
+    }
     let submersion = data
         .physics
         .in_liquid()
@@ -854,6 +857,80 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpda
     }
 }
 
+/// Checks if a block can be reached from a position.
+fn can_reach_block(
+    player_pos: Vec3<f32>,
+    block_pos: Vec3<i32>,
+    range: f32,
+    body: &Body,
+    terrain: &TerrainGrid,
+) -> bool {
+    let block_pos_f32 = block_pos.map(|x| x as f32 + 0.5);
+    // Closure to check if distance between a point and the block is less than
+    // MAX_PICKUP_RANGE and the radius of the body
+    let block_range_check = |pos: Vec3<f32>| {
+        (block_pos_f32 - pos).magnitude_squared() < (range + body.max_radius()).powi(2)
+    };
+
+    // Checks if player's feet or head is near to block
+    let close_to_block = block_range_check(player_pos)
+        || block_range_check(player_pos + Vec3::new(0.0, 0.0, body.height()));
+    if close_to_block {
+        // Do a check that a path can be found between sprite and entity
+        // interacting with sprite Use manhattan distance * 1.5 for number
+        // of iterations
+        let iters = (3.0 * (block_pos_f32 - player_pos).map(|x| x.abs()).sum()) as usize;
+        // Heuristic compares manhattan distance of start and end pos
+        let heuristic =
+            move |pos: &Vec3<i32>, _: &Vec3<i32>| (block_pos - pos).map(|x| x.abs()).sum() as f32;
+
+        let mut astar = Astar::new(
+            iters,
+            player_pos.map(|x| x.floor() as i32),
+            BuildHasherDefault::<FxHasher64>::default(),
+        );
+
+        // Transition uses manhattan distance as the cost, with a slightly lower cost
+        // for z transitions
+        let transition = |a: Vec3<i32>, b: Vec3<i32>| {
+            let (a, b) = (a.map(|x| x as f32), b.map(|x| x as f32));
+            ((a - b) * Vec3::new(1.0, 1.0, 0.9)).map(|e| e.abs()).sum()
+        };
+        // Neighbors are all neighboring blocks that are air
+        let neighbors = |pos: &Vec3<i32>| {
+            const DIRS: [Vec3<i32>; 6] = [
+                Vec3::new(1, 0, 0),
+                Vec3::new(-1, 0, 0),
+                Vec3::new(0, 1, 0),
+                Vec3::new(0, -1, 0),
+                Vec3::new(0, 0, 1),
+                Vec3::new(0, 0, -1),
+            ];
+            let pos = *pos;
+            DIRS.iter()
+                .map(move |dir| {
+                    let dest = dir + pos;
+                    (dest, transition(pos, dest))
+                })
+                .filter(|(pos, _)| {
+                    terrain
+                        .get(*pos)
+                        .ok()
+                        .map_or(false, |block| !block.is_filled())
+                })
+        };
+        // Pathing satisfied when it reaches the sprite position
+        let satisfied = |pos: &Vec3<i32>| *pos == block_pos;
+
+        astar
+            .poll(iters, heuristic, neighbors, satisfied)
+            .into_path()
+            .is_some()
+    } else {
+        false
+    }
+}
+
 /// Handles inventory manipulations that affect the loadout
 pub fn handle_manipulate_loadout(
     data: &JoinData<'_>,
@@ -895,90 +972,30 @@ pub fn handle_manipulate_loadout(
             }
         },
         InventoryAction::Collect(sprite_pos) => {
-            let sprite_pos_f32 = sprite_pos.map(|x| x as f32 + 0.5);
-            // Closure to check if distance between a point and the sprite is less than
-            // MAX_PICKUP_RANGE and the radius of the body
-            let sprite_range_check = |pos: Vec3<f32>| {
-                (sprite_pos_f32 - pos).magnitude_squared()
-                    < (MAX_PICKUP_RANGE + data.body.max_radius()).powi(2)
-            };
-
-            // Checks if player's feet or head is near to sprite
-            let close_to_sprite = sprite_range_check(data.pos.0)
-                || sprite_range_check(data.pos.0 + Vec3::new(0.0, 0.0, data.body.height()));
-            if close_to_sprite {
-                // First, get sprite data for position, if there is a sprite
-                use sprite_interact::SpriteInteractKind;
-                let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
-                let sprite_cfg = data
-                    .terrain
-                    .pos_chunk(sprite_pos)
-                    .and_then(|chunk| chunk.meta().sprite_cfg_at(sprite_chunk_pos));
-                let sprite_at_pos = data
-                    .terrain
-                    .get(sprite_pos)
-                    .ok()
-                    .copied()
-                    .and_then(|b| b.get_sprite());
-
-                // Checks if position has a collectible sprite as well as what sprite is at the
-                // position
-                let sprite_interact = sprite_at_pos.and_then(Option::<SpriteInteractKind>::from);
-
-                if let Some(sprite_interact) = sprite_interact {
-                    // Do a check that a path can be found between sprite and entity
-                    // interacting with sprite Use manhattan distance * 1.5 for number
-                    // of iterations
-                    let iters =
-                        (3.0 * (sprite_pos_f32 - data.pos.0).map(|x| x.abs()).sum()) as usize;
-                    // Heuristic compares manhattan distance of start and end pos
-                    let heuristic = move |pos: &Vec3<i32>, _: &Vec3<i32>| {
-                        (sprite_pos - pos).map(|x| x.abs()).sum() as f32
-                    };
-
-                    let mut astar = Astar::new(
-                        iters,
-                        data.pos.0.map(|x| x.floor() as i32),
-                        BuildHasherDefault::<FxHasher64>::default(),
-                    );
-
-                    // Transition uses manhattan distance as the cost, with a slightly lower cost
-                    // for z transitions
-                    let transition = |a: Vec3<i32>, b: Vec3<i32>| {
-                        let (a, b) = (a.map(|x| x as f32), b.map(|x| x as f32));
-                        ((a - b) * Vec3::new(1.0, 1.0, 0.9)).map(|e| e.abs()).sum()
-                    };
-                    // Neighbors are all neighboring blocks that are air
-                    let neighbors = |pos: &Vec3<i32>| {
-                        const DIRS: [Vec3<i32>; 6] = [
-                            Vec3::new(1, 0, 0),
-                            Vec3::new(-1, 0, 0),
-                            Vec3::new(0, 1, 0),
-                            Vec3::new(0, -1, 0),
-                            Vec3::new(0, 0, 1),
-                            Vec3::new(0, 0, -1),
-                        ];
-                        let pos = *pos;
-                        DIRS.iter()
-                            .map(move |dir| {
-                                let dest = dir + pos;
-                                (dest, transition(pos, dest))
-                            })
-                            .filter(|(pos, _)| {
-                                data.terrain
-                                    .get(*pos)
-                                    .ok()
-                                    .map_or(false, |block| !block.is_filled())
-                            })
-                    };
-                    // Pathing satisfied when it reaches the sprite position
-                    let satisfied = |pos: &Vec3<i32>| *pos == sprite_pos;
-
-                    let not_blocked_by_terrain = astar
-                        .poll(iters, heuristic, neighbors, satisfied)
-                        .into_path()
-                        .is_some();
-
+            // First, get sprite data for position, if there is a sprite
+            let sprite_at_pos = data
+                .terrain
+                .get(sprite_pos)
+                .ok()
+                .copied()
+                .and_then(|b| b.get_sprite());
+            // Checks if position has a collectible sprite as well as what sprite is at the
+            // position
+            let sprite_interact =
+                sprite_at_pos.and_then(Option::<sprite_interact::SpriteInteractKind>::from);
+            if let Some(sprite_interact) = sprite_interact {
+                if can_reach_block(
+                    data.pos.0,
+                    sprite_pos,
+                    MAX_PICKUP_RANGE,
+                    data.body,
+                    data.terrain,
+                ) {
+                    let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
+                    let sprite_cfg = data
+                        .terrain
+                        .pos_chunk(sprite_pos)
+                        .and_then(|chunk| chunk.meta().sprite_cfg_at(sprite_chunk_pos));
                     let required_item =
                         sprite_at_pos.and_then(|s| match s.unlock_condition(sprite_cfg.cloned()) {
                             UnlockKind::Free => None,
@@ -997,38 +1014,32 @@ pub fn handle_manipulate_loadout(
                             .map(|slot| Some((item_id, slot, consume))),
                         None => Some(None),
                     };
+                    if let Some(required_item) = has_required_items {
+                        // If the sprite is collectible, enter the sprite interaction character
+                        // state TODO: Handle cases for sprite being
+                        // interactible, but not collectible (none currently
+                        // exist)
+                        let (buildup_duration, use_duration, recover_duration) =
+                            sprite_interact.durations();
 
-                    // If path can be found between entity interacting with sprite and entity, start
-                    // interaction with sprite
-                    if not_blocked_by_terrain {
-                        if let Some(required_item) = has_required_items {
-                            // If the sprite is collectible, enter the sprite interaction character
-                            // state TODO: Handle cases for sprite being
-                            // interactible, but not collectible (none currently
-                            // exist)
-                            let (buildup_duration, use_duration, recover_duration) =
-                                sprite_interact.durations();
-
-                            update.character =
-                                CharacterState::SpriteInteract(sprite_interact::Data {
-                                    static_data: sprite_interact::StaticData {
-                                        buildup_duration,
-                                        use_duration,
-                                        recover_duration,
-                                        sprite_pos,
-                                        sprite_kind: sprite_interact,
-                                        was_wielded: data.character.is_wield(),
-                                        was_sneak: data.character.is_stealthy(),
-                                        required_item,
-                                    },
-                                    timer: Duration::default(),
-                                    stage_section: StageSection::Buildup,
-                                })
-                        } else {
-                            output_events.emit_local(LocalEvent::CreateOutcome(
-                                Outcome::FailedSpriteUnlock { pos: sprite_pos },
-                            ));
-                        }
+                        update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                            static_data: sprite_interact::StaticData {
+                                buildup_duration,
+                                use_duration,
+                                recover_duration,
+                                sprite_pos,
+                                sprite_kind: sprite_interact,
+                                was_wielded: data.character.is_wield(),
+                                was_sneak: data.character.is_stealthy(),
+                                required_item,
+                            },
+                            timer: Duration::default(),
+                            stage_section: StageSection::Buildup,
+                        })
+                    } else {
+                        output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::FailedSpriteUnlock { pos: sprite_pos },
+                        ));
                     }
                 }
             }

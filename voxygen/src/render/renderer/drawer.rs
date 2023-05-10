@@ -1,3 +1,5 @@
+use crate::render::Bound;
+
 use super::{
     super::{
         buffer::Buffer,
@@ -1113,9 +1115,9 @@ pub struct SpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
-    pub fn draw<'data: 'pass>(
+    pub fn draw<'data: 'pass, T>(
         &mut self,
-        terrain_locals: &'data terrain::BoundLocals,
+        terrain_locals: &'data Bound<T>,
         instances: &'data Instances<sprite::Instance>,
         alt_indices: &'data AltIndices,
         culling_mode: CullingMode,
