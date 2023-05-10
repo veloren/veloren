@@ -16,24 +16,24 @@ common-net = { package = "veloren-common-net", path = "../net" }
 common-ecs = { package = "veloren-common-ecs", path = "../ecs" }
 common-base = { package = "veloren-common-base", path = "../base" }
 
-rayon = "1.5"
+rayon = { workspace = true }
 num_cpus = "1.0"
-tracing = { version = "0.1", default-features = false }
-vek = { version = "0.15.8", features = ["serde"] }
+tracing = { workspace = true }
+vek = { workspace = true }
 
 # Data structures
-hashbrown = { version = "0.13", features = ["rayon", "serde", "nightly"] }
+hashbrown = { workspace = true }
 
 # ECS
-specs = { version = "0.18", features = ["serde", "storage-event-control", "derive"] }
+specs = { workspace = true, features = ["serde", "storage-event-control", "derive"] }
 
 # Plugins
 scopeguard = "1.1.0"
-serde = { version = "1.0.110", features = ["derive"], optional = true }
+serde = { workspace = true, optional = true }
 toml = { version = "0.7", optional = true }
 tar = { version = "0.4.37", optional = true }
 wasmer = { version = "2.0.0", optional = true, default-features = false, features = ["wat", "default-cranelift", "default-universal"] }
-bincode = { version = "1.3.1", optional = true }
+bincode = { workspace = true, optional = true }
 plugin-api = { package = "veloren-plugin-api", path = "../../plugin/api", optional = true }
 timer-queue = "0.1.0"
 

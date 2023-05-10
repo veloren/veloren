@@ -15,23 +15,23 @@ common-net = { package = "veloren-common-net", path = "../net" }
 common-ecs = { package = "veloren-common-ecs", path = "../ecs" }
 common-base = { package = "veloren-common-base", path = "../base" }
 
-rand = "0.8"
-rayon = "1.5"
-tracing = { version = "0.1", default-features = false }
-vek = { version = "0.15.8", features = ["serde"] }
-ordered-float = { version = "3", default-features = false }
-itertools = "0.10"
+rand = { workspace = true }
+rayon = { workspace = true }
+tracing = { workspace = true }
+vek = { workspace = true }
+ordered-float = { workspace = true }
+itertools = { workspace = true }
 
 # Data structures
-hashbrown = { version = "0.13", features = ["rayon", "serde", "nightly"] }
+hashbrown = { workspace = true }
 indexmap = "1.3.0"
-slab = "0.4.2"
+slab = { workspace = true }
 
 # ECS
-specs = { version = "0.18", features = ["serde", "storage-event-control", "derive"] }
+specs = { workspace = true, features = ["serde", "storage-event-control", "derive"] }
 
 # Tweak running code
-# inline_tweak = { version = "1.0.8", features = ["release_tweak"] }
+# inline_tweak = { workspace = true, features = ["release_tweak"] }
 
 [dev-dependencies]
 # Setup a State

@@ -20,71 +20,69 @@ default = ["simd"]
 [dependencies]
 
 common-base = { package = "veloren-common-base", path = "base" }
-# inline_tweak = "1.0.8"
+# inline_tweak = { workspace = true }
 
 # Serde
-serde = { version = "1.0.110", features = ["derive", "rc"] }
+serde = { workspace = true, features = ["rc"] }
 
 # Util
 enum-map = "2.4"
-vek = { version = "0.15.8", features = ["serde"] }
+vek = { workspace = true }
 cfg-if = "1.0.0"
-chrono = { version = "0.4.24", default-features=false, features = ["clock", "std", "wasmbind", "serde"] }
-chrono-tz = "0.8"
-itertools = "0.10"
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+itertools = { workspace = true }
+serde_json = { workspace = true }
 sha2 = "0.10"
-serde_json = "1.0.50"
 
 # Strum
-strum = { version = "0.24", features = ["derive"] }
+strum = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
-crossbeam-utils = "0.8.1"
-bitflags = "1.2"
-crossbeam-channel = "0.5"
-lazy_static = "1.4.0"
+crossbeam-utils = { workspace = true }
+crossbeam-channel = { workspace = true }
+bitflags = { workspace = true, features = ["serde"] }
+lazy_static = { workspace = true }
 num-derive = "0.3"
-num-traits = "0.2"
-ordered-float = { version = "2.0.1", default-features = false }
-rayon = "1.5"
+num-traits = { workspace = true }
+ordered-float = { workspace = true }
+rayon = { workspace = true }
 roots = "0.0.6"
 spin_sleep = "1.0"
-tracing = { version = "0.1", default-features = false }
+tracing = { workspace = true }
 uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"] }
-rand = "0.8"
-fxhash = "0.2.1"
+rand = { workspace = true }
+fxhash = { workspace = true }
 
 # Assets
 common-assets = {package = "veloren-common-assets", path = "assets"}
 dot_vox = "5.1"
-
-# Assets
 serde_repr = "0.1.6"
 
 # csv import
-ron = { version = "0.7", default-features = false, optional = true }
+ron = { workspace = true, optional = true }
 # csv export
 csv = { version = "1.1.3", optional = true }
 # graphviz exporters
 petgraph = { version = "0.6", optional = true }
 # K-d trees used for RRT pathfinding
 kiddo = { version = "0.2", optional = true }
-clap = { version = "4.2", optional = true }
+clap = { workspace = true, optional = true }
 
 # Data structures
-hashbrown = { version = "0.13", features = ["rayon", "serde", "nightly"] }
+hashbrown = { workspace = true }
+slab = { workspace = true }
 slotmap = { version = "1.0", features = ["serde"] }
 indexmap = { version = "1.3.0", features = ["rayon"] }
-slab = "0.4.2"
 
 # ECS
-specs = { version = "0.18", features = ["serde", "storage-event-control", "nightly"] }
+specs = { workspace = true, features = ["serde", "storage-event-control"] }
 
 [dev-dependencies]
 #bench
 criterion = "0.3"
-rand_chacha = "0.3"
+rand_chacha = { workspace = true }
 
 #test
 tracing-subscriber = { version = "0.3.7", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }

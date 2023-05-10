@@ -9,19 +9,19 @@ version = "0.13.0"
 # Assets
 common = {package = "veloren-common", path = "../../common"}
 common-assets = {package = "veloren-common-assets", path = "../../common/assets"}
-ron = "0.8"
-serde = { version = "1.0", features = ["derive"] }
+ron = { workspace = true }
+serde = { workspace = true }
 # Localization
 unic-langid = { version = "0.9"}
 intl-memoizer = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 fluent = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 # Utility
-hashbrown = { version = "0.13", features = ["serde", "nightly"] }
+hashbrown = { workspace = true }
 deunicode = "1.0"
-tracing = "0.1"
+tracing = { workspace = true }
 # Bin
-clap = { version = "4.2", features = ["suggestions", "std", "help", "usage", "error-context"], default-features = false, optional = true }
+clap = { workspace = true, optional = true }
 fluent-syntax = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 
 [[bin]]

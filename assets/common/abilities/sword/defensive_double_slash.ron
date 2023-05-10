@@ -37,9 +37,7 @@ ComboMelee2(
     ],
     energy_cost_per_strike: 0,
     meta: (
-        capabilities: (
-            // Blocks melee attacks at 50% strength
-            bits: 0b00000100,
-        ),
+        // Blocks melee attacks at 50% strength
+        capabilities: ("BUILDUP_BLOCKS"),
     ),
 )

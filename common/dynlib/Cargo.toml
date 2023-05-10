@@ -8,4 +8,4 @@ edition = "2021"
 find_folder = {version = "0.3.0"}
 libloading = {version = "0.8"}
 notify = {version = "5.0.0"}
-tracing = "0.1"
+tracing = { workspace = true }

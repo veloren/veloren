@@ -13,7 +13,7 @@ client = {package = "veloren-client", path = "../../client"}
 common = {package = "veloren-common", path = "../../common"}
 egui = "0.12"
 egui_winit_platform = "0.8"
-lazy_static = "1.4.0"
+lazy_static = { workspace = true }
 common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
 
 

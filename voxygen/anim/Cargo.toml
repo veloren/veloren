@@ -13,10 +13,10 @@ default = ["simd"]
 
 [dependencies]
 common = {package = "veloren-common", path = "../../common"}
-# inline_tweak = "1.0.2"
+# inline_tweak = { workspace = true }
 bytemuck = { version = "1.4", features=["derive"] }
-vek = {version = "0.15.8", features = ["serde"]}
+vek = { workspace = true }
 common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
 
 # Hot Reloading
-lazy_static = {version = "1.4.0", optional = true}
+lazy_static = { workspace = true, optional = true}
