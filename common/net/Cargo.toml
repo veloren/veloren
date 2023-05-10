@@ -11,21 +11,21 @@ default = ["simd"]
 
 [dependencies]
 common = {package = "veloren-common", path = "../../common"}
-#inline_tweak = "1.0.2"
+#inline_tweak = { workspace = true }
 
-bincode = "1.3.3"
+bincode = { workspace = true }
 flate2 = "1.0.20"
-image = { version = "0.24", default-features = false, features = ["png", "jpeg"] }
-num-traits = "0.2"
+image = { workspace = true, features = ["jpeg"] }
+num-traits = { workspace = true }
 sum_type = "0.2.0"
-vek = { version = "0.15.8", features = ["serde"] }
-tracing = { version = "0.1", default-features = false }
+vek = { workspace = true }
+tracing = { workspace = true }
 
 # Data structures
-hashbrown = { version = "0.13", features = ["rayon", "serde", "nightly"] }
+hashbrown = { workspace = true }
 
 # ECS
-specs = { version = "0.18", features = ["serde", "storage-event-control"] }
+specs = { workspace = true, features = ["serde", "storage-event-control"] }
 
 # Serde
-serde = { version = "1.0.110", features = ["derive"] }
+serde = { workspace = true }

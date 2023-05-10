@@ -22,9 +22,7 @@ ComboMelee2(
     ],
     energy_cost_per_strike: 5,
     meta: (
-        capabilities: (
-            // The ability will parry melee attacks in the buildup portion
-            bits: 0b00100000,
-        ),
+        // The ability will parry melee attacks in the buildup portion
+        capabilities: ("BUILDUP_PARRIES"),
     ),
 )

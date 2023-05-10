@@ -9,7 +9,7 @@ version = "0.10.0"
 tracy = ["profiling", "profiling/profile-with-tracy"]
 
 [dependencies]
-tracing = { version = "0.1", default-features = false }
+tracing = { workspace = true }
 directories-next = "2.0"
 
 # Profiling / Tracy

@@ -6,16 +6,16 @@ description = "Crate for game loading assets for veloren."
 version = "0.10.0"
 
 [dependencies]
-lazy_static = "1.4.0"
+lazy_static = { workspace = true }
 assets_manager = {version = "0.10", features = ["bincode", "ron", "json"]}
-ron = { version = "0.8", default-features = false }
+ron = { workspace = true }
 dot_vox = "5.1"
 wavefront = "0.2" # TODO: Use vertex-colors branch when we have models that have them
-image = { version = "0.24", default-features = false, features = ["png"] }
-tracing = "0.1"
+image = { workspace = true }
+tracing = { workspace = true }
 
 # asset tweak
-serde = {version = "1.0", features = ["derive"], optional = true}
+serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 walkdir = "2.3.2"

@@ -2894,7 +2894,7 @@ pub enum SwordStance {
 }
 
 bitflags::bitflags! {
-    #[derive(Default, Serialize, Deserialize)]
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
     // If more are ever needed, first check if any not used anymore, as some were only used in intermediary stages so may be free
     pub struct Capability: u8 {
         // There used to be a capability here, to keep ordering the same below this is now a placeholder

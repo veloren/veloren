@@ -119,14 +119,14 @@ impl Component for Alignment {
 }
 
 bitflags::bitflags! {
-    #[derive(Default)]
+    #[derive(Clone, Copy, Debug, Default)]
     pub struct BehaviorCapability: u8 {
         const SPEAK = 0b00000001;
         const TRADE = 0b00000010;
     }
 }
 bitflags::bitflags! {
-    #[derive(Default)]
+    #[derive(Clone, Copy, Debug, Default)]
     pub struct BehaviorState: u8 {
         const TRADING        = 0b00000001;
         const TRADING_ISSUER = 0b00000010;

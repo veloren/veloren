@@ -233,7 +233,6 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             let pretty_config = PrettyConfig::new()
                                 .depth_limit(4)
                                 .separate_tuple_members(true)
-                                .decimal_floats(true)
                                 .enumerate_arrays(true);
 
                             let mut path = ASSETS_PATH.clone();
@@ -432,7 +431,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                         let pretty_config = PrettyConfig::new()
                             .depth_limit(4)
                             .separate_tuple_members(true)
-                            .decimal_floats(true)
                             .enumerate_arrays(true);
 
                         let mut path = ASSETS_PATH.clone();

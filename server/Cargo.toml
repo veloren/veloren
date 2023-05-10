@@ -30,41 +30,41 @@ server-agent = {package = "veloren-server-agent", path = "agent"}
 
 #inline_tweak = "1.0.8"
 
-specs = { version = "0.18", features = ["shred-derive"] }
+specs = { workspace = true, features = ["shred-derive"] }
 
-strum = { version = "0.24", features = ["derive"] }
-bincode = "1.3.2"
+strum = { workspace = true }
+bincode = { workspace = true }
 num_cpus = "1.0"
-tracing = "0.1"
-vek = { version = "0.15.8", features = ["serde"] }
-futures-util = "0.3.7"
-tokio = { version = "1.20", default-features = false, features = ["rt"] }
-prometheus-hyper = "0.1.4"
+tracing = { workspace = true }
+vek = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true }
+prometheus-hyper = { workspace = true }
 quinn = "0.8"
 rustls = { version = "0.20", default-features = false }
 rustls-pemfile = { version = "1", default-features = false }
 atomicwrites = "0.4"
-chrono = { version = "0.4.24", default-features=false, features = ["clock", "std", "wasmbind", "serde"] }
-chrono-tz = { version = "0.8", features = ["serde"] }
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
 drop_guard = { version = "0.3.0" }
 humantime = "2.1.0"
-itertools = "0.10"
-lazy_static = "1.4.0"
-ron = { version = "0.8", default-features = false }
-serde = { version = "1.0.110", features = ["derive"] }
-serde_json = "1.0.50"
-rand = { version = "0.8", features = ["small_rng"] }
-hashbrown = { version = "0.13", features = ["rayon", "serde", "nightly"] }
+itertools = { workspace = true }
+lazy_static = { workspace = true }
+ron = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rand = { workspace = true, features = ["small_rng"] }
+hashbrown = { workspace = true }
 parking_lot = { version = "0.12" }
-rayon = "1.5"
-crossbeam-channel = "0.5"
-prometheus = { version = "0.13", default-features = false}
+rayon = { workspace = true }
+crossbeam-channel = { workspace = true }
+prometheus = { workspace = true }
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b37872f3586ac3b21d08b56c8ec7cd92fb172" }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
 slab  = "0.4"
 rand_distr = "0.4.0"
 enumset = "1.0.8"
-enum-map = "2.4"
+enum-map = { workspace = true }
 noise = { version = "0.7", default-features = false }
 censor = "0.3"
 
