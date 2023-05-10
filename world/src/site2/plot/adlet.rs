@@ -93,7 +93,7 @@ impl AdletStronghold {
         };
 
         // Find direction that allows for deep enough site
-        let angle_samples = (0..64).into_iter().map(|x| x as f32 / 64.0 * TAU);
+        let angle_samples = (0..64).map(|x| x as f32 / 64.0 * TAU);
         // Sample blocks 40-50 away, use angle where these positions are highest
         // relative to entrance
         let angle = angle_samples
@@ -103,7 +103,6 @@ impl AdletStronghold {
                     |pos: Vec2<f32>| land.get_alt_approx(pos.as_() + entrance) - entrance_height;
                 let (x, y) = (theta.cos(), theta.sin());
                 (40..=50)
-                    .into_iter()
                     .map(|r| {
                         let rpos = Vec2::new(r as f32 * x, r as f32 * y);
                         height(rpos) as i32
