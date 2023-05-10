@@ -45,6 +45,8 @@ make_case_elim!(
     }
 );
 
+// We can't derive this because of the `make_case_elim` macro.
+#[allow(clippy::derivable_impls)]
 impl Default for StructureBlock {
     fn default() -> Self { StructureBlock::None }
 }

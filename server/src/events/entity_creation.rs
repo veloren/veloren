@@ -205,7 +205,8 @@ pub fn handle_create_ship(
     let collider = ship.make_collider();
     let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
 
-    // TODO: find better solution for this.
+    // TODO: Find better solution for this, maybe something like a serverside block
+    // of interests.
     let (mut steering, mut seats) = {
         let mut steering = Vec::new();
         let mut seats = Vec::new();
