@@ -17,7 +17,7 @@ use common::{
     consts::{MAX_MOUNT_RANGE, MAX_SPRITE_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     event::EventBus,
     link::Is,
-    mounting::{Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
+    mounting::{Mount, Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
     outcome::Outcome,
     rtsim::RtSimVehicle,
     terrain::{Block, SpriteKind},
