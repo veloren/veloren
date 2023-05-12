@@ -522,4 +522,7 @@ pub enum ExperimentalShader {
     /// Make the UI uses nearest neighbor filtering for scaling images instead
     /// of trying to filter based on the coverage of the sampled pixels.
     UiNearestScaling,
+    /// Prefer using physically-based values for various rendering parameters,
+    /// where possible.
+    Photorealistic,
 }
