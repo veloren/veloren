@@ -1,23 +1,25 @@
 ([
     Group(Weapon(Axe)),
 
-    // DoubleStrike
-    Skill((Axe(DsCombo), 1)),
-    Skill((Axe(DsDamage), 3)),
-    Skill((Axe(DsRegen), 2)),
-    Skill((Axe(DsSpeed), 3)),
-
-    // Spin
-    Skill((Axe(SInfinite), 1)),
-    Skill((Axe(SHelicopter), 1)),
-    Skill((Axe(SDamage), 3)),
-    Skill((Axe(SSpeed), 2)),
-    Skill((Axe(SCost), 2)),
-
-    // Leap
-    Skill((Axe(UnlockLeap), 1)),
-    Skill((Axe(LDamage), 2)),
-    Skill((Axe(LKnockback), 2)),
-    Skill((Axe(LCost), 2)),
-    Skill((Axe(LDistance), 2)),
+    Skill((Axe(BrutalSwing), 1)),
+    Skill((Axe(Rake), 1)),
+    Skill((Axe(SkullBash), 1)),
+    Skill((Axe(Berserk), 1)),
+    Skill((Axe(RisingTide), 1)),
+    Skill((Axe(Bloodfeast), 1)),
+    Skill((Axe(FierceRaze), 1)),
+    Skill((Axe(Sunder), 1)),
+    Skill((Axe(Plunder), 1)),
+    Skill((Axe(SavageSense), 1)),
+    Skill((Axe(AdrenalineRush), 1)),
+    Skill((Axe(Execute), 1)),
+    Skill((Axe(Furor), 1)),
+    Skill((Axe(Fracture), 1)),
+    Skill((Axe(Lacerate), 1)),
+    Skill((Axe(Defiance), 1)),
+    Skill((Axe(Keelhaul), 1)),
+    Skill((Axe(Bulkhead), 1)),
+    Skill((Axe(Maelstrom), 1)),
+    Skill((Axe(Riptide), 1)),
+    Skill((Axe(Capsize), 1)),
 ])

@@ -57,23 +57,27 @@ pub enum SwordSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum AxeSkill {
-    // Double strike upgrades
-    DsCombo,
-    DsDamage,
-    DsSpeed,
-    DsRegen,
-    // Spin upgrades
-    SInfinite,
-    SHelicopter,
-    SDamage,
-    SSpeed,
-    SCost,
-    // Leap upgrades
-    UnlockLeap,
-    LDamage,
-    LKnockback,
-    LCost,
-    LDistance,
+    BrutalSwing,
+    Berserk,
+    RisingTide,
+    SavageSense,
+    AdrenalineRush,
+    Execute,
+    Maelstrom,
+    Rake,
+    Bloodfeast,
+    FierceRaze,
+    Furor,
+    Fracture,
+    Lacerate,
+    Riptide,
+    SkullBash,
+    Sunder,
+    Plunder,
+    Defiance,
+    Keelhaul,
+    Bulkhead,
+    Capsize,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
@@ -222,7 +226,6 @@ impl Skill {
 pub const SKILL_MODIFIERS: SkillTreeModifiers = SkillTreeModifiers::get();
 
 pub struct SkillTreeModifiers {
-    pub axe_tree: AxeTreeModifiers,
     pub hammer_tree: HammerTreeModifiers,
     pub bow_tree: BowTreeModifiers,
     pub staff_tree: StaffTreeModifiers,
@@ -234,50 +237,12 @@ pub struct SkillTreeModifiers {
 impl SkillTreeModifiers {
     const fn get() -> Self {
         Self {
-            axe_tree: AxeTreeModifiers::get(),
             hammer_tree: HammerTreeModifiers::get(),
             bow_tree: BowTreeModifiers::get(),
             staff_tree: StaffTreeModifiers::get(),
             sceptre_tree: SceptreTreeModifiers::get(),
             mining_tree: MiningTreeModifiers::get(),
             general_tree: GeneralTreeModifiers::get(),
-        }
-    }
-}
-
-pub struct AxeTreeModifiers {
-    pub spin: AxeSpinModifiers,
-    pub leap: AxeLeapModifiers,
-}
-
-pub struct AxeSpinModifiers {
-    pub base_damage: f32,
-    pub swing_duration: f32,
-    pub energy_cost: f32,
-}
-
-pub struct AxeLeapModifiers {
-    pub base_damage: f32,
-    pub knockback: f32,
-    pub energy_cost: f32,
-    // TODO: split to forward and vertical?
-    pub leap_strength: f32,
-}
-
-impl AxeTreeModifiers {
-    const fn get() -> Self {
-        Self {
-            spin: AxeSpinModifiers {
-                base_damage: 1.1,
-                swing_duration: 0.95,
-                energy_cost: 0.9,
-            },
-            leap: AxeLeapModifiers {
-                base_damage: 1.1,
-                knockback: 1.1,
-                energy_cost: 0.85,
-                leap_strength: 1.05,
-            },
         }
     }
 }

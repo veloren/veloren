@@ -1,6 +1,4 @@
 common-abilities-debug-possess = Possessing Arrow
-    .desc = Shoots a poisonous arrow. Lets you control your target.
-common-abilities-axe-leap = Axe Jump
     .desc = A jump with the slashing leap to position of cursor.
 common-abilities-hammer-leap = Smash of Doom
     .desc = An AOE attack with knockback. Leaps to position of cursor.

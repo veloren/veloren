@@ -2,7 +2,7 @@ hud-rank_up = 新的技能点
 hud-skill-sp_available = { $number } 技能点可用
 hud-skill-not_unlocked = 尚未解锁
 hud-skill-req_sp ={"\u000A"}
-    
+
     需要 { $number } 技能点
 
 hud-skill-inc_health_title = 增强生命
@@ -179,81 +179,6 @@ hud-skill-hmr_single_strike_damage_title = 热身(伤害)
 hud-skill-hmr_single_strike_damage = 随着连击数增加,每次击中敌人造成的伤害提升{ $SP }
 hud-skill-hmr_single_strike_knockback_title = 冲击强化
 hud-skill-hmr_single_strike_knockback = 锤击击退的效果提高{ $boost }%{ $SP }
-
-hud-skill-sw_trip_str_title = 三连击
-hud-skill-sw_trip_str = 三连击,劈,砍,刺
-hud-skill-sw_trip_str_combo_title = 姿态调整
-hud-skill-sw_trip_str_combo = 三连击与三连击之间能能更好的衔接{ $SP }
-hud-skill-sw_trip_str_dmg_title = 热身(伤害)
-hud-skill-sw_trip_str_dmg = 随着连击数增加,每次击中敌人造成的伤害提升{ $SP }
-hud-skill-sw_trip_str_sp_title = 热身(攻击速度)
-hud-skill-sw_trip_str_sp = 随着连击数增加,每次击中敌人攻击速度加快{ $SP }
-hud-skill-sw_trip_str_reg_title = 热身(耐力回复)
-hud-skill-sw_trip_str_reg = 随着连击数增加,每次击中敌人回复更多耐力{ $SP }
-
-hud-skill-sw_dash_title = 突刺
-hud-skill-sw_dash = 向前发动快速突刺,划伤敌人
-hud-skill-sw_dash_dmg_title = 伤害提升
-hud-skill-sw_dash_dmg = 突刺起始造成的伤害提升{ $boost }%{ $SP }
-hud-skill-sw_dash_drain_title = 耐力节省
-hud-skill-sw_dash_drain = 突刺发动需要消耗的耐力减少{ $boost }%{ $SP }
-hud-skill-sw_dash_cost_title = 耐力节省
-hud-skill-sw_dash_cost = 突刺时耐力消耗速率降低{ $boost }%{ $SP }
-hud-skill-sw_dash_speed_title = 势如破竹
-hud-skill-sw_dash_speed = 突刺前进的速度提高{ $boost }%{ $SP }
-hud-skill-sw_dash_charge_through_title = Charge Through
-hud-skill-sw_dash_charge_through = Allows you to charge through the first enemies you hit{ $SP }
-hud-skill-sw_dash_scale_title = 伤害提升
-hud-skill-sw_dash_scale = 突刺最大造成的伤害提升{ $boost }%{ $SP }
-
-hud-skill-sw_spin_title = 回旋斩
-hud-skill-sw_spin = 发动强力的回旋斩伤害成片的敌人{ $SP }
-hud-skill-sw_spin_dmg_title = 伤害提升
-hud-skill-sw_spin_dmg = 回旋斩造成的伤害提升{ $boost }%{ $SP }
-hud-skill-sw_spin_spd_title = 斩风
-hud-skill-sw_spin_spd = 回旋斩斩击的速度加快{ $boost }%{ $SP }
-hud-skill-sw_spin_cost_title = 耐力节省
-hud-skill-sw_spin_cost = 每段回旋斩需要消耗的耐力减少{ $boost }%{ $SP }
-hud-skill-sw_spin_spins_title = 旋转舞者(剑)
-hud-skill-sw_spin_spins = 增加每次发动回旋斩斩击的次数{ $SP }
-
-hud-skill-sw_interrupt_title = 纳刀术
-hud-skill-sw_interrupt = 无视攻击动作的后摇,立刻进行其他动作{ $SP }
-
-hud-skill-axe_double_strike_title = 劈砍
-hud-skill-axe_double_strike = 砍倒那些恶棍
-hud-skill-axe_double_strike_combo_title = 二连击
-hud-skill-axe_double_strike_combo = 解锁第二段攻击{ $SP }
-hud-skill-axe_double_strike_damage_title = 热身(伤害)
-hud-skill-axe_double_strike_damage = 随着连击数增加,每次击中敌人造成的伤害提升{ $SP }
-hud-skill-axe_double_strike_speed_title = 热身(攻击速度)
-hud-skill-axe_double_strike_speed = 随着连击数增加,每次击中敌人攻击速度加快{ $SP }
-hud-skill-axe_double_strike_regen_title = 热身(耐力回复)
-hud-skill-axe_double_strike_regen = 随着连击数增加,每次击中敌人回复更多耐力{ $SP }
-
-hud-skill-axe_spin_title = 旋风斩
-hud-skill-axe_spin = 大斧转转乐,绞杀周围目标
-hud-skill-axe_infinite_axe_spin_title = 旋转舞者(斧)
-hud-skill-axe_infinite_axe_spin = 有耐力的情况下你可以一直这么转下去{ $SP }
-hud-skill-axe_spin_damage_title = 伤害提升
-hud-skill-axe_spin_damage = 旋风斩造成的伤害提升{ $boost }%{ $SP }
-hud-skill-axe_spin_helicopter_title = 直升机
-hud-skill-axe_spin_helicopter = 旋风斩发动时你下落速度会减慢一点{ $SP }
-hud-skill-axe_spin_speed_title = 龙卷风
-hud-skill-axe_spin_speed = 旋风斩旋转的速度加快{ $boost }%{ $SP }
-hud-skill-axe_spin_cost_title = 耐力节省
-hud-skill-axe_spin_cost = 每段旋风斩需要消耗的耐力减少{ $boost }%{ $SP }
-hud-skill-axe_unlock_leap_title = 飞身一击
-hud-skill-axe_unlock_leap = 飞身施展强力一劈{ $SP }
-hud-skill-axe_leap_damage_title = 伤害提升
-hud-skill-axe_leap_damage = 飞身一击造成的伤害提升{ $boost }%{ $SP }
-hud-skill-axe_leap_knockback_title = 冲击强化
-hud-skill-axe_leap_knockback = 飞身一击击退的效果提高{ $boost }%{ $SP }
-hud-skill-axe_leap_cost_title = 耐力节省
-hud-skill-axe_leap_cost = 施展飞身一击需要消耗的耐力减少{ $boost }%{ $SP }
-hud-skill-axe_leap_distance_title = 奋力一跃
-hud-skill-axe_leap_distance = 跳跃距离提升{ $boost }%{ $SP }
-
 
 hud-skill-mining_title = 挖矿
 hud-skill-pick_strike_title = 镐击

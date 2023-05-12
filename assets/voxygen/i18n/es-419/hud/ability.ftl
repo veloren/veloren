@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Flecha de Posesión
     .desc = Dispara una flecha venenosa. Te permite controlar a tu objetivo.
-common-abilities-axe-leap = Salto con hacha
-    .desc = Un salto cortante a la posición del cursor.
 common-abilities-hammer-leap = Golpe Fatal
     .desc = Un ataque en área con retroceso. Salta a la posición del cursor.
 common-abilities-bow-shotgun = Ráfaga
@@ -107,24 +105,24 @@ common-abilities-sword-crippling_cross_cut = Corte Cruzado Paralizador
 common-abilities-sword-cleaving_cross_cut = Corte Cruzado penetrante
     .desc = Un corte hacia la derecha y la izquierda que puede cortar a través de enemigos
 veloren-core-pseudo_abilities-sword-finisher = Finalizador
-    .desc = Una habilidad que consume la combinación de ataques y está destinada a acabar con un combate 
+    .desc = Una habilidad que consume la combinación de ataques y está destinada a acabar con un combate
     El finalizador será diferente según la postura del personaje
 common-abilities-sword-basic_mighty_strike = Golpe Poderoso
     .desc = Un simple y poderoso corte requiere una cantidad moderada de combo para usarse
 common-abilities-sword-heavy_guillotine = Guillotina
-    .desc = Un fuerte corte que probablemente aturdirá lo que no mate 
+    .desc = Un fuerte corte que probablemente aturdirá lo que no mate
     Requiere una cantidad moderada de combo para usarse
 common-abilities-sword-agile_hundred_cuts = Cien Cortes
-    .desc = Muchos cortes muy rápidos en un objetivo 
+    .desc = Muchos cortes muy rápidos en un objetivo
     Requiere una cantidad moderada de combo para usarse
 common-abilities-sword-defensive_counter = Contraataque
-    .desc = Un ataque lanzado rápidamente que inflige considerablemente más daño a un enemigo parado 
+    .desc = Un ataque lanzado rápidamente que inflige considerablemente más daño a un enemigo parado
     Requiere una cantidad moderada de combo para usarse
 common-abilities-sword-crippling_mutilate = Mutilar
-    .desc = Mutila a tu enemigo golpeando a través de sus heridas, inflige más daño a los enemigos sangrantes 
+    .desc = Mutila a tu enemigo golpeando a través de sus heridas, inflige más daño a los enemigos sangrantes
     Requiere una cantidad moderada de combo para usarse
 common-abilities-sword-cleaving_bladestorm = Tormenta de Espadas
-    .desc = Golpea a tus enemigos con múltiples giros cíclicos de tu espada 
+    .desc = Golpea a tus enemigos con múltiples giros cíclicos de tu espada
     Requiere una cantidad moderada de combo para usarse
 common-abilities-sword-heavy_sweep = Barrido Pesado
     .desc = Un golpe pesado y amplio que inflige más daño a un enemigo aturdido entra en la postura pesada
@@ -147,30 +145,30 @@ common-abilities-sword-cleaving_whirlwind_slice = Golpe de torbellino
 common-abilities-sword-cleaving_earth_splitter = Abertura de la tierra
     .desc = Divide la tierra, si se usa mientras se cae, tendrá un impacto mucho más fuerte. Entra en postura de corte
 common-abilities-sword-heavy_fortitude = Fortaleza
-    .desc = Aumenta la resistencia a los golpes y a medida que recibes más daño, tus ataques serán más aturdidores. 
+    .desc = Aumenta la resistencia a los golpes y a medida que recibes más daño, tus ataques serán más aturdidores.
     Requiere postura pesada
 common-abilities-sword-heavy_pillar_thrust = Embestida de Pilar
-    .desc = Apuñala tu espada hacia abajo a través del enemigo hasta el suelo, es más poderoso si se usa mientras se está cayendo 
+    .desc = Apuñala tu espada hacia abajo a través del enemigo hasta el suelo, es más poderoso si se usa mientras se está cayendo
     Requiere postura pesada
 common-abilities-sword-agile_dancing_edge = Filo Danzante
     .desc = Mueve y ataca con más rapidez requiere postura ágil
 common-abilities-sword-agile_flurry = Ráfaga
     .desc = Múltiples puñaladas rápidas requiere postura ágil
 common-abilities-sword-defensive_stalwart_sword = Espada Firme
-    .desc = Resiste el impacto de los ataques, reduce el daño entrante 
+    .desc = Resiste el impacto de los ataques, reduce el daño entrante
     Requiere postura defensiva
 common-abilities-sword-defensive_deflect = Desviar
-    .desc = Un movimiento lo suficientemente rápido para bloquear golpes e incluso proyectiles 
+    .desc = Un movimiento lo suficientemente rápido para bloquear golpes e incluso proyectiles
     Requiere postura defensiva
 common-abilities-sword-crippling_eviscerate = Gran Desgarro
-    .desc = Desgarra heridas aún más, inflige más daño a los enemigos Aturdidos 
+    .desc = Desgarra heridas aún más, inflige más daño a los enemigos Aturdidos
     Requiere postura debilitamiento
 common-abilities-sword-crippling_bloody_gash = Herida Sangrienta
-    .desc = Golpea cruelmente una herida que ya está sangrando, inflige más daño a enemigos sangrantes 
+    .desc = Golpea cruelmente una herida que ya está sangrando, inflige más daño a enemigos sangrantes
     Requiere postura de debilitamiento
 common-abilities-sword-cleaving_blade_fever = Fiebre de Hoja
-    .desc = Ataca de manera más temeraria, aumentando el poder de tus golpes pero dejándote vulnerable a los ataques enemigos 
+    .desc = Ataca de manera más temeraria, aumentando el poder de tus golpes pero dejándote vulnerable a los ataques enemigos
     Requiere postura de corte
 common-abilities-sword-cleaving_sky_splitter = Divisor Celestial
-    .desc = Un poderoso ataque que supuestamente puede incluso dividir el cielo, pero también dividirá a los enemigos 
+    .desc = Un poderoso ataque que supuestamente puede incluso dividir el cielo, pero también dividirá a los enemigos
     Requiere postura de corte

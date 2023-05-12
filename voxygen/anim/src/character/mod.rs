@@ -31,8 +31,6 @@ pub mod sit;
 pub mod sneak;
 pub mod sneakequip;
 pub mod sneakwield;
-pub mod spin;
-pub mod spinmelee;
 pub mod staggered;
 pub mod stand;
 pub mod stunned;
@@ -54,10 +52,10 @@ pub use self::{
     repeater::RepeaterAnimation, ripostemelee::RiposteMeleeAnimation, roll::RollAnimation,
     run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
     shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
-    sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation, spin::SpinAnimation,
-    spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation, stand::StandAnimation,
-    stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
-    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
+    sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation,
+    staggered::StaggeredAnimation, stand::StandAnimation, stunned::StunnedAnimation,
+    swim::SwimAnimation, swimwield::SwimWieldAnimation, talk::TalkAnimation,
+    wallrun::WallrunAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp;

@@ -1,10 +1,4 @@
 ([
     Group(Weapon(Axe)),
 
-    // DoubleStrike
-    Skill((Axe(DsDamage), 1)),
-    // Spin
-    Skill((Axe(SInfinite), 1)),
-    Skill((Axe(SDamage), 1)),
-
 ])

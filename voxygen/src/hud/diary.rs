@@ -33,8 +33,8 @@ use common::{
             slot::EquipSlot,
         },
         skills::{
-            self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
-            RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
+            self, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill, RollSkill,
+            SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
         Body, Energy, Health, Inventory, Poise,
@@ -87,22 +87,6 @@ widget_ids! {
         skill_lock_imgs[],
         sword_bg,
         axe_render,
-        skill_axe_combo_0,
-        skill_axe_combo_1,
-        skill_axe_combo_2,
-        skill_axe_combo_3,
-        skill_axe_combo_4,
-        skill_axe_spin_0,
-        skill_axe_spin_1,
-        skill_axe_spin_2,
-        skill_axe_spin_3,
-        skill_axe_spin_4,
-        skill_axe_spin_5,
-        skill_axe_leap_0,
-        skill_axe_leap_1,
-        skill_axe_leap_2,
-        skill_axe_leap_3,
-        skill_axe_leap_4,
         hammer_render,
         skill_hammer_combo_0,
         skill_hammer_combo_1,
@@ -1905,159 +1889,11 @@ impl<'a> Diary<'a> {
 
     fn handle_axe_skills_window(
         &mut self,
-        diary_tooltip: &Tooltip,
-        state: &mut State<DiaryState>,
-        ui: &mut UiCell,
-        mut events: Vec<Event>,
+        _diary_tooltip: &Tooltip,
+        _state: &mut State<DiaryState>,
+        _ui: &mut UiCell,
+        /* mut */ events: Vec<Event>,
     ) -> Vec<Event> {
-        // Title text
-        let tree_title = &self.localized_strings.get_msg("common-weapons-axe");
-
-        Text::new(tree_title)
-            .mid_top_with_margin_on(state.ids.content_align, 2.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(TEXT_COLOR)
-            .set(state.ids.tree_title_txt, ui);
-
-        // Number of skills per rectangle per weapon, start counting at 0
-        // Maximum of 9 skills/8 indices
-        let skills_top_l = 5;
-        let skills_top_r = 6;
-        let skills_bot_l = 5;
-        let skills_bot_r = 0;
-
-        self.setup_state_for_skill_icons(
-            state,
-            ui,
-            skills_top_l,
-            skills_top_r,
-            skills_bot_l,
-            skills_bot_r,
-        );
-
-        // Skill icons and buttons
-        use skills::AxeSkill::*;
-        // Axe
-        Image::new(animate_by_pulse(
-            &self
-                .item_imgs
-                .img_ids_or_not_found_img(ItemKey::Simple("example_axe".to_string())),
-            self.pulse,
-        ))
-        .wh(ART_SIZE)
-        .middle_of(state.ids.content_align)
-        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.ids.axe_render, ui);
-        use PositionSpecifier::MidTopWithMarginOn;
-        let skill_buttons = &[
-            // Top Left skills
-            //        5 1 6
-            //        3 0 4
-            //        8 2 7
-            SkillIcon::Descriptive {
-                title: "hud-skill-axe_double_strike_title",
-                desc: "hud-skill-axe_double_strike",
-                image: self.imgs.twohaxe_m1,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
-                id: state.ids.skill_axe_combo_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(DsCombo),
-                image: self.imgs.physical_combo_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
-                id: state.ids.skill_axe_combo_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(DsDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
-                id: state.ids.skill_axe_combo_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(DsSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
-                id: state.ids.skill_axe_combo_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(DsRegen),
-                image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
-                id: state.ids.skill_axe_combo_4,
-            },
-            // Top right skills
-            SkillIcon::Descriptive {
-                title: "hud-skill-axe_spin_title",
-                desc: "hud-skill-axe_spin",
-                image: self.imgs.axespin,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
-                id: state.ids.skill_axe_spin_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(SInfinite),
-                image: self.imgs.physical_infinite_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
-                id: state.ids.skill_axe_spin_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(SDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
-                id: state.ids.skill_axe_spin_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(SHelicopter),
-                image: self.imgs.physical_helicopter_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
-                id: state.ids.skill_axe_spin_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(SSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
-                id: state.ids.skill_axe_spin_4,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(SCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[5], 3.0),
-                id: state.ids.skill_axe_spin_5,
-            },
-            // Bottom left skills
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(UnlockLeap),
-                image: self.imgs.skill_axe_leap_slash,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
-                id: state.ids.skill_axe_leap_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(LDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
-                id: state.ids.skill_axe_leap_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(LKnockback),
-                image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
-                id: state.ids.skill_axe_leap_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(LCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
-                id: state.ids.skill_axe_leap_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Axe(LDistance),
-                image: self.imgs.physical_distance_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
-                id: state.ids.skill_axe_leap_4,
-            },
-        ];
-
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
@@ -2914,7 +2750,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         Skill::General(s) => general_skill_strings(s),
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
-        Skill::Axe(s) => axe_skill_strings(s),
         Skill::Hammer(s) => hammer_skill_strings(s),
         Skill::Bow(s) => bow_skill_strings(s),
         Skill::Staff(s) => staff_skill_strings(s),
@@ -2980,78 +2815,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
             tracing::warn!("Requesting title for unlocking unexpected skill group");
             SkillStrings::Empty
         },
-    }
-}
-
-fn axe_skill_strings(skill: AxeSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.axe_tree;
-    match skill {
-        // Double strike upgrades
-        AxeSkill::DsCombo => SkillStrings::plain(
-            "hud-skill-axe_double_strike_combo_title",
-            "hud-skill-axe_double_strike_combo",
-        ),
-        AxeSkill::DsDamage => SkillStrings::plain(
-            "hud-skill-axe_double_strike_damage_title",
-            "hud-skill-axe_double_strike_damage",
-        ),
-        AxeSkill::DsSpeed => SkillStrings::plain(
-            "hud-skill-axe_double_strike_speed_title",
-            "hud-skill-axe_double_strike_speed",
-        ),
-        AxeSkill::DsRegen => SkillStrings::plain(
-            "hud-skill-axe_double_strike_regen_title",
-            "hud-skill-axe_double_strike_regen",
-        ),
-        // Spin upgrades
-        AxeSkill::SInfinite => SkillStrings::plain(
-            "hud-skill-axe_infinite_axe_spin_title",
-            "hud-skill-axe_infinite_axe_spin",
-        ),
-        AxeSkill::SHelicopter => SkillStrings::plain(
-            "hud-skill-axe_spin_helicopter_title",
-            "hud-skill-axe_spin_helicopter",
-        ),
-        AxeSkill::SDamage => SkillStrings::with_mult(
-            "hud-skill-axe_spin_damage_title",
-            "hud-skill-axe_spin_damage",
-            modifiers.spin.base_damage,
-        ),
-        AxeSkill::SSpeed => SkillStrings::with_mult(
-            "hud-skill-axe_spin_speed_title",
-            "hud-skill-axe_spin_speed",
-            modifiers.spin.swing_duration,
-        ),
-        AxeSkill::SCost => SkillStrings::with_mult(
-            "hud-skill-axe_spin_cost_title",
-            "hud-skill-axe_spin_cost",
-            modifiers.spin.energy_cost,
-        ),
-        // Leap upgrades
-        AxeSkill::UnlockLeap => SkillStrings::plain(
-            "hud-skill-axe_unlock_leap_title",
-            "hud-skill-axe_unlock_leap",
-        ),
-        AxeSkill::LDamage => SkillStrings::with_mult(
-            "hud-skill-axe_leap_damage_title",
-            "hud-skill-axe_leap_damage",
-            modifiers.leap.base_damage,
-        ),
-        AxeSkill::LKnockback => SkillStrings::with_mult(
-            "hud-skill-axe_leap_knockback_title",
-            "hud-skill-axe_leap_knockback",
-            modifiers.leap.knockback,
-        ),
-        AxeSkill::LCost => SkillStrings::with_mult(
-            "hud-skill-axe_leap_cost_title",
-            "hud-skill-axe_leap_cost",
-            modifiers.leap.energy_cost,
-        ),
-        AxeSkill::LDistance => SkillStrings::with_mult(
-            "hud-skill-axe_leap_distance_title",
-            "hud-skill-axe_leap_distance",
-            modifiers.leap.leap_strength,
-        ),
     }
 }
 

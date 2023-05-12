@@ -1,9 +1,5 @@
 common-abilities-debug-possess = Заклинаюча Стріла
     .desc = Стріляє отруйною стрілою. Дає тобі контроль над ціллю.
-common-abilities-sword-spin = Буревій
-    .desc = Рушай вперед кружляючи з мечем.
-common-abilities-axe-leap = Стрибок Сокири
-    .desc = Стрибок з рубаним ударом, слідує за курсором.
 common-abilities-hammer-leap = Погром
     .desc = Атака по області. Стрибок спрямований за курсором.
 common-abilities-bow-shotgun = Стріловик

@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Flèche de contrôle
     .desc = Tire une flèche empoisonnée. Vous permet de contrôler votre cible.
-common-abilities-axe-leap = Saut à la hache
-    .desc = Un saut brusque vers la position du curseur.
 common-abilities-hammer-leap = Fracas de la destruction
     .desc = Une attaque de zone avec du recul. Saute à la position du curseur.
 common-abilities-bow-shotgun = Rafale

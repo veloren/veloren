@@ -1,7 +1,5 @@
 common-abilities-debug-possess = 빙의 화살
     .desc = 독 화살을 쏜다. 대상을 조종할수 있다.
-common-abilities-axe-leap = 도끼 점프
-    .desc = 커서의 위치로 뛰어 도끼로 벤다.
 common-abilities-hammer-leap = 멸망의 베기
     .desc = 커서의 위치로 뛰어 광역으로 베며 적을 밀친다.
 common-abilities-bow-shotgun = 난사

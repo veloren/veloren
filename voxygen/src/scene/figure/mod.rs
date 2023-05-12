@@ -1689,35 +1689,6 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::SpinMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::character::SpinMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    hands,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
                         CharacterState::RapidMelee(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
@@ -1845,46 +1816,17 @@ impl FigureMgr {
                                 } else {
                                     0.0
                                 };
-                            match s.stage {
-                                1 => anim::character::AlphaAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        hands,
-                                        Some(s.stage_section),
-                                        Some(s.static_data.ability_info),
-                                    ),
-                                    stage_progress,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
+                            anim::character::AlphaAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    hands,
+                                    Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
                                 ),
-                                2 => anim::character::SpinAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        hands,
-                                        rel_vel,
-                                        time,
-                                        Some(s.stage_section),
-                                        Some(s.static_data.ability_info),
-                                    ),
-                                    stage_progress,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                ),
-                                _ => anim::character::BetaAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        hands,
-                                        ability_id,
-                                        rel_vel.magnitude(),
-                                        time,
-                                        Some(s.stage_section),
-                                        Some(s.static_data.ability_info),
-                                    ),
-                                    stage_progress,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                ),
-                            }
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
                         },
                         CharacterState::ComboMelee2(s) => {
                             let timer = s.timer.as_secs_f32();

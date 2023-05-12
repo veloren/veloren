@@ -198,7 +198,6 @@ image_ids! {
         onehshield_m1: "voxygen.element.weapons.swordshield",
         onehshield_m2: "voxygen.element.weapons.swordshield",
         twohhammer_m1: "voxygen.element.skills.2hhammer_m1",
-        twohaxe_m1: "voxygen.element.skills.2haxe_m1",
         bow_m1: "voxygen.element.skills.bow_m1",
         bow_m2: "voxygen.element.skills.bow_m2",
         staff_melee: "voxygen.element.skills.staff_m1",
@@ -206,7 +205,6 @@ image_ids! {
         flyingrod_m1: "voxygen.element.skills.debug_wand_m1",
         flyingrod_m2: "voxygen.element.skills.debug_wand_m2",
         hammergolf: "voxygen.element.skills.skill_hammergolf",
-        axespin: "voxygen.element.skills.skill_axespin",
         fire_aoe: "voxygen.element.skills.skill_fire_aoe",
         flamethrower: "voxygen.element.skills.skill_flamethrower",
         // Sword
@@ -657,7 +655,6 @@ image_ids! {
         skill_sceptre_lifesteal: "voxygen.element.skills.lifesteal",
         skill_sceptre_heal: "voxygen.element.skills.heal_aoe",
         hammerleap: "voxygen.element.skills.skill_hammerleap",
-        skill_axe_leap_slash: "voxygen.element.skills.skill_axe_leap_slash",
         skill_bow_jump_burst: "voxygen.element.skills.skill_bow_jump_burst",
         skill_sceptre_aura: "voxygen.element.skills.sceptre_protection",
         instrument: "voxygen.element.skills.music",

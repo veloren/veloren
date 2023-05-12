@@ -42,23 +42,27 @@
         (Sword(DefensiveDeflect), 1),
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),
-
-        (Axe(DsCombo), 1),
-        (Axe(DsDamage), 3),
-        (Axe(DsRegen), 2),
-        (Axe(DsSpeed), 3),
-
-        (Axe(SInfinite), 1),
-        (Axe(SHelicopter), 1),
-        (Axe(SDamage), 3),
-        (Axe(SSpeed), 2),
-        (Axe(SCost), 2),
-
-        (Axe(UnlockLeap), 1),
-        (Axe(LDamage), 2),
-        (Axe(LKnockback), 2),
-        (Axe(LCost), 2),
-        (Axe(LDistance), 2),
+        (Axe(BrutalSwing), 1),
+        (Axe(Berserk), 1),
+        (Axe(RisingTide), 1),
+        (Axe(SavageSense), 1),
+        (Axe(AdrenalineRush), 1),
+        (Axe(Execute), 1),
+        (Axe(Maelstrom), 1),
+        (Axe(Rake), 1),
+        (Axe(Bloodfeast), 1),
+        (Axe(FierceRaze), 1),
+        (Axe(Furor), 1),
+        (Axe(Fracture), 1),
+        (Axe(Lacerate), 1),
+        (Axe(Riptide), 1),
+        (Axe(SkullBash), 1),
+        (Axe(Sunder), 1),
+        (Axe(Plunder), 1),
+        (Axe(Defiance), 1),
+        (Axe(Keelhaul), 1),
+        (Axe(Bulkhead), 1),
+        (Axe(Capsize), 1),
         // Hammer
         (UnlockGroup(Weapon(Hammer)), 1),
 
@@ -154,22 +158,6 @@
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),
 
-        (Axe(DsCombo), 1),
-        (Axe(DsDamage), 2),
-        (Axe(DsRegen), 2),
-        (Axe(DsSpeed), 1),
-
-        (Axe(SInfinite), 1),
-        (Axe(SHelicopter), 1),
-        (Axe(SDamage), 2),
-        (Axe(SSpeed), 2),
-        (Axe(SCost), 2),
-
-        (Axe(UnlockLeap), 1),
-        (Axe(LDamage), 2),
-        (Axe(LKnockback), 2),
-        (Axe(LCost), 2),
-        (Axe(LDistance), 2),
         // Hammer
         (UnlockGroup(Weapon(Hammer)), 1),
 
@@ -254,8 +242,6 @@
 
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),
-
-        (Axe(UnlockLeap), 1),
 
         // Hammer
         (UnlockGroup(Weapon(Hammer)), 1),

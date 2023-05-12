@@ -476,9 +476,6 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.sword.cleaving_blade_fever" => imgs.sword_cleaving_blade_fever,
         "common.abilities.sword.cleaving_sky_splitter" => imgs.sword_cleaving_sky_splitter,
         // Axe
-        "common.abilities.axe.doublestrike" => imgs.twohaxe_m1,
-        "common.abilities.axe.spin" => imgs.axespin,
-        "common.abilities.axe.leap" => imgs.skill_axe_leap_slash,
         // Hammer
         "common.abilities.hammer.singlestrike" => imgs.twohhammer_m1,
         "common.abilities.hammer.charged" => imgs.hammergolf,

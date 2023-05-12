@@ -1664,7 +1664,6 @@ impl CharacterAbility {
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Axe) => self.adjusted_by_axe_skills(skillset),
             Some(ToolKind::Hammer) => self.adjusted_by_hammer_skills(skillset),
             Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
@@ -1718,99 +1717,6 @@ impl CharacterAbility {
             if let Ok(level) = skillset.skill_level(Skill::Roll(Duration)) {
                 *movement_duration *= modifiers.duration.powi(level.into());
             }
-        }
-    }
-
-    fn adjusted_by_axe_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
-        use skills::{AxeSkill::*, Skill::Axe};
-
-        match self {
-            CharacterAbility::ComboMelee {
-                ref mut speed_increase,
-                ref mut max_speed_increase,
-                ref mut stage_data,
-                ref mut max_energy_gain,
-                ref mut scales_from_combo,
-                ..
-            } => {
-                if !skillset.has_skill(Axe(DsCombo)) {
-                    stage_data.pop();
-                }
-                let speed_segments = f32::from(Axe(DsSpeed).max_level());
-                let speed_level = f32::from(skillset.skill_level(Axe(DsSpeed)).unwrap_or(0));
-                *speed_increase *= speed_level / speed_segments;
-                *max_speed_increase *= speed_level / speed_segments;
-
-                let energy_level = skillset.skill_level(Axe(DsRegen)).unwrap_or(0);
-
-                let stages = u16::try_from(stage_data.len())
-                    .expect("number of stages can't be more than u16");
-
-                *max_energy_gain *= f32::from((energy_level + 1) * stages - 1).max(1.0)
-                    * f32::from(stages - 1).max(1.0)
-                    / f32::from(Axe(DsRegen).max_level() + 1);
-                *scales_from_combo = skillset.skill_level(Axe(DsDamage)).unwrap_or(0).into();
-            },
-            CharacterAbility::SpinMelee {
-                ref mut swing_duration,
-                ref mut energy_cost,
-                ref mut is_infinite,
-                ref mut movement_behavior,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.axe_tree.spin;
-
-                *is_infinite = skillset.has_skill(Axe(SInfinite));
-                *movement_behavior = if skillset.has_skill(Axe(SHelicopter)) {
-                    spin_melee::MovementBehavior::AxeHover
-                } else {
-                    spin_melee::MovementBehavior::Walking
-                };
-                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
-                    if let Ok(level) = skillset.skill_level(Axe(SDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Axe(SSpeed)) {
-                    *swing_duration *= modifiers.swing_duration.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Axe(SCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-            },
-            CharacterAbility::LeapMelee {
-                ref mut melee_constructor,
-                ref mut energy_cost,
-                ref mut forward_leap_strength,
-                ref mut vertical_leap_strength,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.axe_tree.leap;
-                if let MeleeConstructorKind::Slash {
-                    ref mut damage,
-                    ref mut knockback,
-                    ..
-                } = melee_constructor.kind
-                {
-                    if let Ok(level) = skillset.skill_level(Axe(LDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                    if let Ok(level) = skillset.skill_level(Axe(LKnockback)) {
-                        *knockback *= modifiers.knockback.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Axe(LCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Axe(LDistance)) {
-                    let strength = modifiers.leap_strength;
-                    *forward_leap_strength *= strength.powi(level.into());
-                    *vertical_leap_strength *= strength.powi(level.into());
-                }
-            },
-            _ => {},
         }
     }
 

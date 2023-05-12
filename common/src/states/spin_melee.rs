@@ -1,6 +1,5 @@
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, Melee, MeleeConstructor, StateUpdate},
-    consts::GRAVITY,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -8,7 +7,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -58,10 +56,6 @@ impl CharacterBehavior for Data {
 
         match self.static_data.movement_behavior {
             MovementBehavior::ForwardGround | MovementBehavior::Stationary => {},
-            MovementBehavior::AxeHover => {
-                let new_vel_z = update.vel.0.z + GRAVITY * data.dt.0 * 0.5;
-                update.vel.0 = Vec3::new(0.0, 0.0, new_vel_z) + data.inputs.move_dir * 5.0;
-            },
             MovementBehavior::Walking => {
                 handle_move(data, &mut update, 0.2);
             },
@@ -171,7 +165,6 @@ impl CharacterBehavior for Data {
 pub enum MovementBehavior {
     Stationary,
     ForwardGround,
-    AxeHover,
     Walking,
 }
 
