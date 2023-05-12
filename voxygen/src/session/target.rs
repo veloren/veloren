@@ -6,8 +6,9 @@ use common::{
     comp,
     consts::MAX_PICKUP_RANGE,
     link::Is,
-    mounting::Mount,
+    mounting::{Mount, Rider},
     terrain::Block,
+    uid::Uid,
     util::find_dist::{Cylinder, FindDist},
     vol::ReadVol,
 };
@@ -50,6 +51,7 @@ pub(super) fn targets_under_cursor(
     cam_dir: Vec3<f32>,
     can_build: bool,
     is_mining: bool,
+    viewpoint_entity: specs::Entity,
 ) -> (
     Option<Target<Build>>,
     Option<Target<Collectable>>,
@@ -115,6 +117,8 @@ pub(super) fn targets_under_cursor(
         .map(|(d, _)| d.min(MAX_TARGET_RANGE))
         .unwrap_or(MAX_TARGET_RANGE);
 
+    let uids = ecs.read_storage::<Uid>();
+
     // Need to raycast by distance to cam
     // But also filter out by distance to the player (but this only needs to be done
     // on final result)
@@ -125,10 +129,11 @@ pub(super) fn targets_under_cursor(
         &ecs.read_storage::<comp::Body>(),
         ecs.read_storage::<comp::Item>().maybe(),
         !&ecs.read_storage::<Is<Mount>>(),
+        ecs.read_storage::<Is<Rider>>().maybe(),
     )
         .join()
-        .filter(|(e, _, _, _, _, _)| *e != player_entity)
-        .filter_map(|(e, p, s, b, i, _)| {
+        .filter(|(e, _, _, _, _, _, _)| *e != player_entity)
+        .filter_map(|(e, p, s, b, i, _, is_rider)| {
             const RADIUS_SCALE: f32 = 3.0;
             // TODO: use collider radius instead of body radius?
             let radius = s.map_or(1.0, |s| s.0) * b.max_radius() * RADIUS_SCALE;
@@ -137,8 +142,10 @@ pub(super) fn targets_under_cursor(
             // Distance squared from camera to the entity
             let dist_sqr = pos.distance_squared(cam_pos);
             // We only care about interacting with entities that contain items,
-            // or are not inanimate (to trade with)
-            if i.is_some() || !matches!(b, comp::Body::Object(_)) {
+            // or are not inanimate (to trade with), and are not riding the player.
+            let not_riding_player = is_rider
+                .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(viewpoint_entity));
+            if (i.is_some() || !matches!(b, comp::Body::Object(_))) && not_riding_player {
                 Some((e, pos, radius, dist_sqr))
             } else {
                 None

@@ -286,7 +286,6 @@ impl Link for VolumeMounting {
         WriteStorage<'a, VolumeRiders>,
         WriteStorage<'a, Is<VolumeRider>>,
         ReadStorage<'a, Is<Rider>>,
-        ReadStorage<'a, Is<Mount>>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, UidAllocator>,
         ReadStorage<'a, comp::Collider>,
@@ -316,7 +315,6 @@ impl Link for VolumeMounting {
             mut volume_riders,
             mut is_volume_riders,
             is_riders,
-            is_mounts,
             terrain_grid,
             uid_allocator,
             colliders,
@@ -336,7 +334,6 @@ impl Link for VolumeMounting {
             && !is_volume_riders.contains(rider)
             && !is_volume_riders.contains(rider)
             && !is_riders.contains(rider)
-            && !is_mounts.contains(rider)
         {
             let block = this
                 .pos
