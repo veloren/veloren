@@ -1,5 +1,5 @@
 use crate::{
-    comp::{self, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
+    comp::{self, pet::is_mountable, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     link::{Is, Link, LinkHandle, Role},
     terrain::{Block, TerrainGrid},
     uid::{Uid, UidAllocator},
@@ -59,8 +59,10 @@ impl Link for Mounting {
         Read<'a, UidAllocator>,
         Entities<'a>,
         ReadStorage<'a, comp::Health>,
+        ReadStorage<'a, comp::Body>,
         ReadStorage<'a, Is<Mount>>,
         ReadStorage<'a, Is<Rider>>,
+        ReadStorage<'a, comp::CharacterState>,
     );
 
     fn create(
@@ -73,15 +75,12 @@ impl Link for Mounting {
             // Forbid self-mounting
             Err(MountingError::NotMountable)
         } else if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
-            let can_mount_with = |entity| {
-                !is_mounts.contains(entity)
-                    && !is_riders.contains(entity)
-                    && !is_volume_rider.contains(entity)
-            };
-
             // Ensure that neither mount or rider are already part of a mounting
             // relationship
-            if can_mount_with(mount) && can_mount_with(rider) {
+            if !is_mounts.contains(mount)
+                && !is_riders.contains(rider)
+                && !is_volume_rider.contains(rider)
+            {
                 let _ = is_mounts.insert(mount, this.make_role());
                 let _ = is_riders.insert(rider, this.make_role());
                 Ok(())
@@ -95,7 +94,7 @@ impl Link for Mounting {
 
     fn persist(
         this: &LinkHandle<Self>,
-        (uid_allocator, entities, healths, is_mounts, is_riders): Self::PersistData<'_>,
+        (uid_allocator, entities, healths, bodies, is_mounts, is_riders, character_states): Self::PersistData<'_>,
     ) -> bool {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -104,11 +103,19 @@ impl Link for Mounting {
                 entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead)
             };
 
+            let is_in_ridable_state = character_states
+                .get(mount)
+                .map_or(false, |cs| !matches!(cs, comp::CharacterState::Roll(_)));
+
             // Ensure that both entities are alive and that they continue to be linked
             is_alive(mount)
                 && is_alive(rider)
                 && is_mounts.get(mount).is_some()
                 && is_riders.get(rider).is_some()
+                && bodies.get(mount).map_or(false, |mount_body| {
+                    is_mountable(mount_body, bodies.get(rider))
+                })
+                && is_in_ridable_state
         } else {
             false
         }

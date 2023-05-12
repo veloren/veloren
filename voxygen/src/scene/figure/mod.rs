@@ -683,8 +683,7 @@ impl FigureMgr {
                     );
                     Some(
                         state.mount_world_pos
-                            + state.mount_transform.orientation
-                                * anim::vek::Vec3::from(state.lantern_offset?.into_array())
+                            + anim::vek::Vec3::from(state.lantern_offset?.into_array())
                             - pos,
                     )
                 })
@@ -3157,45 +3156,52 @@ impl FigureMgr {
                         physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
+                        is_rider.is_some() || is_volume_rider.is_some(),
                     ) {
                         // Standing
-                        (true, false, false) => anim::bird_medium::IdleAnimation::update_skeleton(
-                            &BirdMediumSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
+                        (true, false, false, _) => {
+                            anim::bird_medium::IdleAnimation::update_skeleton(
+                                &BirdMediumSkeleton::default(),
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // Running
-                        (true, true, false) => anim::bird_medium::RunAnimation::update_skeleton(
-                            &BirdMediumSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
+                        (true, true, false, false) => {
+                            anim::bird_medium::RunAnimation::update_skeleton(
+                                &BirdMediumSkeleton::default(),
+                                (
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    rel_avg_vel,
+                                    state.acc_vel,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // In air
-                        (false, _, false) => anim::bird_medium::FlyAnimation::update_skeleton(
-                            &BirdMediumSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
+                        (false, _, false, false) => {
+                            anim::bird_medium::FlyAnimation::update_skeleton(
+                                &BirdMediumSkeleton::default(),
+                                (
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         // Swim
-                        (_, true, _) => anim::bird_medium::SwimAnimation::update_skeleton(
+                        (_, true, _, false) => anim::bird_medium::SwimAnimation::update_skeleton(
                             &BirdMediumSkeleton::default(),
                             time,
                             state.state_time,

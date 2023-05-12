@@ -617,6 +617,7 @@ impl PlayState for SessionState {
                 collect_target,
                 entity_target,
                 mine_target,
+                self.viewpoint_entity().0,
                 &self.scene,
             );
 

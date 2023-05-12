@@ -162,17 +162,25 @@ impl Skeleton for CharacterSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
+
+        // Offset from the mounted bone's origin.
+        // Note: This could be its own bone if we need to animate it independently.
+        let mount_position = (chest_mat * Vec4::from_point(Vec3::new(5.5, 0.0, 6.5)))
+            .homogenized()
+            .xyz();
+        // NOTE: We apply the ori from base_mat externally so we don't need to worry
+        // about it here for now.
+        let mount_orientation =
+            self.torso.orientation * self.chest.orientation * Quaternion::rotation_y(0.4);
+
         let weapon_trails = self.main_weapon_trail || self.off_weapon_trail;
         Offsets {
             lantern: Some((lantern_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz()),
             viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 4.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::Humanoid(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             primary_trail_mat: if weapon_trails {
                 self.main_weapon_trail

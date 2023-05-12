@@ -12,7 +12,7 @@ use common::{
     comp::{ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Collider},
     consts::{MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE},
     link::Is,
-    mounting::{Mount, VolumePos, VolumeRider},
+    mounting::{Mount, Rider, VolumePos, VolumeRider},
     terrain::{Block, TerrainGrid, UnlockKind},
     uid::{Uid, UidAllocator},
     util::find_dist::{Cube, Cylinder, FindDist},
@@ -111,6 +111,7 @@ pub(super) fn select_interactable(
     collect_target: Option<Target<target::Collectable>>,
     entity_target: Option<Target<target::Entity>>,
     mine_target: Option<Target<target::Mine>>,
+    viewpoint_entity: specs::Entity,
     scene: &Scene,
 ) -> Option<Interactable> {
     span!(_guard, "select_interactable");
@@ -182,10 +183,12 @@ pub(super) fn select_interactable(
         let positions = ecs.read_storage::<comp::Pos>();
         let player_pos = positions.get(player_entity)?.0;
 
+        let uids = ecs.read_storage::<Uid>();
         let scales = ecs.read_storage::<comp::Scale>();
         let colliders = ecs.read_storage::<comp::Collider>();
         let char_states = ecs.read_storage::<comp::CharacterState>();
-        let is_mount = ecs.read_storage::<Is<Mount>>();
+        let is_mounts = ecs.read_storage::<Is<Mount>>();
+        let is_riders = ecs.read_storage::<Is<Rider>>();
         let bodies = ecs.read_storage::<comp::Body>();
         let items = ecs.read_storage::<comp::Item>();
         let stats = ecs.read_storage::<comp::Stats>();
@@ -208,15 +211,16 @@ pub(super) fn select_interactable(
             scales.maybe(),
             colliders.maybe(),
             char_states.maybe(),
-            !&is_mount,
+            !&is_mounts,
+            is_riders.maybe(),
             (stats.mask() | items.mask()).maybe(),
         )
             .join();
 
         let closest_interactable_entity = spacial_grid.0.in_circle_aabr(player_pos.xy(), MAX_PICKUP_RANGE)
-            .filter(|&e| e != player_entity) // skip the player's entity 
+            .filter(|&e| e != player_entity) // skip the player's entity
             .filter_map(|e| entity_data.get(e, &entities))
-            .filter_map(|(e, p, b, s, c, cs, _, has_stats_or_item)| {
+            .filter_map(|(e, p, b, s, c, cs, _, is_rider, has_stats_or_item)| {
                 // Note, if this becomes expensive to compute do it after the distance check!
                 //
                 // The entities that can be interacted with:
@@ -227,7 +231,10 @@ pub(super) fn select_interactable(
                 //   some false positives here as long as it doesn't frequently prevent us from
                 //   interacting with actual interactable entities that are closer by)
                 // * Dropped items that can be picked up (Item component)
-                let is_interactable = b.is_campfire() || has_stats_or_item.is_some();
+                // * Are not riding the player
+                let not_riding_player = is_rider
+                    .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(viewpoint_entity));
+                let is_interactable = (b.is_campfire() || has_stats_or_item.is_some()) && not_riding_player;
                 if !is_interactable {
                     return None;
                 };
@@ -262,7 +269,7 @@ pub(super) fn select_interactable(
         let mut volumes_data = volumes_data.join();
 
         let volumes = spacial_grid.0.in_circle_aabr(player_pos.xy(), search_dist)
-            .filter(|&e| e != player_entity) // skip the player's entity 
+            .filter(|&e| e != player_entity) // skip the player's entity
             .filter_map(|e| volumes_data.get(e, &entities))
             .filter_map(|(entity, uid, body, interpolated, collider)| {
                 let vol = collider.get_vol(&voxel_colliders_manifest)?;

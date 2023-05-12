@@ -1012,6 +1012,7 @@ impl Body {
     /// Component of the mounting offset specific to the mount
     pub fn mount_offset(&self) -> Vec3<f32> {
         match self {
+            Body::Humanoid(_) => (self.dimensions() * Vec3::new(0.7, 0.0, 0.6)).into_array(),
             Body::QuadrupedMedium(quadruped_medium) => {
                 match (quadruped_medium.species, quadruped_medium.body_type) {
                     (quadruped_medium::Species::Grolgar, _) => [0.0, 0.5, 1.8],
