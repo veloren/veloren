@@ -18,10 +18,10 @@
     (4.0, Item("common.items.crafting_ing.stones")),
 
     // Ores
-    (0.5, Item("common.items.mineral.ore.velorite")),
-    (0.6, Item("common.items.mineral.ore.veloritefrag")),
-    (2.5, Item("common.items.mineral.ore.copper")),
-    (2.5, Item("common.items.mineral.ore.tin")),
+    (0.3, Item("common.items.mineral.ore.velorite")),
+    (0.4, Item("common.items.mineral.ore.veloritefrag")),
+    (1.5, Item("common.items.mineral.ore.copper")),
+    (1.5, Item("common.items.mineral.ore.tin")),
 
     // Logs
     (5.0, Item("common.items.log.wood")),
@@ -50,13 +50,13 @@
 
     // Gatherables
     (0.1, Item("common.items.crafting_ing.seashells")),
-    (9.0, Item("common.items.crafting_ing.honey")),
-    (5.0, Item("common.items.flowers.moonbell")),
-    (1.0, Item("common.items.crafting_ing.cotton_boll")),
+    (4.0, Item("common.items.crafting_ing.honey")),
+    (4.0, Item("common.items.flowers.moonbell")),
+    (3.0, Item("common.items.crafting_ing.cotton_boll")),
     (1.0, Item("common.items.flowers.pyrebloom")),
-    (3.0, Item("common.items.crafting_ing.twigs")),
-    (4.0, Item("common.items.crafting_ing.cactus")),
-    (4.0, Item("common.items.flowers.red")),
+    (3.5, Item("common.items.crafting_ing.twigs")),
+    (3.0, Item("common.items.crafting_ing.cactus")),
+    (2.0, Item("common.items.flowers.red")),
     (4.0, Item("common.items.flowers.wild_flax")),
-    (9.0, Item("common.items.flowers.sunflower")),
+    (8.0, Item("common.items.flowers.sunflower")),
 ]

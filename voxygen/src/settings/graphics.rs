@@ -117,7 +117,7 @@ impl GraphicsSettings {
                 shadow: ShadowMode::Cheap,
                 rain_occlusion: ShadowMapMode { resolution: 0.25 },
                 bloom: BloomMode::Off,
-                point_glow: 0.35,
+                point_glow: 0.2,
                 upscale_mode: UpscaleMode { factor: 0.65 },
                 ..self.render_mode
             },
@@ -146,7 +146,7 @@ impl GraphicsSettings {
                     factor: BloomFactor::Medium,
                     uniform_blur: false,
                 }),
-                point_glow: 0.35,
+                point_glow: 0.2,
                 upscale_mode: UpscaleMode { factor: 0.85 },
                 ..self.render_mode
             },
@@ -175,7 +175,7 @@ impl GraphicsSettings {
                     factor: BloomFactor::Medium,
                     uniform_blur: true,
                 }),
-                point_glow: 0.35,
+                point_glow: 0.2,
                 upscale_mode: UpscaleMode { factor: 1.0 },
                 ..self.render_mode
             },
@@ -204,7 +204,7 @@ impl GraphicsSettings {
                     factor: BloomFactor::Medium,
                     uniform_blur: true,
                 }),
-                point_glow: 0.35,
+                point_glow: 0.2,
                 upscale_mode: UpscaleMode { factor: 1.25 },
                 ..self.render_mode
             },
