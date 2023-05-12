@@ -130,16 +130,28 @@ impl Skeleton for BipedLargeSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
+
+        // Offset from the mounted bone's origin.
+        // Note: This could be its own bone if we need to animate it independently.
+        let mount_position = (arm_control_r
+            * Mat4::<f32>::from(self.shoulder_r)
+            * Vec4::from_point(mount_point(&body)))
+        .homogenized()
+        .xyz();
+        // NOTE: We apply the ori from base_mat externally so we don't need to worry
+        // about it here for now.
+        let mount_orientation = self.torso.orientation
+            * self.upper_torso.orientation
+            * self.arm_control_r.orientation
+            * self.shoulder_r.orientation;
+
         Offsets {
             lantern: None,
             viewpoint: Some((jaw_mat * Vec4::new(0.0, 4.0, 0.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::BipedLarge(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             primary_trail_mat: None,
             secondary_trail_mat: None,
@@ -566,4 +578,34 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             height: comp::Body::BipedLarge(*body).dimensions().z,
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::biped_large::Species::*;
+    match (body.species, body.body_type) {
+        (Ogre, _) => (0.0, 3.0, 1.0),
+        (Cyclops, _) => (0.0, 3.0, 1.0),
+        (Wendigo, _) => (0.0, 0.0, -1.0),
+        (Cavetroll, _) => (0.0, 1.0, 2.0),
+        (Mountaintroll, _) => (0.0, 4.0, 2.0),
+        (Swamptroll, _) => (0.0, 0.0, 3.0),
+        (Dullahan, _) => (0.0, 0.0, 3.0),
+        (Werewolf, _) => (-1.0, 0.0, 0.0),
+        (Occultsaurok, _) => (0.0, 0.0, -1.0),
+        (Mightysaurok, _) => (0.0, 0.0, -1.0),
+        (Slysaurok, _) => (0.0, 0.0, -1.0),
+        (Mindflayer, _) => (1.0, 1.0, 1.0),
+        (Minotaur, _) => (0.0, 2.0, 0.0),
+        (Tidalwarrior, _) => (-4.5, 0.0, 5.0),
+        (Yeti, _) => (0.0, 2.0, 3.0),
+        (Harvester, _) => (0.0, 1.5, 2.0),
+        (Blueoni, _) => (0.0, 1.0, 3.0),
+        (Redoni, _) => (0.0, 1.0, 3.0),
+        (Cultistwarlord, _) => (-2.5, 2.0, -1.5),
+        (Cultistwarlock, _) => (0.0, 1.5, 1.0),
+        (Huskbrute, _) => (0.0, 3.0, 3.0),
+        (Tursus, _) => (0.0, 2.0, 3.0),
+        (Gigasfrost, _) => (1.0, 2.0, 4.0),
+    }
+    .into()
 }
