@@ -46,7 +46,10 @@ const vec3 NIGHT_LIGHT   = vec3(5.0, 0.75, 0.2);
 // Linear RGB, scattering coefficients for atmosphere at roughly R, G, B wavelengths.
 //
 // See https://en.wikipedia.org/wiki/Diffuse_sky_radiation
-const vec3 MU_SCATTER = vec3(0.05, 0.10, 0.23) * 1.5;
+//
+// The most realistic value is `vec3(0.05, 0.10, 0.23)`, but this looks bad in some cases, mostly because we don't
+// compensate for the dynamic range of the human eye vs the screen.
+const vec3 MU_SCATTER = vec3(0.15, 0.15, 0.23);
 
 const float SUN_COLOR_FACTOR = 5.0;//6.0;// * 1.5;//1.8;
 const float MOON_COLOR_FACTOR = 5.0;//6.0;// * 1.5;//1.8;
@@ -318,7 +321,9 @@ vec3 lightning_at(vec3 wpos) {
 float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, vec3 norm, vec3 dir, vec3 wpos, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 voxel_norm, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
     const float MIN_SHADOW = 0.15;
     const vec3 SUN_AMBIANCE = MU_SCATTER;//0.23;/* / 1.8*/;// 0.1 / 3.0;
-    const vec3 MOON_AMBIANCE = MU_SCATTER;//0.23;//0.1;
+    // Boost moon ambiance, because we don't properly compensate for pupil dilation (which should occur *before* HDR,
+    // not in the end user's eye). Also, real nights are too dark to be fun.
+    const vec3 MOON_AMBIANCE = MU_SCATTER * 5;
 
     /* vec3 sun_dir = sun_info.dir;
     vec3 moon_dir = moon_info.dir; */
