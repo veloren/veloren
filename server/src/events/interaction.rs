@@ -139,7 +139,8 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
                 .and_then(|x| x.stay_pos)
                 .is_some();
 
-            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride && !is_stay {
+            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride && !is_stay
+            {
                 drop(uids);
                 let _ = state.link(Mounting {
                     mount: mount_uid,

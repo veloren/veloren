@@ -412,17 +412,23 @@ fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
                 let distance_from_stay = stay_pos.0.distance_squared(bdata.agent_data.pos.0);
 
                 if distance_from_stay > (MAX_STAY_DISTANCE).powi(2) {
-                    bdata
-                    .agent_data
-                    .follow(bdata.agent, bdata.controller, bdata.read_data, &stay_pos);
+                    bdata.agent_data.follow(
+                        bdata.agent,
+                        bdata.controller,
+                        bdata.read_data,
+                        &stay_pos,
+                    );
                     return true;
                 }
             } else {
                 let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
                 if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) {
-                    bdata
-                    .agent_data
-                    .follow(bdata.agent, bdata.controller, bdata.read_data, tgt_pos);
+                    bdata.agent_data.follow(
+                        bdata.agent,
+                        bdata.controller,
+                        bdata.read_data,
+                        tgt_pos,
+                    );
                     return true;
                 }
             }
