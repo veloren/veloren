@@ -1074,7 +1074,7 @@ impl StateExt for State {
     fn link<L: Link>(&mut self, link: L) -> Result<(), L::Error> {
         let linker = LinkHandle::from_link(link);
 
-        L::create(&linker, self.ecs().system_data())?;
+        L::create(&linker, &mut self.ecs().system_data())?;
 
         self.ecs_mut()
             .entry::<Vec<LinkHandle<L>>>()
@@ -1087,11 +1087,18 @@ impl StateExt for State {
     fn maintain_links(&mut self) {
         fn maintain_link<L: Link>(state: &State) {
             if let Some(mut handles) = state.ecs().try_fetch_mut::<Vec<LinkHandle<L>>>() {
+                let mut persist_data = None;
                 handles.retain(|link| {
-                    if L::persist(link, state.ecs().system_data()) {
+                    if L::persist(
+                        link,
+                        persist_data.get_or_insert_with(|| state.ecs().system_data()),
+                    ) {
                         true
                     } else {
-                        L::delete(link, state.ecs().system_data());
+                        // Make sure to drop persist data before running deletion to avoid potential
+                        // access violations
+                        persist_data.take();
+                        L::delete(link, &mut state.ecs().system_data());
                         false
                     }
                 });
