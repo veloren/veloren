@@ -56,19 +56,25 @@ impl<'a> System<'a> for Sys {
         // For each mount...
         for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
             // ...find the rider...
-            let Some((inputs, actions, rider)) = uid_allocator
+            let Some((inputs_and_actions, rider)) = uid_allocator
                 .retrieve_entity_internal(is_mount.rider.id())
                 .and_then(|rider| {
                     controllers
                         .get_mut(rider)
-                        .map(|c| {
-                            let actions = c.actions.drain_filter(|action| match action {
-                                ControlAction::StartInput { input: i, .. }
-                                | ControlAction::CancelInput(i) => matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll),
-                                _ => false
-                            }).collect();
-                            (c.inputs.clone(), actions, rider)
-                        })
+                        .map(|c| (
+                            // Only take inputs and actions from the rider if the mount is not intelligent (TODO: expand the definition of 'intelligent').
+                            if !matches!(body, Some(Body::Humanoid(_))) {
+                                let actions = c.actions.drain_filter(|action| match action {
+                                    ControlAction::StartInput { input: i, .. }
+                                    | ControlAction::CancelInput(i) => matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll),
+                                    _ => false
+                                }).collect();
+                                Some((c.inputs.clone(), actions))
+                            } else {
+                                None
+                            },
+                            rider,
+                        ))
                 })
             else { continue };
 
@@ -86,8 +92,10 @@ impl<'a> System<'a> for Sys {
                 let _ = orientations.insert(rider, ori);
                 let _ = velocities.insert(rider, vel);
             }
-            // ...and apply the rider's inputs to the mount's controller.
-            if let Some(controller) = controllers.get_mut(entity) {
+            // ...and apply the rider's inputs to the mount's controller
+            if let Some((inputs, actions)) = inputs_and_actions
+                && let Some(controller) = controllers.get_mut(entity)
+            {
                 controller.inputs = inputs;
                 controller.actions = actions;
             }

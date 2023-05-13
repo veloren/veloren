@@ -25,19 +25,20 @@ use common::{
         Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent, Controller,
         HealthChange, InputKind, InventoryAction, Pos, Scale, UnresolvedChatMsg, UtteranceKind,
     },
+    consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
     event::{Emitter, ServerEvent},
     path::TraversalConfig,
     rtsim::NpcActivity,
     states::basic_beam,
-    terrain::{Block, TerrainGrid},
+    terrain::Block,
     time::DayPeriod,
     util::Dir,
     vol::ReadVol,
 };
 use itertools::Itertools;
 use rand::{thread_rng, Rng};
-use specs::Entity as EcsEntity;
+use specs::{saveload::Marker, Entity as EcsEntity};
 use vek::*;
 
 #[cfg(feature = "use-dyn-lib")]
@@ -48,7 +49,11 @@ impl<'a> AgentData<'a> {
     // Action Nodes
     ////////////////////////////////////////
 
-    pub fn glider_fall(&self, controller: &mut Controller) {
+    pub fn glider_fall(&self, controller: &mut Controller, read_data: &ReadData) {
+        if read_data.is_riders.contains(*self.entity) {
+            controller.push_event(ControlEvent::Unmount);
+        }
+
         controller.push_action(ControlAction::GlideWield);
 
         let flight_direction =
@@ -66,7 +71,11 @@ impl<'a> AgentData<'a> {
         controller.inputs.look_dir = Dir::from_unnormalized(look_dir).unwrap_or_else(Dir::forward);
     }
 
-    pub fn fly_upward(&self, controller: &mut Controller) {
+    pub fn fly_upward(&self, controller: &mut Controller, read_data: &ReadData) {
+        if read_data.is_riders.contains(*self.entity) {
+            controller.push_event(ControlEvent::Unmount);
+        }
+
         controller.push_basic_input(InputKind::Fly);
         controller.inputs.move_z = 1.0;
     }
@@ -86,6 +95,10 @@ impl<'a> AgentData<'a> {
         path: Path,
         speed_multiplier: Option<f32>,
     ) -> bool {
+        if read_data.is_riders.contains(*self.entity) {
+            controller.push_event(ControlEvent::Unmount);
+        }
+
         let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
             self.pos.0
                 + PARTIAL_PATH_DIST * pos_difference.try_normalized().unwrap_or_else(Vec3::zero)
@@ -369,6 +382,23 @@ impl<'a> AgentData<'a> {
                 None => {},
             }
 
+            // Idle NPCs should try to jump on the shoulders of their owner, sometimes.
+            if read_data.is_riders.contains(*self.entity) {
+                if rng.gen_bool(0.0001) {
+                    controller.push_event(ControlEvent::Unmount);
+                } else {
+                    break 'activity;
+                }
+            } else if let Some(Alignment::Owned(owner_uid)) = self.alignment
+                && let Some(owner) = get_entity_by_id(owner_uid.id(), read_data)
+                && let Some(pos) = read_data.positions.get(owner)
+                && pos.0.distance_squared(self.pos.0) < MAX_MOUNT_RANGE.powi(2)
+                && rng.gen_bool(0.01)
+            {
+                controller.push_event(ControlEvent::Mount(*owner_uid));
+                break 'activity;
+            }
+
             // Bats should fly
             // Use a proportional controller as the bouncing effect mimics bat flight
             if self.traversal_config.can_fly
@@ -488,11 +518,15 @@ impl<'a> AgentData<'a> {
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
-        terrain: &TerrainGrid,
+        read_data: &ReadData,
         tgt_pos: &Pos,
     ) {
+        if read_data.is_riders.contains(*self.entity) {
+            controller.push_event(ControlEvent::Unmount);
+        }
+
         if let Some((bearing, speed)) = agent.chaser.chase(
-            terrain,
+            &*read_data.terrain,
             self.pos.0,
             self.vel.0,
             tgt_pos.0,
@@ -536,9 +570,13 @@ impl<'a> AgentData<'a> {
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
+        read_data: &ReadData,
         tgt_pos: &Pos,
-        terrain: &TerrainGrid,
     ) {
+        if read_data.is_riders.contains(*self.entity) {
+            controller.push_event(ControlEvent::Unmount);
+        }
+
         if let Some(body) = self.body {
             if body.can_strafe() && !self.is_gliding {
                 controller.push_action(ControlAction::Unwield);
@@ -546,7 +584,7 @@ impl<'a> AgentData<'a> {
         }
 
         if let Some((bearing, speed)) = agent.chaser.chase(
-            terrain,
+            &*read_data.terrain,
             self.pos.0,
             self.vel.0,
             // Away from the target (ironically)
@@ -886,6 +924,10 @@ impl<'a> AgentData<'a> {
     ) {
         #[cfg(feature = "be-dyn-lib")]
         let rng = &mut thread_rng();
+
+        if read_data.is_riders.contains(*self.entity) {
+            controller.push_event(ControlEvent::Unmount);
+        }
 
         let tool_tactic = |tool_kind| match tool_kind {
             ToolKind::Bow => Tactic::Bow,
@@ -1458,9 +1500,9 @@ impl<'a> AgentData<'a> {
 
             if sound_was_threatening && is_close {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
-                    self.follow(agent, controller, &read_data.terrain, &sound_pos);
+                    self.follow(agent, controller, read_data, &sound_pos);
                 } else if self.below_flee_health(agent) || !follows_threatening_sounds {
-                    self.flee(agent, controller, &sound_pos, &read_data.terrain);
+                    self.flee(agent, controller, read_data, &sound_pos);
                 } else {
                     self.idle(agent, controller, read_data, event_emitter, rng);
                 }

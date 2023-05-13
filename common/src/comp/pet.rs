@@ -62,6 +62,8 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
         |rider: Option<&Body>| -> bool { rider.map_or(false, |b| b.mass() <= Mass(500.0)) };
 
     match mount {
+        Body::Humanoid(_) => matches!(rider, Some(Body::BirdMedium(_))),
+        Body::BipedLarge(_) => is_light_enough(rider),
         Body::QuadrupedMedium(body) => match body.species {
             quadruped_medium::Species::Alpaca
             | quadruped_medium::Species::Antelope

@@ -191,12 +191,21 @@ fn react_on_dangerous_fall(bdata: &mut BehaviorData) -> bool {
     // But keep in mind our 25 m/s gravity
     let is_falling_dangerous = bdata.agent_data.vel.0.z < -20.0;
 
-    if is_falling_dangerous && bdata.agent_data.traversal_config.can_fly {
-        bdata.agent_data.fly_upward(bdata.controller);
-        return true;
-    } else if is_falling_dangerous && bdata.agent_data.glider_equipped {
-        bdata.agent_data.glider_fall(bdata.controller);
-        return true;
+    if is_falling_dangerous {
+        if bdata.read_data.is_riders.contains(*bdata.agent_data.entity) {
+            bdata.controller.push_event(ControlEvent::Unmount);
+        }
+        if bdata.agent_data.traversal_config.can_fly {
+            bdata
+                .agent_data
+                .fly_upward(bdata.controller, bdata.read_data);
+            return true;
+        } else if bdata.agent_data.glider_equipped {
+            bdata
+                .agent_data
+                .glider_fall(bdata.controller, bdata.read_data);
+            return true;
+        }
     }
     false
 }
@@ -407,12 +416,9 @@ fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
             let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
 
             if dist_sqrd > (MAX_FOLLOW_DIST).powi(2) {
-                bdata.agent_data.follow(
-                    bdata.agent,
-                    bdata.controller,
-                    &bdata.read_data.terrain,
-                    tgt_pos,
-                );
+                bdata
+                    .agent_data
+                    .follow(bdata.agent, bdata.controller, bdata.read_data, tgt_pos);
                 return true;
             }
         }
@@ -698,7 +704,7 @@ fn search_last_known_pos_if_not_alert(bdata: &mut BehaviorData) -> bool {
 
     if let Some(target) = agent.target {
         if let Some(last_known_pos) = target.last_known_pos {
-            agent_data.follow(agent, controller, &read_data.terrain, &Pos(last_known_pos));
+            agent_data.follow(agent, controller, read_data, &Pos(last_known_pos));
 
             return true;
         }
@@ -774,11 +780,11 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     };
                 } else if !flee_timer_done {
                     if within_normal_flee_dir_dist {
-                        agent_data.flee(agent, controller, tgt_pos, &read_data.terrain);
+                        agent_data.flee(agent, controller, read_data, tgt_pos);
                     } else if let Some(random_pos) = agent.flee_from_pos {
-                        agent_data.flee(agent, controller, &random_pos, &read_data.terrain);
+                        agent_data.flee(agent, controller, read_data, &random_pos);
                     } else {
-                        agent_data.flee(agent, controller, tgt_pos, &read_data.terrain);
+                        agent_data.flee(agent, controller, read_data, tgt_pos);
                     }
 
                     agent.action_state.timers

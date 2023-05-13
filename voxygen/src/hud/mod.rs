@@ -107,7 +107,7 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
-    mounting::{Mount, VolumePos},
+    mounting::{Mount, Rider, VolumePos},
     outcome::Outcome,
     resources::{Secs, Time},
     slowjob::SlowJobPool,
@@ -1500,7 +1500,8 @@ impl Hud {
             let me = info.viewpoint_entity;
             let poises = ecs.read_storage::<comp::Poise>();
             let alignments = ecs.read_storage::<comp::Alignment>();
-            let is_mount = ecs.read_storage::<Is<Mount>>();
+            let is_mounts = ecs.read_storage::<Is<Mount>>();
+            let is_riders = ecs.read_storage::<Is<Rider>>();
             let stances = ecs.read_storage::<comp::Stance>();
             let time = ecs.read_resource::<Time>();
 
@@ -2266,7 +2267,12 @@ impl Hud {
                 &uids,
                 &inventories,
                 poises.maybe(),
-                (alignments.maybe(), is_mount.maybe(), stances.maybe()),
+                (
+                    alignments.maybe(),
+                    is_mounts.maybe(),
+                    is_riders.maybe(),
+                    stances.maybe(),
+                ),
             )
                 .join()
                 .filter(|t| {
@@ -2289,7 +2295,7 @@ impl Hud {
                         uid,
                         inventory,
                         poise,
-                        (alignment, is_mount, stance),
+                        (alignment, is_mount, is_rider, stance),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2304,6 +2310,8 @@ impl Hud {
                         let display_overhead_info = !is_me
                             && (is_mount.is_none()
                                 || health.map_or(true, overhead::should_show_healthbar))
+                            && is_rider
+                                .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(me))
                             && (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
                                 || health.map_or(true, overhead::should_show_healthbar)

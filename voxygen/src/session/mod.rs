@@ -610,13 +610,21 @@ impl PlayState for SessionState {
 
             // Check to see whether we're aiming at anything
             let (build_target, collect_target, entity_target, mine_target, terrain_target) =
-                targets_under_cursor(&client, cam_pos, cam_dir, can_build, is_mining);
+                targets_under_cursor(
+                    &client,
+                    cam_pos,
+                    cam_dir,
+                    can_build,
+                    is_mining,
+                    self.viewpoint_entity().0,
+                );
 
             self.interactable = select_interactable(
                 &client,
                 collect_target,
                 entity_target,
                 mine_target,
+                self.viewpoint_entity().0,
                 &self.scene,
             );
 

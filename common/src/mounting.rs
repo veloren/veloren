@@ -1,5 +1,5 @@
 use crate::{
-    comp::{self, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
+    comp::{self, pet::is_mountable, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     link::{Is, Link, LinkHandle, Role},
     terrain::{Block, TerrainGrid},
     uid::{Uid, UidAllocator},
@@ -59,13 +59,15 @@ impl Link for Mounting {
         Read<'a, UidAllocator>,
         Entities<'a>,
         ReadStorage<'a, comp::Health>,
+        ReadStorage<'a, comp::Body>,
         ReadStorage<'a, Is<Mount>>,
         ReadStorage<'a, Is<Rider>>,
+        ReadStorage<'a, comp::CharacterState>,
     );
 
     fn create(
         this: &LinkHandle<Self>,
-        (uid_allocator, mut is_mounts, mut is_riders, is_volume_rider): Self::CreateData<'_>,
+        (uid_allocator, is_mounts, is_riders, is_volume_rider): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -73,15 +75,12 @@ impl Link for Mounting {
             // Forbid self-mounting
             Err(MountingError::NotMountable)
         } else if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
-            let can_mount_with = |entity| {
-                !is_mounts.contains(entity)
-                    && !is_riders.contains(entity)
-                    && !is_volume_rider.contains(entity)
-            };
-
             // Ensure that neither mount or rider are already part of a mounting
             // relationship
-            if can_mount_with(mount) && can_mount_with(rider) {
+            if !is_mounts.contains(mount)
+                && !is_riders.contains(rider)
+                && !is_volume_rider.contains(rider)
+            {
                 let _ = is_mounts.insert(mount, this.make_role());
                 let _ = is_riders.insert(rider, this.make_role());
                 Ok(())
@@ -95,7 +94,7 @@ impl Link for Mounting {
 
     fn persist(
         this: &LinkHandle<Self>,
-        (uid_allocator, entities, healths, is_mounts, is_riders): Self::PersistData<'_>,
+        (uid_allocator, entities, healths, bodies, is_mounts, is_riders, character_states): &mut Self::PersistData<'_>,
     ) -> bool {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -104,11 +103,19 @@ impl Link for Mounting {
                 entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead)
             };
 
+            let is_in_ridable_state = character_states
+                .get(mount)
+                .map_or(false, |cs| !matches!(cs, comp::CharacterState::Roll(_)));
+
             // Ensure that both entities are alive and that they continue to be linked
             is_alive(mount)
                 && is_alive(rider)
                 && is_mounts.get(mount).is_some()
                 && is_riders.get(rider).is_some()
+                && bodies.get(mount).map_or(false, |mount_body| {
+                    is_mountable(mount_body, bodies.get(rider))
+                })
+                && is_in_ridable_state
         } else {
             false
         }
@@ -116,7 +123,7 @@ impl Link for Mounting {
 
     fn delete(
         this: &LinkHandle<Self>,
-        (uid_allocator, mut is_mounts, mut is_riders, mut positions, mut force_update, terrain): Self::DeleteData<'_>,
+        (uid_allocator, is_mounts, is_riders, positions, force_update, terrain): &mut Self::DeleteData<'_>,
     ) {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -279,7 +286,6 @@ impl Link for VolumeMounting {
         WriteStorage<'a, VolumeRiders>,
         WriteStorage<'a, Is<VolumeRider>>,
         ReadStorage<'a, Is<Rider>>,
-        ReadStorage<'a, Is<Mount>>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, UidAllocator>,
         ReadStorage<'a, comp::Collider>,
@@ -305,15 +311,14 @@ impl Link for VolumeMounting {
     fn create(
         this: &LinkHandle<Self>,
         (
-            mut terrain_riders,
-            mut volume_riders,
-            mut is_volume_riders,
+            terrain_riders,
+            volume_riders,
+            is_volume_riders,
             is_riders,
-            is_mounts,
             terrain_grid,
             uid_allocator,
             colliders,
-        ): Self::CreateData<'_>,
+        ): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -329,11 +334,10 @@ impl Link for VolumeMounting {
             && !is_volume_riders.contains(rider)
             && !is_volume_riders.contains(rider)
             && !is_riders.contains(rider)
-            && !is_mounts.contains(rider)
         {
             let block = this
                 .pos
-                .get_block(&terrain_grid, &uid_allocator, &colliders)
+                .get_block(terrain_grid, uid_allocator, colliders)
                 .ok_or(MountingError::NoSuchEntity)?;
 
             if block == this.block {
@@ -359,7 +363,7 @@ impl Link for VolumeMounting {
             terrain_grid,
             uid_allocator,
             colliders,
-        ): Self::PersistData<'_>,
+        ): &mut Self::PersistData<'_>,
     ) -> bool {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
         let is_alive =
@@ -383,7 +387,7 @@ impl Link for VolumeMounting {
 
         let block_exists = this
             .pos
-            .get_block(&terrain_grid, &uid_allocator, &colliders)
+            .get_block(terrain_grid, uid_allocator, colliders)
             .map_or(false, |block| block == this.block);
 
         rider_exists && mount_spot_exists && block_exists
@@ -391,12 +395,12 @@ impl Link for VolumeMounting {
 
     fn delete(
         this: &LinkHandle<Self>,
-        (mut terrain_riders, mut volume_riders, mut is_rider, uid_allocator): Self::DeleteData<'_>,
+        (terrain_riders, volume_riders, is_rider, uid_allocator): &mut Self::DeleteData<'_>,
     ) {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
         let riders = match this.pos.kind {
-            Volume::Terrain => Some(&mut *terrain_riders),
+            Volume::Terrain => Some(&mut **terrain_riders),
             Volume::Entity(uid) => {
                 entity(uid).and_then(|entity| volume_riders.get_mut_or_default(entity))
             },

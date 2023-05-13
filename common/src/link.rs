@@ -6,13 +6,13 @@ pub trait Link: Sized + Send + Sync + 'static {
     type Error;
 
     type CreateData<'a>: SystemData<'a>;
-    fn create(this: &LinkHandle<Self>, data: Self::CreateData<'_>) -> Result<(), Self::Error>;
+    fn create(this: &LinkHandle<Self>, data: &mut Self::CreateData<'_>) -> Result<(), Self::Error>;
 
     type PersistData<'a>: SystemData<'a>;
-    fn persist(this: &LinkHandle<Self>, data: Self::PersistData<'_>) -> bool;
+    fn persist(this: &LinkHandle<Self>, data: &mut Self::PersistData<'_>) -> bool;
 
     type DeleteData<'a>: SystemData<'a>;
-    fn delete(this: &LinkHandle<Self>, data: Self::DeleteData<'_>);
+    fn delete(this: &LinkHandle<Self>, data: &mut Self::DeleteData<'_>);
 }
 
 pub trait Role {
@@ -27,7 +27,9 @@ pub struct Is<R: Role> {
 }
 
 impl<R: Role> Is<R> {
-    pub fn delete(&self, data: <R::Link as Link>::DeleteData<'_>) { Link::delete(&self.link, data) }
+    pub fn delete(&self, data: &mut <R::Link as Link>::DeleteData<'_>) {
+        Link::delete(&self.link, data)
+    }
 }
 
 impl<R: Role> Clone for Is<R> {

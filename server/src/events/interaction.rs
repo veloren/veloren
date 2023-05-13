@@ -113,13 +113,15 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
         if let (Some(rider_uid), Some(mount_uid)) =
             (uids.get(rider).copied(), uids.get(mount).copied())
         {
-            let is_pet = matches!(
-                state
-                    .ecs()
-                    .read_storage::<comp::Alignment>()
-                    .get(mount),
-                Some(comp::Alignment::Owned(owner)) if *owner == rider_uid,
-            );
+            let is_pet_of = |mount, rider_uid| {
+                matches!(
+                    state
+                        .ecs()
+                        .read_storage::<comp::Alignment>()
+                        .get(mount),
+                    Some(comp::Alignment::Owned(owner)) if *owner == rider_uid,
+                )
+            };
 
             let can_ride = state
                 .ecs()
@@ -129,7 +131,7 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
                     is_mountable(mount_body, state.ecs().read_storage().get(rider))
                 });
 
-            if is_pet && can_ride {
+            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride {
                 drop(uids);
                 let _ = state.link(Mounting {
                     mount: mount_uid,
