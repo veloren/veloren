@@ -618,6 +618,7 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Huskbrute, _) => (0.0, 3.0, 3.0),
         (Tursus, _) => (0.0, 2.0, 3.0),
         (Gigasfrost, _) => (1.0, 2.0, 4.0),
+        (AdletElder, _) => (0.0, 0.0, -1.0),
     }
     .into()
 }

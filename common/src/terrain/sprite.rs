@@ -657,11 +657,11 @@ impl SpriteKind {
                 | SpriteKind::Gravestone
                 | SpriteKind::MagicalBarrier
                 | SpriteKind::Helm
-                | SpriteKind::DoorWide,
+                | SpriteKind::DoorWide
                 | SpriteKind::BoneKeyhole
                 | SpriteKind::BoneKeyDoor
                 | SpriteKind::IceCrystal
-                | SpriteKind::GlowIceCrystal
+                | SpriteKind::GlowIceCrystal,
         )
     }
 }
