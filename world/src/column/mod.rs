@@ -1245,3 +1245,24 @@ pub struct ColumnSample<'a> {
 
     pub chunk: &'a SimChunk,
 }
+
+impl ColumnSample<'_> {
+    pub fn get_info(&self) -> ColInfo {
+        ColInfo {
+            alt: self.alt,
+            basement: self.basement,
+            cliff_offset: self.cliff_offset,
+            cliff_height: self.cliff_height,
+        }
+    }
+}
+
+// For a version of ColumnSample that can easily be moved around. Feel free to
+// add non reference fields as needed.
+#[derive(Clone, Default)]
+pub struct ColInfo {
+    pub alt: f32,
+    pub basement: f32,
+    pub cliff_offset: f32,
+    pub cliff_height: f32,
+}

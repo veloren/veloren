@@ -320,7 +320,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
                     // If the block was a keyhole, remove nearby door blocks
                     // TODO: Abstract this code into a generalised way to do block updates?
-                    if matches!(block.get_sprite(), Some(SpriteKind::Keyhole)) {
+                    if matches!(
+                        block.get_sprite(),
+                        Some(SpriteKind::Keyhole | SpriteKind::BoneKeyhole)
+                    ) {
                         let dirs = [
                             Vec3::unit_x(),
                             -Vec3::unit_x(),
@@ -342,17 +345,35 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             let next_pending = pending.iter().next().copied();
                             if let Some(pos) = next_pending {
                                 pending.remove(&pos);
-                                if !destroyed.contains(&pos)
-                                    && matches!(
-                                        terrain.get(pos).ok().and_then(|b| b.get_sprite()),
-                                        Some(SpriteKind::KeyDoor)
-                                    )
-                                {
-                                    block_change.try_set(pos, Block::empty());
-                                    destroyed.insert(pos);
+                                match block.get_sprite() {
+                                    Some(SpriteKind::Keyhole) => {
+                                        if !destroyed.contains(&pos)
+                                            && matches!(
+                                                terrain.get(pos).ok().and_then(|b| b.get_sprite()),
+                                                Some(SpriteKind::KeyDoor)
+                                            )
+                                        {
+                                            block_change.try_set(pos, Block::empty());
+                                            destroyed.insert(pos);
 
-                                    pending.extend(dirs.into_iter().map(|dir| pos + dir));
-                                }
+                                            pending.extend(dirs.into_iter().map(|dir| pos + dir));
+                                        }
+                                    },
+                                    Some(SpriteKind::BoneKeyhole) => {
+                                        if !destroyed.contains(&pos)
+                                            && matches!(
+                                                terrain.get(pos).ok().and_then(|b| b.get_sprite()),
+                                                Some(SpriteKind::BoneKeyDoor)
+                                            )
+                                        {
+                                            block_change.try_set(pos, Block::empty());
+                                            destroyed.insert(pos);
+
+                                            pending.extend(dirs.into_iter().map(|dir| pos + dir));
+                                        }
+                                    },
+                                    _ => {},
+                                };
                             } else {
                                 break;
                             }

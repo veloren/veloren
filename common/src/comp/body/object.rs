@@ -104,6 +104,8 @@ make_case_elim!(
         SpectralSwordSmall = 89,
         SpectralSwordLarge = 90,
         LaserBeam = 91,
+        AdletSpear = 92,
+        AdletTrap = 93,
     }
 );
 
@@ -114,7 +116,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 92] = [
+pub const ALL_OBJECTS: [Body; 94] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -207,6 +209,8 @@ pub const ALL_OBJECTS: [Body; 92] = [
     Body::BarrelOrgan,
     Body::IceBomb,
     Body::LaserBeam,
+    Body::AdletSpear,
+    Body::AdletTrap,
 ];
 
 impl From<Body> for super::Body {
@@ -308,6 +312,8 @@ impl Body {
             Body::SpectralSwordSmall => "spectral_sword_small",
             Body::SpectralSwordLarge => "spectral_sword_large",
             Body::LaserBeam => "laser_beam",
+            Body::AdletSpear => "adlet_spear",
+            Body::AdletTrap => "adlet_trap",
         }
     }
 
@@ -332,7 +338,9 @@ impl Body {
             | Body::Dart
             | Body::DagonBomb
             | Body::SpectralSwordSmall
-            | Body::SpectralSwordLarge => 500.0,
+            | Body::SpectralSwordLarge
+            | Body::AdletSpear
+            | Body::AdletTrap => 500.0,
             Body::Bomb => 2000.0, // I have no idea what it's supposed to be
             Body::Crate => 300.0, // let's say it's a lot of wood and maybe some contents
             Body::Scarecrow => 900.0,
@@ -427,6 +435,8 @@ impl Body {
             Body::GnarlingTotemRed | Body::GnarlingTotemGreen | Body::GnarlingTotemWhite => 100.0,
             Body::IceBomb => 12298.0, // 2.5 m diamter but ice
             Body::LaserBeam => 80000.0,
+            Body::AdletSpear => 1.5,
+            Body::AdletTrap => 10.0,
         };
 
         Mass(m)
@@ -434,9 +444,13 @@ impl Body {
 
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
-            Body::Arrow | Body::ArrowSnake | Body::MultiArrow | Body::ArrowTurret | Body::Dart => {
-                Vec3::new(0.01, 0.8, 0.01)
-            },
+            Body::Arrow
+            | Body::ArrowSnake
+            | Body::MultiArrow
+            | Body::ArrowTurret
+            | Body::Dart
+            | Body::AdletSpear => Vec3::new(0.01, 0.8, 0.01),
+            Body::AdletTrap => Vec3::new(1.0, 0.6, 0.3),
             Body::BoltFire => Vec3::new(0.1, 0.1, 0.1),
             Body::SpectralSwordSmall => Vec3::new(0.2, 0.9, 0.1),
             Body::SpectralSwordLarge => Vec3::new(0.2, 1.5, 0.1),

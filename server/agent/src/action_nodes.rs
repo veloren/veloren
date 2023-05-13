@@ -14,6 +14,7 @@ use common::{
     combat::perception_dist_multiplier_from_stealth,
     comp::{
         self,
+        ability::MAX_ABILITIES,
         agent::{Sound, SoundKind, Target},
         inventory::slot::EquipSlot,
         item::{
@@ -1014,6 +1015,21 @@ impl<'a> AgentData<'a> {
                             "Gnarling Chieftain" => Tactic::GnarlingChieftain,
                             "Frost Gigas" => Tactic::FrostGigas,
                             "Boreal Hammer" => Tactic::BorealHammer,
+                            "Adlet Hunter" => Tactic::AdletHunter,
+                            "Adlet Icepicker" => Tactic::AdletIcepicker,
+                            "Adlet Tracker" => Tactic::AdletTracker,
+                            "Ice Drake" => Tactic::IceDrake,
+                            "Frostfang" => Tactic::RandomAbilities {
+                                primary: 1,
+                                secondary: 3,
+                                abilities: [0; MAX_ABILITIES],
+                            },
+                            "Tursus Claws" => Tactic::RandomAbilities {
+                                primary: 2,
+                                secondary: 1,
+                                abilities: [4, 0, 0, 0, 0],
+                            },
+                            "Adlet Elder" => Tactic::AdletElder,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1457,6 +1473,36 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::AdletHunter => {
+                self.handle_adlet_hunter(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
+            Tactic::AdletIcepicker => {
+                self.handle_adlet_icepicker(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::AdletTracker => {
+                self.handle_adlet_tracker(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::IceDrake => {
+                self.handle_icedrake(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
+            Tactic::RandomAbilities {
+                primary,
+                secondary,
+                abilities,
+            } => self.handle_random_abilities(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+                primary,
+                secondary,
+                abilities,
+            ),
+            Tactic::AdletElder => {
+                self.handle_adlet_elder(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
         }
     }
 

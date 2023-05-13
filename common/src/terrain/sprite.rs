@@ -244,6 +244,12 @@ make_case_elim!(
         RepairBench = 0xDA,
         Helm = 0xDB,
         DoorWide = 0xDC,
+        BoneKeyhole = 0xDD,
+        BoneKeyDoor = 0xDE,
+        // FireBlock for Burning Buff
+        FireBlock = 0xDF,
+        IceCrystal = 0xE0,
+        GlowIceCrystal = 0xE1,
     }
 );
 
@@ -335,6 +341,8 @@ impl SpriteKind {
             | SpriteKind::GlassBarrier
             | SpriteKind::Keyhole
             | SpriteKind::KeyDoor
+            | SpriteKind::BoneKeyhole
+            | SpriteKind::BoneKeyDoor
             | SpriteKind::Bomb => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
@@ -368,7 +376,7 @@ impl SpriteKind {
             SpriteKind::FountainArabic => 2.4,
             SpriteKind::Hearth => 2.3,
             SpriteKind::ForgeTools => 2.8,
-            SpriteKind::CliffDecorBlock => 1.0,
+            SpriteKind::CliffDecorBlock | SpriteKind::FireBlock => 1.0,
             SpriteKind::Wood
             | SpriteKind::Hardwood
             | SpriteKind::Ironwood
@@ -461,7 +469,7 @@ impl SpriteKind {
             SpriteKind::Frostwood => item("common.items.log.frostwood"),
             SpriteKind::Eldwood => item("common.items.log.eldwood"),
             SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
-            SpriteKind::Keyhole => return Some(None),
+            SpriteKind::Keyhole | SpriteKind::BoneKeyhole => return Some(None),
             _ => return None,
         }))
     }
@@ -560,6 +568,9 @@ impl SpriteKind {
                 SpriteKind::CommonLockedChest => UnlockKind::Consumes(
                     ItemDefinitionId::Simple("common.items.utility.lockpick_0").to_owned(),
                 ),
+                SpriteKind::BoneKeyhole => UnlockKind::Consumes(
+                    ItemDefinitionId::Simple("common.items.keys.bone_key").to_owned(),
+                ),
                 _ => UnlockKind::Free,
             })
     }
@@ -646,7 +657,11 @@ impl SpriteKind {
                 | SpriteKind::Gravestone
                 | SpriteKind::MagicalBarrier
                 | SpriteKind::Helm
-                | SpriteKind::DoorWide,
+                | SpriteKind::DoorWide
+                | SpriteKind::BoneKeyhole
+                | SpriteKind::BoneKeyDoor
+                | SpriteKind::IceCrystal
+                | SpriteKind::GlowIceCrystal,
         )
     }
 }

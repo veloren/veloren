@@ -301,9 +301,11 @@
         abilities: [],
     ),
     Custom("Tursus Claws"): (
-        primary: Simple(None, "common.abilities.custom.tursus_claws.basic"),
-        secondary: Simple(None, "common.abilities.custom.tursus_claws.basic"),
-        abilities: [],
+        primary: Simple(None, "common.abilities.custom.tursus.tursus_claws"),
+        secondary: Simple(None, "common.abilities.custom.tursus.tusk_bash_leap"),
+        abilities: [
+            Simple(None, "common.abilities.custom.tursus.tusk_stab"),
+        ],
     ),
     Custom("Wendigo Magic"): (
         primary: Simple(None, "common.abilities.custom.wendigomagic.frostbomb"),
@@ -350,6 +352,11 @@
     Custom("Quad Med Basic"): (
         primary: Simple(None, "common.abilities.custom.quadmedbasic.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.quadmedbasic.triplestrike"),
+        abilities: [],
+    ),
+    Custom("Frostfang"): (
+        primary: Simple(None, "common.abilities.custom.frostfang.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.frostfang.triplestrike"),
         abilities: [],
     ),
     Custom("Roshwalr"): (
@@ -540,6 +547,14 @@
         ],
     ),
     // TODO: Allow ability sets to expand other ability sets
+    Custom("Ice Drake"): (
+        primary: Simple(None, "common.abilities.custom.icedrake.multi_bite"),
+        secondary: Simple(None, "common.abilities.custom.icedrake.icy_bite"),
+        abilities: [
+            Simple(None, "common.abilities.custom.icedrake.icebombs"),
+            Simple(None, "common.abilities.custom.icedrake.icebreath"),
+        ],
+    ),
     Custom("Dagon"): (
     primary: Simple(None, "common.abilities.custom.dagon.dagonbombs"),
     secondary: Simple(None, "common.abilities.custom.dagon.seaurchins"),
@@ -683,6 +698,11 @@
         secondary: Simple(None, "common.abilities.music.lyre"),
         abilities: [],
     ),
+    Custom("WildskinDrum"): (
+        primary: Simple(None, "common.abilities.music.wildskin_drum"),
+        secondary: Simple(None, "common.abilities.music.wildskin_drum"),
+        abilities: [],
+    ),
     Custom("IcyTalharpa"): (
         primary: Simple(None, "common.abilities.music.icy_talharpa"),
         secondary: Simple(None, "common.abilities.music.icy_talharpa"),
@@ -744,5 +764,30 @@
         primary: Simple(None, "common.abilities.empty.basic"),
         secondary: Simple(None, "common.abilities.empty.basic"),
         abilities: [],
+    ),
+    // Adlets
+    // TODO: Do we want to eventually convert these to simple variants of weapons?
+    Custom("Adlet Hunter"): (
+        primary: Simple(None, "common.abilities.adlet.hunter.stab"),
+        secondary: Simple(None, "common.abilities.adlet.hunter.throw"),
+        abilities: [],
+    ),
+    Custom("Adlet Icepicker"): (
+        primary: Simple(None, "common.abilities.adlet.icepicker.spike"),
+        secondary: Simple(None, "common.abilities.adlet.icepicker.leap"),
+        abilities: [],
+    ),
+    Custom("Adlet Tracker"): (
+        primary: Simple(None, "common.abilities.adlet.tracker.arrow"),
+        secondary: Simple(None, "common.abilities.adlet.tracker.trap"),
+        abilities: [],
+    ),
+    Custom("Adlet Elder"): (
+        primary: Simple(None, "common.abilities.adlet.elder.triplestrike"),
+        secondary: Simple(None, "common.abilities.adlet.elder.dash"),
+        abilities: [
+            Simple(None, "common.abilities.adlet.elder.trap"),
+            Simple(None, "common.abilities.adlet.elder.leap"),
+        ],
     ),
 })

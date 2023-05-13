@@ -105,6 +105,7 @@ impl Site {
             .filter_map(|plot| match &plot.kind {
                 PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
                 PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
+                PlotKind::Adlet(a) => Some(a.spawn_rules(wpos)),
                 _ => None,
             })
             .fold(base_spawn_rules, |a, b| a.combine(b))
@@ -464,6 +465,42 @@ impl Site {
         });
         site.blit_aabr(aabr, Tile {
             kind: TileKind::GnarlingFortification,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+        site
+    }
+
+    pub fn generate_adlet(
+        land: &Land,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        index: IndexRef,
+    ) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            ..Site::default()
+        };
+        site.demarcate_obstacles(land);
+        let adlet_stronghold = plot::AdletStronghold::generate(origin, land, &mut rng, index);
+        site.name = adlet_stronghold.name().to_string();
+        let (cavern_aabr, wall_aabr) = adlet_stronghold.plot_tiles(origin);
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Adlet(adlet_stronghold),
+            root_tile: cavern_aabr.center(),
+            tiles: aabr_tiles(cavern_aabr)
+                .chain(aabr_tiles(wall_aabr))
+                .collect(),
+            seed: rng.gen(),
+        });
+        site.blit_aabr(cavern_aabr, Tile {
+            kind: TileKind::AdletStronghold,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+        site.blit_aabr(wall_aabr, Tile {
+            kind: TileKind::AdletStronghold,
             plot: Some(plot),
             hard_alt: None,
         });
@@ -1341,6 +1378,7 @@ impl Site {
                 PlotKind::SeaChapel(sea_chapel) => sea_chapel.render_collect(self, canvas),
                 PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
+                PlotKind::Adlet(adlet) => adlet.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
                 PlotKind::SavannahPit(savannah_pit) => savannah_pit.render_collect(self, canvas),
@@ -1371,7 +1409,8 @@ impl Site {
 
                     for x in aabb.min.x..aabb.max.x {
                         for y in aabb.min.y..aabb.max.y {
-                            let col_tile = self.wpos_tile(Vec2::new(x, y));
+                            let wpos = Vec2::new(x, y);
+                            let col_tile = self.wpos_tile(wpos);
                             if
                             /* col_tile.is_building() && */
                             col_tile
@@ -1383,12 +1422,18 @@ impl Site {
                                 continue;
                             }
                             let mut last_block = None;
+
+                            let col = canvas
+                                .col(wpos)
+                                .map(|col| col.get_info())
+                                .unwrap_or_default();
+
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 
                                 canvas.map(pos, |block| {
                                     let current_block =
-                                        fill.sample_at(&prim_tree, prim, pos, &info, block);
+                                        fill.sample_at(&prim_tree, prim, pos, &info, block, &col);
                                     if let (Some(last_block), None) = (last_block, current_block) {
                                         spawn(pos, last_block);
                                     }
@@ -1420,6 +1465,7 @@ impl Site {
             match &plot.kind {
                 PlotKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
                 PlotKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
+                PlotKind::Adlet(a) => a.apply_supplement(dynamic_rng, wpos2d, supplement),
                 _ => {},
             }
         }

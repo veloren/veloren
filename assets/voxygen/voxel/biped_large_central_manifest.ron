@@ -1196,4 +1196,56 @@
             central: ("armor.empty"),
         )
     ),
+    (AdletElder, Male): (
+        head: (
+            offset: (-9.0, 0.0, -8.0),
+            central: ("npc.adlet.elder.male.head"),
+        ),
+        torso_upper: (
+            offset: (-7.0, -7.0, -6.5),
+            central: ("npc.adlet.elder.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -6.0, -5.0),
+            central: ("npc.adlet.elder.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-5.0, 0.0, -3.5),
+            central: ("npc.adlet.elder.male.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -17.0, -1.0),
+            central: ("npc.adlet.elder.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (AdletElder, Female): (
+        head: (
+            offset: (-9.0, 0.0, -8.0),
+            central: ("npc.adlet.elder.male.head"),
+        ),
+        torso_upper: (
+            offset: (-7.0, -7.0, -6.5),
+            central: ("npc.adlet.elder.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -6.0, -5.0),
+            central: ("npc.adlet.elder.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-5.0, 0.0, -3.5),
+            central: ("npc.adlet.elder.male.jaw"),
+        ),
+        tail: (
+            offset: (-2.0, -17.0, -1.0),
+            central: ("npc.adlet.elder.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

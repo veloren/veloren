@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{
-        ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance},
+        ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance, MAX_ABILITIES},
         buff::BuffKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
@@ -757,41 +757,24 @@ impl<'a> AgentData<'a> {
         );
 
         let attack_failed = if attempt_attack {
-            let contexts = AbilityContext::from(self.stance, Some(self.inventory));
-            let extract_ability = |input: AbilityInput| {
-                AbilityData::from_ability(
-                    &self
-                        .active_abilities
-                        .activate_ability(
-                            input,
-                            Some(self.inventory),
-                            self.skill_set,
-                            self.body,
-                            Some(self.char_state),
-                            &contexts,
-                        )
-                        .unwrap_or_default()
-                        .0,
-                )
-            };
-            let primary = extract_ability(AbilityInput::Primary);
-            let secondary = extract_ability(AbilityInput::Secondary);
+            let primary = self.extract_ability(AbilityInput::Primary);
+            let secondary = self.extract_ability(AbilityInput::Secondary);
             let abilities = [
-                extract_ability(AbilityInput::Auxiliary(0)),
-                extract_ability(AbilityInput::Auxiliary(1)),
-                extract_ability(AbilityInput::Auxiliary(2)),
-                extract_ability(AbilityInput::Auxiliary(3)),
-                extract_ability(AbilityInput::Auxiliary(4)),
+                self.extract_ability(AbilityInput::Auxiliary(0)),
+                self.extract_ability(AbilityInput::Auxiliary(1)),
+                self.extract_ability(AbilityInput::Auxiliary(2)),
+                self.extract_ability(AbilityInput::Auxiliary(3)),
+                self.extract_ability(AbilityInput::Auxiliary(4)),
             ];
             let could_use_input = |input, desired_energy| match input {
                 InputKind::Primary => primary.as_ref().map_or(false, |p| {
-                    p.could_use(attack_data, self, tgt_data, desired_energy)
+                    p.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
-                    s.could_use(attack_data, self, tgt_data, desired_energy)
+                    s.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
-                    a.could_use(attack_data, self, tgt_data, desired_energy)
+                    a.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 _ => false,
             };
@@ -4581,6 +4564,419 @@ impl<'a> AgentData<'a> {
                 tgt_data.pos.0,
                 read_data,
                 Path::Partial,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_adlet_hunter(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const ROTATE_TIMER: usize = 0;
+        const ROTATE_DIR_CONDITION: usize = 0;
+        agent.action_state.timers[ROTATE_TIMER] -= read_data.dt.0;
+        if agent.action_state.timers[ROTATE_TIMER] < 0.0 {
+            agent.action_state.conditions[ROTATE_DIR_CONDITION] = rng.gen_bool(0.5);
+            agent.action_state.timers[ROTATE_TIMER] = rng.gen::<f32>() * 5.0;
+        }
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) && attack_data.dist_sqrd > 8_f32.powi(2) {
+            controller.push_basic_input(InputKind::Secondary);
+            true
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 3_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+            let dir = if agent.action_state.conditions[ROTATE_DIR_CONDITION] {
+                1.0
+            } else {
+                -1.0
+            };
+            controller.inputs.move_dir.rotate_z(PI / 2.0 * dir);
+        }
+    }
+
+    pub fn handle_adlet_icepicker(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) && attack_data.dist_sqrd > 5_f32.powi(2) {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 2_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_adlet_tracker(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const TRAP_TIMER: usize = 0;
+        agent.action_state.timers[TRAP_TIMER] += read_data.dt.0;
+        if agent.action_state.timers[TRAP_TIMER] > 20.0 {
+            agent.action_state.timers[TRAP_TIMER] = 0.0;
+        }
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if agent.action_state.timers[TRAP_TIMER] < 3.0 {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else {
+            true
+        };
+
+        if move_forwards && attack_data.dist_sqrd > 2_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_adlet_elder(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const TRAP_TIMER: usize = 0;
+        agent.action_state.timers[TRAP_TIMER] -= read_data.dt.0;
+        if matches!(self.char_state, CharacterState::BasicRanged(_)) {
+            agent.action_state.timers[TRAP_TIMER] = 15.0;
+        }
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let abilities = [
+            self.extract_ability(AbilityInput::Auxiliary(0)),
+            self.extract_ability(AbilityInput::Auxiliary(1)),
+        ];
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                a.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+        let move_forwards = if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
+        {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if agent.action_state.timers[TRAP_TIMER] < 0.0 && !tgt_data.considered_ranged() {
+            controller.push_basic_input(InputKind::Ability(0));
+            false
+        } else if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) && rng.gen_bool(0.5) {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Ability(1)) {
+            controller.push_basic_input(InputKind::Ability(1));
+            false
+        } else {
+            true
+        };
+
+        if matches!(self.char_state, CharacterState::LeapMelee(_)) {
+            let tgt_vec = tgt_data.pos.0.xy() - self.pos.0.xy();
+            if tgt_vec.magnitude_squared() > 2_f32.powi(2) {
+                if let Some(look_dir) = Dir::from_unnormalized(Vec3::from(tgt_vec)) {
+                    controller.inputs.look_dir = look_dir;
+                }
+            }
+        }
+
+        if move_forwards && attack_data.dist_sqrd > 2_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_icedrake(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let abilities = [
+            self.extract_ability(AbilityInput::Auxiliary(0)),
+            self.extract_ability(AbilityInput::Auxiliary(1)),
+        ];
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                a.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+
+        let continued_attack = match self.char_state.ability_info().map(|ai| ai.input) {
+            Some(input @ InputKind::Primary) => {
+                if !matches!(self.char_state.stage_section(), Some(StageSection::Recover))
+                    && could_use_input(input)
+                {
+                    controller.push_basic_input(input);
+                    true
+                } else {
+                    false
+                }
+            },
+            Some(input @ InputKind::Ability(1)) => {
+                if self
+                    .char_state
+                    .timer()
+                    .map_or(false, |t| t.as_secs_f32() < 3.0)
+                    && could_use_input(input)
+                {
+                    controller.push_basic_input(input);
+                    true
+                } else {
+                    false
+                }
+            },
+            _ => false,
+        };
+
+        let move_forwards = if !continued_attack {
+            if could_use_input(InputKind::Primary) && rng.gen_bool(0.4) {
+                controller.push_basic_input(InputKind::Primary);
+                false
+            } else if could_use_input(InputKind::Secondary) && rng.gen_bool(0.8) {
+                controller.push_basic_input(InputKind::Secondary);
+                false
+            } else if could_use_input(InputKind::Ability(1)) && rng.gen_bool(0.9) {
+                controller.push_basic_input(InputKind::Ability(1));
+                true
+            } else if could_use_input(InputKind::Ability(0)) {
+                controller.push_basic_input(InputKind::Ability(0));
+                true
+            } else {
+                true
+            }
+        } else {
+            false
+        };
+
+        if move_forwards {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_random_abilities(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+        primary_weight: u8,
+        secondary_weight: u8,
+        ability_weights: [u8; MAX_ABILITIES],
+    ) {
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let abilities = [
+            self.extract_ability(AbilityInput::Auxiliary(0)),
+            self.extract_ability(AbilityInput::Auxiliary(1)),
+            self.extract_ability(AbilityInput::Auxiliary(2)),
+            self.extract_ability(AbilityInput::Auxiliary(3)),
+            self.extract_ability(AbilityInput::Auxiliary(4)),
+        ];
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                a.could_use(attack_data, self, tgt_data, read_data, 0.0)
+            }),
+            _ => false,
+        };
+
+        let primary_chance = primary_weight as f64
+            / ((primary_weight + secondary_weight + ability_weights.iter().sum::<u8>()) as f64)
+                .max(0.01);
+        let secondary_chance = secondary_weight as f64
+            / ((secondary_weight + ability_weights.iter().sum::<u8>()) as f64).max(0.01);
+        let ability_chances = {
+            let mut chances = [0.0; MAX_ABILITIES];
+            chances.iter_mut().enumerate().for_each(|(i, chance)| {
+                *chance = ability_weights[i] as f64
+                    / (ability_weights
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(j, weight)| if j >= i { Some(weight) } else { None })
+                        .sum::<u8>() as f64)
+                        .max(0.01)
+            });
+            chances
+        };
+
+        if let Some(input) = self.char_state.ability_info().map(|ai| ai.input) {
+            match self.char_state {
+                CharacterState::ChargedMelee(c) => {
+                    if c.charge_frac() < 1.0 && could_use_input(input) {
+                        controller.push_basic_input(input);
+                    }
+                },
+                CharacterState::ChargedRanged(c) => {
+                    if c.charge_frac() < 1.0 && could_use_input(input) {
+                        controller.push_basic_input(input);
+                    }
+                },
+                _ => {},
+            }
+        }
+
+        let move_forwards = if could_use_input(InputKind::Primary) && rng.gen_bool(primary_chance) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else if could_use_input(InputKind::Secondary) && rng.gen_bool(secondary_chance) {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Ability(0)) && rng.gen_bool(ability_chances[0]) {
+            controller.push_basic_input(InputKind::Ability(0));
+            false
+        } else if could_use_input(InputKind::Ability(1)) && rng.gen_bool(ability_chances[1]) {
+            controller.push_basic_input(InputKind::Ability(1));
+            false
+        } else if could_use_input(InputKind::Ability(2)) && rng.gen_bool(ability_chances[2]) {
+            controller.push_basic_input(InputKind::Ability(2));
+            false
+        } else if could_use_input(InputKind::Ability(3)) && rng.gen_bool(ability_chances[3]) {
+            controller.push_basic_input(InputKind::Ability(3));
+            false
+        } else if could_use_input(InputKind::Ability(4)) && rng.gen_bool(ability_chances[4]) {
+            controller.push_basic_input(InputKind::Ability(4));
+            false
+        } else {
+            true
+        };
+
+        if move_forwards {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
                 None,
             );
         }

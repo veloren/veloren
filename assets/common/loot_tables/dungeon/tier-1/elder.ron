@@ -1,0 +1,6 @@
+[
+    // Misc
+    (5.0, Item("common.items.keys.bone_key")),
+    (1.0, LootTable("common.loot_tables.dungeon.tier-1.elder_extra")),
+
+]

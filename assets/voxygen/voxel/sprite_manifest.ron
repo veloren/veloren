@@ -1455,6 +1455,17 @@ Ember: Some((
     ],
     wind_sway: 0.0,
 )),
+// FireBlock
+FireBlock: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.misc.fireblock",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Smoke dummy
 SmokeDummy: Some((
     variations: [
@@ -3828,6 +3839,26 @@ KeyDoor: Some((
     ],
     wind_sway: 0.0,
 )),
+BoneKeyhole: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bone_keyhole_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+BoneKeyDoor: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bone_door_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Bones
 Bones: Some((
     variations: [
@@ -4280,6 +4311,106 @@ Candle: Some((
         (
             model: "voxygen.voxel.sprite.wizard.candle",
             offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+IceCrystal: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_6",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_7",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_8",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_9",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_10",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_11",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+GlowIceCrystal: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_0",
+            offset: (8.5, -9.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_3",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_4",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_5",
+            offset: (-11.5, -12.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

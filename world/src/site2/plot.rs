@@ -1,3 +1,4 @@
+mod adlet;
 mod bridge;
 mod castle;
 mod citadel;
@@ -13,10 +14,11 @@ mod sea_chapel;
 mod workshop;
 
 pub use self::{
-    bridge::Bridge, castle::Castle, citadel::Citadel, cliff_tower::CliffTower,
-    desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
-    dungeon::Dungeon, giant_tree::GiantTree, gnarling::GnarlingFortification, house::House,
-    savannah_pit::SavannahPit, sea_chapel::SeaChapel, workshop::Workshop,
+    adlet::AdletStronghold, bridge::Bridge, castle::Castle, citadel::Citadel,
+    cliff_tower::CliffTower, desert_city_multiplot::DesertCityMultiPlot,
+    desert_city_temple::DesertCityTemple, dungeon::Dungeon, giant_tree::GiantTree,
+    gnarling::GnarlingFortification, house::House, savannah_pit::SavannahPit,
+    sea_chapel::SeaChapel, workshop::Workshop,
 };
 
 use super::*;
@@ -67,6 +69,7 @@ pub enum PlotKind {
     Road(Path<Vec2<i32>>),
     Dungeon(Dungeon),
     Gnarling(GnarlingFortification),
+    Adlet(AdletStronghold),
     GiantTree(GiantTree),
     CliffTower(CliffTower),
     Citadel(Citadel),

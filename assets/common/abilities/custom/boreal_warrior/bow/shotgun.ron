@@ -18,4 +18,5 @@ BasicRanged(
         strength: DamageFraction(0.1),
         chance: 1.0,
     ))),
+    move_efficiency: 0.3,
 )

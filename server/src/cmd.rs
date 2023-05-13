@@ -3133,6 +3133,7 @@ fn handle_debug_column(
         let river = &chunk.river;
         let flux = chunk.flux;
         let path = chunk.path;
+        let cliff_height = chunk.cliff_height;
 
         Some(format!(
             r#"wpos: {:?}
@@ -3149,7 +3150,8 @@ humidity {:?}
 rockiness {:?}
 tree_density {:?}
 spawn_rate {:?}
-path {:?} "#,
+path {:?}
+cliff_height {:?} "#,
             wpos,
             alt,
             col.alt,
@@ -3167,6 +3169,7 @@ path {:?} "#,
             tree_density,
             spawn_rate,
             path,
+            cliff_height,
         ))
     };
     if let Some(s) = msg_generator(&calendar) {

@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Howl Cowl",
+    description: "Wearing the guise of a fearsome wolf befits a fearsome hunter.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(4.0)),
+            crit_power: Some(0.065),
+            stealth: Some(0.21),
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

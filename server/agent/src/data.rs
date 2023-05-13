@@ -1,14 +1,19 @@
+use crate::util::*;
 use common::{
     comp::{
-        ability::CharacterAbility,
+        ability::{CharacterAbility, MAX_ABILITIES},
         buff::{BuffKind, Buffs},
         character_state::AttackFilters,
         group,
-        item::MaterialStatManifest,
+        inventory::{
+            item::{tool::ToolKind, ItemKind, MaterialStatManifest},
+            slot::EquipSlot,
+        },
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
         LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, PresenceKind, Scale,
         SkillSet, Stance, Stats, Vel,
     },
+    consts::GRAVITY,
     link::Is,
     mounting::{Mount, Rider, VolumeRider},
     path::TraversalConfig,
@@ -64,6 +69,7 @@ pub struct TargetData<'a> {
     pub char_state: Option<&'a CharacterState>,
     pub health: Option<&'a Health>,
     pub buffs: Option<&'a Buffs>,
+    pub drawn_weapons: (Option<ToolKind>, Option<ToolKind>),
 }
 
 impl<'a> TargetData<'a> {
@@ -75,7 +81,54 @@ impl<'a> TargetData<'a> {
             char_state: read_data.char_states.get(target),
             health: read_data.healths.get(target),
             buffs: read_data.buffs.get(target),
+            drawn_weapons: {
+                let slotted_tool = |inv: &Inventory, slot| {
+                    if let Some(ItemKind::Tool(tool)) =
+                        inv.equipped(slot).map(|i| i.kind()).as_deref()
+                    {
+                        Some(tool.kind)
+                    } else {
+                        None
+                    }
+                };
+                read_data
+                    .inventories
+                    .get(target)
+                    .map_or((None, None), |inv| {
+                        (
+                            slotted_tool(inv, EquipSlot::ActiveMainhand),
+                            slotted_tool(inv, EquipSlot::ActiveOffhand),
+                        )
+                    })
+            },
         }
+    }
+
+    pub fn considered_ranged(&self) -> bool {
+        let is_ranged_tool = |tool| match tool {
+            Some(
+                ToolKind::Sword
+                | ToolKind::Axe
+                | ToolKind::Hammer
+                | ToolKind::Dagger
+                | ToolKind::Shield
+                | ToolKind::Spear
+                | ToolKind::Farming
+                | ToolKind::Pick
+                | ToolKind::Natural
+                | ToolKind::Empty,
+            )
+            | None => false,
+            Some(
+                ToolKind::Bow
+                | ToolKind::Staff
+                | ToolKind::Sceptre
+                | ToolKind::Blowgun
+                | ToolKind::Debug
+                | ToolKind::Instrument,
+            ) => true,
+        };
+        is_ranged_tool(self.drawn_weapons.0) || is_ranged_tool(self.drawn_weapons.1)
     }
 }
 
@@ -120,6 +173,12 @@ pub enum Tactic {
     FixedTurret,
     RotatingTurret,
     RadialTurret,
+    // u8s are weights that each ability gets used, if it can be used
+    RandomAbilities {
+        primary: u8,
+        secondary: u8,
+        abilities: [u8; MAX_ABILITIES],
+    },
 
     // Tool specific tactics
     Axe,
@@ -132,7 +191,10 @@ pub enum Tactic {
     SwordSimple,
 
     // Broad creature tactics
-    CircleCharge { radius: u32, circle_time: u32 },
+    CircleCharge {
+        radius: u32,
+        circle_time: u32,
+    },
     QuadLowRanged,
     TailSlap,
     QuadLowQuick,
@@ -171,6 +233,13 @@ pub enum Tactic {
     BorealHammer,
     Dullahan,
     Cyclops,
+    IceDrake,
+
+    // Adlets
+    AdletHunter,
+    AdletIcepicker,
+    AdletTracker,
+    AdletElder,
 }
 
 #[derive(Copy, Clone)]
@@ -331,6 +400,29 @@ pub enum AbilityData {
         blocked_attacks: AttackFilters,
         angle: f32,
     },
+    BasicRanged {
+        energy: f32,
+        projectile_speed: f32,
+    },
+    BasicMelee {
+        energy: f32,
+        range: f32,
+        angle: f32,
+    },
+    LeapMelee {
+        energy: f32,
+        range: f32,
+        angle: f32,
+        forward_leap: f32,
+        vertical_leap: f32,
+        leap_dur: f32,
+    },
+    BasicBeam {
+        energy_drain: f32,
+        range: f32,
+        angle: f32,
+        ori_rate: f32,
+    },
 }
 
 impl AbilityData {
@@ -453,6 +545,50 @@ impl AbilityData {
                 angle: *max_angle,
                 blocked_attacks: *blocked_attacks,
             },
+            BasicRanged {
+                energy_cost,
+                projectile_speed,
+                ..
+            } => Self::BasicRanged {
+                energy: *energy_cost,
+                projectile_speed: *projectile_speed,
+            },
+            BasicMelee {
+                energy_cost,
+                melee_constructor,
+                ..
+            } => Self::BasicMelee {
+                energy: *energy_cost,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+            },
+            LeapMelee {
+                energy_cost,
+                movement_duration,
+                melee_constructor,
+                forward_leap_strength,
+                vertical_leap_strength,
+                ..
+            } => Self::LeapMelee {
+                energy: *energy_cost,
+                leap_dur: *movement_duration,
+                range: melee_constructor.range,
+                angle: melee_constructor.angle,
+                forward_leap: *forward_leap_strength,
+                vertical_leap: *vertical_leap_strength,
+            },
+            BasicBeam {
+                range,
+                max_angle,
+                ori_rate,
+                energy_drain,
+                ..
+            } => Self::BasicBeam {
+                range: *range,
+                angle: *max_angle,
+                ori_rate: *ori_rate,
+                energy_drain: *energy_drain,
+            },
             _ => return None,
         };
         Some(inner)
@@ -463,18 +599,30 @@ impl AbilityData {
         attack_data: &AttackData,
         agent_data: &AgentData,
         tgt_data: &TargetData,
+        read_data: &ReadData,
         desired_energy: f32,
     ) -> bool {
         let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
-            let range_inc = forced_movement.map_or(0.0, |fm| match fm {
-                ForcedMovement::Forward(speed) => speed * 15.0,
-                ForcedMovement::Reverse(speed) => -speed,
-                _ => 0.0,
+            let (range_inc, min_mult) = forced_movement.map_or((0.0, 0.0), |fm| match fm {
+                ForcedMovement::Forward(speed) => (speed * 15.0, 1.0),
+                ForcedMovement::Reverse(speed) => (-speed, 1.0),
+                ForcedMovement::Leap {
+                    vertical, forward, ..
+                } => (
+                    {
+                        let dur = vertical * 2.0 / GRAVITY;
+                        // 0.75 factor to allow for fact that agent looks down as they approach, so
+                        // won't go as far
+                        forward * dur * 0.75
+                    },
+                    0.0,
+                ),
+                _ => (0.0, 0.0),
             });
             let body_rad = agent_data.body.map_or(0.0, |b| b.max_radius());
             attack_data.dist_sqrd < (range + range_inc + body_rad).powi(2)
                 && attack_data.angle < angle
-                && attack_data.dist_sqrd > range_inc.powi(2)
+                && attack_data.dist_sqrd > (range_inc * min_mult).powi(2)
         };
         let energy_check = |energy: f32| {
             agent_data.energy.current() >= energy
@@ -486,6 +634,36 @@ impl AbilityData {
                 .char_state
                 .and_then(|cs| cs.attack_kind())
                 .map_or(false, |ak| attacks.applies(ak))
+        };
+        let ranged_check = |proj_speed| {
+            let max_horiz_dist: f32 = {
+                let flight_time = proj_speed * 2_f32.sqrt() / GRAVITY;
+                proj_speed * 2_f32.sqrt() / 2.0 * flight_time
+            };
+            attack_data.dist_sqrd < max_horiz_dist.powi(2)
+                && entities_have_line_of_sight(
+                    agent_data.pos,
+                    agent_data.body,
+                    agent_data.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                )
+        };
+        let beam_check = |range: f32, angle, ori_rate: f32| {
+            let angle_inc = ori_rate.to_degrees();
+            attack_data.dist_sqrd < range.powi(2)
+                && attack_data.angle < angle + angle_inc
+                && entities_have_line_of_sight(
+                    agent_data.pos,
+                    agent_data.body,
+                    agent_data.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                )
         };
         use AbilityData::*;
         match self {
@@ -587,6 +765,38 @@ impl AbilityData {
                         .and_then(|cs| cs.stage_section())
                         .map_or(false, |ss| !matches!(ss, StageSection::Recover))
             },
+            BasicRanged {
+                energy,
+                projectile_speed,
+            } => ranged_check(*projectile_speed) && energy_check(*energy),
+            BasicMelee {
+                energy,
+                range,
+                angle,
+            } => melee_check(*range, *angle, None) && energy_check(*energy),
+            LeapMelee {
+                energy,
+                range,
+                angle,
+                leap_dur,
+                forward_leap,
+                vertical_leap,
+            } => {
+                use common::states::utils::MovementDirection;
+                let forced_move = Some(ForcedMovement::Leap {
+                    vertical: *vertical_leap * *leap_dur * 2.0,
+                    forward: *forward_leap,
+                    progress: 0.0,
+                    direction: MovementDirection::Look,
+                });
+                melee_check(*range, *angle, forced_move) && energy_check(*energy)
+            },
+            BasicBeam {
+                energy_drain,
+                range,
+                angle,
+                ori_rate,
+            } => beam_check(*range, *angle, *ori_rate) && energy_check(*energy_drain * 3.0),
         }
     }
 }

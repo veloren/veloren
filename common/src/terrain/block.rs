@@ -58,6 +58,8 @@ make_case_elim!(
         // often want to experiment with new kinds of block without allocating them a
         // dedicated block kind.
         Misc = 0xFE,
+        // Snow to use with sites, to not attract snowfall particles
+        ArtSnow = 0xFF,
     }
 );
 
@@ -302,7 +304,7 @@ impl Block {
             BlockKind::GlowingMushroom => Some(20),
             _ => match self.get_sprite()? {
                 SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
-                SpriteKind::Ember => Some(20),
+                SpriteKind::Ember | SpriteKind::FireBlock => Some(20),
                 SpriteKind::WallLamp
                 | SpriteKind::WallLampSmall
                 | SpriteKind::WallSconce
@@ -335,7 +337,7 @@ impl Block {
                 | SpriteKind::EmeraldSmall
                 | SpriteKind::SapphireSmall => Some(3),
                 SpriteKind::Lantern => Some(24),
-                SpriteKind::SeashellLantern => Some(16),
+                SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => Some(16),
                 SpriteKind::SeaDecorEmblem => Some(12),
                 SpriteKind::SeaDecorBlock => Some(10),
                 _ => None,
@@ -351,6 +353,7 @@ impl Block {
             BlockKind::Leaves => (9, 255.0),
             BlockKind::Wood => (6, 2.0),
             BlockKind::Snow => (6, 2.0),
+            BlockKind::ArtSnow => (6, 2.0),
             BlockKind::Ice => (4, 2.0),
             _ if self.is_opaque() => (0, 255.0),
             _ => (0, 0.0),
@@ -381,7 +384,10 @@ impl Block {
             BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
                 sprite if sprite.is_container() => None,
-                SpriteKind::Keyhole | SpriteKind::KeyDoor => None,
+                SpriteKind::Keyhole
+                | SpriteKind::KeyDoor
+                | SpriteKind::BoneKeyhole
+                | SpriteKind::BoneKeyDoor => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot
@@ -405,7 +411,8 @@ impl Block {
                 | SpriteKind::SeaDecorWindowHor
                 | SpriteKind::SeaDecorWindowVer
                 | SpriteKind::Rope
-                | SpriteKind::GlassBarrier => None,
+                | SpriteKind::GlassBarrier
+                | SpriteKind::FireBlock => None,
                 SpriteKind::EnsnaringVines
                 | SpriteKind::EnsnaringWeb
                 | SpriteKind::SeaUrchin
@@ -490,7 +497,7 @@ impl Block {
     #[inline]
     pub fn get_traction(&self) -> f32 {
         match self.kind() {
-            BlockKind::Snow => 0.8,
+            BlockKind::Snow | BlockKind::ArtSnow => 0.8,
             _ => 1.0,
         }
     }

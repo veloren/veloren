@@ -201,6 +201,24 @@ impl<'a> System<'a> for Sys {
                     });
                 }
                 if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::FireBlock)
+                ) {
+                    // If on FireBlock vines, apply burning buff
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Burning,
+                            BuffData::new(20.0, None, None),
+                            Vec::new(),
+                            BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
+                            Some(health),
+                        )),
+                    });
+                }
+                if matches!(
                     physics_state.in_fluid,
                     Some(Fluid::Liquid {
                         kind: LiquidKind::Lava,

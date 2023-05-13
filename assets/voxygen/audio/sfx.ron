@@ -871,6 +871,20 @@
             threshold: 0.5,
             subtitle: "subtitle-instrument_washboard",
         ),
+        Music(Instrument, Custom("WildskinDrum")): (
+            files: [
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_c",
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_d",
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_e",
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_f",
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_g",
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_a",
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_b",
+            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_c1",
+            ],
+            threshold: 0.5,
+            subtitle: "subtitle-instrument_wildskin_drum",
+        ),
         Inventory(CollectedTool(Instrument)): (
             files: [
             "voxygen.audio.sfx.inventory.add_item",
@@ -1261,6 +1275,12 @@
             threshold: 0.2,
             subtitle: "subtitle-arrow_shot",
         ),
+        Yeet: (
+                files: [
+            "voxygen.audio.sfx.abilities.yeet",
+                ],
+                threshold: 0.3,
+        ),
         FireShot: (
             files: [
                 "voxygen.audio.sfx.abilities.fire_shot_1",
@@ -1282,6 +1302,18 @@
             ],
             threshold: 0.2,
             subtitle: "subtitle-arrow_hit",
+        ),
+        Klonk: (
+            files: [
+                    "voxygen.audio.sfx.abilities.klonk",
+            ],
+            threshold: 0.4,
+        ),
+        SmashKlonk: (
+            files: [
+                    "voxygen.audio.sfx.abilities.smashklonk",
+            ],
+            threshold: 0.4,
         ),
         SkillPointGain: (
             files: [
@@ -1397,6 +1429,12 @@
                 ],
             threshold: 1.25,
             subtitle: "subtitle-attack-laser_beam",
+        ),
+        Woosh: (
+            files: [
+                    "voxygen.audio.sfx.abilities.woosh",
+                ],
+            threshold: 0.4,
         ),
         CyclopsCharge: (
             files: [

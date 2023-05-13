@@ -643,4 +643,28 @@ impl<'a, R: Rng> NameGen<'a, R> {
         ];
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
+
+    // inuit inspired location names for adlet stronghold
+    pub fn generate_adlet(mut self) -> String {
+        let start = [
+            "p", "k", "h", "q", "s", "t", "y", "n", "m", "an", "ap", "ang", "am", "at", "arn",
+            "ats", "av", "aj", "in", "ikk", "ig", "im", "iq", "uak", "ual", "uj", "uk", "um", "ul",
+            "unn", "ut", "adl",
+        ];
+        let middle = [
+            "m", "k", "n", "ks", "gl", "ll", "g", "l", "t", "nn", "kt", "tt", "rj", "rl", "ts",
+            "qt", "ng", "gg", "ss", "kk",
+        ];
+        let vowel = ["a", "i", "u", "ia", "ui", "ua", "aa", "uu"];
+        let end = [
+            "uktu", "akut", "ukut", "aakut", "uvit", "avit", "ivit", "anuq", "attiq", "aqtuq",
+            "akka", "ikka", "ipit", "ugit", "agit", "uvusi", "avusi", "ivusi", "aali", "uli",
+            "aluk", "uluk", "alu", "uipit", "unga", "asuna", "uulik", "ivun", "avun", "adlet",
+            "adlit", "anit", "unit", "aluit", "angit", "arluut", "uluut", "araaq", "anait",
+            "uqsuit", "aruq", "ualik", "auti", "aliit", "igiit", "aana", "akkuq", "amali", "igit",
+            "irniq", "aasi", "ashi", "asik", "ukkit", "ajuq", "anook", "ivak", "attiq", "iksik",
+            "aaluk", "anik", "usuuq",
+        ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
+    }
 }

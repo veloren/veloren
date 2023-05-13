@@ -574,6 +574,9 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_medium::Species::Akhlut => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.akhlut",
             )),
+            quadruped_medium::Species::Frostfang => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.frostfang",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedbasic",
             )),
@@ -606,6 +609,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             quadruped_low::Species::Basilisk => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.basilisk",
+            )),
+            quadruped_low::Species::Icedrake => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.icedrake",
             )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowbasic",
@@ -732,6 +738,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (biped_large::Species::Gigasfrost, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.axe.gigas_frost_axe",
+            )),
+            (biped_large::Species::AdletElder, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.sword.adlet_elder_sword",
             )),
         },
         Body::Object(body) => match body {
@@ -921,6 +930,7 @@ impl LoadoutBuilder {
                 biped_large::Species::Dullahan => {
                     Some("common.items.npc_armor.biped_large.dullahan")
                 },
+                biped_large::Species::Tursus => Some("common.items.npc_armor.biped_large.tursus"),
                 biped_large::Species::Cultistwarlord => {
                     Some("common.items.npc_armor.biped_large.warlord")
                 },
@@ -955,7 +965,8 @@ impl LoadoutBuilder {
                 | quadruped_low::Species::Rocksnapper
                 | quadruped_low::Species::Rootsnapper
                 | quadruped_low::Species::Reefsnapper
-                | quadruped_low::Species::Sandshark => {
+                | quadruped_low::Species::Sandshark
+                | quadruped_low::Species::Icedrake => {
                     Some("common.items.npc_armor.quadruped_low.generic")
                 },
                 quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
@@ -965,6 +976,9 @@ impl LoadoutBuilder {
                 _ => None,
             },
             Body::QuadrupedMedium(body) => match body.species {
+                quadruped_medium::Species::Frostfang => {
+                    Some("common.items.npc_armor.quadruped_medium.frostfang")
+                },
                 quadruped_medium::Species::Roshwalr => {
                     Some("common.items.npc_armor.quadruped_medium.roshwalr")
                 },

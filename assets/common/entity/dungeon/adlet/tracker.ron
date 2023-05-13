@@ -6,11 +6,11 @@
     loot: LootTable("common.loot_tables.dungeon.tier-1.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-1.tracker"),
+            inherit: Asset("common.loadout.dungeon.adlet.tracker"),
             active_hands: InHands((Item("common.items.npc_weapons.biped_small.adlet.tracker"), None)),
         )),
     ),
     meta: [
-        SkillSetAsset("common.skillset.preset.rank1.fullskill"),
+        SkillSetAsset("common.skillset.preset.rank1.general"),
     ],
 )

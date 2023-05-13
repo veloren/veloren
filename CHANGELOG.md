@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Airships can now have sprites, which can be interacted with.
 - Some sprites can be sat on.
 - Pet birds can now sit on the player's shoulder as they explore the world.
+- Adlet caves
 
 ### Changed
 

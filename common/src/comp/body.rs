@@ -289,6 +289,7 @@ impl Body {
                 biped_large::Species::Mountaintroll => 600.0,
                 biped_large::Species::Swamptroll => 600.0,
                 biped_large::Species::Gigasfrost => 400.0,
+                biped_large::Species::AdletElder => 350.0,
                 _ => 400.0,
             },
             Body::BipedSmall(_) => 50.0,
@@ -429,6 +430,7 @@ impl Body {
                 biped_large::Species::Huskbrute => Vec3::new(4.6, 3.0, 5.0),
                 biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
                 biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 8.0),
+                biped_large::Species::AdletElder => Vec3::new(3.5, 3.0, 5.0),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -477,7 +479,7 @@ impl Body {
                 quadruped_medium::Species::Lion => Vec3::new(2.0, 3.3, 2.0),
                 quadruped_medium::Species::Moose => Vec3::new(2.0, 4.0, 2.5),
                 quadruped_medium::Species::Bristleback => Vec3::new(2.0, 3.0, 2.0),
-                quadruped_medium::Species::Roshwalr => Vec3::new(2.0, 3.5, 2.2),
+                quadruped_medium::Species::Roshwalr => Vec3::new(3.4, 5.2, 3.7),
                 quadruped_medium::Species::Saber => Vec3::new(2.0, 3.0, 2.0),
                 quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
                 quadruped_medium::Species::Yak => Vec3::new(2.0, 3.6, 3.0),
@@ -792,7 +794,7 @@ impl Body {
                 biped_large::Species::Dullahan => 600,
                 biped_large::Species::Mindflayer => 1250,
                 biped_large::Species::Tidalwarrior => 1600,
-                biped_large::Species::Yeti => 1200,
+                biped_large::Species::Yeti => 1800,
                 biped_large::Species::Minotaur => 3000,
                 biped_large::Species::Harvester => 1500,
                 biped_large::Species::Blueoni => 240,
@@ -801,6 +803,8 @@ impl Body {
                 biped_large::Species::Cultistwarlord => 250,
                 biped_large::Species::Cultistwarlock => 250,
                 biped_large::Species::Gigasfrost => 20000,
+                biped_large::Species::AdletElder => 1500,
+                biped_large::Species::Tursus => 300,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -944,11 +948,17 @@ impl Body {
             BuffKind::Frozen => match self {
                 Body::BipedLarge(b) => matches!(
                     b.species,
-                    biped_large::Species::Yeti | biped_large::Species::Gigasfrost
+                    biped_large::Species::Yeti
+                        | biped_large::Species::Gigasfrost
+                        | biped_large::Species::Tursus
                 ),
                 Body::QuadrupedLow(q) => matches!(q.species, quadruped_low::Species::Icedrake),
                 Body::BirdLarge(b) => matches!(b.species, bird_large::Species::FrostWyvern),
                 Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Boreal),
+                Body::QuadrupedMedium(b) => matches!(
+                    b.species,
+                    quadruped_medium::Species::Roshwalr | quadruped_medium::Species::Frostfang
+                ),
                 _ => false,
             },
             BuffKind::ProtectingWard => matches!(self, Body::Object(object::Body::BarrelOrgan)),

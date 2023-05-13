@@ -4,6 +4,7 @@ use {crate::LIB, std::ffi::CStr};
 use super::*;
 use crate::{
     block::block_from_structure,
+    column::ColInfo,
     site2::util::Dir,
     util::{RandomField, Sampler},
     CanvasInfo,
@@ -72,6 +73,7 @@ pub enum Primitive {
     /// A sampling function is always a subset of another primitive to avoid
     /// needing infinite bounds
     Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
+    ColSampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>, &ColInfo) -> bool>),
     Prefab(Box<PrefabStructure>),
 
     // Combinators
@@ -139,6 +141,7 @@ impl std::fmt::Debug for Primitive {
                 .field(&height)
                 .finish(),
             Primitive::Sampling(prim, _) => f.debug_tuple("Sampling").field(&prim).finish(),
+            Primitive::ColSampling(prim, _) => f.debug_tuple("ColSampling").field(&prim).finish(),
             Primitive::Prefab(prefab) => f.debug_tuple("Prefab").field(&prefab).finish(),
             Primitive::Intersect(a, b) => f.debug_tuple("Intersect").field(&a).field(&b).finish(),
             Primitive::Union(a, b) => f.debug_tuple("Union").field(&a).field(&b).finish(),
@@ -180,6 +183,13 @@ impl Primitive {
         Self::Sampling(a.into(), f)
     }
 
+    pub fn column_sampling(
+        a: impl Into<Id<Primitive>>,
+        f: Box<dyn Fn(Vec3<i32>, &ColInfo) -> bool>,
+    ) -> Self {
+        Self::ColSampling(a.into(), f)
+    }
+
     pub fn translate(a: impl Into<Id<Primitive>>, trans: Vec3<i32>) -> Self {
         Self::Translate(a.into(), trans)
     }
@@ -216,7 +226,12 @@ pub enum Fill {
 }
 
 impl Fill {
-    fn contains_at(tree: &Store<Primitive>, prim: Id<Primitive>, pos: Vec3<i32>) -> bool {
+    fn contains_at(
+        tree: &Store<Primitive>,
+        prim: Id<Primitive>,
+        pos: Vec3<i32>,
+        col: &ColInfo,
+    ) -> bool {
         // Custom closure because vek's impl of `contains_point` is inclusive :(
         let aabb_contains = |aabb: Aabb<i32>, pos: Vec3<i32>| {
             (aabb.min.x..aabb.max.x).contains(&pos.x)
@@ -375,19 +390,20 @@ impl Fill {
                 let z_check = (projected_z..=(projected_z + height)).contains(&(pos.z as f32));
                 xy_check && z_check
             },
-            Primitive::Sampling(a, f) => Self::contains_at(tree, *a, pos) && f(pos),
+            Primitive::Sampling(a, f) => Self::contains_at(tree, *a, pos, col) && f(pos),
+            Primitive::ColSampling(a, f) => Self::contains_at(tree, *a, pos, col) && f(pos, col),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
             Primitive::Intersect(a, b) => {
-                Self::contains_at(tree, *a, pos) && Self::contains_at(tree, *b, pos)
+                Self::contains_at(tree, *a, pos, col) && Self::contains_at(tree, *b, pos, col)
             },
             Primitive::Union(a, b) => {
-                Self::contains_at(tree, *a, pos) || Self::contains_at(tree, *b, pos)
+                Self::contains_at(tree, *a, pos, col) || Self::contains_at(tree, *b, pos, col)
             },
             Primitive::Without(a, b) => {
-                Self::contains_at(tree, *a, pos) && !Self::contains_at(tree, *b, pos)
+                Self::contains_at(tree, *a, pos, col) && !Self::contains_at(tree, *b, pos, col)
             },
             Primitive::Translate(prim, vec) => {
-                Self::contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
+                Self::contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub), col)
             },
             Primitive::Scale(prim, vec) => {
                 let center = Self::get_bounds(tree, *prim).as_::<f32>().center();
@@ -395,12 +411,17 @@ impl Fill {
                 let spos = (center + ((fpos - center) / vec))
                     .map(|x| x.round())
                     .as_::<i32>();
-                Self::contains_at(tree, *prim, spos)
+                Self::contains_at(tree, *prim, spos, col)
             },
             Primitive::RotateAbout(prim, mat, vec) => {
                 let mat = mat.as_::<f32>().transposed();
                 let vec = vec - 0.5;
-                Self::contains_at(tree, *prim, (vec + mat * (pos.as_::<f32>() - vec)).as_())
+                Self::contains_at(
+                    tree,
+                    *prim,
+                    (vec + mat * (pos.as_::<f32>() - vec)).as_(),
+                    col,
+                )
             },
             Primitive::Repeat(prim, offset, count) => {
                 if count == &0 {
@@ -419,7 +440,7 @@ impl Fill {
                         .reduce_min()
                         .clamp(0, count as i32);
                     let pos = pos - offset * min;
-                    Self::contains_at(tree, *prim, pos)
+                    Self::contains_at(tree, *prim, pos, col)
                 }
             },
         }
@@ -432,8 +453,9 @@ impl Fill {
         pos: Vec3<i32>,
         canvas_info: &CanvasInfo,
         old_block: Block,
+        col: &ColInfo,
     ) -> Option<Block> {
-        if Self::contains_at(tree, prim, pos) {
+        if Self::contains_at(tree, prim, pos, col) {
             match self {
                 Fill::Block(block) => Some(*block),
                 Fill::Sprite(sprite) => Some(if old_block.is_filled() {
@@ -553,7 +575,9 @@ impl Fill {
                 };
                 vec![Aabb { min, max }]
             },
-            Primitive::Sampling(a, _) => Self::get_bounds_inner(tree, *a),
+            Primitive::Sampling(a, _) | Primitive::ColSampling(a, _) => {
+                Self::get_bounds_inner(tree, *a)
+            },
             Primitive::Prefab(p) => vec![p.get_bounds()],
             Primitive::Intersect(a, b) => or_zip_with(
                 Self::get_bounds_opt(tree, *a),
@@ -693,6 +717,7 @@ impl Painter {
                 | Primitive::SegmentPrism { .. }
                 | Primitive::Prefab(_) => prev_depth,
                 Primitive::Sampling(a, _)
+                | Primitive::ColSampling(a, _)
                 | Primitive::Translate(a, _)
                 | Primitive::Scale(a, _)
                 | Primitive::RotateAbout(a, _, _)
@@ -1259,6 +1284,17 @@ impl<'a> PrimitiveRef<'a> {
     pub fn sample(self, sampling: impl Fn(Vec3<i32>) -> bool + 'static) -> PrimitiveRef<'a> {
         self.painter
             .prim(Primitive::sampling(self, Box::new(sampling)))
+    }
+
+    /// Returns a `PrimitiveRef` that conforms to the provided sampling
+    /// function.
+    #[must_use]
+    pub fn sample_with_column(
+        self,
+        sampling: impl Fn(Vec3<i32>, &ColInfo) -> bool + 'static,
+    ) -> PrimitiveRef<'a> {
+        self.painter
+            .prim(Primitive::column_sampling(self, Box::new(sampling)))
     }
 
     /// Rotates a primitive about it's own's bounds minimum point,

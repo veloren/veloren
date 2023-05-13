@@ -42,6 +42,7 @@ make_case_elim!(
         RotatedSprite(kind: SpriteKind, ori: u8) = 23,
         EntitySpawner(entitykind: String, spawn_chance: f32) = 24,
         Keyhole(consumes: String) = 25,
+        BoneKeyhole(consumes: String) = 26,
     }
 );
 

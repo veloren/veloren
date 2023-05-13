@@ -515,7 +515,7 @@ impl Animation for AlphaAnimation {
                             * Quaternion::rotation_y(move1 * -0.8 + move2 * 0.6);
                     }
                 },
-                Some("common.abilities.custom.tursus_claws.basic") => {
+                Some("common.abilities.custom.tursus.tursus_claws") => {
                     next.shoulder_l.position =
                         Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
                     next.shoulder_r.position =

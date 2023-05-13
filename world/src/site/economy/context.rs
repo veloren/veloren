@@ -129,6 +129,7 @@ impl Environment {
                     SiteKind::Tree(_) => (),
                     SiteKind::GiantTree(_) => (),
                     SiteKind::Gnarling(_) => {},
+                    SiteKind::Adlet(_) => {},
                     SiteKind::ChapelSite(_) => {},
                     SiteKind::Bridge(_) => {},
                 }
