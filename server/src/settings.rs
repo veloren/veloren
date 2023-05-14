@@ -324,6 +324,10 @@ impl Settings {
             self.day_length = default_values.day_length;
         }
     }
+
+    /// Derive a coefficient that is the relatively speed of the in-game
+    /// day/night cycle compared to reality.
+    pub fn day_cycle_coefficient(&self) -> f64 { 1440.0 / self.day_length }
 }
 
 pub enum InvalidSettingsError {

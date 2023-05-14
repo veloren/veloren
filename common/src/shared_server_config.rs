@@ -4,13 +4,7 @@ use serde::{Deserialize, Serialize};
 /// life.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ServerConstants {
+    /// How many times faster the in-game day/night cycle should be compared to
+    /// real time.
     pub day_cycle_coefficient: f64,
-}
-impl Default for ServerConstants {
-    fn default() -> Self {
-        ServerConstants {
-            // == 30.0 via server settings (the default)
-            day_cycle_coefficient: 24.0 * 2.0,
-        }
-    }
 }
