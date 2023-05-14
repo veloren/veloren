@@ -574,6 +574,9 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         tgt_pos: &Pos,
     ) {
+        // Proportion of full speed
+        const MAX_FLEE_SPEED: f32 = 0.65;
+
         if read_data.is_riders.contains(*self.entity) {
             controller.push_event(ControlEvent::Unmount);
         }
@@ -599,8 +602,8 @@ impl<'a> AgentData<'a> {
                 ..self.traversal_config
             },
         ) {
-            controller.inputs.move_dir =
-                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            controller.inputs.move_dir = bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                * speed.min(MAX_FLEE_SPEED);
             self.jump_if(bearing.z > 1.5, controller);
             controller.inputs.move_z = bearing.z;
         }
