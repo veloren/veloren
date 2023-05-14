@@ -1380,7 +1380,7 @@ pub struct FullScreenSettings {
 impl Default for FullScreenSettings {
     fn default() -> Self {
         Self {
-            enabled: false,
+            enabled: true,
             mode: FullscreenMode::Borderless,
             resolution: [1920, 1080],
             bit_depth: None,

@@ -62,6 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   particularily noticeable when opening the map screen (which involves rescaling a few large
   images) and also when using the voxel minimap view (where a medium size image is updated often).
 - Towns now have a variety of sizes
+- The game now starts in fullscreen by default
+- Default audio volume should be less likely to destroy ear drums
+- Creatures flee less quickly when low on health
 
 ### Removed
 

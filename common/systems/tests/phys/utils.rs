@@ -65,7 +65,9 @@ pub fn tick(state: &mut State, dt: Duration) {
         },
         false,
         None,
-        &ServerConstants::default(),
+        &ServerConstants {
+            day_cycle_coefficient: 24.0,
+        },
         |_, _| {},
     );
 }

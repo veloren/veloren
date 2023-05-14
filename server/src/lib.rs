@@ -573,7 +573,7 @@ impl Server {
         }
 
         let server_constants = ServerConstants {
-            day_cycle_coefficient: 1440.0 / settings.day_length,
+            day_cycle_coefficient: settings.day_cycle_coefficient(),
         };
 
         let this = Self {
