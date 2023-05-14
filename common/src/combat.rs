@@ -114,12 +114,15 @@ impl Attack {
     }
 
     #[must_use]
-    pub fn with_combo_increment(self) -> Self {
+    pub fn with_combo(self, combo: i32) -> Self {
         self.with_effect(
-            AttackEffect::new(None, CombatEffect::Combo(1))
+            AttackEffect::new(None, CombatEffect::Combo(combo))
                 .with_requirement(CombatRequirement::AnyDamage),
         )
     }
+
+    #[must_use]
+    pub fn with_combo_increment(self) -> Self { self.with_combo(1) }
 
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 

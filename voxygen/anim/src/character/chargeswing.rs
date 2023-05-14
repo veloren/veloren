@@ -234,6 +234,45 @@ impl Animation for ChargeswingAnimation {
                 next.control.orientation.rotate_z(move2 * -1.8);
                 next.control.position += Vec3::new(move2 * 14.0, 0.0, 0.0);
             },
+            Some("common.abilities.axe.cleave") => {
+                let (move1, move2, move3, tension) = match stage_section {
+                    Some(StageSection::Charge) => {
+                        next.main_weapon_trail = false;
+                        next.off_weapon_trail = false;
+                        (anim_time.min(1.0), 0.0, 0.0, (anim_time * 20.0).sin())
+                    },
+                    Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0, 0.0),
+                    Some(StageSection::Recover) => {
+                        next.main_weapon_trail = false;
+                        next.off_weapon_trail = false;
+                        (1.0, 1.0, anim_time, 0.0)
+                    },
+                    _ => (0.0, 0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                next.control.position = Vec3::new(
+                    s_a.ac.0 + move1 * 7.0,
+                    s_a.ac.1 + move1 * -4.0,
+                    s_a.ac.2 + move1 * 18.0 + tension / 5.0,
+                );
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.ac.3 + move1 * -1.0 + tension / 30.0)
+                        * Quaternion::rotation_y(s_a.ac.4)
+                        * Quaternion::rotation_z(s_a.ac.5);
+
+                next.control.orientation.rotate_x(move2 * -3.0);
+                next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
+            },
             _ => {
                 let lab: f32 = 1.0;
 

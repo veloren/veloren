@@ -709,6 +709,8 @@ pub enum CharacterAbility {
         specifier: Option<charged_melee::FrontendSpecifier>,
         damage_effect: Option<CombatEffect>,
         #[serde(default)]
+        additional_combo: i32,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     ChargedRanged {
@@ -898,6 +900,7 @@ impl Default for CharacterAbility {
                 multi_target: None,
                 damage_effect: None,
                 simultaneous_hits: 1,
+                combo_gain: 1,
             },
             ori_modifier: 1.0,
             meta: Default::default(),
@@ -1276,6 +1279,7 @@ impl CharacterAbility {
                 specifier: _,
                 ref mut damage_effect,
                 meta: _,
+                additional_combo: _,
             } => {
                 *swing_duration /= stats.speed;
                 *buildup_strike = buildup_strike
@@ -2398,6 +2402,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 specifier,
                 damage_effect,
+                additional_combo,
                 meta: _,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
@@ -2413,6 +2418,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                     specifier: *specifier,
                     damage_effect: *damage_effect,
+                    additional_combo: *additional_combo,
                 },
                 stage_section: if buildup_strike.is_some() {
                     StageSection::Buildup

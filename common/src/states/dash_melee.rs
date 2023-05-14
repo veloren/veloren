@@ -277,6 +277,7 @@ fn create_test_melee(static_data: StaticData) -> Melee {
         multi_target: None,
         damage_effect: None,
         simultaneous_hits: 1,
+        combo_gain: 0,
     };
     melee.create_melee((0.0, 0.0), tool::Stats::one())
 }

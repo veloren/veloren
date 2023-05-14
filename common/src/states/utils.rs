@@ -900,7 +900,11 @@ pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
     }
 }
 /// Checks that player can Swap Weapons and updates `Loadout` if so
-pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpdate) {
+pub fn attempt_swap_equipped_weapons(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    output_events: &mut OutputEvents,
+) {
     if data
         .inventory
         .and_then(|inv| inv.equipped(EquipSlot::InactiveMainhand))
@@ -910,6 +914,11 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpda
             .and_then(|inv| inv.equipped(EquipSlot::InactiveOffhand))
             .is_some()
     {
+        // Reset combo to 0 after manipulating loadout
+        output_events.emit_server(ServerEvent::ComboChange {
+            entity: data.entity,
+            change: -data.combo.map_or(0, |c| c.counter() as i32),
+        });
         update.swap_equipped_weapons = true;
     }
 }
@@ -995,6 +1004,11 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
+    // Reset combo to 0 after manipulating loadout
+    output_events.emit_server(ServerEvent::ComboChange {
+        entity: data.entity,
+        change: -data.combo.map_or(0, |c| c.counter() as i32),
+    });
     match inv_action {
         InventoryAction::Use(slot @ Slot::Inventory(inv_slot)) => {
             // If inventory action is using a slot, and slot is in the inventory

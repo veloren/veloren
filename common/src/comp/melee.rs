@@ -51,6 +51,7 @@ impl Component for Melee {
 }
 
 fn default_simultaneous_hits() -> u32 { 1 }
+fn default_combo_gain() -> i32 { 1 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -66,6 +67,8 @@ pub struct MeleeConstructor {
     pub damage_effect: Option<CombatEffect>,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
+    #[serde(default = "default_combo_gain")]
+    pub combo_gain: i32,
 }
 
 impl MeleeConstructor {
@@ -128,7 +131,7 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
             Stab {
                 damage,
@@ -179,7 +182,7 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
             Bash {
                 damage,
@@ -222,7 +225,7 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
             NecroticVortex {
                 damage,
@@ -260,7 +263,7 @@ impl MeleeConstructor {
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
             SonicWave {
                 damage,
@@ -299,7 +302,7 @@ impl MeleeConstructor {
                     .with_crit(crit_chance, crit_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
         };
 
@@ -435,6 +438,12 @@ impl MeleeConstructor {
             *scaled = scaled.adjusted_by_stats(stats);
         }
         self.damage_effect = self.damage_effect.map(|de| de.adjusted_by_stats(stats));
+        self
+    }
+
+    #[must_use]
+    pub fn with_combo(mut self, combo: i32) -> Self {
+        self.combo_gain = combo;
         self
     }
 }
