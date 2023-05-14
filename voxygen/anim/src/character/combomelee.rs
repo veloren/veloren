@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
-use core::f32::consts::PI;
+use core::f32::consts::{PI, TAU};
 
 pub struct ComboAnimation;
 impl Animation for ComboAnimation {
@@ -969,6 +969,41 @@ impl Animation for ComboAnimation {
                         },
                         _ => {},
                     }
+                },
+                Some("common.abilities.axe.brutal_swing") => {
+                    let (move1, move2_raw) = match stage_section {
+                        Some(StageSection::Buildup) => {
+                            next.main_weapon_trail = false;
+                            next.off_weapon_trail = false;
+                            (anim_time, 0.0)
+                        },
+                        Some(StageSection::Action) => (1.0, anim_time),
+                        Some(StageSection::Recover) => {
+                            next.main_weapon_trail = false;
+                            next.off_weapon_trail = false;
+                            (1.0, 1.0)
+                        },
+                        _ => (0.0, 0.0),
+                    };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2_raw * multi_strike_pullback;
+
+                    next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                    next.hand_l.orientation =
+                        Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                    next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                    next.control.position =
+                        Vec3::new(s_a.ac.0 + move1 * -1.0, s_a.ac.1 + move1 * -4.0, s_a.ac.2);
+                    next.control.orientation = Quaternion::rotation_x(s_a.ac.3 + move1 * -0.4)
+                        * Quaternion::rotation_y(s_a.ac.4 + move1 * -0.5)
+                        * Quaternion::rotation_z(s_a.ac.5 + move1 * 1.5);
+
+                    next.control.orientation.rotate_z(move2 * -3.5);
+                    next.control.position += Vec3::new(move2 * 12.0, move2 * 4.0, 0.0);
+                    next.torso.orientation.rotate_z(move2_raw * -TAU);
                 },
                 _ => {},
             }
