@@ -83,8 +83,9 @@ mod tests {
             },
             false,
             None,
-            // Dummy ServerConstants
-            &ServerConstants::default(),
+            &ServerConstants {
+                day_cycle_coefficient: 24.0,
+            },
             |_, _| {},
         );
     }

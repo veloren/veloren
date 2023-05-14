@@ -18,7 +18,9 @@ fn simple_run() {
         },
         false,
         None,
-        &ServerConstants::default(),
+        &ServerConstants {
+            day_cycle_coefficient: 24.0,
+        },
         |_, _| {},
     );
 }
