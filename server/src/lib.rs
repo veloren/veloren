@@ -89,7 +89,7 @@ use common_net::{
     msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerMsg},
     sync::WorldSyncExt,
 };
-use common_state::{BlockDiff, BuildAreas, State};
+use common_state::{AreasContainer, BlockDiff, BuildArea, State};
 use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
@@ -447,7 +447,7 @@ impl Server {
 
             state
                 .ecs()
-                .write_resource::<BuildAreas>()
+                .write_resource::<AreasContainer<BuildArea>>()
                 .insert("world".to_string(), world_aabb)
                 .expect("The initial insert should always work.");
         }

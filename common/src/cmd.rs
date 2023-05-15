@@ -114,6 +114,7 @@ lazy_static! {
 
         souls
     };
+    static ref AREA_KINDS: Vec<String> = vec!["build".to_string(), "no_dura".to_string()];
     static ref OBJECTS: Vec<String> = comp::object::ALL_OBJECTS
         .iter()
         .map(|o| o.to_string().to_string())
@@ -253,9 +254,9 @@ pub enum ServerChatCommand {
     Body,
     Buff,
     Build,
-    BuildAreaAdd,
-    BuildAreaList,
-    BuildAreaRemove,
+    AreaAdd,
+    AreaList,
+    AreaRemove,
     Campfire,
     CreateLocation,
     DebugColumn,
@@ -400,9 +401,10 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Build => cmd(vec![], "Toggles build mode on and off", None),
-            ServerChatCommand::BuildAreaAdd => cmd(
+            ServerChatCommand::AreaAdd => cmd(
                 vec![
                     Any("name", Required),
+                    Enum("kind", AREA_KINDS.clone(), Required),
                     Integer("xlo", 0, Required),
                     Integer("xhi", 10, Required),
                     Integer("ylo", 0, Required),
@@ -413,9 +415,12 @@ impl ServerChatCommand {
                 "Adds a new build area",
                 Some(Admin),
             ),
-            ServerChatCommand::BuildAreaList => cmd(vec![], "List all build areas", Some(Admin)),
-            ServerChatCommand::BuildAreaRemove => cmd(
-                vec![Any("name", Required)],
+            ServerChatCommand::AreaList => cmd(vec![], "List all build areas", Some(Admin)),
+            ServerChatCommand::AreaRemove => cmd(
+                vec![
+                    Any("name", Required),
+                    Enum("kind", AREA_KINDS.clone(), Required),
+                ],
                 "Removes specified build area",
                 Some(Admin),
             ),
@@ -807,9 +812,9 @@ impl ServerChatCommand {
             ServerChatCommand::Body => "body",
             ServerChatCommand::Buff => "buff",
             ServerChatCommand::Build => "build",
-            ServerChatCommand::BuildAreaAdd => "build_area_add",
-            ServerChatCommand::BuildAreaList => "build_area_list",
-            ServerChatCommand::BuildAreaRemove => "build_area_remove",
+            ServerChatCommand::AreaAdd => "area_add",
+            ServerChatCommand::AreaList => "area_list",
+            ServerChatCommand::AreaRemove => "area_remove",
             ServerChatCommand::Campfire => "campfire",
             ServerChatCommand::DebugColumn => "debug_column",
             ServerChatCommand::DebugWays => "debug_ways",

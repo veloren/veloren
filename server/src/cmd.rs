@@ -55,7 +55,7 @@ use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
-use common_state::{BuildAreaError, BuildAreas};
+use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, SpecialAreaError, State};
 use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
@@ -63,7 +63,7 @@ use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
 };
-use std::{fmt::Write, str::FromStr, sync::Arc};
+use std::{fmt::Write, ops::DerefMut, str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
 use world::util::{Sampler, LOCALITY};
@@ -133,9 +133,9 @@ fn do_command(
         ServerChatCommand::Body => handle_body,
         ServerChatCommand::Buff => handle_buff,
         ServerChatCommand::Build => handle_build,
-        ServerChatCommand::BuildAreaAdd => handle_build_area_add,
-        ServerChatCommand::BuildAreaList => handle_build_area_list,
-        ServerChatCommand::BuildAreaRemove => handle_build_area_remove,
+        ServerChatCommand::AreaAdd => handle_area_add,
+        ServerChatCommand::AreaList => handle_area_list,
+        ServerChatCommand::AreaRemove => handle_area_remove,
         ServerChatCommand::Campfire => handle_spawn_campfire,
         ServerChatCommand::DebugColumn => handle_debug_column,
         ServerChatCommand::DebugWays => handle_debug_ways,
@@ -351,11 +351,9 @@ fn uid(server: &Server, target: EcsEntity, descriptor: &str) -> CmdResult<Uid> {
         .ok_or_else(|| format!("Cannot get uid for {:?}", descriptor))
 }
 
-fn area(server: &mut Server, area_name: &str) -> CmdResult<depot::Id<Aabb<i32>>> {
-    server
-        .state
-        .mut_resource::<BuildAreas>()
-        .area_names()
+fn area(server: &mut Server, area_name: &str, kind: &str) -> CmdResult<depot::Id<Aabb<i32>>> {
+    get_areas_mut(kind, &mut server.state)?
+        .area_metas()
         .get(area_name)
         .copied()
         .ok_or_else(|| format!("Area name not found: {}", area_name))
@@ -1841,7 +1839,7 @@ fn handle_permit_build(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let Some(area_name) = parse_cmd_args!(args, String) {
-        let bb_id = area(server, &area_name)?;
+        let bb_id = area(server, &area_name, "build")?;
         let mut can_build = server.state.ecs().write_storage::<comp::CanBuild>();
         let entry = can_build
             .entry(target)
@@ -1882,7 +1880,7 @@ fn handle_revoke_build(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let Some(area_name) = parse_cmd_args!(args, String) {
-        let bb_id = area(server, &area_name)?;
+        let bb_id = area(server, &area_name, "build")?;
         let mut can_build = server.state.ecs_mut().write_storage::<comp::CanBuild>();
         if let Some(mut comp_can_build) = can_build.get_mut(target) {
             comp_can_build.build_areas.retain(|&x| x != bb_id);
@@ -2006,27 +2004,47 @@ fn handle_build(
     }
 }
 
-fn handle_build_area_add(
+fn get_areas_mut<'l>(kind: &str, state: &'l mut State) -> CmdResult<&'l mut Areas> {
+    Ok(match kind {
+        "build" => state
+            .mut_resource::<AreasContainer<BuildArea>>()
+            .deref_mut(),
+        "no_dura" => state
+            .mut_resource::<AreasContainer<NoDurabilityArea>>()
+            .deref_mut(),
+        _ => Err(format!("Invalid area type '{kind}'"))?,
+    })
+}
+
+fn handle_area_add(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(area_name), Some(xlo), Some(xhi), Some(ylo), Some(yhi), Some(zlo), Some(zhi)) =
-        parse_cmd_args!(args, String, i32, i32, i32, i32, i32, i32)
+    if let (
+        Some(area_name),
+        Some(kind),
+        Some(xlo),
+        Some(xhi),
+        Some(ylo),
+        Some(yhi),
+        Some(zlo),
+        Some(zhi),
+    ) = parse_cmd_args!(args, String, String, i32, i32, i32, i32, i32, i32)
     {
-        let build_areas = server.state.mut_resource::<BuildAreas>();
+        let special_areas = get_areas_mut(&kind, &mut server.state)?;
         let msg = ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            format!("Created build zone {}", area_name),
+            format!("Created {kind} zone {}", area_name),
         );
-        build_areas
+        special_areas
             .insert(area_name, Aabb {
                 min: Vec3::new(xlo, ylo, zlo),
                 max: Vec3::new(xhi, yhi, zhi),
             })
-            .map_err(|area_name| format!("Build zone {} already exists!", area_name))?;
+            .map_err(|area_name| format!("{kind} zone {} already exists!", area_name))?;
         server.notify_client(client, msg);
         Ok(())
     } else {
@@ -2034,54 +2052,67 @@ fn handle_build_area_add(
     }
 }
 
-fn handle_build_area_list(
+fn handle_area_list(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let build_areas = server.state.mut_resource::<BuildAreas>();
-    let msg = ServerGeneral::server_msg(
-        ChatType::CommandInfo,
-        build_areas.area_names().iter().fold(
-            "Build Areas:".to_string(),
-            |acc, (area_name, bb_id)| {
-                if let Some(aabb) = build_areas.areas().get(*bb_id) {
-                    format!("{}\n{}: {} to {}", acc, area_name, aabb.min, aabb.max)
+    let format_areas = |areas: &Areas, kind: &str| {
+        areas
+            .area_metas()
+            .iter()
+            .fold(format!("{kind} areas:"), |acc, (area_name, bb_id)| {
+                if let Some(aabb) = areas.areas().get(*bb_id) {
+                    format!("{}\n{}: {} to {} ()", acc, area_name, aabb.min, aabb.max,)
                 } else {
                     acc
                 }
-            },
-        ),
+            })
+    };
+    let build_message = format_areas(
+        server.state.mut_resource::<AreasContainer<BuildArea>>(),
+        "Build",
+    );
+    let no_dura_message = format_areas(
+        server
+            .state
+            .mut_resource::<AreasContainer<NoDurabilityArea>>(),
+        "Durability free",
+    );
+
+    let msg = ServerGeneral::server_msg(
+        ChatType::CommandInfo,
+        [build_message, no_dura_message].join("\n"),
     );
 
     server.notify_client(client, msg);
     Ok(())
 }
 
-fn handle_build_area_remove(
+fn handle_area_remove(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(area_name) = parse_cmd_args!(args, String) {
-        let build_areas = server.state.mut_resource::<BuildAreas>();
+    if let (Some(area_name), Some(kind)) = parse_cmd_args!(args, String, String) {
+        let areas = get_areas_mut(&kind, &mut server.state)?;
 
-        build_areas.remove(&area_name).map_err(|err| match err {
-            BuildAreaError::Reserved => format!(
-                "Build area is reserved and cannot be removed: {}",
+        areas.remove(&area_name).map_err(|err| match err {
+            SpecialAreaError::Reserved => format!(
+                "Special area is reserved and cannot be removed: {}",
                 area_name
             ),
-            BuildAreaError::NotFound => format!("No such build area {}", area_name),
+            SpecialAreaError::NotFound => format!("No such build area {}", area_name),
         })?;
         server.notify_client(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("Removed build zone {}", area_name),
+                format!("Removed {kind} zone {area_name}"),
             ),
         );
         Ok(())
