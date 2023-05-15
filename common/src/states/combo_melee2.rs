@@ -30,6 +30,8 @@ pub struct Strike<T> {
     pub movement: StrikeMovement,
     /// Adjusts turning rate during the attack
     pub ori_modifier: f32,
+    #[serde(default)]
+    pub additional_combo: i32,
 }
 
 impl Strike<f32> {
@@ -42,6 +44,7 @@ impl Strike<f32> {
             recover_duration: Duration::from_secs_f32(self.recover_duration),
             movement: self.movement,
             ori_modifier: self.ori_modifier,
+            additional_combo: self.additional_combo,
         }
     }
 
@@ -55,6 +58,7 @@ impl Strike<f32> {
             recover_duration: self.recover_duration / stats.speed,
             movement: self.movement,
             ori_modifier: self.ori_modifier,
+            additional_combo: self.additional_combo,
         }
     }
 }
@@ -160,6 +164,7 @@ impl CharacterBehavior for Data {
                         data.entity,
                         strike_data
                             .melee_constructor
+                            .with_combo(1 + strike_data.additional_combo)
                             .create_melee(crit_data, tool_stats),
                     );
                 } else if self.timer < strike_data.swing_duration {
