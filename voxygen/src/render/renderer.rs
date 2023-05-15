@@ -40,12 +40,6 @@ use std::sync::Arc;
 use tracing::{error, info, warn};
 use vek::*;
 
-// TODO: yeet this somewhere else
-/// A type representing data that can be converted to an immutable texture map
-/// of ColLight data (used for texture atlases created during greedy meshing).
-// TODO: revert to u16
-pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
-
 const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
 const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 
@@ -1427,13 +1421,12 @@ impl Renderer {
     /// Update a texture with the provided offset, size, and data.
     ///
     /// Currently only supports Rgba8Srgb
-    pub fn update_texture(
+    pub fn update_texture<T: bytemuck::Pod>(
         &mut self,
-        texture: &Texture, /* <T> */
+        texture: &Texture,
         offset: [u32; 2],
         size: [u32; 2],
-        // TODO: be generic over pixel type
-        data: &[[u8; 4]],
+        data: &[T],
     ) {
         texture.update(&self.queue, offset, size, bytemuck::cast_slice(data))
     }

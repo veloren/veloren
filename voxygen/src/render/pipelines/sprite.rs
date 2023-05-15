@@ -1,8 +1,6 @@
 use super::{
-    super::{
-        buffer::Buffer, AaMode, GlobalsLayouts, Mesh, TerrainLayout, Texture, Vertex as VertexTrait,
-    },
-    lod_terrain, GlobalModel,
+    super::{buffer::Buffer, AaMode, GlobalsLayouts, Mesh, TerrainLayout, Vertex as VertexTrait},
+    lod_terrain, GlobalModel, Texture,
 };
 use bytemuck::{Pod, Zeroable};
 use std::mem;
@@ -278,7 +276,7 @@ impl SpritePipeline {
                     &layout.globals,
                     &global_layout.shadow_textures,
                     // Note: mergable with globals
-                    &global_layout.col_light,
+                    global_layout.figure_sprite_atlas_layout.layout(),
                     &terrain_layout.locals,
                 ],
             });

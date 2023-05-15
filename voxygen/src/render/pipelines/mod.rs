@@ -16,11 +16,14 @@ pub mod terrain;
 pub mod trail;
 pub mod ui;
 
-use super::{Consts, Texture};
+use super::{Consts, Renderer, Texture};
 use crate::scene::camera::CameraMode;
 use bytemuck::{Pod, Zeroable};
 use common::terrain::BlockKind;
+use std::marker::PhantomData;
 use vek::*;
+
+pub use self::{figure::FigureSpriteAtlasData, terrain::TerrainAtlasData};
 
 // TODO: auto insert these into shaders
 pub const MAX_POINT_LIGHT_COUNT: usize = 20;
@@ -278,14 +281,112 @@ pub struct ShadowTexturesBindGroup {
 
 pub struct GlobalsLayouts {
     pub globals: wgpu::BindGroupLayout,
-    pub col_light: wgpu::BindGroupLayout,
+    pub figure_sprite_atlas_layout: VoxelAtlasLayout<FigureSpriteAtlasData>,
+    pub terrain_atlas_layout: VoxelAtlasLayout<TerrainAtlasData>,
     pub shadow_textures: wgpu::BindGroupLayout,
 }
 
-pub struct ColLights<Locals> {
+/// A type representing a set of textures that have the same atlas layout and
+/// pertain to a greedy voxel structure.
+pub struct AtlasTextures<Locals, S: AtlasData>
+where
+    [(); S::TEXTURES]:,
+{
     pub(super) bind_group: wgpu::BindGroup,
-    pub texture: Texture,
+    pub textures: [Texture; S::TEXTURES],
     phantom: std::marker::PhantomData<Locals>,
+}
+
+pub struct VoxelAtlasLayout<S: AtlasData>(wgpu::BindGroupLayout, PhantomData<S>);
+
+impl<S: AtlasData> VoxelAtlasLayout<S> {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &S::layout(),
+        });
+
+        Self(layout, PhantomData)
+    }
+
+    pub fn layout(&self) -> &wgpu::BindGroupLayout { &self.0 }
+}
+
+/// A trait implemented by texture atlas groups.
+///
+/// Terrain, figures, sprites, etc. all use texture atlases but have different
+/// requirements, such as that layers provided by each atlas. This trait
+/// abstracts over these cases.
+pub trait AtlasData {
+    /// The number of texture channels that this atlas has.
+    const TEXTURES: usize;
+    /// Abstracts over a slice into the texture data, as returned by
+    /// [`AtlasData::slice_mut`].
+    type SliceMut<'a>: Iterator
+    where
+        Self: 'a;
+
+    /// Return blank atlas data upon which texels can be applied.
+    fn blank_with_size(sz: Vec2<u16>) -> Self;
+
+    /// Return an array of texture formats and data for each texture layer in
+    /// the atlas.
+    fn as_texture_data(&self) -> [(wgpu::TextureFormat, &[u8]); Self::TEXTURES];
+
+    /// Return a layout entry that corresponds to the texture layers in the
+    /// atlas.
+    fn layout() -> Vec<wgpu::BindGroupLayoutEntry>;
+
+    /// Take a sub-slice of the texture data for each layer in the atlas.
+    fn slice_mut(&mut self, range: std::ops::Range<usize>) -> Self::SliceMut<'_>;
+
+    /// Create textures on the GPU corresponding to the layers in the atlas.
+    fn create_textures(
+        &self,
+        renderer: &mut Renderer,
+        atlas_size: Vec2<u16>,
+    ) -> [Texture; Self::TEXTURES] {
+        self.as_texture_data().map(|(fmt, data)| {
+            let texture_info = wgpu::TextureDescriptor {
+                label: None,
+                size: wgpu::Extent3d {
+                    width: u32::from(atlas_size.x),
+                    height: u32::from(atlas_size.y),
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: fmt,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            };
+
+            let sampler_info = wgpu::SamplerDescriptor {
+                label: None,
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
+                ..Default::default()
+            };
+
+            let view_info = wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(fmt),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                aspect: wgpu::TextureAspect::All,
+                base_mip_level: 0,
+                mip_level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            };
+
+            renderer.create_texture_with_data_raw(&texture_info, &view_info, &sampler_info, data)
+        })
+    }
 }
 
 impl GlobalsLayouts {
@@ -456,32 +557,6 @@ impl GlobalsLayouts {
             entries: &Self::base_globals_layout(),
         });
 
-        let col_light = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: None,
-            entries: &[
-                // col lights
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler {
-                        filtering: true,
-                        comparison: false,
-                    },
-                    count: None,
-                },
-            ],
-        });
-
         let shadow_textures = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
             entries: &[
@@ -550,8 +625,9 @@ impl GlobalsLayouts {
 
         Self {
             globals,
-            col_light,
             shadow_textures,
+            terrain_atlas_layout: VoxelAtlasLayout::new(device),
+            figure_sprite_atlas_layout: VoxelAtlasLayout::new(device),
         }
     }
 
@@ -691,28 +767,35 @@ impl GlobalsLayouts {
         ShadowTexturesBindGroup { bind_group }
     }
 
-    pub fn bind_col_light<Locals>(
+    pub fn bind_atlas_textures<Locals, S: AtlasData>(
         &self,
         device: &wgpu::Device,
-        col_light: Texture,
-    ) -> ColLights<Locals> {
+        layout: &VoxelAtlasLayout<S>,
+        textures: [Texture; S::TEXTURES],
+    ) -> AtlasTextures<Locals, S> {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
-            layout: &self.col_light,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&col_light.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&col_light.sampler),
-                },
-            ],
+            layout: layout.layout(),
+            entries: &textures
+                .iter()
+                .enumerate()
+                .flat_map(|(i, tex)| {
+                    [
+                        wgpu::BindGroupEntry {
+                            binding: i as u32 * 2,
+                            resource: wgpu::BindingResource::TextureView(&tex.view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: i as u32 * 2 + 1,
+                            resource: wgpu::BindingResource::Sampler(&tex.sampler),
+                        },
+                    ]
+                })
+                .collect::<Vec<_>>(),
         });
 
-        ColLights {
-            texture: col_light,
+        AtlasTextures {
+            textures,
             bind_group,
             phantom: std::marker::PhantomData,
         }

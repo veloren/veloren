@@ -1,14 +1,15 @@
 use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_figure},
     render::{
-        create_skybox_mesh, BoneMeshes, Consts, FigureModel, FirstPassDrawer, GlobalModel, Globals,
-        GlobalsBindGroup, Light, LodData, Mesh, Model, PointLightMatrix, RainOcclusionLocals,
-        Renderer, Shadow, ShadowLocals, SkyboxVertex, TerrainVertex,
+        create_skybox_mesh, pipelines::FigureSpriteAtlasData, BoneMeshes, Consts, FigureModel,
+        FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, LodData, Mesh, Model,
+        PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
+        TerrainVertex,
     },
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{
-            load_mesh, FigureColLights, FigureModelCache, FigureModelEntry, FigureState,
+            load_mesh, FigureAtlas, FigureModelCache, FigureModelEntry, FigureState,
             FigureUpdateCommonParameters,
         },
     },
@@ -46,7 +47,7 @@ impl ReadVol for VoidVol {
 }
 
 fn generate_mesh(
-    greedy: &mut GreedyMesh<'_>,
+    greedy: &mut GreedyMesh<'_, FigureSpriteAtlasData>,
     mesh: &mut Mesh<TerrainVertex>,
     segment: Segment,
     offset: Vec3<f32>,
@@ -70,7 +71,7 @@ pub struct Scene {
     lod: LodData,
     map_bounds: Vec2<f32>,
 
-    col_lights: FigureColLights,
+    figure_atlas: FigureAtlas,
     backdrop: Option<(FigureModelEntry<1>, FigureState<FixtureSkeleton>)>,
     figure_model_cache: FigureModelCache,
     figure_state: Option<FigureState<CharacterSkeleton>>,
@@ -108,7 +109,7 @@ impl Scene {
         camera.set_distance(3.4);
         camera.set_orientation(Vec3::new(start_angle, 0.0, 0.0));
 
-        let mut col_lights = FigureColLights::new(renderer);
+        let mut figure_atlas = FigureAtlas::new(renderer);
 
         let data = GlobalModel {
             globals: renderer.create_consts(&[Globals::default()]),
@@ -147,9 +148,14 @@ impl Scene {
                 // total size is bounded by 2^24 * 3 * 1.5 which is bounded by
                 // 2^27, which fits in a u32.
                 let range = 0..opaque_mesh.vertices().len() as u32;
-                let model =
-                    col_lights
-                        .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range]);
+                let (atlas_texture_data, atlas_size) = greedy.finalize();
+                let model = figure_atlas.create_figure(
+                    renderer,
+                    atlas_texture_data,
+                    atlas_size,
+                    (opaque_mesh, bounds),
+                    [range],
+                );
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
                 let common_params = FigureUpdateCommonParameters {
                     entity: None,
@@ -182,7 +188,7 @@ impl Scene {
                 );
                 (model, state)
             }),
-            col_lights,
+            figure_atlas,
 
             camera,
 
@@ -283,7 +289,7 @@ impl Scene {
         )]);
 
         self.figure_model_cache
-            .clean(&mut self.col_lights, scene_data.tick);
+            .clean(&mut self.figure_atlas, scene_data.tick);
 
         let item_info = |equip_slot| {
             inventory
@@ -327,7 +333,7 @@ impl Scene {
                 .figure_model_cache
                 .get_or_create_model(
                     renderer,
-                    &mut self.col_lights,
+                    &mut self.figure_atlas,
                     body,
                     inventory,
                     (),
@@ -376,7 +382,7 @@ impl Scene {
         let mut figure_drawer = drawer.draw_figures();
         if let Some(body) = body {
             let model = &self.figure_model_cache.get_model(
-                &self.col_lights,
+                &self.figure_atlas,
                 body,
                 inventory,
                 tick,
@@ -390,7 +396,7 @@ impl Scene {
                     figure_drawer.draw(
                         lod,
                         figure_state.bound(),
-                        self.col_lights.texture(ModelEntryRef::Figure(model)),
+                        self.figure_atlas.texture(ModelEntryRef::Figure(model)),
                     );
                 }
             }
@@ -401,7 +407,7 @@ impl Scene {
                 figure_drawer.draw(
                     lod,
                     state.bound(),
-                    self.col_lights.texture(ModelEntryRef::Figure(model)),
+                    self.figure_atlas.texture(ModelEntryRef::Figure(model)),
                 );
             }
         }

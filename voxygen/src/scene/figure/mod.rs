@@ -12,11 +12,11 @@ use crate::{
         pipelines::{
             self,
             terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
-            trail, ColLights,
+            trail, AtlasData, AtlasTextures, FigureSpriteAtlasData,
         },
-        AltIndices, ColLightInfo, CullingMode, FigureBoneData, FigureDrawer, FigureLocals,
-        FigureModel, FigureShadowDrawer, Instances, Mesh, Quad, RenderError, Renderer,
-        SpriteDrawer, SpriteInstance, SubModel, TerrainVertex,
+        AltIndices, CullingMode, FigureBoneData, FigureDrawer, FigureLocals, FigureModel,
+        FigureShadowDrawer, Instances, Mesh, Quad, RenderError, Renderer, SpriteDrawer,
+        SpriteInstance, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
@@ -80,7 +80,7 @@ pub type CameraData<'a> = (&'a Camera, f32);
 pub type FigureModelRef<'a> = (
     &'a pipelines::figure::BoundLocals,
     SubModel<'a, TerrainVertex>,
-    &'a ColLights<pipelines::figure::Locals>,
+    &'a AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData>,
 );
 
 pub trait ModelEntry {
@@ -88,7 +88,7 @@ pub trait ModelEntry {
 
     fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>>;
 
-    fn col_lights(&self) -> &ColLights<pipelines::figure::Locals>;
+    fn atlas_textures(&self) -> &AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData>;
 }
 
 /// An entry holding enough information to draw or destroy a figure in a
@@ -104,7 +104,7 @@ pub struct FigureModelEntry<const N: usize> {
     /// Texture used to store color/light information for this figure entry.
     /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
      * LOD levels. */
-    col_lights: ColLights<pipelines::figure::Locals>,
+    atlas_textures: AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData>,
     /// Vertex ranges stored in this figure entry; there may be several for one
     /// figure, because of LOD models.
     lod_vertex_ranges: [Range<u32>; N],
@@ -122,7 +122,9 @@ impl<const N: usize> ModelEntry for FigureModelEntry<N> {
             .map(|m| m.submodel(self.lod_vertex_ranges[lod].clone()))
     }
 
-    fn col_lights(&self) -> &ColLights<pipelines::figure::Locals> { &self.col_lights }
+    fn atlas_textures(&self) -> &AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData> {
+        &self.atlas_textures
+    }
 }
 
 /// An entry holding enough information to draw or destroy a figure in a
@@ -138,7 +140,7 @@ pub struct TerrainModelEntry<const N: usize> {
     /// Texture used to store color/light information for this figure entry.
     /* TODO: Consider using mipmaps instead of storing multiple texture atlases for different
      * LOD levels. */
-    col_lights: ColLights<pipelines::figure::Locals>,
+    atlas_textures: AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData>,
     /// Vertex ranges stored in this figure entry; there may be several for one
     /// figure, because of LOD models.
     lod_vertex_ranges: [Range<u32>; N],
@@ -162,7 +164,9 @@ impl<const N: usize> ModelEntry for TerrainModelEntry<N> {
             .map(|m| m.submodel(self.lod_vertex_ranges[lod].clone()))
     }
 
-    fn col_lights(&self) -> &ColLights<pipelines::figure::Locals> { &self.col_lights }
+    fn atlas_textures(&self) -> &AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData> {
+        &self.atlas_textures
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -179,10 +183,12 @@ impl<'a, const N: usize> ModelEntryRef<'a, N> {
         }
     }
 
-    fn col_lights(&self) -> &'a ColLights<pipelines::figure::Locals> {
+    fn atlas_textures(
+        &self,
+    ) -> &'a AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData> {
         match self {
-            ModelEntryRef::Figure(e) => e.col_lights(),
-            ModelEntryRef::Terrain(e) => e.col_lights(),
+            ModelEntryRef::Figure(e) => e.atlas_textures(),
+            ModelEntryRef::Terrain(e) => e.atlas_textures(),
         }
     }
 }
@@ -498,7 +504,7 @@ impl FigureMgrStates {
 }
 
 pub struct FigureMgr {
-    col_lights: FigureColLights,
+    atlas: FigureAtlas,
     model_cache: FigureModelCache,
     theropod_model_cache: FigureModelCache<TheropodSkeleton>,
     quadruped_small_model_cache: FigureModelCache<QuadrupedSmallSkeleton>,
@@ -523,7 +529,7 @@ pub struct FigureMgr {
 impl FigureMgr {
     pub fn new(renderer: &mut Renderer) -> Self {
         Self {
-            col_lights: FigureColLights::new(renderer),
+            atlas: FigureAtlas::new(renderer),
             model_cache: FigureModelCache::new(),
             theropod_model_cache: FigureModelCache::new(),
             quadruped_small_model_cache: FigureModelCache::new(),
@@ -546,7 +552,7 @@ impl FigureMgr {
         }
     }
 
-    pub fn col_lights(&self) -> &FigureColLights { &self.col_lights }
+    pub fn atlas(&self) -> &FigureAtlas { &self.atlas }
 
     fn any_watcher_reloaded(&mut self) -> bool {
         self.model_cache.watcher_reloaded()
@@ -573,7 +579,7 @@ impl FigureMgr {
         span!(_guard, "clean", "FigureManager::clean");
 
         if self.any_watcher_reloaded() {
-            self.col_lights.atlas.clear();
+            self.atlas.atlas.clear();
 
             self.model_cache.clear_models();
             self.theropod_model_cache.clear_models();
@@ -595,33 +601,26 @@ impl FigureMgr {
             self.arthropod_model_cache.clear_models();
         }
 
-        self.model_cache.clean(&mut self.col_lights, tick);
-        self.theropod_model_cache.clean(&mut self.col_lights, tick);
+        self.model_cache.clean(&mut self.atlas, tick);
+        self.theropod_model_cache.clean(&mut self.atlas, tick);
         self.quadruped_small_model_cache
-            .clean(&mut self.col_lights, tick);
+            .clean(&mut self.atlas, tick);
         self.quadruped_medium_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.quadruped_low_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.bird_medium_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.bird_large_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.dragon_model_cache.clean(&mut self.col_lights, tick);
-        self.fish_medium_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.fish_small_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.biped_large_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.biped_small_model_cache
-            .clean(&mut self.col_lights, tick);
-        self.object_model_cache.clean(&mut self.col_lights, tick);
-        self.item_drop_model_cache.clean(&mut self.col_lights, tick);
-        self.ship_model_cache.clean(&mut self.col_lights, tick);
-        self.golem_model_cache.clean(&mut self.col_lights, tick);
-        self.volume_model_cache.clean(&mut self.col_lights, tick);
-        self.arthropod_model_cache.clean(&mut self.col_lights, tick);
+            .clean(&mut self.atlas, tick);
+        self.quadruped_low_model_cache.clean(&mut self.atlas, tick);
+        self.bird_medium_model_cache.clean(&mut self.atlas, tick);
+        self.bird_large_model_cache.clean(&mut self.atlas, tick);
+        self.dragon_model_cache.clean(&mut self.atlas, tick);
+        self.fish_medium_model_cache.clean(&mut self.atlas, tick);
+        self.fish_small_model_cache.clean(&mut self.atlas, tick);
+        self.biped_large_model_cache.clean(&mut self.atlas, tick);
+        self.biped_small_model_cache.clean(&mut self.atlas, tick);
+        self.object_model_cache.clean(&mut self.atlas, tick);
+        self.item_drop_model_cache.clean(&mut self.atlas, tick);
+        self.ship_model_cache.clean(&mut self.atlas, tick);
+        self.golem_model_cache.clean(&mut self.atlas, tick);
+        self.volume_model_cache.clean(&mut self.atlas, tick);
+        self.arthropod_model_cache.clean(&mut self.atlas, tick);
     }
 
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
@@ -1092,7 +1091,7 @@ impl FigureMgr {
                 Body::Humanoid(body) => {
                     let (model, skeleton_attr) = self.model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -2212,7 +2211,7 @@ impl FigureMgr {
                     let (model, skeleton_attr) =
                         self.quadruped_small_model_cache.get_or_create_model(
                             renderer,
-                            &mut self.col_lights,
+                            &mut self.atlas,
                             body,
                             inventory,
                             (),
@@ -2412,7 +2411,7 @@ impl FigureMgr {
                     let (model, skeleton_attr) =
                         self.quadruped_medium_model_cache.get_or_create_model(
                             renderer,
-                            &mut self.col_lights,
+                            &mut self.atlas,
                             body,
                             inventory,
                             (),
@@ -2789,7 +2788,7 @@ impl FigureMgr {
                     let (model, skeleton_attr) =
                         self.quadruped_low_model_cache.get_or_create_model(
                             renderer,
-                            &mut self.col_lights,
+                            &mut self.atlas,
                             body,
                             inventory,
                             (),
@@ -3185,7 +3184,7 @@ impl FigureMgr {
                 Body::BirdMedium(body) => {
                     let (model, skeleton_attr) = self.bird_medium_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -3515,7 +3514,7 @@ impl FigureMgr {
                 Body::FishMedium(body) => {
                     let (model, skeleton_attr) = self.fish_medium_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -3598,7 +3597,7 @@ impl FigureMgr {
                 Body::BipedSmall(body) => {
                     let (model, skeleton_attr) = self.biped_small_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -4159,7 +4158,7 @@ impl FigureMgr {
                 Body::Dragon(body) => {
                     let (model, skeleton_attr) = self.dragon_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -4246,7 +4245,7 @@ impl FigureMgr {
                 Body::Theropod(body) => {
                     let (model, skeleton_attr) = self.theropod_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -4425,7 +4424,7 @@ impl FigureMgr {
                 Body::Arthropod(body) => {
                     let (model, skeleton_attr) = self.arthropod_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -4717,7 +4716,7 @@ impl FigureMgr {
                 Body::BirdLarge(body) => {
                     let (model, skeleton_attr) = self.bird_large_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -5040,7 +5039,7 @@ impl FigureMgr {
                 Body::FishSmall(body) => {
                     let (model, skeleton_attr) = self.fish_small_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -5123,7 +5122,7 @@ impl FigureMgr {
                 Body::BipedLarge(body) => {
                     let (model, skeleton_attr) = self.biped_large_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -5828,7 +5827,7 @@ impl FigureMgr {
                 Body::Golem(body) => {
                     let (model, skeleton_attr) = self.golem_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -6069,7 +6068,7 @@ impl FigureMgr {
                 Body::Object(body) => {
                     let (model, skeleton_attr) = self.object_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -6191,7 +6190,7 @@ impl FigureMgr {
                     let item_key = item.map(ItemKey::from);
                     let (model, skeleton_attr) = self.item_drop_model_cache.get_or_create_model(
                         renderer,
-                        &mut self.col_lights,
+                        &mut self.atlas,
                         body,
                         inventory,
                         (),
@@ -6255,7 +6254,7 @@ impl FigureMgr {
                         let (model, _skeleton_attr) =
                             self.volume_model_cache.get_or_create_terrain_model(
                                 renderer,
-                                &mut self.col_lights,
+                                &mut self.atlas,
                                 vk,
                                 Arc::clone(vol),
                                 tick,
@@ -6282,7 +6281,7 @@ impl FigureMgr {
                     } else if body.manifest_entry().is_some() {
                         self.ship_model_cache.get_or_create_terrain_model(
                             renderer,
-                            &mut self.col_lights,
+                            &mut self.atlas,
                             body,
                             (),
                             tick,
@@ -6560,7 +6559,7 @@ impl FigureMgr {
         // Don't render player
         .filter(|(entity, _, _, _, _, _, _)| *entity != viewpoint_entity)
         {
-            if let Some((bound, model, col_lights)) = self.get_model_for_render(
+            if let Some((bound, model, atlas)) = self.get_model_for_render(
                 tick,
                 camera,
                 character_state,
@@ -6582,7 +6581,7 @@ impl FigureMgr {
                     None
                 },
             ) {
-                drawer.draw(model, bound, col_lights);
+                drawer.draw(model, bound, atlas);
             }
         }
     }
@@ -6616,7 +6615,7 @@ impl FigureMgr {
             let inventory_storage = ecs.read_storage::<Inventory>();
             let inventory = inventory_storage.get(viewpoint_entity);
 
-            if let Some((bound, model, col_lights)) = self.get_model_for_render(
+            if let Some((bound, model, atlas)) = self.get_model_for_render(
                 tick,
                 camera,
                 character_state,
@@ -6635,10 +6634,10 @@ impl FigureMgr {
                     None
                 },
             ) {
-                drawer.draw(model, bound, col_lights);
+                drawer.draw(model, bound, atlas);
                 /*renderer.render_player_shadow(
                     model,
-                    &col_lights,
+                    &atlas,
                     global,
                     bone_consts,
                     lod,
@@ -6677,7 +6676,7 @@ impl FigureMgr {
         let character_state = if is_viewpoint { character_state } else { None };
 
         let FigureMgr {
-            col_lights: ref col_lights_,
+            atlas: ref atlas_,
             model_cache,
             theropod_model_cache,
             quadruped_small_model_cache,
@@ -6718,7 +6717,7 @@ impl FigureMgr {
                     arthropod_states,
                 },
         } = self;
-        let col_lights = col_lights_;
+        let atlas = atlas_;
         if let Some((bound, model_entry)) = match body {
             Body::Humanoid(body) => character_states
                 .get(&entity)
@@ -6728,7 +6727,7 @@ impl FigureMgr {
                         state.bound(),
                         model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6747,7 +6746,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_small_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6766,7 +6765,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_medium_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6785,7 +6784,7 @@ impl FigureMgr {
                         state.bound(),
                         quadruped_low_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6804,7 +6803,7 @@ impl FigureMgr {
                         state.bound(),
                         bird_medium_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6823,7 +6822,7 @@ impl FigureMgr {
                         state.bound(),
                         fish_medium_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6842,7 +6841,7 @@ impl FigureMgr {
                         state.bound(),
                         theropod_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6861,7 +6860,7 @@ impl FigureMgr {
                         state.bound(),
                         dragon_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6880,7 +6879,7 @@ impl FigureMgr {
                         state.bound(),
                         bird_large_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6899,7 +6898,7 @@ impl FigureMgr {
                         state.bound(),
                         fish_small_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6918,7 +6917,7 @@ impl FigureMgr {
                         state.bound(),
                         biped_large_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6937,7 +6936,7 @@ impl FigureMgr {
                         state.bound(),
                         biped_small_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6956,7 +6955,7 @@ impl FigureMgr {
                         state.bound(),
                         golem_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6975,7 +6974,7 @@ impl FigureMgr {
                         state.bound(),
                         arthropod_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -6994,7 +6993,7 @@ impl FigureMgr {
                         state.bound(),
                         object_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -7013,7 +7012,7 @@ impl FigureMgr {
                         state.bound(),
                         item_drop_model_cache
                             .get_model(
-                                col_lights,
+                                atlas,
                                 body,
                                 inventory,
                                 tick,
@@ -7034,7 +7033,7 @@ impl FigureMgr {
                                 state.bound(),
                                 volume_model_cache
                                     .get_model(
-                                        col_lights,
+                                        atlas,
                                         VolumeKey { entity, mut_count },
                                         None,
                                         tick,
@@ -7054,7 +7053,7 @@ impl FigureMgr {
                                 state.bound(),
                                 ship_model_cache
                                     .get_model(
-                                        col_lights,
+                                        atlas,
                                         body,
                                         None,
                                         tick,
@@ -7097,7 +7096,7 @@ impl FigureMgr {
                 model_entry.lod_model(0)
             };
 
-            Some((bound, model?, col_lights_.texture(model_entry)))
+            Some((bound, model?, atlas_.texture(model_entry)))
         } else {
             // trace!("Body has no saved figure");
             None
@@ -7252,16 +7251,16 @@ impl FigureMgr {
     pub fn figure_count_visible(&self) -> usize { self.states.count_visible() }
 }
 
-pub struct FigureColLights {
+pub struct FigureAtlas {
     atlas: AtlasAllocator,
-    // col_lights: Texture<ColLightFmt>,
+    // atlas_texture: Texture<ColLightFmt>,
 }
 
-impl FigureColLights {
+impl FigureAtlas {
     pub fn new(renderer: &mut Renderer) -> Self {
         let atlas = Self::make_atlas(renderer).expect("Failed to create texture atlas for figures");
         Self {
-            atlas, /* col_lights, */
+            atlas, /* atlas_texture, */
         }
     }
 
@@ -7269,9 +7268,9 @@ impl FigureColLights {
     pub fn texture<'a, const N: usize>(
         &'a self,
         model: ModelEntryRef<'a, N>,
-    ) -> &'a ColLights<pipelines::figure::Locals> {
-        /* &self.col_lights */
-        model.col_lights()
+    ) -> &'a AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData> {
+        /* &self.atlas_texture */
+        model.atlas_textures()
     }
 
     /// NOTE: Panics if the opaque model's length does not fit in a u32.
@@ -7285,17 +7284,21 @@ impl FigureColLights {
     pub fn create_figure<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
-        (tex, tex_size): ColLightInfo,
+        atlas_texture_data: FigureSpriteAtlasData,
+        atlas_size: Vec2<u16>,
         (opaque, bounds): (Mesh<TerrainVertex>, math::Aabb<f32>),
         vertex_ranges: [Range<u32>; N],
     ) -> FigureModelEntry<N> {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
         let atlas = &mut self.atlas;
         let allocation = atlas
-            .allocate(guillotiere::Size::new(tex_size.x as i32, tex_size.y as i32))
+            .allocate(guillotiere::Size::new(
+                atlas_size.x as i32,
+                atlas_size.y as i32,
+            ))
             .expect("Not yet implemented: allocate new atlas on allocation failure.");
-        let col_lights = pipelines::shadow::create_col_lights(renderer, &(tex, tex_size));
-        let col_lights = renderer.figure_bind_col_light(col_lights);
+        let [atlas_textures] = atlas_texture_data.create_textures(renderer, atlas_size);
+        let atlas_textures = renderer.figure_bind_atlas_textures(atlas_textures);
         let model_len = u32::try_from(opaque.vertices().len())
             .expect("The model size for this figure does not fit in a u32!");
         let model = renderer.create_model(&opaque);
@@ -7313,7 +7316,7 @@ impl FigureColLights {
         FigureModelEntry {
             _bounds: bounds,
             allocation,
-            col_lights,
+            atlas_textures,
             lod_vertex_ranges: vertex_ranges,
             model: FigureModel { opaque: model },
         }
@@ -7330,7 +7333,9 @@ impl FigureColLights {
     pub fn create_terrain<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
-        (tex, tex_size): ColLightInfo,
+        // TODO: Use `TerrainAtlasData`
+        atlas_texture_data: FigureSpriteAtlasData,
+        atlas_size: Vec2<u16>,
         (opaque, bounds): (Mesh<TerrainVertex>, math::Aabb<f32>),
         vertex_ranges: [Range<u32>; N],
         sprite_instances: [Vec<SpriteInstance>; SPRITE_LOD_LEVELS],
@@ -7340,10 +7345,14 @@ impl FigureColLights {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
         let atlas = &mut self.atlas;
         let allocation = atlas
-            .allocate(guillotiere::Size::new(tex_size.x as i32, tex_size.y as i32))
+            .allocate(guillotiere::Size::new(
+                atlas_size.x as i32,
+                atlas_size.y as i32,
+            ))
             .expect("Not yet implemented: allocate new atlas on allocation failure.");
-        let col_lights = pipelines::shadow::create_col_lights(renderer, &(tex, tex_size));
-        let col_lights = renderer.figure_bind_col_light(col_lights);
+        let [col_lights] = atlas_texture_data.create_textures(renderer, atlas_size);
+        // TODO: Use `kinds` texture for volume entities
+        let atlas_textures = renderer.figure_bind_atlas_textures(col_lights);
         let model_len = u32::try_from(opaque.vertices().len())
             .expect("The model size for this figure does not fit in a u32!");
         let model = renderer.create_model(&opaque);
@@ -7364,7 +7373,7 @@ impl FigureColLights {
         TerrainModelEntry {
             _bounds: bounds,
             allocation,
-            col_lights,
+            atlas_textures,
             lod_vertex_ranges: vertex_ranges,
             model: FigureModel { opaque: model },
             sprite_instances,

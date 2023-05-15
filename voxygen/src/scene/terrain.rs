@@ -9,11 +9,11 @@ use crate::{
         terrain::{generate_mesh, SUNLIGHT, SUNLIGHT_INV},
     },
     render::{
-        pipelines::{self, ColLights},
-        AltIndices, ColLightInfo, CullingMode, FirstPassDrawer, FluidVertex, GlobalModel,
+        pipelines::{self, AtlasData, AtlasTextures},
+        AltIndices, CullingMode, FigureSpriteAtlasData, FirstPassDrawer, FluidVertex, GlobalModel,
         Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteDrawer,
-        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts, TerrainLocals,
-        TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts, TerrainAtlasData,
+        TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -80,14 +80,14 @@ pub struct TerrainChunkData {
     fluid_model: Option<Model<FluidVertex>>,
     /// If this is `None`, this texture is not allocated in the current atlas,
     /// and therefore there is no need to free its allocation.
-    col_lights_alloc: Option<guillotiere::AllocId>,
+    atlas_alloc: Option<guillotiere::AllocId>,
     /// The actual backing texture for this chunk.  Use this for rendering
     /// purposes.  The texture is reference-counted, so it will be
     /// automatically freed when no chunks are left that need it (though
     /// shadow chunks will still keep it alive; we could deal with this by
     /// making this an `Option`, but it probably isn't worth it since they
     /// shouldn't be that much more nonlocal than regular chunks).
-    col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
+    atlas_textures: Arc<AtlasTextures<pipelines::terrain::Locals, TerrainAtlasData>>,
     light_map: LightMapFn,
     glow_map: LightMapFn,
     sprite_instances: [(Instances<SpriteInstance>, AltIndices); SPRITE_LOD_LEVELS],
@@ -133,7 +133,8 @@ pub struct MeshWorkerResponseMesh {
     sun_occluder_z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainVertex>,
     fluid_mesh: Mesh<FluidVertex>,
-    col_lights_info: ColLightInfo,
+    atlas_texture_data: TerrainAtlasData,
+    atlas_size: Vec2<u16>,
     light_map: LightMapFn,
     glow_map: LightMapFn,
     alt_indices: AltIndices,
@@ -343,7 +344,15 @@ fn mesh_worker(
             opaque_mesh,
             fluid_mesh,
             _shadow_mesh,
-            (bounds, col_lights_info, light_map, glow_map, alt_indices, sun_occluder_z_bounds),
+            (
+                bounds,
+                atlas_texture_data,
+                atlas_size,
+                light_map,
+                glow_map,
+                alt_indices,
+                sun_occluder_z_bounds,
+            ),
         ) = generate_mesh(
             &volume,
             (
@@ -358,7 +367,8 @@ fn mesh_worker(
             sun_occluder_z_bounds,
             opaque_mesh,
             fluid_mesh,
-            col_lights_info,
+            atlas_texture_data,
+            atlas_size,
             light_map,
             glow_map,
             alt_indices,
@@ -496,12 +506,12 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     // Maps sprite kind + variant to data detailing how to render it
     pub sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
     pub sprite_globals: SpriteGlobalsBindGroup,
-    pub sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
+    pub sprite_atlas_textures: Arc<AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>>,
     /// As stated previously, this is always the very latest texture into which
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
     /// `TerrainChunkData` for that.
-    col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
+    atlas_textures: Arc<AtlasTextures<pipelines::terrain::Locals, TerrainAtlasData>>,
 
     phantom: PhantomData<V>,
 }
@@ -515,7 +525,7 @@ pub struct SpriteRenderContext {
     sprite_config: Arc<SpriteSpec>,
     // Maps sprite kind + variant to data detailing how to render it
     sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
-    sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
+    sprite_atlas_textures: Arc<AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>>,
     sprite_verts_buffer: Arc<SpriteVerts>,
 }
 
@@ -528,7 +538,8 @@ impl SpriteRenderContext {
         struct SpriteWorkerResponse {
             sprite_config: Arc<SpriteSpec>,
             sprite_data: HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>,
-            sprite_col_lights: ColLightInfo,
+            sprite_atlas_texture_data: FigureSpriteAtlasData,
+            sprite_atlas_size: Vec2<u16>,
             sprite_mesh: Mesh<SpriteVertex>,
         }
 
@@ -539,7 +550,7 @@ impl SpriteRenderContext {
                 Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
 
             let max_size = Vec2::from(u16::try_from(max_texture_size).unwrap_or(u16::MAX));
-            let mut greedy = GreedyMesh::<SpriteAtlasAllocator>::new(
+            let mut greedy = GreedyMesh::<FigureSpriteAtlasData, SpriteAtlasAllocator>::new(
                 max_size,
                 crate::mesh::greedy::sprite_config(),
             );
@@ -584,7 +595,10 @@ impl SpriteRenderContext {
                                         scale
                                     }
                                 });
-                            move |greedy: &mut GreedyMesh<SpriteAtlasAllocator>,
+                            move |greedy: &mut GreedyMesh<
+                                FigureSpriteAtlasData,
+                                SpriteAtlasAllocator,
+                            >,
                                   sprite_mesh: &mut Mesh<SpriteVertex>| {
                                 prof_span!("mesh sprite");
                                 let lod_sprite_data = scaled.map(|lod_scale_orig| {
@@ -635,7 +649,7 @@ impl SpriteRenderContext {
                 .map(|f| f(&mut greedy, &mut sprite_mesh))
                 .collect();
 
-            let sprite_col_lights = {
+            let (sprite_atlas_texture_data, sprite_atlas_size) = {
                 prof_span!("finalize");
                 greedy.finalize()
             };
@@ -643,7 +657,8 @@ impl SpriteRenderContext {
             SpriteWorkerResponse {
                 sprite_config,
                 sprite_data,
-                sprite_col_lights,
+                sprite_atlas_texture_data,
+                sprite_atlas_size,
                 sprite_mesh,
             }
         });
@@ -658,7 +673,8 @@ impl SpriteRenderContext {
             let SpriteWorkerResponse {
                 sprite_config,
                 sprite_data,
-                sprite_col_lights,
+                sprite_atlas_texture_data,
+                sprite_atlas_size,
                 sprite_mesh,
             } = join_handle
                 .take()
@@ -669,9 +685,9 @@ impl SpriteRenderContext {
                 .join()
                 .unwrap();
 
-            let sprite_col_lights =
-                pipelines::shadow::create_col_lights(renderer, &sprite_col_lights);
-            let sprite_col_lights = renderer.sprite_bind_col_light(sprite_col_lights);
+            let [sprite_col_lights] =
+                sprite_atlas_texture_data.create_textures(renderer, sprite_atlas_size);
+            let sprite_atlas_textures = renderer.sprite_bind_atlas_textures(sprite_col_lights);
 
             // Write sprite model to a 1D texture
             let sprite_verts_buffer = renderer.create_sprite_verts(sprite_mesh);
@@ -680,7 +696,7 @@ impl SpriteRenderContext {
                 // TODO: these are all Arcs, would it makes sense to factor out the Arc?
                 sprite_config: Arc::clone(&sprite_config),
                 sprite_data: Arc::new(sprite_data),
-                sprite_col_lights: Arc::new(sprite_col_lights),
+                sprite_atlas_textures: Arc::new(sprite_atlas_textures),
                 sprite_verts_buffer: Arc::new(sprite_verts_buffer),
             }
         };
@@ -699,7 +715,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // with worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
 
-        let (atlas, col_lights) =
+        let (atlas, atlas_textures) =
             Self::make_atlas(renderer).expect("Failed to create atlas texture");
 
         Self {
@@ -713,20 +729,26 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_todos_active: Arc::new(AtomicU64::new(0)),
             mesh_recv_overflow: 0.0,
             sprite_data: sprite_render_context.sprite_data,
-            sprite_col_lights: sprite_render_context.sprite_col_lights,
+            sprite_atlas_textures: sprite_render_context.sprite_atlas_textures,
             sprite_globals: renderer.bind_sprite_globals(
                 global_model,
                 lod_data,
                 &sprite_render_context.sprite_verts_buffer,
             ),
-            col_lights: Arc::new(col_lights),
+            atlas_textures: Arc::new(atlas_textures),
             phantom: PhantomData,
         }
     }
 
     fn make_atlas(
         renderer: &mut Renderer,
-    ) -> Result<(AtlasAllocator, ColLights<pipelines::terrain::Locals>), RenderError> {
+    ) -> Result<
+        (
+            AtlasAllocator,
+            AtlasTextures<pipelines::terrain::Locals, TerrainAtlasData>,
+        ),
+        RenderError,
+    > {
         span!(_guard, "make_atlas", "Terrain::make_atlas");
         let max_texture_size = renderer.max_texture_size();
         let atlas_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
@@ -736,50 +758,56 @@ impl<V: RectRasterableVol> Terrain<V> {
             large_size_threshold: 1024,
             ..guillotiere::AllocatorOptions::default()
         });
-        let texture = renderer.create_texture_raw(
-            &wgpu::TextureDescriptor {
-                label: Some("Atlas texture"),
-                size: wgpu::Extent3d {
-                    width: max_texture_size,
-                    height: max_texture_size,
-                    depth_or_array_layers: 1,
+        let [col_lights, kinds] = [
+            wgpu::TextureFormat::Rgba8Unorm,
+            wgpu::TextureFormat::R8Unorm,
+        ]
+        .map(|fmt| {
+            renderer.create_texture_raw(
+                &wgpu::TextureDescriptor {
+                    label: Some("Color & lights atlas texture"),
+                    size: wgpu::Extent3d {
+                        width: max_texture_size,
+                        height: max_texture_size,
+                        depth_or_array_layers: 1,
+                    },
+                    mip_level_count: 1,
+                    sample_count: 1,
+                    dimension: wgpu::TextureDimension::D2,
+                    format: fmt,
+                    usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
                 },
-                mip_level_count: 1,
-                sample_count: 1,
-                dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba8Unorm,
-                usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
-            },
-            &wgpu::TextureViewDescriptor {
-                label: Some("Atlas texture view"),
-                format: Some(wgpu::TextureFormat::Rgba8Unorm),
-                dimension: Some(wgpu::TextureViewDimension::D2),
-                aspect: wgpu::TextureAspect::All,
-                base_mip_level: 0,
-                mip_level_count: None,
-                base_array_layer: 0,
-                array_layer_count: None,
-            },
-            &wgpu::SamplerDescriptor {
-                label: Some("Atlas sampler"),
-                address_mode_u: wgpu::AddressMode::ClampToEdge,
-                address_mode_v: wgpu::AddressMode::ClampToEdge,
-                address_mode_w: wgpu::AddressMode::ClampToEdge,
-                mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Linear,
-                mipmap_filter: wgpu::FilterMode::Nearest,
-                ..Default::default()
-            },
-        );
-        let col_light = renderer.terrain_bind_col_light(texture);
-        Ok((atlas, col_light))
+                &wgpu::TextureViewDescriptor {
+                    label: Some("Color & lights atlas texture view"),
+                    format: Some(fmt),
+                    dimension: Some(wgpu::TextureViewDimension::D2),
+                    aspect: wgpu::TextureAspect::All,
+                    base_mip_level: 0,
+                    mip_level_count: None,
+                    base_array_layer: 0,
+                    array_layer_count: None,
+                },
+                &wgpu::SamplerDescriptor {
+                    label: Some("Color & lights atlas texture sampler"),
+                    address_mode_u: wgpu::AddressMode::ClampToEdge,
+                    address_mode_v: wgpu::AddressMode::ClampToEdge,
+                    address_mode_w: wgpu::AddressMode::ClampToEdge,
+                    mag_filter: wgpu::FilterMode::Linear,
+                    min_filter: wgpu::FilterMode::Linear,
+                    mipmap_filter: wgpu::FilterMode::Nearest,
+                    ..Default::default()
+                },
+            )
+        });
+        let textures = renderer.terrain_bind_atlas_textures(col_lights, kinds);
+        Ok((atlas, textures))
     }
 
     fn remove_chunk_meta(&mut self, _pos: Vec2<i32>, chunk: &TerrainChunkData) {
         // No need to free the allocation if the chunk is not allocated in the current
         // atlas, since we don't bother tracking it at that point.
-        if let Some(col_lights) = chunk.col_lights_alloc {
-            self.atlas.deallocate(col_lights);
+        if let Some(atlas_alloc) = chunk.atlas_alloc {
+            self.atlas.deallocate(atlas_alloc);
         }
         /* let (zmin, zmax) = chunk.z_bounds;
         self.z_index_up.remove(Vec3::from(zmin, pos.x, pos.y));
@@ -1250,16 +1278,17 @@ impl<V: RectRasterableVol> Terrain<V> {
                             .map(|chunk| chunk.load_time)
                             .unwrap_or(current_time as f32);
                         // TODO: Allocate new atlas on allocation failure.
-                        let (tex, tex_size) = mesh.col_lights_info;
                         let atlas = &mut self.atlas;
                         let chunks = &mut self.chunks;
-                        let col_lights = &mut self.col_lights;
-                        let alloc_size =
-                            guillotiere::Size::new(i32::from(tex_size.x), i32::from(tex_size.y));
+                        let atlas_textures = &mut self.atlas_textures;
+                        let alloc_size = guillotiere::Size::new(
+                            i32::from(mesh.atlas_size.x),
+                            i32::from(mesh.atlas_size.y),
+                        );
 
                         let allocation = atlas.allocate(alloc_size).unwrap_or_else(|| {
                             // Atlas allocation failure: try allocating a new texture and atlas.
-                            let (new_atlas, new_col_lights) =
+                            let (new_atlas, new_atlas_textures) =
                                 Self::make_atlas(renderer).expect("Failed to create atlas texture");
 
                             // We reset the atlas and clear allocations from existing chunks,
@@ -1271,10 +1300,10 @@ impl<V: RectRasterableVol> Terrain<V> {
                             // TODO: Consider attempting defragmentation first rather than just
                             // always moving everything into the new chunk.
                             chunks.iter_mut().for_each(|(_, chunk)| {
-                                chunk.col_lights_alloc = None;
+                                chunk.atlas_alloc = None;
                             });
                             *atlas = new_atlas;
-                            *col_lights = Arc::new(new_col_lights);
+                            *atlas_textures = Arc::new(new_atlas_textures);
 
                             atlas
                                 .allocate(alloc_size)
@@ -1286,19 +1315,27 @@ impl<V: RectRasterableVol> Terrain<V> {
                             allocation.rectangle.min.x as u32,
                             allocation.rectangle.min.y as u32,
                         );
+                        // Update col_lights texture
                         renderer.update_texture(
-                            &col_lights.texture,
+                            &atlas_textures.textures[0],
                             atlas_offs.into_array(),
-                            tex_size.map(u32::from).into_array(),
-                            &tex,
+                            mesh.atlas_size.as_().into_array(),
+                            &mesh.atlas_texture_data.col_lights,
+                        );
+                        // Update kinds texture
+                        renderer.update_texture(
+                            &atlas_textures.textures[1],
+                            atlas_offs.into_array(),
+                            mesh.atlas_size.as_().into_array(),
+                            &mesh.atlas_texture_data.kinds,
                         );
 
                         self.insert_chunk(response.pos, TerrainChunkData {
                             load_time,
                             opaque_model: renderer.create_model(&mesh.opaque_mesh),
                             fluid_model: renderer.create_model(&mesh.fluid_mesh),
-                            col_lights_alloc: Some(allocation.id),
-                            col_lights: Arc::clone(&self.col_lights),
+                            atlas_alloc: Some(allocation.id),
+                            atlas_textures: Arc::clone(&self.atlas_textures),
                             light_map: mesh.light_map,
                             glow_map: mesh.glow_map,
                             sprite_instances,
@@ -1705,19 +1742,19 @@ impl<V: RectRasterableVol> Terrain<V> {
                 Some((
                     rpos,
                     chunk.opaque_model.as_ref()?,
-                    &chunk.col_lights,
+                    &chunk.atlas_textures,
                     &chunk.locals,
                     &chunk.alt_indices,
                 ))
             })
-            .for_each(|(rpos, model, col_lights, locals, alt_indices)| {
+            .for_each(|(rpos, model, atlas_textures, locals, alt_indices)| {
                 // Always draw all of close chunks to avoid terrain 'popping'
                 let culling_mode = if rpos.magnitude_squared() < NEVER_CULL_DIST.pow(2) {
                     CullingMode::None
                 } else {
                     culling_mode
                 };
-                drawer.draw(model, col_lights, locals, alt_indices, culling_mode)
+                drawer.draw(model, atlas_textures, locals, alt_indices, culling_mode)
             });
     }
 

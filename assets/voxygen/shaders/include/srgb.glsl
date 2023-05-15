@@ -651,8 +651,14 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
     return srgb_to_linear(f_col);
 }
 
-vec3 greedy_extract_col_light_terrain(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out float f_ao, out float f_sky_exposure) {
+vec3 greedy_extract_col_light_kind_terrain(
+    texture2D t_col_light, sampler s_col_light,
+    texture2D t_kind, sampler s_kind,
+    vec2 f_uv_pos,
+    out float f_light, out float f_glow, out float f_ao, out float f_sky_exposure, out uint f_kind
+) {
     float _f_attr;
+    f_kind = uint(texelFetch(sampler2D(t_kind, s_kind), ivec2(f_uv_pos), 0).r * 256);
     return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_ao, _f_attr, f_sky_exposure);
 }
 
