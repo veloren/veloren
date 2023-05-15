@@ -29,6 +29,7 @@ pub struct StaticData {
     pub buff_strength: f32,
     /// How long buff lasts
     pub buff_duration: Option<Secs>,
+    pub combo_cost: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -60,6 +61,11 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else {
+                    // Consume combo
+                    output_events.emit_server(ServerEvent::ComboChange {
+                        entity: data.entity,
+                        change: -(self.static_data.combo_cost as i32),
+                    });
                     // Creates buff
                     let buff = Buff::new(
                         self.static_data.buff_kind,

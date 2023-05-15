@@ -812,6 +812,8 @@ pub enum CharacterAbility {
         buff_duration: Option<Secs>,
         energy_cost: f32,
         #[serde(default)]
+        combo_cost: u32,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     SpriteSummon {
@@ -937,7 +939,6 @@ impl CharacterAbility {
                 | CharacterAbility::ChargedMelee { energy_cost, .. }
                 | CharacterAbility::Shockwave { energy_cost, .. }
                 | CharacterAbility::BasicBlock { energy_cost, .. }
-                | CharacterAbility::SelfBuff { energy_cost, .. }
                 | CharacterAbility::RiposteMelee { energy_cost, .. }
                 | CharacterAbility::ComboMelee2 {
                     energy_cost_per_strike: energy_cost,
@@ -968,6 +969,11 @@ impl CharacterAbility {
                 | CharacterAbility::RapidMelee {
                     energy_cost,
                     minimum_combo,
+                    ..
+                }
+                | CharacterAbility::SelfBuff {
+                    energy_cost,
+                    combo_cost: minimum_combo,
                     ..
                 } => {
                     data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
@@ -1447,6 +1453,7 @@ impl CharacterAbility {
                 ref mut buff_strength,
                 buff_duration: _,
                 ref mut energy_cost,
+                combo_cost: _,
                 meta: _,
             } => {
                 *buff_strength *= stats.diminished_buff_strength();
@@ -1603,9 +1610,17 @@ impl CharacterAbility {
                     0
                 }
             },
-            FinisherMelee { minimum_combo, .. } | RapidMelee { minimum_combo, .. } => {
-                *minimum_combo
-            },
+            FinisherMelee {
+                minimum_combo: combo,
+                ..
+            }
+            | RapidMelee {
+                minimum_combo: combo,
+                ..
+            }
+            | SelfBuff {
+                combo_cost: combo, ..
+            } => *combo,
             BasicMelee { .. }
             | BasicRanged { .. }
             | RepeaterRanged { .. }
@@ -1618,7 +1633,6 @@ impl CharacterAbility {
             | ChargedRanged { .. }
             | Shockwave { .. }
             | BasicBlock { .. }
-            | SelfBuff { .. }
             | ComboMelee2 { .. }
             | DiveMelee { .. }
             | RiposteMelee { .. }
@@ -2657,6 +2671,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buff_strength,
                 buff_duration,
                 energy_cost: _,
+                combo_cost,
                 meta: _,
             } => CharacterState::SelfBuff(self_buff::Data {
                 static_data: self_buff::StaticData {
@@ -2666,6 +2681,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     buff_kind: *buff_kind,
                     buff_strength: *buff_strength,
                     buff_duration: *buff_duration,
+                    combo_cost: *combo_cost,
                     ability_info,
                 },
                 timer: Duration::default(),
