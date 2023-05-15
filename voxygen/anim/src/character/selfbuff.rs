@@ -194,6 +194,39 @@ impl Animation for SelfBuffAnimation {
                 next.head.orientation.rotate_x(move2 * 0.6);
                 next.chest.orientation.rotate_x(move2 * 0.4);
             },
+            Some("common.abilities.axe.savage_sense") => {
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Movement) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
+                    * Quaternion::rotation_y(s_a.ac.4)
+                    * Quaternion::rotation_z(s_a.ac.5);
+
+                next.chest.orientation = Quaternion::rotation_z(move1 * 0.6);
+                next.head.orientation = Quaternion::rotation_z(move1 * -0.2);
+                next.belt.orientation = Quaternion::rotation_z(move1 * -0.3);
+                next.shorts.orientation = Quaternion::rotation_z(move1 * -0.1);
+                next.foot_r.position += Vec3::new(0.0, move1 * 4.0, move1 * 4.0);
+                next.foot_r.orientation.rotate_x(move1 * 1.2);
+
+                next.foot_r.position += Vec3::new(0.0, move2 * 4.0, move2 * -4.0);
+                next.foot_r.orientation.rotate_x(move2 * -1.2);
+            },
             _ => {},
         }
 

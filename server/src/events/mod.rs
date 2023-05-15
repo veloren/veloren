@@ -264,8 +264,8 @@ impl Server {
                     pet_entity,
                     owner_entity,
                 } => handle_tame_pet(self, pet_entity, owner_entity),
-                ServerEvent::EntityAttackedHook { entity } => {
-                    handle_entity_attacked_hook(self, entity)
+                ServerEvent::EntityAttackedHook { entity, attacker } => {
+                    handle_entity_attacked_hook(self, entity, attacker)
                 },
                 ServerEvent::ChangeAbility {
                     entity,

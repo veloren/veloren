@@ -74,6 +74,10 @@ pub enum BuffKind {
     /// Provides immunity to burning and increases movement speed in lava.
     /// Movement speed increases linearly with strength, 1.0 is a 100% increase.
     // SalamanderAspect, TODO: Readd in second dwarven mine MR
+    /// Guarantees that the next attack is a critical hit. Does this kind of
+    /// hackily by adding 100% to the crit, will need to be adjusted if we ever
+    /// allow double crits instead of treating 100 as a ceiling.
+    ImminentCritical,
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -143,7 +147,7 @@ impl BuffKind {
             | BuffKind::Frigid
             | BuffKind::Lifesteal
             //| BuffKind::SalamanderAspect
-            => true,
+            | BuffKind::ImminentCritical => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -212,7 +216,7 @@ impl BuffKind {
             },
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
-                kind: ModifierKind::Fractional,
+                kind: ModifierKind::Multiplicative,
                 instance,
                 tick_dur: Secs(2.0),
             }],
@@ -287,7 +291,10 @@ impl BuffKind {
             BuffKind::Hastened => vec![
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + data.strength),
-                BuffEffect::CriticalChance(0.0),
+                BuffEffect::CriticalChance {
+                    kind: ModifierKind::Multiplicative,
+                    val: 0.0,
+                },
             ],
             BuffKind::Fortitude => vec![
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
@@ -329,7 +336,23 @@ impl BuffKind {
                 BuffEffect::BuffImmunity(BuffKind::Burning),
                 BuffEffect::SwimSpeed(1.0 + data.strength),
             ],*/
+            BuffKind::ImminentCritical => vec![BuffEffect::CriticalChance {
+                kind: ModifierKind::Additive,
+                val: 1.0,
+            }],
         }
+    }
+
+    fn extend_cat_ids(&self, mut cat_ids: Vec<BuffCategory>) -> Vec<BuffCategory> {
+        // TODO: Remove clippy allow after another buff needs this
+        #[allow(clippy::single_match)]
+        match self {
+            BuffKind::ImminentCritical => {
+                cat_ids.push(BuffCategory::RemoveOnAttack);
+            },
+            _ => {},
+        }
+        cat_ids
     }
 }
 
@@ -362,12 +385,13 @@ pub enum BuffCategory {
     Divine,
     PersistOnDeath,
     FromActiveAura(Uid, AuraKey),
+    RemoveOnAttack,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ModifierKind {
     Additive,
-    Fractional,
+    Multiplicative,
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
@@ -422,7 +446,10 @@ pub enum BuffEffect {
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
     /// Multiplies crit chance of attacks
-    CriticalChance(f32),
+    CriticalChance {
+        kind: ModifierKind,
+        val: f32,
+    },
     /// Changes body.
     BodyChange(Body),
     /// Inflict buff to target
@@ -489,6 +516,7 @@ impl Buff {
         health: Option<&Health>,
     ) -> Self {
         let effects = kind.effects(&data, stats, health);
+        let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids
             .iter()

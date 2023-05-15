@@ -535,7 +535,7 @@ fn execute_effect(
                 };
                 let amount = match *kind {
                     ModifierKind::Additive => amount,
-                    ModifierKind::Fractional => health.maximum() * amount,
+                    ModifierKind::Multiplicative => health.maximum() * amount,
                 };
                 let damage_contributor = by.and_then(|uid| {
                     read_data.id_maps.uid_entity(uid).map(|entity| {
@@ -565,7 +565,7 @@ fn execute_effect(
 
                 let amount = match *kind {
                     ModifierKind::Additive => amount,
-                    ModifierKind::Fractional => energy.maximum() * amount,
+                    ModifierKind::Multiplicative => energy.maximum() * amount,
                 };
                 server_emitter.emit(ServerEvent::EnergyChange {
                     entity,
@@ -577,7 +577,7 @@ fn execute_effect(
             ModifierKind::Additive => {
                 stat.max_health_modifiers.add_mod += *value;
             },
-            ModifierKind::Fractional => {
+            ModifierKind::Multiplicative => {
                 stat.max_health_modifiers.mult_mod *= *value;
             },
         },
@@ -585,7 +585,7 @@ fn execute_effect(
             ModifierKind::Additive => {
                 stat.max_energy_modifiers.add_mod += *value;
             },
-            ModifierKind::Fractional => {
+            ModifierKind::Multiplicative => {
                 stat.max_energy_modifiers.mult_mod *= *value;
             },
         },
@@ -608,7 +608,7 @@ fn execute_effect(
                         // creates fraction
                         potential_amount / health.base_max()
                     },
-                    ModifierKind::Fractional => {
+                    ModifierKind::Multiplicative => {
                         // `rate * dt` is the fraction
                         potential_amount
                     },
@@ -664,8 +664,9 @@ fn execute_effect(
         BuffEffect::AttackDamage(dam) => {
             stat.attack_damage_modifier *= *dam;
         },
-        BuffEffect::CriticalChance(cc) => {
-            stat.crit_chance_modifier *= *cc;
+        BuffEffect::CriticalChance { kind, val } => match kind {
+            ModifierKind::Additive => stat.crit_chance_modifier.add_mod += val,
+            ModifierKind::Multiplicative => stat.crit_chance_modifier.mult_mod *= val,
         },
         BuffEffect::BodyChange(b) => {
             // For when an entity is under the effects of multiple de/buffs that change the

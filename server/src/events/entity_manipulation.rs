@@ -1445,11 +1445,25 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
 
 /// Intended to handle things that should happen for any successful attack,
 /// regardless of the damages and effects specific to that attack
-pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
+pub fn handle_entity_attacked_hook(
+    server: &Server,
+    entity: EcsEntity,
+    attacker: Option<EcsEntity>,
+) {
     let ecs = &server.state.ecs();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
 
     let time = ecs.read_resource::<Time>();
+    if let Some(attacker) = attacker {
+        server_eventbus.emit_now(ServerEvent::Buff {
+            entity: attacker,
+            buff_change: buff::BuffChange::RemoveByCategory {
+                all_required: vec![buff::BuffCategory::RemoveOnAttack],
+                any_required: vec![],
+                none_required: vec![],
+            },
+        });
+    }
 
     if let (Some(mut char_state), Some(mut poise), Some(pos)) = (
         ecs.write_storage::<CharacterState>().get_mut(entity),

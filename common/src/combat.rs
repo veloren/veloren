@@ -214,11 +214,14 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let is_crit = rng.gen::<f32>()
-            < self.crit_chance
-                * attacker
-                    .and_then(|a| a.stats)
-                    .map_or(1.0, |s| s.crit_chance_modifier);
+        let crit_chance = attacker
+            .and_then(|a| a.stats)
+            .map(|s| s.crit_chance_modifier)
+            .map_or(self.crit_chance, |cc_mod| {
+                self.crit_chance * cc_mod.mult_mod + cc_mod.add_mod
+            })
+            .clamp(0.0, 1.0);
+        let is_crit = rng.gen::<f32>() < crit_chance;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
@@ -687,6 +690,7 @@ impl Attack {
         if is_applied {
             emit(ServerEvent::EntityAttackedHook {
                 entity: target.entity,
+                attacker: attacker.map(|a| a.entity),
             });
         }
         is_applied

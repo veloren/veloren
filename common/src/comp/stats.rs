@@ -63,7 +63,7 @@ pub struct Stats {
     pub max_energy_modifiers: StatsModifier,
     pub poise_damage_modifier: f32,
     pub attack_damage_modifier: f32,
-    pub crit_chance_modifier: f32,
+    pub crit_chance_modifier: StatsModifier,
     pub buffs_on_hit: Vec<AttackEffect>,
     pub swim_speed_modifier: f32,
 }
@@ -83,7 +83,7 @@ impl Stats {
             max_energy_modifiers: StatsModifier::default(),
             poise_damage_modifier: 1.0,
             attack_damage_modifier: 1.0,
-            crit_chance_modifier: 1.0,
+            crit_chance_modifier: StatsModifier::default(),
             buffs_on_hit: Vec::new(),
             swim_speed_modifier: 1.0,
         }

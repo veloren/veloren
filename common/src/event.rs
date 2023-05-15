@@ -297,6 +297,7 @@ pub enum ServerEvent {
     },
     EntityAttackedHook {
         entity: EcsEntity,
+        attacker: Option<EcsEntity>,
     },
     ChangeAbility {
         entity: EcsEntity,
