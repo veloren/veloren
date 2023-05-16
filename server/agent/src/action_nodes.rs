@@ -1,7 +1,7 @@
 use crate::{
     consts::{
-        AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, PARTIAL_PATH_DIST,
-        SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECAY_RATE,
+        AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, MAX_PATROL_DIST,
+        PARTIAL_PATH_DIST, SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
@@ -442,11 +442,26 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Jump);
                 }
             }
-            agent.bearing += Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5) * 0.1
-                - agent.bearing * 0.003
-                - agent.patrol_origin.map_or(Vec2::zero(), |patrol_origin| {
-                    (self.pos.0 - patrol_origin).xy() * 0.0002
-                });
+
+            let diff = Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5);
+            agent.bearing += (diff * 0.1 - agent.bearing * 0.01)
+                * agent.psyche.idle_wander_factor.max(0.0).sqrt();
+            if let Some(patrol_origin) = agent.patrol_origin
+                // Use owner as patrol origin otherwise
+                .or_else(|| if let Some(Alignment::Owned(owner_uid)) = self.alignment
+                    && let Some(owner) = get_entity_by_id(owner_uid.id(), read_data)
+                    && let Some(pos) = read_data.positions.get(owner)
+                {
+                    Some(pos.0)
+                } else {
+                    None
+                })
+            {
+                agent.bearing += ((patrol_origin.xy() - self.pos.0.xy())
+                    / (0.01 + MAX_PATROL_DIST * agent.psyche.idle_wander_factor))
+                    * 0.015
+                    * agent.psyche.idle_wander_factor;
+            }
 
             // Stop if we're too close to a wall
             // or about to walk off a cliff
@@ -491,7 +506,7 @@ impl<'a> AgentData<'a> {
                 };
 
             if agent.bearing.magnitude_squared() > 0.5f32.powi(2) {
-                controller.inputs.move_dir = agent.bearing * 0.65;
+                controller.inputs.move_dir = agent.bearing;
             }
 
             // Put away weapon
