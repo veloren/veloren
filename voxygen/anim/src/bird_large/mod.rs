@@ -96,16 +96,22 @@ impl Skeleton for BirdLargeSkeleton {
             make_bone(foot_l_mat),
             make_bone(foot_r_mat),
         ];
+
+        // Offset from the mounted bone's origin.
+        let mount_position = (neck_mat * Vec4::from_point(mount_point(&body)))
+            .homogenized()
+            .xyz();
+        // NOTE: We apply the ori from base_mat externally so we don't need to worry
+        // about it here for now.
+        let mount_orientation = self.neck.orientation;
+
         Offsets {
             lantern: None,
             viewpoint: Some((head_mat * Vec4::new(0.0, 3.0, 6.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::BirdLarge(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             primary_trail_mat: None,
             secondary_trail_mat: None,
@@ -306,4 +312,19 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             ),
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::bird_large::Species::*;
+    match (body.species, body.body_type) {
+        (Phoenix, _) => (0.0, -2.0, 6.0),
+        (Cockatrice, _) => (0.0, 0.0, 6.0),
+        (Roc, _) => (0.0, 6.0, 3.0),
+        (FlameWyvern, _) => (0.0, 0.0, 2.5),
+        (FrostWyvern, _) => (0.0, 2.0, 3.0),
+        (CloudWyvern, _) => (0.0, 1.0, 3.0),
+        (SeaWyvern, _) => (0.0, -3.0, 4.0),
+        (WealdWyvern, _) => (0.0, 0.0, 5.0),
+    }
+    .into()
 }

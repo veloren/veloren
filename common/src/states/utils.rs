@@ -274,9 +274,8 @@ impl Body {
     pub fn jump_impulse(&self) -> Option<f32> {
         match self {
             Body::Object(_) | Body::Ship(_) | Body::ItemDrop(_) => None,
-            Body::BipedLarge(_) | Body::Dragon(_) | Body::Golem(_) | Body::QuadrupedLow(_) => {
-                Some(0.4 * self.mass().0)
-            },
+            Body::BipedLarge(_) | Body::Dragon(_) => Some(0.6 * self.mass().0),
+            Body::Golem(_) | Body::QuadrupedLow(_) => Some(0.4 * self.mass().0),
             Body::QuadrupedMedium(_) => Some(0.4 * self.mass().0),
             Body::Theropod(body) => match body.species {
                 theropod::Species::Snowraptor
