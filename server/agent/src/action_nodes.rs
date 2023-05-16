@@ -152,14 +152,21 @@ impl<'a> AgentData<'a> {
                 ..self.traversal_config
             },
         ) {
-            controller.inputs.move_dir =
-                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed * speed_multiplier;
-            self.jump_if(bearing.z > 1.5, controller);
-            controller.inputs.move_z = bearing.z;
+            self.traverse(controller, bearing, speed * speed_multiplier);
             true
         } else {
             false
         }
+    }
+
+    fn traverse(&self, controller: &mut Controller, bearing: Vec3<f32>, speed: f32) {
+        controller.inputs.move_dir =
+            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+        let climbing_out_of_water = self.physics_state.in_liquid().map_or(false, |h| h < 1.0)
+            && bearing.z > 0.0
+            && self.physics_state.on_wall.is_some();
+        self.jump_if(bearing.z > 1.5 || climbing_out_of_water, controller);
+        controller.inputs.move_z = bearing.z;
     }
 
     pub fn jump_if(&self, condition: bool, controller: &mut Controller) {
@@ -265,12 +272,9 @@ impl<'a> AgentData<'a> {
                             ..self.traversal_config
                         },
                     ) {
-                        controller.inputs.move_dir =
-                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
-                                * speed.min(speed_factor);
-                        self.jump_if(bearing.z > 1.5 || self.traversal_config.can_fly, controller);
+                        self.traverse(controller, bearing, speed.min(speed_factor));
+                        self.jump_if(self.traversal_config.can_fly, controller);
                         controller.inputs.climb = Some(comp::Climb::Up);
-                        //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
 
                         let height_offset = bearing.z
                             + if self.traversal_config.can_fly {
@@ -552,10 +556,11 @@ impl<'a> AgentData<'a> {
             },
         ) {
             let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
-            controller.inputs.move_dir = bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
-                * speed.min(0.2 + (dist_sqrd - AVG_FOLLOW_DIST.powi(2)) / 8.0);
-            self.jump_if(bearing.z > 1.5, controller);
-            controller.inputs.move_z = bearing.z;
+            self.traverse(
+                controller,
+                bearing,
+                speed.min(0.2 + (dist_sqrd - AVG_FOLLOW_DIST.powi(2)) / 8.0),
+            );
         }
     }
 
@@ -617,10 +622,7 @@ impl<'a> AgentData<'a> {
                 ..self.traversal_config
             },
         ) {
-            controller.inputs.move_dir = bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
-                * speed.min(MAX_FLEE_SPEED);
-            self.jump_if(bearing.z > 1.5, controller);
-            controller.inputs.move_z = bearing.z;
+            self.traverse(controller, bearing, speed.min(MAX_FLEE_SPEED));
         }
     }
 

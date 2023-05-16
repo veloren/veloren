@@ -1,4 +1,4 @@
-use crate::comp::{body::Body, phys::Mass, quadruped_low, quadruped_medium, quadruped_small};
+use crate::comp::{body::Body, phys::Mass, quadruped_medium, quadruped_small};
 use crossbeam_utils::atomic::AtomicCell;
 use specs::Component;
 use std::{num::NonZeroU64, sync::Arc};
@@ -64,6 +64,7 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
     match mount {
         Body::Humanoid(_) => matches!(rider, Some(Body::BirdMedium(_))),
         Body::BipedLarge(_) => is_light_enough(rider),
+        Body::BirdLarge(_) => is_light_enough(rider),
         Body::QuadrupedMedium(body) => match body.species {
             quadruped_medium::Species::Alpaca
             | quadruped_medium::Species::Antelope
@@ -79,7 +80,11 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
             | quadruped_medium::Species::Moose
             | quadruped_medium::Species::Tuskram
             | quadruped_medium::Species::Yak
-            | quadruped_medium::Species::Zebra => true,
+            | quadruped_medium::Species::Zebra
+            | quadruped_medium::Species::Grolgar
+            | quadruped_medium::Species::Wolf
+            | quadruped_medium::Species::Saber
+            | quadruped_medium::Species::Tiger => true,
             quadruped_medium::Species::Mouflon => is_light_enough(rider),
             _ => false,
         },
@@ -90,12 +95,7 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
             },
             _ => false,
         },
-        Body::QuadrupedLow(body) => matches!(
-            body.species,
-            quadruped_low::Species::Salamander
-                | quadruped_low::Species::Elbst
-                | quadruped_low::Species::Tortoise
-        ),
+        Body::QuadrupedLow(_) => mount.mass() >= Mass(300.0) && is_light_enough(rider),
         Body::Ship(_) => true,
         _ => false,
     }

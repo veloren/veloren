@@ -143,7 +143,14 @@ impl Route {
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
             if dist_sqrd
-                < traversal_cfg.node_tolerance.powi(2) * if be_precise { 0.25 } else { 1.0 }
+                < traversal_cfg.node_tolerance.powi(2)
+                    * if be_precise {
+                        0.25
+                    } else if traversal_cfg.in_liquid {
+                        2.5
+                    } else {
+                        1.0
+                    }
                 && (((pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
                     && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                     && vel.z <= 0.0

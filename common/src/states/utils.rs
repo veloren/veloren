@@ -230,13 +230,13 @@ impl Body {
         match self {
             Body::Object(_) => None,
             Body::ItemDrop(_) => None,
-            Body::BipedLarge(_) | Body::Golem(_) => Some(200.0 * self.mass().0),
-            Body::BipedSmall(_) => Some(100.0 * self.mass().0),
-            Body::BirdMedium(_) => Some(50.0 * self.mass().0),
-            Body::BirdLarge(_) => Some(50.0 * self.mass().0),
+            Body::BipedLarge(_) | Body::Golem(_) => Some(3000.0 * self.mass().0),
+            Body::BipedSmall(_) => Some(1000.0 * self.mass().0),
+            Body::BirdMedium(_) => Some(1200.0 * self.mass().0),
+            Body::BirdLarge(_) => Some(750.0 * self.mass().0),
             Body::FishMedium(_) => Some(50.0 * self.mass().0),
             Body::FishSmall(_) => Some(50.0 * self.mass().0),
-            Body::Dragon(_) => Some(200.0 * self.mass().0),
+            Body::Dragon(_) => Some(3000.0 * self.mass().0),
             Body::Humanoid(_) => Some(2500.0 * self.mass().0),
             Body::Theropod(body) => match body.species {
                 theropod::Species::Sandraptor
@@ -244,12 +244,12 @@ impl Body {
                 | theropod::Species::Sunlizard
                 | theropod::Species::Woodraptor
                 | theropod::Species::Dodarock
-                | theropod::Species::Yale => Some(200.0 * self.mass().0),
+                | theropod::Species::Yale => Some(2500.0 * self.mass().0),
                 _ => Some(100.0 * self.mass().0),
             },
-            Body::QuadrupedLow(_) => Some(300.0 * self.mass().0),
-            Body::QuadrupedMedium(_) => Some(300.0 * self.mass().0),
-            Body::QuadrupedSmall(_) => Some(300.0 * self.mass().0),
+            Body::QuadrupedLow(_) => Some(2500.0 * self.mass().0),
+            Body::QuadrupedMedium(_) => Some(3000.0 * self.mass().0),
+            Body::QuadrupedSmall(_) => Some(3000.0 * self.mass().0),
             Body::Ship(ship) if ship.has_water_thrust() => Some(3500.0 * self.mass().0),
             Body::Ship(_) => None,
             Body::Arthropod(_) => Some(300.0 * self.mass().0),
@@ -274,9 +274,8 @@ impl Body {
     pub fn jump_impulse(&self) -> Option<f32> {
         match self {
             Body::Object(_) | Body::Ship(_) | Body::ItemDrop(_) => None,
-            Body::BipedLarge(_) | Body::Dragon(_) | Body::Golem(_) | Body::QuadrupedLow(_) => {
-                Some(0.1 * self.mass().0)
-            },
+            Body::BipedLarge(_) | Body::Dragon(_) => Some(0.6 * self.mass().0),
+            Body::Golem(_) | Body::QuadrupedLow(_) => Some(0.4 * self.mass().0),
             Body::QuadrupedMedium(_) => Some(0.4 * self.mass().0),
             Body::Theropod(body) => match body.species {
                 theropod::Species::Snowraptor
@@ -284,7 +283,7 @@ impl Body {
                 | theropod::Species::Woodraptor => Some(0.4 * self.mass().0),
                 _ => None,
             },
-            Body::Arthropod(_) => Some(2.0 * self.mass().0),
+            Body::Arthropod(_) => Some(1.0 * self.mass().0),
             _ => Some(0.4 * self.mass().0),
         }
         .map(|f| f * GRAVITY)
@@ -593,6 +592,8 @@ pub fn handle_orientation(
         * efficiency
         * if data.physics.on_ground.is_some() {
             1.0
+        } else if data.physics.in_liquid().is_some() {
+            0.4
         } else {
             0.2
         }
@@ -1098,9 +1099,22 @@ pub fn handle_jump(
     _update: &mut StateUpdate,
     strength: f32,
 ) -> bool {
-    (input_is_pressed(data, InputKind::Jump) && data.physics.on_ground.is_some())
+    input_is_pressed(data, InputKind::Jump)
         .then(|| data.body.jump_impulse())
         .flatten()
+        .and_then(|impulse| {
+            if data.physics.on_ground.is_some() {
+                Some(impulse)
+            } else if data.physics.in_liquid().map_or(false, |h| h < 1.0)
+                && data.physics.on_wall.is_some()
+            {
+                // Allow entities to make a small jump when at the edge of a body of water,
+                // allowing them to path out of it
+                Some(impulse * 0.75)
+            } else {
+                None
+            }
+        })
         .map(|impulse| {
             output_events.emit_local(LocalEvent::Jump(
                 data.entity,
