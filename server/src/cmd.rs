@@ -1506,8 +1506,10 @@ fn handle_spawn(
             let pos = position(server, target, "target")?;
             let mut agent = comp::Agent::from_body(&body());
 
-            // If unowned, the agent should stay in a particular place
-            if !matches!(alignment, comp::Alignment::Owned(_)) {
+            if matches!(alignment, comp::Alignment::Owned(_)) {
+                agent.psyche.idle_wander_factor = 0.25;
+            } else {
+                // If unowned, the agent should stay in a particular place
                 agent = agent.with_patrol_origin(pos.0);
             }
 

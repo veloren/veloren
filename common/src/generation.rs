@@ -38,6 +38,14 @@ impl Default for AlignmentMark {
     fn default() -> Self { Self::Alignment(Alignment::Wild) }
 }
 
+#[derive(Default, Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct AgentConfig {
+    pub has_agency: Option<bool>,
+    pub no_flee: Option<bool>,
+    pub idle_wander_factor: Option<f32>,
+}
+
 #[derive(Debug, Deserialize, Clone)]
 pub enum LoadoutKind {
     FromBody,
@@ -109,6 +117,10 @@ pub struct EntityConfig {
     /// Alignment, can be Uninit
     pub alignment: AlignmentMark,
 
+    /// Parameterises agent behaviour
+    #[serde(default)]
+    pub agent: AgentConfig,
+
     /// Loot
     /// See LootSpec in lottery
     pub loot: LootSpec<String>,
@@ -154,11 +166,12 @@ pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
 pub struct EntityInfo {
     pub pos: Vec3<f32>,
     pub is_waypoint: bool, // Edge case, overrides everything else
-    // Agent
-    pub has_agency: bool,
     pub alignment: Alignment,
+    /// Parameterises agent behaviour
+    pub has_agency: bool,
     pub agent_mark: Option<agent::Mark>,
     pub no_flee: bool,
+    pub idle_wander_factor: f32,
     // Stats
     pub body: Body,
     pub name: Option<String>,
@@ -186,9 +199,13 @@ impl EntityInfo {
         Self {
             pos,
             is_waypoint: false,
-            has_agency: true,
             alignment: Alignment::Wild,
+
+            has_agency: true,
             agent_mark: None,
+            no_flee: false,
+            idle_wander_factor: 1.0,
+
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
             scale: 1.0,
@@ -199,7 +216,6 @@ impl EntityInfo {
             skillset_asset: None,
             pet: None,
             trading_information: None,
-            no_flee: false,
         }
     }
 
@@ -230,6 +246,7 @@ impl EntityInfo {
             name,
             body,
             alignment,
+            agent,
             inventory,
             loot,
             meta,
@@ -269,6 +286,16 @@ impl EntityInfo {
 
         // NOTE: set loadout after body, as it's used with default equipement
         self = self.with_inventory(inventory, config_asset, loadout_rng);
+
+        // Prefer the new configuration, if possible
+        let AgentConfig {
+            has_agency,
+            no_flee,
+            idle_wander_factor,
+        } = agent;
+        self.has_agency = has_agency.unwrap_or(self.has_agency);
+        self.no_flee = no_flee.unwrap_or(self.no_flee);
+        self.idle_wander_factor = idle_wander_factor.unwrap_or(self.idle_wander_factor);
 
         for field in meta {
             match field {
@@ -619,11 +646,12 @@ mod tests {
         for config_asset in entity_configs {
             let EntityConfig {
                 body,
+                agent: _,
                 inventory,
                 name,
                 loot,
                 meta,
-                alignment: _alignment, // can't fail if serialized, it's a boring enum
+                alignment: _, // can't fail if serialized, it's a boring enum
             } = EntityConfig::from_asset_expect_owned(&config_asset);
 
             validate_body(&body, &config_asset);

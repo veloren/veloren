@@ -426,6 +426,7 @@ impl NpcData {
             agent_mark,
             alignment,
             no_flee,
+            idle_wander_factor,
             // stats
             body,
             name,
@@ -518,7 +519,9 @@ impl NpcData {
                 agent = agent.with_patrol_origin(pos);
             }
 
-            agent.with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
+            agent
+                .with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
+                .with_idle_wander_factor(idle_wander_factor)
         });
 
         let agent = if matches!(alignment, comp::Alignment::Enemy)

@@ -27,7 +27,7 @@ use self::interaction::{
 
 use super::{
     consts::{
-        DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_FOLLOW_DIST,
+        DAMAGE_MEMORY_DURATION, FLEE_DURATION, HEALING_ITEM_THRESHOLD, MAX_PATROL_DIST,
         NORMAL_FLEE_DIR_DIST, NPC_PICKUP_RANGE, RETARGETING_THRESHOLD_SECONDS,
         STD_AWARENESS_DECAY_RATE,
     },
@@ -415,7 +415,7 @@ fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
             let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
 
-            if dist_sqrd > (MAX_FOLLOW_DIST).powi(2) {
+            if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) {
                 bdata
                     .agent_data
                     .follow(bdata.agent, bdata.controller, bdata.read_data, tgt_pos);

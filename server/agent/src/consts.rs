@@ -1,7 +1,7 @@
 pub const DAMAGE_MEMORY_DURATION: f64 = 0.25;
 pub const FLEE_DURATION: f32 = 3.0;
 pub const NPC_PICKUP_RANGE: f32 = 2.5;
-pub const MAX_FOLLOW_DIST: f32 = 12.0;
+pub const MAX_PATROL_DIST: f32 = 50.0;
 pub const MAX_PATH_DIST: f32 = 170.0;
 pub const PARTIAL_PATH_DIST: f32 = 50.0;
 pub const SEPARATION_DIST: f32 = 10.0;

@@ -54,10 +54,14 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
 
     // Create an agent for this entity using its body
     if let Some(body) = ecs.read_storage().get(pet_entity) {
+        // Pets can trade with their owner
         let mut agent = Agent::from_body(body).with_behavior(
             Behavior::default().maybe_with_capabilities(Some(BehaviorCapability::TRADE)),
         );
         agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
+        // Pets shouldn't wander too far from their owner
+        agent.psyche.idle_wander_factor = 0.25;
+        agent.patrol_origin = None;
         let _ = ecs.write_storage().insert(pet_entity, agent);
     }
 

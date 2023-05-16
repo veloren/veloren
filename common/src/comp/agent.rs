@@ -252,6 +252,9 @@ pub struct Psyche {
     /// than `sight_dist`. `None` implied that the agent is always aggro
     /// towards enemies that it is aware of.
     pub aggro_dist: Option<f32>,
+    /// A factor that controls how much further an agent will wander when in the
+    /// idle state. `1.0` is normal.
+    pub idle_wander_factor: f32,
 }
 
 impl<'a> From<&'a Body> for Psyche {
@@ -369,6 +372,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::Humanoid(_) => Some(20.0),
                 _ => None, // Always aggressive if detected
             },
+            idle_wander_factor: 1.0,
         }
     }
 }
@@ -707,6 +711,12 @@ impl Agent {
         self.psyche.flee_health = 0.0;
         self.rtsim_controller = RtSimController::with_destination(pos);
         self.behavior.allow(BehaviorCapability::SPEAK);
+        self
+    }
+
+    #[must_use]
+    pub fn with_idle_wander_factor(mut self, idle_wander_factor: f32) -> Self {
+        self.psyche.idle_wander_factor = idle_wander_factor;
         self
     }
 
