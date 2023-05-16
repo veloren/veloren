@@ -1915,6 +1915,16 @@ mod tests {
     }
 
     #[test]
+    fn complex_proximity_requirements() {
+        let a_site = Vec2 { x: 572, y: 724 };
+        let reqs = ProximityRequirements::new()
+            .close_to_one_of(vec![a_site].into_iter(), 60)
+            .avoid_all_of(vec![a_site].into_iter(), 40);
+        assert!(reqs.satisfied_by(Vec2 { x: 572, y: 774 }));
+        assert!(!reqs.satisfied_by(a_site));
+    }
+
+    #[test]
     fn location_hint() {
         let reqs = ProximityRequirements::new().close_to_one_of(
             vec![Vec2 { x: 1, y: 0 }, Vec2 { x: 13, y: 12 }].into_iter(),
