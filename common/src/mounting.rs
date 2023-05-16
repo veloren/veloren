@@ -79,6 +79,9 @@ impl Link for Mounting {
             // relationship
             if !is_mounts.contains(mount)
                 && !is_riders.contains(rider)
+                && !is_riders.contains(rider)
+                // TODO: Does this definitely prevent mount cycles?
+                && (!is_mounts.contains(rider) || !is_riders.contains(mount))
                 && !is_volume_rider.contains(rider)
             {
                 let _ = is_mounts.insert(mount, this.make_role());
