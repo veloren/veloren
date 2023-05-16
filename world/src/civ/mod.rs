@@ -112,12 +112,67 @@ struct ProximityRequirements {
     any_of: Vec<ProximitySpec>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+struct SquareLocationRestriction {
+    pub min_x: i32,
+    pub max_x: i32,
+    pub min_y: i32,
+    pub max_y: i32,
+}
+
 impl ProximityRequirements {
     pub fn satisfied_by(&self, site: Vec2<i32>) -> bool {
         let all_of_compliance = self.all_of.iter().all(|spec| spec.satisfied_by(site));
         let any_of_compliance =
             self.any_of.is_empty() || self.any_of.iter().any(|spec| spec.satisfied_by(site));
         all_of_compliance && any_of_compliance
+    }
+
+    pub fn location_hint(
+        &self,
+        world_dims: &SquareLocationRestriction,
+    ) -> SquareLocationRestriction {
+        use std::cmp::{max, min};
+        let any_of_hint = self
+            .any_of
+            .iter()
+            .fold(None, |acc, spec| match spec.max_distance {
+                None => acc,
+                Some(max_distance) => match acc {
+                    None => Some(SquareLocationRestriction {
+                        min_x: spec.location.x - max_distance,
+                        max_x: spec.location.x + max_distance,
+                        min_y: spec.location.y - max_distance,
+                        max_y: spec.location.y + max_distance,
+                    }),
+                    Some(acc) => Some(SquareLocationRestriction {
+                        min_x: min(acc.min_x, spec.location.x - max_distance),
+                        max_x: max(acc.max_x, spec.location.x + max_distance),
+                        min_y: min(acc.min_y, spec.location.y - max_distance),
+                        max_y: max(acc.max_y, spec.location.y + max_distance),
+                    }),
+                },
+            })
+            .map(|hint| SquareLocationRestriction {
+                min_x: max(world_dims.min_x, hint.min_x),
+                max_x: min(world_dims.max_x, hint.max_x),
+                min_y: max(world_dims.min_y, hint.min_y),
+                max_y: min(world_dims.max_y, hint.max_y),
+            })
+            .unwrap_or_else(|| world_dims.to_owned());
+        let hint = self
+            .all_of
+            .iter()
+            .fold(any_of_hint, |acc, spec| match spec.max_distance {
+                None => acc,
+                Some(max_distance) => SquareLocationRestriction {
+                    min_x: max(acc.min_x, spec.location.x - max_distance),
+                    max_x: min(acc.max_x, spec.location.x + max_distance),
+                    min_y: max(acc.min_y, spec.location.y - max_distance),
+                    max_y: min(acc.max_y, spec.location.y + max_distance),
+                },
+            });
+        hint
     }
 
     pub fn new() -> Self {
@@ -1486,10 +1541,17 @@ fn find_site_loc(
     const MAX_ATTEMPTS: usize = 10000;
     let mut loc = None;
     for _ in 0..MAX_ATTEMPTS {
+        let world_dims = SquareLocationRestriction {
+            min_x: 0,
+            max_x: ctx.sim.get_size().x as i32,
+            min_y: 0,
+            max_y: ctx.sim.get_size().y as i32,
+        };
+        let location_hint = proximity_reqs.location_hint(&world_dims);
         let test_loc = loc.unwrap_or_else(|| {
             Vec2::new(
-                ctx.rng.gen_range(0..ctx.sim.get_size().x as i32),
-                ctx.rng.gen_range(0..ctx.sim.get_size().y as i32),
+                ctx.rng.gen_range(location_hint.min_x..location_hint.max_x),
+                ctx.rng.gen_range(location_hint.min_y..location_hint.max_y),
             )
         });
 
@@ -1850,5 +1912,26 @@ mod tests {
             ProximityRequirements::new().close_to_one_of(vec![Vec2 { x: 0, y: 0 }].into_iter(), 10);
         assert!(reqs.satisfied_by(Vec2 { x: 1, y: -1 }));
         assert!(!reqs.satisfied_by(Vec2 { x: -8, y: 8 }));
+    }
+
+    #[test]
+    fn location_hint() {
+        let reqs = ProximityRequirements::new().close_to_one_of(
+            vec![Vec2 { x: 1, y: 0 }, Vec2 { x: 13, y: 12 }].into_iter(),
+            10,
+        );
+        let expected = SquareLocationRestriction {
+            min_x: 0,
+            max_x: 23,
+            min_y: 0,
+            max_y: 22,
+        };
+        let map_dims = SquareLocationRestriction {
+            min_x: 0,
+            max_x: 200,
+            min_y: 0,
+            max_y: 300,
+        };
+        assert_eq!(expected, reqs.location_hint(&map_dims));
     }
 }
