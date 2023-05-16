@@ -112,3 +112,4 @@ common-material-stone = Pietra
 common-material-cloth = Tessuto
 common-material-hide = Pelle
 common-sprite-chest = Cassa
+common-sprite-chair = Sedia

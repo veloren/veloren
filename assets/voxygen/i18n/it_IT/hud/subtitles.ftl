@@ -80,6 +80,7 @@ subtitle-instrument_sitar = Sitar che suona
 subtitle-instrument_guitar = Chitarra che suona
 subtitle-instrument_dark_guitar = Chitarra nera che suona
 subtitle-instrument_washboard = Washboard che suona
+subtitle-instrument_wildskin_drum = Bongo che suona
 subtitle-pickup_instrument = Strumento musicale raccolto
 
 subtitle-explosion = Esplosione
