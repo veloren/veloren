@@ -388,12 +388,7 @@ impl<'a, A: AtlasData, Allocator: AtlasAllocator> GreedyMesh<'a, A, Allocator> {
             + 'a,
     {
         span!(_guard, "push", "GreedyMesh::push");
-        let cont = greedy_mesh::<_, _, _, _, _, _, _, _, _, A, _>(
-            &mut self.atlas,
-            &mut self.tex_size,
-            self.max_size,
-            config,
-        );
+        let cont = greedy_mesh(&mut self.atlas, &mut self.tex_size, self.max_size, config);
         self.suspended.push(cont);
     }
 
@@ -433,7 +428,7 @@ fn greedy_mesh<
     Allocator: AtlasAllocator,
 >(
     atlas: &mut Allocator,
-    col_lights_size: &mut Vec2<u16>,
+    atlas_size: &mut Vec2<u16>,
     max_size: Vec2<u16>,
     GreedyConfig {
         mut data,
@@ -486,7 +481,7 @@ where
                 norm,
                 faces_forward,
                 max_size,
-                col_lights_size,
+                atlas_size,
             );
             create_quad_greedy(
                 pos,
@@ -527,7 +522,7 @@ where
                 norm,
                 faces_forward,
                 max_size,
-                col_lights_size,
+                atlas_size,
             );
             create_quad_greedy(
                 pos,
@@ -568,7 +563,7 @@ where
                 norm,
                 faces_forward,
                 max_size,
-                col_lights_size,
+                atlas_size,
             );
             create_quad_greedy(
                 pos,
@@ -587,7 +582,7 @@ where
 
     Box::new(move |atlas_texture_data, cur_size| {
         let mut data = data;
-        draw_col_lights::<_, A>(
+        draw_texels::<_, A>(
             atlas_texture_data,
             cur_size,
             &mut data,
@@ -741,7 +736,7 @@ fn add_to_atlas<Allocator: AtlasAllocator>(
 // to provide builtin support for what we're doing here.
 //
 // TODO: See if we can speed this up using SIMD.
-fn draw_col_lights<D, A: AtlasData>(
+fn draw_texels<D, A: AtlasData>(
     atlas_texture_data: &mut A,
     cur_size: Vec2<u16>,
     data: &mut D,
