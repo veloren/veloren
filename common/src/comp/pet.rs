@@ -80,7 +80,11 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
             | quadruped_medium::Species::Moose
             | quadruped_medium::Species::Tuskram
             | quadruped_medium::Species::Yak
-            | quadruped_medium::Species::Zebra => true,
+            | quadruped_medium::Species::Zebra
+            | quadruped_medium::Species::Grolgar
+            | quadruped_medium::Species::Wolf
+            | quadruped_medium::Species::Saber
+            | quadruped_medium::Species::Tiger => true,
             quadruped_medium::Species::Mouflon => is_light_enough(rider),
             _ => false,
         },

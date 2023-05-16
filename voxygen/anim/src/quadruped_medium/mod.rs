@@ -756,14 +756,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
 fn mount_point(body: &Body) -> Vec3<f32> {
     use comp::quadruped_medium::{BodyType::*, Species::*};
     match (body.species, body.body_type) {
-        (Grolgar, _) => (0.0, -6.0, 3.0),
-        (Saber, _) => (0.0, -12.0, 1.0),
+        (Grolgar, _) => (0.0, -6.0, 5.0),
+        (Saber, _) => (0.0, -17.0, 2.5),
         (Tuskram, _) => (0.0, -17.0, -1.0),
         (Lion, Male) => (0.0, -8.0, 1.0),
         (Lion, Female) => (0.0, -8.0, 1.0),
         (Tarasque, _) => (0.0, -6.0, 1.0),
-        (Tiger, _) => (0.0, -8.0, 1.0),
-        (Wolf, _) => (0.0, -9.0, 0.0),
+        (Tiger, _) => (0.0, -8.0, 2.0),
+        (Wolf, _) => (0.0, -9.0, 1.5),
         (Frostfang, _) => (0.0, -6.0, -1.0),
         (Mouflon, _) => (0.0, -8.0, -1.0),
         (Catoblepas, _) => (0.0, -8.0, -1.0),
