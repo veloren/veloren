@@ -91,12 +91,7 @@ pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
             },
             _ => false,
         },
-        Body::QuadrupedLow(body) => matches!(
-            body.species,
-            quadruped_low::Species::Salamander
-                | quadruped_low::Species::Elbst
-                | quadruped_low::Species::Tortoise
-        ),
+        Body::QuadrupedLow(_) => mount.mass() >= Mass(300.0) && is_light_enough(rider),
         Body::Ship(_) => true,
         _ => false,
     }

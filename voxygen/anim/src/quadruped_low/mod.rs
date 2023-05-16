@@ -391,27 +391,27 @@ impl<'a> From<&'a Body> for SkeletonAttr {
 fn mount_point(body: &Body) -> Vec3<f32> {
     use comp::quadruped_low::Species::*;
     match (body.species, body.body_type) {
-        (Crocodile, _) => (0.0, 4.5, -2.0),
-        (SeaCrocodile, _) => (0.0, 4.5, -2.0),
-        (Alligator, _) => (0.0, 4.25, -2.0),
+        (Crocodile, _) => (0.0, 3.5, 4.5),
+        (SeaCrocodile, _) => (0.0, 3.5, 5.0),
+        (Alligator, _) => (0.0, 2.5, 3.0),
         (Salamander, _) => (0.0, 5.0, -1.0),
         (Elbst, _) => (0.0, 5.0, -1.0),
         (Monitor, _) => (0.0, 2.0, -2.0),
         (Asp, _) => (0.0, 2.0, 0.0),
-        (Tortoise, _) => (0.0, -7.0, -1.0),
-        (Rocksnapper, _) => (0.0, -7.0, 4.5),
-        (Rootsnapper, _) => (0.0, -7.0, 4.5),
-        (Reefsnapper, _) => (0.0, -7.0, 4.5),
-        (Pangolin, _) => (0.0, -6.5, -2.0),
+        (Tortoise, _) => (0.0, 0.0, 3.0),
+        (Rocksnapper, _) => (0.0, 7.0, 5.0),
+        (Rootsnapper, _) => (0.0, -2.0, 9.0),
+        (Reefsnapper, _) => (0.0, 2.0, 2.0),
+        (Pangolin, _) => (0.0, -1.0, 0.5),
         (Maneater, _) => (0.0, 4.0, -11.5),
         (Sandshark, _) => (0.0, -4.0, -2.0),
-        (Hakulaq, _) => (0.0, 4.0, -4.5),
+        (Hakulaq, _) => (0.0, 4.0, -2.5),
         (Dagon, _) => (0.0, 4.0, -4.5),
         (Lavadrake, _) => (0.0, 2.0, -2.5),
         (Icedrake, _) => (0.0, -8.0, 2.5),
-        (Basilisk, _) => (0.0, -2.0, 2.0),
+        (Basilisk, _) => (0.0, -2.0, 5.0),
         (Deadwood, _) => (0.0, -2.0, -3.0),
-        (Mossdrake, _) => (0.0, 2.0, -2.5),
+        (Mossdrake, _) => (0.0, 2.0, -0.5),
     }
     .into()
 }
