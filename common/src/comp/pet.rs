@@ -1,4 +1,4 @@
-use crate::comp::{body::Body, phys::Mass, quadruped_low, quadruped_medium, quadruped_small};
+use crate::comp::{body::Body, phys::Mass, quadruped_medium, quadruped_small};
 use crossbeam_utils::atomic::AtomicCell;
 use specs::Component;
 use std::{num::NonZeroU64, sync::Arc};

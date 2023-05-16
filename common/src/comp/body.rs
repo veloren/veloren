@@ -338,7 +338,6 @@ impl Body {
                 quadruped_low::Species::Crocodile => 360.0,
                 quadruped_low::Species::SeaCrocodile => 410.0,
                 quadruped_low::Species::Deadwood => 150.0,
-                quadruped_low::Species::Lavadrake => 500.0,
                 quadruped_low::Species::Monitor => 200.0,
                 quadruped_low::Species::Pangolin => 300.0,
                 quadruped_low::Species::Salamander => 350.0,
@@ -355,7 +354,6 @@ impl Body {
                 quadruped_low::Species::Hakulaq => 300.0,
                 quadruped_low::Species::Dagon => 400.0,
                 quadruped_low::Species::Basilisk => 500.0,
-                _ => 200.0,
             },
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Bear => 500.0, // ~✅ (350-700 kg)
@@ -1033,9 +1031,7 @@ impl Body {
     pub fn mount_offset(&self) -> Vec3<f32> {
         match self {
             Body::Humanoid(_) => (self.dimensions() * Vec3::new(0.5, 0.0, 0.6)).into_array(),
-            Body::Humanoid(_) | Body::BipedLarge(_) => {
-                (self.dimensions() * Vec3::new(0.5, 0.0, 0.7)).into_array()
-            },
+            Body::BipedLarge(_) => (self.dimensions() * Vec3::new(0.5, 0.0, 0.7)).into_array(),
             Body::BirdLarge(_) => (self.dimensions() * Vec3::new(0.0, 0.2, 0.7)).into_array(),
             Body::QuadrupedLow(_) => (self.dimensions() * Vec3::new(0.0, 0.15, 0.4)).into_array(),
             Body::QuadrupedMedium(quadruped_medium) => {
