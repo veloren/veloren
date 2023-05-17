@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some sprites can be sat on.
 - Pet birds can now sit on the player's shoulder as they explore the world.
 - Adlet caves
+- Durability free areas (`/area_add <area_name> no_dura ...`)
 
 ### Changed
 
@@ -65,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The game now starts in fullscreen by default
 - Default audio volume should be less likely to destroy ear drums
 - Creatures flee less quickly when low on health
+- All `/build_area_*` commands have been renamed to `/area_*`, and you will have to pass an additional area type
 
 ### Removed
 
