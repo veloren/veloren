@@ -5,5 +5,5 @@ SelfBuff(
     buff_kind: ImminentCritical,
     buff_strength: 1.0,
     buff_duration: Some(30.0),
-    energy_cost: /*15*/0,
+    energy_cost: 15,
 )

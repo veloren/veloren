@@ -1593,3 +1593,21 @@ pub fn leave_stance(data: &JoinData<'_>, output_events: &mut OutputEvents) {
         });
     }
 }
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ScalingKind {
+    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at double minimum
+    // combo
+    Linear,
+    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at 4x minimum combo
+    Sqrt,
+}
+
+impl ScalingKind {
+    pub fn factor(&self, val: f32, norm: f32) -> f32 {
+        match self {
+            Self::Linear => val / norm,
+            Self::Sqrt => (val / norm).sqrt(),
+        }
+    }
+}

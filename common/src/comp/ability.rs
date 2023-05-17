@@ -23,7 +23,7 @@ use crate::{
     resources::Secs,
     states::{
         behavior::JoinData,
-        utils::{AbilityInfo, StageSection},
+        utils::{AbilityInfo, ScalingKind, StageSection},
         *,
     },
     terrain::SpriteKind,
@@ -813,6 +813,7 @@ pub enum CharacterAbility {
         energy_cost: f32,
         #[serde(default)]
         combo_cost: u32,
+        combo_scaling: Option<ScalingKind>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1454,6 +1455,7 @@ impl CharacterAbility {
                 buff_duration: _,
                 ref mut energy_cost,
                 combo_cost: _,
+                combo_scaling: _,
                 meta: _,
             } => {
                 *buff_strength *= stats.diminished_buff_strength();
@@ -2672,6 +2674,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buff_duration,
                 energy_cost: _,
                 combo_cost,
+                combo_scaling,
                 meta: _,
             } => CharacterState::SelfBuff(self_buff::Data {
                 static_data: self_buff::StaticData {
@@ -2682,6 +2685,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     buff_strength: *buff_strength,
                     buff_duration: *buff_duration,
                     combo_cost: *combo_cost,
+                    combo_scaling: *combo_scaling,
+                    combo_on_use: data.combo.map_or(0, |c| c.counter()),
                     ability_info,
                 },
                 timer: Duration::default(),

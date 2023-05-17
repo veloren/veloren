@@ -30,6 +30,8 @@ pub struct StaticData {
     /// How long buff lasts
     pub buff_duration: Option<Secs>,
     pub combo_cost: u32,
+    pub combo_scaling: Option<ScalingKind>,
+    pub combo_on_use: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -62,15 +64,26 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Consume combo
+                    let combo_consumption = if self.static_data.combo_scaling.is_some() {
+                        self.static_data.combo_on_use
+                    } else {
+                        self.static_data.combo_cost
+                    };
                     output_events.emit_server(ServerEvent::ComboChange {
                         entity: data.entity,
-                        change: -(self.static_data.combo_cost as i32),
+                        change: -(combo_consumption as i32),
+                    });
+                    let scaling_factor = self.static_data.combo_scaling.map_or(1.0, |cs| {
+                        cs.factor(
+                            self.static_data.combo_on_use as f32,
+                            self.static_data.combo_cost as f32,
+                        )
                     });
                     // Creates buff
                     let buff = Buff::new(
                         self.static_data.buff_kind,
                         BuffData {
-                            strength: self.static_data.buff_strength,
+                            strength: self.static_data.buff_strength * scaling_factor,
                             duration: self.static_data.buff_duration,
                             delay: None,
                         },

@@ -236,7 +236,7 @@ impl BuffKind {
             BuffKind::EnergyRegen => vec![BuffEffect::EnergyChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Additive,
-                tick_dur: Secs(1.0),
+                tick_dur: Secs(0.25),
             }],
             BuffKind::IncreaseMaxEnergy => vec![BuffEffect::MaxEnergyModifier {
                 value: data.strength,
