@@ -230,26 +230,28 @@ fn position_mut<T>(
     dismount_volume: Option<bool>,
     f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
 ) -> CmdResult<T> {
-    let entity = if dismount_volume.unwrap_or(true) {
+    if dismount_volume.unwrap_or(true) {
         server
             .state
             .ecs()
             .write_storage::<Is<VolumeRider>>()
             .remove(entity);
-        entity
-    } else {
-        server
-            .state
-            .read_storage::<Is<Rider>>()
-            .get(entity)
-            .and_then(|is_rider| {
-                server
-                    .state
-                    .ecs()
-                    .read_resource::<UidAllocator>()
-                    .retrieve_entity_internal(is_rider.mount.into())
-            })
-            .or(server
+    }
+
+    let entity = server
+        .state
+        .read_storage::<Is<Rider>>()
+        .get(entity)
+        .and_then(|is_rider| {
+            server
+                .state
+                .ecs()
+                .read_resource::<UidAllocator>()
+                .retrieve_entity_internal(is_rider.mount.into())
+        })
+        .map(Ok)
+        .or_else(|| {
+            server
                 .state
                 .read_storage::<Is<VolumeRider>>()
                 .get(entity)
@@ -265,9 +267,8 @@ fn position_mut<T>(
                             .retrieve_entity_internal(uid.into())?),
                     })
                 })
-                .transpose()?)
-            .unwrap_or(entity)
-    };
+        })
+        .unwrap_or(Ok(entity))?;
 
     let mut maybe_pos = None;
 
