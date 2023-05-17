@@ -9,15 +9,16 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use vek::*;
 
-pub const ALL_BODIES: [Body; 4] = [
+pub const ALL_BODIES: [Body; 5] = [
     Body::DefaultAirship,
     Body::AirBalloon,
     Body::SailBoat,
     Body::Galleon,
+    Body::Skiff,
 ];
 
 pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
-pub const ALL_SHIPS: [Body; 2] = [Body::SailBoat, Body::Galleon];
+pub const ALL_SHIPS: [Body; 3] = [Body::SailBoat, Body::Galleon, Body::Skiff];
 
 make_case_elim!(
     body,
@@ -29,6 +30,7 @@ make_case_elim!(
         SailBoat = 2,
         Galleon = 3,
         Volume = 4,
+        Skiff = 5,
     }
 );
 
@@ -58,6 +60,7 @@ impl Body {
             Body::AirBalloon => Some("air_balloon.structure"),
             Body::SailBoat => Some("sail_boat.structure"),
             Body::Galleon => Some("galleon.structure"),
+            Body::Skiff => Some("skiff.structure"),
             Body::Volume => None,
         }
     }
@@ -66,8 +69,9 @@ impl Body {
         match self {
             Body::DefaultAirship | Body::Volume => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
-            Body::SailBoat => Vec3::new(6.0, 17.0, 6.0),
-            Body::Galleon => Vec3::new(7.0, 32.0, 10.0),
+            Body::SailBoat => Vec3::new(12.0, 17.0, 6.0),
+            Body::Galleon => Vec3::new(14.0, 32.0, 10.0),
+            Body::Skiff => Vec3::new(7.0, 32.0, 10.0),
         }
     }
 
