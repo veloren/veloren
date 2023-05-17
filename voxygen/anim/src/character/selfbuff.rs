@@ -31,7 +31,7 @@ impl Animation for SelfBuffAnimation {
         match ability_id {
             Some("common.abilities.sword.heavy_fortitude") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
@@ -65,7 +65,7 @@ impl Animation for SelfBuffAnimation {
             },
             Some("common.abilities.sword.defensive_stalwart_sword") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
@@ -103,7 +103,7 @@ impl Animation for SelfBuffAnimation {
             },
             Some("common.abilities.sword.agile_dancing_edge") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
@@ -132,7 +132,7 @@ impl Animation for SelfBuffAnimation {
             },
             Some("common.abilities.sword.cleaving_blade_fever") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
@@ -166,7 +166,7 @@ impl Animation for SelfBuffAnimation {
             },
             Some("common.abilities.axe.berserk") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time, 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time),
                     _ => (0.0, 0.0, 0.0),
@@ -196,7 +196,7 @@ impl Animation for SelfBuffAnimation {
             },
             Some("common.abilities.axe.savage_sense") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time, 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time),
                     _ => (0.0, 0.0, 0.0),
@@ -229,7 +229,7 @@ impl Animation for SelfBuffAnimation {
             },
             Some("common.abilities.axe.adrenaline_rush") => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Movement) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time, 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time),
                     _ => (0.0, 0.0, 0.0),
