@@ -625,9 +625,9 @@ impl GlobalsLayouts {
 
         Self {
             globals,
-            shadow_textures,
-            terrain_atlas_layout: VoxelAtlasLayout::new(device),
             figure_sprite_atlas_layout: VoxelAtlasLayout::new(device),
+            terrain_atlas_layout: VoxelAtlasLayout::new(device),
+            shadow_textures,
         }
     }
 

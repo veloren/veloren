@@ -758,47 +758,44 @@ impl<V: RectRasterableVol> Terrain<V> {
             large_size_threshold: 1024,
             ..guillotiere::AllocatorOptions::default()
         });
-        let [col_lights, kinds] = [
-            wgpu::TextureFormat::Rgba8Unorm,
-            wgpu::TextureFormat::R8Unorm,
-        ]
-        .map(|fmt| {
-            renderer.create_texture_raw(
-                &wgpu::TextureDescriptor {
-                    label: Some("Terrain atlas texture"),
-                    size: wgpu::Extent3d {
-                        width: max_texture_size,
-                        height: max_texture_size,
-                        depth_or_array_layers: 1,
+        let [col_lights, kinds] = [wgpu::TextureFormat::Rgba8Unorm, wgpu::TextureFormat::R8Uint]
+            .map(|fmt| {
+                renderer.create_texture_raw(
+                    &wgpu::TextureDescriptor {
+                        label: Some("Terrain atlas texture"),
+                        size: wgpu::Extent3d {
+                            width: max_texture_size,
+                            height: max_texture_size,
+                            depth_or_array_layers: 1,
+                        },
+                        mip_level_count: 1,
+                        sample_count: 1,
+                        dimension: wgpu::TextureDimension::D2,
+                        format: fmt,
+                        usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
                     },
-                    mip_level_count: 1,
-                    sample_count: 1,
-                    dimension: wgpu::TextureDimension::D2,
-                    format: fmt,
-                    usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
-                },
-                &wgpu::TextureViewDescriptor {
-                    label: Some("Terrain atlas texture view"),
-                    format: Some(fmt),
-                    dimension: Some(wgpu::TextureViewDimension::D2),
-                    aspect: wgpu::TextureAspect::All,
-                    base_mip_level: 0,
-                    mip_level_count: None,
-                    base_array_layer: 0,
-                    array_layer_count: None,
-                },
-                &wgpu::SamplerDescriptor {
-                    label: Some("Terrain atlas texture sampler"),
-                    address_mode_u: wgpu::AddressMode::ClampToEdge,
-                    address_mode_v: wgpu::AddressMode::ClampToEdge,
-                    address_mode_w: wgpu::AddressMode::ClampToEdge,
-                    mag_filter: wgpu::FilterMode::Linear,
-                    min_filter: wgpu::FilterMode::Linear,
-                    mipmap_filter: wgpu::FilterMode::Nearest,
-                    ..Default::default()
-                },
-            )
-        });
+                    &wgpu::TextureViewDescriptor {
+                        label: Some("Terrain atlas texture view"),
+                        format: Some(fmt),
+                        dimension: Some(wgpu::TextureViewDimension::D2),
+                        aspect: wgpu::TextureAspect::All,
+                        base_mip_level: 0,
+                        mip_level_count: None,
+                        base_array_layer: 0,
+                        array_layer_count: None,
+                    },
+                    &wgpu::SamplerDescriptor {
+                        label: Some("Terrain atlas texture sampler"),
+                        address_mode_u: wgpu::AddressMode::ClampToEdge,
+                        address_mode_v: wgpu::AddressMode::ClampToEdge,
+                        address_mode_w: wgpu::AddressMode::ClampToEdge,
+                        mag_filter: wgpu::FilterMode::Nearest,
+                        min_filter: wgpu::FilterMode::Nearest,
+                        mipmap_filter: wgpu::FilterMode::Nearest,
+                        ..Default::default()
+                    },
+                )
+            });
         let textures = renderer.terrain_bind_atlas_textures(col_lights, kinds);
         Ok((atlas, textures))
     }

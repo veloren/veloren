@@ -579,7 +579,7 @@ impl FigureMgr {
         span!(_guard, "clean", "FigureManager::clean");
 
         if self.any_watcher_reloaded() {
-            self.atlas.atlas.clear();
+            self.atlas.allocator.clear();
 
             self.model_cache.clear_models();
             self.theropod_model_cache.clear_models();
@@ -7252,15 +7252,16 @@ impl FigureMgr {
 }
 
 pub struct FigureAtlas {
-    atlas: AtlasAllocator,
+    allocator: AtlasAllocator,
     // atlas_texture: Texture<ColLightFmt>,
 }
 
 impl FigureAtlas {
     pub fn new(renderer: &mut Renderer) -> Self {
-        let atlas = Self::make_atlas(renderer).expect("Failed to create texture atlas for figures");
+        let allocator =
+            Self::make_allocator(renderer).expect("Failed to create texture atlas for figures");
         Self {
-            atlas, /* atlas_texture, */
+            allocator, /* atlas_texture, */
         }
     }
 
@@ -7290,8 +7291,8 @@ impl FigureAtlas {
         vertex_ranges: [Range<u32>; N],
     ) -> FigureModelEntry<N> {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
-        let atlas = &mut self.atlas;
-        let allocation = atlas
+        let allocator = &mut self.allocator;
+        let allocation = allocator
             .allocate(guillotiere::Size::new(
                 atlas_size.x as i32,
                 atlas_size.y as i32,
@@ -7343,8 +7344,8 @@ impl FigureAtlas {
         blocks_offset: Vec3<f32>,
     ) -> TerrainModelEntry<N> {
         span!(_guard, "create_figure", "FigureColLights::create_figure");
-        let atlas = &mut self.atlas;
-        let allocation = atlas
+        let allocator = &mut self.allocator;
+        let allocation = allocator
             .allocate(guillotiere::Size::new(
                 atlas_size.x as i32,
                 atlas_size.y as i32,
@@ -7382,10 +7383,10 @@ impl FigureAtlas {
         }
     }
 
-    fn make_atlas(renderer: &mut Renderer) -> Result<AtlasAllocator, RenderError> {
+    fn make_allocator(renderer: &mut Renderer) -> Result<AtlasAllocator, RenderError> {
         let max_texture_size = renderer.max_texture_size();
         let atlas_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
-        let atlas = AtlasAllocator::with_options(atlas_size, &guillotiere::AllocatorOptions {
+        let allocator = AtlasAllocator::with_options(atlas_size, &guillotiere::AllocatorOptions {
             // TODO: Verify some good empirical constants.
             small_size_threshold: 32,
             large_size_threshold: 256,
@@ -7412,7 +7413,7 @@ impl FigureAtlas {
             ),
         )?;
         Ok((atlas, texture)) */
-        Ok(atlas)
+        Ok(allocator)
     }
 }
 

@@ -334,7 +334,7 @@ impl AtlasData for TerrainAtlasData {
                 wgpu::TextureFormat::Rgba8Unorm,
                 bytemuck::cast_slice(&self.col_lights),
             ),
-            (wgpu::TextureFormat::R8Unorm, &self.kinds),
+            (wgpu::TextureFormat::R8Uint, &self.kinds),
         ]
     }
 
@@ -365,7 +365,7 @@ impl AtlasData for TerrainAtlasData {
                 binding: 2,
                 visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                 ty: wgpu::BindingType::Texture {
-                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    sample_type: wgpu::TextureSampleType::Uint,
                     view_dimension: wgpu::TextureViewDimension::D2,
                     multisampled: false,
                 },
@@ -375,7 +375,7 @@ impl AtlasData for TerrainAtlasData {
                 binding: 3,
                 visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
-                    filtering: true,
+                    filtering: false,
                     comparison: false,
                 },
                 count: None,

@@ -50,7 +50,7 @@ uniform texture2D t_col_light;
 layout(set = 2, binding = 1)
 uniform sampler s_col_light;
 layout(set = 2, binding = 2)
-uniform texture2D t_kind;
+uniform utexture2D t_kind;
 layout(set = 2, binding = 3)
 uniform sampler s_kind;
 
@@ -91,7 +91,7 @@ void main() {
     // float f_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0))).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
     float f_light, f_glow, f_ao, f_sky_exposure;
     uint f_kind;
-    vec3 f_col = greedy_extract_col_light_kind_terrain(t_col_light, s_col_light, t_kind, s_kind, f_uv_pos, f_light, f_glow, f_ao, f_sky_exposure, f_kind);
+    vec3 f_col = greedy_extract_col_light_kind_terrain(t_col_light, s_col_light, t_kind, f_uv_pos, f_light, f_glow, f_ao, f_sky_exposure, f_kind);
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_light), 1);

@@ -374,7 +374,7 @@ where
                 let alive = *last_used + delta > tick;
                 if !alive {
                     if let Some(model_entry) = model_entry.get_done() {
-                        atlas.atlas.deallocate(model_entry.allocation().id);
+                        atlas.allocator.deallocate(model_entry.allocation().id);
                     }
                 }
                 alive

@@ -1393,8 +1393,6 @@ impl Renderer {
     }
 
     /// Create a new texture from the provided image.
-    ///
-    /// Currently only supports Rgba8Srgb
     pub fn create_texture(
         &mut self,
         image: &image::DynamicImage,
@@ -1410,17 +1408,12 @@ impl Renderer {
         )
     }
 
-    /// Create a new dynamic texture with the
-    /// specified dimensions.
-    ///
-    /// Currently only supports Rgba8Srgb
+    /// Create a new dynamic texture with the specified dimensions.
     pub fn create_dynamic_texture(&mut self, dims: Vec2<u32>) -> Texture {
         Texture::new_dynamic(&self.device, &self.queue, dims.x, dims.y)
     }
 
     /// Update a texture with the provided offset, size, and data.
-    ///
-    /// Currently only supports Rgba8Srgb
     pub fn update_texture<T: bytemuck::Pod>(
         &mut self,
         texture: &Texture,
