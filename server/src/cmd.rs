@@ -1685,7 +1685,7 @@ fn handle_spawn_ship(
 ) -> CmdResult<()> {
     let angle = parse_cmd_args!(args, f32);
     let mut pos = position(server, target, "target")?;
-    pos.0.z += 50.0;
+    pos.0.z += 2.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
     let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
     let dir = angle.map(|a| Vec3::new(a.cos(), a.sin(), 0.0));
