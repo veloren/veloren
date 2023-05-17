@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some sprites can be sat on.
 - Pet birds can now sit on the player's shoulder as they explore the world.
 - Adlet caves
-- Durability free areas (`/area_add <area_name> no_dura ...`)
+- Durability free areas (`/area_add <area_name> no_durability ...`)
 
 ### Changed
 

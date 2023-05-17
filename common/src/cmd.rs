@@ -114,7 +114,7 @@ lazy_static! {
 
         souls
     };
-    static ref AREA_KINDS: Vec<String> = vec!["build".to_string(), "no_dura".to_string()];
+    static ref AREA_KINDS: Vec<String> = vec!["build".to_string(), "no_durability".to_string()];
     static ref OBJECTS: Vec<String> = comp::object::ALL_OBJECTS
         .iter()
         .map(|o| o.to_string().to_string())

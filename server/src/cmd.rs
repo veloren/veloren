@@ -2009,7 +2009,7 @@ fn get_areas_mut<'l>(kind: &str, state: &'l mut State) -> CmdResult<&'l mut Area
         "build" => state
             .mut_resource::<AreasContainer<BuildArea>>()
             .deref_mut(),
-        "no_dura" => state
+        "no_durability" => state
             .mut_resource::<AreasContainer<NoDurabilityArea>>()
             .deref_mut(),
         _ => Err(format!("Invalid area type '{kind}'"))?,
