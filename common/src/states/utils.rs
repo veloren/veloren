@@ -259,7 +259,7 @@ impl Body {
                     | theropod::Species::Yale => 700.0 * self.mass().0,
                     _ => 3.0 * self.mass().0,
                 },
-                Body::QuadrupedLow(_) => 120.0 * self.mass().0,
+                Body::QuadrupedLow(_) => 14.0 * self.mass().0,
                 Body::QuadrupedMedium(body) => match body.species {
                     quadruped_medium::Species::Mammoth => 75.0 * self.mass().0,
                     _ => 500.0 * self.mass().0,
