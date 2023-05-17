@@ -236,7 +236,7 @@ impl Body {
             match self {
                 Body::Object(_) => return None,
                 Body::ItemDrop(_) => return None,
-                Body::Ship(ship) if ship.has_water_thrust() => 0.1 * self.mass().0,
+                Body::Ship(ship) if ship.has_water_thrust() => 0.2 * self.mass().0,
                 Body::Ship(_) => return None,
                 Body::BipedLarge(_) => 120.0 * self.mass().0,
                 Body::Golem(_) => 0.5 * self.mass().0,
