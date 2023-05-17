@@ -220,7 +220,7 @@ impl Body {
                 quadruped_low::Species::Mossdrake => 1.7,
                 _ => 2.0,
             },
-            Body::Ship(ship) if ship.has_water_thrust() => 0.1,
+            Body::Ship(ship) if ship.has_water_thrust() => 0.2,
             Body::Ship(_) => 0.12,
             Body::Arthropod(_) => 3.5,
         }
@@ -228,33 +228,46 @@ impl Body {
 
     /// Returns thrust force if the body type can swim, otherwise None
     pub fn swim_thrust(&self) -> Option<f32> {
-        match self {
-            Body::Object(_) => None,
-            Body::ItemDrop(_) => None,
-            Body::BipedLarge(_) | Body::Golem(_) => Some(3000.0 * self.mass().0),
-            Body::BipedSmall(_) => Some(1000.0 * self.mass().0),
-            Body::BirdMedium(_) => Some(1200.0 * self.mass().0),
-            Body::BirdLarge(_) => Some(750.0 * self.mass().0),
-            Body::FishMedium(_) => Some(50.0 * self.mass().0),
-            Body::FishSmall(_) => Some(50.0 * self.mass().0),
-            Body::Dragon(_) => Some(3000.0 * self.mass().0),
-            Body::Humanoid(_) => Some(2500.0 * self.mass().0),
-            Body::Theropod(body) => match body.species {
-                theropod::Species::Sandraptor
-                | theropod::Species::Snowraptor
-                | theropod::Species::Sunlizard
-                | theropod::Species::Woodraptor
-                | theropod::Species::Dodarock
-                | theropod::Species::Yale => Some(2500.0 * self.mass().0),
-                _ => Some(100.0 * self.mass().0),
-            },
-            Body::QuadrupedLow(_) => Some(2500.0 * self.mass().0),
-            Body::QuadrupedMedium(_) => Some(3000.0 * self.mass().0),
-            Body::QuadrupedSmall(_) => Some(3000.0 * self.mass().0),
-            Body::Ship(ship) if ship.has_water_thrust() => Some(3500.0 * self.mass().0),
-            Body::Ship(_) => None,
-            Body::Arthropod(_) => Some(300.0 * self.mass().0),
-        }
+        // Swim thrust is proportional to the frontal area of the creature, since we
+        // assume that strength roughly scales according to square laws. Also,
+        // it happens to make balancing against drag much simpler.
+        let front_profile = self.dimensions().x * self.dimensions().z;
+        Some(
+            match self {
+                Body::Object(_) => return None,
+                Body::ItemDrop(_) => return None,
+                Body::Ship(ship) if ship.has_water_thrust() => 0.1 * self.mass().0,
+                Body::Ship(_) => return None,
+                Body::BipedLarge(_) => 120.0 * self.mass().0,
+                Body::Golem(_) => 0.5 * self.mass().0,
+                Body::BipedSmall(_) => 1000.0 * self.mass().0,
+                Body::BirdMedium(_) => 1500.0 * self.mass().0,
+                Body::BirdLarge(_) => 35.0 * self.mass().0,
+                Body::FishMedium(_) => 75.0 * self.mass().0,
+                Body::FishSmall(_) => 120.0 * self.mass().0,
+                Body::Dragon(_) => 0.5 * self.mass().0,
+                // Humanoids are a bit different: we try to give them thrusts that result in similar
+                // speeds for gameplay reasons
+                Body::Humanoid(_) => 4_000_000.0 / self.mass().0,
+                Body::Theropod(body) => match body.species {
+                    theropod::Species::Sandraptor
+                    | theropod::Species::Snowraptor
+                    | theropod::Species::Sunlizard
+                    | theropod::Species::Woodraptor
+                    | theropod::Species::Dodarock
+                    | theropod::Species::Axebeak
+                    | theropod::Species::Yale => 700.0 * self.mass().0,
+                    _ => 3.0 * self.mass().0,
+                },
+                Body::QuadrupedLow(_) => 120.0 * self.mass().0,
+                Body::QuadrupedMedium(body) => match body.species {
+                    quadruped_medium::Species::Mammoth => 75.0 * self.mass().0,
+                    _ => 500.0 * self.mass().0,
+                },
+                Body::QuadrupedSmall(_) => 1500.0 * self.mass().0,
+                Body::Arthropod(_) => 300.0 * self.mass().0,
+            } * front_profile,
+        )
     }
 
     /// Returns thrust force if the body type can fly, otherwise None
@@ -371,7 +384,7 @@ pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f3
         && data.body.fly_thrust().is_some()
     {
         fly_move(data, update, efficiency);
-    } else if let Some(submersion) = (data.physics.on_ground.is_none()
+    } else if let Some(submersion) = (data.physics.in_liquid().is_some()
         && data.body.swim_thrust().is_some())
     .then_some(submersion)
     .flatten()
@@ -645,19 +658,27 @@ fn swim_move(
             fw * data.inputs.move_dir.dot(fw).max(0.0)
         };
 
-        // Autoswim to stay afloat
-        let move_z = if submersion < 1.0 && data.inputs.move_z.abs() < f32::EPSILON {
-            (submersion - 0.1).max(0.0)
+        // Automatically tread water to stay afloat
+        let move_z = if submersion < 1.0
+            && data.inputs.move_z.abs() < f32::EPSILON
+            && data.physics.on_ground.is_none()
+        {
+            submersion.max(0.0) * 0.1
         } else {
             data.inputs.move_z
         };
 
+        // Assume that feet/flippers get less efficient as we become less submerged
+        let move_z = move_z.min((submersion * 1.5 - 0.5).clamp(0.0, 1.0).powi(2));
+
         update.vel.0 += Vec3::broadcast(data.dt.0)
             * Vec3::new(dir.x, dir.y, move_z)
-                .try_normalized()
-                .unwrap_or_default()
+                // TODO: Should probably be normalised, but creates odd discrepancies when treading water
+                // .try_normalized()
+                // .unwrap_or_default()
             * water_accel
-            * (submersion - 0.2).clamp(0.0, 1.0).powi(2);
+            // Gives a good balance between submerged and surface speed
+            * (submersion * 3.0).clamp(0.0, 1.0);
 
         true
     } else {
@@ -822,7 +843,8 @@ pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         //&& update.vel.0.z < 0.0
-        && data.body.can_climb()
+        // *All* entities can climb when in liquids, to let them get out of
+        && (data.body.can_climb() || data.physics.in_liquid().is_some())
         && update.energy.current() > 1.0
     {
         update.character = CharacterState::Climb(climb::Data::create_adjusted_by_skills(data));
@@ -1104,14 +1126,16 @@ pub fn handle_jump(
         .then(|| data.body.jump_impulse())
         .flatten()
         .and_then(|impulse| {
-            if data.physics.on_ground.is_some() {
+            if data.physics.in_liquid().is_some() {
+                if data.physics.on_wall.is_some() {
+                    // Allow entities to make a small jump when at the edge of a body of water,
+                    // allowing them to path out of it
+                    Some(impulse * 0.75)
+                } else {
+                    None
+                }
+            } else if data.physics.on_ground.is_some() {
                 Some(impulse)
-            } else if data.physics.in_liquid().map_or(false, |h| h < 1.0)
-                && data.physics.on_wall.is_some()
-            {
-                // Allow entities to make a small jump when at the edge of a body of water,
-                // allowing them to path out of it
-                Some(impulse * 0.75)
             } else {
                 None
             }

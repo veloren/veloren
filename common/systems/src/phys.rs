@@ -1612,17 +1612,22 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     if on_ground.is_some() {
         physics_state.on_ground = on_ground;
     // If the space below us is free, then "snap" to the ground
-    } else if vel.0.z <= 0.0 && was_on_ground && block_snap && {
-        //prof_span!("snap check");
-        collision_with(
-            pos.0 - Vec3::unit_z() * 1.1,
-            &terrain,
-            near_aabb,
-            radius,
-            z_range.clone(),
-            vel.0,
-        )
-    } {
+    } else if vel.0.z <= 0.0
+        && was_on_ground
+        && block_snap
+        && physics_state.in_liquid().is_none()
+        && {
+            //prof_span!("snap check");
+            collision_with(
+                pos.0 - Vec3::unit_z() * 1.1,
+                &terrain,
+                near_aabb,
+                radius,
+                z_range.clone(),
+                vel.0,
+            )
+        }
+    {
         //prof_span!("snap!!");
         let snap_height = terrain
             .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))
@@ -1715,6 +1720,32 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     physics_state.on_wall = on_wall;
     let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
 
+    physics_state.in_fluid = liquid
+        .map(|(kind, max_z)| {
+            // NOTE: assumes min_z == 0.0
+            let depth = max_z - pos.0.z;
+
+            // This is suboptimal because it doesn't check for true depth,
+            // so it can cause problems for situations like swimming down
+            // a river and spawning or teleporting in(/to) water
+            let new_depth = physics_state.in_liquid().map_or(depth, |old_depth| {
+                (old_depth + old_pos.z - pos.0.z).max(depth)
+            });
+
+            Fluid::Liquid {
+                kind,
+                depth: new_depth,
+                vel: Vel::zero(),
+            }
+        })
+        .or_else(|| match physics_state.in_fluid {
+            Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
+                elevation: pos.0.z,
+                vel: Vel::default(),
+            }),
+            fluid => fluid,
+        });
+
     // skating (ski)
     if !vel.0.xy().is_approx_zero()
         && physics_state
@@ -1778,7 +1809,19 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.skating_active = true;
         vel.0 = Vec3::new(new_ground_speed.x, new_ground_speed.y, 0.0);
     } else {
-        let ground_fric = physics_state
+        let ground_fric = if physics_state.in_liquid().is_some() {
+            // HACK:
+            // If we're in a liquid, radically reduce ground friction (i.e: assume that
+            // contact force is negligible due to buoyancy) Note that this might
+            // not be realistic for very dense entities (currently no entities in Veloren
+            // are sufficiently negatively buoyant for this to matter). We
+            // should really make friction be proportional to net downward force, but
+            // that means taking into account buoyancy which is a bit difficult to do here
+            // for now.
+            0.1
+        } else {
+            1.0
+        } * physics_state
             .on_ground
             .map(|b| b.get_friction())
             .unwrap_or(0.0);
@@ -1794,32 +1837,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         }
         physics_state.skating_active = false;
     }
-
-    physics_state.in_fluid = liquid
-        .map(|(kind, max_z)| {
-            // NOTE: assumes min_z == 0.0
-            let depth = max_z - pos.0.z;
-
-            // This is suboptimal because it doesn't check for true depth,
-            // so it can cause problems for situations like swimming down
-            // a river and spawning or teleporting in(/to) water
-            let new_depth = physics_state.in_liquid().map_or(depth, |old_depth| {
-                (old_depth + old_pos.z - pos.0.z).max(depth)
-            });
-
-            Fluid::Liquid {
-                kind,
-                depth: new_depth,
-                vel: Vel::zero(),
-            }
-        })
-        .or_else(|| match physics_state.in_fluid {
-            Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
-                elevation: pos.0.z,
-                vel: Vel::default(),
-            }),
-            fluid => fluid,
-        });
 }
 
 fn voxel_collider_bounding_sphere(

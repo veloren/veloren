@@ -66,8 +66,8 @@ impl Body {
         match self {
             Body::DefaultAirship | Body::Volume => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
-            Body::SailBoat => Vec3::new(13.0, 31.0, 3.0),
-            Body::Galleon => Vec3::new(13.0, 32.0, 3.0),
+            Body::SailBoat => Vec3::new(6.0, 17.0, 6.0),
+            Body::Galleon => Vec3::new(7.0, 32.0, 10.0),
         }
     }
 
@@ -100,7 +100,7 @@ impl Body {
     pub fn density(&self) -> Density {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
-            _ => Density(AIR_DENSITY * 0.2 + WATER_DENSITY * 0.8), // Most boats should be buoyant
+            _ => Density(AIR_DENSITY * 0.75 + WATER_DENSITY * 0.25), // Most boats should be buoyant
         }
     }
 
