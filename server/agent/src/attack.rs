@@ -1359,7 +1359,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
         }
-        let contexts = AbilityContext::from(self.stance, Some(self.inventory));
+        let contexts = AbilityContext::from(self.stance, Some(self.inventory), self.combo);
         let extract_ability = |input: AbilityInput| {
             self.active_abilities
                 .activate_ability(

@@ -37,10 +37,12 @@ impl Animation for ChargeswingAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
-        next.main_weapon_trail = true;
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
-        next.off_weapon_trail = true;
+        if matches!(stage_section, Some(StageSection::Action)) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
 
         match ability_id {
             Some(
@@ -237,16 +239,10 @@ impl Animation for ChargeswingAnimation {
             Some("common.abilities.axe.cleave") => {
                 let (move1, move2, move3, tension) = match stage_section {
                     Some(StageSection::Charge) => {
-                        next.main_weapon_trail = false;
-                        next.off_weapon_trail = false;
                         (anim_time.min(1.0), 0.0, 0.0, (anim_time * 20.0).sin())
                     },
                     Some(StageSection::Action) => (1.0, anim_time.powi(2), 0.0, 0.0),
-                    Some(StageSection::Recover) => {
-                        next.main_weapon_trail = false;
-                        next.off_weapon_trail = false;
-                        (1.0, 1.0, anim_time, 0.0)
-                    },
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time, 0.0),
                     _ => (0.0, 0.0, 0.0, 0.0),
                 };
                 let pullback = 1.0 - move3;

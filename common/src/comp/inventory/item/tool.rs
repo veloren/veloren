@@ -11,7 +11,7 @@ use crate::{
             Inventory,
         },
         skills::Skill,
-        CharacterAbility, SkillSet,
+        CharacterAbility, Combo, SkillSet,
     },
 };
 use hashbrown::HashMap;
@@ -361,7 +361,7 @@ impl<T> AbilityKind<T> {
                 .find_map(|(req_contexts, a)| {
                     req_contexts
                         .iter()
-                        .all(|req| contexts.contains(req))
+                        .all(|req| req.fulfilled_by(contexts))
                         .then_some(a)
                 }),
         }
@@ -376,10 +376,15 @@ pub enum AbilityContext {
     /// files(s).
     Stance(Stance),
     DualWieldingSameKind,
+    Combo(u32),
 }
 
 impl AbilityContext {
-    pub fn from(stance: Option<&Stance>, inv: Option<&Inventory>) -> Vec<Self> {
+    pub fn from(
+        stance: Option<&Stance>,
+        inv: Option<&Inventory>,
+        combo: Option<&Combo>,
+    ) -> Vec<Self> {
         let mut contexts = Vec::new();
         match stance {
             Some(Stance::None) => {},
@@ -400,7 +405,28 @@ impl AbilityContext {
                 contexts.push(AbilityContext::DualWieldingSameKind)
             }
         }
+        if let Some(combo) = combo {
+            contexts.push(AbilityContext::Combo(combo.counter()));
+        }
         contexts
+    }
+
+    fn fulfilled_by(&self, contexts: &[AbilityContext]) -> bool {
+        match self {
+            basic_context @ Self::Stance(_) | basic_context @ Self::DualWieldingSameKind => {
+                contexts.contains(basic_context)
+            },
+            Self::Combo(required) => contexts
+                .iter()
+                .filter_map(|context| {
+                    if let Self::Combo(combo) = context {
+                        Some(combo)
+                    } else {
+                        None
+                    }
+                })
+                .any(|combo| combo >= required),
+        }
     }
 }
 

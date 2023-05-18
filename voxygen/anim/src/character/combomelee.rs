@@ -32,10 +32,12 @@ impl Animation for ComboAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
-        next.main_weapon_trail = true;
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
-        next.off_weapon_trail = true;
+        if matches!(stage_section, Some(StageSection::Action)) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
         let multi_strike_pullback = 1.0
             - if matches!(stage_section, Some(StageSection::Recover)) {
                 anim_time.powi(4)
@@ -882,17 +884,9 @@ impl Animation for ComboAnimation {
                 Some("common.abilities.axe.triple_chop") => {
                     let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => {
-                                next.main_weapon_trail = false;
-                                next.off_weapon_trail = false;
-                                (anim_time, 0.0)
-                            },
+                            Some(StageSection::Buildup) => (anim_time, 0.0),
                             Some(StageSection::Action) => (1.0, anim_time),
-                            Some(StageSection::Recover) => {
-                                next.main_weapon_trail = false;
-                                next.off_weapon_trail = false;
-                                (1.0, 1.0)
-                            },
+                            Some(StageSection::Recover) => (1.0, 1.0),
                             _ => (0.0, 0.0),
                         }
                     } else {
@@ -972,17 +966,9 @@ impl Animation for ComboAnimation {
                 },
                 Some("common.abilities.axe.brutal_swing") => {
                     let (move1, move2_raw) = match stage_section {
-                        Some(StageSection::Buildup) => {
-                            next.main_weapon_trail = false;
-                            next.off_weapon_trail = false;
-                            (anim_time, 0.0)
-                        },
+                        Some(StageSection::Buildup) => (anim_time, 0.0),
                         Some(StageSection::Action) => (1.0, anim_time),
-                        Some(StageSection::Recover) => {
-                            next.main_weapon_trail = false;
-                            next.off_weapon_trail = false;
-                            (1.0, 1.0)
-                        },
+                        Some(StageSection::Recover) => (1.0, 1.0),
                         _ => (0.0, 0.0),
                     };
                     let move1 = move1 * multi_strike_pullback;
@@ -1007,17 +993,9 @@ impl Animation for ComboAnimation {
                 },
                 Some("common.abilities.axe.rising_tide") => {
                     let (move1, move2_raw) = match stage_section {
-                        Some(StageSection::Buildup) => {
-                            next.main_weapon_trail = false;
-                            next.off_weapon_trail = false;
-                            (anim_time, 0.0)
-                        },
+                        Some(StageSection::Buildup) => (anim_time, 0.0),
                         Some(StageSection::Action) => (1.0, anim_time),
-                        Some(StageSection::Recover) => {
-                            next.main_weapon_trail = false;
-                            next.off_weapon_trail = false;
-                            (1.0, 1.0)
-                        },
+                        Some(StageSection::Recover) => (1.0, 1.0),
                         _ => (0.0, 0.0),
                     };
                     let move1 = move1 * multi_strike_pullback;

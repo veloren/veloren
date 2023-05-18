@@ -3047,6 +3047,7 @@ impl Hud {
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
         let combos = ecs.read_storage::<comp::Combo>();
+        let combo = combos.get(entity);
         let time = ecs.read_resource::<Time>();
         let stances = ecs.read_storage::<comp::Stance>();
         let char_states = ecs.read_storage::<comp::CharacterState>();
@@ -3073,7 +3074,7 @@ impl Hud {
             bodies.get(entity),
         ) {
             let stance = stances.get(entity);
-            let contexts = AbilityContext::from(stance, Some(inventory));
+            let contexts = AbilityContext::from(stance, Some(inventory), combo);
             match Skillbar::new(
                 client,
                 &info,
@@ -3100,7 +3101,7 @@ impl Hud {
                 &msm,
                 self.floaters.combo_floater,
                 &contexts,
-                combos.get(entity),
+                combo,
                 char_states.get(entity),
                 stance,
             )
@@ -3581,7 +3582,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
-                let contexts = AbilityContext::from(stances.get(entity), Some(inventory));
+                let contexts = AbilityContext::from(stances.get(entity), Some(inventory), combo);
                 for event in Diary::new(
                     &self.show,
                     client,

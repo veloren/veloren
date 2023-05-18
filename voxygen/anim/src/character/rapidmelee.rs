@@ -34,10 +34,12 @@ impl Animation for RapidMeleeAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
-        next.main_weapon_trail = true;
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
-        next.off_weapon_trail = true;
+        if matches!(stage_section, Some(StageSection::Action)) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
 
         match ability_id {
             Some(
