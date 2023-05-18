@@ -220,7 +220,7 @@ impl Body {
                 quadruped_low::Species::Mossdrake => 1.7,
                 _ => 2.0,
             },
-            Body::Ship(ship) if ship.has_water_thrust() => 0.2,
+            Body::Ship(ship) if ship.has_water_thrust() => 0.35,
             Body::Ship(_) => 0.12,
             Body::Arthropod(_) => 3.5,
         }
@@ -236,16 +236,16 @@ impl Body {
             match self {
                 Body::Object(_) => return None,
                 Body::ItemDrop(_) => return None,
-                Body::Ship(ship) if ship.has_water_thrust() => 0.2 * self.mass().0,
+                Body::Ship(ship) if ship.has_water_thrust() => 350.0 * self.mass().0,
                 Body::Ship(_) => return None,
                 Body::BipedLarge(_) => 120.0 * self.mass().0,
-                Body::Golem(_) => 0.5 * self.mass().0,
+                Body::Golem(_) => 100.0 * self.mass().0,
                 Body::BipedSmall(_) => 1000.0 * self.mass().0,
-                Body::BirdMedium(_) => 1500.0 * self.mass().0,
-                Body::BirdLarge(_) => 35.0 * self.mass().0,
-                Body::FishMedium(_) => 75.0 * self.mass().0,
-                Body::FishSmall(_) => 120.0 * self.mass().0,
-                Body::Dragon(_) => 0.5 * self.mass().0,
+                Body::BirdMedium(_) => 400.0 * self.mass().0,
+                Body::BirdLarge(_) => 400.0 * self.mass().0,
+                Body::FishMedium(_) => 900.0 * self.mass().0,
+                Body::FishSmall(_) => 1000.0 * self.mass().0,
+                Body::Dragon(_) => 50.0 * self.mass().0,
                 // Humanoids are a bit different: we try to give them thrusts that result in similar
                 // speeds for gameplay reasons
                 Body::Humanoid(_) => 4_000_000.0 / self.mass().0,
@@ -256,16 +256,16 @@ impl Body {
                     | theropod::Species::Woodraptor
                     | theropod::Species::Dodarock
                     | theropod::Species::Axebeak
-                    | theropod::Species::Yale => 700.0 * self.mass().0,
-                    _ => 3.0 * self.mass().0,
+                    | theropod::Species::Yale => 500.0 * self.mass().0,
+                    _ => 150.0 * self.mass().0,
                 },
-                Body::QuadrupedLow(_) => 14.0 * self.mass().0,
+                Body::QuadrupedLow(_) => 1200.0 * self.mass().0,
                 Body::QuadrupedMedium(body) => match body.species {
-                    quadruped_medium::Species::Mammoth => 75.0 * self.mass().0,
-                    _ => 500.0 * self.mass().0,
+                    quadruped_medium::Species::Mammoth => 150.0 * self.mass().0,
+                    _ => 1000.0 * self.mass().0,
                 },
                 Body::QuadrupedSmall(_) => 1500.0 * self.mass().0,
-                Body::Arthropod(_) => 300.0 * self.mass().0,
+                Body::Arthropod(_) => 500.0 * self.mass().0,
             } * front_profile,
         )
     }
@@ -671,14 +671,15 @@ fn swim_move(
         // Assume that feet/flippers get less efficient as we become less submerged
         let move_z = move_z.min((submersion * 1.5 - 0.5).clamp(0.0, 1.0).powi(2));
 
-        update.vel.0 += Vec3::broadcast(data.dt.0)
-            * Vec3::new(dir.x, dir.y, move_z)
+        update.vel.0 += Vec3::new(dir.x, dir.y, move_z)
                 // TODO: Should probably be normalised, but creates odd discrepancies when treading water
                 // .try_normalized()
                 // .unwrap_or_default()
             * water_accel
             // Gives a good balance between submerged and surface speed
-            * (submersion * 3.0).clamp(0.0, 1.0);
+            * submersion.clamp(0.0, 1.0).sqrt()
+            // Good approximate compensation for dt-dependent effects
+            * data.dt.0 * 0.04;
 
         true
     } else {

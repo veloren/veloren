@@ -62,29 +62,45 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        let impulse = dt.0
-            * body.aerodynamic_forces(
+        // HACK: We should really use the latter logic (i.e: `aerodynamic_forces`) for liquids, but it results in
+        // pretty serious dt-dependent problems that are extremely difficult to resolve. This is a compromise: for
+        // liquids only, we calculate drag using an incorrect (but still visually plausible) model that is much more
+        // resistant to differences in dt. Because it's physically incorrect anyway, there are magic coefficients that
+        // exist simply to get us closer to what water 'should' feel like.
+        if fluid.is_liquid() {
+            let fric = body.drag_coefficient_liquid(
                 &rel_flow,
                 fluid_density.0,
                 wings,
                 scale.map_or(1.0, |s| s.0),
-            );
-        debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
-        if !impulse.is_approx_zero() {
-            let new_v = vel.0 + impulse / mass.0;
-            // If the new velocity is in the opposite direction, it's because the forces
-            // involved are too high for the current tick to handle. We deal with this by
-            // removing the component of our velocity vector along the direction of force.
-            // This way we can only ever lose velocity and will never experience a reverse
-            // in direction from events such as falling into water at high velocities.
-            if new_v.dot(vel.0) < 0.0 {
-                // Multiply by a factor to prevent full stop,
-                // as this can cause things to get stuck in high-density medium
-                vel.0 -= vel.0.projected(&impulse) * 0.9;
-            } else {
-                vel.0 = new_v;
+            ).magnitude() * 0.02;
+
+            vel.0 *= (1.0 / (1.0 + fric)).powf(dt.0 * 10.0);
+        } else {
+            let impulse = dt.0
+                * body.aerodynamic_forces(
+                    &rel_flow,
+                    fluid_density.0,
+                    wings,
+                    scale.map_or(1.0, |s| s.0),
+                );
+            debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
+            if !impulse.is_approx_zero() {
+                let new_v = vel.0 + impulse / mass.0;
+                // If the new velocity is in the opposite direction, it's because the forces
+                // involved are too high for the current tick to handle. We deal with this by
+                // removing the component of our velocity vector along the direction of force.
+                // This way we can only ever lose velocity and will never experience a reverse
+                // in direction from events such as falling into water at high velocities.
+                if new_v.dot(vel.0) < 0.0 {
+                    // Multiply by a factor to prevent full stop,
+                    // as this can cause things to get stuck in high-density medium
+                    vel.0 -= vel.0.projected(&impulse) * 0.9;
+                } else {
+                    vel.0 = new_v;
+                }
             }
-        };
+        }
         debug_assert!(!vel.0.map(|a| a.is_nan()).reduce_or());
     };
 
@@ -1731,6 +1747,8 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             let new_depth = physics_state.in_liquid().map_or(depth, |old_depth| {
                 (old_depth + old_pos.z - pos.0.z).max(depth)
             });
+
+            physics_state.ground_vel = ground_vel;
 
             Fluid::Liquid {
                 kind,
