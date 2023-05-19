@@ -1402,7 +1402,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         let mut collision = false;
         // TODO: could short-circuit here
         terrain.for_each_in(near_aabb, |block_pos, block| {
-            if block.is_solid() && hit(&block) {
+            if hit(&block) && block.is_solid() {
                 let block_aabb = Aabb {
                     min: block_pos.map(|e| e as f32),
                     max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
@@ -1459,6 +1459,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         const MAX_ATTEMPTS: usize = 16;
         pos.0 += pos_delta / increments as f32;
 
+        let vel2 = *vel;
         let try_colliding_block = |pos: &Pos| {
             //prof_span!("most colliding check");
             // Calculate the player's AABB
@@ -1487,16 +1488,14 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     };
 
                     // Determine whether the block's AABB collides with the player's AABB
-                    if block_aabb.collides_with_aabb(player_aabb) {
+                    if player_aabb.collides_with_aabb(block_aabb)
+                        && block.valid_collision_dir(player_aabb, block_aabb, vel2.0)
+                    {
                         match &most_colliding {
                             // Select the minimum of the value from `player_overlap`
                             Some((_, other_block_aabb, _))
-                                if {
-                                    // TODO: comment below is outdated (as of ~1 year ago)
-                                    // Find the maximum of the minimum collision axes (this bit
-                                    // is weird, trust me that it works)
-                                    player_overlap(block_aabb) >= player_overlap(*other_block_aabb)
-                                } => {},
+                                if player_overlap(block_aabb)
+                                    >= player_overlap(*other_block_aabb) => {},
                             _ => most_colliding = Some((block_pos, block_aabb, block)),
                         }
                     }
@@ -1694,7 +1693,9 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             };
 
             for dir in 0..4 {
-                if player_wall_aabbs[dir].collides_with_aabb(block_aabb) {
+                if player_wall_aabbs[dir].collides_with_aabb(block_aabb)
+                    && block.valid_collision_dir(player_wall_aabbs[dir], block_aabb, vel.0)
+                {
                     wall_dir_collisions[dir] = true;
                 }
             }

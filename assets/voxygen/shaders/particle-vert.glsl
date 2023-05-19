@@ -81,6 +81,7 @@ const int BARRELORGAN = 40;
 const int POTION_SICKNESS = 41;
 const int GIGA_SNOW = 42;
 const int CYCLOPS_CHARGE = 43;
+const int PORTAL_FIZZ = 45;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -675,6 +676,18 @@ void main() {
                 vec3(burn_size),
                 vec4(vec3(6.9, 0.0, 0.0), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case PORTAL_FIZZ:
+            attr = Attr(
+                vec3(0, 0, lower * -0.5) + vec3(
+                    sin(lifetime * 0.5 + rand0 * 10) + sin(lifetime * 0.3 + rand3 * 10),
+                    sin(lifetime * 0.9 + rand1 * 10) + sin(lifetime * 0.4 + rand4 * 10),
+                    sin(lifetime * 2 + rand2) * 0.2
+                ) * 0.25,
+                vec3(pow(1.0 - abs(percent() - 0.5) * 2.0, 0.5)),
+                vec4(vec3(0.3, 3.0 + rand6, 2.5), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 1)
             );
             break;
         default:

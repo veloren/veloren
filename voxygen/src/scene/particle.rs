@@ -1534,6 +1534,14 @@ impl ParticleMgr {
                 mode: ParticleMode::Snow,
                 cond: |_| true,
             },
+            BlockParticles {
+                blocks: |boi| &boi.one_way_walls,
+                range: 2,
+                rate: 8.0,
+                lifetime: 3.0,
+                mode: ParticleMode::PortalFizz,
+                cond: |_| true,
+            },
         ];
 
         let ecs = scene_data.state.ecs();

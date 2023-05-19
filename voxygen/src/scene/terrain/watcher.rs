@@ -48,6 +48,7 @@ pub struct BlocksOfInterest {
     pub cricket2: Vec<Vec3<i32>>,
     pub cricket3: Vec<Vec3<i32>>,
     pub frogs: Vec<Vec3<i32>>,
+    pub one_way_walls: Vec<Vec3<i32>>, // Vec<(Vec3<i32>, Vec3<f32>)>
     // Note: these are only needed for chunks within the iteraction range so this is a potential
     // area for optimization
     pub interactables: Vec<(Vec3<i32>, Interaction)>,
@@ -87,6 +88,7 @@ impl BlocksOfInterest {
         let mut cricket2 = Vec::new();
         let mut cricket3 = Vec::new();
         let mut frogs = Vec::new();
+        let mut one_way_walls = Vec::new();
 
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
@@ -172,6 +174,10 @@ impl BlocksOfInterest {
                     Some(SpriteKind::RepairBench) => {
                         interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
+                    Some(SpriteKind::OneWayWall) => one_way_walls.push(pos),/*one_way_walls.push((
+                        pos,
+                        Vec3::unit_y().rotated_z(std::f32::consts::PI * 0.25 * block.get_ori().unwrap_or(0) as f32),
+                    )),*/
                     _ if block.is_mountable() => interactables.push((pos, Interaction::Mount)),
                     _ => {},
                 },
@@ -217,6 +223,7 @@ impl BlocksOfInterest {
             cricket2,
             cricket3,
             frogs,
+            one_way_walls,
             interactables,
             lights,
             temperature,
