@@ -96,6 +96,7 @@ pub enum ParticleMode {
     GigaSnow = 42,
     CyclopsCharge = 43,
     SnowStorm = 44,
+    PortalFizz = 45,
 }
 
 impl ParticleMode {

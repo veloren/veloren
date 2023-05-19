@@ -1456,7 +1456,7 @@ impl ParticleMgr {
 
         struct BlockParticles<'a> {
             // The function to select the blocks of interest that we should emit from
-            blocks: fn(&'a BlocksOfInterest) -> &'a [Vec3<i32>],
+            blocks: fn(&'a BlocksOfInterest) -> BlockParticleSlice<'a>,
             // The range, in chunks, that the particles should be generated in from the player
             range: usize,
             // The emission rate, per block per second, of the generated particles
@@ -1469,9 +1469,23 @@ impl ParticleMgr {
             cond: fn(&SceneData) -> bool,
         }
 
+        enum BlockParticleSlice<'a> {
+            Positions(&'a [Vec3<i32>]),
+            PositionsAndDirs(&'a [(Vec3<i32>, Vec3<f32>)]),
+        }
+
+        impl<'a> BlockParticleSlice<'a> {
+            fn len(&self) -> usize {
+                match self {
+                    Self::Positions(blocks) => blocks.len(),
+                    Self::PositionsAndDirs(blocks) => blocks.len(),
+                }
+            }
+        }
+
         let particles: &[BlockParticles] = &[
             BlockParticles {
-                blocks: |boi| &boi.leaves,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.leaves),
                 range: 4,
                 rate: 0.001,
                 lifetime: 30.0,
@@ -1479,7 +1493,7 @@ impl ParticleMgr {
                 cond: |_| true,
             },
             BlockParticles {
-                blocks: |boi| &boi.drip,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.drip),
                 range: 4,
                 rate: 0.004,
                 lifetime: 20.0,
@@ -1487,7 +1501,7 @@ impl ParticleMgr {
                 cond: |_| true,
             },
             BlockParticles {
-                blocks: |boi| &boi.fires,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.fires),
                 range: 2,
                 rate: 20.0,
                 lifetime: 0.25,
@@ -1495,7 +1509,7 @@ impl ParticleMgr {
                 cond: |_| true,
             },
             BlockParticles {
-                blocks: |boi| &boi.fire_bowls,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.fire_bowls),
                 range: 2,
                 rate: 20.0,
                 lifetime: 0.25,
@@ -1503,7 +1517,7 @@ impl ParticleMgr {
                 cond: |_| true,
             },
             BlockParticles {
-                blocks: |boi| &boi.fireflies,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.fireflies),
                 range: 6,
                 rate: 0.004,
                 lifetime: 40.0,
@@ -1511,7 +1525,7 @@ impl ParticleMgr {
                 cond: |sd| sd.state.get_day_period().is_dark(),
             },
             BlockParticles {
-                blocks: |boi| &boi.flowers,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.flowers),
                 range: 5,
                 rate: 0.002,
                 lifetime: 40.0,
@@ -1519,7 +1533,7 @@ impl ParticleMgr {
                 cond: |sd| sd.state.get_day_period().is_dark(),
             },
             BlockParticles {
-                blocks: |boi| &boi.beehives,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.beehives),
                 range: 3,
                 rate: 0.5,
                 lifetime: 30.0,
@@ -1527,11 +1541,19 @@ impl ParticleMgr {
                 cond: |sd| sd.state.get_day_period().is_light(),
             },
             BlockParticles {
-                blocks: |boi| &boi.snow,
+                blocks: |boi| BlockParticleSlice::Positions(&boi.snow),
                 range: 4,
                 rate: 0.025,
                 lifetime: 15.0,
                 mode: ParticleMode::Snow,
+                cond: |_| true,
+            },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.one_way_walls),
+                range: 2,
+                rate: 12.0,
+                lifetime: 1.5,
+                mode: ParticleMode::PortalFizz,
                 cond: |_| true,
             },
         ];
@@ -1555,16 +1577,37 @@ impl ParticleMgr {
 
                     self.particles
                         .resize_with(self.particles.len() + particle_count, || {
-                            let block_pos =
-                                Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32))
-                                    + blocks.choose(&mut rng).copied().unwrap(); // Can't fail
-
-                            Particle::new(
-                                Duration::from_secs_f32(particles.lifetime),
-                                time,
-                                particles.mode,
-                                block_pos.map(|e: i32| e as f32 + rng.gen::<f32>()),
-                            )
+                            match blocks {
+                                BlockParticleSlice::Positions(blocks) => {
+                                    // Can't fail, resize only occurs if blocks > 0
+                                    let block_pos = Vec3::from(
+                                        chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
+                                    ) + blocks.choose(&mut rng).copied().unwrap();
+                                    Particle::new(
+                                        Duration::from_secs_f32(particles.lifetime),
+                                        time,
+                                        particles.mode,
+                                        block_pos.map(|e: i32| e as f32 + rng.gen::<f32>()),
+                                    )
+                                },
+                                BlockParticleSlice::PositionsAndDirs(blocks) => {
+                                    // Can't fail, resize only occurs if blocks > 0
+                                    let (block_offset, particle_dir) =
+                                        blocks.choose(&mut rng).copied().unwrap();
+                                    let block_pos = Vec3::from(
+                                        chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
+                                    ) + block_offset;
+                                    let particle_pos =
+                                        block_pos.map(|e: i32| e as f32 + rng.gen::<f32>());
+                                    Particle::new_directed(
+                                        Duration::from_secs_f32(particles.lifetime),
+                                        time,
+                                        particles.mode,
+                                        particle_pos,
+                                        particle_pos + particle_dir,
+                                    )
+                                },
+                            }
                         })
                 });
             }
@@ -1592,19 +1635,39 @@ impl ParticleMgr {
 
                     self.particles
                         .resize_with(self.particles.len() + particle_count, || {
-                            let rel_pos = blocks
-                                .choose(&mut rng)
-                                .copied()
-                                .unwrap()
-                                .map(|e: i32| e as f32 + rng.gen::<f32>()); // Can't fail
-                            let wpos = mat.mul_point(rel_pos);
+                            match blocks {
+                                BlockParticleSlice::Positions(blocks) => {
+                                    let rel_pos = blocks
+                                        .choose(&mut rng)
+                                        .copied()
+                                        // Can't fail, resize only occurs if blocks > 0
+                                        .unwrap()
+                                        .map(|e: i32| e as f32 + rng.gen::<f32>());
+                                    let wpos = mat.mul_point(rel_pos);
 
-                            Particle::new(
-                                Duration::from_secs_f32(particles.lifetime),
-                                time,
-                                particles.mode,
-                                wpos,
-                            )
+                                    Particle::new(
+                                        Duration::from_secs_f32(particles.lifetime),
+                                        time,
+                                        particles.mode,
+                                        wpos,
+                                    )
+                                },
+                                BlockParticleSlice::PositionsAndDirs(blocks) => {
+                                    // Can't fail, resize only occurs if blocks > 0
+                                    let (block_offset, particle_dir) =
+                                        blocks.choose(&mut rng).copied().unwrap();
+                                    let particle_pos =
+                                        block_offset.map(|e: i32| e as f32 + rng.gen::<f32>());
+                                    let wpos = mat.mul_point(particle_pos);
+                                    Particle::new_directed(
+                                        Duration::from_secs_f32(particles.lifetime),
+                                        time,
+                                        particles.mode,
+                                        wpos,
+                                        wpos + mat.mul_direction(particle_dir),
+                                    )
+                                },
+                            }
                         })
                 }
             }

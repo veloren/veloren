@@ -4416,4 +4416,8 @@ GlowIceCrystal: Some((
     ],
     wind_sway: 0.0,
 )),
+OneWayWall: Some((
+    variations: [],
+    wind_sway: 0.0,
+)),
 }

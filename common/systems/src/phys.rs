@@ -1389,10 +1389,10 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     fn collision_with<T: BaseVol<Vox = Block> + ReadVol>(
         pos: Vec3<f32>,
         terrain: &T,
-        hit: impl Fn(&Block) -> bool,
         near_aabb: Aabb<i32>,
         radius: f32,
         z_range: Range<f32>,
+        move_dir: Vec3<f32>,
     ) -> bool {
         let player_aabb = player_aabb(pos, radius, z_range);
 
@@ -1402,12 +1402,14 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         let mut collision = false;
         // TODO: could short-circuit here
         terrain.for_each_in(near_aabb, |block_pos, block| {
-            if block.is_solid() && hit(&block) {
+            if block.is_solid() {
                 let block_aabb = Aabb {
                     min: block_pos.map(|e| e as f32),
                     max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
                 };
-                if player_aabb.collides_with_aabb(block_aabb) {
+                if player_aabb.collides_with_aabb(block_aabb)
+                    && block.valid_collision_dir(player_aabb, block_aabb, move_dir)
+                {
                     collision = true;
                 }
             }
@@ -1415,10 +1417,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
 
         collision
     }
-
-    // Should be easy to just make clippy happy if we want?
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    fn always_hits(_: &Block) -> bool { true }
 
     let (radius, z_min, z_max) = (Vec3::from(cylinder) * scale).into_tuple();
 
@@ -1459,6 +1457,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         const MAX_ATTEMPTS: usize = 16;
         pos.0 += pos_delta / increments as f32;
 
+        let vel2 = *vel;
         let try_colliding_block = |pos: &Pos| {
             //prof_span!("most colliding check");
             // Calculate the player's AABB
@@ -1487,16 +1486,14 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     };
 
                     // Determine whether the block's AABB collides with the player's AABB
-                    if block_aabb.collides_with_aabb(player_aabb) {
+                    if player_aabb.collides_with_aabb(block_aabb)
+                        && block.valid_collision_dir(player_aabb, block_aabb, vel2.0)
+                    {
                         match &most_colliding {
                             // Select the minimum of the value from `player_overlap`
                             Some((_, other_block_aabb, _))
-                                if {
-                                    // TODO: comment below is outdated (as of ~1 year ago)
-                                    // Find the maximum of the minimum collision axes (this bit
-                                    // is weird, trust me that it works)
-                                    player_overlap(block_aabb) >= player_overlap(*other_block_aabb)
-                                } => {},
+                                if player_overlap(block_aabb)
+                                    >= player_overlap(*other_block_aabb) => {},
                             _ => most_colliding = Some((block_pos, block_aabb, block)),
                         }
                     }
@@ -1554,10 +1551,10 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 !collision_with(
                     Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()),
                     &terrain,
-                    always_hits,
                     near_aabb,
                     radius,
                     z_range.clone(),
+                    vel.0,
                 )
             }
             // ...and there is a collision with a block beneath our current hitbox...
@@ -1566,10 +1563,10 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 collision_with(
                     pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
                     &terrain,
-                    always_hits,
                     near_aabb,
                     radius,
                     z_range.clone(),
+                    vel.0,
                 )
             } {
                 // ...block-hop!
@@ -1620,10 +1617,10 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         collision_with(
             pos.0 - Vec3::unit_z() * 1.1,
             &terrain,
-            always_hits,
             near_aabb,
             radius,
             z_range.clone(),
+            vel.0,
         )
     } {
         //prof_span!("snap!!");
@@ -1694,7 +1691,9 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             };
 
             for dir in 0..4 {
-                if player_wall_aabbs[dir].collides_with_aabb(block_aabb) {
+                if player_wall_aabbs[dir].collides_with_aabb(block_aabb)
+                    && block.valid_collision_dir(player_wall_aabbs[dir], block_aabb, vel.0)
+                {
                     wall_dir_collisions[dir] = true;
                 }
             }

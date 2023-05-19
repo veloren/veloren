@@ -45,6 +45,8 @@ make_case_elim!(
         // 0x12 <= x < 0x20 is reserved for future rocks
         Grass = 0x20, // Note: *not* the same as grass sprites
         Snow = 0x21,
+        // Snow to use with sites, to not attract snowfall particles
+        ArtSnow = 0x22,
         // 0x21 <= x < 0x30 is reserved for future grasses
         Earth = 0x30,
         Sand = 0x31,
@@ -58,8 +60,6 @@ make_case_elim!(
         // often want to experiment with new kinds of block without allocating them a
         // dedicated block kind.
         Misc = 0xFE,
-        // Snow to use with sites, to not attract snowfall particles
-        ArtSnow = 0xFF,
     }
 );
 
@@ -368,6 +368,17 @@ impl Block {
             .unwrap_or(!matches!(self.kind, BlockKind::Lava))
     }
 
+    pub fn valid_collision_dir(
+        &self,
+        entity_aabb: Aabb<f32>,
+        block_aabb: Aabb<f32>,
+        move_dir: Vec3<f32>,
+    ) -> bool {
+        self.get_sprite().map_or(true, |sprite| {
+            sprite.valid_collision_dir(entity_aabb, block_aabb, move_dir, self)
+        })
+    }
+
     /// Can this block be exploded? If so, what 'power' is required to do so?
     /// Note that we don't really define what 'power' is. Consider the units
     /// arbitrary and only important when compared to one-another.
@@ -387,7 +398,8 @@ impl Block {
                 SpriteKind::Keyhole
                 | SpriteKind::KeyDoor
                 | SpriteKind::BoneKeyhole
-                | SpriteKind::BoneKeyDoor => None,
+                | SpriteKind::BoneKeyDoor
+                | SpriteKind::OneWayWall => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot

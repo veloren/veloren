@@ -270,41 +270,43 @@ pub fn get_sprite_instances<'a, I: 'a>(
             .0; // Awful PRNG
 
         let ori = (block.get_ori().unwrap_or((seed % 4) as u8 * 2)) & 0b111;
-        let variation = seed as usize % cfg.variations.len();
-        let key = (sprite, variation);
+        if !cfg.variations.is_empty() {
+            let variation = seed as usize % cfg.variations.len();
+            let key = (sprite, variation);
 
-        // NOTE: Safe because we called sprite_config_for already.
-        // NOTE: Safe because 0 ≤ ori < 8
-        let light = light_map(wpos);
-        let glow = glow_map(wpos);
+            // NOTE: Safe because we called sprite_config_for already.
+            // NOTE: Safe because 0 ≤ ori < 8
+            let light = light_map(wpos);
+            let glow = glow_map(wpos);
 
-        for (lod_level, sprite_data) in lod_levels.iter_mut().zip(&sprite_data[&key]) {
-            let mat = Mat4::identity()
-                // Scaling for different LOD resolutions
-                .scaled_3d(sprite_data.scale)
-                // Offset
-                .translated_3d(sprite_data.offset)
-                .scaled_3d(SPRITE_SCALE)
-                .rotated_z(f32::consts::PI * 0.25 * ori as f32)
-                .translated_3d(
-                    rel_pos + Vec3::new(0.5, 0.5, 0.0)
-                );
-            // Add an instance for each page in the sprite model
-            for page in sprite_data.vert_pages.clone() {
-                // TODO: could be more efficient to create once and clone while
-                // modifying vert_page
-                let instance = SpriteInstance::new(
-                    mat,
-                    cfg.wind_sway,
-                    sprite_data.scale.z,
-                    rel_pos.as_(),
-                    ori,
-                    light,
-                    glow,
-                    page,
-                    sprite.is_door(),
-                );
-                set_instance(lod_level, instance, wpos);
+            for (lod_level, sprite_data) in lod_levels.iter_mut().zip(&sprite_data[&key]) {
+                let mat = Mat4::identity()
+                    // Scaling for different LOD resolutions
+                    .scaled_3d(sprite_data.scale)
+                    // Offset
+                    .translated_3d(sprite_data.offset)
+                    .scaled_3d(SPRITE_SCALE)
+                    .rotated_z(f32::consts::PI * 0.25 * ori as f32)
+                    .translated_3d(
+                        rel_pos + Vec3::new(0.5, 0.5, 0.0)
+                    );
+                // Add an instance for each page in the sprite model
+                for page in sprite_data.vert_pages.clone() {
+                    // TODO: could be more efficient to create once and clone while
+                    // modifying vert_page
+                    let instance = SpriteInstance::new(
+                        mat,
+                        cfg.wind_sway,
+                        sprite_data.scale.z,
+                        rel_pos.as_(),
+                        ori,
+                        light,
+                        glow,
+                        page,
+                        sprite.is_door(),
+                    );
+                    set_instance(lod_level, instance, wpos);
+                }
             }
         }
     }

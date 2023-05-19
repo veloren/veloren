@@ -5,6 +5,7 @@ use crate::{
     },
     lottery::LootSpec,
     make_case_elim,
+    terrain::Block,
 };
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -12,7 +13,7 @@ use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt};
 use strum::EnumIter;
-use vek::Vec3;
+use vek::*;
 
 make_case_elim!(
     sprite_kind,
@@ -250,6 +251,7 @@ make_case_elim!(
         FireBlock = 0xDF,
         IceCrystal = 0xE0,
         GlowIceCrystal = 0xE1,
+        OneWayWall = 0xE2,
     }
 );
 
@@ -343,7 +345,8 @@ impl SpriteKind {
             | SpriteKind::KeyDoor
             | SpriteKind::BoneKeyhole
             | SpriteKind::BoneKeyDoor
-            | SpriteKind::Bomb => 1.0,
+            | SpriteKind::Bomb
+            | SpriteKind::OneWayWall => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
@@ -388,6 +391,44 @@ impl SpriteKind {
             SpriteKind::Helm => 1.7,
             _ => return None,
         })
+    }
+
+    pub fn valid_collision_dir(
+        &self,
+        entity_aabb: Aabb<f32>,
+        block_aabb: Aabb<f32>,
+        move_dir: Vec3<f32>,
+        parent: &Block,
+    ) -> bool {
+        match self {
+            SpriteKind::OneWayWall => {
+                // Find the intrusion vector of the collision
+                let dir = entity_aabb.collision_vector_with_aabb(block_aabb);
+
+                // Determine an appropriate resolution vector (i.e: the minimum distance
+                // needed to push out of the block)
+                let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
+                let resolve_dir = -dir.map(|e| {
+                    if e.abs().to_bits() == max_axis.to_bits() {
+                        e.signum()
+                    } else {
+                        0.0
+                    }
+                });
+
+                let is_moving_into = move_dir.dot(resolve_dir) <= 0.0;
+
+                is_moving_into
+                    && parent.get_ori().map_or(false, |ori| {
+                        Vec2::unit_y()
+                            .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+                            .with_z(0.0)
+                            .map2(resolve_dir, |e, r| (e - r).abs() < 0.1)
+                            .reduce_and()
+                    })
+            },
+            _ => true,
+        }
     }
 
     /// What loot table does collecting this sprite draw from?
@@ -661,7 +702,8 @@ impl SpriteKind {
                 | SpriteKind::BoneKeyhole
                 | SpriteKind::BoneKeyDoor
                 | SpriteKind::IceCrystal
-                | SpriteKind::GlowIceCrystal,
+                | SpriteKind::GlowIceCrystal
+                | SpriteKind::OneWayWall,
         )
     }
 }
