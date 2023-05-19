@@ -680,14 +680,14 @@ void main() {
             break;
         case PORTAL_FIZZ:
             attr = Attr(
-                vec3(0, 0, lower * -0.5) + vec3(
-                    sin(lifetime * 0.5 + rand0 * 10) + sin(lifetime * 0.3 + rand3 * 10),
-                    sin(lifetime * 0.9 + rand1 * 10) + sin(lifetime * 0.4 + rand4 * 10),
-                    sin(lifetime * 2 + rand2) * 0.2
-                ) * 0.25,
-                vec3(pow(1.0 - abs(percent() - 0.5) * 2.0, 0.5)),
-                vec4(vec3(0.3, 3.0 + rand6, 2.5), 1),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 1)
+                inst_dir * pow(percent(), 2) + vec3(0, 0, lower * -0.5) + vec3(
+                    sin(lifetime * 1.25 + rand0 * 10) + sin(lifetime * 1.3 + rand3 * 10),
+                    sin(lifetime * 1.2 + rand1 * 10) + sin(lifetime * 1.4 + rand4 * 10),
+                    sin(lifetime * 5 + rand2)
+                ) * 0.1,
+                vec3(pow(1.0 - abs(percent() - 0.5) * 2.0, 0.2)),
+                vec4(vec3(1.8, 0.4, 5.0 + rand6), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
             );
             break;
         default:

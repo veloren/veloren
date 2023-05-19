@@ -1393,6 +1393,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         near_aabb: Aabb<i32>,
         radius: f32,
         z_range: Range<f32>,
+        move_dir: Vec3<f32>,
     ) -> bool {
         let player_aabb = player_aabb(pos, radius, z_range);
 
@@ -1407,7 +1408,9 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     min: block_pos.map(|e| e as f32),
                     max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
                 };
-                if player_aabb.collides_with_aabb(block_aabb) {
+                if player_aabb.collides_with_aabb(block_aabb)
+                    && block.valid_collision_dir(player_aabb, block_aabb, move_dir)
+                {
                     collision = true;
                 }
             }
@@ -1557,6 +1560,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     near_aabb,
                     radius,
                     z_range.clone(),
+                    vel.0,
                 )
             }
             // ...and there is a collision with a block beneath our current hitbox...
@@ -1569,6 +1573,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                     near_aabb,
                     radius,
                     z_range.clone(),
+                    vel.0,
                 )
             } {
                 // ...block-hop!
@@ -1623,6 +1628,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             near_aabb,
             radius,
             z_range.clone(),
+            vel.0,
         )
     } {
         //prof_span!("snap!!");

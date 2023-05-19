@@ -398,7 +398,8 @@ impl Block {
                 SpriteKind::Keyhole
                 | SpriteKind::KeyDoor
                 | SpriteKind::BoneKeyhole
-                | SpriteKind::BoneKeyDoor => None,
+                | SpriteKind::BoneKeyDoor
+                | SpriteKind::OneWayWall => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot
