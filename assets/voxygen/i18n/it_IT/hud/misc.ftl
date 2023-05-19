@@ -52,3 +52,4 @@ hud-talk = Parla
 hud-trade = Commercia
 hud-mount = Monta
 hud-sit = Siediti
+hud-steer = Guida
