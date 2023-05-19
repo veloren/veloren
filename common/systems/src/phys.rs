@@ -1389,7 +1389,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     fn collision_with<T: BaseVol<Vox = Block> + ReadVol>(
         pos: Vec3<f32>,
         terrain: &T,
-        hit: impl Fn(&Block) -> bool,
         near_aabb: Aabb<i32>,
         radius: f32,
         z_range: Range<f32>,
@@ -1403,7 +1402,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         let mut collision = false;
         // TODO: could short-circuit here
         terrain.for_each_in(near_aabb, |block_pos, block| {
-            if hit(&block) && block.is_solid() {
+            if block.is_solid() {
                 let block_aabb = Aabb {
                     min: block_pos.map(|e| e as f32),
                     max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
@@ -1418,10 +1417,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
 
         collision
     }
-
-    // Should be easy to just make clippy happy if we want?
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    fn always_hits(_: &Block) -> bool { true }
 
     let (radius, z_min, z_max) = (Vec3::from(cylinder) * scale).into_tuple();
 
@@ -1556,7 +1551,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 !collision_with(
                     Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()),
                     &terrain,
-                    always_hits,
                     near_aabb,
                     radius,
                     z_range.clone(),
@@ -1569,7 +1563,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 collision_with(
                     pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
                     &terrain,
-                    always_hits,
                     near_aabb,
                     radius,
                     z_range.clone(),
@@ -1624,7 +1617,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         collision_with(
             pos.0 - Vec3::unit_z() * 1.1,
             &terrain,
-            always_hits,
             near_aabb,
             radius,
             z_range.clone(),
