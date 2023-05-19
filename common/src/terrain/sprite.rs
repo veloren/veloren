@@ -421,10 +421,10 @@ impl SpriteKind {
                 is_moving_into
                     && parent.get_ori().map_or(false, |ori| {
                         Vec2::unit_y()
-                    // .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
-                    .with_z(0.0)
-                    .map2(resolve_dir, |e, r| (e - r).abs() < 0.1)
-                    .reduce_and()
+                            .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+                            .with_z(0.0)
+                            .map2(resolve_dir, |e, r| (e - r).abs() < 0.1)
+                            .reduce_and()
                     })
             },
             _ => true,
