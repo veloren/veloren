@@ -82,11 +82,10 @@ impl CharacterBehavior for Data {
                     // Creates buff
                     let buff = Buff::new(
                         self.static_data.buff_kind,
-                        BuffData {
-                            strength: self.static_data.buff_strength * scaling_factor,
-                            duration: self.static_data.buff_duration,
-                            delay: None,
-                        },
+                        BuffData::new(
+                            self.static_data.buff_strength * scaling_factor,
+                            self.static_data.buff_duration,
+                        ),
                         Vec::new(),
                         BuffSource::Character { by: *data.uid },
                         *data.time,

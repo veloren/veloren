@@ -511,7 +511,7 @@ impl StateExt for State {
             .with(Auras::new(vec![Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Invulnerability,
-                    data: BuffData::new(1.0, Some(Secs(1.0)), None),
+                    data: BuffData::new(1.0, Some(Secs(1.0))),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },

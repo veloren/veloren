@@ -142,7 +142,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(1.0, Some(Secs(1.0)), None),
+                            BuffData::new(1.0, Some(Secs(1.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -160,7 +160,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(1.0, Some(Secs(6.0)), None),
+                            BuffData::new(1.0, Some(Secs(6.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -178,7 +178,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(5.0, Some(Secs(3.0)), None),
+                            BuffData::new(5.0, Some(Secs(3.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -196,7 +196,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(10.0, None, None),
+                            BuffData::new(10.0, None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -214,7 +214,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(15.0, Some(Secs(0.1)), None),
+                            BuffData::new(15.0, Some(Secs(0.1))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -227,7 +227,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Frozen,
-                            BuffData::new(0.2, Some(Secs(1.0)), None),
+                            BuffData::new(0.2, Some(Secs(1.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -245,7 +245,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(20.0, None, None),
+                            BuffData::new(20.0, None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -266,7 +266,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(20.0, None, None),
+                            BuffData::new(20.0, None),
                             vec![BuffCategory::Natural],
                             BuffSource::World,
                             *read_data.time,

@@ -6,7 +6,7 @@ FinisherMelee(
     melee_constructor: (
         kind: Slash(
             damage: 60,
-            poise: 100,
+            poise: 20,
             knockback: 0,
             energy_regen: 0,
         ),

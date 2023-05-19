@@ -1169,7 +1169,7 @@ impl<'a> Skillbar<'a> {
                         self.contexts,
                     )
                 })
-                .map_or(false, |(a, _)| {
+                .map_or(false, |(a, _, _)| {
                     self.energy.current() >= a.energy_cost()
                         && self.combo.map_or(false, |c| c.counter() >= a.combo_cost())
                         && a.ability_meta().requirements.requirements_met(self.stance)

@@ -220,8 +220,7 @@ impl<'a> AgentData<'a> {
                     Some(self.char_state),
                     &context,
                 )
-                .unwrap_or_default()
-                .0,
+                .map_or(Default::default(), |a| a.0),
         )
     }
 }

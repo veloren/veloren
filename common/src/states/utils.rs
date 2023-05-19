@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        ability::{Ability, AbilityInitEvent, AbilityInput, AbilityMeta, Capability, Stance},
+        ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
         character_state::OutputEvents,
         controller::InventoryManip,
@@ -1206,7 +1206,7 @@ fn handle_ability(
 ) -> bool {
     let contexts = AbilityContext::from(data.stance, data.inventory, data.combo);
     if let Some(ability_input) = input.into() {
-        if let Some((ability, from_offhand)) = data
+        if let Some((ability, from_offhand, spec_ability)) = data
             .active_abilities
             .and_then(|a| {
                 a.activate_ability(
@@ -1218,11 +1218,17 @@ fn handle_ability(
                     &contexts,
                 )
             })
-            .filter(|(ability, _)| ability.requirements_paid(data, update))
+            .filter(|(ability, _, _)| ability.requirements_paid(data, update))
         {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, from_offhand, input, ability.ability_meta()),
+                AbilityInfo::new(
+                    data,
+                    from_offhand,
+                    input,
+                    Some(spec_ability),
+                    ability.ability_meta(),
+                ),
                 data,
             ));
             if let Some(init_event) = ability.ability_meta().init_event {
@@ -1508,14 +1514,15 @@ pub struct AbilityInfo {
     pub input: InputKind,
     pub input_attr: Option<InputAttr>,
     pub ability_meta: AbilityMeta,
-    pub ability: Option<Ability>,
+    pub ability: Option<SpecifiedAbility>,
 }
 
 impl AbilityInfo {
-    pub fn from_input(
+    pub fn new(
         data: &JoinData<'_>,
         from_offhand: bool,
         input: InputKind,
+        ability: Option<SpecifiedAbility>,
         ability_meta: AbilityMeta,
     ) -> Self {
         let tool_data = if from_offhand {
@@ -1529,9 +1536,6 @@ impl AbilityInfo {
                 Some(HandInfo::from_main_tool(hands, from_offhand)),
             )
         });
-        let ability = Option::<AbilityInput>::from(input)
-            .zip(data.active_abilities)
-            .map(|(i, a)| a.get_ability(i, data.inventory, Some(data.skill_set)));
 
         Self {
             tool,

@@ -1399,7 +1399,7 @@ pub fn handle_parry_hook(
     if let Some(attacker) = attacker && matches!(source, AttackSource::Melee){
         // When attacker is parried, add the parried debuff for 2 seconds, which slows
         // them
-        let data = buff::BuffData::new(1.0, Some(Secs(2.0)), None);
+        let data = buff::BuffData::new(1.0, Some(Secs(2.0)));
         let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
             BuffSource::Character { by: *uid }
         } else {

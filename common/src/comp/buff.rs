@@ -74,6 +74,12 @@ pub enum BuffKind {
     /// Provides immunity to burning and increases movement speed in lava.
     /// Movement speed increases linearly with strength, 1.0 is a 100% increase.
     // SalamanderAspect, TODO: Readd in second dwarven mine MR
+    /// Inflict burning on your attack
+    Flame,
+    /// Inflict frost on your attack
+    Frigid,
+    /// Gain Lifesteal on your attack
+    Lifesteal,
     /// Guarantees that the next attack is a critical hit. Does this kind of
     /// hackily by adding 100% to the crit, will need to be adjusted if we ever
     /// allow double crits instead of treating 100 as a ceiling.
@@ -118,12 +124,6 @@ pub enum BuffKind {
     PotionSickness,
     // Changed into another body.
     Polymorphed(Body),
-    // Inflict burning on your attack
-    Flame,
-    // Inflict frost on your attack
-    Frigid,
-    // Gain Lifesteal on your attack
-    Lifesteal,
 }
 
 impl BuffKind {
@@ -314,8 +314,8 @@ impl BuffKind {
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Burning,
-                    dur_secs: 5.0,
-                    strength: CombatBuffStrength::DamageFraction(0.2),
+                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                    strength: CombatBuffStrength::DamageFraction(data.strength),
                     chance: 1.0,
                 }),
             ))],
@@ -323,14 +323,14 @@ impl BuffKind {
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Frozen,
-                    dur_secs: 5.0,
-                    strength: CombatBuffStrength::DamageFraction(0.2),
+                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                    strength: CombatBuffStrength::DamageFraction(data.strength),
                     chance: 1.0,
                 }),
             ))],
             BuffKind::Lifesteal => vec![BuffEffect::BuffOnHit(AttackEffect::new(
                 None,
-                CombatEffect::Lifesteal(0.2),
+                CombatEffect::Lifesteal(data.strength),
             ))],
             /*BuffKind::SalamanderAspect => vec![
                 BuffEffect::BuffImmunity(BuffKind::Burning),
@@ -358,19 +358,33 @@ impl BuffKind {
 
 // Struct used to store data relevant to a buff
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Secs>,
     pub delay: Option<Secs>,
+    // Used for buffs that have rider buffs (e.g. Flame, Frigid)
+    pub secondary_duration: Option<Secs>,
 }
 
 impl BuffData {
-    pub fn new(strength: f32, duration: Option<Secs>, delay: Option<Secs>) -> Self {
+    pub fn new(strength: f32, duration: Option<Secs>) -> Self {
         Self {
             strength,
             duration,
-            delay,
+            delay: None,
+            secondary_duration: None,
         }
+    }
+
+    pub fn with_delay(mut self, delay: Secs) -> Self {
+        self.delay = Some(delay);
+        self
+    }
+
+    pub fn with_secondary_duration(mut self, sec_dur: Secs) -> Self {
+        self.secondary_duration = Some(sec_dur);
+        self
     }
 }
 

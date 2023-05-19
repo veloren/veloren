@@ -342,7 +342,11 @@ impl<T> AbilityKind<T> {
         }
     }
 
-    pub fn ability(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
+    pub fn ability(
+        &self,
+        skillset: Option<&SkillSet>,
+        contexts: &[AbilityContext],
+    ) -> Option<(&T, Option<usize>)> {
         let unlocked = |s: Option<Skill>, a| {
             // If there is a skill requirement and the skillset does not contain the
             // required skill, return None
@@ -351,18 +355,21 @@ impl<T> AbilityKind<T> {
         };
 
         match self {
-            AbilityKind::Simple(s, a) => unlocked(*s, a),
+            AbilityKind::Simple(s, a) => unlocked(*s, a).map(|a| (a, None)),
             AbilityKind::Contextualized {
                 pseudo_id: _,
                 abilities,
             } => abilities
                 .iter()
-                .filter_map(|(req_contexts, (s, a))| unlocked(*s, a).map(|a| (req_contexts, a)))
-                .find_map(|(req_contexts, a)| {
+                .enumerate()
+                .filter_map(|(i, (req_contexts, (s, a)))| {
+                    unlocked(*s, a).map(|a| (i, (req_contexts, a)))
+                })
+                .find_map(|(i, (req_contexts, a))| {
                     req_contexts
                         .iter()
                         .all(|req| req.fulfilled_by(contexts))
-                        .then_some(a)
+                        .then_some((a, Some(i)))
                 }),
         }
     }
@@ -465,13 +472,21 @@ impl<T> AbilitySet<T> {
         }
     }
 
-    pub fn guard(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
+    pub fn guard(
+        &self,
+        skillset: Option<&SkillSet>,
+        contexts: &[AbilityContext],
+    ) -> Option<(&T, Option<usize>)> {
         self.guard
             .as_ref()
             .and_then(|g| g.ability(skillset, contexts))
     }
 
-    pub fn primary(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
+    pub fn primary(
+        &self,
+        skillset: Option<&SkillSet>,
+        contexts: &[AbilityContext],
+    ) -> Option<(&T, Option<usize>)> {
         self.primary.ability(skillset, contexts)
     }
 
@@ -479,7 +494,7 @@ impl<T> AbilitySet<T> {
         &self,
         skillset: Option<&SkillSet>,
         contexts: &[AbilityContext],
-    ) -> Option<&T> {
+    ) -> Option<(&T, Option<usize>)> {
         self.secondary.ability(skillset, contexts)
     }
 
@@ -488,7 +503,7 @@ impl<T> AbilitySet<T> {
         index: usize,
         skillset: Option<&SkillSet>,
         contexts: &[AbilityContext],
-    ) -> Option<&T> {
+    ) -> Option<(&T, Option<usize>)> {
         self.abilities
             .get(index)
             .and_then(|a| a.ability(skillset, contexts))

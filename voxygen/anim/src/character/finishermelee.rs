@@ -161,7 +161,7 @@ impl Animation for FinisherMeleeAnimation {
                 next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
                     * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
 
                 next.control.orientation.rotate_x(move1 * 0.9);
                 next.chest.orientation.rotate_z(move1 * 1.2);
@@ -199,7 +199,7 @@ impl Animation for FinisherMeleeAnimation {
                 next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
                     * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
 
                 next.control.orientation.rotate_x(move1 * 0.9);
                 next.chest.orientation.rotate_z(move1 * 1.2);

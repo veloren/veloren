@@ -186,7 +186,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     contexts,
                                 )
                             })
-                            .map(|(ability, _)| {
+                            .map(|(ability, _, _)| {
                                 (
                                     image,
                                     if energy.current() >= ability.energy_cost()

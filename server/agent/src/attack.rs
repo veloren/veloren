@@ -1370,8 +1370,7 @@ impl<'a> AgentData<'a> {
                     Some(self.char_state),
                     &contexts,
                 )
-                .unwrap_or_default()
-                .0
+                .map_or(Default::default(), |a| a.0)
         };
         let (flamethrower, shockwave) = (
             extract_ability(AbilityInput::Secondary),

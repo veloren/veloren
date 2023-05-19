@@ -912,7 +912,7 @@ impl Animation for ComboAnimation {
                             next.control.orientation =
                                 Quaternion::rotation_x(s_a.ac.3 + move1 * -1.5)
                                     * Quaternion::rotation_y(s_a.ac.4)
-                                    * Quaternion::rotation_z(s_a.ac.5 + move1 * 0.4);
+                                    * Quaternion::rotation_z(s_a.ac.5 + move1 * (0.4 - PI));
 
                             next.chest.orientation.rotate_z(move1 * 0.4);
                             next.head.orientation.rotate_z(move1 * -0.2);
@@ -925,7 +925,7 @@ impl Animation for ComboAnimation {
                             next.shorts.orientation.rotate_z(move2 * 0.2);
                             next.control.orientation = next.control.orientation
                                 * Quaternion::rotation_z(move2 * -0.5)
-                                * Quaternion::rotation_x(move2 * -2.0);
+                                * Quaternion::rotation_x(move2 * 2.0);
                             next.control.orientation.rotate_y(move2 * -0.7);
                             next.control.position += Vec3::new(move2 * 15.0, 0.0, move2 * -4.0);
                         },
@@ -944,7 +944,7 @@ impl Animation for ComboAnimation {
                             next.shorts.orientation.rotate_z(move2 * -0.2);
                             next.control.orientation = next.control.orientation
                                 * Quaternion::rotation_z(move2 * 0.5)
-                                * Quaternion::rotation_x(move2 * -2.0);
+                                * Quaternion::rotation_x(move2 * 2.0);
                             next.control.orientation.rotate_y(move2 * 0.7);
                             next.control.position += Vec3::new(move2 * -15.0, 0.0, move2 * -4.0);
                         },
@@ -985,7 +985,7 @@ impl Animation for ComboAnimation {
                         Vec3::new(s_a.ac.0 + move1 * -1.0, s_a.ac.1 + move1 * -4.0, s_a.ac.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.ac.3 + move1 * -0.4)
                         * Quaternion::rotation_y(s_a.ac.4 + move1 * -0.5)
-                        * Quaternion::rotation_z(s_a.ac.5 + move1 * 1.5);
+                        * Quaternion::rotation_z(s_a.ac.5 + move1 * (1.5 - PI));
 
                     next.control.orientation.rotate_z(move2 * -3.5);
                     next.control.position += Vec3::new(move2 * 12.0, move2 * 4.0, 0.0);
@@ -1012,7 +1012,7 @@ impl Animation for ComboAnimation {
                         Vec3::new(s_a.ac.0 + move1 * -1.0, s_a.ac.1 + move1 * -4.0, s_a.ac.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.ac.3 + move1 * 0.6)
                         * Quaternion::rotation_y(s_a.ac.4 + move1 * -0.5)
-                        * Quaternion::rotation_z(s_a.ac.5 + move1 * 3.0);
+                        * Quaternion::rotation_z(s_a.ac.5 + move1 * (3.0 - PI));
 
                     next.chest.orientation = Quaternion::rotation_z(move1 * 0.6);
                     next.head.orientation = Quaternion::rotation_z(move1 * -0.2);

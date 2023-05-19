@@ -37,11 +37,11 @@ use anim::{
 use common::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
+        item::{Hands, ItemKind, ToolKind},
         ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
-        Body, CharacterActivity, CharacterState, Collider, Combo, Controller, Health, Inventory,
-        Item, ItemKey, Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PoiseState,
-        Pos, Scale, SkillSet, Stance, Vel,
+        Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, Item,
+        ItemKey, Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PoiseState, Pos,
+        Scale, Vel,
     },
     link::Is,
     mounting::{Rider, VolumeRider},
@@ -853,7 +853,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
-                (is_rider, is_volume_rider, collider, stance, skillset, combo),
+                (is_rider, is_volume_rider, collider),
             ),
         ) in (
             &ecs.entities(),
@@ -875,9 +875,6 @@ impl FigureMgr {
                 ecs.read_storage::<Is<Rider>>().maybe(),
                 ecs.read_storage::<Is<VolumeRider>>().maybe(),
                 ecs.read_storage::<Collider>().maybe(),
-                ecs.read_storage::<Stance>().maybe(),
-                ecs.read_storage::<SkillSet>().maybe(),
-                ecs.read_storage::<Combo>().maybe(),
             ),
         )
             .join()
@@ -1038,12 +1035,10 @@ impl FigureMgr {
             let second_tool_spec = second_tool_spec.as_deref();
             let hands = (active_tool_hand, second_tool_hand);
 
-            let contexts = AbilityContext::from(stance, inventory, combo);
-
             let ability_id = character.and_then(|c| {
                 c.ability_info()
                     .and_then(|a| a.ability)
-                    .and_then(|a| a.ability_id(inventory, skillset, &contexts))
+                    .and_then(|a| a.ability_id(inventory))
             });
 
             let move_dir = {

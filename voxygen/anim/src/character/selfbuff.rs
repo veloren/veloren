@@ -3,6 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
+use core::f32::consts::PI;
 
 pub struct SelfBuffAnimation;
 impl Animation for SelfBuffAnimation {
@@ -188,7 +189,7 @@ impl Animation for SelfBuffAnimation {
                     * Quaternion::rotation_z(s_a.ac.5);
 
                 next.control.orientation.rotate_z(move1 * -2.0);
-                next.control.orientation.rotate_x(move1 * -3.5);
+                next.control.orientation.rotate_x(move1 * 3.5);
                 next.control.position += Vec3::new(move1 * 14.0, move1 * -6.0, move1 * 15.0);
 
                 next.head.orientation.rotate_x(move2 * 0.6);
@@ -248,7 +249,7 @@ impl Animation for SelfBuffAnimation {
                 next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
                     * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
 
                 next.control.orientation.rotate_z(move1 * -1.8);
                 next.control.orientation.rotate_y(move1 * 1.5);

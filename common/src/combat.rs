@@ -1172,7 +1172,6 @@ impl CombatBuff {
             BuffData::new(
                 self.strength.to_strength(damage, strength_modifier),
                 Some(Secs(self.dur_secs as f64)),
-                None,
             ),
             Vec::new(),
             source,

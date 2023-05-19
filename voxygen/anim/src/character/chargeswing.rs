@@ -264,7 +264,7 @@ impl Animation for ChargeswingAnimation {
                 next.control.orientation =
                     Quaternion::rotation_x(s_a.ac.3 + move1 * -1.0 + tension / 30.0)
                         * Quaternion::rotation_y(s_a.ac.4)
-                        * Quaternion::rotation_z(s_a.ac.5);
+                        * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
 
                 next.control.orientation.rotate_x(move2 * -3.0);
                 next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
