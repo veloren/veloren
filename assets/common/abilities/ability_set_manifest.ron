@@ -161,7 +161,13 @@
             ),
             Simple(Axe(Rake), "common.abilities.axe.rake"),
             Simple(Axe(Bloodfeast), "common.abilities.axe.bloodfeast"),
-            Simple(Axe(FierceRaze), "common.abilities.axe.fierce_raze"),
+            Contextualized(
+                pseudo_id: "common.abilities.axe.fierce_raze",
+                abilities: [
+                    ([DualWieldingSameKind], (Axe(FierceRaze), "common.abilities.axe.dual_fierce_raze")),
+                    ([], (Axe(FierceRaze), "common.abilities.axe.fierce_raze")),
+                ],
+            ),
             Simple(Axe(Furor), "common.abilities.axe.furor"),
             Simple(Axe(Fracture), "common.abilities.axe.fracture"),
             Simple(Axe(Lacerate), "common.abilities.axe.lacerate"),
