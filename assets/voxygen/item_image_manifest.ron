@@ -3154,6 +3154,18 @@
         "voxel.object.curious_potion",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
+    Simple("common.items.charms.burning_charm"): VoxTrans(
+        "voxel.object.burning_charm",
+        (0.0, 0.0, 0.0), (-80.0, 15.0, 15.0), 1.0,
+    ),
+    Simple("common.items.charms.frozen_charm"): VoxTrans(
+        "voxel.object.frozen_charm",
+        (0.0, 0.0, 0.0), (-80.0, 15.0, 15.0), 1.0,
+    ),
+    Simple("common.items.charms.lifesteal_charm"): VoxTrans(
+        "voxel.object.lifesteal_charm",
+        (0.0, 0.0, 0.0), (-80.0, 15.0, 15.0), 1.0,
+    ),
     Simple("common.items.food.cheese"): VoxTrans(
         "voxel.object.cheese",
         (0.0, 0.0, 0.0), (-60.0, 27.0, 17.0), 0.7,
