@@ -680,7 +680,7 @@ void main() {
             break;
         case PORTAL_FIZZ:
             attr = Attr(
-                inst_dir * (0.3 + pow(percent(), 5)) + vec3(
+                inst_dir * (0.7 + pow(percent(), 5)) + vec3(
                     sin(lifetime * 1.25 + rand0 * 10) + sin(lifetime * 1.3 + rand3 * 10),
                     sin(lifetime * 1.2 + rand1 * 10) + sin(lifetime * 1.4 + rand4 * 10),
                     sin(lifetime * 5 + rand2)
