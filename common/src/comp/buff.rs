@@ -1,9 +1,11 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{
+    combat::{AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect},
     comp::{aura::AuraKey, Health, Stats},
     resources::{Secs, Time},
     uid::Uid,
 };
+
 use core::cmp::Ordering;
 #[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
@@ -111,6 +113,12 @@ pub enum BuffKind {
     PotionSickness,
     // Changed into another body.
     Polymorphed(Body),
+    // Inflict burning on your attack
+    Flame,
+    // Inflict frost on your attack
+    Frigid,
+    // Gain Lifesteal on your attack
+    Lifesteal,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -130,7 +138,10 @@ impl BuffKind {
             | BuffKind::ProtectingWard
             | BuffKind::Hastened
             | BuffKind::Fortitude
-            | BuffKind::Reckless => true,
+            | BuffKind::Reckless
+            | BuffKind::Flame
+            | BuffKind::Frigid
+            | BuffKind::Lifesteal => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -285,6 +296,28 @@ impl BuffKind {
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
             BuffKind::Polymorphed(body) => vec![BuffEffect::BodyChange(*body)],
+            BuffKind::Flame => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+                None,
+                CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Burning,
+                    dur_secs: 5.0,
+                    strength: CombatBuffStrength::DamageFraction(0.2),
+                    chance: 1.0,
+                }),
+            ))],
+            BuffKind::Frigid => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+                None,
+                CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Frozen,
+                    dur_secs: 5.0,
+                    strength: CombatBuffStrength::DamageFraction(0.2),
+                    chance: 1.0,
+                }),
+            ))],
+            BuffKind::Lifesteal => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+                None,
+                CombatEffect::Lifesteal(0.2),
+            ))],
         }
     }
 }
@@ -373,6 +406,8 @@ pub enum BuffEffect {
     CriticalChance(f32),
     /// Changes body.
     BodyChange(Body),
+    /// Inflict buff to target
+    BuffOnHit(AttackEffect),
 }
 
 /// Actual de/buff.

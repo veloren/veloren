@@ -204,7 +204,10 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Fortitude
                         | BuffKind::Parried
                         | BuffKind::Reckless
-                        | BuffKind::Polymorphed(_) => Cow::Borrowed(""),
+                        | BuffKind::Polymorphed(_)
+                        | BuffKind::Flame
+                        | BuffKind::Frigid
+                        | BuffKind::Lifesteal => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -242,7 +245,10 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::Hastened
                             | BuffKind::Fortitude
                             | BuffKind::Parried
-                            | BuffKind::Reckless => Cow::Borrowed(""),
+                            | BuffKind::Reckless
+                            | BuffKind::Flame
+                            | BuffKind::Frigid
+                            | BuffKind::Lifesteal => Cow::Borrowed(""),
                         }
                     } else if let BuffKind::Saturation
                     | BuffKind::Regeneration

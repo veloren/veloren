@@ -1,0 +1,20 @@
+ItemDef(
+    name: "Blazing Charm",
+    description: "Flame is your ally, harness its power to burn your foes.",
+    kind: Consumable(
+        kind: Drink,
+        effects: All([
+            Buff((
+                kind: Flame,
+                data: (
+                    strength: 0.4,
+                    duration: Some(20),
+                    ),
+                cat_ids: [Natural],
+            )),
+           
+        ])
+    ),
+    quality: Legendary,
+    tags: [],
+)

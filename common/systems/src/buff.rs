@@ -647,5 +647,6 @@ fn execute_effect(
                 *body_override = Some(*b)
             }
         },
+        BuffEffect::BuffOnHit(effect) => stat.buffs_on_hit.push(effect.clone()),
     };
 }

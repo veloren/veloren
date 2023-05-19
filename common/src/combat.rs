@@ -516,6 +516,12 @@ impl Attack {
         for effect in self
             .effects
             .iter()
+            .chain(
+                attacker
+                    .and_then(|attacker| attacker.stats)
+                    .iter()
+                    .flat_map(|stats| stats.buffs_on_hit.iter()),
+            )
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !avoid_effect(e))
         {

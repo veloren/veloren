@@ -5062,6 +5062,9 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Hastened => imgs.buff_haste_0,
         BuffKind::Fortitude => imgs.buff_fortitude_0,
         BuffKind::Reckless => imgs.buff_reckless,
+        BuffKind::Flame => imgs.debuff_burning_0,
+        BuffKind::Frigid => imgs.debuff_frozen_0,
+        BuffKind::Lifesteal => imgs.buff_plus_0,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -5109,6 +5112,9 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Parried { .. } => localized_strings.get_msg("buff-title-parried"),
         BuffKind::PotionSickness { .. } => localized_strings.get_msg("buff-title-potionsickness"),
         BuffKind::Polymorphed { .. } => localized_strings.get_msg("buff-title-polymorphed"),
+        BuffKind::Flame => localized_strings.get_msg("buff-title-burn"),
+        BuffKind::Frigid => localized_strings.get_msg("buff-title-frigid"),
+        BuffKind::Lifesteal => localized_strings.get_msg("buff-title-lifesteal"),
     }
 }
 
@@ -5148,6 +5154,9 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Parried { .. } => localized_strings.get_msg("buff-desc-parried"),
         BuffKind::PotionSickness { .. } => localized_strings.get_msg("buff-desc-potionsickness"),
         BuffKind::Polymorphed { .. } => localized_strings.get_msg("buff-desc-polymorphed"),
+        BuffKind::Flame { .. } => localized_strings.get_msg("buff-desc-flame"),
+        BuffKind::Frigid { .. } => localized_strings.get_msg("buff-desc-frigid"),
+        BuffKind::Lifesteal { .. } => localized_strings.get_msg("buff-desc-lifesteal"),
     }
 }
 
