@@ -259,6 +259,37 @@ impl Animation for SelfBuffAnimation {
                 next.control.orientation.rotate_z(move2 * 1.6);
                 next.control.position += Vec3::new(move2 * -8.0, 0.0, move2 * -3.0);
             },
+            Some("common.abilities.axe.bloodfeast") => {
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
+                    * Quaternion::rotation_y(s_a.ac.4)
+                    * Quaternion::rotation_z(s_a.ac.5);
+
+                next.control.orientation.rotate_z(move1 * -3.4);
+                next.control.orientation.rotate_x(move1 * 1.1);
+                next.control.position += Vec3::new(move1 * 14.0, move1 * -3.0, 0.0);
+
+                next.control.orientation.rotate_x(move2 * 1.7);
+                next.control.orientation.rotate_z(move2 * -1.3);
+                next.control.orientation.rotate_y(move2 * 0.8);
+            },
             _ => {},
         }
 
