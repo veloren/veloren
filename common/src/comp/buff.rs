@@ -84,6 +84,8 @@ pub enum BuffKind {
     /// hackily by adding 100% to the crit, will need to be adjusted if we ever
     /// allow double crits instead of treating 100 as a ceiling.
     ImminentCritical,
+    /// Increases attack speed linearly with strength, 1.0 is a 100% increase
+    Fury,
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -147,7 +149,8 @@ impl BuffKind {
             | BuffKind::Frigid
             | BuffKind::Lifesteal
             //| BuffKind::SalamanderAspect
-            | BuffKind::ImminentCritical => true,
+            | BuffKind::ImminentCritical
+            | BuffKind::Fury => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -340,6 +343,7 @@ impl BuffKind {
                 kind: ModifierKind::Additive,
                 val: 1.0,
             }],
+            BuffKind::Fury => vec![BuffEffect::AttackSpeed(1.0 + data.strength)],
         }
     }
 

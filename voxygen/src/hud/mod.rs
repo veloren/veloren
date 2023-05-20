@@ -5114,6 +5114,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         // BuffKind::SalamanderAspect => imgs.debuff_burning_0,
         // TODO: Get buff image
         BuffKind::ImminentCritical => imgs.buff_reckless,
+        // TODO: Get buff image
+        BuffKind::Fury => imgs.buff_reckless,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -5151,6 +5153,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Reckless => localized_strings.get_msg("buff-title-reckless"),
         // BuffKind::SalamanderAspect => localized_strings.get_msg("buff-title-salamanderaspect"),
         BuffKind::ImminentCritical => localized_strings.get_msg("buff-title-imminentcritical"),
+        BuffKind::Fury => localized_strings.get_msg("buff-title-fury"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
@@ -5195,6 +5198,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Reckless => localized_strings.get_msg("buff-desc-reckless"),
         // BuffKind::SalamanderAspect => localized_strings.get_msg("buff-desc-salamanderaspect"),
         BuffKind::ImminentCritical => localized_strings.get_msg("buff-desc-imminentcritical"),
+        BuffKind::Fury => localized_strings.get_msg("buff-desc-fury"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),

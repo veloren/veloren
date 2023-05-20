@@ -210,7 +210,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Frigid
                         | BuffKind::Lifesteal
                         // | BuffKind::SalamanderAspect
-                        | BuffKind::ImminentCritical => Cow::Borrowed(""),
+                        | BuffKind::ImminentCritical
+                        | BuffKind::Fury => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -253,7 +254,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::Frigid
                             | BuffKind::Lifesteal
                             // | BuffKind::SalamanderAspect
-                            | BuffKind::ImminentCritical => Cow::Borrowed(""),
+                            | BuffKind::ImminentCritical
+                            | BuffKind::Fury => Cow::Borrowed(""),
                         }
                     } else if let BuffKind::Saturation
                     | BuffKind::Regeneration

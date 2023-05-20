@@ -94,6 +94,9 @@ buff-desc-salamanderaspect = You cannot burn and move fast through lava.
 ## Imminent Critical
 buff-title-imminentcritical = Imminent Critical
 buff-desc-imminentcritical = Your next attack will critically hit the enemy.
+## Fury
+buff-title-fury = Fury
+buff-desc-fury = With your fury, you attack more swiftly.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

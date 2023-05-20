@@ -121,7 +121,8 @@ pub fn localize_chat_message(
                 | BuffKind::Frigid
                 | BuffKind::Lifesteal
                 // | BuffKind::SalamanderAspect
-                | BuffKind::ImminentCritical => {
+                | BuffKind::ImminentCritical
+                | BuffKind::Fury => {
                     tracing::error!("Player was killed by a positive buff!");
                     "hud-outcome-mysterious"
                 },
