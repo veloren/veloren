@@ -992,14 +992,14 @@ impl Animation for ComboAnimation {
                     next.torso.orientation.rotate_z(move2_raw * -TAU);
                 },
                 Some("common.abilities.axe.rising_tide") => {
-                    let (move1, move2_raw) = match stage_section {
+                    let (move1, move2) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time, 0.0),
                         Some(StageSection::Action) => (1.0, anim_time),
                         Some(StageSection::Recover) => (1.0, 1.0),
                         _ => (0.0, 0.0),
                     };
                     let move1 = move1 * multi_strike_pullback;
-                    let move2 = move2_raw * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                     next.hand_l.orientation =
@@ -1030,14 +1030,14 @@ impl Animation for ComboAnimation {
                     next.control.orientation.rotate_z(move2 * -1.0);
                 },
                 Some("common.abilities.axe.rake") => {
-                    let (move1, move2_raw) = match stage_section {
+                    let (move1, move2) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time, 0.0),
                         Some(StageSection::Action) => (1.0, anim_time),
                         Some(StageSection::Recover) => (1.0, 1.0),
                         _ => (0.0, 0.0),
                     };
                     let move1 = move1 * multi_strike_pullback;
-                    let move2 = move2_raw * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                     next.hand_l.orientation =
@@ -1062,14 +1062,14 @@ impl Animation for ComboAnimation {
                     next.control.position += Vec3::new(move2 * -6.0, move2 * -20.0, move2 * -4.0);
                 },
                 Some("common.abilities.axe.fracture") => {
-                    let (move1, move2_raw) = match stage_section {
+                    let (move1, move2) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time, 0.0),
                         Some(StageSection::Action) => (1.0, anim_time),
                         Some(StageSection::Recover) => (1.0, 1.0),
                         _ => (0.0, 0.0),
                     };
                     let move1 = move1 * multi_strike_pullback;
-                    let move2 = move2_raw * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
 
                     next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                     next.hand_l.orientation =

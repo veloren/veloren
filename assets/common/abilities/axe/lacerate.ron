@@ -1,22 +1,23 @@
-ComboMelee2(
-    strikes: [
-        (
-            melee_constructor: (
-                kind: Slash(
-                    damage: 4,
-                    poise: 5,
-                    knockback: 0,
-                    energy_regen: 5,
-                ),
-                range: 3.0,
-                angle: 45.0,
-            ),
-            buildup_duration: 0.15,
-            swing_duration: 0.05,
-            hit_timing: 0.5,
-            recover_duration: 0.1,
-            ori_modifier: 0.6,
+FinisherMelee(
+    energy_cost: 0,
+    buildup_duration: 0.4,
+    swing_duration: 0.2,
+    recover_duration: 0.5,
+    melee_constructor: (
+        kind: Slash(
+            damage: 50,
+            poise: 20,
+            knockback: 0,
+            energy_regen: 0,
         ),
-    ],
-    energy_cost_per_strike: 0,
+        range: 3.0,
+        angle: 45.0,
+        damage_effect: Some(Buff((
+            kind: Bleeding,
+            dur_secs: 15.0,
+            strength: DamageFraction(0.2),
+            chance: 1.0,
+        ))),
+    ),
+    minimum_combo: 30,
 )
