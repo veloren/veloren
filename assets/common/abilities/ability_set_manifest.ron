@@ -170,7 +170,13 @@
             ),
             Simple(Axe(Furor), "common.abilities.axe.furor"),
             Simple(Axe(Fracture), "common.abilities.axe.fracture"),
-            Simple(Axe(Lacerate), "common.abilities.axe.lacerate"),
+            Contextualized(
+                pseudo_id: "common.abilities.axe.lacerate",
+                abilities: [
+                    ([Combo(50)], (Axe(Riptide), "common.abilities.axe.riptide")),
+                    ([], (Axe(Lacerate), "common.abilities.axe.lacerate")),
+                ],
+            ),
             Simple(Axe(SkullBash), "common.abilities.axe.skull_bash"),
             Simple(Axe(Sunder), "common.abilities.axe.sunder"),
             Simple(Axe(Plunder), "common.abilities.axe.plunder"),
