@@ -1615,3 +1615,27 @@ impl ScalingKind {
         }
     }
 }
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ComboConsumption {
+    All,
+    Half,
+}
+
+impl ComboConsumption {
+    pub fn consume(&self, data: &JoinData, output_events: &mut OutputEvents) {
+        let combo = data.combo.map_or(0, |c| c.counter());
+        let to_consume = match self {
+            Self::All => combo,
+            Self::Half => (combo + 1) / 2,
+        };
+        output_events.emit_server(ServerEvent::ComboChange {
+            entity: data.entity,
+            change: -(to_consume as i32),
+        });
+    }
+}
+
+impl Default for ComboConsumption {
+    fn default() -> Self { Self::All }
+}

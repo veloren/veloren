@@ -1,7 +1,6 @@
 use crate::{
     combat::{CombatBuff, CombatEffect},
     comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
-    event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -27,6 +26,7 @@ pub struct StaticData {
     pub minimum_combo: u32,
     /// Amount of combo when ability was activated
     pub combo_on_use: u32,
+    pub combo_consumption: ComboConsumption,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -74,19 +74,19 @@ impl CharacterBehavior for Data {
                         c.exhausted = true;
                     }
 
-                    // Consume combo
-                    output_events.emit_server(ServerEvent::ComboChange {
-                        entity: data.entity,
-                        change: -(self.static_data.combo_on_use as i32),
-                    });
-
+                    self.static_data
+                        .combo_consumption
+                        .consume(data, output_events);
                     let mut melee_constructor = self.static_data.melee_constructor;
 
                     if let Some(scaling) = self.static_data.scaling {
-                        let scaling_factor = scaling.kind.factor(
-                            self.static_data.combo_on_use as f32,
-                            self.static_data.minimum_combo as f32,
-                        );
+                        let scaling_factor = scaling
+                            .kind
+                            .factor(
+                                self.static_data.combo_on_use as f32,
+                                self.static_data.minimum_combo as f32,
+                            )
+                            .min(scaling.max_factor);
                         match scaling.target {
                             ScalingTarget::Attack => {
                                 melee_constructor =
@@ -149,8 +149,9 @@ pub enum ScalingTarget {
     Buff,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scaling {
     pub target: ScalingTarget,
     pub kind: ScalingKind,
+    pub max_factor: f32,
 }

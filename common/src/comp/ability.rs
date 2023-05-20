@@ -23,7 +23,7 @@ use crate::{
     resources::Secs,
     states::{
         behavior::JoinData,
-        utils::{AbilityInfo, ScalingKind, StageSection},
+        utils::{AbilityInfo, ComboConsumption, ScalingKind, StageSection},
         *,
     },
     terrain::SpriteKind,
@@ -950,6 +950,8 @@ pub enum CharacterAbility {
         minimum_combo: u32,
         scaling: Option<finisher_melee::Scaling>,
         #[serde(default)]
+        combo_consumption: ComboConsumption,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     DiveMelee {
@@ -1603,6 +1605,7 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 minimum_combo: _,
                 scaling: _,
+                combo_consumption: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2846,6 +2849,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 minimum_combo,
                 scaling,
+                combo_consumption,
                 meta: _,
             } => CharacterState::FinisherMelee(finisher_melee::Data {
                 static_data: finisher_melee::StaticData {
@@ -2856,6 +2860,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     scaling: *scaling,
                     minimum_combo: *minimum_combo,
                     combo_on_use: data.combo.map_or(0, |c| c.counter()),
+                    combo_consumption: *combo_consumption,
                     ability_info,
                 },
                 timer: Duration::default(),
