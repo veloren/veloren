@@ -768,6 +768,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
 
     // TODO: Faster RNG?
     let mut rng = rand::thread_rng();
+    // TODO: Process terrain destruction first so that entities don't get protected
+    // by terrain that gets destroyed?
     'effects: for effect in explosion.effects {
         match effect {
             RadiusEffect::TerrainDestruction(power, new_color) => {
@@ -911,6 +913,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 let players = &ecs.read_storage::<Player>();
                 let buffs = &ecs.read_storage::<comp::Buffs>();
                 let stats = &ecs.read_storage::<comp::Stats>();
+                let terrain = ecs.read_resource::<TerrainGrid>();
                 for (
                     entity_b,
                     pos_b,
@@ -930,6 +933,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     .join()
                     .filter(|(_, _, h, _)| !h.is_dead)
                 {
+                    let dist_sqrd = pos.distance_squared(pos_b.0);
+
                     // Check if it is a hit
                     let strength = if let Some(body) = body_b_maybe {
                         cylinder_sphere_strength(
@@ -940,10 +945,15 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             *body,
                         )
                     } else {
-                        let distance_squared = pos.distance_squared(pos_b.0);
-                        1.0 - distance_squared / explosion.radius.powi(2)
+                        1.0 - dist_sqrd / explosion.radius.powi(2)
                     };
-                    if strength > 0.0 {
+
+                    // Cast a ray from the explosion to the entity to check visibility
+                    if strength > 0.0
+                        && (terrain.ray(pos, pos_b.0).until(Block::is_opaque).cast().0 + 0.1)
+                            .powi(2)
+                            >= dist_sqrd
+                    {
                         // See if entities are in the same group
                         let same_group = owner_entity
                             .and_then(|e| groups.get(e))
