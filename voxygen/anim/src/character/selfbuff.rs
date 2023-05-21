@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
-use core::f32::consts::PI;
+use core::f32::consts::{PI, TAU};
 
 pub struct SelfBuffAnimation;
 impl Animation for SelfBuffAnimation {
@@ -322,6 +322,43 @@ impl Animation for SelfBuffAnimation {
                 next.control.orientation.rotate_y(move2 * 0.7);
                 next.control.orientation.rotate_x(move2 * -0.5);
                 next.control.position += Vec3::new(move2 * 9.0, move2 * -3.0, move2 * -14.0);
+            },
+            Some("common.abilities.axe.sunder") => {
+                let (move1_raw, move2_raw, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1_raw * pullback;
+                let move2 = move2_raw * pullback;
+
+                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
+                    * Quaternion::rotation_y(s_a.ac.4)
+                    * Quaternion::rotation_z(s_a.ac.5);
+
+                next.control.orientation.rotate_z(move1 * -1.5);
+                next.control.position += Vec3::new(move1 * 12.0, 0.0, move1 * 5.0);
+                next.control.orientation.rotate_y(move1 * 0.5);
+                next.main.position += Vec3::new(0.0, move1 * 10.0, 0.0);
+                next.main.orientation.rotate_z(move1_raw * TAU);
+                next.second.position += Vec3::new(0.0, move1 * 10.0, 0.0);
+                next.second.orientation.rotate_z(move1_raw * -TAU);
+
+                next.main.orientation.rotate_z(move2_raw * TAU);
+                next.main.position += Vec3::new(0.0, move2 * -10.0, 0.0);
+                next.second.orientation.rotate_z(move2_raw * -TAU);
+                next.second.position += Vec3::new(0.0, move2 * -10.0, 0.0);
+                next.control.position += Vec3::new(0.0, 0.0, move2 * -5.0);
             },
             _ => {},
         }

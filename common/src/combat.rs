@@ -137,8 +137,13 @@ impl Attack {
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
         if damage.value > 0.0 {
-            let damage_reduction =
+            let attacker_penetration = attacker
+                .and_then(|a| a.stats)
+                .map_or(0.0, |s| s.mitigations_penetration)
+                .clamp(0.0, 1.0);
+            let raw_damage_reduction =
                 Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
+            let damage_reduction = (1.0 - attacker_penetration) * raw_damage_reduction;
             let block_reduction =
                 if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
                     if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {

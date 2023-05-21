@@ -691,5 +691,11 @@ fn execute_effect(
         BuffEffect::SwimSpeed(speed) => {
             stat.swim_speed_modifier *= speed;
         },
+        BuffEffect::AttackPoise(p) => {
+            stat.poise_damage_modifier *= p;
+        },
+        BuffEffect::MitigationsPenetration(mp) => {
+            stat.mitigations_penetration *= mp;
+        },
     };
 }

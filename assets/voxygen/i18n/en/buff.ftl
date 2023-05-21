@@ -97,6 +97,9 @@ buff-desc-imminentcritical = Your next attack will critically hit the enemy.
 ## Fury
 buff-title-fury = Fury
 buff-desc-fury = With your fury, you attack more swiftly.
+## Sunderer
+buff-title-sunderer = Sunderer
+buff-desc-sunderer = Your attacks can break through your foes' defences and are more staggering.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

@@ -66,6 +66,7 @@ pub struct Stats {
     pub crit_chance_modifier: StatsModifier,
     pub buffs_on_hit: Vec<AttackEffect>,
     pub swim_speed_modifier: f32,
+    pub mitigations_penetration: f32,
 }
 
 impl Stats {
@@ -86,6 +87,7 @@ impl Stats {
             crit_chance_modifier: StatsModifier::default(),
             buffs_on_hit: Vec::new(),
             swim_speed_modifier: 1.0,
+            mitigations_penetration: 0.0,
         }
     }
 

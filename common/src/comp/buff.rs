@@ -86,6 +86,11 @@ pub enum BuffKind {
     ImminentCritical,
     /// Increases attack speed linearly with strength, 1.0 is a 100% increase
     Fury,
+    /// Increases poise damage and allows attacks to ignore DR
+    /// Poise damage increased linearly relative to strength, 1.0 is a 100%
+    /// increase. DR penetration is non-linear, 0.5 is 50% penetration and 1.0
+    /// is a 67% penetration.
+    Sunderer,
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -150,7 +155,8 @@ impl BuffKind {
             | BuffKind::Lifesteal
             //| BuffKind::SalamanderAspect
             | BuffKind::ImminentCritical
-            | BuffKind::Fury => true,
+            | BuffKind::Fury
+            | BuffKind::Sunderer => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -344,6 +350,10 @@ impl BuffKind {
                 val: 1.0,
             }],
             BuffKind::Fury => vec![BuffEffect::AttackSpeed(1.0 + data.strength)],
+            BuffKind::Sunderer => vec![
+                BuffEffect::AttackPoise(data.strength),
+                BuffEffect::MitigationsPenetration(nn_scaling(data.strength)),
+            ],
         }
     }
 
@@ -474,6 +484,10 @@ pub enum BuffEffect {
     BuffOnHit(AttackEffect),
     BuffImmunity(BuffKind),
     SwimSpeed(f32),
+    /// Increases poise damage dealt by attacks
+    AttackPoise(f32),
+    /// Ignores some damage reduction on target
+    MitigationsPenetration(f32),
 }
 
 /// Actual de/buff.
