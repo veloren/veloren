@@ -1409,6 +1409,8 @@ impl Renderer {
     }
 
     /// Create a new dynamic texture with the specified dimensions.
+    ///
+    /// Currently only supports Rgba8Srgb.
     pub fn create_dynamic_texture(&mut self, dims: Vec2<u32>) -> Texture {
         Texture::new_dynamic(&self.device, &self.queue, dims.x, dims.y)
     }
