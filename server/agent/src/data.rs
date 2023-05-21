@@ -12,7 +12,6 @@ use common::{
             },
             slot::EquipSlot,
         },
-        pet::PetState,
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
         LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, Scale, SkillSet, Stance,
         Stats, Vel,
@@ -53,7 +52,6 @@ pub struct AgentData<'a> {
     pub light_emitter: Option<&'a LightEmitter>,
     pub glider_equipped: bool,
     pub is_gliding: bool,
-    pub stay_pos: Option<Pos>,
     pub health: Option<&'a Health>,
     pub char_state: &'a CharacterState,
     pub active_abilities: &'a ActiveAbilities,
@@ -349,7 +347,6 @@ pub struct ReadData<'a> {
     pub is_mounts: ReadStorage<'a, Is<Mount>>,
     pub is_riders: ReadStorage<'a, Is<Rider>>,
     pub is_volume_riders: ReadStorage<'a, Is<VolumeRider>>,
-    pub pet_states: ReadStorage<'a, PetState>,
     pub time_of_day: Read<'a, TimeOfDay>,
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]

@@ -10,7 +10,7 @@ use common::{
         inventory::slot::EquipSlot,
         item::{flatten_counted_items, MaterialStatManifest},
         loot_owner::LootOwnerKind,
-        pet::{is_mountable, PetState},
+        pet::is_mountable,
         tool::{AbilityMap, ToolKind},
         Inventory, LootOwner, Pos, SkillGroupKind,
     },
@@ -134,7 +134,7 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
 
             let is_stay = state
                 .ecs()
-                .read_storage::<PetState>()
+                .read_storage::<comp::Agent>()
                 .get(mount)
                 .and_then(|x| x.stay_pos)
                 .is_some();
@@ -225,7 +225,7 @@ pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: Ec
     }
     let prev_pet_pos = state
         .ecs()
-        .read_storage::<PetState>()
+        .read_storage::<comp::Agent>()
         .get(pet)
         .and_then(|s| s.stay_pos);
     let mut new_pet_pos = None;
@@ -236,12 +236,11 @@ pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: Ec
         && within_mounting_range(positions.get(command_giver), positions.get(pet))
         && state.ecs().read_storage::<Is<Mount>>().get(pet).is_none()
     {
-        let _ = state
+        state
             .ecs()
-            .write_storage::<PetState>()
-            .insert(pet, PetState {
-                stay_pos: new_pet_pos,
-            });
+            .write_storage::<comp::Agent>()
+            .get_mut(pet)
+            .map(|s| s.stay_pos = new_pet_pos);
     }
 }
 

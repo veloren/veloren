@@ -1,5 +1,5 @@
 use common::{
-    comp::{pet::PetState, Alignment, Pet, PhysicsState, Pos},
+    comp::{Agent, Alignment, Pet, PhysicsState, Pos},
     terrain::TerrainGrid,
     uid::IdMaps,
 };
@@ -16,7 +16,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Pet>,
-        ReadStorage<'a, PetState>,
+        ReadStorage<'a, Agent>,
         ReadStorage<'a, PhysicsState>,
         Read<'a, IdMaps>,
     );
@@ -27,7 +27,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, terrain, mut positions, alignments, pets, pet_state, physics, id_maps): Self::SystemData,
+        (entities, terrain, mut positions, alignments, pets, agn, physics, id_maps): Self::SystemData,
     ) {
         const LOST_PET_DISTANCE_THRESHOLD: f32 = 200.0;
 
@@ -58,10 +58,7 @@ impl<'a> System<'a> for Sys {
             .collect();
 
         for (pet_entity, owner_pos) in lost_pets.iter() {
-            let stay = pet_state
-                .get(*pet_entity)
-                .and_then(|f| f.stay_pos)
-                .is_some();
+            let stay = agn.get(*pet_entity).and_then(|x| x.stay_pos).is_some();
             if let Some(mut pet_pos) = positions.get_mut(*pet_entity) && !stay{
                 // Move the pets to their owner's position
                 // TODO: Create a teleportation event to handle this instead of

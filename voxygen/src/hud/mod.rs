@@ -1504,7 +1504,6 @@ impl Hud {
             let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mounts = ecs.read_storage::<Is<Mount>>();
             let is_riders = ecs.read_storage::<Is<Rider>>();
-            let pet_state = ecs.read_storage::<comp::pet::PetState>();
             let stances = ecs.read_storage::<comp::Stance>();
             let time = ecs.read_resource::<Time>();
 
@@ -2426,24 +2425,16 @@ impl Hud {
                                 ));
                                 if !client.is_riding()
                                     && is_mountable(body, bodies.get(client.entity()))
-                                    && pet_state.get(entity).and_then(|st| st.stay_pos).is_none()
                                 {
                                     options.push((
                                         GameInput::Mount,
                                         i18n.get_msg("hud-mount").to_string(),
                                     ));
                                 }
-                                if pet_state.get(entity).and_then(|st| st.stay_pos).is_some() {
-                                    options.push((
-                                        GameInput::StayFollow,
-                                        i18n.get_msg("hud-follow").to_string(),
-                                    ));
-                                } else {
-                                    options.push((
-                                        GameInput::StayFollow,
-                                        i18n.get_msg("hud-stay").to_string(),
-                                    ));
-                                }
+                                options.push((
+                                    GameInput::StayFollow,
+                                    i18n.get_msg("hud-stay-follow").to_string(),
+                                ));
                             }
                             options
                         },
