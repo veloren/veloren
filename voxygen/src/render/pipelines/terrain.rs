@@ -1,4 +1,7 @@
-use super::super::{AaMode, Bound, Consts, GlobalsLayouts, Vertex as VertexTrait};
+use super::{
+    super::{AaMode, Bound, Consts, GlobalsLayouts, Vertex as VertexTrait},
+    AtlasData,
+};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;
@@ -237,7 +240,7 @@ impl TerrainPipeline {
                 bind_group_layouts: &[
                     &global_layout.globals,
                     &global_layout.shadow_textures,
-                    &global_layout.col_light,
+                    global_layout.terrain_atlas_layout.layout(),
                     &layout.locals,
                 ],
             });
@@ -303,5 +306,86 @@ impl TerrainPipeline {
         Self {
             pipeline: render_pipeline,
         }
+    }
+}
+
+/// Represents texture that can be converted into texture atlases for terrain.
+pub struct TerrainAtlasData {
+    pub col_lights: Vec<[u8; 4]>,
+    pub kinds: Vec<u8>,
+}
+
+impl AtlasData for TerrainAtlasData {
+    type SliceMut<'a> =
+        std::iter::Zip<std::slice::IterMut<'a, [u8; 4]>, std::slice::IterMut<'a, u8>>;
+
+    const TEXTURES: usize = 2;
+
+    fn blank_with_size(sz: Vec2<u16>) -> Self {
+        let col_lights =
+            vec![Vertex::make_col_light(254, 0, Rgb::broadcast(254), true); sz.as_().product()];
+        let kinds = vec![0; sz.as_().product()];
+        Self { col_lights, kinds }
+    }
+
+    fn as_texture_data(&self) -> [(wgpu::TextureFormat, &[u8]); Self::TEXTURES] {
+        [
+            (
+                wgpu::TextureFormat::Rgba8Unorm,
+                bytemuck::cast_slice(&self.col_lights),
+            ),
+            (wgpu::TextureFormat::R8Uint, &self.kinds),
+        ]
+    }
+
+    fn layout() -> Vec<wgpu::BindGroupLayoutEntry> {
+        vec![
+            // col lights
+            wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            },
+            wgpu::BindGroupLayoutEntry {
+                binding: 1,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Sampler {
+                    filtering: true,
+                    comparison: false,
+                },
+                count: None,
+            },
+            // kind
+            wgpu::BindGroupLayoutEntry {
+                binding: 2,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Uint,
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            },
+            wgpu::BindGroupLayoutEntry {
+                binding: 3,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Sampler {
+                    filtering: false,
+                    comparison: false,
+                },
+                count: None,
+            },
+        ]
+    }
+
+    fn slice_mut(&mut self, range: std::ops::Range<usize>) -> Self::SliceMut<'_> {
+        self.col_lights[range.clone()]
+            .iter_mut()
+            .zip(self.kinds[range].iter_mut())
     }
 }

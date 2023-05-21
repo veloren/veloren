@@ -7,7 +7,8 @@ use super::{
         model::{DynamicModel, Model, SubModel},
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, shadow,
-            skybox, sprite, terrain, trail, ui, ColLights, GlobalsBindGroup,
+            skybox, sprite, terrain, trail, ui, AtlasTextures, FigureSpriteAtlasData,
+            GlobalsBindGroup, TerrainAtlasData,
         },
         AltIndices, CullingMode,
     },
@@ -950,7 +951,7 @@ impl<'pass> FirstPassDrawer<'pass> {
 
         TerrainDrawer {
             render_pass,
-            col_lights: None,
+            atlas_textures: None,
         }
     }
 
@@ -966,14 +967,14 @@ impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_sprites<'data: 'pass>(
         &mut self,
         globals: &'data sprite::SpriteGlobalsBindGroup,
-        col_lights: &'data ColLights<sprite::Locals>,
+        atlas_textures: &'data AtlasTextures<sprite::Locals, FigureSpriteAtlasData>,
     ) -> SpriteDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("sprites", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.sprite.pipeline);
         set_quad_index_buffer::<sprite::Vertex>(&mut render_pass, self.borrow);
         render_pass.set_bind_group(0, &globals.bind_group, &[]);
-        render_pass.set_bind_group(2, &col_lights.bind_group, &[]);
+        render_pass.set_bind_group(2, &atlas_textures.bind_group, &[]);
 
         SpriteDrawer {
             render_pass,
@@ -1028,10 +1029,10 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
         model: SubModel<'data, terrain::Vertex>,
         locals: &'data figure::BoundLocals,
         // TODO: don't rebind this every time once they are shared between figures
-        col_lights: &'data ColLights<figure::Locals>,
+        atlas_textures: &'data AtlasTextures<figure::Locals, FigureSpriteAtlasData>,
     ) {
         self.render_pass
-            .set_bind_group(2, &col_lights.bind_group, &[]);
+            .set_bind_group(2, &atlas_textures.bind_group, &[]);
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf());
         self.render_pass
@@ -1042,14 +1043,14 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
 #[must_use]
 pub struct TerrainDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
-    col_lights: Option<&'pass_ref Arc<ColLights<terrain::Locals>>>,
+    atlas_textures: Option<&'pass_ref Arc<AtlasTextures<terrain::Locals, TerrainAtlasData>>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
     pub fn draw<'data: 'pass>(
         &mut self,
         model: &'data Model<terrain::Vertex>,
-        col_lights: &'data Arc<ColLights<terrain::Locals>>,
+        atlas_textures: &'data Arc<AtlasTextures<terrain::Locals, TerrainAtlasData>>,
         locals: &'data terrain::BoundLocals,
         alt_indices: &'data AltIndices,
         culling_mode: CullingMode,
@@ -1067,15 +1068,15 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
 
         let submodel = model.submodel(index_range);
 
-        if self.col_lights
+        if self.atlas_textures
             // Check if we are still using the same atlas texture as the previous drawn
             // chunk
-            .filter(|current_col_lights| Arc::ptr_eq(current_col_lights, col_lights))
+            .filter(|current_atlas_textures| Arc::ptr_eq(current_atlas_textures, atlas_textures))
             .is_none()
         {
             self.render_pass
-                .set_bind_group(2, &col_lights.bind_group, &[]);
-            self.col_lights = Some(col_lights);
+                .set_bind_group(2, &atlas_textures.bind_group, &[]);
+            self.atlas_textures = Some(atlas_textures);
         };
 
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);

@@ -10,7 +10,8 @@
     option_get_or_insert_default,
     map_try_insert,
     slice_as_chunks,
-    let_chains
+    let_chains,
+    generic_const_exprs
 )]
 #![recursion_limit = "2048"]
 

@@ -3,8 +3,8 @@ use crate::render::pipelines::rain_occlusion;
 use super::{
     super::{
         pipelines::{
-            debug, figure, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
-            GlobalsBindGroup,
+            debug, figure, lod_terrain, shadow, sprite, terrain, ui, AtlasTextures,
+            FigureSpriteAtlasData, GlobalModel, GlobalsBindGroup, TerrainAtlasData,
         },
         texture::Texture,
     },
@@ -90,15 +90,37 @@ impl Renderer {
             .bind_locals(&self.device, locals)
     }
 
-    pub fn figure_bind_col_light(&self, col_light: Texture) -> ColLights<figure::Locals> {
-        self.layouts.global.bind_col_light(&self.device, col_light)
+    pub fn figure_bind_atlas_textures(
+        &self,
+        col_light: Texture,
+    ) -> AtlasTextures<figure::Locals, FigureSpriteAtlasData> {
+        self.layouts.global.bind_atlas_textures(
+            &self.device,
+            &self.layouts.global.figure_sprite_atlas_layout,
+            [col_light],
+        )
     }
 
-    pub fn terrain_bind_col_light(&self, col_light: Texture) -> ColLights<terrain::Locals> {
-        self.layouts.global.bind_col_light(&self.device, col_light)
+    pub fn terrain_bind_atlas_textures(
+        &self,
+        col_light: Texture,
+        kinds: Texture,
+    ) -> AtlasTextures<terrain::Locals, TerrainAtlasData> {
+        self.layouts.global.bind_atlas_textures(
+            &self.device,
+            &self.layouts.global.terrain_atlas_layout,
+            [col_light, kinds],
+        )
     }
 
-    pub fn sprite_bind_col_light(&self, col_light: Texture) -> ColLights<sprite::Locals> {
-        self.layouts.global.bind_col_light(&self.device, col_light)
+    pub fn sprite_bind_atlas_textures(
+        &self,
+        col_light: Texture,
+    ) -> AtlasTextures<sprite::Locals, FigureSpriteAtlasData> {
+        self.layouts.global.bind_atlas_textures(
+            &self.device,
+            &self.layouts.global.figure_sprite_atlas_layout,
+            [col_light],
+        )
     }
 }

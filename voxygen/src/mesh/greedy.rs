@@ -1,4 +1,4 @@
-use crate::render::{mesh::Quad, ColLightInfo, TerrainVertex, Vertex};
+use crate::render::{mesh::Quad, pipelines::AtlasData, Vertex};
 use common_base::{prof_span, span};
 use vek::*;
 
@@ -78,7 +78,7 @@ pub struct GreedyConfig<D, FA, FL, FG, FO, FS, FP, FT> {
 /// coloring part as a continuation.  When called with a final tile size and
 /// vector, the continuation will consume the color data and write it to the
 /// vector.
-pub type SuspendedMesh<'a> = dyn for<'r> FnOnce(&'r mut ColLightInfo) + 'a;
+pub type SuspendedMesh<'a, A> = dyn for<'r> FnOnce(&'r mut A, Vec2<u16>) + 'a;
 
 /// Abstraction over different atlas allocators. Useful to swap out the
 /// allocator implementation for specific cases (e.g. sprites).
@@ -316,15 +316,19 @@ pub type SpriteAtlasAllocator = GuillotiereTiled;
 /// Shared state for a greedy mesh, potentially passed along to multiple models.
 ///
 /// For an explanation of why we want this, see `SuspendedMesh`.
-pub struct GreedyMesh<'a, Allocator: AtlasAllocator = guillotiere::SimpleAtlasAllocator> {
+pub struct GreedyMesh<
+    'a,
+    A: AtlasData,
+    Allocator: AtlasAllocator = guillotiere::SimpleAtlasAllocator,
+> {
     //atlas: guillotiere::SimpleAtlasAllocator,
     atlas: Allocator,
-    col_lights_size: Vec2<u16>,
+    tex_size: Vec2<u16>,
     max_size: Vec2<u16>,
-    suspended: Vec<Box<SuspendedMesh<'a>>>,
+    suspended: Vec<Box<SuspendedMesh<'a, A>>>,
 }
 
-impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
+impl<'a, A: AtlasData, Allocator: AtlasAllocator> GreedyMesh<'a, A, Allocator> {
     /// Construct a new greedy mesher.
     ///
     /// Takes as input the maximum allowable size of the texture atlas used to
@@ -350,10 +354,10 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
             max_size
         );
         let atlas = Allocator::with_max_size(max_size, config);
-        let col_lights_size = Vec2::new(1, 1);
+        let tex_size = Vec2::new(1, 1);
         Self {
             atlas,
-            col_lights_size,
+            tex_size,
             max_size,
             suspended: Vec::new(),
         }
@@ -380,15 +384,11 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
         FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
         FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-        FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8, bool) -> [u8; 4] + 'a,
+        FT: for<'r> FnMut(<A::SliceMut<'_> as Iterator>::Item, &'r mut D, Vec3<i32>, u8, u8, bool)
+            + 'a,
     {
         span!(_guard, "push", "GreedyMesh::push");
-        let cont = greedy_mesh(
-            &mut self.atlas,
-            &mut self.col_lights_size,
-            self.max_size,
-            config,
-        );
+        let cont = greedy_mesh(&mut self.atlas, &mut self.tex_size, self.max_size, config);
         self.suspended.push(cont);
     }
 
@@ -401,26 +401,34 @@ impl<'a, Allocator: AtlasAllocator> GreedyMesh<'a, Allocator> {
     /// potentially use a single staged upload to the GPU.
     ///
     /// Returns the ColLightsInfo corresponding to the constructed atlas.
-    pub fn finalize(self) -> ColLightInfo {
+    pub fn finalize(self) -> (A, Vec2<u16>) {
         span!(_guard, "finalize", "GreedyMesh::finalize");
-        let cur_size = self.col_lights_size;
-        let col_lights = vec![
-            TerrainVertex::make_col_light(254, 0, Rgb::broadcast(254), true);
-            cur_size.x as usize * cur_size.y as usize
-        ];
-        let mut col_lights_info = (col_lights, cur_size);
+        let mut atlas_texture_data = A::blank_with_size(self.tex_size);
         self.suspended.into_iter().for_each(|cont| {
-            cont(&mut col_lights_info);
+            cont(&mut atlas_texture_data, self.tex_size);
         });
-        col_lights_info
+        (atlas_texture_data, self.tex_size)
     }
 
     pub fn max_size(&self) -> Vec2<u16> { self.max_size }
 }
 
-fn greedy_mesh<'a, M: PartialEq, D: 'a, FA, FL, FG, FO, FS, FP, FT, Allocator: AtlasAllocator>(
+fn greedy_mesh<
+    'a,
+    M: PartialEq,
+    D: 'a,
+    FA,
+    FL,
+    FG,
+    FO,
+    FS,
+    FP,
+    FT,
+    A: AtlasData,
+    Allocator: AtlasAllocator,
+>(
     atlas: &mut Allocator,
-    col_lights_size: &mut Vec2<u16>,
+    atlas_size: &mut Vec2<u16>,
     max_size: Vec2<u16>,
     GreedyConfig {
         mut data,
@@ -435,7 +443,7 @@ fn greedy_mesh<'a, M: PartialEq, D: 'a, FA, FL, FG, FO, FS, FP, FT, Allocator: A
         mut push_quad,
         make_face_texel,
     }: GreedyConfig<D, FA, FL, FG, FO, FS, FP, FT>,
-) -> Box<SuspendedMesh<'a>>
+) -> Box<SuspendedMesh<'a, A>>
 where
     FA: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
@@ -443,7 +451,7 @@ where
     FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
     FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
     FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-    FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8, bool) -> [u8; 4] + 'a,
+    FT: for<'r> FnMut(<A::SliceMut<'_> as Iterator>::Item, &'r mut D, Vec3<i32>, u8, u8, bool) + 'a,
 {
     span!(_guard, "greedy_mesh");
     // TODO: Collect information to see if we can choose a good value here.
@@ -473,7 +481,7 @@ where
                 norm,
                 faces_forward,
                 max_size,
-                col_lights_size,
+                atlas_size,
             );
             create_quad_greedy(
                 pos,
@@ -514,7 +522,7 @@ where
                 norm,
                 faces_forward,
                 max_size,
-                col_lights_size,
+                atlas_size,
             );
             create_quad_greedy(
                 pos,
@@ -555,7 +563,7 @@ where
                 norm,
                 faces_forward,
                 max_size,
-                col_lights_size,
+                atlas_size,
             );
             create_quad_greedy(
                 pos,
@@ -572,10 +580,11 @@ where
         },
     );
 
-    Box::new(move |col_lights_info| {
+    Box::new(move |atlas_texture_data, cur_size| {
         let mut data = data;
-        draw_col_lights(
-            col_lights_info,
+        draw_texels::<_, A>(
+            atlas_texture_data,
+            cur_size,
             &mut data,
             todo_rects,
             draw_delta,
@@ -727,8 +736,9 @@ fn add_to_atlas<Allocator: AtlasAllocator>(
 // to provide builtin support for what we're doing here.
 //
 // TODO: See if we can speed this up using SIMD.
-fn draw_col_lights<D>(
-    (col_lights, cur_size): &mut ColLightInfo,
+fn draw_texels<D, A: AtlasData>(
+    atlas_texture_data: &mut A,
+    cur_size: Vec2<u16>,
     data: &mut D,
     todo_rects: Vec<TodoRect>,
     draw_delta: Vec3<i32>,
@@ -736,7 +746,14 @@ fn draw_col_lights<D>(
     mut get_light: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_glow: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_opacity: impl FnMut(&mut D, Vec3<i32>) -> bool,
-    mut make_face_texel: impl FnMut(&mut D, Vec3<i32>, u8, u8, bool) -> [u8; 4],
+    mut make_face_texel: impl FnMut(
+        <A::SliceMut<'_> as Iterator>::Item,
+        &mut D,
+        Vec3<i32>,
+        u8,
+        u8,
+        bool,
+    ),
 ) {
     todo_rects.into_iter().for_each(|(pos, uv, rect, delta)| {
         // NOTE: Conversions are safe because width, height, and offset must be
@@ -751,8 +768,8 @@ fn draw_col_lights<D>(
         (0..height).for_each(|v| {
             let start = cur_size.x as usize * usize::from(top + v) + usize::from(left);
             (0..width)
-                .zip(&mut col_lights[start..start + usize::from(width)])
-                .for_each(|(u, col_light)| {
+                .zip(atlas_texture_data.slice_mut(start..start + usize::from(width)))
+                .for_each(|(u, texel)| {
                     let pos = pos + uv.x * i32::from(u) + uv.y * i32::from(v);
                     // TODO: Consider optimizing to take advantage of the fact that this whole
                     // face should be facing nothing but air (this is not currently true, but
@@ -822,7 +839,7 @@ fn draw_col_lights<D>(
                     let light = (darkness * 31.5) as u8;
                     let glow = (glowiness * 31.5) as u8;
                     let ao = ao > 0.7;
-                    *col_light = make_face_texel(data, pos, light, glow, ao);
+                    make_face_texel(texel, data, pos, light, glow, ao);
                 });
         });
     });

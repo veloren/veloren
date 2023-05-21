@@ -5,7 +5,7 @@ use crate::{
         greedy::{self, GreedyConfig, GreedyMesh},
         MeshGen,
     },
-    render::{AltIndices, ColLightInfo, FluidVertex, Mesh, TerrainVertex, Vertex},
+    render::{AltIndices, FluidVertex, Mesh, TerrainAtlasData, TerrainVertex, Vertex},
     scene::terrain::{BlocksOfInterest, DEEP_ALT, SHALLOW_ALT},
 };
 use common::{
@@ -235,7 +235,8 @@ pub fn generate_mesh<'a>(
     TerrainVertex,
     (
         Aabb<f32>,
-        ColLightInfo,
+        TerrainAtlasData,
+        Vec2<u16>,
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
         Arc<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
         AltIndices,
@@ -390,6 +391,7 @@ pub fn generate_mesh<'a>(
     let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
     let get_color =
         |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or_else(Rgb::zero);
+    let get_kind = |_: &mut (), pos: Vec3<i32>| flat_get(pos).kind() as u8;
     let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
     let should_draw = |_: &mut (), pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
         should_draw_greedy(pos, delta, &flat_get)
@@ -430,8 +432,10 @@ pub fn generate_mesh<'a>(
         FluidVertex::new(pos + mesh_delta, norm, vel.xy())
     };
 
-    let mut greedy =
-        GreedyMesh::<guillotiere::SimpleAtlasAllocator>::new(max_size, greedy::general_config());
+    let mut greedy = GreedyMesh::<TerrainAtlasData, guillotiere::SimpleAtlasAllocator>::new(
+        max_size,
+        greedy::general_config(),
+    );
     let mut opaque_deep = Vec::new();
     let mut opaque_shallow = Vec::new();
     let mut opaque_surface = Vec::new();
@@ -486,8 +490,14 @@ pub fn generate_mesh<'a>(
                 ));
             },
         },
-        make_face_texel: |data: &mut (), pos, light, glow, ao| {
-            TerrainVertex::make_col_light(light, glow, get_color(data, pos), ao)
+        make_face_texel: |(col_light, kind): (&mut [u8; 4], &mut u8),
+                          data: &mut (),
+                          pos,
+                          light,
+                          glow,
+                          ao| {
+            *col_light = TerrainVertex::make_col_light(light, glow, get_color(data, pos), ao);
+            *kind = get_kind(data, pos);
         },
     });
 
@@ -496,7 +506,7 @@ pub fn generate_mesh<'a>(
         min: min_bounds,
         max: max_bounds + min_bounds,
     };
-    let (col_lights, col_lights_size) = greedy.finalize();
+    let (atlas_data, atlas_size) = greedy.finalize();
 
     let deep_end = opaque_deep.len()
         * if TerrainVertex::QUADS_INDEX.is_some() {
@@ -526,7 +536,8 @@ pub fn generate_mesh<'a>(
         Mesh::new(),
         (
             bounds,
-            (col_lights, col_lights_size),
+            atlas_data,
+            atlas_size,
             Arc::new(light),
             Arc::new(glow),
             alt_indices,

@@ -1,6 +1,7 @@
 use super::{
     super::{AaMode, Bound, Consts, GlobalsLayouts, Mesh, Model},
     terrain::Vertex,
+    AtlasData,
 };
 use crate::mesh::greedy::GreedyMesh;
 use bytemuck::{Pod, Zeroable};
@@ -87,7 +88,7 @@ pub struct FigureModel {
 
 impl FigureModel {
     /// Start a greedy mesh designed for figure bones.
-    pub fn make_greedy<'a>() -> GreedyMesh<'a> {
+    pub fn make_greedy<'a>() -> GreedyMesh<'a, FigureSpriteAtlasData> {
         // NOTE: Required because we steal two bits from the normal in the shadow uint
         // in order to store the bone index.  The two bits are instead taken out
         // of the atlas coordinates, which is why we "only" allow 1 << 15 per
@@ -185,7 +186,7 @@ impl FigurePipeline {
                 bind_group_layouts: &[
                     &global_layout.globals,
                     &global_layout.shadow_textures,
-                    &global_layout.col_light,
+                    global_layout.figure_sprite_atlas_layout.layout(),
                     &layout.locals,
                 ],
             });
@@ -251,5 +252,59 @@ impl FigurePipeline {
         Self {
             pipeline: render_pipeline,
         }
+    }
+}
+
+/// Represents texture that can be converted into texture atlases for figures
+/// and sprites.
+pub struct FigureSpriteAtlasData {
+    pub col_lights: Vec<[u8; 4]>,
+}
+
+impl AtlasData for FigureSpriteAtlasData {
+    type SliceMut<'a> = std::slice::IterMut<'a, [u8; 4]>;
+
+    const TEXTURES: usize = 1;
+
+    fn blank_with_size(sz: Vec2<u16>) -> Self {
+        let col_lights =
+            vec![Vertex::make_col_light(254, 0, Rgb::broadcast(254), true); sz.as_().product()];
+        Self { col_lights }
+    }
+
+    fn as_texture_data(&self) -> [(wgpu::TextureFormat, &[u8]); Self::TEXTURES] {
+        [(
+            wgpu::TextureFormat::Rgba8Unorm,
+            bytemuck::cast_slice(self.col_lights.as_slice()),
+        )]
+    }
+
+    fn layout() -> Vec<wgpu::BindGroupLayoutEntry> {
+        vec![
+            // col lights
+            wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            },
+            wgpu::BindGroupLayoutEntry {
+                binding: 1,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Sampler {
+                    filtering: true,
+                    comparison: false,
+                },
+                count: None,
+            },
+        ]
+    }
+
+    fn slice_mut(&mut self, range: std::ops::Range<usize>) -> Self::SliceMut<'_> {
+        self.col_lights[range].iter_mut()
     }
 }

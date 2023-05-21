@@ -1,6 +1,6 @@
 use super::super::{
-    AaMode, Bound, ColLightInfo, Consts, DebugLayout, DebugVertex, FigureLayout, GlobalsLayouts,
-    Renderer, TerrainLayout, TerrainVertex, Texture,
+    AaMode, Bound, Consts, DebugLayout, DebugVertex, FigureLayout, GlobalsLayouts, TerrainLayout,
+    TerrainVertex,
 };
 use bytemuck::{Pod, Zeroable};
 use vek::*;
@@ -77,55 +77,6 @@ impl PointLightMatrix {
 
 impl Default for PointLightMatrix {
     fn default() -> Self { Self::new(Mat4::identity()) }
-}
-
-pub fn create_col_lights(
-    renderer: &mut Renderer,
-    (col_lights, col_lights_size): &ColLightInfo,
-) -> Texture {
-    let texture_info = wgpu::TextureDescriptor {
-        label: None,
-        size: wgpu::Extent3d {
-            width: u32::from(col_lights_size.x),
-            height: u32::from(col_lights_size.y),
-            depth_or_array_layers: 1,
-        },
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Rgba8Unorm,
-        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-    };
-
-    let sampler_info = wgpu::SamplerDescriptor {
-        label: None,
-        address_mode_u: wgpu::AddressMode::ClampToEdge,
-        address_mode_v: wgpu::AddressMode::ClampToEdge,
-        address_mode_w: wgpu::AddressMode::ClampToEdge,
-        mag_filter: wgpu::FilterMode::Linear,
-        min_filter: wgpu::FilterMode::Linear,
-        mipmap_filter: wgpu::FilterMode::Nearest,
-        border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
-        ..Default::default()
-    };
-
-    let view_info = wgpu::TextureViewDescriptor {
-        label: None,
-        format: Some(wgpu::TextureFormat::Rgba8Unorm),
-        dimension: Some(wgpu::TextureViewDimension::D2),
-        aspect: wgpu::TextureAspect::All,
-        base_mip_level: 0,
-        mip_level_count: None,
-        base_array_layer: 0,
-        array_layer_count: None,
-    };
-
-    renderer.create_texture_with_data_raw(
-        &texture_info,
-        &view_info,
-        &sampler_info,
-        bytemuck::cast_slice(col_lights),
-    )
 }
 
 pub struct ShadowFigurePipeline {

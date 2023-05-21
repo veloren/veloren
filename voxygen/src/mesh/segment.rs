@@ -4,7 +4,7 @@ use crate::{
         terrain::FaceKind,
         MeshGen,
     },
-    render::{Mesh, ParticleVertex, SpriteVertex, TerrainVertex},
+    render::{pipelines::FigureSpriteAtlasData, Mesh, ParticleVertex, SpriteVertex, TerrainVertex},
     scene::math,
 };
 use common::{
@@ -21,7 +21,7 @@ use vek::*;
 pub fn generate_mesh_base_vol_figure<'a: 'b, 'b, V: 'a>(
     vol: V,
     (greedy, opaque_mesh, offs, scale, bone_idx): (
-        &'b mut GreedyMesh<'a>,
+        &'b mut GreedyMesh<'a, FigureSpriteAtlasData>,
         &'b mut Mesh<TerrainVertex>,
         Vec3<f32>,
         Vec3<f32>,
@@ -91,7 +91,7 @@ where
                 |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
             ));
         },
-        make_face_texel: |vol: &mut V, pos, light, _, _| {
+        make_face_texel: |col_light: &mut [u8; 4], vol: &mut V, pos, light, _, _| {
             let cell = vol.get(pos).ok();
             let (glowy, shiny) = cell
                 .map(|c| (c.is_glowy(), c.is_shiny()))
@@ -99,7 +99,7 @@ where
             let col = cell
                 .and_then(|vox| vox.get_color())
                 .unwrap_or_else(Rgb::zero);
-            TerrainVertex::make_col_light_figure(light, glowy, shiny, col)
+            *col_light = TerrainVertex::make_col_light_figure(light, glowy, shiny, col);
         },
     });
     let bounds = math::Aabb {
@@ -118,7 +118,7 @@ where
 pub fn generate_mesh_base_vol_terrain<'a: 'b, 'b, V: 'a>(
     vol: V,
     (greedy, opaque_mesh, offs, scale, bone_idx): (
-        &'b mut GreedyMesh<'a>,
+        &'b mut GreedyMesh<'a, FigureSpriteAtlasData>,
         &'b mut Mesh<TerrainVertex>,
         Vec3<f32>,
         Vec3<f32>,
@@ -201,13 +201,13 @@ where
             },
             FaceKind::Fluid => {},
         },
-        make_face_texel: |vol: &mut V, pos, light, _, _| {
+        make_face_texel: |col_light: &mut [u8; 4], vol: &mut V, pos, light, _, _| {
             let block = vol.get(pos).ok();
             let glowy = block.map(|c| c.get_glow().is_some()).unwrap_or_default();
             let col = block
                 .and_then(|vox| vox.get_color())
                 .unwrap_or_else(Rgb::zero);
-            TerrainVertex::make_col_light_figure(light, glowy, false, col)
+            *col_light = TerrainVertex::make_col_light_figure(light, glowy, false, col);
         },
     });
     let bounds = math::Aabb {
@@ -223,7 +223,7 @@ where
 pub fn generate_mesh_base_vol_sprite<'a: 'b, 'b, V: 'a>(
     vol: V,
     (greedy, opaque_mesh, vertical_stripes): (
-        &'b mut GreedyMesh<'a, greedy::SpriteAtlasAllocator>,
+        &'b mut GreedyMesh<'a, FigureSpriteAtlasData, greedy::SpriteAtlasAllocator>,
         &'b mut Mesh<SpriteVertex>,
         bool,
     ),
@@ -336,10 +336,11 @@ where
                 |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
             ));
         },
-        make_face_texel: move |flat: &mut _, pos, light, _glow, _ao| {
+        make_face_texel: move |col_light: &mut [u8; 4], flat: &mut _, pos, light, _glow, _ao| {
             let cell = flat_get(flat, pos);
             let (glowy, shiny) = (cell.is_glowy(), cell.is_shiny());
-            TerrainVertex::make_col_light_figure(light, glowy, shiny, get_color(flat, pos))
+            *col_light =
+                TerrainVertex::make_col_light_figure(light, glowy, shiny, get_color(flat, pos));
         },
     });
 
@@ -348,7 +349,7 @@ where
 
 pub fn generate_mesh_base_vol_particle<'a: 'b, 'b, V: 'a>(
     vol: V,
-    greedy: &'b mut GreedyMesh<'a>,
+    greedy: &'b mut GreedyMesh<'a, FigureSpriteAtlasData>,
 ) -> MeshGen<ParticleVertex, ParticleVertex, TerrainVertex, ()>
 where
     V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
@@ -421,8 +422,8 @@ where
                 |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
             ));
         },
-        make_face_texel: move |vol: &mut V, pos, light, glow, ao| {
-            TerrainVertex::make_col_light(light, glow, get_color(vol, pos), ao)
+        make_face_texel: move |col_light: &mut [u8; 4], vol: &mut V, pos, light, glow, ao| {
+            *col_light = TerrainVertex::make_col_light(light, glow, get_color(vol, pos), ao);
         },
     });
 

@@ -46,7 +46,8 @@ pub use self::{
             TextureBindGroup as UiTextureBindGroup, UploadBatchId as UiUploadBatchId,
             Vertex as UiVertex,
         },
-        GlobalModel, Globals, GlobalsBindGroup, GlobalsLayouts, Light, Shadow,
+        FigureSpriteAtlasData, GlobalModel, Globals, GlobalsBindGroup, GlobalsLayouts, Light,
+        Shadow, TerrainAtlasData,
     },
     renderer::{
         drawer::{
@@ -55,7 +56,7 @@ pub use self::{
             TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer,
             TransparentPassDrawer, UiDrawer, VolumetricPassDrawer, UI_PREMULTIPLY_PASS,
         },
-        AltIndices, ColLightInfo, CullingMode, Renderer,
+        AltIndices, CullingMode, Renderer,
     },
     texture::Texture,
 };

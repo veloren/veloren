@@ -1,5 +1,8 @@
 #ifndef SRGB_GLSL
 #define SRGB_GLSL
+
+#extension GL_EXT_samplerless_texture_functions : enable
+
 // Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
 // See https://en.wikipedia.org/wiki/Electromagnetic_absorption_by_water
 const vec3 MU_WATER = vec3(0.6, 0.04, 0.01);
@@ -651,8 +654,14 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
     return srgb_to_linear(f_col);
 }
 
-vec3 greedy_extract_col_light_terrain(texture2D t_col_light, sampler s_col_light, vec2 f_uv_pos, out float f_light, out float f_glow, out float f_ao, out float f_sky_exposure) {
+vec3 greedy_extract_col_light_kind_terrain(
+    texture2D t_col_light, sampler s_col_light,
+    utexture2D t_kind,
+    vec2 f_uv_pos,
+    out float f_light, out float f_glow, out float f_ao, out float f_sky_exposure, out uint f_kind
+) {
     float _f_attr;
+    f_kind = uint(texelFetch(t_kind, ivec2(f_uv_pos), 0).r);
     return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_ao, _f_attr, f_sky_exposure);
 }
 

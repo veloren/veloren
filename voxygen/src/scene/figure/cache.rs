@@ -8,8 +8,8 @@ use crate::{
         segment::{generate_mesh_base_vol_figure, generate_mesh_base_vol_terrain},
     },
     render::{
-        BoneMeshes, ColLightInfo, FigureModel, Instances, Mesh, Renderer, SpriteInstance,
-        TerrainVertex,
+        pipelines, BoneMeshes, FigureModel, FigureSpriteAtlasData, Instances, Mesh, Renderer,
+        SpriteInstance, TerrainVertex,
     },
     scene::{
         camera::CameraMode,
@@ -42,7 +42,8 @@ use vek::*;
 /// A type produced by mesh worker threads corresponding to the information
 /// needed to mesh figures.
 pub struct MeshWorkerResponse<const N: usize> {
-    col_light: ColLightInfo,
+    atlas_texture_data: FigureSpriteAtlasData,
+    atlas_size: Vec2<u16>,
     opaque: Mesh<TerrainVertex>,
     bounds: anim::vek::Aabb<f32>,
     vertex_range: [Range<u32>; N],
@@ -51,7 +52,10 @@ pub struct MeshWorkerResponse<const N: usize> {
 /// A type produced by mesh worker threads corresponding to the information
 /// needed to mesh figures.
 pub struct TerrainMeshWorkerResponse<const N: usize> {
-    col_light: ColLightInfo,
+    // TODO: This probably needs fixing to use `TerrainAtlasData`. However, right now, we just
+    // treat volume entities like regular figures for the sake of rendering.
+    atlas_texture_data: FigureSpriteAtlasData,
+    atlas_size: Vec2<u16>,
     opaque: Mesh<TerrainVertex>,
     bounds: anim::vek::Aabb<f32>,
     vertex_range: [Range<u32>; N],
@@ -323,7 +327,7 @@ where
     pub fn get_model<'b>(
         &'b self,
         // TODO: If we ever convert to using an atlas here, use this.
-        _col_lights: &super::FigureColLights,
+        _atlas: &super::FigureAtlas,
         body: Skel::Body,
         inventory: Option<&Inventory>,
         // TODO: Consider updating the tick by putting it in a Cell.
@@ -358,7 +362,7 @@ where
 
     pub fn clear_models(&mut self) { self.models.clear(); }
 
-    pub fn clean(&mut self, col_lights: &mut super::FigureColLights, tick: u64)
+    pub fn clean(&mut self, atlas: &mut super::FigureAtlas, tick: u64)
     where
         <Skel::Body as BodySpec>::Spec: Clone,
     {
@@ -370,7 +374,7 @@ where
                 let alive = *last_used + delta > tick;
                 if !alive {
                     if let Some(model_entry) = model_entry.get_done() {
-                        col_lights.atlas.deallocate(model_entry.allocation().id);
+                        atlas.allocator.deallocate(model_entry.allocation().id);
                     }
                 }
                 alive
@@ -391,7 +395,7 @@ where
     pub fn get_or_create_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,
-        col_lights: &mut super::FigureColLights,
+        atlas: &mut super::FigureAtlas,
         body: Skel::Body,
         inventory: Option<&Inventory>,
         extra: <Skel::Body as BodySpec>::Extra,
@@ -428,15 +432,17 @@ where
                     match model {
                         FigureModelEntryFuture::Pending(recv) => {
                             if let Some(MeshWorkerResponse {
-                                col_light,
+                                atlas_texture_data,
+                                atlas_size,
                                 opaque,
                                 bounds,
                                 vertex_range,
                             }) = Arc::get_mut(recv).take().and_then(|cell| cell.take())
                             {
-                                let model_entry = col_lights.create_figure(
+                                let model_entry = atlas.create_figure(
                                     renderer,
-                                    col_light,
+                                    atlas_texture_data,
+                                    atlas_size,
                                     (opaque, bounds),
                                     vertex_range,
                                 );
@@ -480,7 +486,7 @@ where
                     // list.  Returns the vertex bounds of the meshed model within the opaque
                     // mesh.
                     let mut make_model = |generate_mesh: for<'a, 'b> fn(
-                        &mut GreedyMesh<'a>,
+                        &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         &'b mut _,
                         &'a _,
                         _,
@@ -528,7 +534,7 @@ where
                     };
 
                     fn generate_mesh<'a>(
-                        greedy: &mut GreedyMesh<'a>,
+                        greedy: &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         opaque_mesh: &mut Mesh<TerrainVertex>,
                         segment: &'a Segment,
                         offset: Vec3<f32>,
@@ -542,7 +548,7 @@ where
                     }
 
                     fn generate_mesh_lod_mid<'a>(
-                        greedy: &mut GreedyMesh<'a>,
+                        greedy: &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         opaque_mesh: &mut Mesh<TerrainVertex>,
                         segment: &'a Segment,
                         offset: Vec3<f32>,
@@ -563,7 +569,7 @@ where
                     }
 
                     fn generate_mesh_lod_low<'a>(
-                        greedy: &mut GreedyMesh<'a>,
+                        greedy: &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         opaque_mesh: &mut Mesh<TerrainVertex>,
                         segment: &'a Segment,
                         offset: Vec3<f32>,
@@ -589,8 +595,10 @@ where
                         make_model(generate_mesh_lod_low),
                     ];
 
+                    let (atlas_texture_data, atlas_size) = greedy.finalize();
                     slot_.store(Some(MeshWorkerResponse {
-                        col_light: greedy.finalize(),
+                        atlas_texture_data,
+                        atlas_size,
                         opaque,
                         bounds: figure_bounds,
                         vertex_range: models,
@@ -619,7 +627,7 @@ where
     pub fn get_or_create_terrain_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,
-        col_lights: &mut super::FigureColLights,
+        atlas: &mut super::FigureAtlas,
         body: Skel::Body,
         extra: <Skel::Body as BodySpec>::Extra,
         tick: u64,
@@ -647,7 +655,8 @@ where
                     match model {
                         TerrainModelEntryFuture::Pending(recv) => {
                             if let Some(TerrainMeshWorkerResponse {
-                                col_light,
+                                atlas_texture_data,
+                                atlas_size,
                                 opaque,
                                 bounds,
                                 vertex_range,
@@ -656,9 +665,10 @@ where
                                 blocks_offset,
                             }) = Arc::get_mut(recv).take().and_then(|cell| cell.take())
                             {
-                                let model_entry = col_lights.create_terrain(
+                                let model_entry = atlas.create_terrain(
                                     renderer,
-                                    col_light,
+                                    atlas_texture_data,
+                                    atlas_size,
                                     (opaque, bounds),
                                     vertex_range,
                                     sprite_instances,
@@ -707,7 +717,7 @@ where
                     // list.  Returns the vertex bounds of the meshed model within the opaque
                     // mesh.
                     let mut make_model = |generate_mesh: for<'a, 'b> fn(
-                        &mut GreedyMesh<'a>,
+                        &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         &'b mut _,
                         &'a _,
                         _,
@@ -755,7 +765,7 @@ where
                     };
 
                     fn generate_mesh<'a>(
-                        greedy: &mut GreedyMesh<'a>,
+                        greedy: &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         opaque_mesh: &mut Mesh<TerrainVertex>,
                         segment: &'a TerrainSegment,
                         offset: Vec3<f32>,
@@ -769,7 +779,7 @@ where
                     }
 
                     fn generate_mesh_lod_mid<'a>(
-                        greedy: &mut GreedyMesh<'a>,
+                        greedy: &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         opaque_mesh: &mut Mesh<TerrainVertex>,
                         segment: &'a TerrainSegment,
                         offset: Vec3<f32>,
@@ -790,7 +800,7 @@ where
                     }
 
                     fn generate_mesh_lod_low<'a>(
-                        greedy: &mut GreedyMesh<'a>,
+                        greedy: &mut GreedyMesh<'a, FigureSpriteAtlasData>,
                         opaque_mesh: &mut Mesh<TerrainVertex>,
                         segment: &'a TerrainSegment,
                         offset: Vec3<f32>,
@@ -819,13 +829,15 @@ where
                     let (dyna, offset) = &meshes[0].as_ref().unwrap();
                     let block_iter = dyna.vol_iter(Vec3::zero(), dyna.sz.as_()).map(|(pos, block)| (pos, *block));
 
+                    let (atlas_texture_data, atlas_size) = greedy.finalize();
                     slot_.store(Some(TerrainMeshWorkerResponse {
-                        col_light: greedy.finalize(),
+                        atlas_texture_data,
+                        atlas_size,
                         opaque,
                         bounds: figure_bounds,
                         vertex_range: models,
                         sprite_instances: {
-                            let mut instances = from_fn(|_| Vec::new());
+                            let mut instances = from_fn::<Vec<pipelines::sprite::Instance>, SPRITE_LOD_LEVELS, _>(|_| Vec::new());
                             get_sprite_instances(
                                 &mut instances,
                                 |lod, instance, _| {
