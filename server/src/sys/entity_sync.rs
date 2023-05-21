@@ -191,6 +191,8 @@ impl<'a> System<'a> for Sys {
                                         .map(|key| !regions.contains(key))
                                         .unwrap_or(true)
                                     {
+                                        // TODO: I suspect it would be more efficient (in terms of
+                                        // bandwidth) to batch messages like this.
                                         client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                     }
                                 }

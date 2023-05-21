@@ -18,7 +18,7 @@ use common::{
     combat,
     comp::{group::Role, inventory::item::MaterialStatManifest, invite::InviteKind, Stats},
     resources::Time,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
 };
 use common_net::sync::WorldSyncExt;
 use conrod_core::{

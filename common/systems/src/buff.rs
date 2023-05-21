@@ -15,7 +15,7 @@ use common::{
     event::{Emitter, EventBus, ServerEvent},
     resources::{DeltaTime, Secs, Time},
     terrain::SpriteKind,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     Damage, DamageSource,
 };
 use common_base::prof_span;
@@ -275,27 +275,26 @@ impl<'a> System<'a> for Sys {
                     }
                 })
                 .for_each(|(buff_id, buff, uid, aura_key)| {
-                    let replace =
-                        if let Some(aura_entity) = read_data.id_maps.uid_entity(*uid) {
-                            if let Some(aura) = read_data
-                                .auras
-                                .get(aura_entity)
-                                .and_then(|auras| auras.auras.get(*aura_key))
-                            {
-                                if let (Some(pos), Some(aura_pos)) = (
-                                    read_data.positions.get(entity),
-                                    read_data.positions.get(aura_entity),
-                                ) {
-                                    pos.0.distance_squared(aura_pos.0) > aura.radius.powi(2)
-                                } else {
-                                    true
-                                }
+                    let replace = if let Some(aura_entity) = read_data.id_maps.uid_entity(*uid) {
+                        if let Some(aura) = read_data
+                            .auras
+                            .get(aura_entity)
+                            .and_then(|auras| auras.auras.get(*aura_key))
+                        {
+                            if let (Some(pos), Some(aura_pos)) = (
+                                read_data.positions.get(entity),
+                                read_data.positions.get(aura_entity),
+                            ) {
+                                pos.0.distance_squared(aura_pos.0) > aura.radius.powi(2)
                             } else {
                                 true
                             }
                         } else {
                             true
-                        };
+                        }
+                    } else {
+                        true
+                    };
                     if replace {
                         expired_buffs.push(*buff_id);
                         server_emitter.emit(ServerEvent::Buff {

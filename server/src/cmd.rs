@@ -47,7 +47,7 @@ use common::{
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };

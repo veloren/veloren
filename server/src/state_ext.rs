@@ -1212,7 +1212,11 @@ impl StateExt for State {
         if res.is_ok() {
             if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
                 // TODO: exit_ingame for player doesn't hit this path since Uid is removed, not
-                // sure if that is correct.
+                // sure if that is correct. However, we don't want recording the UID in deleted
+                // entities to end up overwriting the rejoined client with that UID...
+                //
+                // What is the difference between leaving a region and the deleted entities
+                // list?
                 if let Some(region_key) = self
                     .ecs()
                     .read_resource::<common::region::RegionMap>()

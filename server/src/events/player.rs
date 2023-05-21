@@ -8,7 +8,7 @@ use common::{
     comp,
     comp::{group, pet::is_tameable, Presence, PresenceKind},
     resources::Time,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
 };
 use common_base::span;
 use common_net::msg::{PlayerListUpdate, ServerGeneral};
@@ -61,6 +61,10 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
     //
     // Easier than checking and removing all other known components.
     //
+    // Also, allows clients to not update their Uid based references to this
+    // client (e.g. for this specific client's knowledge of its own Uid and for
+    // groups since exiting in-game does not affect group membership)
+    //
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted.
 
@@ -89,30 +93,24 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         // Tell client its request was successful
         client.send_fallible(ServerGeneral::ExitInGameSuccess);
 
-        let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
-
-        // Preserve group component if present
-        let entity_builder = match maybe_group {
-            Some(group) => entity_builder.with(group),
-            None => entity_builder,
-        };
-
-        // Preserve admin component if present
-        let entity_builder = match maybe_admin {
-            Some(admin) => entity_builder.with(admin),
-            None => entity_builder,
-        };
+        let new_entity = state
+            .ecs_mut()
+            .create_entity()
+            .with(client)
+            .with(player)
+            // Preserve group component if present
+            .maybe_with(maybe_group)
+            // Preserve admin component if present
+            .maybe_with(maybe_admin)
+            .with(uid)
+            .build();
 
         // Ensure IdMaps maps this uid to the new entity
-        let uid = entity_builder
-            .world
-            .write_resource::<IdMaps>()
-            .allocate(entity_builder.entity, Some(uid.into()));
-        let new_entity = entity_builder.with(uid).build();
+        ecs.write_resource::<IdMaps>().remap_entity(uid, new_entity);
 
-        // Note, since the Uid has been removed from the old entity, that prevents
-        // `delete_entity_recorded` from making any changes to the group (TODO double check this
-        // logic) 
+        // Note, since the Uid has been removed from the old entity and the
+        // Group component will be removed below, that prevents
+        // `delete_entity_recorded` from making any changes to the group.
         if let Some(group) = maybe_group {
             let mut group_manager = state.ecs().write_resource::<group::GroupManager>();
             if group_manager
@@ -131,10 +129,10 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
                 );
             }
         }
-    }
-    // Erase group component to avoid group restructure when deleting the entity
-    state.ecs().write_storage::<group::Group>().remove(entity);
 
+        // Erase group component to avoid group restructure when deleting the entity
+        state.ecs().write_storage::<group::Group>().remove(entity);
+    }
     // Delete old entity
     if let Err(e) = state.delete_entity_recorded(entity) {
         error!(

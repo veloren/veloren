@@ -19,7 +19,7 @@ use crate::{
     outcome::Outcome,
     resources::Secs,
     states::utils::StageSection,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     util::Dir,
 };
 

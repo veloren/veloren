@@ -8,7 +8,7 @@ use wasmer::{Function, Memory, Value};
 
 use common::{
     comp::{Health, Player},
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
 };
 
 use super::errors::{MemoryAllocationError, PluginModuleError};

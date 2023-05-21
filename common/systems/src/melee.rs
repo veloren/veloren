@@ -10,7 +10,7 @@ use common::{
     outcome::Outcome,
     resources::Time,
     terrain::TerrainGrid,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     util::{find_dist::Cylinder, Dir},
     vol::ReadVol,
     GroupTarget,

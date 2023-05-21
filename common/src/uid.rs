@@ -147,7 +147,8 @@ mod not_wasm {
         }
 
         /// Only used on the client (server solely uses `Self::allocate` to
-        /// allocate and add Uid mappings).
+        /// allocate and add Uid mappings and `Self::remap` to move the `Uid` to
+        /// a different entity).
         pub fn add_entity(&mut self, uid: Uid, entity: Entity) {
             Self::insert(&mut self.uid_mapping, uid, entity);
         }
@@ -169,6 +170,18 @@ mod not_wasm {
             let uid = self.uid_allocator.allocate();
             self.uid_mapping.insert(uid, entity);
             uid
+        }
+
+        /// Links an existing `Uid` to a new entity.
+        ///
+        /// Only used on the server.
+        ///
+        /// Used for `handle_exit_ingame` which moves the same `Uid` to a new
+        /// entity.
+        pub fn remap_entity(&mut self, uid: Uid, new_entity: Entity) {
+            if self.uid_mapping.insert(uid, new_entity).is_none() {
+                error!("Uid {uid:?} remaped but there was no existing entry for it!");
+            }
         }
 
         #[cold]

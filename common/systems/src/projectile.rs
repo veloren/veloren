@@ -8,7 +8,7 @@ use common::{
     event::{Emitter, EventBus, ServerEvent},
     outcome::Outcome,
     resources::{DeltaTime, Time},
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     util::Dir,
     GroupTarget,
 };

@@ -38,16 +38,14 @@ impl<'a> System<'a> for Sys {
                 _ => None,
             })
             .filter_map(|(pet_entity, pet_pos, owner_uid)| {
-                id_maps
-                    .uid_entity(owner_uid)
-                    .and_then(|owner_entity| {
-                        match (positions.get(owner_entity), physics.get(owner_entity)) {
-                            (Some(position), Some(physics)) => {
-                                Some((pet_entity, position, physics, pet_pos))
-                            },
-                            _ => None,
-                        }
-                    })
+                id_maps.uid_entity(owner_uid).and_then(|owner_entity| {
+                    match (positions.get(owner_entity), physics.get(owner_entity)) {
+                        (Some(position), Some(physics)) => {
+                            Some((pet_entity, position, physics, pet_pos))
+                        },
+                        _ => None,
+                    }
+                })
             })
             .filter(|(_, owner_pos, owner_physics, pet_pos)| {
                 // Don't teleport pets to the player if they're in the air, nobody wants

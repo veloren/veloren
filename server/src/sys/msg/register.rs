@@ -11,7 +11,7 @@ use common::{
     recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
     resources::TimeOfDay,
     shared_server_config::ServerConstants,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
@@ -54,7 +54,7 @@ pub struct ReadData<'a> {
     trackers: TrackedStorages<'a>,
     _healths: ReadStorage<'a, Health>, // used by plugin feature
     _plugin_mgr: ReadPlugin<'a>,       // used by plugin feature
-    _id_maps: Read<'a, IdMaps>, // used by plugin feature
+    _id_maps: Read<'a, IdMaps>,        // used by plugin feature
 }
 
 /// This system will handle new messages from clients

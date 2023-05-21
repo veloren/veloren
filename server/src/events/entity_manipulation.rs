@@ -32,7 +32,7 @@ use common::{
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     trade::{TradeResult, Trades},
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     util::Dir,
     vol::ReadVol,
     Damage, DamageKind, DamageSource, Explosion, GroupTarget, RadiusEffect,
@@ -1040,13 +1040,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             .and_then(|cs| cs.attack_immunities())
                             .map_or(false, |i| i.explosions);
                         // PvP check
-                        let may_harm = combat::may_harm(
-                            alignments,
-                            players,
-                            id_maps,
-                            owner_entity,
-                            entity_b,
-                        );
+                        let may_harm =
+                            combat::may_harm(alignments, players, id_maps, owner_entity, entity_b);
                         let attack_options = combat::AttackOptions {
                             target_dodging,
                             may_harm,

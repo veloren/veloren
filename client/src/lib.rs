@@ -47,7 +47,7 @@ use common::{
         TerrainGrid,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     vol::RectVolSize,
     weather::{Weather, WeatherGrid},
 };

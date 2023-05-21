@@ -9,7 +9,7 @@ use common::{
     outcome::Outcome,
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     vol::ReadVol,
     GroupTarget,
 };

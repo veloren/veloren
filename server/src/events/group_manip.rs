@@ -305,7 +305,7 @@ pub fn handle_group(server: &mut Server, entity: Entity, manip: GroupManip) {
                         ));
                     }
                     // Tell the old leader that the transfer was succesful
-                    if let Some(client) = clients.get(target) {
+                    if let Some(client) = clients.get(entity) {
                         client.send_fallible(ServerGeneral::server_msg(
                             ChatType::Meta,
                             "You are no longer the group leader.",

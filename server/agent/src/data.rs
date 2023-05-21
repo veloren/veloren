@@ -21,7 +21,7 @@ use common::{
     rtsim::{Actor, RtSimEntity},
     states::utils::{ForcedMovement, StageSection},
     terrain::TerrainGrid,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
 };
 use specs::{
     shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage,

@@ -238,13 +238,12 @@ fn retrieve_action(
                     EcsAccessError::EcsPointerNotAvailable,
                 ))?
             };
-            let player =
-                world
-                    .id_maps
-                    .uid_entity(e)
-                    .ok_or(RetrieveError::EcsAccessError(
-                        EcsAccessError::EcsEntityNotFound(e),
-                    ))?;
+            let player = world
+                .id_maps
+                .uid_entity(e)
+                .ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsEntityNotFound(e),
+                ))?;
 
             Ok(RetrieveResult::GetPlayerName(
                 world
@@ -267,13 +266,12 @@ fn retrieve_action(
                     EcsAccessError::EcsPointerNotAvailable,
                 ))?
             };
-            let player =
-                world
-                    .id_maps
-                    .uid_entity(e)
-                    .ok_or(RetrieveError::EcsAccessError(
-                        EcsAccessError::EcsEntityNotFound(e),
-                    ))?;
+            let player = world
+                .id_maps
+                .uid_entity(e)
+                .ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsEntityNotFound(e),
+                ))?;
             Ok(RetrieveResult::GetEntityHealth(
                 world
                     .health

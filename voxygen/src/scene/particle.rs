@@ -287,9 +287,7 @@ impl ParticleMgr {
                 if target.is_some() {
                     let ecs = scene_data.state.ecs();
                     if target
-                        .and_then(|target| {
-                            ecs.read_resource::<IdMaps>().uid_entity(target)
-                        })
+                        .and_then(|target| ecs.read_resource::<IdMaps>().uid_entity(target))
                         .and_then(|entity| {
                             ecs.read_storage::<Body>()
                                 .get(entity)

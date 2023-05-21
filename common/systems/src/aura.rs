@@ -8,7 +8,7 @@ use common::{
     },
     event::{Emitter, EventBus, ServerEvent},
     resources::Time,
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
