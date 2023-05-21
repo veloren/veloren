@@ -79,6 +79,15 @@ buff-desc-reckless = I tuoi attacchi sono più potenti, tuttavia lasci le tue di
 ## Polymorped
 buff-title-polymorphed = Mutaforma
 buff-desc-polymorphed = Il tuo corpo cambia la forma.
+## Flame
+buff-title-flame = Fiammeggiante
+buff-desc-flame = Il fuoco è tuo alleato.
+## Frigid
+buff-title-frigid = Glaciale
+buff-desc-frigid = Congela i tuoi nemici.
+## Lifesteal
+buff-title-lifesteal = Rubavita
+buff-desc-lifesteal = Risucchia la vita dai tuoi nemici.
 ## Util
 buff-text-over_seconds = in { $dur_secs } secondi
 buff-text-for_seconds = per { $dur_secs } secondi
