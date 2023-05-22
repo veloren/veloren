@@ -1507,30 +1507,6 @@ fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     }
 }
 
-/// Return true if a position is suitable for site construction (TODO:
-/// criteria?)
-fn loc_suitable_for_site(
-    sim: &WorldSim,
-    loc: Vec2<i32>,
-    site_kind: SiteKind,
-    is_suitable_loc: bool,
-) -> bool {
-    fn check_chunk_occupation(sim: &WorldSim, loc: Vec2<i32>, radius: i32) -> bool {
-        for x in (-radius)..radius {
-            for y in (-radius)..radius {
-                let check_loc = loc + Vec2::new(x, y);
-                if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
-                    return false;
-                }
-            }
-        }
-        true
-    }
-    let not_occupied = || check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
-    // only check occupation if the location is suitable
-    is_suitable_loc && not_occupied()
-}
-
 /// Attempt to search for a location that's suitable for site construction
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
@@ -1557,7 +1533,7 @@ fn find_site_loc(
 
         let is_suitable_loc = site_kind.is_suitable_loc(test_loc, ctx.sim);
         if is_suitable_loc && proximity_reqs.satisfied_by(test_loc) {
-            if loc_suitable_for_site(ctx.sim, test_loc, site_kind, is_suitable_loc) {
+            if site_kind.exclusion_radius_clear(ctx.sim, test_loc) {
                 return Some(test_loc);
             }
 
@@ -1849,6 +1825,19 @@ impl SiteKind {
             SiteKind::Dungeon => 4,
             _ => 8, // This is just an arbitrary value
         }
+    }
+
+    pub fn exclusion_radius_clear(&self, sim: &WorldSim, loc: Vec2<i32>) -> bool {
+        let radius = self.exclusion_radius();
+        for x in (-radius)..radius {
+            for y in (-radius)..radius {
+                let check_loc = loc + Vec2::new(x, y);
+                if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
+                    return false;
+                }
+            }
+        }
+        true
     }
 }
 
