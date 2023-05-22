@@ -1842,9 +1842,7 @@ impl SiteKind {
             }
         })
     }
-}
 
-impl SiteKind {
     pub fn exclusion_radius(&self) -> i32 {
         // FIXME: Provide specific values for each individual SiteKind
         match self {
