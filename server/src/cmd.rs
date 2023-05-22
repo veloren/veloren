@@ -21,8 +21,8 @@ use common::{
     assets,
     calendar::Calendar,
     cmd::{
-        KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH,
-        PRESET_MANIFEST_PATH,
+        AreaKind, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS,
+        KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
     },
     comp::{
         self,
@@ -2005,14 +2005,14 @@ fn handle_build(
 }
 
 fn get_areas_mut<'l>(kind: &str, state: &'l mut State) -> CmdResult<&'l mut Areas> {
-    Ok(match kind {
-        "build" => state
+    Ok(match AreaKind::from_str(kind).ok() {
+        Some(AreaKind::Build) => state
             .mut_resource::<AreasContainer<BuildArea>>()
             .deref_mut(),
-        "no_durability" => state
+        Some(AreaKind::NoDurability) => state
             .mut_resource::<AreasContainer<NoDurabilityArea>>()
             .deref_mut(),
-        _ => Err(format!("Invalid area type '{kind}'"))?,
+        None => Err(format!("Invalid area type '{kind}'"))?,
     })
 }
 

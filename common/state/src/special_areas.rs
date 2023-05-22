@@ -1,10 +1,9 @@
+use common::depot::{Depot, Id};
+use hashbrown::{hash_map, HashMap};
 use std::{
     marker::PhantomData,
     ops::{Deref, DerefMut},
 };
-
-use common::depot::{Depot, Id};
-use hashbrown::{hash_map, HashMap};
 use vek::*;
 
 #[derive(Default)]

@@ -12,7 +12,7 @@ use std::{
     fmt::{self, Display},
     str::FromStr,
 };
-use strum::IntoEnumIterator;
+use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
@@ -66,6 +66,15 @@ impl assets::Asset for SkillPresetManifest {
 pub const KIT_MANIFEST_PATH: &str = "server.manifests.kits";
 pub const PRESET_MANIFEST_PATH: &str = "server.manifests.presets";
 
+/// Enum for all possible area types
+#[derive(Debug, Clone, EnumIter, EnumString, AsRefStr)]
+pub enum AreaKind {
+    #[strum(serialize = "build")]
+    Build,
+    #[strum(serialize = "no_durability")]
+    NoDurability,
+}
+
 lazy_static! {
     static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
         .iter()
@@ -114,7 +123,7 @@ lazy_static! {
 
         souls
     };
-    static ref AREA_KINDS: Vec<String> = vec!["build".to_string(), "no_durability".to_string()];
+    static ref AREA_KINDS: Vec<String> = AreaKind::iter().map(|kind| kind.as_ref().to_string()).collect();
     static ref OBJECTS: Vec<String> = comp::object::ALL_OBJECTS
         .iter()
         .map(|o| o.to_string().to_string())
