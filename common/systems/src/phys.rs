@@ -297,7 +297,6 @@ impl<'a> PhysicsData<'a> {
                 Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point => None,
             };
             phys_cache.origins = origins;
-            phys_cache.ori = ori;
         }
     }
 
@@ -734,11 +733,10 @@ impl<'a> PhysicsData<'a> {
         // Update cached 'old' physics values to the current values ready for the next
         // tick
         prof_span!(guard, "record ori into phys_cache");
-        for (pos, ori, previous_phys_cache, _) in (
+        for (pos, ori, previous_phys_cache) in (
             &write.positions,
             &write.orientations,
             &mut write.previous_phys_cache,
-            &read.colliders,
         )
             .join()
         {
@@ -1153,6 +1151,7 @@ impl<'a> PhysicsData<'a> {
                                     let ori_last_to = ori_last_from.inverted();
 
                                     let ori_from = Mat4::from(ori_other.to_quat());
+                                    let ori_to = ori_from.inverted();
 
                                     // The velocity of the collider, taking into account
                                     // orientation.
@@ -1168,8 +1167,14 @@ impl<'a> PhysicsData<'a> {
                                     let vel_other = vel_other.0
                                         + (wpos - (pos_other.0 + rpos_last)) / read.dt.0;
 
+                                    // Velocity added due to change in orientation, relative to the
+                                    // craft
+                                    let ori_vel = previous_cache_other.ori.inverse()
+                                        * (pos.0 - pos_other.0)
+                                        - ori_other.to_quat().inverse() * (pos.0 - pos_other.0);
+
                                     cpos.0 = transform_last_to.mul_point(Vec3::zero());
-                                    vel.0 = ori_last_to.mul_direction(vel.0 - vel_other);
+                                    vel.0 = ori_last_to.mul_direction(vel.0 - vel_other) - ori_vel;
                                     let cylinder = (radius, z_min, z_max);
                                     box_voxel_collision(
                                         cylinder,
@@ -1193,14 +1198,15 @@ impl<'a> PhysicsData<'a> {
                                     );
 
                                     cpos.0 = transform_from.mul_point(cpos.0) + wpos;
-                                    vel.0 = ori_from.mul_direction(vel.0) + vel_other;
+                                    vel.0 = ori_from.mul_direction(vel.0 + ori_vel) + vel_other;
                                     tgt_pos = cpos.0;
 
                                     // union in the state updates, so that the state isn't just
                                     // based on the most
                                     // recent terrain that collision was attempted with
                                     if physics_state_delta.on_ground.is_some() {
-                                        physics_state.ground_vel = vel_other;
+                                        physics_state.ground_vel =
+                                            vel_other + ori_from.mul_direction(ori_vel);
 
                                         // Rotate if on ground
                                         ori = ori.rotated(
