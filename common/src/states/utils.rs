@@ -220,8 +220,8 @@ impl Body {
                 quadruped_low::Species::Mossdrake => 1.7,
                 _ => 2.0,
             },
-            Body::Ship(ship) if ship.has_water_thrust() => 0.35,
-            Body::Ship(_) => 0.12,
+            Body::Ship(ship) if ship.has_water_thrust() => 5.0 / self.dimensions().y,
+            Body::Ship(_) => 6.0 / self.dimensions().y,
             Body::Arthropod(_) => 3.5,
         }
     }
@@ -236,15 +236,15 @@ impl Body {
             match self {
                 Body::Object(_) => return None,
                 Body::ItemDrop(_) => return None,
-                Body::Ship(ship) if ship.has_water_thrust() => 350.0 * self.mass().0,
+                Body::Ship(ship) if ship.has_water_thrust() => 500.0 * self.mass().0,
                 Body::Ship(_) => return None,
                 Body::BipedLarge(_) => 120.0 * self.mass().0,
                 Body::Golem(_) => 100.0 * self.mass().0,
                 Body::BipedSmall(_) => 1000.0 * self.mass().0,
                 Body::BirdMedium(_) => 400.0 * self.mass().0,
                 Body::BirdLarge(_) => 400.0 * self.mass().0,
-                Body::FishMedium(_) => 900.0 * self.mass().0,
-                Body::FishSmall(_) => 1000.0 * self.mass().0,
+                Body::FishMedium(_) => 200.0 * self.mass().0,
+                Body::FishSmall(_) => 300.0 * self.mass().0,
                 Body::Dragon(_) => 50.0 * self.mass().0,
                 // Humanoids are a bit different: we try to give them thrusts that result in similar
                 // speeds for gameplay reasons
@@ -844,7 +844,7 @@ pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         //&& update.vel.0.z < 0.0
-        // *All* entities can climb when in liquids, to let them get out of
+        // *All* entities can climb when in liquids, to let them climb out near the surface
         && (data.body.can_climb() || data.physics.in_liquid().is_some())
         && update.energy.current() > 1.0
     {

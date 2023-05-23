@@ -211,81 +211,11 @@ impl Body {
         }
     }
 
-    /// Physically incorrect (but relatively dt-independent) way to calculate drag coefficients for liquids.
+    /// Physically incorrect (but relatively dt-independent) way to calculate
+    /// drag coefficients for liquids.
     // TODO: Remove this in favour of `aerodynamic_forces` (see: `integrate_forces`)
-    pub fn drag_coefficient_liquid(
-        &self,
-        rel_flow: &Vel,
-        fluid_density: f32,
-        wings: Option<&Wings>,
-        scale: f32,
-    ) -> Vec3<f32> {
-        let v_sq = rel_flow.0.magnitude_squared();
-        let rel_flow_dir = Dir::new(rel_flow.0 / v_sq.sqrt());
-        0.5 * fluid_density
-            * match wings {
-                Some(&Wings {
-                    aspect_ratio,
-                    planform_area,
-                    ori,
-                }) => {
-                    if aspect_ratio > 25.0 {
-                        tracing::warn!(
-                            "Calculating lift for wings with an aspect ratio of {}. The \
-                              formulas are only valid for aspect ratios below 25.",
-                            aspect_ratio
-                        )
-                    };
-                    let ar = aspect_ratio.min(24.0);
-                    // We have an elliptical wing; proceed to calculate its lift and drag
-
-                    // aoa will be positive when we're pitched up and negative otherwise
-                    let aoa = angle_of_attack(&ori, &rel_flow_dir);
-                    // c_l will be positive when aoa is positive (we have positive lift,
-                    // producing an upward force) and negative otherwise
-                    let c_l = lift_coefficient(ar, aoa);
-
-                    // lift dir will be orthogonal to the local relative flow vector.
-                    // Local relative flow is the resulting vector of (relative) freestream
-                    // flow + downwash (created by the vortices
-                    // of the wing tips)
-                    let lift_dir: Dir = {
-                        // induced angle of attack
-                        let aoa_i = c_l / (PI * ar);
-                        // effective angle of attack; the aoa as seen by aerofoil after
-                        // downwash
-                        let aoa_eff = aoa - aoa_i;
-                        // Angle between chord line and local relative wind is aoa_eff
-                        // radians. Direction of lift is
-                        // perpendicular to local relative wind.
-                        // At positive lift, local relative wind will be below our cord line
-                        // at an angle of aoa_eff. Thus if
-                        // we pitch down by aoa_eff radians then
-                        // our chord line will be colinear with local relative wind vector
-                        // and our up will be the direction
-                        // of lift.
-                        ori.pitched_down(aoa_eff).up()
-                    };
-
-                    // induced drag coefficient (drag due to lift)
-                    let cdi = {
-                        // Oswald's efficiency factor (empirically derived--very magical)
-                        // (this definition should not be used for aspect ratios > 25)
-                        let e = 1.78 * (1.0 - 0.045 * ar.powf(0.68)) - 0.64;
-                        c_l.powi(2) / (PI * e * ar)
-                    };
-
-                    // drag coefficient
-                    let c_d = zero_lift_drag_coefficient() + cdi;
-                    debug_assert!(c_d.is_sign_positive());
-                    debug_assert!(c_l.is_sign_positive() || aoa.is_sign_negative());
-
-                    planform_area * scale.powf(2.0) * (c_l * *lift_dir + c_d * *rel_flow_dir)
-                        + self.parasite_drag(scale).powf(0.75) * *rel_flow_dir
-                },
-
-                _ => self.parasite_drag(scale).powf(0.75) * *rel_flow_dir,
-            }
+    pub fn drag_coefficient_liquid(&self, fluid_density: f32, scale: f32) -> f32 {
+        fluid_density * self.parasite_drag(scale)
     }
 
     /// Parasite drag is the sum of pressure drag and skin friction.

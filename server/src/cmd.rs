@@ -1651,13 +1651,7 @@ fn handle_spawn_airship(
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
-        .create_ship(pos, ori, ship, |ship| ship.make_collider())
-        .with(LightEmitter {
-            col: Rgb::new(1.0, 0.65, 0.2),
-            strength: 2.0,
-            flicker: 1.0,
-            animated: true,
-        });
+        .create_ship(pos, ori, ship, |ship| ship.make_collider());
     if let Some(pos) = destination {
         let (kp, ki, kd) =
             comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
@@ -1695,13 +1689,7 @@ fn handle_spawn_ship(
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
-        .create_ship(pos, ori, ship, |ship| ship.make_collider())
-        .with(LightEmitter {
-            col: Rgb::new(1.0, 0.65, 0.2),
-            strength: 2.0,
-            flicker: 1.0,
-            animated: true,
-        });
+        .create_ship(pos, ori, ship, |ship| ship.make_collider());
     if let Some(pos) = destination {
         let (kp, ki, kd) =
             comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));

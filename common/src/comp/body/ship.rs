@@ -69,9 +69,9 @@ impl Body {
         match self {
             Body::DefaultAirship | Body::Volume => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
-            Body::SailBoat => Vec3::new(12.0, 17.0, 6.0),
-            Body::Galleon => Vec3::new(14.0, 32.0, 10.0),
-            Body::Skiff => Vec3::new(7.0, 32.0, 10.0),
+            Body::SailBoat => Vec3::new(12.0, 32.0, 6.0),
+            Body::Galleon => Vec3::new(14.0, 48.0, 10.0),
+            Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
         }
     }
 

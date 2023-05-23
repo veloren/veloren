@@ -11,7 +11,7 @@ use common::{
     link::Is,
     mounting::{Rider, VolumeRider},
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, GameMode},
     states,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::Uid,
@@ -62,20 +62,23 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        // HACK: We should really use the latter logic (i.e: `aerodynamic_forces`) for liquids, but it results in
-        // pretty serious dt-dependent problems that are extremely difficult to resolve. This is a compromise: for
-        // liquids only, we calculate drag using an incorrect (but still visually plausible) model that is much more
-        // resistant to differences in dt. Because it's physically incorrect anyway, there are magic coefficients that
+        // HACK: We should really use the latter logic (i.e: `aerodynamic_forces`) for
+        // liquids, but it results in pretty serious dt-dependent problems that
+        // are extremely difficult to resolve. This is a compromise: for liquids
+        // only, we calculate drag using an incorrect (but still visually plausible)
+        // model that is much more resistant to differences in dt. Because it's
+        // physically incorrect anyway, there are magic coefficients that
         // exist simply to get us closer to what water 'should' feel like.
         if fluid.is_liquid() {
-            let fric = body.drag_coefficient_liquid(
-                &rel_flow,
-                fluid_density.0,
-                wings,
-                scale.map_or(1.0, |s| s.0),
-            ).magnitude() * 0.02;
+            let fric = body
+                .drag_coefficient_liquid(fluid_density.0, scale.map_or(1.0, |s| s.0))
+                .powf(0.75)
+                * 0.02;
 
-            vel.0 *= (1.0 / (1.0 + fric)).powf(dt.0 * 10.0);
+            let fvel = fluid.flow_vel();
+
+            // Drag is relative to fluid velocity, so compensate before applying drag
+            vel.0 = (vel.0 - fvel.0) * (1.0 / (1.0 + fric)).powf(dt.0 * 10.0) + fvel.0;
         } else {
             let impulse = dt.0
                 * body.aerodynamic_forces(
@@ -132,6 +135,7 @@ pub struct PhysicsRead<'a> {
     terrain: ReadExpect<'a, TerrainGrid>,
     dt: Read<'a, DeltaTime>,
     event_bus: Read<'a, EventBus<ServerEvent>>,
+    game_mode: ReadExpect<'a, GameMode>,
     scales: ReadStorage<'a, Scale>,
     stickies: ReadStorage<'a, Sticky>,
     immovables: ReadStorage<'a, Immovable>,
@@ -667,6 +671,12 @@ impl<'a> PhysicsData<'a> {
                     if in_loaded_chunk
                     // And not already stuck on a block (e.g., for arrows)
                     && !(physics_state.on_surface().is_some() && sticky.is_some())
+                    // HACK: Special-case boats. Experimentally, clients are *bad* at making guesses about movement,
+                    // and this is a particular problem for volume entities since careful control of velocity is
+                    // required for nice movement of entities on top of the volume. Special-case volume entities here
+                    // to prevent weird drag/gravity guesses messing with movement, relying on the client's hermite
+                    // interpolation instead.
+                    && !(matches!(body, Body::Ship(_)) && matches!(&*read.game_mode, GameMode::Client))
                     {
                         // Clamp dt to an effective 10 TPS, to prevent gravity
                         // from slamming the players into the floor when
@@ -1748,7 +1758,9 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 (old_depth + old_pos.z - pos.0.z).max(depth)
             });
 
-            physics_state.ground_vel = ground_vel;
+            if depth > 0.0 {
+                physics_state.ground_vel = ground_vel;
+            }
 
             Fluid::Liquid {
                 kind,
