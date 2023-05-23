@@ -16,7 +16,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use common_state::{BlockChange, BuildAreas};
+use common_state::{AreasContainer, BlockChange, BuildArea};
 use core::mem;
 use rayon::prelude::*;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
@@ -62,7 +62,7 @@ impl Sys {
         orientation: Option<&mut Ori>,
         controller: Option<&mut Controller>,
         settings: &Read<'_, Settings>,
-        build_areas: &Read<'_, BuildAreas>,
+        build_areas: &Read<'_, AreasContainer<BuildArea>>,
         player_physics_setting: Option<&mut PlayerPhysicsSetting>,
         maybe_admin: &Option<&Admin>,
         time_for_vd_changes: Instant,
@@ -335,7 +335,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
-        Read<'a, BuildAreas>,
+        Read<'a, AreasContainer<BuildArea>>,
         Write<'a, PlayerPhysicsSettings>,
         TerrainPersistenceData<'a>,
         ReadStorage<'a, Player>,

@@ -496,6 +496,7 @@ impl StateExt for State {
             buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         };
         let time = self.get_time();
+        // TODO: Consider using the area system for this
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)

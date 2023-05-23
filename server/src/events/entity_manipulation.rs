@@ -38,7 +38,7 @@ use common::{
     Damage, DamageKind, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
-use common_state::BlockChange;
+use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
 use specs::{
@@ -521,9 +521,28 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         true
     };
 
+    let resists_durability = state
+        .ecs()
+        .read_storage::<Pos>()
+        .get(entity)
+        .cloned()
+        .map_or(false, |our_pos| {
+            let areas_container = state
+                .ecs()
+                .read_resource::<AreasContainer<NoDurabilityArea>>();
+            let our_pos = our_pos.0.map(|i| i as i32);
+
+            let is_in_area = areas_container
+                .areas()
+                .iter()
+                .any(|(_, area)| area.contains_point(our_pos));
+
+            is_in_area
+        });
+
     // TODO: Do we need to do this if `should_delete` is true?
     // Modify durability on all equipped items
-    if let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
+    if !resists_durability && let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
         let ecs = state.ecs();
         let ability_map = ecs.read_resource::<AbilityMap>();
         let msm = ecs.read_resource::<MaterialStatManifest>();

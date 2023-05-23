@@ -12,7 +12,7 @@ use std::{
     fmt::{self, Display},
     str::FromStr,
 };
-use strum::IntoEnumIterator;
+use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
@@ -66,6 +66,15 @@ impl assets::Asset for SkillPresetManifest {
 pub const KIT_MANIFEST_PATH: &str = "server.manifests.kits";
 pub const PRESET_MANIFEST_PATH: &str = "server.manifests.presets";
 
+/// Enum for all possible area types
+#[derive(Debug, Clone, EnumIter, EnumString, AsRefStr)]
+pub enum AreaKind {
+    #[strum(serialize = "build")]
+    Build,
+    #[strum(serialize = "no_durability")]
+    NoDurability,
+}
+
 lazy_static! {
     static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
         .iter()
@@ -114,6 +123,7 @@ lazy_static! {
 
         souls
     };
+    static ref AREA_KINDS: Vec<String> = AreaKind::iter().map(|kind| kind.as_ref().to_string()).collect();
     static ref OBJECTS: Vec<String> = comp::object::ALL_OBJECTS
         .iter()
         .map(|o| o.to_string().to_string())
@@ -247,15 +257,15 @@ pub enum ServerChatCommand {
     Adminify,
     Airship,
     Alias,
+    AreaAdd,
+    AreaList,
+    AreaRemove,
     Ban,
     BattleMode,
     BattleModeForce,
     Body,
     Buff,
     Build,
-    BuildAreaAdd,
-    BuildAreaList,
-    BuildAreaRemove,
     Campfire,
     CreateLocation,
     DebugColumn,
@@ -400,9 +410,10 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Build => cmd(vec![], "Toggles build mode on and off", None),
-            ServerChatCommand::BuildAreaAdd => cmd(
+            ServerChatCommand::AreaAdd => cmd(
                 vec![
                     Any("name", Required),
+                    Enum("kind", AREA_KINDS.clone(), Required),
                     Integer("xlo", 0, Required),
                     Integer("xhi", 10, Required),
                     Integer("ylo", 0, Required),
@@ -413,9 +424,12 @@ impl ServerChatCommand {
                 "Adds a new build area",
                 Some(Admin),
             ),
-            ServerChatCommand::BuildAreaList => cmd(vec![], "List all build areas", Some(Admin)),
-            ServerChatCommand::BuildAreaRemove => cmd(
-                vec![Any("name", Required)],
+            ServerChatCommand::AreaList => cmd(vec![], "List all build areas", Some(Admin)),
+            ServerChatCommand::AreaRemove => cmd(
+                vec![
+                    Any("name", Required),
+                    Enum("kind", AREA_KINDS.clone(), Required),
+                ],
                 "Removes specified build area",
                 Some(Admin),
             ),
@@ -807,9 +821,9 @@ impl ServerChatCommand {
             ServerChatCommand::Body => "body",
             ServerChatCommand::Buff => "buff",
             ServerChatCommand::Build => "build",
-            ServerChatCommand::BuildAreaAdd => "build_area_add",
-            ServerChatCommand::BuildAreaList => "build_area_list",
-            ServerChatCommand::BuildAreaRemove => "build_area_remove",
+            ServerChatCommand::AreaAdd => "area_add",
+            ServerChatCommand::AreaList => "area_list",
+            ServerChatCommand::AreaRemove => "area_remove",
             ServerChatCommand::Campfire => "campfire",
             ServerChatCommand::DebugColumn => "debug_column",
             ServerChatCommand::DebugWays => "debug_ways",
