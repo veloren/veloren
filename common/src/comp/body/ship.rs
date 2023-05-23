@@ -9,16 +9,17 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use vek::*;
 
-pub const ALL_BODIES: [Body; 5] = [
+pub const ALL_BODIES: [Body; 6] = [
     Body::DefaultAirship,
     Body::AirBalloon,
     Body::SailBoat,
     Body::Galleon,
     Body::Skiff,
+    Body::Submarine,
 ];
 
 pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
-pub const ALL_SHIPS: [Body; 3] = [Body::SailBoat, Body::Galleon, Body::Skiff];
+pub const ALL_SHIPS: [Body; 4] = [Body::SailBoat, Body::Galleon, Body::Skiff, Body::Submarine];
 
 make_case_elim!(
     body,
@@ -31,6 +32,7 @@ make_case_elim!(
         Galleon = 3,
         Volume = 4,
         Skiff = 5,
+        Submarine = 6,
     }
 );
 
@@ -61,6 +63,7 @@ impl Body {
             Body::SailBoat => Some("sail_boat.structure"),
             Body::Galleon => Some("galleon.structure"),
             Body::Skiff => Some("skiff.structure"),
+            Body::Submarine => Some("submarine.structure"),
             Body::Volume => None,
         }
     }
@@ -72,6 +75,7 @@ impl Body {
             Body::SailBoat => Vec3::new(12.0, 32.0, 6.0),
             Body::Galleon => Vec3::new(14.0, 48.0, 10.0),
             Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
+            Body::Submarine => Vec3::new(2.0, 15.0, 2.0),
         }
     }
 
@@ -104,6 +108,7 @@ impl Body {
     pub fn density(&self) -> Density {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
+            Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
             _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
                                                                       * buoyant */
         }

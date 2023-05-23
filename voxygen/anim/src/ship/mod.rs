@@ -96,6 +96,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
+                Submarine => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone1: match body {
@@ -104,6 +105,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
+                Submarine => (0.0, -15.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone2: match body {
@@ -112,6 +114,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
+                Submarine => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone3: match body {
@@ -120,6 +123,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
+                Submarine => (0.0, -18.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
         }
