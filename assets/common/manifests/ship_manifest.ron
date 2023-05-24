@@ -199,16 +199,16 @@
     ),
     Carriage: (
         bone0: (
-            offset: (-4.5, -6.5, -0.5),
+            offset: (-4.5, -7.0, -0.5),
             central: ("carriage.structure"),
         ),
         bone1: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("empty"),
+            offset: (-2.0, -5.0, -2.0),
+            central: ("carriage.axle"),
         ),
         bone2: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("empty"),
+            offset: (-2.0, -5.0, -2.0),
+            central: ("carriage.axle"),
         ),
         bone3: (
             offset: (0.0, 0.0, 0.0),

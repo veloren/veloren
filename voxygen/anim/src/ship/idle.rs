@@ -45,10 +45,12 @@ impl Animation for IdleAnimation {
         next.bone0.position = Vec3::new(s_a.bone0.0, s_a.bone0.1, s_a.bone0.2);
 
         next.bone1.position = Vec3::new(s_a.bone1.0, s_a.bone1.1, s_a.bone1.2);
-        next.bone1.orientation = Quaternion::rotation_y(acc_vel * 0.8);
+        next.bone1.orientation = Quaternion::rotation_z(s_a.bone1_ori)
+            * Quaternion::rotation_y(acc_vel * s_a.bone_rotation_rate);
 
         next.bone2.position = Vec3::new(s_a.bone2.0, s_a.bone2.1, s_a.bone2.2);
-        next.bone2.orientation = Quaternion::rotation_y(-acc_vel * 0.8);
+        next.bone2.orientation = Quaternion::rotation_z(s_a.bone2_ori)
+            * Quaternion::rotation_y(-acc_vel * s_a.bone_rotation_rate);
 
         next.bone3.position = Vec3::new(s_a.bone3.0, s_a.bone3.1, s_a.bone3.2);
         next.bone3.orientation = Quaternion::rotation_z(tilt * 25.0);

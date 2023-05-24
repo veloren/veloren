@@ -10,7 +10,7 @@ use common::{
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, Controller, Density,
         Energy, Health, Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos,
-        Scale, SkillSet, Stance, StateUpdate, Stats, Vel, PreviousPhysCache,
+        PreviousPhysCache, Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     link::Is,

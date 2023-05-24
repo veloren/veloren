@@ -70,6 +70,9 @@ pub struct SkeletonAttr {
     bone1: (f32, f32, f32),
     bone2: (f32, f32, f32),
     bone3: (f32, f32, f32),
+    bone1_ori: f32,
+    bone2_ori: f32,
+    bone_rotation_rate: f32,
     bone1_prop_trail_offset: Option<f32>,
     bone2_prop_trail_offset: Option<f32>,
 }
@@ -92,6 +95,9 @@ impl Default for SkeletonAttr {
             bone1: (0.0, 0.0, 0.0),
             bone2: (0.0, 0.0, 0.0),
             bone3: (0.0, 0.0, 0.0),
+            bone1_ori: 0.0,
+            bone2_ori: 0.0,
+            bone_rotation_rate: 0.0,
             bone1_prop_trail_offset: None,
             bone2_prop_trail_offset: None,
         }
@@ -119,7 +125,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, -15.0, 3.5),
-                Carriage => (0.0, 0.0, 0.0),
+                Carriage => (0.0, 3.0, 2.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone2: match body {
@@ -129,7 +135,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, 0.0, 0.0),
-                Carriage => (0.0, 0.0, 0.0),
+                Carriage => (0.0, -3.0, 2.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone3: match body {
@@ -141,6 +147,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Submarine => (0.0, -18.0, 3.5),
                 Carriage => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
+            },
+            bone1_ori: match body {
+                Carriage => std::f32::consts::PI * 0.5,
+                _ => 0.0,
+            },
+            bone2_ori: match body {
+                Carriage => std::f32::consts::PI * -0.5,
+                _ => 0.0,
+            },
+            bone_rotation_rate: match body {
+                Carriage => 0.25,
+                _ => 0.8,
             },
             bone1_prop_trail_offset: match body {
                 DefaultAirship => Some(8.5),

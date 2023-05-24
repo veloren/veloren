@@ -218,7 +218,6 @@ impl<'a> PhysicsData<'a> {
                     origins: None,
                     pos: None,
                     ori: Quaternion::identity(),
-                    pos_interp: None,
                 });
         }
 
@@ -745,9 +744,6 @@ impl<'a> PhysicsData<'a> {
             // it did not work (investigate root cause?)
             previous_phys_cache.pos = Some(*pos);
             previous_phys_cache.ori = ori.to_quat();
-            previous_phys_cache.pos_interp = Some(Pos(
-                previous_phys_cache.pos_interp.unwrap_or(*pos).0 * 0.85 + pos.0 * 0.15,
-            ));
         }
         drop(guard);
     }

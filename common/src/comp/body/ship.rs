@@ -19,7 +19,13 @@ pub const ALL_BODIES: [Body; 6] = [
 ];
 
 pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
-pub const ALL_SHIPS: [Body; 5] = [Body::SailBoat, Body::Galleon, Body::Skiff, Body::Submarine, Body::Carriage];
+pub const ALL_SHIPS: [Body; 5] = [
+    Body::SailBoat,
+    Body::Galleon,
+    Body::Skiff,
+    Body::Submarine,
+    Body::Carriage,
+];
 
 make_case_elim!(
     body,
@@ -114,7 +120,7 @@ impl Body {
             Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
             Body::Carriage => Density(WATER_DENSITY * 0.5),
             _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
-                                                         * buoyant */
+                                                                      * buoyant */
         }
     }
 
@@ -129,6 +135,8 @@ impl Body {
     pub fn has_water_thrust(&self) -> bool {
         !self.can_fly() && !matches!(self, Body::Carriage) // TODO: Differentiate this more carefully
     }
+
+    pub fn has_wheels(&self) -> bool { matches!(self, Body::Carriage) }
 
     pub fn make_collider(&self) -> Collider {
         match self.manifest_entry() {

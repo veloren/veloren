@@ -63,7 +63,6 @@ pub struct PreviousPhysCache {
     pub origins: Option<(Vec2<f32>, Vec2<f32>)>,
     pub pos: Option<Pos>,
     pub ori: Quaternion<f32>,
-    pub pos_interp: Option<Pos>,
 }
 
 impl Component for PreviousPhysCache {

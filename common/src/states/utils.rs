@@ -21,7 +21,7 @@ use crate::{
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
-    terrain::{TerrainGrid, UnlockKind},
+    terrain::{Block, TerrainGrid, UnlockKind},
     util::Dir,
     vol::ReadVol,
 };
@@ -146,7 +146,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 140.0,
                 quadruped_low::Species::Mossdrake => 100.0,
             },
-            Body::Ship(ship::Body::Carriage) => 350.0,
+            Body::Ship(ship::Body::Carriage) => 200.0,
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
                 arthropod::Species::Tarantula => 135.0,
@@ -221,7 +221,7 @@ impl Body {
                 quadruped_low::Species::Mossdrake => 1.7,
                 _ => 2.0,
             },
-            Body::Ship(ship::Body::Carriage) => 0.6,
+            Body::Ship(ship::Body::Carriage) => 0.04,
             Body::Ship(ship) if ship.has_water_thrust() => 5.0 / self.dimensions().y,
             Body::Ship(_) => 6.0 / self.dimensions().y,
             Body::Arthropod(_) => 3.5,
@@ -589,11 +589,26 @@ pub fn handle_orientation(
         (a.to_quat().into_vec4() - b.to_quat().into_vec4()).reduce(|a, b| a.abs() + b.abs())
     }
 
-    let pitch = if matches!(data.body, Body::Ship(ship::Body::Carriage)) {
-        let change = (data.pos.0 - data.previous_physics.and_then(|p| p.pos_interp).unwrap_or(*data.pos).0) / data.dt.0;
-        change.z / change.xy().magnitude().max(1.0)
+    let (tilt_ori, efficiency) = if let Body::Ship(ship) = data.body && ship.has_wheels() && data.physics.on_ground.is_some() {
+        let height_at = |rpos| data
+            .terrain
+            .ray(
+                data.pos.0 + rpos + Vec3::unit_z() * 4.0,
+                data.pos.0 + rpos - Vec3::unit_z() * 4.0,
+            )
+            .until(Block::is_solid)
+            .cast()
+            .0;
+
+        let x_diff = (height_at(data.ori.to_horizontal().right().to_vec() * 3.0) - height_at(data.ori.to_horizontal().right().to_vec() * -3.0)) / 10.0;
+        let y_diff = (height_at(data.ori.to_horizontal().look_dir().to_vec() * -4.5) - height_at(data.ori.to_horizontal().look_dir().to_vec() * 4.5)) / 10.0;
+
+        (
+            Quaternion::rotation_y(x_diff.atan()) * Quaternion::rotation_x(y_diff.atan()),
+            (data.vel.0 - data.physics.ground_vel).dot(data.ori.to_horizontal().look_dir().to_vec()).max(3.0) * efficiency,
+        )
     } else {
-        0.0
+        (Quaternion::identity(), efficiency)
     };
 
     // Direction is set to the override if one is provided, else if entity is
@@ -611,7 +626,7 @@ pub fn handle_orientation(
         Dir::from_unnormalized(data.inputs.move_dir.into())
             .map_or_else(|| to_horizontal_fast(data.ori), |dir| dir.into())
     }
-        .pitched_up(pitch);
+    .rotated(tilt_ori);
     // unit is multiples of 180°
     let half_turns_per_tick = data.body.base_ori_rate() / data.scale.map_or(1.0, |s| s.0.sqrt())
         * efficiency
