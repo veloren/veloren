@@ -75,7 +75,7 @@ impl Body {
             Body::SailBoat => Vec3::new(12.0, 32.0, 6.0),
             Body::Galleon => Vec3::new(14.0, 48.0, 10.0),
             Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
-            Body::Submarine => Vec3::new(2.0, 15.0, 2.0),
+            Body::Submarine => Vec3::new(2.0, 15.0, 8.0),
         }
     }
 
@@ -110,7 +110,7 @@ impl Body {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
             Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
             _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
-                                                                      * buoyant */
+                                                         * buoyant */
         }
     }
 

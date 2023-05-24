@@ -3,7 +3,7 @@ pub mod idle;
 // Reexports
 pub use self::idle::IdleAnimation;
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -34,12 +34,16 @@ impl Skeleton for ShipSkeleton {
         // Ships are normal scale
         let scale_mat = Mat4::scaling_3d(1.0);
 
+        let attr = SkeletonAttr::from(&body);
+
         let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
+        let bone1_mat = bone0_mat * Mat4::<f32>::from(self.bone1);
+        let bone2_mat = bone0_mat * Mat4::<f32>::from(self.bone2);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(bone0_mat),
-            make_bone(bone0_mat * Mat4::<f32>::from(self.bone1)),
-            make_bone(bone0_mat * Mat4::<f32>::from(self.bone2)),
+            make_bone(bone1_mat),
+            make_bone(bone2_mat),
             make_bone(bone0_mat * Mat4::<f32>::from(self.bone3)),
         ];
         Offsets {
@@ -51,8 +55,12 @@ impl Skeleton for ShipSkeleton {
                     .mul_point(comp::Body::Ship(body).mount_offset().into_tuple().into()),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            primary_trail_mat: attr
+                .bone1_prop_trail_offset
+                .map(|offset| (bone1_mat, TrailSource::Propeller(offset))),
+            secondary_trail_mat: attr
+                .bone2_prop_trail_offset
+                .map(|offset| (bone2_mat, TrailSource::Propeller(offset))),
         }
     }
 }
@@ -62,6 +70,8 @@ pub struct SkeletonAttr {
     bone1: (f32, f32, f32),
     bone2: (f32, f32, f32),
     bone3: (f32, f32, f32),
+    bone1_prop_trail_offset: Option<f32>,
+    bone2_prop_trail_offset: Option<f32>,
 }
 
 impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -82,6 +92,8 @@ impl Default for SkeletonAttr {
             bone1: (0.0, 0.0, 0.0),
             bone2: (0.0, 0.0, 0.0),
             bone3: (0.0, 0.0, 0.0),
+            bone1_prop_trail_offset: None,
+            bone2_prop_trail_offset: None,
         }
     }
 }
@@ -105,7 +117,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
-                Submarine => (0.0, -15.0, 0.0),
+                Submarine => (0.0, -15.0, 3.5),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone2: match body {
@@ -123,8 +135,17 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
-                Submarine => (0.0, -18.0, 0.0),
+                Submarine => (0.0, -18.0, 3.5),
                 Volume => (0.0, 0.0, 0.0),
+            },
+            bone1_prop_trail_offset: match body {
+                DefaultAirship => Some(8.5),
+                Submarine => Some(3.5),
+                _ => None,
+            },
+            bone2_prop_trail_offset: match body {
+                DefaultAirship => Some(8.5),
+                _ => None,
             },
         }
     }

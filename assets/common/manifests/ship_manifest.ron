@@ -163,7 +163,7 @@
     ),
     Submarine: (
         bone0: (
-            offset: (-5.5, -18.0, -4.5),
+            offset: (-5.5, -18.0, -1.0),
             central: ("submarine.structure"),
         ),
         bone1: (
