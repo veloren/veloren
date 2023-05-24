@@ -1639,15 +1639,21 @@ fn handle_spawn_airship(
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let angle = parse_cmd_args!(args, f32);
+    let (body_name, angle) = parse_cmd_args!(args, String, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
     let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
     let dir = angle.map(|a| Vec3::new(a.cos(), a.sin(), 0.0));
     let destination = dir.map(|dir| pos.0 + dir * DESTINATION_RADIUS + Vec3::new(0.0, 0.0, 200.0));
-    let mut rng = thread_rng();
-    let ship = comp::ship::Body::random_airship_with(&mut rng);
+    let ship = if let Some(body_name) = body_name {
+        *comp::ship::ALL_AIRSHIPS
+            .iter()
+            .find(|body| format!("{body:?}") == body_name)
+            .ok_or_else(|| format!("No such airship '{body_name}'."))?
+    } else {
+        comp::ship::Body::random_airship_with(&mut thread_rng())
+    };
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
@@ -1677,15 +1683,21 @@ fn handle_spawn_ship(
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let angle = parse_cmd_args!(args, f32);
+    let (body_name, angle) = parse_cmd_args!(args, String, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 2.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
     let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
     let dir = angle.map(|a| Vec3::new(a.cos(), a.sin(), 0.0));
     let destination = dir.map(|dir| pos.0 + dir * DESTINATION_RADIUS + Vec3::new(0.0, 0.0, 200.0));
-    let mut rng = thread_rng();
-    let ship = comp::ship::Body::random_ship_with(&mut rng);
+    let ship = if let Some(body_name) = body_name {
+        *comp::ship::ALL_SHIPS
+            .iter()
+            .find(|body| format!("{body:?}") == body_name)
+            .ok_or_else(|| format!("No such airship '{body_name}'."))?
+    } else {
+        comp::ship::Body::random_airship_with(&mut thread_rng())
+    };
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
