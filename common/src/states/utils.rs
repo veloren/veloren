@@ -605,7 +605,7 @@ pub fn handle_orientation(
 
         (
             Quaternion::rotation_y(x_diff.atan()) * Quaternion::rotation_x(y_diff.atan()),
-            (data.vel.0 - data.physics.ground_vel).dot(data.ori.to_horizontal().look_dir().to_vec()).max(3.0) * efficiency,
+            (data.vel.0 - data.physics.ground_vel).xy().magnitude().max(3.0) * efficiency,
         )
     } else {
         (Quaternion::identity(), efficiency)
