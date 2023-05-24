@@ -146,7 +146,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 140.0,
                 quadruped_low::Species::Mossdrake => 100.0,
             },
-            Body::Ship(ship::Body::Carriage) => 250.0,
+            Body::Ship(ship::Body::Carriage) => 350.0,
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
                 arthropod::Species::Tarantula => 135.0,

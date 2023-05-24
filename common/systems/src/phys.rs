@@ -1593,12 +1593,12 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             /* if resolve_dir.z > 0.0 && vel.0.z <= 0.0 { */
             if resolve_dir.z > 0.0 {
                 on_ground = Some(block);
-
-                if !was_on_ground {
-                    land_on_ground(entity, *vel);
-                }
             } else if resolve_dir.z < 0.0 && vel.0.z >= 0.0 {
                 on_ceiling = true;
+            }
+
+            if resolve_dir.magnitude_squared() > 0.0 {
+                land_on_ground(entity, *vel);
             }
 
             // When the resolution direction is non-vertical, we must be colliding
