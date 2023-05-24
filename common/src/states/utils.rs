@@ -146,6 +146,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 140.0,
                 quadruped_low::Species::Mossdrake => 100.0,
             },
+            Body::Ship(ship::Body::Carriage) => 250.0,
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
                 arthropod::Species::Tarantula => 135.0,
@@ -220,6 +221,7 @@ impl Body {
                 quadruped_low::Species::Mossdrake => 1.7,
                 _ => 2.0,
             },
+            Body::Ship(ship::Body::Carriage) => 0.6,
             Body::Ship(ship) if ship.has_water_thrust() => 5.0 / self.dimensions().y,
             Body::Ship(_) => 6.0 / self.dimensions().y,
             Body::Arthropod(_) => 3.5,
@@ -587,6 +589,13 @@ pub fn handle_orientation(
         (a.to_quat().into_vec4() - b.to_quat().into_vec4()).reduce(|a, b| a.abs() + b.abs())
     }
 
+    let pitch = if matches!(data.body, Body::Ship(ship::Body::Carriage)) {
+        let change = (data.pos.0 - data.previous_physics.and_then(|p| p.pos_interp).unwrap_or(*data.pos).0) / data.dt.0;
+        change.z / change.xy().magnitude().max(1.0)
+    } else {
+        0.0
+    };
+
     // Direction is set to the override if one is provided, else if entity is
     // strafing or attacking the horiontal component of the look direction is used,
     // else the current horizontal movement direction is used
@@ -601,7 +610,8 @@ pub fn handle_orientation(
     } else {
         Dir::from_unnormalized(data.inputs.move_dir.into())
             .map_or_else(|| to_horizontal_fast(data.ori), |dir| dir.into())
-    };
+    }
+        .pitched_up(pitch);
     // unit is multiples of 180°
     let half_turns_per_tick = data.body.base_ori_rate() / data.scale.map_or(1.0, |s| s.0.sqrt())
         * efficiency

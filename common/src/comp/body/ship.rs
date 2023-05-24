@@ -19,7 +19,7 @@ pub const ALL_BODIES: [Body; 6] = [
 ];
 
 pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
-pub const ALL_SHIPS: [Body; 4] = [Body::SailBoat, Body::Galleon, Body::Skiff, Body::Submarine];
+pub const ALL_SHIPS: [Body; 5] = [Body::SailBoat, Body::Galleon, Body::Skiff, Body::Submarine, Body::Carriage];
 
 make_case_elim!(
     body,
@@ -33,6 +33,7 @@ make_case_elim!(
         Volume = 4,
         Skiff = 5,
         Submarine = 6,
+        Carriage = 7,
     }
 );
 
@@ -64,6 +65,7 @@ impl Body {
             Body::Galleon => Some("galleon.structure"),
             Body::Skiff => Some("skiff.structure"),
             Body::Submarine => Some("submarine.structure"),
+            Body::Carriage => Some("carriage.structure"),
             Body::Volume => None,
         }
     }
@@ -76,6 +78,7 @@ impl Body {
             Body::Galleon => Vec3::new(14.0, 48.0, 10.0),
             Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
             Body::Submarine => Vec3::new(2.0, 15.0, 8.0),
+            Body::Carriage => Vec3::new(2.0, 15.0, 8.0),
         }
     }
 
@@ -109,6 +112,7 @@ impl Body {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
             Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
+            Body::Carriage => Density(WATER_DENSITY * 0.5),
             _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
                                                          * buoyant */
         }
@@ -123,7 +127,7 @@ impl Body {
     pub fn flying_height(&self) -> f32 { if self.can_fly() { 200.0 } else { 0.0 } }
 
     pub fn has_water_thrust(&self) -> bool {
-        !self.can_fly() // TODO: Differentiate this more carefully
+        !self.can_fly() && !matches!(self, Body::Carriage) // TODO: Differentiate this more carefully
     }
 
     pub fn make_collider(&self) -> Collider {

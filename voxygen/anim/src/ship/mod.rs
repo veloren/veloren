@@ -109,6 +109,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, 0.0, 0.0),
+                Carriage => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone1: match body {
@@ -118,6 +119,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, -15.0, 3.5),
+                Carriage => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone2: match body {
@@ -127,6 +129,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, 0.0, 0.0),
+                Carriage => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone3: match body {
@@ -136,6 +139,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Galleon => (0.0, 0.0, 0.0),
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, -18.0, 3.5),
+                Carriage => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone1_prop_trail_offset: match body {

@@ -1099,6 +1099,7 @@ impl Body {
                 ship::Body::Galleon => [-2.0, -5.0, 4.0],
                 ship::Body::Skiff => [1.0, -2.0, 2.0],
                 ship::Body::Submarine => [1.0, -2.0, 2.0],
+                ship::Body::Carriage => [1.0, -2.0, 2.0],
                 ship::Body::Volume => [0.0, 0.0, 0.0],
             },
             _ => [0.0, 0.0, 0.0],
