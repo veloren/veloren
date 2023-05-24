@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Brinestone Guantlets",
+    description: "Hits like a rock.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Brinestone"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

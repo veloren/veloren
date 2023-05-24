@@ -1638,7 +1638,76 @@
         ],
         craft_sprite: Some(Anvil),
     ),
-
+    //ARMOR/BRINESTONE
+    "brinestone_back": (
+        output: ("common.items.armor.brinestone.back", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold"), 1, false),
+            (Item("common.items.crafting_ing.brinestone"), 2, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 3, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "brinestone_belt": (
+        output: ("common.items.armor.brinestone.belt", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold"), 1, false),
+            (Item("common.items.crafting_ing.brinestone"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "brinestone_chest": (
+        output: ("common.items.armor.brinestone.chest", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold"), 2, false),
+            (Item("common.items.crafting_ing.brinestone"), 4, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "brinestone_feet": (
+        output: ("common.items.armor.brinestone.foot", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold"), 1, false),
+            (Item("common.items.crafting_ing.brinestone"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "brinestone_hands": (
+        output: ("common.items.armor.brinestone.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.pearl"), 1, false),
+            (Item("common.items.crafting_ing.brinestone"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "brinestone_pants": (
+        output: ("common.items.armor.brinestone.pants", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold"), 2, false),
+            (Item("common.items.crafting_ing.brinestone"), 4, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 3, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "brinestone_shoulder": (
+        output: ("common.items.armor.brinestone.shoulder", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold"), 2, false),
+            (Item("common.items.crafting_ing.brinestone"), 4, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 4, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "brinestone_crown": (
+        output: ("common.items.armor.brinestone.crown", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.gold"), 1, false),
+            (Item("common.items.crafting_ing.pearl"), 2, false),
+            (Item("common.items.crafting_ing.brinestone"), 4, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
     "seashell_necklace": (
         output: ("common.items.armor.misc.neck.shell", 1),
         inputs: [

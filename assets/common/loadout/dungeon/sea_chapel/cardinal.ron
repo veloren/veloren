@@ -10,5 +10,6 @@
     feet: Item("common.items.armor.cardinal.foot"),
     lantern: Item("common.items.lantern.blue_0"),
     neck: Item("common.items.armor.misc.neck.abyssal_gorget"),
+    head: Item("common.items.armor.cardinal.mitre"),
 
 )

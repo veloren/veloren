@@ -488,6 +488,15 @@
     Simple("common.items.armor.boreal.hand"): "voxel.armor.boreal.hand",
     Simple("common.items.armor.boreal.shoulder"): "voxel.armor.boreal.shoulder",
     Simple("common.items.armor.boreal.back"): "voxel.armor.boreal.back",
+    //Brinestone Armor
+    Simple("common.items.armor.brinestone.chest"): "voxel.armor.brinestone.chest",
+    Simple("common.items.armor.brinestone.pants"): "voxel.armor.brinestone.pants",
+    Simple("common.items.armor.brinestone.belt"): "voxel.armor.brinestone.belt",
+    Simple("common.items.armor.brinestone.foot"): "voxel.armor.brinestone.foot",
+    Simple("common.items.armor.brinestone.hand"): "voxel.armor.brinestone.hand",
+    Simple("common.items.armor.brinestone.shoulder"): "voxel.armor.brinestone.shoulder",
+    Simple("common.items.armor.brinestone.back"): "voxel.armor.brinestone.back",
+    Simple("common.items.armor.brinestone.crown"): "voxel.armor.brinestone.crown",
     //Blue Leather Armor
     Simple("common.items.npc_armor.chest.leather_blue"): "voxel.armor.leather_blue.chest",
     Simple("common.items.npc_armor.pants.leather_blue"): "voxel.armor.leather_blue.pants",
@@ -878,6 +887,7 @@
     Simple("common.items.flowers.plant_fiber"): "voxel.sprite.crafting_ing.plant_fiber",
     Simple("common.items.flowers.moonbell"): "voxel.sprite.flowers.moonbell",
     Simple("common.items.crafting_ing.abyssal_heart"): "voxel.sprite.crafting_ing.abyssal_heart",
+    Simple("common.items.crafting_ing.brinestone"): "voxel.sprite.crafting_ing.brinestone",
     Simple("common.items.crafting_ing.pearl"): "voxel.sprite.crafting_ing.pearl",
     Simple("common.items.crafting_ing.coral_branch"): "voxel.sprite.crafting_ing.coral_branch",
     Simple("common.items.flowers.pyrebloom"): "voxel.sprite.flowers.pyrebloom",
@@ -929,6 +939,7 @@
     // Keys and Lockpicks
     Simple("common.items.keys.rusty_tower_key"): "voxel.object.key_rusty-0",
     Simple("common.items.keys.bone_key"): "voxel.object.key_bone",
+    Simple("common.items.keys.glass_key"): "voxel.object.key_glass",
     Simple("common.items.utility.lockpick_0"): "voxel.object.lockpick",
     // Gliders
     Simple("common.items.glider.cloverleaf"): "voxel.glider.starter",

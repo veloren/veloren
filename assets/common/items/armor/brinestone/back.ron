@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Brinestone Cloak",
+    description: "It's not weak.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Brinestone"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

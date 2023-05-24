@@ -43,6 +43,7 @@ make_case_elim!(
         EntitySpawner(entitykind: String, spawn_chance: f32) = 24,
         Keyhole(consumes: String) = 25,
         BoneKeyhole(consumes: String) = 26,
+        GlassKeyhole(consumes: String) = 27,
     }
 );
 

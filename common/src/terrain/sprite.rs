@@ -252,6 +252,7 @@ make_case_elim!(
         IceCrystal = 0xE0,
         GlowIceCrystal = 0xE1,
         OneWayWall = 0xE2,
+        GlassKeyhole = 0xE3,
     }
 );
 
@@ -341,6 +342,7 @@ impl SpriteKind {
             | SpriteKind::WitchWindow
             | SpriteKind::SeaUrchin
             | SpriteKind::GlassBarrier
+            | SpriteKind::GlassKeyhole
             | SpriteKind::Keyhole
             | SpriteKind::KeyDoor
             | SpriteKind::BoneKeyhole
@@ -510,7 +512,9 @@ impl SpriteKind {
             SpriteKind::Frostwood => item("common.items.log.frostwood"),
             SpriteKind::Eldwood => item("common.items.log.eldwood"),
             SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
-            SpriteKind::Keyhole | SpriteKind::BoneKeyhole => return Some(None),
+            SpriteKind::Keyhole | SpriteKind::BoneKeyhole | SpriteKind::GlassKeyhole => {
+                return Some(None);
+            },
             _ => return None,
         }))
     }
@@ -591,8 +595,7 @@ impl SpriteKind {
             | SpriteKind::Tin
             | SpriteKind::Silver
             | SpriteKind::Gold
-            | SpriteKind::SapphireSmall
-            | SpriteKind::GlassBarrier => Some(ToolKind::Pick),
+            | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
             _ => None,
         }
     }
@@ -611,6 +614,9 @@ impl SpriteKind {
                 ),
                 SpriteKind::BoneKeyhole => UnlockKind::Consumes(
                     ItemDefinitionId::Simple("common.items.keys.bone_key").to_owned(),
+                ),
+                SpriteKind::GlassKeyhole => UnlockKind::Consumes(
+                    ItemDefinitionId::Simple("common.items.keys.glass_key").to_owned(),
                 ),
                 _ => UnlockKind::Free,
             })

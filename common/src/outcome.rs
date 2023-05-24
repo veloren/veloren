@@ -97,6 +97,9 @@ pub enum Outcome {
     FlashFreeze {
         pos: Vec3<f32>,
     },
+    Steam {
+        pos: Vec3<f32>,
+    },
     LaserBeam {
         pos: Vec3<f32>,
     },
@@ -145,6 +148,7 @@ impl Outcome {
             | Outcome::FlashFreeze { pos }
             | Outcome::Woosh { pos }
             | Outcome::IceSpikes { pos }
+            | Outcome::Steam { pos }
             | Outcome::IceCrack { pos }
             | Outcome::Utterance { pos, .. }
             | Outcome::SpriteDelete { pos, .. }

@@ -105,6 +105,7 @@ subtitle-giga_roar = Frost gigas vrål
 subtitle-attack-flash_freeze = Blixtfrysning
 subtitle-attack-icy_spikes = Istappar
 subtitle-attack-ice_crack = Isspricka
+subtitle-attack-steam = Ånga
 
 subtitle-consume_potion = Dricker förtrollningsdryck
 subtitle-consume_apple = Äter äpple

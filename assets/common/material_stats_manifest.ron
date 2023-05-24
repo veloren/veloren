@@ -323,6 +323,12 @@
             energy_reward: Some(-0.35),
             crit_power: Some(0.35),
             stealth: Some(0.5),
+        ),
+        "Brinestone": (
+            protection: Some(Normal(120.0)),
+            poise_resilence: Some(Normal(28.0)),
+            energy_reward: Some(0.35),
+            crit_power: Some(0.25),
         )
     },
 )

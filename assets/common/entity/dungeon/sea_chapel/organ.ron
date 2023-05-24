@@ -3,7 +3,7 @@
     name: Name("Organ"),
     body: Exact(Object(BarrelOrgan)),
     alignment: Alignment(Enemy),
-    loot: Item("common.items.crafting_ing.seashells"),
+    loot: Item("common.items.keys.glass_key"),
     inventory: (
         loadout: FromBody
     ),

@@ -1987,6 +1987,39 @@
         "voxel.armor.boreal.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
+    //Brinestone Armor
+    Simple("common.items.armor.brinestone.chest"): VoxTrans(
+        "voxel.armor.brinestone.chest",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Simple("common.items.armor.brinestone.pants"): VoxTrans(
+        "voxel.armor.brinestone.pants",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.brinestone.belt"): VoxTrans(
+        "voxel.armor.brinestone.belt",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.brinestone.foot"): VoxTrans(
+        "voxel.armor.brinestone.foot",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.brinestone.hand"): VoxTrans(
+        "voxel.armor.brinestone.hand",
+        (0.0, 0.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Simple("common.items.armor.brinestone.shoulder"): VoxTrans(
+        "voxel.armor.brinestone.shoulder",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    ),
+    Simple("common.items.armor.brinestone.back"): VoxTrans(
+        "voxel.armor.brinestone.back",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.brinestone.crown"): VoxTrans(
+        "voxel.armor.brinestone.crown",
+        (0.0, 4.0, 0.0), (-120.0, 210.0,15.0), 1.3,
+    ),
     //Blue Leather Armor
     Simple("common.items.npc_armor.chest.leather_blue"): VoxTrans(
         "voxel.armor.leather_blue.chest",
@@ -2127,6 +2160,10 @@
     Simple("common.items.armor.cardinal.shoulder"): VoxTrans(
         "voxel.armor.cardinal.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    ),
+    Simple("common.items.armor.cardinal.mitre"): VoxTrans(
+        "voxel.armor.cardinal.mitre",
+        (0.0, 4.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     //Twig Set
     Simple("common.items.armor.twigs.chest"): VoxTrans(
@@ -3653,6 +3690,10 @@
         "voxel.sprite.crafting_ing.abyssal_heart",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
+    Simple("common.items.crafting_ing.brinestone"): VoxTrans(
+        "voxel.sprite.crafting_ing.brinestone",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
     Simple("common.items.crafting_ing.pearl"): VoxTrans(
         "voxel.sprite.crafting_ing.pearl",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
@@ -4859,6 +4900,10 @@
     ),
     Simple("common.items.keys.bone_key"): VoxTrans(
         "voxel.object.key_bone",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.glass_key"): VoxTrans(
+        "voxel.object.key_glass",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
     // Lockpicks

@@ -969,6 +969,10 @@
             adlet_elder: (
                 keyword: "adlet_elder",
                 generic: "Adlet Elder"
+            ),
+            sea_bishop: (
+                keyword: "sea_bishop",
+                generic: "Sea Bishop"
             )
         )
     ),
@@ -995,6 +999,10 @@
             claygolem: (
                 keyword: "claygolem",
                 generic: "ClayGolem"
+            ),
+            coralgolem: (
+                keyword: "coralgolem",
+                generic: "CoralGolem"
             )
         )
     ),
@@ -1366,6 +1374,10 @@
             crawler_sand: (
                 keyword: "crawler_sand",
                 generic: "Sand Crawler"
+            ),
+            dagonite: (
+                keyword: "dagonite",
+                generic: "Dagonite"
             ),
         )
     ),

@@ -1,0 +1,5 @@
+[
+    // Crafting ingredients
+    (1.0, Item("common.items.crafting_ing.coral_branch")),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.brinestone"), 1, 3)),
+]

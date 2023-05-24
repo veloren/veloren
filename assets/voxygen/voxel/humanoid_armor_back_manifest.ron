@@ -32,6 +32,10 @@
             vox_spec: ("armor.boreal.back", (-5.0, -2.0, -14.0)),
             color: None
         ),
+        "common.items.armor.brinestone.back": (
+            vox_spec: ("armor.brinestone.back", (-5.0, -2.0, -14.0)),
+            color: None
+        ),
         "common.items.armor.misc.back.backpack": (
             vox_spec: ("armor.misc.back.backpack", (-7.0, -5.0, -10.0)),
             color: None

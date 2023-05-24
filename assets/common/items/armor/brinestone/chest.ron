@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Brinestone Chestplate",
+    description: "Hard to pierce.",
+    kind: Armor((
+        kind: Chest,
+        stats: FromSet("Brinestone"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

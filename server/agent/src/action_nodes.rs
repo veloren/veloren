@@ -972,7 +972,7 @@ impl<'a> AgentData<'a> {
                             "Staff Simple" => Tactic::Staff,
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
                             "Bow Simple" | "Boreal Bow" => Tactic::Bow,
-                            "Stone Golem" => Tactic::StoneGolem,
+                            "Stone Golem" | "Coral Golem" => Tactic::StoneGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
                                 radius: 3,
                                 circle_time: 2,
@@ -1026,7 +1026,9 @@ impl<'a> AgentData<'a> {
                             "Yeti" => Tactic::Yeti,
                             "Harvester" => Tactic::Harvester,
                             "Cardinal" => Tactic::Cardinal,
+                            "Sea Bishop" => Tactic::SeaBishop,
                             "Dagon" => Tactic::Dagon,
+                            "Dagonite" => Tactic::ArthropodAmbush,
                             "Gnarling Dagger" => Tactic::SimpleBackstab,
                             "Gnarling Blowgun" => Tactic::ElevatedRanged,
                             "Deadwood" => Tactic::Deadwood,
@@ -1442,6 +1444,14 @@ impl<'a> AgentData<'a> {
                 self.handle_harvester_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::Cardinal => self.handle_cardinal_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::SeaBishop => self.handle_sea_bishop_attack(
                 agent,
                 controller,
                 &attack_data,

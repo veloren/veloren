@@ -1275,4 +1275,120 @@
             lateral: ("armor.empty"),
         ),
     ),
+    (Dagonite, Male): (
+        mandible_l: (
+            offset: (0.0, 0.0, -3.0),
+            lateral: ("armor.empty"),
+        ),
+        mandible_r: (
+            offset: (-2.0, 0.0, -3.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_fl: (
+            offset: (-6.0, -4.5, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_fr: (
+            offset: (0.0, -4.5, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_bl: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_br: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_fl: (
+            offset: (-6.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-0.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fr"),
+        ),
+        leg_fcl: (
+            offset: (-6.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fcr"),
+        ),
+        leg_fcr: (
+            offset: (-0.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fcr"),
+        ),
+        leg_bcl: (
+            offset: (-6.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_bcr"),
+        ),
+        leg_bcr: (
+            offset: (-0.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_bcr"),
+        ),
+        leg_bl: (
+            offset: (-11.0, -0.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+        leg_br: (
+            offset: (0.0, -0.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+    ),
+    (Dagonite, Female): (
+        mandible_l: (
+            offset: (0.0, 0.0, -3.0),
+            lateral: ("armor.empty"),
+        ),
+        mandible_r: (
+            offset: (-2.0, 0.0, -3.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_fl: (
+            offset: (-6.0, -4.5, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_fr: (
+            offset: (0.0, -4.5, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_bl: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        wing_br: (
+            offset: (-11.0, -1.0, -8.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_fl: (
+            offset: (-6.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-0.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fr"),
+        ),
+        leg_fcl: (
+            offset: (-6.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fcr"),
+        ),
+        leg_fcr: (
+            offset: (-0.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_fcr"),
+        ),
+        leg_bcl: (
+            offset: (-6.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_bcr"),
+        ),
+        leg_bcr: (
+            offset: (-0.0, -0.5, -5.0),
+            lateral: ("npc.dagonite.male.leg_bcr"),
+        ),
+        leg_bl: (
+            offset: (-11.0, -0.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+        leg_br: (
+            offset: (0.0, -0.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+    ),
 })

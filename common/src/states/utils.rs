@@ -159,6 +159,7 @@ impl Body {
                 arthropod::Species::Moltencrawler => 70.0,
                 arthropod::Species::Mosscrawler => 70.0,
                 arthropod::Species::Sandcrawler => 70.0,
+                arthropod::Species::Dagonite => 70.0,
             },
         }
     }

@@ -228,6 +228,7 @@ pub enum Tactic {
     OrganAura,
     Dagon,
     Cardinal,
+    SeaBishop,
     Roshwalr,
     FrostGigas,
     BorealHammer,

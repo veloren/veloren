@@ -88,7 +88,7 @@ impl Animation for BeamAnimation {
         let move1 = move1base * pullback;
         let move2 = move2base * pullback;
         match active_tool_kind {
-            Some(ToolKind::Sceptre) | Some(ToolKind::Staff) => {
+            Some(ToolKind::Staff) => {
                 next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
                 next.control_r.position =
                     Vec3::new(1.0 + move1 * 5.0, 2.0 + move1 * 1.0, 2.0 + move1 * 14.0);
@@ -124,6 +124,86 @@ impl Animation for BeamAnimation {
                 );
                 next.shoulder_r.orientation =
                     Quaternion::rotation_x(move1 * 0.2 + 0.3 + 0.6 * speednorm + (footrotl * -0.2));
+            },
+            Some(ToolKind::Sceptre) => match ability_id {
+                Some("common.abilities.custom.sea_bishop.longbeam") => {
+                    next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
+                    next.control_r.position =
+                        Vec3::new(-1.0 + move1 * 5.0, 2.0 + move1 * 1.0, 2.0 + move1 * 14.0);
+
+                    next.control.position = Vec3::new(
+                        -3.0 + move1 * -5.0,
+                        -2.0 + s_a.grip.0 / 1.2 + move1 * 3.0 + move2shake * 1.0,
+                        -11.0 + -s_a.grip.0 / 2.0 + move1 * -2.0,
+                    );
+                    next.head.orientation =
+                        Quaternion::rotation_x(move1 * -0.2) * Quaternion::rotation_y(move1 * 0.2);
+                    next.jaw.orientation = Quaternion::rotation_x(0.0);
+
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.5);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.4)
+                        * Quaternion::rotation_y(0.5)
+                        * Quaternion::rotation_z(move1 * 1.2 + move2shake * 0.5);
+
+                    next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * -0.1)
+                        * Quaternion::rotation_y(-0.1 + move1 * 0.6);
+                    next.shoulder_l.position = Vec3::new(
+                        -s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothorir * 1.0,
+                    );
+                    next.shoulder_l.orientation = Quaternion::rotation_x(
+                        move1 * 0.2 + 0.3 + 0.8 * speednorm + (footrotr * -0.2),
+                    );
+                    next.shoulder_r.position = Vec3::new(
+                        s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothoril * 1.0,
+                    );
+                    next.shoulder_r.orientation = Quaternion::rotation_x(
+                        move1 * 0.2 + 0.3 + 0.6 * speednorm + (footrotl * -0.2),
+                    );
+                },
+                _ => {
+                    next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
+                    next.control_r.position =
+                        Vec3::new(1.0 + move1 * 5.0, 2.0 + move1 * 1.0, 2.0 + move1 * 14.0);
+
+                    next.control.position = Vec3::new(
+                        -3.0 + move1 * -5.0,
+                        3.0 + s_a.grip.0 / 1.2 + move1 * 3.0 + move2shake * 1.0,
+                        -11.0 + -s_a.grip.0 / 2.0 + move1 * -2.0,
+                    );
+                    next.head.orientation =
+                        Quaternion::rotation_x(move1 * -0.2) * Quaternion::rotation_y(move1 * 0.2);
+                    next.jaw.orientation = Quaternion::rotation_x(0.0);
+
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.5);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.4)
+                        * Quaternion::rotation_y(0.5)
+                        * Quaternion::rotation_z(move1 * 1.2 + move2shake * 0.5);
+
+                    next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * -0.1)
+                        * Quaternion::rotation_y(-0.1 + move1 * 0.6);
+                    next.shoulder_l.position = Vec3::new(
+                        -s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothorir * 1.0,
+                    );
+                    next.shoulder_l.orientation = Quaternion::rotation_x(
+                        move1 * 0.2 + 0.3 + 0.8 * speednorm + (footrotr * -0.2),
+                    );
+                    next.shoulder_r.position = Vec3::new(
+                        s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothoril * 1.0,
+                    );
+                    next.shoulder_r.orientation = Quaternion::rotation_x(
+                        move1 * 0.2 + 0.3 + 0.6 * speednorm + (footrotl * -0.2),
+                    );
+                },
             },
             Some(ToolKind::Natural) => match ability_id {
                 Some("common.abilities.custom.tidalwarrior.bubbles") => {

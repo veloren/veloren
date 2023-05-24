@@ -219,7 +219,7 @@ impl Animation for WieldAnimation {
                     next.control.orientation =
                         Quaternion::rotation_x(-1.0 + short * 0.2) * Quaternion::rotation_y(-1.8);
                 },
-                Some(ToolKind::Staff) => {
+                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                     next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
                     next.control_r.position = Vec3::new(1.0, 2.0, 2.0);
 

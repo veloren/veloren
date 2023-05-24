@@ -896,7 +896,7 @@ SeaDecorEmblem: Some((
      variations: [
          (
             model: "voxygen.voxel.sprite.misc.sea_decor_emblem",
-            offset: (-5.5, -5.5, -4.0),
+            offset: (-16.0, -16.0, -4.0),
             lod_axes: (1.0, 1.0, 1.0),
          ),
      ],
@@ -963,9 +963,19 @@ SeashellLantern: Some((
 GlassBarrier: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.misc.glass_barrier",
+            model: "voxygen.voxel.sprite.furniture.glass_barrier_block",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+GlassKeyhole: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.glass_keyhole_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
         ),
     ],
     wind_sway: 0.0,

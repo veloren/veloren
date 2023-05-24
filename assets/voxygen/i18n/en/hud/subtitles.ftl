@@ -106,6 +106,7 @@ subtitle-giga_roar = Frost gigas roar
 subtitle-attack-flash_freeze = Flash freeze
 subtitle-attack-icy_spikes = Icy spikes
 subtitle-attack-ice_crack = Ice crack
+subtitle-attack-steam = Steam
 
 subtitle-consume_potion = Drinking potion
 subtitle-consume_apple = Eating apple

@@ -1248,4 +1248,56 @@
             central: ("armor.empty"),
         )
     ),
+    (SeaBishop, Male): (
+        head: (
+            offset: (-7.0, -4.5, -8.5),
+            central: ("npc.sea_bishop.male.head"),
+        ),
+        torso_upper: (
+            offset: (-4.0, -5.0, -5.0),
+            central: ("npc.sea_bishop.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -4.5, -11.0),
+            central: ("npc.sea_bishop.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-4.0, -27.0, -6.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (SeaBishop, Female): (
+        head: (
+            offset: (-7.0, -4.5, -8.5),
+            central: ("npc.sea_bishop.male.head"),
+        ),
+        torso_upper: (
+            offset: (-4.0, -5.0, -5.0),
+            central: ("npc.sea_bishop.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.0, -4.5, -11.0),
+            central: ("npc.sea_bishop.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-4.0, -27.0, -6.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

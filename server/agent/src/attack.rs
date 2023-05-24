@@ -4161,6 +4161,99 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    pub fn handle_sea_bishop_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+
+        enum ActionStateTimers {
+            TimerBeam = 0,
+        }
+        if agent.action_state.timers[ActionStateTimers::TimerBeam as usize] > 6.0 {
+            agent.action_state.timers[ActionStateTimers::TimerBeam as usize] = 0.0;
+        } else {
+            agent.action_state.timers[ActionStateTimers::TimerBeam as usize] += read_data.dt.0;
+        }
+
+        // When enemy in sight beam for 3 seconds, every 6 seconds
+        if line_of_sight_with_target()
+            && agent.action_state.timers[ActionStateTimers::TimerBeam as usize] < 3.0
+        {
+            controller.push_basic_input(InputKind::Primary);
+        }
+        // Logic to move. Intentionally kept separate from ability logic where possible
+        // so duplicated work is less necessary.
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            // Attempt to move away from target if too close
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // Else attempt to circle target if neither too close nor too far
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if line_of_sight_with_target() && attack_data.angle < 45.0 {
+                    controller.inputs.move_dir = bearing
+                        .xy()
+                        .rotated_z(rng.gen_range(0.5..1.57))
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero)
+                        * speed;
+                } else {
+                    // Unless cannot see target, then move towards them
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(bearing.z > 1.5, controller);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+        } else {
+            // If too far, move towards target
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
+    }
+
     pub fn handle_dagon_attack(
         &self,
         agent: &mut Agent,

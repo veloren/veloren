@@ -143,4 +143,40 @@
             central: ("npc.woodgolem.male.chest_lower"),
         ),
     ),
+    (CoralGolem, Male): (
+        head: (
+            offset: (-8.5, -2.5, -7.0),
+            central: ("npc.coralgolem.male.head"),
+        ),
+        jaw: (
+            offset: (-9.5, 0.0, -3.0),
+            central: ("armor.empty"),
+        ),
+        torso_upper: (
+            offset: (-11.5, -16.0, -11.5),
+            central: ("npc.coralgolem.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-4.5, -4.0, -8.0),
+            central: ("npc.coralgolem.male.chest_lower"),
+        ),
+    ),
+    (CoralGolem, Female): (
+        head: (
+            offset: (-8.5, -2.5, -7.0),
+            central: ("npc.coralgolem.male.head"),
+        ),
+        jaw: (
+            offset: (-9.5, 0.0, -3.0),
+            central: ("armor.empty"),
+        ),
+        torso_upper: (
+            offset: (-11.5, -16.0, -11.5),
+            central: ("npc.coralgolem.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-4.5, -4.0, -8.0),
+            central: ("npc.coralgolem.male.chest_lower"),
+        ),
+    ),
 })
