@@ -1017,6 +1017,10 @@ fn handle_time(
         ),
         Some(n) => match n.parse::<f64>() {
             Ok(n) => {
+                // Incase the number of digits in the number is greater than 16
+                if n >= 1e17 {
+                    return Err(format!("{} is invalid, cannot be larger than 16 digits", n));
+                }
                 if n < 0.0 {
                     return Err(format!("{} is invalid, cannot be negative.", n));
                 }
