@@ -388,6 +388,16 @@
         (Item("common.items.armor.boreal.back"),1),
         (Item("common.items.armor.misc.head.boreal_warhelm"),1),
     ],
+    "brinestone": [
+        (Item("common.items.armor.brinestone.chest"),1),
+        (Item("common.items.armor.brinestone.pants"),1),
+        (Item("common.items.armor.brinestone.hand"),1),
+        (Item("common.items.armor.brinestone.foot"),1),
+        (Item("common.items.armor.brinestone.shoulder"),1),
+        (Item("common.items.armor.brinestone.belt"),1),
+        (Item("common.items.armor.brinestone.back"),1),
+        (Item("common.items.armor.brinestone.crown"),1),
+    ],
     "instruments": [
         (Item("common.items.tool.instruments.double_bass"),1),
         (Item("common.items.tool.instruments.flute"),1),

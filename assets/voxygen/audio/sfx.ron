@@ -1471,6 +1471,13 @@
             threshold: 0.9,
             subtitle: "subtitle-attack-ice_crack",
         ),
+        Steam: (
+            files: [
+                    "voxygen.audio.sfx.abilities.steam",
+                ],
+            threshold: 0.9,
+            subtitle: "subtitle-attack-steam",
+        ),
 
         // Utterances (NPCs)
 

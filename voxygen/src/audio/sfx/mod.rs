@@ -173,6 +173,7 @@ pub enum SfxEvent {
     Lightning,
     CyclopsCharge,
     LaserBeam,
+    Steam,
     Music(ToolKind, AbilitySpec),
     Yeet,
     Klonk,
@@ -472,6 +473,10 @@ impl SfxMgr {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::IceCrack);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
+            Outcome::Steam { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Steam);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
             Outcome::ProjectileShot { pos, body, .. } => {
                 match body {
                     Body::Object(
@@ -565,7 +570,9 @@ impl SfxMgr {
                 }
             },
             Outcome::Beam { pos, specifier } => match specifier {
-                beam::FrontendSpecifier::LifestealBeam => {
+                beam::FrontendSpecifier::LifestealBeam
+                | beam::FrontendSpecifier::Steam
+                | beam::FrontendSpecifier::Bubbles => {
                     if thread_rng().gen_bool(0.5) {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SceptreBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
@@ -578,8 +585,6 @@ impl SfxMgr {
                     }
                 },
                 beam::FrontendSpecifier::ClayGolem
-                | beam::FrontendSpecifier::Bubbles
-                | beam::FrontendSpecifier::Steam
                 | beam::FrontendSpecifier::Frost
                 | beam::FrontendSpecifier::WebStrand => {},
             },

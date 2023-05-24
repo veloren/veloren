@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Coral Golem"),
+    body: RandomWith("coralgolem"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.sea_chapel.coralgolem"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

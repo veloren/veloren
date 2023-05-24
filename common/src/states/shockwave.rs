@@ -160,6 +160,11 @@ impl CharacterBehavior for Data {
                                 },
                             ));
                         },
+                        shockwave::FrontendSpecifier::Steam => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Steam {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            }));
+                        },
                         _ => {},
                     }
                 } else {

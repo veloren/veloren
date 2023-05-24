@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Chest,
         stats: Direct((
-            protection: Some(Normal(150.0)),
+            protection: Some(Normal(100.0)),
             poise_resilience: Some(Normal(5.0)),
         )),
     )),

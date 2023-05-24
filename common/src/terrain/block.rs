@@ -423,8 +423,8 @@ impl Block {
                 | SpriteKind::SeaDecorWindowHor
                 | SpriteKind::SeaDecorWindowVer
                 | SpriteKind::Rope
-                | SpriteKind::GlassBarrier
                 | SpriteKind::FireBlock => None,
+                SpriteKind::GlassBarrier | SpriteKind::GlassKeyhole => None,
                 SpriteKind::EnsnaringVines
                 | SpriteKind::EnsnaringWeb
                 | SpriteKind::SeaUrchin

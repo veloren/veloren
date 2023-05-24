@@ -61,6 +61,16 @@
                 color: None
             )
         ),
+        "common.items.armor.brinestone.shoulder": (
+            left: (
+                vox_spec: ("armor.brinestone.shoulder", (-5.0, -3.5, -2.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.brinestone.shoulder", (-3.0, -3.5, -2.0)),
+                color: None
+            )
+        ),
         "common.items.armor.cloth_purple.shoulder": (
             left: (
                 vox_spec: ("armor.cloth_purple.shoulder", (-3.2, -3.5, 0.0)),

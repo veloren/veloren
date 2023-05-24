@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Brinestone",
+    description: "Used for armor crafting.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Epic,
+    tags: [],
+)

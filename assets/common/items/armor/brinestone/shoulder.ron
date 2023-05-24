@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Brinestone Pads",
+    description: "Almost too heavy.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Brinestone"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Cardinal Mitre",
+    description: "Induces respect.",
+    kind: Armor((
+        kind: Head,
+        stats: FromSet("Cardinal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

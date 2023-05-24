@@ -183,9 +183,22 @@ impl CharacterBehavior for Data {
                         ori: *data.ori,
                     });
                     // Send local event used for frontend shenanigans
-                    output_events.emit_local(LocalEvent::CreateOutcome(Outcome::IceSpikes {
-                        pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                    }));
+                    match self.static_data.specifier {
+                        shockwave::FrontendSpecifier::IceSpikes => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::IceSpikes {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        shockwave::FrontendSpecifier::Steam => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Steam {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            }));
+                        },
+                        _ => {},
+                    };
                 } else {
                     // Transitions to recover
                     update.character = CharacterState::LeapShockwave(Data {

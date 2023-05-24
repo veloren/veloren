@@ -322,7 +322,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     // TODO: Abstract this code into a generalised way to do block updates?
                     if matches!(
                         block.get_sprite(),
-                        Some(SpriteKind::Keyhole | SpriteKind::BoneKeyhole)
+                        Some(
+                            SpriteKind::Keyhole
+                                | SpriteKind::BoneKeyhole
+                                | SpriteKind::GlassKeyhole
+                        )
                     ) {
                         let dirs = [
                             Vec3::unit_x(),
@@ -364,6 +368,19 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                             && matches!(
                                                 terrain.get(pos).ok().and_then(|b| b.get_sprite()),
                                                 Some(SpriteKind::BoneKeyDoor)
+                                            )
+                                        {
+                                            block_change.try_set(pos, Block::empty());
+                                            destroyed.insert(pos);
+
+                                            pending.extend(dirs.into_iter().map(|dir| pos + dir));
+                                        }
+                                    },
+                                    Some(SpriteKind::GlassKeyhole) => {
+                                        if !destroyed.contains(&pos)
+                                            && matches!(
+                                                terrain.get(pos).ok().and_then(|b| b.get_sprite()),
+                                                Some(SpriteKind::GlassBarrier)
                                             )
                                         {
                                             block_change.try_set(pos, Block::empty());

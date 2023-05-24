@@ -219,4 +219,24 @@
             central: ("npc.crawler_sand.male.chest"),
         ),
     ),
+    (Dagonite, Male): (
+        head: (
+            offset: (-5.5, 0.0, -5.0),
+            central: ("npc.dagonite.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -4.0, -5.5),
+            central: ("npc.dagonite.male.chest"),
+        ),
+    ),
+    (Dagonite, Female): (
+        head: (
+            offset: (-5.5, 0.0, -5.0),
+            central: ("npc.dagonite.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -4.0, -5.5),
+            central: ("npc.dagonite.male.chest"),
+        ),
+    ),
 })

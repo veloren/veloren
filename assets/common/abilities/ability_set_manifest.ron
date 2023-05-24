@@ -248,6 +248,13 @@
             Simple(None, "common.abilities.custom.woodgolem.shockwave")
         ],
     ),
+    Custom("Coral Golem"): (
+        primary: Simple(None, "common.abilities.custom.coralgolem.strike"),
+        secondary: Simple(None, "common.abilities.custom.coralgolem.spin"),
+        abilities: [
+            Simple(None, "common.abilities.custom.coralgolem.shockwave")
+        ],
+    ),
     Custom("Simple Flying Melee"): (
         primary: Simple(None, "common.abilities.custom.simpleflyingmelee.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.simpleflyingmelee.singlestrike"),
@@ -471,6 +478,13 @@
             Simple(None, "common.abilities.custom.arthropods.weevil.threadshot"),
         ],
     ),
+    Custom("Dagonite"): (
+        primary: Simple(None, "common.abilities.custom.arthropods.dagonite.leapshockwave"),
+        secondary: Simple(None, "common.abilities.custom.arthropods.dagonite.leapshockwave"),
+        abilities: [
+            Simple(None, "common.abilities.custom.arthropods.dagonite.leapshockwave"),
+        ],
+    ),
     /// TODO: Organize the rest into further catagories and give purple tier droppers+ custom skillsets
     Custom("Turret"): (
         primary: Simple(None, "common.abilities.custom.turret.arrows"),
@@ -560,7 +574,7 @@
     secondary: Simple(None, "common.abilities.custom.dagon.seaurchins"),
         abilities: [
             Simple(None, "common.abilities.custom.dagon.steamwave"),
-            Simple(None, "common.abilities.custom.cardinal.steambeam"),
+            Simple(None, "common.abilities.custom.dagon.steambeam"),
             Simple(None, "common.abilities.custom.dagon.steamheal"),
         ],
     ),
@@ -569,8 +583,13 @@
         secondary: Simple(None, "common.abilities.sceptre.healingaura"),
         abilities: [
             Simple(None, "common.abilities.custom.cardinal.steambeam"),
-            Simple(None, "common.abilities.custom.cardinal.summonseacrocs"),
+            Simple(None, "common.abilities.custom.cardinal.summondagonites"),
         ],
+    ),
+    Custom("Sea Bishop"): (
+        primary: Simple(None, "common.abilities.custom.sea_bishop.longbeam"),
+        secondary: Simple(None, "common.abilities.custom.sea_bishop.longbeam"),
+        abilities: [],
     ),
     Custom("Oni"): (
         primary: Simple(None, "common.abilities.custom.oni.dash"),

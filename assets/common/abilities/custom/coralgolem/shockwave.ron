@@ -1,0 +1,18 @@
+Shockwave(
+    energy_cost: 0,
+    buildup_duration: 3.0,
+    swing_duration: 0.12,
+    recover_duration: 2.4,
+    damage: 60.0,
+    poise_damage: 30,
+    knockback: (strength: 20.0, direction: TowardsUp),
+    shockwave_angle: 360.0,
+    shockwave_vertical_angle: 90.0,
+    shockwave_speed: 25.0,
+    shockwave_duration: 2.0,
+    requires_ground: true,
+    move_efficiency: 0.0,
+    damage_kind: Crushing,
+    specifier: Water,
+    ori_rate: 1.0,
+)

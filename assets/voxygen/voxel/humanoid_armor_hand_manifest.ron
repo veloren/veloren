@@ -50,6 +50,16 @@
                 color: None
             )
         ),
+        "common.items.armor.brinestone.hand": (
+            left: (
+                vox_spec: ("armor.brinestone.hand", (-3.5, -1.5, -4.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.brinestone.hand", (-1.5, -1.5, -4.0)),
+                color: None
+            )
+        ),
         "common.items.armor.cloth_purple.hand": (
             left: (
                 vox_spec: ("armor.cloth_purple.hand", (-1.5, -1.5, -2.5)),

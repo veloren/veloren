@@ -532,6 +532,9 @@ fn default_main_tool(body: &Body) -> Item {
             golem::Species::WoodGolem => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.wood_golem_fist",
             )),
+            golem::Species::CoralGolem => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.coral_golem_fist",
+            )),
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -663,6 +666,9 @@ fn default_main_tool(body: &Body) -> Item {
             arthropod::Species::Antlion => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropods.antlion",
             )),
+            arthropod::Species::Dagonite => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropods.dagonite",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropods.leafbeetle",
             )),
@@ -741,6 +747,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (biped_large::Species::AdletElder, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.sword.adlet_elder_sword",
+            )),
+            (biped_large::Species::SeaBishop, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.sea_bishop_sceptre",
             )),
         },
         Body::Object(body) => match body {

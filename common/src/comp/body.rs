@@ -439,6 +439,7 @@ impl Body {
                 biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
                 biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 8.0),
                 biped_large::Species::AdletElder => Vec3::new(3.5, 3.0, 5.0),
+                biped_large::Species::SeaBishop => Vec3::new(3.7, 2.5, 4.2),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -465,7 +466,10 @@ impl Body {
             Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
             Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
             Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
-            Body::Golem(_) => Vec3::new(5.0, 5.0, 7.5),
+            Body::Golem(body) => match body.species {
+                golem::Species::CoralGolem => Vec3::new(3.0, 5.0, 4.0),
+                _ => Vec3::new(5.0, 4.5, 7.5),
+            },
             Body::Humanoid(humanoid) => {
                 let height = humanoid.height();
                 Vec3::new(height / 1.3, 1.75 / 2.0, height)
@@ -555,6 +559,7 @@ impl Body {
                 arthropod::Species::Moltencrawler => Vec3::new(3.2, 4.0, 1.5),
                 arthropod::Species::Mosscrawler => Vec3::new(3.2, 4.0, 1.4),
                 arthropod::Species::Sandcrawler => Vec3::new(3.2, 4.0, 1.4),
+                arthropod::Species::Dagonite => Vec3::new(3.2, 4.7, 1.4),
             },
             Body::BirdMedium(body) => match body.species {
                 bird_medium::Species::SnowyOwl => Vec3::new(1.2, 1.2, 0.9),
@@ -813,6 +818,7 @@ impl Body {
                 biped_large::Species::Gigasfrost => 20000,
                 biped_large::Species::AdletElder => 1500,
                 biped_large::Species::Tursus => 300,
+                biped_large::Species::SeaBishop => 550,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -839,6 +845,7 @@ impl Body {
             Body::Golem(golem) => match golem.species {
                 golem::Species::WoodGolem => 200,
                 golem::Species::ClayGolem => 450,
+                golem::Species::CoralGolem => 550,
                 _ => 1000,
             },
             Body::Theropod(theropod) => match theropod.species {
@@ -979,7 +986,11 @@ impl Body {
     // TODO: Match on species
     pub fn combat_multiplier(&self) -> f32 {
         match self {
-            Body::Object(_) | Body::Ship(_) => 0.0,
+            Body::Object(object) => match object {
+                object::Body::BarrelOrgan | object::Body::ArrowTurret => 0.05,
+                _ => 0.0,
+            },
+            Body::Ship(_) => 0.0,
             Body::BipedLarge(b) => match b.species {
                 biped_large::Species::Mindflayer => 4.35,
                 biped_large::Species::Minotaur => 4.05,

@@ -242,6 +242,7 @@ fn height_offset(body: &Body, look_dir: Dir, velocity: Vec3<f32>, on_ground: Opt
         },
         Body::BipedLarge(b) => match b.species {
             biped_large::Species::Mindflayer => body.height() * 0.6,
+            biped_large::Species::SeaBishop => body.height() * 0.4,
             _ => body.height() * 0.5,
         },
         _ => body.height() * 0.5,

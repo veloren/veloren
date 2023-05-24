@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    site2::{plot::dungeon::spiral_staircase, util::Dir},
-    util::{sampler::Sampler, RandomField, NEIGHBORS},
+    site2::{gen::PrimitiveTransform, plot::dungeon::spiral_staircase},
+    util::{sampler::Sampler, RandomField, DIAGONALS, NEIGHBORS},
     Land, CONFIG,
 };
 use common::{
@@ -10,7 +10,11 @@ use common::{
 };
 
 use rand::prelude::*;
-use std::sync::Arc;
+use std::{
+    f32::consts::{PI, TAU},
+    sync::Arc,
+};
+
 use vek::*;
 
 pub struct SeaChapel {
@@ -39,9 +43,10 @@ impl Structure for SeaChapel {
         let base = self.alt + 1;
         let center = self.bounds.center();
         let diameter = 54;
+        let variant = center.with_z(base);
         let mut rng = thread_rng();
         // Fills
-        let (top, washed) = match (RandomField::new(0).get(center.with_z(base))) % 2 {
+        let (top, washed) = match (RandomField::new(0).get(variant)) % 2 {
             0 => {
                 //color_scheme_1 blue
                 (
@@ -61,27 +66,39 @@ impl Structure for SeaChapel {
         let rope = Fill::Block(Block::air(SpriteKind::Rope));
         let ropefix1 = Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 35), 24);
         let ropefix2 = Fill::Brick(BlockKind::Rock, Rgb::new(172, 172, 172), 4);
-        let white_polished = Fill::Brick(BlockKind::Rock, Rgb::new(202, 202, 202), 24);
-        let white_coral = Fill::Sampling(Arc::new(|center| {
-            let c = (RandomField::new(0).get(center) % 13) as u8 * 10 + 120;
-            Some(Block::new(BlockKind::Rock, Rgb::new(c, c, c)))
+        let white = Fill::Brick(BlockKind::Rock, Rgb::new(202, 202, 202), 24);
+        let floor_blue = Fill::Sampling(Arc::new(|variant| {
+            Some(
+                match (RandomField::new(0).get(Vec3::new(variant.z, variant.x, variant.y))) % 9 {
+                    0 => Block::new(BlockKind::Rock, Rgb::new(38, 118, 179)),
+                    1 => Block::new(BlockKind::Rock, Rgb::new(34, 52, 126)),
+                    2 => Block::new(BlockKind::Rock, Rgb::new(69, 179, 228)),
+                    3 => Block::new(BlockKind::Rock, Rgb::new(32, 45, 113)),
+                    4 => Block::new(BlockKind::Rock, Rgb::new(252, 253, 248)),
+                    5 => Block::new(BlockKind::Rock, Rgb::new(40, 106, 167)),
+                    6 => Block::new(BlockKind::Rock, Rgb::new(69, 182, 240)),
+                    7 => Block::new(BlockKind::Rock, Rgb::new(69, 182, 240)),
+                    _ => Block::new(BlockKind::Rock, Rgb::new(240, 240, 238)),
+                },
+            )
         }));
-        let white = match (RandomField::new(0).get(center.with_z(base - 1))) % 2 {
-            0 => white_polished,
-            _ => white_coral.clone(),
+        let floor_white = white.clone();
+        let floor_color = match (RandomField::new(0).get(center.with_z(base - 1))) % 2 {
+            0 => floor_white,
+            _ => floor_blue,
         };
         let gold = Fill::Brick(BlockKind::GlowingRock, Rgb::new(245, 232, 0), 10);
         let gold_chain = Fill::Block(Block::air(SpriteKind::SeaDecorChain));
         let gold_decor = Fill::Block(Block::air(SpriteKind::SeaDecorBlock));
-        let window_hor = Fill::Block(Block::air(SpriteKind::SeaDecorWindowHor));
         let window_ver = Fill::Block(Block::air(SpriteKind::SeaDecorWindowVer));
         let window_ver2 = Fill::Block(
             Block::air(SpriteKind::SeaDecorWindowVer)
                 .with_ori(2)
                 .unwrap(),
         );
+        let window_hor = Fill::Block(Block::air(SpriteKind::SeaDecorWindowHor));
         let glass_barrier = Fill::Block(Block::air(SpriteKind::GlassBarrier));
-        let sea_urchins = Fill::Block(Block::air(SpriteKind::SeaUrchin));
+        let glass_keyhole = Fill::Block(Block::air(SpriteKind::GlassKeyhole));
         // random exit from water basin to side building
         let mut connect_gate_types = vec![
             SpriteKind::GlassBarrier,
@@ -89,123 +106,493 @@ impl Structure for SeaChapel {
             SpriteKind::SeaDecorWindowHor,
             SpriteKind::SeaDecorWindowHor,
         ];
-        //Paint SeaChapel
-        // balcony1
-        let center_b1 = Vec2::new(center.x + (diameter / 2) - (diameter / 4), center.y);
+        let sprite_fill = Fill::Sampling(Arc::new(|center| {
+            Some(match (RandomField::new(0).get(center)) % 200 {
+                0 => Block::air(SpriteKind::CoralChest),
+                1..=5 => Block::air(SpriteKind::SeaDecorPillar),
+                6..=25 => Block::air(SpriteKind::SeashellLantern),
+                _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
+            })
+        }));
+        let pos_var = RandomField::new(0).get(center.with_z(base)) % 5;
+        let radius = diameter / 2; //8 + pos_var;
+        let tubes = 7.0 + pos_var as f32;
+        let phi = TAU / tubes;
+        let up = diameter / 16;
+        // chapel main room
         painter
-            .cylinder(Aabb {
-                min: (center_b1 - (diameter / 3) + 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 8),
-                max: (center_b1 + (diameter / 3) - 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 7),
+            .sphere(Aabb {
+                min: (center - (diameter / 2)).with_z(base - (diameter / 8)),
+                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + diameter),
             })
             .fill(white.clone());
+        let main_upper_half = painter.aabb(Aabb {
+            min: (center - (diameter / 2)).with_z(base - (diameter / 8) + (diameter / 2)),
+            max: (center + (diameter / 2)).with_z(base - (diameter / 8) + diameter),
+        });
+        // chapel 1st washed out top
+        painter
+            .sphere(Aabb {
+                min: (center - (diameter / 2)).with_z(base - (diameter / 8)),
+                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + diameter),
+            })
+            .intersect(main_upper_half)
+            .fill(washed.clone());
+        // chapel 1st top
+        painter
+            .sphere(Aabb {
+                min: (center - (diameter / 2) + 1).with_z(base - (diameter / 8) + 1),
+                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + diameter),
+            })
+            .intersect(main_upper_half)
+            .fill(top.clone());
+        // chapel main room gold ring
         painter
             .cylinder(Aabb {
-                min: (center_b1 - (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 7),
-                max: (center_b1 + (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 6),
+                min: (center - (diameter / 2)).with_z(base - (diameter / 8) + (diameter / 2) + 1),
+                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + (diameter / 2) + 2),
+            })
+            .fill(gold.clone());
+
+        // chapel top room
+        painter
+            .sphere(Aabb {
+                min: (center - (diameter / 3))
+                    .with_z(base - (diameter / 8) + diameter - (diameter / 3)),
+                max: (center + (diameter / 3))
+                    .with_z(base - (diameter / 8) + diameter + (diameter / 3)),
             })
             .fill(white.clone());
+        let small_upper_half = painter.aabb(Aabb {
+            min: (center - (diameter / 3)).with_z(base - (diameter / 8) + diameter),
+            max: (center + (diameter / 3))
+                .with_z(base - (diameter / 8) + diameter + (diameter / 3)),
+        });
+        // chapel small washed out top
         painter
-            .cylinder(Aabb {
-                min: (center_b1 - (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 6),
-                max: (center_b1 + (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 5),
+            .sphere(Aabb {
+                min: (center - (diameter / 3))
+                    .with_z(base - (diameter / 8) + diameter - (diameter / 3)),
+                max: (center + (diameter / 3))
+                    .with_z(base - (diameter / 8) + diameter + (diameter / 3)),
             })
-            .fill(white.clone());
+            .intersect(small_upper_half)
+            .fill(washed.clone());
+        // chapel small top
         painter
-            .cylinder(Aabb {
-                min: (center_b1 - (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 5),
-                max: (center_b1 + (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
+            .sphere(Aabb {
+                min: (center - (diameter / 3) + 1)
+                    .with_z(base - (diameter / 8) + diameter - (diameter / 3) + 1),
+                max: (center + (diameter / 3))
+                    .with_z(base - (diameter / 8) + diameter + (diameter / 3)),
             })
-            .fill(white.clone());
+            .intersect(small_upper_half)
+            .fill(top.clone());
+        // chapel small top  gold ring
         painter
             .cylinder(Aabb {
-                min: (center_b1 - (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 5),
-                max: (center_b1 + (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
+                min: (center - (diameter / 3)).with_z(base - (diameter / 8) + diameter + 1),
+                max: (center + (diameter / 3)).with_z(base - (diameter / 8) + diameter + 2),
+            })
+            .fill(gold.clone());
+        // clear chapel top room
+        painter
+            .sphere(Aabb {
+                min: (center - (diameter / 3) + 1)
+                    .with_z(base - (diameter / 8) + diameter - (diameter / 3) + 1),
+                max: (center + (diameter / 3) - 1)
+                    .with_z(base - (diameter / 8) + diameter + (diameter / 3) - 1),
             })
             .clear();
-        painter
-            .cylinder(Aabb {
-                min: (center_b1 - (diameter / 3) - 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
-                max: (center_b1 + (diameter / 3) + 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_b1 - (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
-                max: (center_b1 + (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-            })
+
+        // chapel gold top emblem
+        let emblem_4 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 7,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 9,
+            ),
+            max: Vec3::new(
+                center.x + 7,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 11,
+            ),
+        });
+        emblem_4.fill(gold.clone());
+        let emblem_4_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 3,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 9,
+            ),
+            max: Vec3::new(
+                center.x + 3,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 11,
+            ),
+        });
+        emblem_4_clear.clear();
+        emblem_4
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_4_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
             .clear();
-        // balcony2
-        let center_b2 = Vec2::new(center.x, center.y + (diameter / 2) - (diameter / 4));
-        painter
-            .cylinder(Aabb {
-                min: (center_b2 - (diameter / 3) + 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 8),
-                max: (center_b2 + (diameter / 3) - 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 7),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_b2 - (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 7),
-                max: (center_b2 + (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 6),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_b2 - (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 6),
-                max: (center_b2 + (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 5),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_b2 - (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 5),
-                max: (center_b2 + (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_b2 - (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 5),
-                max: (center_b2 + (diameter / 3))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
-            })
+
+        let emblem_5 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 9,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 11,
+            ),
+            max: Vec3::new(
+                center.x + 9,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 13,
+            ),
+        });
+        emblem_5.fill(gold.clone());
+        let emblem_5_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 5,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 11,
+            ),
+            max: Vec3::new(
+                center.x + 5,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 13,
+            ),
+        });
+        emblem_5_clear.clear();
+        emblem_5
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_5_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
             .clear();
-        painter
-            .cylinder(Aabb {
-                min: (center_b2 - (diameter / 3) - 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
-                max: (center_b2 + (diameter / 3) + 2)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_b2 - (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 4),
-                max: (center_b2 + (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-            })
+        let emblem_6 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 11,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 13,
+            ),
+            max: Vec3::new(
+                center.x + 11,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 17,
+            ),
+        });
+        emblem_6.fill(gold.clone());
+        let emblem_6_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 7,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 13,
+            ),
+            max: Vec3::new(
+                center.x + 7,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 17,
+            ),
+        });
+        emblem_6_clear.clear();
+        emblem_6
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_6_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
             .clear();
+        let emblem_7 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 11,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 13,
+            ),
+            max: Vec3::new(
+                center.x + 11,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 17,
+            ),
+        });
+        emblem_7.fill(gold.clone());
+        let emblem_7_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 5,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 17,
+            ),
+            max: Vec3::new(
+                center.x + 5,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 19,
+            ),
+        });
+        emblem_7_clear.clear();
+        emblem_7
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_7_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .clear();
+
+        let emblem_8 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 9,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 19,
+            ),
+            max: Vec3::new(
+                center.x + 9,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 21,
+            ),
+        });
+        emblem_8.fill(gold.clone());
+        let emblem_8_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 3,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 19,
+            ),
+            max: Vec3::new(
+                center.x + 3,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 21,
+            ),
+        });
+        emblem_8_clear.clear();
+        emblem_8
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_8_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .clear();
+        let emblem_9 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 11,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 21,
+            ),
+            max: Vec3::new(
+                center.x + 11,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 23,
+            ),
+        });
+        emblem_9.fill(gold.clone());
+        let emblem_9_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 7,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 21,
+            ),
+            max: Vec3::new(
+                center.x + 7,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 23,
+            ),
+        });
+        emblem_9_clear.clear();
+        emblem_9
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_9_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .clear();
+        let emblem_10 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 11,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 23,
+            ),
+            max: Vec3::new(
+                center.x + 11,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 25,
+            ),
+        });
+        emblem_10.fill(gold.clone());
+        let emblem_10_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 5,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 23,
+            ),
+            max: Vec3::new(
+                center.x + 5,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 25,
+            ),
+        });
+        emblem_10_clear.clear();
+        emblem_10
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_10_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .clear();
+        let emblem_11 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 9,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 25,
+            ),
+            max: Vec3::new(
+                center.x + 9,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 27,
+            ),
+        });
+        emblem_11.fill(gold.clone());
+        let emblem_11_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 3,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 25,
+            ),
+            max: Vec3::new(
+                center.x + 3,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 27,
+            ),
+        });
+        emblem_11_clear.clear();
+        emblem_11
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_11_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .clear();
+
+        let emblem_12 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 5,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 27,
+            ),
+            max: Vec3::new(
+                center.x + 5,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 29,
+            ),
+        });
+        emblem_12.fill(gold.clone());
+        let emblem_12_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 3,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 27,
+            ),
+            max: Vec3::new(
+                center.x + 3,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 29,
+            ),
+        });
+        emblem_12_clear.clear();
+        emblem_12
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_12_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .clear();
+        let emblem_13 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 7,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 29,
+            ),
+            max: Vec3::new(
+                center.x + 7,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 31,
+            ),
+        });
+        emblem_13.fill(gold.clone());
+        let emblem_13_clear = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 5,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 29,
+            ),
+            max: Vec3::new(
+                center.x + 5,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 31,
+            ),
+        });
+        emblem_13_clear.clear();
+        emblem_13
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        emblem_13_clear
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .clear();
+        // chapel gold top sphere
+        painter
+            .sphere(Aabb {
+                min: (center - 4).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 3),
+                max: (center + 4).with_z(base - (diameter / 8) + diameter + (diameter / 3) + 5),
+            })
+            .fill(gold.clone());
+        // chapel gold top pole
+        painter
+            .aabb(Aabb {
+                min: (center - 1).with_z(base - (diameter / 8) + diameter + (diameter / 3) + 5),
+                max: (center + 1).with_z(base - (diameter / 8) + diameter + (diameter / 3) + 21),
+            })
+            .fill(gold.clone());
+
+        let emblem_1 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 3,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 11,
+            ),
+            max: Vec3::new(
+                center.x + 3,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 19,
+            ),
+        });
+        emblem_1.fill(gold.clone());
+        emblem_1
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        let emblem_2 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 5,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 21,
+            ),
+            max: Vec3::new(
+                center.x + 5,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 23,
+            ),
+        });
+        emblem_2.fill(gold.clone());
+        emblem_2
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+        let emblem_3 = painter.aabb(Aabb {
+            min: Vec3::new(
+                center.x - 5,
+                center.y - 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 7,
+            ),
+            max: Vec3::new(
+                center.x + 5,
+                center.y + 1,
+                base - (diameter / 8) + diameter + (diameter / 3) + 9,
+            ),
+        });
+        emblem_3.fill(gold.clone());
+        emblem_3
+            .rotate_about(Mat3::rotation_z(PI / 2.0).as_(), center.with_z(base))
+            .fill(gold.clone());
+
         // chapel bottom
         painter
             .sphere(Aabb {
@@ -221,431 +608,384 @@ impl Structure for SeaChapel {
                     .with_z(base - (2 * (diameter / 3)) + diameter - 1),
             })
             .clear();
-        // chapel main room
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 2)).with_z(base - (diameter / 8)),
-                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + diameter),
-            })
-            .fill(white.clone());
-        // chapel main room entry1 stairs1
-        // entry1 white floor
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) + 3,
-                    center.y - 5,
-                    base + (diameter / 8) - 4,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) + (diameter / 5),
-                    center.y + 5,
-                    base + (diameter / 8) - 1,
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .ramp_inset(
-                Aabb {
-                    min: Vec3::new(
-                        center.x - (diameter / 2) - 12,
-                        center.y - 3,
-                        base - (diameter / 8) - 7,
-                    ),
-                    max: Vec3::new(
-                        center.x - (diameter / 2) + 2,
-                        center.y + 3,
-                        base - (diameter / 8) + 7,
-                    ),
-                },
-                14,
-                Dir::X,
+        // cellar sea crocodiles
+        let cellar_sea_croc_pos = (center - (diameter / 4)).with_z(base - (diameter / 2));
+        for _ in 0..(3 + ((RandomField::new(0).get((cellar_sea_croc_pos).with_z(base))) % 5)) {
+            painter.spawn(
+                EntityInfo::at(cellar_sea_croc_pos.as_())
+                    .with_asset_expect("common.entity.wild.aggressive.sea_crocodile", &mut rng),
             )
-            .fill(white.clone());
-        // chapel main room entry2 stairs
-        // entry2 white floor
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) - (diameter / 5),
-                    center.y - 5,
-                    base + (diameter / 8) - 4,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) - 3,
-                    center.y + 5,
-                    base + (diameter / 8) - 1,
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .ramp_inset(
-                Aabb {
-                    min: Vec3::new(
-                        center.x + (diameter / 2) - 2,
-                        center.y - 3,
-                        base - (diameter / 8) - 7,
-                    ),
-                    max: Vec3::new(
-                        center.x + (diameter / 2) + 12,
-                        center.y + 3,
-                        base - (diameter / 8) + 7,
-                    ),
-                },
-                14,
-                Dir::NegX,
-            )
-            .fill(white.clone());
-        // chapel 1st washed out top
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 2)).with_z(base - (diameter / 8)),
-                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + diameter),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (diameter / 2)).with_z(base - (diameter / 8)),
-                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + (diameter / 2)),
-            }))
-            .fill(washed.clone());
-        // chapel 1st top
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 2) + 1).with_z(base - (diameter / 8)),
-                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + diameter),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (diameter / 2)).with_z(base - (diameter / 8)),
-                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + (diameter / 2)),
-            }))
-            .fill(top.clone());
-        // chapel small top room
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 3))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 3)),
-                max: (center + (diameter / 3))
-                    .with_z(base - (diameter / 8) + diameter + (diameter / 3)),
-            })
-            .fill(white.clone());
-        // chapel small washed out top
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 3))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 3)),
-                max: (center + (diameter / 3))
-                    .with_z(base - (diameter / 8) + diameter + (diameter / 3)),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center - (diameter / 3))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 3)),
-                    max: (center + (diameter / 3)).with_z(base - (diameter / 8) + diameter),
-                }),
-            )
-            .fill(washed.clone());
-        // chapel small top
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 3)),
-                max: (center + (diameter / 3))
-                    .with_z(base - (diameter / 8) + diameter + (diameter / 3)),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center - (diameter / 3))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 3)),
-                    max: (center + (diameter / 3)).with_z(base - (diameter / 8) + diameter),
-                }),
-            )
-            .fill(top.clone());
-        // ground to top room stairway3
-        let center_s3 = Vec2::new(center.x, center.y - (diameter / 2));
-        // stairway3 top room
-        painter
-            .sphere(Aabb {
-                min: (center_s3 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-                max: (center_s3 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 3) - 3),
-            })
-            .fill(white.clone());
-        // stairway3 top washed out
-        painter
-            .sphere(Aabb {
-                min: (center_s3 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-                max: (center_s3 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 3) - 3),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center_s3 - (diameter / 6))
-                        .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-                    max: (center_s3 + (diameter / 6))
-                        .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 3),
-                }),
-            )
-            .fill(washed.clone());
-        // stairway3 top
-        painter
-            .sphere(Aabb {
-                min: (center_s3 - (diameter / 6) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-                max: (center_s3 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 3) - 3),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center_s3 - (diameter / 6))
-                        .with_z(base - (diameter / 8) + (diameter / 2) - 3),
-                    max: (center_s3 + (diameter / 6))
-                        .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 3),
-                }),
-            )
-            .fill(top.clone());
-        // stairway3 top gold ring
-        painter
-            .cylinder(Aabb {
-                min: (center_s3 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 2),
-                max: (center_s3 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 1),
-            })
-            .fill(gold.clone());
-        // stairway3 clear top halfway
-        painter
-            .sphere(Aabb {
-                min: (center_s3 - (diameter / 6) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) - 2),
-                max: (center_s3 + (diameter / 6) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 3) - 4),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center_s3 - (diameter / 6))
-                        .with_z(base - (diameter / 8) + (diameter / 2))
-                        - 2,
-                    max: (center_s3 + (diameter / 6))
-                        .with_z(base - (diameter / 8) + (diameter / 2) + (diameter / 10) - 3),
-                }),
-            )
-            .clear();
-        // stairway3 top window1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s3.x + (diameter / 6) - 1,
-                    center_s3.y - 1,
-                    base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 5,
-                ),
-                max: Vec3::new(
-                    center_s3.x + (diameter / 6),
-                    center_s3.y + 1,
-                    base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 4,
-                ),
-            })
-            .fill(window_ver2.clone());
-        // stairway3 top window2
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s3.x - (diameter / 6),
-                    center_s3.y - 1,
-                    base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 5,
-                ),
-                max: Vec3::new(
-                    center_s3.x - (diameter / 6) + 1,
-                    center_s3.y + 1,
-                    base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 4,
-                ),
-            })
-            .fill(window_ver2.clone());
-
-        // stairway3 top window3
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s3.x - 1,
-                    center_s3.y - (diameter / 6),
-                    base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 5,
-                ),
-                max: Vec3::new(
-                    center_s3.x + 1,
-                    center_s3.y - (diameter / 6) + 1,
-                    base - (diameter / 8) + (diameter / 2) + (diameter / 6) - 4,
-                ),
-            })
-            .fill(window_ver.clone());
-
-        // chapel clear room
+        }
+        // clear chapel main room
         painter
             .sphere(Aabb {
                 min: (center - (diameter / 2) + 1).with_z(base - (diameter / 8) + 1),
                 max: (center + (diameter / 2) - 1).with_z(base - (diameter / 8) + diameter - 1),
             })
             .clear();
-        // chapel main room entry1 gold door frame
+
+        // chapel small top room gold decor ring and floor
         painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) + 2,
-                    center.y - 2,
-                    base + (diameter / 8) + 5,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) + 4,
-                    center.y + 2,
-                    base + (diameter / 8) + 6,
-                ),
+            .cylinder(Aabb {
+                min: (center - (diameter / 3) + 2).with_z(base - (diameter / 8) + diameter - 7),
+                max: (center + (diameter / 3) - 2).with_z(base - (diameter / 8) + diameter - 6),
             })
             .fill(gold_decor.clone());
         painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) + 2,
-                    center.y - 3,
-                    base + (diameter / 8) + 3,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) + 5,
-                    center.y + 3,
-                    base + (diameter / 8) + 5,
-                ),
+            .cylinder(Aabb {
+                min: (center - (diameter / 3) + 3).with_z(base - (diameter / 8) + diameter - 7),
+                max: (center + (diameter / 3) - 3).with_z(base - (diameter / 8) + diameter - 6),
             })
-            .fill(gold_decor.clone());
+            .fill(floor_color.clone());
+        // chapel small top sprites
         painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) + 3,
-                    center.y - 3,
-                    base + (diameter / 8) - 3,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) + 5,
-                    center.y + 3,
-                    base + (diameter / 8) + 3,
-                ),
+            .cylinder(Aabb {
+                min: (center - (diameter / 3) + 3).with_z(base - (diameter / 8) + diameter - 6),
+                max: (center + (diameter / 3) - 3).with_z(base - (diameter / 8) + diameter - 5),
             })
-            .fill(gold_decor.clone());
-        // chapel main room entry2 gold door frame
+            .fill(sprite_fill.clone());
         painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) - 4,
-                    center.y - 2,
-                    base + (diameter / 8) + 5,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) - 2,
-                    center.y + 2,
-                    base + (diameter / 8) + 6,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) - 5,
-                    center.y - 3,
-                    base + (diameter / 8) + 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) - 2,
-                    center.y + 3,
-                    base + (diameter / 8) + 5,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) - 5,
-                    center.y - 3,
-                    base + (diameter / 8) - 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) - 3,
-                    center.y + 3,
-                    base + (diameter / 8) + 3,
-                ),
-            })
-            .fill(gold_decor.clone());
-        // chapel main room clear entries
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) - 8,
-                    center.y - 2,
-                    base + (diameter / 8) - 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) + 8,
-                    center.y + 2,
-                    base + (diameter / 8) + 4,
-                ),
+            .cylinder(Aabb {
+                min: (center - (diameter / 3) + 4).with_z(base - (diameter / 8) + diameter - 6),
+                max: (center + (diameter / 3) - 4).with_z(base - (diameter / 8) + diameter - 5),
             })
             .clear();
+        // window to main room
+        let center_w = center + 4;
         painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) - 8,
-                    center.y - 1,
-                    base + (diameter / 8) + 4,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) + 8,
-                    center.y + 1,
-                    base + (diameter / 8) + 5,
-                ),
+            .cylinder(Aabb {
+                min: (center_w - 6).with_z(base - (diameter / 8) + diameter - 7),
+                max: (center_w + 6).with_z(base - (diameter / 8) + diameter - 6),
             })
-            .clear();
-        // chapel main room mobilees
-        let mbl_corner = center - 5;
-        for dir in SQUARE_4 {
-            let mbl_center = mbl_corner + dir * 10;
-            let mbl_offset =
-                ((RandomField::new(0).get((mbl_corner - dir).with_z(base))) % 4) as i32 - 2;
-            painter
-                .cone(Aabb {
-                    min: (mbl_center - 2)
-                        .with_z(base - (diameter / 8) + (diameter / 3) + 2 + mbl_offset),
-                    max: (mbl_center + 3)
-                        .with_z(base - (diameter / 8) + (diameter / 3) + 2 + mbl_offset + 2),
-                })
-                .fill(top.clone());
-            painter
-                .cylinder(Aabb {
-                    min: (mbl_center - 2)
-                        .with_z(base - (diameter / 8) + (diameter / 3) + 1 + mbl_offset),
-                    max: (mbl_center + 3)
-                        .with_z(base - (diameter / 8) + (diameter / 3) + 2 + mbl_offset),
-                })
-                .fill(gold_decor.clone());
-            painter
-                .aabb(Aabb {
-                    min: (mbl_center - 1)
-                        .with_z(base - (diameter / 8) + (diameter / 3) + 1 + mbl_offset),
-                    max: (mbl_center + 2)
-                        .with_z(base - (diameter / 8) + (diameter / 3) + 2 + mbl_offset),
-                })
-                .clear();
-            // chapel main room mobilee chains
-            painter
-                .aabb(Aabb {
-                    min: Vec3::new(
-                        mbl_center.x,
-                        mbl_center.y,
-                        base - (diameter / 8) + (diameter / 3) + 4 + mbl_offset,
-                    ),
-                    max: Vec3::new(
-                        mbl_center.x + 1,
-                        mbl_center.y + 1,
-                        base - (diameter / 8) + (diameter / 2) + 1,
-                    ),
-                })
-                .fill(gold_chain.clone());
+            .fill(gold_decor.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center_w - 5).with_z(base - (diameter / 8) + diameter - 7),
+                max: (center_w + 5).with_z(base - (diameter / 8) + diameter - 6),
+            })
+            .fill(window_hor);
+        // chapel top floor organ podium
+        let center_o2 = center - 4;
+        painter
+            .cylinder(Aabb {
+                min: (center_o2 - 4).with_z(base - (diameter / 8) + diameter - 6),
+                max: (center_o2 + 4).with_z(base - (diameter / 8) + diameter - 5),
+            })
+            .fill(gold_decor.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center_o2 - 3).with_z(base - (diameter / 8) + diameter - 6),
+                max: (center_o2 + 3).with_z(base - (diameter / 8) + diameter - 5),
+            })
+            .fill(floor_color.clone());
+        // organ on chapel top floor organ podium
+        let first_floor_organ_pos = center_o2.with_z(base - (diameter / 8) + diameter - 4);
+        painter.spawn(
+            EntityInfo::at(first_floor_organ_pos.as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.organ", &mut rng),
+        );
+        // sea clerics, bishop on top floor
+        let first_floor_spawn_pos = (center_o2 - 2).with_z(base - (diameter / 8) + diameter - 4);
+        for _ in 0..(2 + ((RandomField::new(0).get((first_floor_spawn_pos).with_z(base))) % 2)) {
+            painter.spawn(
+                EntityInfo::at(first_floor_spawn_pos.as_())
+                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
+            )
         }
+        painter.spawn(
+            EntityInfo::at(first_floor_spawn_pos.as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.sea_bishop", &mut rng),
+        );
+        // chapel main room gold decor ring and floor
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 3).with_z(base - 1),
+                max: (center + (diameter / 2) - 3).with_z(base),
+            })
+            .fill(gold_decor.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 5).with_z(base - 1),
+                max: (center + (diameter / 2) - 5).with_z(base),
+            })
+            .fill(floor_color.clone());
+        // chapel main room sprites
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 5).with_z(base),
+                max: (center + (diameter / 2) - 5).with_z(base + 1),
+            })
+            .fill(sprite_fill.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 6).with_z(base),
+                max: (center + (diameter / 2) - 6).with_z(base + 1),
+            })
+            .clear();
+        // chapel main room organ podium
+        let center_o1 = center + (diameter / 8);
+        painter
+            .cylinder(Aabb {
+                min: (center_o1 - 4).with_z(base),
+                max: (center_o1 + 4).with_z(base + 1),
+            })
+            .fill(gold_decor.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center_o1 - 3).with_z(base),
+                max: (center_o1 + 3).with_z(base + 1),
+            })
+            .fill(floor_color.clone());
+        // organ on chapel main room organ podium
+        let first_floor_organ_pos = center_o1.with_z(base + 2);
+        painter.spawn(
+            EntityInfo::at(first_floor_organ_pos.as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.organ", &mut rng),
+        );
+        // sea clerics on main floor
+        let main_room_sea_clerics_pos = (center_o1 - 2).with_z(base + 2);
+        for _ in 0..(3 + ((RandomField::new(0).get((main_room_sea_clerics_pos).with_z(base))) % 3))
+        {
+            painter.spawn(
+                EntityInfo::at(main_room_sea_clerics_pos.as_())
+                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
+            )
+        }
+        // coral golem on main floor
+        painter.spawn(
+            EntityInfo::at((first_floor_organ_pos + 2).as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.coralgolem", &mut rng),
+        );
+        painter.spawn(
+            EntityInfo::at((first_floor_organ_pos + 4).as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.sea_bishop", &mut rng),
+        );
+        // chapel main room glassbarrier to cellar
+        let center_g = center - diameter / 7;
+        painter
+            .cylinder(Aabb {
+                min: (center_g - 4).with_z(base - 1),
+                max: (center_g + 4).with_z(base),
+            })
+            .fill(gold_decor.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center_g - 3).with_z(base - 1),
+                max: (center_g + 3).with_z(base),
+            })
+            .fill(glass_barrier.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center_g - 1).with_z(base - 1),
+                max: (center_g).with_z(base),
+            })
+            .fill(glass_keyhole.clone());
+
+        // cellar gold decor ring and floor
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 1).with_z(base - (diameter / 4) - 5),
+                max: (center + (diameter / 2) - 1).with_z(base - (diameter / 4) - 4),
+            })
+            .fill(gold_decor.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 3).with_z(base - (diameter / 4) - 5),
+                max: (center + (diameter / 2) - 3).with_z(base - (diameter / 4) - 4),
+            })
+            .fill(floor_color.clone());
+        // chapel cellar sprites
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 3).with_z(base - (diameter / 4) - 4),
+                max: (center + (diameter / 2) - 3).with_z(base - (diameter / 4) - 3),
+            })
+            .fill(sprite_fill.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (diameter / 2) + 4).with_z(base - (diameter / 4) - 4),
+                max: (center + (diameter / 2) - 4).with_z(base - (diameter / 4) - 3),
+            })
+            .clear();
+        // stairway to cellar cardinals room
+        let stairs_pos = center_g + 1;
+        let stair_radius1 = 5.0;
+        let stairs_clear1 = painter.cylinder(Aabb {
+            min: (stairs_pos - stair_radius1 as i32).with_z(base - (diameter / 4) - 5),
+            max: (stairs_pos + stair_radius1 as i32).with_z(base - 1),
+        });
+        stairs_clear1
+            .sample(spiral_staircase(
+                stairs_pos.with_z(base - (diameter / 8) + diameter - (diameter / 8)),
+                stair_radius1,
+                0.5,
+                7.0,
+            ))
+            .fill(gold.clone());
+        stairs_clear1
+            .sample(spiral_staircase(
+                stairs_pos.with_z(base - (diameter / 8) + diameter - (diameter / 8)),
+                stair_radius1 - 1.0,
+                0.5,
+                7.0,
+            ))
+            .fill(white.clone());
+        // cardinals room sea clerics
+        let cr_sea_clerics_pos = (center - (diameter / 5)).with_z(base - (diameter / 4) - 3);
+        for _ in 0..(2 + ((RandomField::new(0).get((cr_sea_clerics_pos).with_z(base))) % 3)) {
+            painter.spawn(
+                EntityInfo::at(cr_sea_clerics_pos.as_())
+                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
+            )
+        }
+        // Cardinal
+        let cr_cardinal_pos = (center - (diameter / 6)).with_z(base - (diameter / 4) - 3);
+        painter.spawn(
+            EntityInfo::at(cr_cardinal_pos.as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.cardinal", &mut rng),
+        );
+        // glassbarrier to water basin
+        painter
+            .cylinder(Aabb {
+                min: (center - 3).with_z(base - (diameter / 4) - 5),
+                max: (center + 3).with_z(base - (diameter / 4) - 4),
+            })
+            .fill(gold_decor.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - 2).with_z(base - (diameter / 4) - 5),
+                max: (center + 2).with_z(base - (diameter / 4) - 4),
+            })
+            .fill(glass_barrier.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - 1).with_z(base - (diameter / 4) - 5),
+                max: (center).with_z(base - (diameter / 4) - 4),
+            })
+            .fill(glass_keyhole.clone());
+
+        // chapel floor1 window1
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - (diameter / 3),
+                    center.y - 2,
+                    base - (diameter / 8) + diameter - 2,
+                ),
+                max: Vec3::new(
+                    center.x - (diameter / 3) + 1,
+                    center.y + 2,
+                    base - (diameter / 8) + diameter - 1,
+                ),
+            })
+            .fill(window_ver2.clone());
+
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - (diameter / 3),
+                    center.y - 1,
+                    base - (diameter / 8) + diameter - 3,
+                ),
+                max: Vec3::new(
+                    center.x - (diameter / 3) + 1,
+                    center.y + 1,
+                    base - (diameter / 8) + diameter - 2,
+                ),
+            })
+            .fill(window_ver2.clone());
+
+        // chapel floor1 window2
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x + (diameter / 3) - 1,
+                    center.y - 2,
+                    base - (diameter / 8) + diameter - 2,
+                ),
+                max: Vec3::new(
+                    center.x + (diameter / 3),
+                    center.y + 2,
+                    base - (diameter / 8) + diameter - 1,
+                ),
+            })
+            .clear();
+
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x + (diameter / 3) - 1,
+                    center.y - 1,
+                    base - (diameter / 8) + diameter - 3,
+                ),
+                max: Vec3::new(
+                    center.x + (diameter / 3),
+                    center.y + 1,
+                    base - (diameter / 8) + diameter - 2,
+                ),
+            })
+            .clear();
+
+        // chapel floor1 window3
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - 2,
+                    center.y + (diameter / 3) - 1,
+                    base - (diameter / 8) + diameter - 2,
+                ),
+                max: Vec3::new(
+                    center.x + 2,
+                    center.y + (diameter / 3),
+                    base - (diameter / 8) + diameter - 1,
+                ),
+            })
+            .clear();
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - 1,
+                    center.y + (diameter / 3) - 1,
+                    base - (diameter / 8) + diameter - 3,
+                ),
+                max: Vec3::new(
+                    center.x + 1,
+                    center.y + (diameter / 3),
+                    base - (diameter / 8) + diameter - 2,
+                ),
+            })
+            .clear();
+        // chapel floor1 window4
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - 2,
+                    center.y - (diameter / 3),
+                    base - (diameter / 8) + diameter - 2,
+                ),
+                max: Vec3::new(
+                    center.x + 2,
+                    center.y - (diameter / 3) + 1,
+                    base - (diameter / 8) + diameter - 1,
+                ),
+            })
+            .fill(window_ver.clone());
+
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - 1,
+                    center.y - (diameter / 3),
+                    base - (diameter / 8) + diameter - 3,
+                ),
+                max: Vec3::new(
+                    center.x + 1,
+                    center.y - (diameter / 3) + 1,
+                    base - (diameter / 8) + diameter - 2,
+                ),
+            })
+            .fill(window_ver.clone());
+
         // chapel main room window1
         painter
             .aabb(Aabb {
@@ -691,7 +1031,7 @@ impl Structure for SeaChapel {
             })
             .fill(window_ver2.clone());
 
-        // chapel main room window2 to balcony1
+        // chapel main room window2
         painter
             .aabb(Aabb {
                 min: Vec3::new(
@@ -705,7 +1045,7 @@ impl Structure for SeaChapel {
                     base - (diameter / 8) + (diameter / 2) - 1,
                 ),
             })
-            .clear();
+            .fill(window_ver2.clone());
         painter
             .aabb(Aabb {
                 min: Vec3::new(
@@ -719,7 +1059,7 @@ impl Structure for SeaChapel {
                     base - (diameter / 8) + (diameter / 2) - 2,
                 ),
             })
-            .clear();
+            .fill(window_ver2.clone());
         painter
             .aabb(Aabb {
                 min: Vec3::new(
@@ -733,8 +1073,8 @@ impl Structure for SeaChapel {
                     base - (diameter / 8) + (diameter / 2) - 3,
                 ),
             })
-            .clear();
-        // chapel main room window3 to balcony2
+            .fill(window_ver2.clone());
+        // chapel main room window3
         painter
             .aabb(Aabb {
                 min: Vec3::new(
@@ -748,7 +1088,7 @@ impl Structure for SeaChapel {
                     base - (diameter / 8) + (diameter / 2) - 1,
                 ),
             })
-            .clear();
+            .fill(window_ver.clone());
         painter
             .aabb(Aabb {
                 min: Vec3::new(
@@ -762,7 +1102,7 @@ impl Structure for SeaChapel {
                     base - (diameter / 8) + (diameter / 2) - 2,
                 ),
             })
-            .clear();
+            .fill(window_ver.clone());
         painter
             .aabb(Aabb {
                 min: Vec3::new(
@@ -776,2759 +1116,667 @@ impl Structure for SeaChapel {
                     base - (diameter / 8) + (diameter / 2) - 3,
                 ),
             })
-            .clear();
-        // chapel gold ring and white floor
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 2)).with_z(base - (diameter / 8) + (diameter / 2) + 1),
-                max: (center + (diameter / 2)).with_z(base - (diameter / 8) + (diameter / 2) + 2),
-            })
-            .fill(gold.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 2) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) + 1),
-                max: (center + (diameter / 2) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) + 2),
-            })
-            .fill(white.clone());
-        // chapel main room organ podium
-        let center_o = Vec2::new(center.x - (diameter / 4), center.y + (diameter / 4));
-        painter
-            .cylinder(Aabb {
-                min: (center_o - 2).with_z(base),
-                max: (center_o + 2).with_z(base + (diameter / 8) - 2),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_o - 3).with_z(base + (diameter / 8) - 2),
-                max: (center_o + 3).with_z(base + (diameter / 8) - 1),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_o - 4).with_z(base + (diameter / 8) - 1),
-                max: (center_o + 4).with_z(base + (diameter / 8)),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_o - 3).with_z(base + (diameter / 8) - 1),
-                max: (center_o + 3).with_z(base + (diameter / 8)),
-            })
-            .fill(white.clone());
-        // organ on chapel main room organ podium
-        let main_room_organ_pos = center_o.with_z(base + (diameter / 8));
-        painter.spawn(
-            EntityInfo::at(main_room_organ_pos.as_())
-                .with_asset_expect("common.entity.dungeon.sea_chapel.organ", &mut rng),
-        );
-        // sea clerics in chapel main room
-        let main_room_sea_clerics_pos = (center_o - 2).with_z(base + (diameter / 8));
-        for _ in 0..(4 + ((RandomField::new(0).get((main_room_sea_clerics_pos).with_z(base))) % 4))
-        {
-            painter.spawn(
-                EntityInfo::at(main_room_sea_clerics_pos.as_())
-                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
-            )
-        }
-        // chapel first floor organ podium
-        let center_o2 = Vec2::new(center.x - (diameter / 4), center.y - (diameter / 4));
-        painter
-            .cylinder(Aabb {
-                min: (center_o2 - 4).with_z(base - (diameter / 8) + (diameter / 2) + 2),
-                max: (center_o2 + 4).with_z(base - (diameter / 8) + (diameter / 2) + 3),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center_o2 - 3).with_z(base - (diameter / 8) + (diameter / 2) + 2),
-                max: (center_o2 + 3).with_z(base - (diameter / 8) + (diameter / 2) + 3),
-            })
-            .fill(white.clone());
-        // organ on chapel first floor organ podium
-        let first_floor_organ_pos = center_o2.with_z(base - (diameter / 8) + (diameter / 2) + 2);
-        painter.spawn(
-            EntityInfo::at(first_floor_organ_pos.as_())
-                .with_asset_expect("common.entity.dungeon.sea_chapel.organ", &mut rng),
-        );
-        // sea clerics on first floor
-        let first_floor_sea_clerics_pos =
-            (center_o2 - 2).with_z(base - (diameter / 8) + (diameter / 2) + 2);
-        for _ in
-            0..(3 + ((RandomField::new(0).get((first_floor_sea_clerics_pos).with_z(base))) % 3))
-        {
-            painter.spawn(
-                EntityInfo::at(first_floor_sea_clerics_pos.as_())
-                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
-            )
-        }
-        // ground to top room stairway1
-        let center_s1 = Vec2::new(
-            center.x - (diameter / 2) + (diameter / 8),
-            center.y - (diameter / 8) - (diameter / 16),
-        );
-        // stairway1 top room
-        painter
-            .sphere(Aabb {
-                min: (center_s1 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4)),
-                max: (center_s1 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 3)),
-            })
-            .fill(white.clone());
-        // stairway1 top washed out
-        painter
-            .sphere(Aabb {
-                min: (center_s1 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4)),
-                max: (center_s1 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 3)),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center_s1 - (diameter / 6))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 4)),
-                    max: (center_s1 + (diameter / 6))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6)),
-                }),
-            )
-            .fill(washed.clone());
-        // stairway1 top
-        painter
-            .sphere(Aabb {
-                min: (center_s1 - (diameter / 6) + 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4)),
-                max: (center_s1 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 3)),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center_s1 - (diameter / 6))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 4)),
-                    max: (center_s1 + (diameter / 6))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6)),
-                }),
-            )
-            .fill(top.clone());
-        // stairway1 top gold ring
-        painter
-            .cylinder(Aabb {
-                min: (center_s1 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) + 1),
-                max: (center_s1 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) + 2),
-            })
-            .fill(gold.clone());
-        // stairway1 top window1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s1.x - (diameter / 6),
-                    center_s1.y - 1,
-                    base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) - 2,
-                ),
-                max: Vec3::new(
-                    center_s1.x - (diameter / 6) + 1,
-                    center_s1.y + 1,
-                    base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) - 1,
-                ),
-            })
-            .fill(window_ver2.clone());
+            .fill(window_ver.clone());
 
-        // stairway1 top window2
+        // chapel main room window4
         painter
             .aabb(Aabb {
                 min: Vec3::new(
-                    center_s1.x - 1,
-                    center_s1.y - (diameter / 6),
-                    base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) - 2,
+                    center.x - 4,
+                    center.y - (diameter / 2) + 1,
+                    base - (diameter / 8) + (diameter / 2) - 2,
                 ),
                 max: Vec3::new(
-                    center_s1.x + 1,
-                    center_s1.y - (diameter / 6) + 1,
-                    base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) - 1,
+                    center.x + 4,
+                    center.y - (diameter / 2),
+                    base - (diameter / 8) + (diameter / 2) - 1,
                 ),
             })
             .fill(window_ver.clone());
-
-        // stairway1 top window3
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s1.x - 1,
-                    center_s1.y + (diameter / 6) - 1,
-                    base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) - 2,
-                ),
-                max: Vec3::new(
-                    center_s1.x + 1,
-                    center_s1.y + (diameter / 6),
-                    base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 6) - 1,
-                ),
-            })
-            .fill(window_ver.clone());
-
-        // ground to top room stairway2
-        let center_s2 = Vec2::new(
-            center.x + (diameter / 2) - (diameter / 6),
-            center.y + (diameter / 8) + (diameter / 16),
-        );
-        // stairway2 top room
-        painter
-            .sphere(Aabb {
-                min: (center_s2 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 10)),
-                max: (center_s2 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 3)),
-            })
-            .fill(white.clone());
-        // stairway2 top washed out
-        painter
-            .sphere(Aabb {
-                min: (center_s2 - (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 10)),
-                max: (center_s2 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 3)),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center_s2 - (diameter / 6))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 10)),
-                    max: (center_s2 + (diameter / 6)).with_z(
-                        base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6),
-                    ),
-                }),
-            )
-            .fill(washed.clone());
-        // stairway2 top
-        painter
-            .sphere(Aabb {
-                min: (center_s2 - (diameter / 6) + 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 10)),
-                max: (center_s2 + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 3)),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center_s2 - (diameter / 6))
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 10)),
-                    max: (center_s2 + (diameter / 6)).with_z(
-                        base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6),
-                    ),
-                }),
-            )
-            .fill(top.clone());
-        // stairway2 top gold ring
-        painter
-            .cylinder(Aabb {
-                min: (center_s2 - (diameter / 6)).with_z(
-                    base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6) + 1,
-                ),
-                max: (center_s2 + (diameter / 6)).with_z(
-                    base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6) + 2,
-                ),
-            })
-            .fill(gold.clone());
-        // chapel clear top room
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 3) + 1),
-                max: (center + (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + diameter + (diameter / 3) - 1),
-            })
-            .clear();
-        // stairway1 clear top halfway
-        painter
-            .sphere(Aabb {
-                min: (center_s1 - (diameter / 6) + 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4) + 1),
-                max: (center_s1 + (diameter / 6) - 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 4) + (diameter / 3) - 1),
-            })
-            .without(
-                painter.sphere(Aabb {
-                    min: (center_s1 - (diameter / 6) + 1)
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 4) + 1),
-                    max: (center_s1 + (diameter / 6) - 1)
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 8)),
-                }),
-            )
-            .clear();
-        // stairway2 clear top halfway
-        painter
-            .sphere(Aabb {
-                min: (center_s2 - (diameter / 6) + 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 10) + 1),
-                max: (center_s2 + (diameter / 6) - 1).with_z(
-                    base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 3) - 1,
-                ),
-            })
-            .without(
-                painter.sphere(Aabb {
-                    min: (center_s2 - (diameter / 6) + 1)
-                        .with_z(base - (diameter / 8) + diameter - (diameter / 10) + 1),
-                    max: (center_s2 + (diameter / 6) - 1)
-                        .with_z(base - (diameter / 8) + diameter + 2),
-                }),
-            )
-            .clear();
-        // stairway2 top window1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s2.x + (diameter / 6) - 1,
-                    center_s2.y - 1,
-                    base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6) - 2,
-                ),
-                max: Vec3::new(
-                    center_s2.x + (diameter / 6),
-                    center_s2.y + 1,
-                    base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6) - 1,
-                ),
-            })
-            .fill(window_ver2.clone());
-
-        // stairway2 top window2
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s2.x - 1,
-                    center_s2.y + (diameter / 6) - 1,
-                    base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6) - 2,
-                ),
-                max: Vec3::new(
-                    center_s2.x + 1,
-                    center_s2.y + (diameter / 6),
-                    base - (diameter / 8) + diameter - (diameter / 10) + (diameter / 6) - 1,
-                ),
-            })
-            .fill(window_ver.clone());
-        // chapel tube1 / NPC-fence
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 6)).with_z(base - (diameter / 8) + (diameter / 2) + 2),
-                max: (center + (diameter / 6)).with_z(base - (diameter / 8) + diameter + 1),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 6) + 1)
-                    .with_z(base - (diameter / 8) + (diameter / 2) + 2),
-                max: (center + (diameter / 6) - 1).with_z(base - (diameter / 8) + diameter + 1),
-            })
-            .clear();
-        // chapel tube1 gold window
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 1,
-                    base + (diameter / 2) + 5,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 1,
-                    base + (diameter / 2) + 6,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 2,
-                    base + (diameter / 2) + 4,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 2,
-                    base + (diameter / 2) + 5,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 1,
-                    base + (diameter / 2) + 4,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6) + 1,
-                    center.y + 1,
-                    base + (diameter / 2) + 5,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 3,
-                    base + (diameter / 2) + 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 3,
-                    base + (diameter / 2) + 4,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 2,
-                    base + (diameter / 2) + 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6) + 1,
-                    center.y + 2,
-                    base + (diameter / 2) + 4,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 2,
-                    base + (diameter / 2) + 1,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 2,
-                    base + (diameter / 2) + 2,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 1,
-                    base + (diameter / 2) + 1,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6) + 1,
-                    center.y + 1,
-                    base + (diameter / 2) + 2,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 1,
-                    base + (diameter / 2),
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 1,
-                    base + (diameter / 2) + 1,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 2,
-                    base + (diameter / 2) + 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 2,
-                    base + (diameter / 2) + 4,
-                ),
-            })
-            .fill(window_ver2.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 1,
-                    base + (diameter / 2) + 1,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 1,
-                    base + (diameter / 2) + 5,
-                ),
-            })
-            .fill(window_ver2.clone());
-        // chapel floor1 mobilees and cages
-        let floor1_corner = center - (diameter / 5);
-        for dir in SQUARE_4 {
-            let floor1_pos = floor1_corner + dir * (2 * diameter / 5);
-            let floor1_variant = (RandomField::new(0).get((floor1_corner + dir).with_z(base))) % 10;
-            match floor1_variant {
-                // chapel first floor mobilee
-                0..=4 => {
-                    let floor1_mbl_top = Aabb {
-                        min: (floor1_pos - 3)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 8),
-                        max: (floor1_pos + 2)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 6),
-                    };
-                    let floor1_mbl_gold = painter.cylinder(Aabb {
-                        min: (floor1_pos - 3)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 9),
-                        max: (floor1_pos + 2)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 8),
-                    });
-                    let floor1_mbl_gold_clear = painter.aabb(Aabb {
-                        min: (floor1_pos - 2)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 9),
-                        max: (floor1_pos + 1)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 8),
-                    });
-                    let floor1_mbl_chain = Aabb {
-                        min: (floor1_pos - 1)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 6),
-                        max: (floor1_pos)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 1),
-                    };
-                    painter.cone(floor1_mbl_top).fill(top.clone());
-                    floor1_mbl_gold.fill(gold_decor.clone());
-                    floor1_mbl_gold_clear.clear();
-                    painter.aabb(floor1_mbl_chain).fill(gold_chain.clone());
-                },
-                _ => {
-                    // chapel floor1 hanging cages
-                    let cage_glass_barriers = Aabb {
-                        min: (floor1_pos - 3).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 5,
-                        ),
-                        max: (floor1_pos + 3)
-                            .with_z(base - (diameter / 4) + diameter - (diameter / 8)),
-                    };
-                    let cage_clear1 = Aabb {
-                        min: (floor1_pos - 3 + 1).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 5,
-                        ),
-                        max: (floor1_pos + 3 - 1)
-                            .with_z(base - (diameter / 4) + diameter - (diameter / 8)),
-                    };
-                    let cage_clear2 = Aabb {
-                        min: (floor1_pos - 3)
-                            .with_z(base - (diameter / 4) + diameter - (diameter / 8) - 2),
-                        max: (floor1_pos + 3)
-                            .with_z(base - (diameter / 4) + diameter - (diameter / 8) - 1),
-                    };
-                    let cage_windows = Aabb {
-                        min: (floor1_pos - 3 + 1).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 4,
-                        ),
-                        max: (floor1_pos + 3 - 1).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 5,
-                        ),
-                    };
-                    let cage_platform = Aabb {
-                        min: (floor1_pos - 1).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 4,
-                        ),
-                        max: (floor1_pos + 1).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 5,
-                        ),
-                    };
-                    let cage_chain = Aabb {
-                        min: (floor1_pos - 1).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 5,
-                        ),
-                        max: (floor1_pos + 1)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 2),
-                    };
-                    let cage_chain_fix = Aabb {
-                        min: (floor1_pos - 1)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 2),
-                        max: (floor1_pos + 1)
-                            .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 1),
-                    };
-                    let cage_coral_chest_podium = Aabb {
-                        min: (floor1_pos + 1).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 4,
-                        ),
-                        max: (floor1_pos + 2).with_z(
-                            base - (diameter / 4) + diameter
-                                - (diameter / 8)
-                                - (2 * (diameter / 11))
-                                + 6,
-                        ),
-                    };
-                    let cage_coral_chest_pos = (floor1_pos + 1).with_z(
-                        base - (diameter / 4) + diameter - (diameter / 8) - (2 * (diameter / 11))
-                            + 6,
-                    );
-                    // first floor cage Sea Cleric
-                    let cage_sea_cleric_pos = (floor1_pos - 1).with_z(
-                        base - (diameter / 4) + diameter - (diameter / 8) - (2 * (diameter / 11))
-                            + 5,
-                    );
-                    painter
-                        .cylinder(cage_glass_barriers)
-                        .fill(glass_barrier.clone());
-                    painter.aabb(cage_clear1).clear();
-                    painter.cylinder(cage_clear2).clear();
-                    painter.aabb(cage_windows).fill(window_hor.clone());
-                    painter.aabb(cage_platform).fill(gold_decor.clone());
-                    painter.aabb(cage_chain).fill(gold_chain.clone());
-                    painter.aabb(cage_chain_fix).fill(gold_decor.clone());
-                    painter
-                        .aabb(cage_coral_chest_podium)
-                        .fill(gold_decor.clone());
-                    painter.rotated_sprite(cage_coral_chest_pos, SpriteKind::CoralChest, 2);
-                    painter.spawn(EntityInfo::at(cage_sea_cleric_pos.as_()).with_asset_expect(
-                        "common.entity.dungeon.sea_chapel.sea_cleric_sceptre",
-                        &mut rng,
-                    ));
-                },
-            }
-        }
-
-        // chapel floor1 window1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 3),
-                    center.y,
-                    base - (diameter / 8) + diameter - 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 3) + 1,
-                    center.y + 2,
-                    base - (diameter / 8) + diameter - 1,
-                ),
-            })
-            .fill(window_ver2.clone());
-
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 3),
-                    center.y,
-                    base - (diameter / 8) + diameter - 3,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 3) + 1,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter - 2,
-                ),
-            })
-            .fill(window_ver2.clone());
-
-        // chapel floor1 window2
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 3) - 1,
-                    center.y - 2,
-                    base - (diameter / 8) + diameter - 2,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 3),
-                    center.y,
-                    base - (diameter / 8) + diameter - 1,
-                ),
-            })
-            .fill(window_ver2.clone());
-
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 3) - 1,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter - 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 3),
-                    center.y,
-                    base - (diameter / 8) + diameter - 2,
-                ),
-            })
-            .fill(window_ver2.clone());
-
-        // chapel floor1 window3
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 2,
-                    center.y + (diameter / 3) - 1,
-                    base - (diameter / 8) + diameter - 2,
-                ),
-                max: Vec3::new(
-                    center.x + 2,
-                    center.y + (diameter / 3),
-                    base - (diameter / 8) + diameter - 1,
-                ),
-            })
-            .fill(window_ver.clone());
-
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 1,
-                    center.y + (diameter / 3) - 1,
-                    base - (diameter / 8) + diameter - 3,
-                ),
-                max: Vec3::new(
-                    center.x + 1,
-                    center.y + (diameter / 3),
-                    base - (diameter / 8) + diameter - 2,
-                ),
-            })
-            .fill(window_ver.clone());
-
-        // chapel floor1 window4
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 2,
-                    center.y - (diameter / 3),
-                    base - (diameter / 8) + diameter - 2,
-                ),
-                max: Vec3::new(
-                    center.x + 2,
-                    center.y - (diameter / 3) + 1,
-                    base - (diameter / 8) + diameter - 1,
-                ),
-            })
-            .fill(window_ver.clone());
-
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 1,
-                    center.y - (diameter / 3),
-                    base - (diameter / 8) + diameter - 3,
-                ),
-                max: Vec3::new(
-                    center.x + 1,
-                    center.y - (diameter / 3) + 1,
-                    base - (diameter / 8) + diameter - 2,
-                ),
-            })
-            .fill(window_ver.clone());
-
-        // chapel floor1
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 3)).with_z(base - (diameter / 8) + diameter + 1),
-                max: (center + (diameter / 3)).with_z(base - (diameter / 8) + diameter + 2),
-            })
-            .fill(gold.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 3) + 1).with_z(base - (diameter / 8) + diameter + 1),
-                max: (center + (diameter / 3) - 1).with_z(base - (diameter / 8) + diameter + 2),
-            })
-            .fill(white.clone());
-        // chapel tube2 / NPC-fence
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 6)).with_z(base - (diameter / 8) + diameter + 2),
-                max: (center + (diameter / 6))
-                    .with_z(base - (diameter / 8) + diameter + (diameter / 3) - 3),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 6) + 1).with_z(base - (diameter / 8) + diameter + 2),
-                max: (center + (diameter / 6) - 1)
-                    .with_z(base - (diameter / 8) + diameter + (diameter / 3) - 3),
-            })
-            .clear();
-        // chapel tube2 gold door
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 3,
-                    base - (diameter / 8) + diameter + 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 3,
-                    base - (diameter / 8) + diameter + 6,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 2,
-                    base - (diameter / 8) + diameter + 6,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6),
-                    center.y + 2,
-                    base - (diameter / 8) + diameter + 7,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 2,
-                    base - (diameter / 8) + diameter + 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6) + 1,
-                    center.y + 2,
-                    base - (diameter / 8) + diameter + 5,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 6) - 1,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + 5,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 6) + 1,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + 6,
-                ),
-            })
-            .clear();
-        //chapel floor2
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 3) + 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 1),
-                max: (center + (diameter / 3) - 1)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 8)),
-            })
-            .fill(white.clone());
-        //chapel floor2 drawer and potion
-        painter.sprite(
-            (center - (diameter / 8)).with_z(base - (diameter / 8) + diameter - (diameter / 8)),
-            SpriteKind::DrawerSmall,
-        );
-        painter.sprite(
-            (center - (diameter / 8)).with_z(base - (diameter / 8) + diameter - (diameter / 8) + 1),
-            SpriteKind::PotionMinor,
-        );
-        //chapel main room pillars1
-        for dir in SQUARE_4 {
-            let sq_corner = Vec2::new(center.x - 3, center.y - (diameter / 4) - 2);
-            let pos = Vec3::new(
-                sq_corner.x + (dir.x * 5),
-                sq_corner.y + (dir.y * ((diameter / 2) + 2)),
-                base - (diameter / 8) + (diameter / 6),
-            );
-            painter.sprite(pos, SpriteKind::SeaDecorPillar);
-        }
-        //chapel main room pillars2
-        for dir in SQUARE_4 {
-            let sq_corner = Vec2::new(center.x - (diameter / 2) + 6, center.y - 4);
-            let pos = Vec3::new(
-                sq_corner.x + (dir.x * (diameter - 13)),
-                sq_corner.y + (dir.y * 7),
-                base - (diameter / 8) + (diameter / 6) + 2,
-            );
-            painter.sprite(pos, SpriteKind::SeaDecorPillar);
-        }
-        //chapel floor1 pillars inside tube
-        for dir in SQUARE_4 {
-            let sq_corner = Vec2::new(center.x - (diameter / 8) - 2, center.y - 3);
-            let pos = Vec3::new(
-                sq_corner.x + (dir.x * ((diameter / 4) + 2)),
-                sq_corner.y + (dir.y * 5),
-                base - (diameter / 8) + (diameter / 2) + 2,
-            );
-            painter.sprite(pos, SpriteKind::SeaDecorPillar);
-        }
-        //chapel floor1 pillars outside tube
-        for dir in SQUARE_4 {
-            let sq_corner = Vec2::new(center.x - (diameter / 8) - 3, center.y - 4);
-            let pos = Vec3::new(
-                sq_corner.x + (dir.x * ((diameter / 4) + 4)),
-                sq_corner.y + (dir.y * 7),
-                base - (diameter / 8) + (diameter / 2) + 2,
-            );
-            painter.sprite(pos, SpriteKind::SeaDecorPillar);
-        }
-        //chapel floor2/3 pillars inside tube
-        for dir in SQUARE_4 {
-            for f in 0..2 {
-                let sq_corner = Vec2::new(center.x - (diameter / 8) - 2, center.y - 3);
-                let pos = Vec3::new(
-                    sq_corner.x + (dir.x * ((diameter / 4) + 2)),
-                    sq_corner.y + (dir.y * 5),
-                    base - (diameter / 8) + diameter - (diameter / 8) + (f * ((diameter / 8) + 2)),
-                );
-                painter.sprite(pos, SpriteKind::SeaDecorPillar);
-            }
-        }
-        //chapel floor2/3 pillars outside tube
-        for dir in SQUARE_4 {
-            for f in 0..2 {
-                let sq_corner = Vec2::new(center.x - (diameter / 8) - 3, center.y - 4);
-                let pos = Vec3::new(
-                    sq_corner.x + (dir.x * ((diameter / 4) + 4)),
-                    sq_corner.y + (dir.y * 7),
-                    base - (diameter / 8) + diameter - (diameter / 8) + (f * ((diameter / 8) + 2)),
-                );
-                painter.sprite(pos, SpriteKind::SeaDecorPillar);
-            }
-        }
-        // floor2 tube Sea Clerics
-        let fl2_tb_sea_clerics_pos = (center + (diameter / 8) - 2)
-            .with_z(base - (diameter / 8) + diameter - (diameter / 8) + 1);
-        for _ in 0..(1 + (RandomField::new(0).get((fl2_tb_sea_clerics_pos).with_z(base))) % 3) {
-            painter.spawn(
-                EntityInfo::at(fl2_tb_sea_clerics_pos.as_()).with_asset_expect(
-                    "common.entity.dungeon.sea_chapel.sea_cleric_sceptre",
-                    &mut rng,
-                ),
-            )
-        }
-        // chapel upper floor exits
-        let (exit_pos1, exit_pos2) = (
-            Vec2::new(center.x, center.y + (diameter / 4)),
-            Vec2::new(center.x, center.y - (diameter / 4)),
-        );
-        let floors_exit_distr = RandomField::new(0).get(center.with_z(base)) as usize % 2;
-        let (floor2_exit_center, floor3_exit_center) = match floors_exit_distr {
-            0 => (exit_pos1, exit_pos2),
-            _ => (exit_pos2, exit_pos1),
-        };
-        // floor3 exit
-        painter
-            .cylinder(Aabb {
-                min: (floor3_exit_center - 2).with_z(base - (diameter / 8) + diameter + 1),
-                max: (floor3_exit_center + 2).with_z(base - (diameter / 8) + diameter + 2),
-            })
-            .fill(glass_barrier.clone());
-        // floor2 exit
-        painter
-            .cylinder(Aabb {
-                min: (floor2_exit_center - 2)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 8) - 1),
-                max: (floor2_exit_center + 2)
-                    .with_z(base - (diameter / 8) + diameter - (diameter / 8)),
-            })
-            .fill(glass_barrier.clone());
-        // floor 2 Sea Clerics
-        let fl2_sea_clerics_pos = Vec3::new(
-            center.x - 3,
-            center.y - (diameter / 4),
-            base - (diameter / 8) + diameter - (diameter / 8) + 1,
-        );
-        for _ in 0..(2 + ((RandomField::new(0).get((fl2_sea_clerics_pos).with_z(base))) % 4)) {
-            painter.spawn(
-                EntityInfo::at(fl2_sea_clerics_pos.as_())
-                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
-            )
-        }
-        // floor 3 Sea Clerics
-        let fl3_sea_clerics_pos =
-            (center - (diameter / 6)).with_z(base - (diameter / 8) + diameter + 2);
-        for _ in 0..(2 + ((RandomField::new(0).get((fl3_sea_clerics_pos).with_z(base))) % 2)) {
-            painter.spawn(
-                EntityInfo::at(fl3_sea_clerics_pos.as_())
-                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
-            )
-        }
-        // chapel gold top emblem4
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 7,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 9,
-                ),
-                max: Vec3::new(
-                    center.x + 7,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 11,
-                ),
-            })
-            .fill(gold.clone());
         painter
             .aabb(Aabb {
                 min: Vec3::new(
                     center.x - 3,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 9,
+                    center.y - (diameter / 2) + 1,
+                    base - (diameter / 8) + (diameter / 2) - 3,
                 ),
                 max: Vec3::new(
                     center.x + 3,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 11,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem5
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 9,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 11,
-                ),
-                max: Vec3::new(
-                    center.x + 9,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 13,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 5,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 11,
-                ),
-                max: Vec3::new(
-                    center.x + 5,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 13,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem6
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 11,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 13,
-                ),
-                max: Vec3::new(
-                    center.x + 11,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 17,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 7,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 13,
-                ),
-                max: Vec3::new(
-                    center.x + 7,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 17,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem7
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 9,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 17,
-                ),
-                max: Vec3::new(
-                    center.x + 9,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 19,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 5,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 17,
-                ),
-                max: Vec3::new(
-                    center.x + 5,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 19,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem8
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 9,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 19,
-                ),
-                max: Vec3::new(
-                    center.x + 9,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 21,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 3,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 19,
-                ),
-                max: Vec3::new(
-                    center.x + 3,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 21,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem9
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 11,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 21,
-                ),
-                max: Vec3::new(
-                    center.x + 11,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 23,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 7,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 21,
-                ),
-                max: Vec3::new(
-                    center.x + 7,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 23,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem10
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 11,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 23,
-                ),
-                max: Vec3::new(
-                    center.x + 11,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 25,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 5,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 23,
-                ),
-                max: Vec3::new(
-                    center.x + 5,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 25,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem11
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 9,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 25,
-                ),
-                max: Vec3::new(
-                    center.x + 9,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 27,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 3,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 25,
-                ),
-                max: Vec3::new(
-                    center.x + 3,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 27,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem12
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 5,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 27,
-                ),
-                max: Vec3::new(
-                    center.x + 5,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 29,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 3,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 27,
-                ),
-                max: Vec3::new(
-                    center.x + 3,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 29,
-                ),
-            })
-            .clear();
-        // chapel gold top emblem13
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 7,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 29,
-                ),
-                max: Vec3::new(
-                    center.x + 7,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 31,
-                ),
-            })
-            .fill(gold.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 5,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 29,
-                ),
-                max: Vec3::new(
-                    center.x + 5,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 31,
-                ),
-            })
-            .clear();
-        // chapel gold top sphere
-        painter
-            .sphere(Aabb {
-                min: (center - 4).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 3),
-                max: (center + 4).with_z(base - (diameter / 8) + diameter + (diameter / 3) + 5),
-            })
-            .fill(gold.clone());
-        // chapel gold top pole
-        painter
-            .aabb(Aabb {
-                min: (center - 1).with_z(base - (diameter / 8) + diameter + (diameter / 3) + 5),
-                max: (center + 1).with_z(base - (diameter / 8) + diameter + (diameter / 3) + 21),
-            })
-            .fill(gold.clone());
-        // chapel gold top emblem1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 3,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 11,
-                ),
-                max: Vec3::new(
-                    center.x + 3,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 19,
-                ),
-            })
-            .fill(gold.clone());
-        // chapel gold top emblem2
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 5,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 21,
-                ),
-                max: Vec3::new(
-                    center.x + 5,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 23,
-                ),
-            })
-            .fill(gold.clone());
-        // chapel gold top emblem3
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - 5,
-                    center.y - 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 7,
-                ),
-                max: Vec3::new(
-                    center.x + 5,
-                    center.y + 1,
-                    base - (diameter / 8) + diameter + (diameter / 3) + 9,
-                ),
-            })
-            .fill(gold.clone());
-        // chapel main room pulpit
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 6)).with_z(base - (diameter / 8)),
-                max: (center + (diameter / 6)).with_z(base - (diameter / 8) + (diameter / 3)),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 6)).with_z(base - (diameter / 8) + (diameter / 6)),
-                max: (center + (diameter / 6)).with_z(base - (diameter / 8) + (diameter / 3)),
-            })
-            .clear();
-        // chapel main room pulpit gold ring
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 6)).with_z(base - (diameter / 8) + (diameter / 6)),
-                max: (center + (diameter / 6)).with_z(base - (diameter / 8) + (diameter / 6) + 1),
-            })
-            .fill(gold_decor.clone());
-
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 6) + 1).with_z(base - (diameter / 8) + (diameter / 6)),
-                max: (center + (diameter / 6) - 1)
-                    .with_z(base - (diameter / 8) + (diameter / 6) + 1),
-            })
-            .clear();
-        // chapel clear rope & platform entries
-        painter
-            .cylinder(Aabb {
-                min: (center - 3).with_z(base - (2 * (diameter / 3)) + 3),
-                max: (center + 3).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 2),
-            })
-            .clear();
-        //chapel main room gold window downwards
-        painter
-            .cylinder(Aabb {
-                min: (center - 3).with_z(base - (diameter / 8)),
-                max: (center + 3).with_z(base - (diameter / 8) + 1),
-            })
-            .fill(window_hor.clone());
-        // chapel Ropefix1
-        painter
-            .cylinder(Aabb {
-                min: (center - 2).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 3),
-                max: (center + 2).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 2),
-            })
-            .fill(ropefix1.clone());
-        // chapel Ropefix2
-        painter
-            .cylinder(Aabb {
-                min: (center).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 4),
-                max: (center + 1).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 3),
-            })
-            .fill(ropefix2.clone());
-        // chapel rope
-        painter
-            .cylinder(Aabb {
-                min: (center).with_z(base - (diameter / 8) + (diameter / 2) - 5),
-                max: (center + 1).with_z(base - (diameter / 8) + diameter + (diameter / 3) - 4),
-            })
-            .fill(rope.clone());
-        // chapel floor1 to cellar1 tube (access to dagons room)
-        let t_center = Vec2::new(center.x + (diameter / 4) + 2, center.y + (diameter / 4) + 4);
-        painter
-            .cylinder(Aabb {
-                min: (t_center - 2).with_z(base - (diameter / 8)),
-                max: (t_center + 2).with_z(base - (diameter / 8) + (diameter / 2) + 2),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: (t_center - 1).with_z(base - (diameter / 8)),
-                max: (t_center + 1).with_z(base - (diameter / 8) + (diameter / 2) + 2),
-            })
-            .clear();
-        painter
-            .cylinder(Aabb {
-                min: (t_center - 1).with_z(base - (diameter / 8) + (diameter / 2) + 1),
-                max: (t_center + 1).with_z(base - (diameter / 8) + (diameter / 2) + 2),
-            })
-            .fill(glass_barrier.clone());
-        // chapel cellar2 water
-        painter
-            .cylinder(Aabb {
-                min: (center - 5).with_z(base - (2 * (diameter / 3)) + 1),
-                max: (center + 5).with_z(base - (2 * (diameter / 3)) + 2),
-            })
-            .fill(water.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - 11).with_z(base - (2 * (diameter / 3)) + 2),
-                max: (center + 11).with_z(base - (2 * (diameter / 3)) + 3),
-            })
-            .fill(water.clone());
-        // chapel cellar to basin glass barrier barricade downwards & miniboss
-        // cellar floor
-        painter
-            .cylinder(Aabb {
-                min: (center - (2 * (diameter / 3))).with_z(base - (2 * (diameter / 3)) + 10),
-                max: (center + (2 * (diameter / 3))).with_z(base - (2 * (diameter / 3)) + 16),
-            })
-            .fill(white_coral.clone());
-        // exit to water basin
-        let exit = Fill::Sampling(Arc::new(|center| {
-            let c = RandomField::new(0).get(center - 6) % 11;
-            Some(if c < 8 {
-                let c = c as u8 * 10 + 120;
-                Block::new(BlockKind::Rock, Rgb::new(c, c, c))
-            } else {
-                Block::air(SpriteKind::GlassBarrier)
-            })
-        }));
-        // glass barriers with center clearance for dagon
-        painter
-            .cylinder(Aabb {
-                min: (center - 9).with_z(base - (2 * (diameter / 3)) + 10),
-                max: (center + 9).with_z(base - (2 * (diameter / 3)) + 16),
-            })
-            .fill(glass_barrier.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - 9).with_z(base - (2 * (diameter / 3)) + 13),
-                max: (center + 9).with_z(base - (2 * (diameter / 3)) + 14),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - 8).with_z(base - (2 * (diameter / 3)) + 13),
-                max: (center + 8).with_z(base - (2 * (diameter / 3)) + 14),
-            }))
-            .fill(exit);
-        painter
-            .cylinder(Aabb {
-                min: (center - 8).with_z(base - (2 * (diameter / 3)) + 14),
-                max: (center + 8).with_z(base - (2 * (diameter / 3)) + 16),
-            })
-            .fill(white_coral.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - 9).with_z(base - (2 * (diameter / 3)) + 16),
-                max: (center + 9).with_z(base - (2 * (diameter / 3)) + 18),
-            })
-            .fill(sea_urchins);
-        painter
-            .cylinder(Aabb {
-                min: (center - 8).with_z(base - (2 * (diameter / 3)) + 16),
-                max: (center + 8).with_z(base - (2 * (diameter / 3)) + 18),
-            })
-            .clear();
-        painter
-            .cylinder(Aabb {
-                min: (center - 8).with_z(base - (2 * (diameter / 3)) + 10),
-                max: (center + 8).with_z(base - (2 * (diameter / 3)) + 14),
-            })
-            .fill(white_coral);
-        let cellar_miniboss_pos = center.with_z(base - (2 * (diameter / 3)) + 17);
-        painter.spawn(
-            EntityInfo::at(cellar_miniboss_pos.as_())
-                .with_asset_expect("common.entity.dungeon.sea_chapel.dagon", &mut rng),
-        );
-        // cellar 2 sea crocodiles
-        let cellar_sea_croc_pos = (center - 12).with_z(base - (2 * (diameter / 3)) + 8);
-        for _ in 0..(3 + ((RandomField::new(0).get((cellar_sea_croc_pos).with_z(base))) % 5)) {
-            painter.spawn(
-                EntityInfo::at(cellar_sea_croc_pos.as_())
-                    .with_asset_expect("common.entity.wild.aggressive.sea_crocodile", &mut rng),
-            )
-        }
-        // water basin
-        painter
-            .sphere(Aabb {
-                min: (center - diameter + (diameter / 5) + 1).with_z(base - (4 * diameter / 3)),
-                max: (center + diameter - (diameter / 5) - 1).with_z(base + 1),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - diameter + (diameter / 5) + 1).with_z(base - (2 * diameter / 3) + 1),
-                max: (center + diameter - (diameter / 5) - 1).with_z(base + 1),
-            }))
-            .fill(white.clone());
-        painter
-            .sphere(Aabb {
-                min: (center - diameter + (diameter / 5) + 2).with_z(base - (4 * diameter / 3) + 1),
-                max: (center + diameter - (diameter / 5) - 2).with_z(base + 1),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - diameter + (diameter / 5) + 2).with_z(base - (2 * diameter / 3) + 1),
-                max: (center + diameter - (diameter / 5) - 2).with_z(base + 1),
-            }))
-            .fill(water.clone());
-        // stairway1 bottom
-        painter
-            .sphere(Aabb {
-                min: (center_s1 - (diameter / 4))
-                    .with_z(base - (2 * (diameter / 3)) + 3 - (diameter / 2)),
-                max: (center_s1 + (diameter / 4)).with_z(base - (2 * (diameter / 3)) + 3),
-            })
-            .fill(white.clone());
-        // stairway1 bottom gold ring
-        painter
-            .cylinder(Aabb {
-                min: (center_s1 - (diameter / 4))
-                    .with_z(base - (2 * (diameter / 3)) + 3 - (diameter / 4)),
-                max: (center_s1 + (diameter / 4))
-                    .with_z(base - (2 * (diameter / 3)) + 3 - (diameter / 4) + 1),
-            })
-            .fill(gold.clone());
-        painter
-            .sphere(Aabb {
-                min: (center_s1 - (diameter / 4) + 1)
-                    .with_z(base - (2 * (diameter / 3)) + 4 - (diameter / 2)),
-                max: (center_s1 + (diameter / 4) - 1).with_z(base - (2 * (diameter / 3)) + 2),
-            })
-            .clear();
-        // stairway1 bottom clear entry
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s1.x - 5,
-                    center_s1.y - 5,
-                    base - (2 * (diameter / 3)) + 1,
-                ),
-                max: Vec3::new(
-                    center_s1.x + 5,
-                    center_s1.y + 5,
-                    base - (2 * (diameter / 3)) + 2,
-                ),
-            })
-            .clear();
-        // stairway1 bottom window to basin
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s1.x - 4,
-                    center_s1.y - 4,
-                    base - (2 * (diameter / 3)) + 4 - (diameter / 2),
-                ),
-                max: Vec3::new(
-                    center_s1.x + 4,
-                    center_s1.y + 4,
-                    base - (2 * (diameter / 3)) + 5 - (diameter / 2),
-                ),
-            })
-            .fill(window_hor);
-        // stairway1 tube
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s1.x - 5,
-                    center_s1.y - 5,
-                    base - (2 * (diameter / 3)) + 1,
-                ),
-                max: Vec3::new(
-                    center_s1.x + 5,
-                    center_s1.y + 5,
-                    base - (diameter / 8) + diameter - (diameter / 8),
-                ),
-            })
-            .fill(white.clone());
-
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s1.x - 4,
-                    center_s1.y - 4,
-                    base - (2 * (diameter / 3)) + 1,
-                ),
-                max: Vec3::new(
-                    center_s1.x + 4,
-                    center_s1.y + 4,
-                    base - (diameter / 8) + diameter - (diameter / 8),
-                ),
-            })
-            .clear();
-        // stairway1 tube window1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center_s1.x - 5, center_s1.y - 1, base + (diameter / 6)),
-                max: Vec3::new(
-                    center_s1.x - 4,
-                    center_s1.y + 1,
-                    base - (diameter / 8) + diameter - (diameter / 4) + 1,
-                ),
-            })
-            .fill(window_ver2.clone());
-
-        // stairway1 stairs
-        let stair_radius1 = 4.5;
-        let stairs_clear1 = painter.cylinder(Aabb {
-            min: (center_s1 - stair_radius1 as i32)
-                .with_z(base - (2 * (diameter / 3)) + 3 - (diameter / 2)),
-            max: (center_s1 + stair_radius1 as i32)
-                .with_z(base - (diameter / 8) + diameter - (diameter / 8)),
-        });
-        stairs_clear1
-            .sample(spiral_staircase(
-                center_s1.with_z(base - (diameter / 8) + diameter - (diameter / 8)),
-                stair_radius1,
-                0.5,
-                7.0,
-            ))
-            .fill(white.clone());
-        // coral chest podium
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s1.x,
-                    center_s1.y - 2,
-                    base - (2 * (diameter / 3)) - (diameter / 2) + 12,
-                ),
-                max: Vec3::new(
-                    center_s1.x + 1,
-                    center_s1.y - 1,
-                    base - (2 * (diameter / 3)) - (diameter / 2) + 13,
-                ),
-            })
-            .fill(gold_decor.clone());
-        // coral chest
-        painter.rotated_sprite(
-            Vec3::new(
-                center_s1.x,
-                center_s1.y - 2,
-                base - (2 * (diameter / 3)) - (diameter / 2) + 13,
-            ),
-            SpriteKind::CoralChest,
-            2,
-        );
-        //  cardinals room next to stairway1 bottom
-        let cr_center = Vec2::new(center.x - diameter - 3, center.y - (diameter / 5) + 1);
-        painter
-            .cylinder(Aabb {
-                min: (cr_center - (diameter / 3))
-                    .with_z(base - (2 * (diameter / 3)) - (diameter / 4) - 5),
-                max: (cr_center + (diameter / 3)).with_z(base - (2 * (diameter / 3)) + 3),
-            })
-            .fill(white.clone());
-        // cardinals room gold ring
-        painter
-            .cylinder(Aabb {
-                min: (cr_center - (diameter / 3))
-                    .with_z(base - (2 * (diameter / 3)) - (diameter / 4) + 3),
-                max: (cr_center + (diameter / 3))
-                    .with_z(base - (2 * (diameter / 3)) - (diameter / 4) + 4),
-            })
-            .fill(gold.clone());
-        // clear cardinals room
-        painter
-            .cylinder(Aabb {
-                min: (cr_center - (diameter / 3) + 1)
-                    .with_z(base - (2 * (diameter / 3)) - (diameter / 4) - 4),
-                max: (cr_center + (diameter / 3) - 1).with_z(base - (2 * (diameter / 3)) + 2),
-            })
-            .clear();
-        // Cardinals room chamber mobile1
-        painter
-            .cone(Aabb {
-                min: (cr_center - 2).with_z(base - (2 * (diameter / 3)) - 7),
-                max: (cr_center + 3).with_z(base - (2 * (diameter / 3)) - 5),
-            })
-            .fill(top.clone());
-        painter
-            .cylinder(Aabb {
-                min: (cr_center - 2).with_z(base - (2 * (diameter / 3)) - 8),
-                max: (cr_center + 3).with_z(base - (2 * (diameter / 3)) - 7),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: (cr_center - 1).with_z(base - (2 * (diameter / 3)) - 8),
-                max: (cr_center + 2).with_z(base - (2 * (diameter / 3)) - 7),
-            })
-            .clear();
-        // Cardinals room mobile1 chain
-        painter
-            .aabb(Aabb {
-                min: cr_center.with_z(base - (2 * (diameter / 3)) - 5),
-                max: (cr_center + 1).with_z(base - (2 * (diameter / 3)) + 2),
-            })
-            .fill(gold_chain.clone());
-        // passage from stairway1 bottom to cardinals room
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    cr_center.x + (diameter / 3),
-                    cr_center.y - 3,
-                    base - (2 * (diameter / 3)) - (diameter / 4),
-                ),
-                max: Vec3::new(
-                    cr_center.x + (diameter / 3) + 5,
-                    cr_center.y + 3,
-                    base - (2 * (diameter / 3)) - (diameter / 4) + 5,
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    cr_center.x + (diameter / 3),
-                    cr_center.y - 2,
-                    base - (2 * (diameter / 3)) - (diameter / 4) - 1,
-                ),
-                max: Vec3::new(
-                    cr_center.x + (diameter / 3) + 5,
-                    cr_center.y + 2,
-                    base - (2 * (diameter / 3)) - (diameter / 4) + 6,
-                ),
-            })
-            .fill(white.clone());
-        // passage from stairway1 bottom to cardinals room gold stripes
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    cr_center.x + (diameter / 3),
-                    cr_center.y - 3,
-                    base - (2 * (diameter / 3)) - (diameter / 4) + 3,
-                ),
-                max: Vec3::new(
-                    cr_center.x + (diameter / 3) + 5,
-                    cr_center.y + 3,
-                    base - (2 * (diameter / 3)) - (diameter / 4) + 4,
-                ),
-            })
-            .fill(gold.clone());
-        // clear passage from stairway1 bottom to cardinals room
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    cr_center.x + (diameter / 3) - 1,
-                    cr_center.y - 2,
-                    base - (2 * (diameter / 3)) - (diameter / 4) + 2,
-                ),
-                max: Vec3::new(
-                    cr_center.x + (diameter / 3) + 6,
-                    cr_center.y + 2,
-                    base - (2 * (diameter / 3)) - (diameter / 4) + 5,
-                ),
-            })
-            .clear();
-        // Cardinals room Sea Clerics
-        let cr_sea_clerics_pos =
-            (cr_center - 2).with_z(base - (2 * (diameter / 3)) - (diameter / 4) - 4);
-        for _ in 0..(2 + ((RandomField::new(0).get((fl2_sea_clerics_pos).with_z(base))) % 3)) {
-            painter.spawn(
-                EntityInfo::at(cr_sea_clerics_pos.as_())
-                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
-            )
-        }
-        // Cardinal
-        let cr_cardinal_pos =
-            (cr_center + 2).with_z(base - (2 * (diameter / 3)) - (diameter / 4) - 4);
-        painter.spawn(
-            EntityInfo::at(cr_cardinal_pos.as_())
-                .with_asset_expect("common.entity.dungeon.sea_chapel.cardinal", &mut rng),
-        );
-        // stairway2 bottom
-        painter
-            .sphere(Aabb {
-                min: (center_s2 - (diameter / 4))
-                    .with_z(base - (2 * (diameter / 3)) + 3 - (diameter / 2)),
-                max: (center_s2 + (diameter / 4)).with_z(base - (2 * (diameter / 3)) + 3),
-            })
-            .fill(white.clone());
-        // stairway2 bottom gold ring
-        painter
-            .cylinder(Aabb {
-                min: (center_s2 - (diameter / 4))
-                    .with_z(base - (2 * (diameter / 3)) + 3 - (diameter / 4)),
-                max: (center_s2 + (diameter / 4))
-                    .with_z(base - (2 * (diameter / 3)) + 3 - (diameter / 4) + 1),
-            })
-            .fill(gold.clone());
-        painter
-            .sphere(Aabb {
-                min: (center_s2 - (diameter / 4) + 1)
-                    .with_z(base - (2 * (diameter / 3)) + 4 - (diameter / 2)),
-                max: (center_s2 + (diameter / 4) - 1).with_z(base - (2 * (diameter / 3)) + 2),
-            })
-            .fill(water.clone());
-        // stairway2 bottom clear entry
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s2.x - 5,
-                    center_s2.y - 5,
-                    base - (2 * (diameter / 3)) + 1,
-                ),
-                max: Vec3::new(
-                    center_s2.x + 5,
-                    center_s2.y + 5,
-                    base - (2 * (diameter / 3)) + 2,
-                ),
-            })
-            .clear();
-        // stairway2 bottom water to basin
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s2.x - 4,
-                    center_s2.y - 4,
-                    base - (2 * (diameter / 3)) + 4 - (diameter / 2),
-                ),
-                max: Vec3::new(
-                    center_s2.x + 4,
-                    center_s2.y + 4,
-                    base - (2 * (diameter / 3)) + 5 - (diameter / 2),
-                ),
-            })
-            .fill(water.clone());
-        // stairway2 tube
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s2.x - 5,
-                    center_s2.y - 5,
-                    base - (2 * (diameter / 3)) + 1,
-                ),
-                max: Vec3::new(
-                    center_s2.x + 5,
-                    center_s2.y + 5,
-                    base - (diameter / 8) + diameter + 2,
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s2.x - 4,
-                    center_s2.y - 4,
-                    base - (2 * (diameter / 3)) + 1,
-                ),
-                max: Vec3::new(
-                    center_s2.x + 4,
-                    center_s2.y + 4,
-                    base - (diameter / 8) + diameter + 1,
-                ),
-            })
-            .clear();
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(
-                    center_s2.x - 3,
-                    center_s2.y - 3,
-                    base - (diameter / 8) + diameter + 1,
-                ),
-                max: Vec3::new(
-                    center_s2.x + 3,
-                    center_s2.y + 3,
-                    base - (diameter / 8) + diameter + 2,
-                ),
-            })
-            .clear();
-        // stairway2 tube window1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center_s2.x + 4,
-                    center_s2.y - 1,
-                    base + (diameter / 8) + (diameter / 2),
-                ),
-                max: Vec3::new(
-                    center_s2.x + 5,
-                    center_s2.y + 1,
-                    base - (diameter / 8) + diameter - 4,
-                ),
-            })
-            .fill(window_ver2.clone());
-        // chest
-        painter.rotated_sprite(
-            Vec3::new(
-                center_s2.x - 5,
-                center_s2.y - 4,
-                base - (2 * (diameter / 3)) - (diameter / 2) + 11,
-            ),
-            SpriteKind::DungeonChest1,
-            2,
-        );
-        // bottom 2 sea crocodiles
-        let bt_sea_croc_pos = center_s2.with_z(base - (2 * (diameter / 3)) - (diameter / 2) + 11);
-        for _ in 0..(2 + ((RandomField::new(0).get((bt_sea_croc_pos).with_z(base))) % 3)) {
-            painter.spawn(
-                EntityInfo::at(bt_sea_croc_pos.as_())
-                    .with_asset_expect("common.entity.wild.aggressive.sea_crocodile", &mut rng),
-            )
-        }
-        // underwater chamber
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 3)).with_z(base - (4 * diameter / 3) - (diameter / 6)),
-                max: (center + (diameter / 3)).with_z(base - (2 * diameter / 3) - (diameter / 6)),
-            })
-            .without(
-                painter.sphere(Aabb {
-                    min: (center - (diameter / 3) + 1)
-                        .with_z(base - (4 * diameter / 3) - (diameter / 6) + 1),
-                    max: (center + (diameter / 3) - 1)
-                        .with_z(base - (2 * diameter / 3) - (diameter / 6) - 1),
-                }),
-            )
-            .fill(white.clone());
-        // underwater chamber entries
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 3),
-                    center.y - 2,
-                    base - (3 * diameter / 3) - (diameter / 3) + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 3),
-                    center.y + 2,
-                    base - (3 * diameter / 3) - (diameter / 6) - 2,
-                ),
-            })
-            .fill(water.clone());
-        // underwater chamber entries
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 3),
-                    center.y - 1,
-                    base - (3 * diameter / 3) - (diameter / 6) - 2,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 3),
-                    center.y + 1,
-                    base - (3 * diameter / 3) - (diameter / 6) - 1,
-                ),
-            })
-            .fill(water.clone());
-        // underwater chamber gold ring white floor
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 3)).with_z(base - (3 * diameter / 3) - (diameter / 6)),
-                max: (center + (diameter / 3))
-                    .with_z(base - (3 * diameter / 3) - (diameter / 6) + 1),
-            })
-            .fill(gold.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 3) + 1)
-                    .with_z(base - (3 * diameter / 3) - (diameter / 6)),
-                max: (center + (diameter / 3) - 1)
-                    .with_z(base - (3 * diameter / 3) - (diameter / 6) + 1),
-            })
-            .fill(white.clone());
-        // underwater chamber floor entry
-        painter
-            .cylinder(Aabb {
-                min: (center - 2).with_z(base - (3 * diameter / 3) - (diameter / 6)),
-                max: (center + 2).with_z(base - (3 * diameter / 3) - (diameter / 6) + 1),
-            })
-            .fill(water.clone());
-        // fill underwater chamber halfway with air
-        painter
-            .sphere(Aabb {
-                min: (center - (diameter / 3) + 1)
-                    .with_z(base - (4 * diameter / 3) - (diameter / 6) + 1),
-                max: (center + (diameter / 3) - 1)
-                    .with_z(base - (2 * diameter / 3) - (diameter / 6) - 1),
-            })
-            .without(
-                painter.cylinder(Aabb {
-                    min: (center - (diameter / 3) + 1)
-                        .with_z(base - (4 * diameter / 3) - (diameter / 6) + 1),
-                    max: (center + (diameter / 3) - 1)
-                        .with_z(base - (3 * diameter / 3) - (diameter / 6) + 1),
-                }),
-            )
-            .clear();
-        // chapel underwater chamber mobile1
-        painter
-            .cone(Aabb {
-                min: (center - 2).with_z(base - (2 * diameter / 3) - (diameter / 6) - 7),
-                max: (center + 3).with_z(base - (2 * diameter / 3) - (diameter / 6) - 5),
-            })
-            .fill(top.clone());
-        painter
-            .cylinder(Aabb {
-                min: (center - 2).with_z(base - (2 * diameter / 3) - (diameter / 6) - 8),
-                max: (center + 3).with_z(base - (2 * diameter / 3) - (diameter / 6) - 7),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: (center - 1).with_z(base - (2 * diameter / 3) - (diameter / 6) - 8),
-                max: (center + 2).with_z(base - (2 * diameter / 3) - (diameter / 6) - 7),
-            })
-            .clear();
-        // chapel underwater chamber mobile1 chain
-        painter
-            .aabb(Aabb {
-                min: center.with_z(base - (2 * diameter / 3) - (diameter / 6) - 5),
-                max: (center + 1).with_z(base - (2 * diameter / 3) - (diameter / 6) - 1),
-            })
-            .fill(gold_chain);
-        // underwater chamber coral chest
-        painter
-            .cylinder(Aabb {
-                min: (center - (diameter / 6) - 1)
-                    .with_z(base - (3 * diameter / 3) - (diameter / 6) + 1),
-                max: (center - (diameter / 6) + 3)
-                    .with_z(base - (3 * diameter / 3) - (diameter / 6) + 2),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: (center - (diameter / 6))
-                    .with_z(base - (3 * diameter / 3) - (diameter / 6) + 1),
-                max: (center - (diameter / 6) + 2)
-                    .with_z(base - (3 * diameter / 3) - (diameter / 6) + 2),
-            })
-            .fill(white.clone());
-        // coral chest
-        painter.rotated_sprite(
-            (center - (diameter / 6)).with_z(base - (3 * diameter / 3) - (diameter / 6) + 2),
-            SpriteKind::CoralChest,
-            2,
-        );
-        // underwater chamber sea crocodiles & sea clerics
-        let uwc_sea_croc_pos =
-            (center + (diameter / 8)).with_z(base - (3 * diameter / 3) - (diameter / 6) + 2);
-        for _ in 0..(3 + ((RandomField::new(0).get((uwc_sea_croc_pos).with_z(base))) % 5)) {
-            painter.spawn(
-                EntityInfo::at(uwc_sea_croc_pos.as_())
-                    .with_asset_expect("common.entity.wild.aggressive.sea_crocodile", &mut rng),
-            )
-        }
-        let uwc_sea_clerics_pos =
-            (center + (diameter / 7)).with_z(base - (3 * diameter / 3) - (diameter / 6) + 2);
-        for _ in 0..(2 + ((RandomField::new(0).get((uwc_sea_clerics_pos).with_z(base))) % 2)) {
-            painter.spawn(
-                EntityInfo::at(uwc_sea_clerics_pos.as_())
-                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
-            );
-        }
-        // Holding Cell2
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) - (diameter / 8),
-                    center.y + (diameter / 16),
-                    base - (diameter / 8),
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) + (diameter / 8),
-                    center.y + (diameter / 16) + (diameter / 4),
-                    base - (diameter / 8) + (diameter / 4),
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) - (diameter / 8) + 1,
-                    center.y + (diameter / 16) - 1,
-                    base - (diameter / 8) + 1,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) + (diameter / 8) - 1,
-                    center.y + (diameter / 16) + (diameter / 4) + 1,
-                    base - (diameter / 8) + (diameter / 4) - 1,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) - (diameter / 8) - 3,
-                    center.y + (diameter / 16) + (diameter / 8) - 1,
-                    base - (diameter / 8) + (diameter / 16) + 2,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) - (diameter / 8) + 1,
-                    center.y + (diameter / 16) + (diameter / 4) - (diameter / 8) + 1,
-                    base - (diameter / 8) + (diameter / 4) - (diameter / 16) - 2,
-                ),
-            })
-            .clear();
-        painter.sprite(
-            Vec3::new(
-                center.x - (diameter / 2) - (diameter / 16) + 4,
-                center.y + (diameter / 6) - 1,
-                base - (diameter / 8) + (diameter / 16) - 1,
-            ),
-            SpriteKind::DungeonChest1,
-        );
-        // Holding Cell2 glass barriers
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 2) - (diameter / 8),
-                    center.y + (diameter / 16) + (diameter / 8) - 1,
-                    base - (diameter / 8) + (diameter / 16) + 3,
-                ),
-                max: Vec3::new(
-                    center.x - (diameter / 2) - (diameter / 8) + 1,
-                    center.y + (diameter / 16) + (diameter / 4) - (diameter / 8) + 1,
-                    base - (diameter / 8) + (diameter / 4) - (diameter / 16) - 3,
-                ),
-            })
-            .fill(glass_barrier.clone());
-        // Holding Cell3
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) - (diameter / 8),
-                    center.y - (diameter / 4) - (diameter / 16),
-                    base - (diameter / 8),
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) + (diameter / 8),
-                    center.y - (diameter / 16),
-                    base - (diameter / 8) + (diameter / 4),
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) - (diameter / 8) + 1,
-                    center.y - (diameter / 4) - (diameter / 16) + 1,
-                    base - (diameter / 8) + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) + (diameter / 8) - 1,
-                    center.y - (diameter / 16) - 1,
-                    base - (diameter / 8) + (diameter / 4) - 1,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) + (diameter / 8) - 1,
-                    center.y - (diameter / 4) - (diameter / 16) + (diameter / 8) - 1,
-                    base - (diameter / 8) + (diameter / 16) + 2,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) + (diameter / 8) + 3,
-                    center.y - (diameter / 16) - (diameter / 8) + 1,
-                    base - (diameter / 8) + (diameter / 4) - (diameter / 16) - 2,
-                ),
-            })
-            .clear();
-        painter.sprite(
-            Vec3::new(
-                center.x + (diameter / 2),
-                center.y - (diameter / 8) - (diameter / 16),
-                base - (diameter / 8) + 2,
-            ),
-            SpriteKind::DungeonChest1,
-        );
-        // Holding Cell3 glass barriers
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x + (diameter / 2) + (diameter / 8) - 1,
-                    center.y - (diameter / 4) - (diameter / 16) + (diameter / 8) - 1,
-                    base - (diameter / 8) + (diameter / 16) + 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 2) + (diameter / 8),
-                    center.y - (diameter / 16) - (diameter / 8) + 1,
-                    base - (diameter / 8) + (diameter / 16) + 4,
-                ),
-            })
-            .fill(glass_barrier.clone());
-        // Holding Cell1
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 4),
-                    center.y - (diameter / 2) - (diameter / 4),
-                    base - (diameter / 4),
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 4),
-                    center.y - (diameter / 2) + (diameter / 4),
-                    base - (diameter / 4) + (diameter / 2),
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 4) + 1,
-                    center.y - (diameter / 2) - (diameter / 4) + 1,
-                    base - (diameter / 4) + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 4 - 1),
-                    center.y - (diameter / 2) + (diameter / 4) - 1,
-                    base - (diameter / 4) + (diameter / 2) - 1,
-                ),
-            })
-            .without(painter.cylinder(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 4) + 1,
-                    center.y - (diameter / 2) - (diameter / 4) + 1,
-                    base - (diameter / 4) + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 4 - 1),
-                    center.y - (diameter / 2) + (diameter / 4) - 1,
-                    base - 1,
-                ),
-            }))
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16),
-                    center.y - (diameter / 2) - (diameter / 4) - 3,
-                    base,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16),
-                    center.y - (diameter / 2) - (diameter / 4) + 1,
-                    base + 3,
-                ),
-            })
-            .clear();
-        // Holding Cell1 windows
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16),
-                    center.y - (diameter / 2) - (diameter / 4),
-                    base,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16),
-                    center.y - (diameter / 2) - (diameter / 4) + 1,
-                    base + 3,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 1,
-                    center.y - (diameter / 2) - (diameter / 4),
-                    base + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 1,
-                    center.y - (diameter / 2) - (diameter / 4) + 1,
-                    base + 2,
-                ),
-            })
-            .fill(window_ver.clone());
-        // chapel main room pulpit stairs1
-        painter
-            .ramp_inset(
-                Aabb {
-                    min: Vec3::new(center.x - 8, center.y - (diameter / 4) - 2, base - 3),
-                    max: Vec3::new(center.x - 3, center.y - (diameter / 4) + 7, base + 2),
-                },
-                5,
-                Dir::X,
-            )
-            .fill(white.clone());
-        // chapel main room pulpit stairs2
-        painter
-            .ramp_inset(
-                Aabb {
-                    min: Vec3::new(center.x + 3, center.y - (diameter / 4) - 2, base - 3),
-                    max: Vec3::new(center.x + 8, center.y - (diameter / 4) + 7, base + 2),
-                },
-                5,
-                Dir::NegX,
-            )
-            .fill(white.clone());
-        // chapel main room pulpit stairs2
-        painter
-            .ramp_inset(
-                Aabb {
-                    min: Vec3::new(center.x - 8, center.y + (diameter / 4) - 7, base - 3),
-                    max: Vec3::new(center.x - 3, center.y + (diameter / 4) + 2, base + 2),
-                },
-                5,
-                Dir::X,
-            )
-            .fill(white.clone());
-        // chapel main room pulpit stairs4
-        painter
-            .ramp_inset(
-                Aabb {
-                    min: Vec3::new(center.x + 3, center.y + (diameter / 4) - 7, base - 3),
-                    max: Vec3::new(center.x + 8, center.y + (diameter / 4) + 2, base + 2),
-                },
-                5,
-                Dir::NegX,
-            )
-            .fill(white.clone());
-        // Holding Cell1 passage to main room
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16),
-                    center.y - (diameter / 3) + 3,
-                    base - 4,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16),
-                    center.y - (diameter / 20) - 1,
-                    base + 3,
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 1,
-                    center.y - (diameter / 3) + 3,
-                    base - 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 1,
-                    center.y - (diameter / 20) - 1,
-                    base,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 1,
-                    center.y - (diameter / 3),
-                    base - 2,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 1,
-                    center.y - (diameter / 20) - 1,
-                    base,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 2,
-                    center.y - (diameter / 3) + 3,
-                    base,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 2,
-                    center.y - (diameter / 20) - 1,
-                    base + 1,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 1,
-                    center.y - (diameter / 3) + 3,
-                    base - 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 1,
-                    center.y - (diameter / 3) + 4,
-                    base + 1,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 2,
-                    center.y - (diameter / 3) + 3,
-                    base - 2,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 2,
-                    center.y - (diameter / 3) + 4,
-                    base,
-                ),
-            })
-            .fill(window_ver.clone());
-        // holding cell1 coral chest
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x,
-                    center.y - (diameter / 2) - (diameter / 4) + 7,
-                    base - 1,
-                ),
-                max: Vec3::new(
-                    center.x + 1,
-                    center.y - (diameter / 2) - (diameter / 4) + 8,
-                    base,
-                ),
-            })
-            .fill(gold_decor.clone());
-        painter.rotated_sprite(
-            Vec3::new(
-                center.x,
-                center.y - (diameter / 2) - (diameter / 4) + 7,
-                base,
-            ),
-            SpriteKind::CoralChest,
-            0,
-        );
-
-        // Holding Cell1 Sea Clerics
-        let hc1_sea_clerics_pos = Vec3::new(center.x, center.y - (diameter / 3), base + 3);
-        for _ in 0..(3 + ((RandomField::new(0).get((hc1_sea_clerics_pos).with_z(base))) % 3)) {
-            painter.spawn(
-                EntityInfo::at(hc1_sea_clerics_pos.as_())
-                    .with_asset_expect("common.entity.dungeon.sea_chapel.sea_cleric", &mut rng),
-            );
-        }
-        // Holding Cell
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 4),
-                    center.y + (diameter / 2) - (diameter / 4),
-                    base - (diameter / 4),
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 4),
-                    center.y + (diameter / 2) + (diameter / 4),
-                    base - (diameter / 4) + (diameter / 2),
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .sphere(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 4) + 1,
-                    center.y + (diameter / 2) - (diameter / 4) + 1,
-                    base - (diameter / 4) + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 4 - 1),
-                    center.y + (diameter / 2) + (diameter / 4) - 1,
-                    base - (diameter / 4) + (diameter / 2) - 1,
-                ),
-            })
-            .without(painter.cylinder(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 4) + 1,
-                    center.y + (diameter / 2) - (diameter / 4) + 1,
-                    base - (diameter / 4) + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 4 - 1),
-                    center.y + (diameter / 2) + (diameter / 4) - 1,
-                    base - 1,
-                ),
-            }))
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16),
-                    center.y + (diameter / 2) + (diameter / 4) - 1,
-                    base,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16),
-                    center.y + (diameter / 2) + (diameter / 4) + 3,
-                    base + 3,
-                ),
-            })
-            .clear();
-        // Holding Cell glass barriers
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16),
-                    center.y + (diameter / 2) + (diameter / 4) - 2,
-                    base + 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16),
-                    center.y + (diameter / 2) + (diameter / 4) - 1,
-                    base + 2,
-                ),
-            })
-            .fill(glass_barrier.clone());
-        // Holding Cell passage to main room
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16),
-                    center.y + (diameter / 20) + 1,
-                    base - 4,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16),
-                    center.y + (diameter / 3) - 3,
-                    base + 3,
-                ),
-            })
-            .fill(white.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 1,
-                    center.y + (diameter / 20) + 1,
-                    base - 3,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 1,
-                    center.y + (diameter / 3) - 3,
-                    base,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 1,
-                    center.y + (diameter / 20) + 1,
-                    base - 2,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 1,
-                    center.y + (diameter / 3) - 1,
-                    base,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 2,
-                    center.y + (diameter / 20) + 1,
-                    base,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 2,
-                    center.y + (diameter / 3) - 3,
-                    base + 1,
-                ),
-            })
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(
-                    center.x - (diameter / 16) + 1,
-                    center.y + (diameter / 3) - 4,
-                    base - 1,
-                ),
-                max: Vec3::new(
-                    center.x + (diameter / 16) - 1,
-                    center.y + (diameter / 3) - 3,
-                    base,
-                ),
-            })
-            .fill(glass_barrier.clone());
-        // stairway3 tube
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(center_s3.x - 5, center_s3.y - 5, base + (diameter / 4)),
-                max: Vec3::new(
-                    center_s3.x + 5,
-                    center_s3.y + 5,
-                    base - (diameter / 8) + (diameter / 2) + 2,
-                ),
-            })
-            .fill(white.clone());
-
-        painter
-            .cylinder(Aabb {
-                min: Vec3::new(center_s3.x - 4, center_s3.y - 4, base + 2),
-                max: Vec3::new(
-                    center_s3.x + 4,
-                    center_s3.y + 4,
-                    base - (diameter / 8) + (diameter / 2) + 2,
-                ),
-            })
-            .clear();
-        // stairway3 tube window1
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center_s3.x - 1, center_s3.y - 5, base + (diameter / 4) + 1),
-                max: Vec3::new(
-                    center_s3.x + 1,
-                    center_s3.y - 4,
+                    center.y - (diameter / 2),
                     base - (diameter / 8) + (diameter / 2) - 2,
                 ),
             })
             .fill(window_ver.clone());
-
-        // stairway3 stairs
-        let stair_radius3 = 4.5;
-        let stairs_clear3 = painter.cylinder(Aabb {
-            min: (center_s3 - stair_radius3 as i32).with_z(base - 1),
-            max: (center_s3 + stair_radius3 as i32)
-                .with_z(base - (diameter / 8) + (diameter / 2) + 2),
-        });
-        stairs_clear3
-            .sample(spiral_staircase(
-                center_s3.with_z(base - (diameter / 8) + (diameter / 2) + 2),
-                stair_radius3,
-                0.5,
-                7.0,
-            ))
-            .fill(white.clone());
-        // stairway4
-        let center_s4 = Vec2::new(center.x + (diameter / 2) + 2, center.y + (diameter / 8));
-        // stairway4 balcony2 entry
         painter
-            .cylinder(Aabb {
-                min: (center_s4 - 2).with_z(base - (diameter / 8) + (diameter / 2) - 7),
-                max: (center_s4 + 3).with_z(base - (diameter / 8) + (diameter / 2) - 5),
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - 2,
+                    center.y - (diameter / 2) + 1,
+                    base - (diameter / 8) + (diameter / 2) - 4,
+                ),
+                max: Vec3::new(
+                    center.x + 2,
+                    center.y - (diameter / 2),
+                    base - (diameter / 8) + (diameter / 2) - 3,
+                ),
             })
-            .clear();
-        // stairway4 stairs
-        let stair_radius4 = 3.0;
-        let stairs_clear4 = painter.cylinder(Aabb {
-            min: (center_s4 - stair_radius4 as i32).with_z(base - (diameter / 8) - 4),
-            max: (center_s4 + stair_radius4 as i32)
-                .with_z(base - (diameter / 8) + (diameter / 2) - 4),
-        });
-        stairs_clear4
-            .sample(spiral_staircase(
-                center_s4.with_z(base - (diameter / 8) + (diameter / 2) - 4),
-                stair_radius4,
-                0.5,
-                7.0,
-            ))
-            .fill(white.clone());
-        // entry lanterns
-        for dir in SQUARE_4 {
-            let sq_corner = Vec2::new(center.x - (diameter / 2) + 3, center.y - 5);
-            let pos = Vec3::new(
-                sq_corner.x + (dir.x * (diameter - 7)),
-                sq_corner.y + (dir.y * 9),
-                base + 5,
+            .fill(window_ver.clone());
+
+        // main room hanging emblem
+        painter.rotated_sprite(
+            center.with_z(base + (diameter / 4)),
+            SpriteKind::SeaDecorEmblem,
+            2_u8,
+        );
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(center.x, center.y, base + (diameter / 4) + 1),
+                max: Vec3::new(
+                    center.x + 1,
+                    center.y + 1,
+                    base - (diameter / 8) + diameter - 7,
+                ),
+            })
+            .fill(gold_chain.clone());
+
+        for n in 1..=tubes as i32 {
+            let pos = Vec2::new(
+                center.x + (radius as f32 * ((n as f32 * phi).cos())) as i32,
+                center.y + (radius as f32 * ((n as f32 * phi).sin())) as i32,
             );
-            painter.sprite(pos, SpriteKind::SeashellLantern);
-        }
-        // main room lanterns
-        for dir in SQUARE_4 {
-            let sq_corner = Vec2::new(center.x - 4, center.y - (diameter / 2) + 5);
-            let pos = Vec3::new(
-                sq_corner.x + (dir.y * 7),
-                sq_corner.y + (dir.x * (diameter - 10)),
-                base + 12,
-            );
-            painter.sprite(pos, SpriteKind::SeashellLantern);
-        }
-        // first floor lanterns
-        for dir in SQUARE_4 {
-            for d in 0..2 {
-                let sq_corner = Vec2::new(center.x - 3 - d, center.y - (diameter / 8) - 2 - d);
-                let pos = Vec3::new(
-                    sq_corner.x + (dir.y * (5 + (2 * d))),
-                    sq_corner.y + (dir.x * ((diameter / 4) + 2 + (2 * d))),
-                    base - (diameter / 8) + (diameter / 2) + 2,
-                );
-                painter.sprite(pos, SpriteKind::SeashellLantern);
-            }
-        }
-        // small floor lanterns
-        for dir in SQUARE_4 {
-            for d in 0..2 {
-                let sq_corner = Vec2::new(center.x - 3 - d, center.y - (diameter / 8) - 2 - d);
-                let pos = Vec3::new(
-                    sq_corner.x + (dir.y * (5 + (2 * d))),
-                    sq_corner.y + (dir.x * ((diameter / 4) + 2 + (2 * d))),
-                    base + diameter - (diameter / 4) + 1,
-                );
-                painter.sprite(pos, SpriteKind::SeashellLantern);
+
+            let storeys = 2 + (RandomField::new(0).get(pos.with_z(base)) as i32 % 2);
+            let steps = 7;
+            for n in 0..2 {
+                for t in 0..storeys {
+                    let mut points = vec![];
+                    for s in 0..steps {
+                        let step_pos = Vec2::new(
+                            pos.x + (8_f32 * ((s as f32 * phi).cos())) as i32,
+                            pos.y + (8_f32 * ((s as f32 * phi).sin())) as i32,
+                        );
+                        points.push(step_pos);
+                    }
+                    if t == (storeys - 1) {
+                        // room
+                        painter
+                            .sphere(Aabb {
+                                min: (points[0] - (diameter / 6)).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6),
+                                ),
+
+                                max: (points[0] + (diameter / 6)).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) + (diameter / 6),
+                                ),
+                            })
+                            .fill(white.clone());
+
+                        let room_upper_half = painter.aabb(Aabb {
+                            min: (points[0] - (diameter / 6))
+                                .with_z(base + (6 * up) + (t * (steps - 1) * up)),
+                            max: (points[0] + (diameter / 6))
+                                .with_z(base + (6 * up) + (t * (steps - 1) * up) + (diameter / 6)),
+                        });
+                        // room top washed out
+                        painter
+                            .sphere(Aabb {
+                                min: (points[0] - (diameter / 6)).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6),
+                                ),
+                                max: (points[0] + (diameter / 6)).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) + (diameter / 6),
+                                ),
+                            })
+                            .intersect(room_upper_half)
+                            .fill(washed.clone());
+                        // room top
+                        painter
+                            .sphere(Aabb {
+                                min: (points[0] - (diameter / 6) + 1).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 1,
+                                ),
+                                max: (points[0] + (diameter / 6)).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) + (diameter / 6),
+                                ),
+                            })
+                            .intersect(room_upper_half)
+                            .fill(top.clone());
+                        // room gold ring
+                        painter
+                            .cylinder(Aabb {
+                                min: (points[0] - (diameter / 6))
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) + 1),
+                                max: (points[0] + (diameter / 6))
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) + 2),
+                            })
+                            .fill(gold.clone());
+                        // clear room
+                        painter
+                            .sphere(Aabb {
+                                min: (points[0] - (diameter / 6) + 1).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 1,
+                                ),
+
+                                max: (points[0] + (diameter / 6) - 1).with_z(
+                                    base + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) - 1,
+                                ),
+                            })
+                            .clear();
+                        // room windows 1
+                        painter
+                            .aabb(Aabb {
+                                min: Vec3::new(
+                                    points[0].x + (diameter / 6) - 1,
+                                    points[0].y - 2,
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 7,
+                                ),
+                                max: Vec3::new(
+                                    points[0].x + (diameter / 6),
+                                    points[0].y + 2,
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 8,
+                                ),
+                            })
+                            .fill(window_ver2.clone());
+                        // room windows 2
+                        painter
+                            .aabb(Aabb {
+                                min: Vec3::new(
+                                    points[0].x - 2,
+                                    points[0].y + (diameter / 6) - 1,
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 7,
+                                ),
+                                max: Vec3::new(
+                                    points[0].x + 2,
+                                    points[0].y + (diameter / 6),
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 8,
+                                ),
+                            })
+                            .fill(window_ver.clone());
+                        // room windows 3
+                        painter
+                            .aabb(Aabb {
+                                min: Vec3::new(
+                                    points[0].x - 2,
+                                    points[0].y - (diameter / 6) + 1,
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 7,
+                                ),
+                                max: Vec3::new(
+                                    points[0].x + 2,
+                                    points[0].y - (diameter / 6),
+                                    base + (6 * up) + (t * (steps - 1) * up) - (diameter / 6) + 8,
+                                ),
+                            })
+                            .fill(window_ver.clone());
+                    }
+                    let stairs_decor = painter
+                        .cubic_bezier(
+                            points[0].with_z(base - 4 + (n * 2) + (t * (steps - 1) * up)),
+                            points[1].with_z(base - 4 + (n * 2) + up + (t * (steps - 1) * up)),
+                            points[2]
+                                .with_z(base - 4 + (n * 2) + (2 * up) + (t * (steps - 1) * up)),
+                            points[3]
+                                .with_z(base - 4 + (n * 2) + (3 * up) + (t * (steps - 1) * up)),
+                            1.0,
+                        )
+                        .union(
+                            painter.cubic_bezier(
+                                points[3]
+                                    .with_z(base - 4 + (n * 2) + (3 * up) + (t * (steps - 1) * up)),
+                                points[4]
+                                    .with_z(base - 4 + (n * 2) + (4 * up) + (t * (steps - 1) * up)),
+                                points[5]
+                                    .with_z(base - 4 + (n * 2) + (5 * up) + (t * (steps - 1) * up)),
+                                points[0]
+                                    .with_z(base - 4 + (n * 2) + (6 * up) + (t * (steps - 1) * up)),
+                                1.0,
+                            ),
+                        );
+                    let stairs = painter
+                        .cubic_bezier(
+                            points[0].with_z(base + (n * 2) + (t * (steps - 1) * up)),
+                            points[1].with_z(base + (n * 2) + up + (t * (steps - 1) * up)),
+                            points[2].with_z(base + (n * 2) + (2 * up) + (t * (steps - 1) * up)),
+                            points[3].with_z(base + (n * 2) + (3 * up) + (t * (steps - 1) * up)),
+                            4.0,
+                        )
+                        .union(painter.cubic_bezier(
+                            points[3].with_z(base + (n * 2) + (3 * up) + (t * (steps - 1) * up)),
+                            points[4].with_z(base + (n * 2) + (4 * up) + (t * (steps - 1) * up)),
+                            points[5].with_z(base + (n * 2) + (5 * up) + (t * (steps - 1) * up)),
+                            points[0].with_z(base + (n * 2) + (6 * up) + (t * (steps - 1) * up)),
+                            4.0,
+                        ));
+                    match n {
+                        0 => {
+                            stairs_decor.fill(gold.clone());
+                            stairs.fill(white.clone())
+                        },
+                        _ => stairs.clear(),
+                    };
+                    if t == (storeys - 1) {
+                        // room gold decor ring and floor
+                        painter
+                            .cylinder(Aabb {
+                                min: (points[0] - (diameter / 6) + 2)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 5),
+                                max: (points[0] + (diameter / 6) - 2)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 4),
+                            })
+                            .fill(gold_decor.clone());
+                        painter
+                            .cylinder(Aabb {
+                                min: (points[0] - (diameter / 6) + 3)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 7),
+                                max: (points[0] + (diameter / 6) - 3)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 4),
+                            })
+                            .fill(floor_color.clone());
+                        // room sprites
+                        painter
+                            .cylinder(Aabb {
+                                min: (points[0] - (diameter / 6) + 3)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 3),
+                                max: (points[0] + (diameter / 6) - 3)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 4),
+                            })
+                            .fill(sprite_fill.clone());
+                        painter
+                            .cylinder(Aabb {
+                                min: (points[0] - (diameter / 6) + 4)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 3),
+                                max: (points[0] + (diameter / 6) - 4)
+                                    .with_z(base + (6 * up) + (t * (steps - 1) * up) - 4),
+                            })
+                            .clear();
+                        // room sea clerics
+                        let room_clerics_pos =
+                            (points[0] + 2).with_z(base + (6 * up) + (t * (steps - 1) * up) - 4);
+                        painter.spawn(EntityInfo::at(room_clerics_pos.as_()).with_asset_expect(
+                            "common.entity.dungeon.sea_chapel.sea_cleric",
+                            &mut rng,
+                        ));
+                    };
+                    // decor for top rooms
+                    if t == 2 {
+                        let bldg_gold_top1 = Aabb {
+                            min: (points[0] - 2).with_z(
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) - 3,
+                            ),
+                            max: (points[0] + 2).with_z(
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 1,
+                            ),
+                        };
+                        let bldg_gold_top_pole = Aabb {
+                            min: (points[0] - 1).with_z(
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 1,
+                            ),
+                            max: (points[0] + 1).with_z(
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 7,
+                            ),
+                        };
+                        let bldg_gold_top_antlers1 = Aabb {
+                            min: Vec3::new(
+                                points[0].x - 2,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 1,
+                            ),
+                            max: Vec3::new(
+                                points[0].x + 2,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 2,
+                            ),
+                        };
+                        let bldg_gold_top_antlers2 = painter.aabb(Aabb {
+                            min: Vec3::new(
+                                points[0].x - 3,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 2,
+                            ),
+
+                            max: Vec3::new(
+                                points[0].x + 3,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 3,
+                            ),
+                        });
+                        let bldg_gold_top_antlers2_clear = painter.aabb(Aabb {
+                            min: Vec3::new(
+                                points[0].x - 2,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 2,
+                            ),
+
+                            max: Vec3::new(
+                                points[0].x + 2,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 3,
+                            ),
+                        });
+                        let bldg_gold_top_antlers3 = Aabb {
+                            min: Vec3::new(
+                                points[0].x - 3,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 4,
+                            ),
+                            max: Vec3::new(
+                                points[0].x + 3,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 5,
+                            ),
+                        };
+                        let bldg_gold_top_antlers4 = painter.aabb(Aabb {
+                            min: Vec3::new(
+                                points[0].x - 5,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 5,
+                            ),
+
+                            max: Vec3::new(
+                                points[0].x + 5,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 6,
+                            ),
+                        });
+                        let bldg_gold_top_antlers4_clear = painter.aabb(Aabb {
+                            min: Vec3::new(
+                                points[0].x - 2,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 5,
+                            ),
+
+                            max: Vec3::new(
+                                points[0].x + 2,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 6,
+                            ),
+                        });
+                        let bldg_gold_top_antlers5 = painter.aabb(Aabb {
+                            min: Vec3::new(
+                                points[0].x - 2,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 7,
+                            ),
+
+                            max: Vec3::new(
+                                points[0].x + 2,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 8,
+                            ),
+                        });
+                        let bldg_gold_top_antlers5_clear = painter.aabb(Aabb {
+                            min: Vec3::new(
+                                points[0].x - 1,
+                                points[0].y - 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 7,
+                            ),
+                            max: Vec3::new(
+                                points[0].x + 1,
+                                points[0].y + 1,
+                                base + 1 + (6 * up) + (t * (steps - 1) * up) + (diameter / 6) + 8,
+                            ),
+                        });
+                        bldg_gold_top_antlers2.fill(gold.clone());
+                        bldg_gold_top_antlers2_clear.clear();
+                        bldg_gold_top_antlers4.fill(gold.clone());
+                        bldg_gold_top_antlers4_clear.clear();
+                        bldg_gold_top_antlers5.fill(gold.clone());
+                        bldg_gold_top_antlers5_clear.clear();
+                        painter.sphere(bldg_gold_top1).fill(gold.clone());
+                        painter.aabb(bldg_gold_top_pole).fill(gold.clone());
+                        painter.aabb(bldg_gold_top_antlers1).fill(gold.clone());
+                        painter.aabb(bldg_gold_top_antlers3).fill(gold.clone());
+                    };
+                }
             }
         }
 
-        // top floor lanterns
-        for dir in SQUARE_4 {
-            for d in 0..2 {
-                let sq_corner = Vec2::new(center.x - 3 - d, center.y - (diameter / 8) - 2 - d);
-                let pos = Vec3::new(
-                    sq_corner.x + (dir.y * (5 + (2 * d))),
-                    sq_corner.y + (dir.x * ((diameter / 4) + 2 + (2 * d))),
-                    base - (diameter / 8) + diameter + 2,
-                );
-                painter.sprite(pos, SpriteKind::SeashellLantern);
-            }
-        }
-        // main room emblems 1
-        for d in 0..2 {
-            let emblem_pos = Vec3::new(
-                center.x - d,
-                center.y + (diameter / 3) + 6 - (d * (2 * (diameter / 3) + 10)),
-                base + (diameter / 4) + 1,
-            );
-            painter.rotated_sprite(emblem_pos, SpriteKind::SeaDecorEmblem, 4 - (4 * d) as u8);
-        }
-        // main room emblems 2
-        for d in 0..2 {
-            let emblem_pos = Vec3::new(
-                center.x - (diameter / 3) - 7 + (d * (2 * (diameter / 3) + 13)),
-                center.y - d,
-                base + (diameter / 4) + 1,
-            );
-            painter.rotated_sprite(emblem_pos, SpriteKind::SeaDecorEmblem, 6 - (4 * d) as u8);
-        }
-        // first floor emblems / top floor emblems
-        for d in 0..2 {
-            for e in 0..2 {
-                let emblem_pos = Vec3::new(
-                    center.x - d,
-                    center.y - (diameter / 8) - 4 + (d * ((diameter / 4) + 6)),
-                    base + (diameter / 2) + 1 + (e * (diameter / 2)),
-                );
-                painter.rotated_sprite(emblem_pos, SpriteKind::SeaDecorEmblem, 4 - (4 * d) as u8);
-            }
-        }
+        // water basin
+        painter
+            .sphere_with_radius(
+                center.with_z(base - (2 * diameter) + (diameter / 4)),
+                (diameter + (diameter / 5) + 1) as f32,
+            )
+            .fill(white.clone());
+        let water_basin = painter.sphere_with_radius(
+            center.with_z(base - (2 * diameter) + (diameter / 4) + 1),
+            (diameter + (diameter / 5)) as f32,
+        );
+        water_basin.fill(water.clone());
+        // clear some water
+        water_basin
+            .intersect(
+                painter.aabb(Aabb {
+                    min: (center - (diameter + (diameter / 5)))
+                        .with_z(base - (4 * (diameter / 4)) + 1),
+                    max: (center + (diameter + (diameter / 5)))
+                        .with_z(base - diameter + (diameter / 5) + (diameter / 4) + 1),
+                }),
+            )
+            .clear();
+        // water basin gold ring
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                (diameter - 4) as f32,
+                1.0,
+            )
+            .fill(gold.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                (diameter - 5) as f32,
+                1.0,
+            )
+            .fill(water.clone());
+
+        // underwater chamber
+        painter
+            .sphere_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                ((diameter / 2) + 2) as f32,
+            )
+            .fill(white.clone());
+
+        painter
+            .sphere_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                (diameter / 2) as f32,
+            )
+            .fill(water.clone());
+
+        // underwater chamber entries
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - (diameter / 2) - 2,
+                    center.y - 2,
+                    base - (3 * diameter) + (diameter / 3) - 8,
+                ),
+                max: Vec3::new(
+                    center.x + (diameter / 2) + 2,
+                    center.y + 2,
+                    base - (3 * diameter) + (diameter / 3) + 4,
+                ),
+            })
+            .fill(water.clone());
+        // underwater chamber entries
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x - 2,
+                    center.y - (diameter / 2) - 2,
+                    base - (3 * diameter) + (diameter / 3) - 8,
+                ),
+                max: Vec3::new(
+                    center.x + 2,
+                    center.y + (diameter / 2) + 2,
+                    base - (3 * diameter) + (diameter / 3) + 4,
+                ),
+            })
+            .fill(water);
+        // underwater chamber top
+        painter
+            .sphere_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                ((diameter / 2) + 2) as f32,
+            )
+            .intersect(
+                painter.aabb(Aabb {
+                    min: (center - (diameter / 2) - 3)
+                        .with_z(base - (3 * diameter) + (diameter / 2) - 1),
+                    max: (center + (diameter / 2) + 3).with_z(base - (3 * diameter) + diameter + 2),
+                }),
+            )
+            .fill(top.clone());
+        // clear underwater chamber
+        painter
+            .sphere_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                (diameter / 2) as f32,
+            )
+            .intersect(
+                painter.aabb(Aabb {
+                    min: (center - (diameter / 2) - 3)
+                        .with_z(base - (3 * diameter) + (diameter / 2) - 1),
+                    max: (center + (diameter / 2) + 3).with_z(base - (3 * diameter) + diameter + 2),
+                }),
+            )
+            .clear();
+        // underwater chamber gold ring and floors
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                ((diameter / 2) + 2) as f32,
+                1.0,
+            )
+            .fill(gold.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                ((diameter / 2) + 1) as f32,
+                1.0,
+            )
+            .fill(floor_color.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) - 1),
+                ((diameter / 2) + 1) as f32,
+                1.0,
+            )
+            .fill(floor_color.clone());
+        // organ in underwater chamber
+        let underwater_organ_pos =
+            (center - (diameter / 4)).with_z(base - (3 * diameter) + (diameter / 2) + 1);
+        painter.spawn(
+            EntityInfo::at(underwater_organ_pos.as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.organ", &mut rng),
+        );
+        // underwater chamber decor ring
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) + 1),
+                (diameter / 2) as f32,
+                1.0,
+            )
+            .fill(gold_decor.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) + 1),
+                ((diameter / 2) - 1) as f32,
+                1.0,
+            )
+            .clear();
+
+        // underwater chamber sprites
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) + 1),
+                ((diameter / 2) - 1) as f32,
+                1.0,
+            )
+            .fill(sprite_fill);
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) + 1),
+                ((diameter / 2) - 2) as f32,
+                1.0,
+            )
+            .clear();
+        // underwater chamber hanging emblem
+        painter.rotated_sprite(
+            center.with_z(base - (3 * diameter) + (diameter / 2) + (diameter / 4)),
+            SpriteKind::SeaDecorEmblem,
+            2_u8,
+        );
+        painter
+            .aabb(Aabb {
+                min: Vec3::new(
+                    center.x,
+                    center.y,
+                    base - (3 * diameter) + (diameter / 2) + (diameter / 4) + 1,
+                ),
+                max: Vec3::new(
+                    center.x + 1,
+                    center.y + 1,
+                    base - (3 * diameter) + diameter + 1,
+                ),
+            })
+            .fill(gold_chain);
+        // underwater chamber dagon
+        let cellar_miniboss_pos = (center + 6).with_z(base - (3 * diameter) + (diameter / 2) + 1);
+        painter.spawn(
+            EntityInfo::at(cellar_miniboss_pos.as_())
+                .with_asset_expect("common.entity.dungeon.sea_chapel.dagon", &mut rng),
+        );
+        // underwater chamber floor entry
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                3.0,
+                1.0,
+            )
+            .fill(white.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) + 3),
+                3.0,
+                1.0,
+            )
+            .fill(gold_decor.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2)),
+                3.0,
+                3.0,
+            )
+            .fill(white.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) - 1),
+                3.0,
+                1.0,
+            )
+            .fill(gold.clone());
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 2) - 1),
+                2.0,
+                7.0,
+            )
+            .clear();
+        // water basin ground floor
+        painter
+            .cylinder_with_radius(
+                center.with_z(base - (3 * diameter) + (diameter / 3) - 9),
+                (diameter / 2) as f32,
+                1.0,
+            )
+            .fill(floor_color.clone());
 
         // side buildings hut, pavillon, tower
-        let bldg_corner = center - (diameter / 2);
-        for dir in SQUARE_4 {
-            let bldg_center = bldg_corner + dir * diameter;
-            let bldg_variant = (RandomField::new(0).get((bldg_corner - dir).with_z(base))) % 10;
+        for dir in DIAGONALS {
+            let bldg_center = center + dir * (2 * (diameter / 3));
+            let bldg_variant = (RandomField::new(0).get((bldg_center).with_z(base))) % 10;
             let tower_height = (diameter / 4) + (3 * (bldg_variant as i32));
             let bldg_diameter = diameter;
             let bldg_cellar = Aabb {
@@ -3642,59 +1890,51 @@ impl Structure for SeaChapel {
                     base + (bldg_diameter / 15) + 6,
                 ),
             };
-            let bldg_room_windows = painter
-                .aabb(Aabb {
-                    min: Vec3::new(
-                        bldg_center.x - 1,
-                        bldg_center.y - (bldg_diameter / 4),
-                        base - (bldg_diameter / 15) + (bldg_diameter / 4) - 2,
-                    ),
-                    max: Vec3::new(
-                        bldg_center.x + 1,
-                        bldg_center.y + (bldg_diameter / 4),
-                        base - (bldg_diameter / 15) + (bldg_diameter / 4) - 1,
-                    ),
-                })
-                .without(painter.aabb(Aabb {
-                    min: Vec3::new(
-                        bldg_center.x - 1,
-                        bldg_center.y - (bldg_diameter / 4) + 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 4) - 2,
-                    ),
-                    max: Vec3::new(
-                        bldg_center.x + 1,
-                        bldg_center.y + (bldg_diameter / 4) - 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 4) - 1,
-                    ),
-                }));
-            let bldg_top = painter
+            let bldg_room_windows_1 = painter.aabb(Aabb {
+                min: Vec3::new(
+                    bldg_center.x - 1,
+                    bldg_center.y - (bldg_diameter / 4),
+                    base - (bldg_diameter / 15) + (bldg_diameter / 4) - 2,
+                ),
+                max: Vec3::new(
+                    bldg_center.x + 1,
+                    bldg_center.y - (bldg_diameter / 4) + 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 4) - 1,
+                ),
+            });
+            let bldg_room_windows_2 = painter.aabb(Aabb {
+                min: Vec3::new(
+                    bldg_center.x - 1,
+                    bldg_center.y + (bldg_diameter / 4) - 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 4) - 2,
+                ),
+                max: Vec3::new(
+                    bldg_center.x + 1,
+                    bldg_center.y + (bldg_diameter / 4),
+                    base - (bldg_diameter / 15) + (bldg_diameter / 4) - 1,
+                ),
+            });
+            let bldg_top_half = painter.aabb(Aabb {
+                min: (bldg_center - (bldg_diameter / 4))
+                    .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4)),
+                max: (bldg_center + (bldg_diameter / 4))
+                    .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2)),
+            });
+            let bldg_washed_top = painter
                 .sphere(Aabb {
                     min: (bldg_center - (bldg_diameter / 4)).with_z(base - (bldg_diameter / 15)),
                     max: (bldg_center + (bldg_diameter / 4))
                         .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2)),
                 })
-                .without(
-                    painter.cylinder(Aabb {
-                        min: (bldg_center - (bldg_diameter / 4))
-                            .with_z(base - (bldg_diameter / 15)),
-                        max: (bldg_center + (bldg_diameter / 4))
-                            .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4)),
-                    }),
-                );
-            let bldg_washed_top = painter
+                .intersect(bldg_top_half);
+            let bldg_top = painter
                 .sphere(Aabb {
-                    min: (bldg_center - (bldg_diameter / 4)).with_z(base - (bldg_diameter / 15)),
-                    max: (bldg_center + (bldg_diameter / 4) - 1)
+                    min: (bldg_center - (bldg_diameter / 4) + 1)
+                        .with_z(base - (bldg_diameter / 15) + 1),
+                    max: (bldg_center + (bldg_diameter / 4))
                         .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2)),
                 })
-                .without(
-                    painter.cylinder(Aabb {
-                        min: (bldg_center - (bldg_diameter / 4))
-                            .with_z(base - (bldg_diameter / 15)),
-                        max: (bldg_center + (bldg_diameter / 4))
-                            .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4)),
-                    }),
-                );
+                .intersect(bldg_top_half);
             let bldg_room_goldring = painter.cylinder(Aabb {
                 min: (bldg_center - (bldg_diameter / 4))
                     .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4) + 1),
@@ -3732,74 +1972,71 @@ impl Structure for SeaChapel {
                     base - (bldg_diameter / 15) + (bldg_diameter / 2) + (bldg_diameter / 6),
                 ),
             };
-            let bldg_room2_windows1 = painter
-                .aabb(Aabb {
-                    min: Vec3::new(
-                        bldg_center.x - 1,
-                        bldg_center.y - (bldg_diameter / 6),
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
-                    ),
-                    max: Vec3::new(
-                        bldg_center.x + 1,
-                        bldg_center.y + (bldg_diameter / 6),
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
-                    ),
-                })
-                .without(painter.aabb(Aabb {
-                    min: Vec3::new(
-                        bldg_center.x - 1,
-                        bldg_center.y - (bldg_diameter / 6) + 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
-                    ),
-                    max: Vec3::new(
-                        bldg_center.x + 1,
-                        bldg_center.y + (bldg_diameter / 6) - 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
-                    ),
-                }));
-            let bldg_room2_windows2 = painter
-                .aabb(Aabb {
-                    min: Vec3::new(
-                        bldg_center.x - (bldg_diameter / 6),
-                        bldg_center.y - 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
-                    ),
-                    max: Vec3::new(
-                        bldg_center.x + (bldg_diameter / 6),
-                        bldg_center.y + 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
-                    ),
-                })
-                .without(painter.aabb(Aabb {
-                    min: Vec3::new(
-                        bldg_center.x - (bldg_diameter / 6) + 1,
-                        bldg_center.y - 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
-                    ),
-                    max: Vec3::new(
-                        bldg_center.x + (bldg_diameter / 6) - 1,
-                        bldg_center.y + 1,
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
-                    ),
-                }));
+            let bldg_room2_windows1 = painter.aabb(Aabb {
+                min: Vec3::new(
+                    bldg_center.x - 1,
+                    bldg_center.y - (bldg_diameter / 6),
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
+                ),
+                max: Vec3::new(
+                    bldg_center.x + 1,
+                    bldg_center.y - (bldg_diameter / 6) + 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
+                ),
+            });
+            let bldg_room2_windows2 = painter.aabb(Aabb {
+                min: Vec3::new(
+                    bldg_center.x - 1,
+                    bldg_center.y + (bldg_diameter / 6) - 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
+                ),
+                max: Vec3::new(
+                    bldg_center.x + 1,
+                    bldg_center.y + (bldg_diameter / 6),
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
+                ),
+            });
+            let bldg_room2_windows3 = painter.aabb(Aabb {
+                min: Vec3::new(
+                    bldg_center.x - (bldg_diameter / 6),
+                    bldg_center.y - 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
+                ),
+                max: Vec3::new(
+                    bldg_center.x - (bldg_diameter / 6) + 1,
+                    bldg_center.y + 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
+                ),
+            });
+            let bldg_room2_windows4 = painter.aabb(Aabb {
+                min: Vec3::new(
+                    bldg_center.x + (bldg_diameter / 6) - 1,
+                    bldg_center.y - 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 2,
+                ),
+                max: Vec3::new(
+                    bldg_center.x + (bldg_diameter / 6),
+                    bldg_center.y + 1,
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - 1,
+                ),
+            });
+            let bldg_room2_top_half = painter.aabb(Aabb {
+                min: (bldg_center - (bldg_diameter / 6) + 1)
+                    .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2)),
+                max: (bldg_center + (bldg_diameter / 6)).with_z(
+                    base - (bldg_diameter / 15) + (bldg_diameter / 2) + (bldg_diameter / 6),
+                ),
+            });
             let bldg_room2_top = painter
                 .sphere(Aabb {
                     min: (bldg_center - (bldg_diameter / 6) + 1).with_z(
-                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 6),
+                        base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 6) + 1,
                     ),
                     max: (bldg_center + (bldg_diameter / 6)).with_z(
                         base - (bldg_diameter / 15) + (bldg_diameter / 2) + (bldg_diameter / 6),
                     ),
                 })
-                .without(
-                    painter.cylinder(Aabb {
-                        min: (bldg_center - (bldg_diameter / 6)).with_z(
-                            base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 6),
-                        ),
-                        max: (bldg_center + (bldg_diameter / 6))
-                            .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2)),
-                    }),
-                );
+                .intersect(bldg_room2_top_half);
             let bldg_room2_washed_top = painter
                 .sphere(Aabb {
                     min: (bldg_center - (bldg_diameter / 6)).with_z(
@@ -3809,15 +2046,7 @@ impl Structure for SeaChapel {
                         base - (bldg_diameter / 15) + (bldg_diameter / 2) + (bldg_diameter / 6),
                     ),
                 })
-                .without(
-                    painter.cylinder(Aabb {
-                        min: (bldg_center - (bldg_diameter / 6)).with_z(
-                            base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 6),
-                        ),
-                        max: (bldg_center + (bldg_diameter / 6))
-                            .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2)),
-                    }),
-                );
+                .intersect(bldg_room2_top_half);
             let bldg_room2_goldring = painter.cylinder(Aabb {
                 min: (bldg_center - (bldg_diameter / 6))
                     .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2) + 1),
@@ -3919,6 +2148,22 @@ impl Structure for SeaChapel {
                         - 2,
                 ),
             };
+            let bldg_room3_washed_top_half = painter.aabb(Aabb {
+                min: (bldg_center - (bldg_diameter / 7)).with_z(
+                    base - (bldg_diameter / 15)
+                        + tower_height
+                        + (bldg_diameter / 4)
+                        + (bldg_diameter / 7)
+                        - 2,
+                ),
+                max: (bldg_center + (bldg_diameter / 7)).with_z(
+                    base - (bldg_diameter / 15)
+                        + tower_height
+                        + (bldg_diameter / 4)
+                        + (2 * (bldg_diameter / 7))
+                        - 2,
+                ),
+            });
             let bldg_room3_washed_top = painter
                 .sphere(Aabb {
                     min: (bldg_center - (bldg_diameter / 7)).with_z(
@@ -3932,22 +2177,11 @@ impl Structure for SeaChapel {
                             - 2,
                     ),
                 })
-                .without(painter.cylinder(Aabb {
-                    min: (bldg_center - (bldg_diameter / 7)).with_z(
-                        base - (bldg_diameter / 15) + tower_height + (bldg_diameter / 4) - 2,
-                    ),
-                    max: (bldg_center + (bldg_diameter / 7)).with_z(
-                        base - (bldg_diameter / 15)
-                            + tower_height
-                            + (bldg_diameter / 4)
-                            + (bldg_diameter / 7)
-                            - 2,
-                    ),
-                }));
+                .intersect(bldg_room3_washed_top_half);
             let bldg_room3_top = painter
                 .sphere(Aabb {
                     min: (bldg_center - (bldg_diameter / 7) + 1).with_z(
-                        base - (bldg_diameter / 15) + tower_height + (bldg_diameter / 4) - 2,
+                        base - (bldg_diameter / 15) + tower_height + (bldg_diameter / 4) - 1,
                     ),
                     max: (bldg_center + (bldg_diameter / 7)).with_z(
                         base - (bldg_diameter / 15)
@@ -3957,18 +2191,7 @@ impl Structure for SeaChapel {
                             - 2,
                     ),
                 })
-                .without(painter.cylinder(Aabb {
-                    min: (bldg_center - (bldg_diameter / 7)).with_z(
-                        base - (bldg_diameter / 15) + tower_height + (bldg_diameter / 4) - 2,
-                    ),
-                    max: (bldg_center + (bldg_diameter / 7)).with_z(
-                        base - (bldg_diameter / 15)
-                            + tower_height
-                            + (bldg_diameter / 4)
-                            + (bldg_diameter / 7)
-                            - 2,
-                    ),
-                }));
+                .intersect(bldg_room3_washed_top_half);
             let bldg_room3_goldring = Aabb {
                 min: (bldg_center - (bldg_diameter / 7)).with_z(
                     base - (bldg_diameter / 15)
@@ -3995,39 +2218,38 @@ impl Structure for SeaChapel {
                         - 3,
                 ),
             };
-            let bldg_room3_floor = painter
-                .sphere(Aabb {
-                    min: (bldg_center - 3).with_z(
-                        base - (bldg_diameter / 15)
-                            + tower_height
-                            + (bldg_diameter / 4)
-                            + (bldg_diameter / 7)
-                            - 8,
-                    ),
-                    max: (bldg_center + 3).with_z(
-                        base - (bldg_diameter / 15)
-                            + tower_height
-                            + (bldg_diameter / 4)
-                            + (bldg_diameter / 7)
-                            - 7,
-                    ),
-                })
-                .without(painter.cylinder(Aabb {
-                    min: (bldg_center - 2).with_z(
-                        base - (bldg_diameter / 15)
-                            + tower_height
-                            + (bldg_diameter / 4)
-                            + (bldg_diameter / 7)
-                            - 8,
-                    ),
-                    max: (bldg_center + 2).with_z(
-                        base - (bldg_diameter / 15)
-                            + tower_height
-                            + (bldg_diameter / 4)
-                            + (bldg_diameter / 7)
-                            - 7,
-                    ),
-                }));
+            let bldg_room3_floor = painter.cylinder(Aabb {
+                min: (bldg_center - 3).with_z(
+                    base - (bldg_diameter / 15)
+                        + tower_height
+                        + (bldg_diameter / 4)
+                        + (bldg_diameter / 7)
+                        - 8,
+                ),
+                max: (bldg_center + 3).with_z(
+                    base - (bldg_diameter / 15)
+                        + tower_height
+                        + (bldg_diameter / 4)
+                        + (bldg_diameter / 7)
+                        - 7,
+                ),
+            });
+            let bldg_room3_floor_clear = painter.cylinder(Aabb {
+                min: (bldg_center - 2).with_z(
+                    base - (bldg_diameter / 15)
+                        + tower_height
+                        + (bldg_diameter / 4)
+                        + (bldg_diameter / 7)
+                        - 8,
+                ),
+                max: (bldg_center + 2).with_z(
+                    base - (bldg_diameter / 15)
+                        + tower_height
+                        + (bldg_diameter / 4)
+                        + (bldg_diameter / 7)
+                        - 7,
+                ),
+            });
             let bldg_tower_floors_clear = Aabb {
                 min: (bldg_center - 3).with_z(base - (bldg_diameter / 3) + 2),
                 max: (bldg_center + 3).with_z(
@@ -4348,7 +2570,7 @@ impl Structure for SeaChapel {
                 ),
             };
             let bldg_tower_rope = Aabb {
-                min: bldg_center.with_z(base - (bldg_diameter / 3) + 7),
+                min: bldg_center.with_z(base - (5 * (bldg_diameter / 4)) - 5),
                 max: (bldg_center + 1).with_z(
                     base - (bldg_diameter / 15)
                         + tower_height
@@ -4369,17 +2591,9 @@ impl Structure for SeaChapel {
                     .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2) - 3),
             };
             let bldg_hut_rope = Aabb {
-                min: bldg_center.with_z(base - (bldg_diameter / 3) + 7),
+                min: bldg_center.with_z(base - (5 * (bldg_diameter / 4)) - 5),
                 max: (bldg_center + 1)
                     .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 2) - 4),
-            };
-            let bldg_water_puddle = Aabb {
-                min: (bldg_center - 5).with_z(base - (bldg_diameter / 3) + 2),
-                max: (bldg_center + 5).with_z(base - (bldg_diameter / 3) + 3),
-            };
-            let bldg_connect_entry = Aabb {
-                min: (bldg_center - 4).with_z(base - (bldg_diameter / 3) + 2),
-                max: (bldg_center + 4).with_z(base - (bldg_diameter / 3) + 3),
             };
             let bldg_room_lantern_pos = (bldg_center + 2).with_z(base - (bldg_diameter / 15) + 2);
             let bldg_floor_lantern_pos =
@@ -4415,17 +2629,6 @@ impl Structure for SeaChapel {
                 bldg_center.y,
                 base - (bldg_diameter / 3) + 3,
             );
-            let bldg_floor2_coral_chest_podium = Aabb {
-                min: (bldg_center - 5).with_z(
-                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 1,
-                ),
-                max: (bldg_center - 4).with_z(
-                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 2,
-                ),
-            };
-            let bldg_floor2_coral_chest_pos = (bldg_center - 5).with_z(
-                base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 2,
-            );
             let bldg_floor_bed_pos = Vec3::new(
                 bldg_center.x - (bldg_diameter / 6),
                 bldg_center.y,
@@ -4443,44 +2646,108 @@ impl Structure for SeaChapel {
                     base - (bldg_diameter / 15) + (bldg_diameter / 2) + (bldg_diameter / 6) - 2,
                 ),
             };
-            let bldg_floor2_glass_barriers = Aabb {
-                min: Vec3::new(
-                    bldg_center.x + 3,
-                    bldg_center.y - 1,
-                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 1,
-                ),
-                max: Vec3::new(
-                    bldg_center.x + 4,
-                    bldg_center.y + 1,
-                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 4,
-                ),
-            };
-            let bldg_floor2_step = Aabb {
-                min: Vec3::new(
-                    bldg_center.x + 2,
-                    bldg_center.y - 1,
-                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10),
-                ),
-                max: Vec3::new(
-                    bldg_center.x + 3,
-                    bldg_center.y + 1,
-                    base - (bldg_diameter / 15) + (bldg_diameter / 2) - (bldg_diameter / 10) + 1,
-                ),
-            };
+
+            let bldg_underwater_exit_pos_1 =
+                center + dir * (2 * ((diameter / 3) - (diameter / 10)));
+            let bldg_underwater_exit_pos_2 = center + dir * (2 * ((diameter / 3) - (diameter / 7)));
+            let bldg_underwater_tube = painter.cubic_bezier(
+                bldg_center.with_z(base - (5 * (bldg_diameter / 4)) + 2),
+                bldg_center.with_z(base - (6 * (bldg_diameter / 4))),
+                bldg_underwater_exit_pos_1.with_z(base - (6 * (bldg_diameter / 4))),
+                bldg_underwater_exit_pos_2.with_z(base - (5 * (bldg_diameter / 4))),
+                ((bldg_diameter / 10) + 1) as f32,
+            );
+            let bldg_underwater_tube_clear = painter.cubic_bezier(
+                bldg_center.with_z(base - (5 * (bldg_diameter / 4)) + 2),
+                bldg_center.with_z(base - (6 * (bldg_diameter / 4))),
+                bldg_underwater_exit_pos_1.with_z(base - (6 * (bldg_diameter / 4))),
+                bldg_underwater_exit_pos_2.with_z(base - (5 * (bldg_diameter / 4))),
+                (bldg_diameter / 10) as f32,
+            );
+            let bldg_underwater_exit = painter.cylinder(Aabb {
+                min: (bldg_underwater_exit_pos_2 - (bldg_diameter / 10) - 1)
+                    .with_z(base - (5 * (bldg_diameter / 4)) + 1),
+                max: (bldg_underwater_exit_pos_2 + (bldg_diameter / 10) + 1)
+                    .with_z(base - (4 * (bldg_diameter / 4)) + 2),
+            });
+            let bldg_underwater_exit_clear = painter.cylinder(Aabb {
+                min: (bldg_underwater_exit_pos_2 - (bldg_diameter / 10))
+                    .with_z(base - (5 * (bldg_diameter / 4)) + 1),
+                max: (bldg_underwater_exit_pos_2 + (bldg_diameter / 10))
+                    .with_z(base - (4 * (bldg_diameter / 4)) + 1),
+            });
             let bldg_connect_tube = Aabb {
                 min: (bldg_center - (bldg_diameter / 10))
-                    .with_z(base - (2 * (bldg_diameter / 3)) + 1),
+                    .with_z(base - (5 * (bldg_diameter / 4)) + 2),
                 max: (bldg_center + (bldg_diameter / 10)).with_z(base - (bldg_diameter / 3) + 1),
             };
-            let bldg_connect_water = Aabb {
+            let bldg_connect_step_1 = Aabb {
                 min: (bldg_center - (bldg_diameter / 10) + 1)
-                    .with_z(base - (2 * (bldg_diameter / 3)) + 1),
+                    .with_z(base - (2 * (bldg_diameter / 4))),
+                max: (bldg_center + (bldg_diameter / 10) - 1)
+                    .with_z(base - (2 * (bldg_diameter / 4)) + 1),
+            };
+            let bldg_connect_step_1_clear = Aabb {
+                min: (bldg_center - (bldg_diameter / 10) + 2)
+                    .with_z(base - (2 * (bldg_diameter / 4))),
+                max: (bldg_center + (bldg_diameter / 10) - 2)
+                    .with_z(base - (2 * (bldg_diameter / 4)) + 1),
+            };
+            let bldg_connect_step_2 = Aabb {
+                min: (bldg_center - (bldg_diameter / 10) + 1)
+                    .with_z(base - (3 * (bldg_diameter / 4))),
+                max: (bldg_center + (bldg_diameter / 10) - 1)
+                    .with_z(base - (3 * (bldg_diameter / 4)) + 1),
+            };
+            let bldg_connect_step_2_clear = Aabb {
+                min: (bldg_center - (bldg_diameter / 10) + 2)
+                    .with_z(base - (3 * (bldg_diameter / 4))),
+                max: (bldg_center + (bldg_diameter / 10) - 2)
+                    .with_z(base - (3 * (bldg_diameter / 4)) + 1),
+            };
+            let bldg_connect_step_3 = Aabb {
+                min: (bldg_center - (bldg_diameter / 10) + 1)
+                    .with_z(base - (4 * (bldg_diameter / 4)) - 3),
+                max: (bldg_center + (bldg_diameter / 10) - 1)
+                    .with_z(base - (4 * (bldg_diameter / 4)) - 2),
+            };
+            let bldg_connect_step_3_clear = Aabb {
+                min: (bldg_center - (bldg_diameter / 10) + 2)
+                    .with_z(base - (4 * (bldg_diameter / 4)) - 3),
+                max: (bldg_center + (bldg_diameter / 10) - 2)
+                    .with_z(base - (4 * (bldg_diameter / 4)) - 2),
+            };
+            let bldg_connect_tube_gold_ring = Aabb {
+                min: (bldg_underwater_exit_pos_2 - (bldg_diameter / 10) + 1)
+                    .with_z(base - (4 * (bldg_diameter / 4)) + 1),
+                max: (bldg_underwater_exit_pos_2 + (bldg_diameter / 10) - 1)
+                    .with_z(base - (4 * (bldg_diameter / 4)) + 2),
+            };
+            let bldg_connect_decor_ring = Aabb {
+                min: (bldg_underwater_exit_pos_2 - (bldg_diameter / 10))
+                    .with_z(base - (4 * (bldg_diameter / 4))),
+                max: (bldg_underwater_exit_pos_2 + (bldg_diameter / 10))
+                    .with_z(base - (4 * (bldg_diameter / 4)) + 1),
+            };
+            let bldg_connect_decor_ring_clear = Aabb {
+                min: (bldg_underwater_exit_pos_2 - (bldg_diameter / 10) + 1)
+                    .with_z(base - (4 * (bldg_diameter / 4))),
+                max: (bldg_underwater_exit_pos_2 + (bldg_diameter / 10) - 1)
+                    .with_z(base - (4 * (bldg_diameter / 4)) + 1),
+            };
+            let bldg_connect_clear = Aabb {
+                min: (bldg_center - (bldg_diameter / 10) + 1)
+                    .with_z(base - (5 * (bldg_diameter / 4)) + 1),
                 max: (bldg_center + (bldg_diameter / 10) - 1)
                     .with_z(base - (bldg_diameter / 3) + 2),
             };
             let bldg_connect_gate = Aabb {
-                min: (bldg_center - 2).with_z(base - (bldg_diameter / 3) + 2),
-                max: (bldg_center + 2).with_z(base - (bldg_diameter / 3) + 3),
+                min: (bldg_underwater_exit_pos_2 - 2).with_z(base - (4 * (bldg_diameter / 4)) + 1),
+                max: (bldg_underwater_exit_pos_2 + 2).with_z(base - (4 * (bldg_diameter / 4)) + 2),
+            };
+            let bldg_connect_keyhole = Aabb {
+                min: (bldg_underwater_exit_pos_2 - 1).with_z(base - (4 * (bldg_diameter / 4)) + 1),
+                max: (bldg_underwater_exit_pos_2).with_z(base - (4 * (bldg_diameter / 4)) + 2),
             };
             let bldg_floor_sea_cleric_pos = (bldg_center + (bldg_diameter / 8))
                 .with_z(base - (bldg_diameter / 15) + (bldg_diameter / 4) + 2);
@@ -4492,13 +2759,9 @@ impl Structure for SeaChapel {
                     - 6,
             );
             // bldg cellar Sea Crocodiles
-            let bldg_cellar_sea_croc_pos = Vec3::new(
-                bldg_center.x - (bldg_diameter / 8),
-                bldg_center.y,
-                base - (bldg_diameter / 3) + 3,
-            );
+            let bldg_cellar_sea_croc_pos = bldg_center.with_z(base - (5 * (bldg_diameter / 4)) - 5);
             for _ in
-                0..(1 + ((RandomField::new(0).get((bldg_cellar_sea_croc_pos).with_z(base))) % 2))
+                0..(2 + ((RandomField::new(0).get((bldg_cellar_sea_croc_pos).with_z(base))) % 2))
             {
                 painter.spawn(
                     EntityInfo::at(bldg_cellar_sea_croc_pos.as_())
@@ -4513,21 +2776,37 @@ impl Structure for SeaChapel {
                     painter.sphere(bldg_room).fill(white.clone());
                     painter.aabb(bldg_hut_entry_clear1).clear();
                     painter.aabb(bldg_hut_entry_clear2).clear();
-                    bldg_room_windows.fill(window_ver.clone());
-                    bldg_top.fill(top.clone());
+                    bldg_room_windows_1.fill(window_ver.clone());
+                    bldg_room_windows_2.fill(window_ver.clone());
                     bldg_washed_top.fill(washed.clone());
+                    bldg_top.fill(top.clone());
                     painter.sphere(bldg_room_clear).clear();
                     bldg_room_goldring.fill(gold.clone());
                     bldg_room_goldring_clear.clear();
-                    painter.cylinder(bldg_room_floor).fill(white.clone());
+                    painter.cylinder(bldg_room_floor).fill(floor_color.clone());
                     painter.cylinder(bldg_hut_floors_clear).clear();
                     painter.cylinder(bldg_hut_ropefix1).fill(ropefix1.clone());
                     painter.aabb(bldg_hut_ropefix2).fill(ropefix2.clone());
-                    painter.aabb(bldg_hut_rope).fill(rope.clone());
-                    painter.cylinder(bldg_water_puddle).fill(water.clone());
+                    bldg_underwater_tube.fill(white.clone());
+                    bldg_underwater_tube_clear.clear();
+                    bldg_underwater_exit.fill(white.clone());
+                    bldg_underwater_exit_clear.clear();
                     painter.cylinder(bldg_connect_tube).fill(white.clone());
-                    painter.cylinder(bldg_connect_water).fill(water.clone());
-                    painter.cylinder(bldg_connect_entry).fill(white.clone());
+                    painter
+                        .cylinder(bldg_connect_tube_gold_ring)
+                        .fill(gold.clone());
+                    painter.cylinder(bldg_connect_clear).clear();
+                    painter
+                        .cylinder(bldg_connect_decor_ring)
+                        .fill(gold_decor.clone());
+                    painter.cylinder(bldg_connect_decor_ring_clear).clear();
+                    painter.cylinder(bldg_connect_step_1).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_1_clear).clear();
+                    painter.cylinder(bldg_connect_step_2).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_2_clear).clear();
+                    painter.cylinder(bldg_connect_step_3).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_3_clear).clear();
+                    painter.aabb(bldg_hut_rope).fill(rope.clone());
                     painter.sprite(bldg_room_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_floor_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_cellar_chest_pos, SpriteKind::DungeonChest1);
@@ -4557,19 +2836,34 @@ impl Structure for SeaChapel {
                     painter.aabb(bldg_pavillon_entry_clear4).clear();
                     painter.aabb(bldg_pavillon_entry_clear5).clear();
                     painter.aabb(bldg_pavillon_entry_clear6).clear();
-                    bldg_top.fill(top.clone());
                     bldg_washed_top.fill(washed.clone());
+                    bldg_top.fill(top.clone());
                     painter.sphere(bldg_room_clear).clear();
                     bldg_room_goldring.fill(gold.clone());
                     bldg_room_goldring_clear.clear();
                     painter.cylinder(bldg_hut_floors_clear).clear();
                     painter.cylinder(bldg_hut_ropefix1).fill(ropefix1.clone());
                     painter.aabb(bldg_hut_ropefix2).fill(ropefix2.clone());
-                    painter.aabb(bldg_hut_rope).fill(rope.clone());
-                    painter.cylinder(bldg_water_puddle).fill(water.clone());
+                    bldg_underwater_tube.fill(white.clone());
+                    bldg_underwater_tube_clear.clear();
+                    bldg_underwater_exit.fill(white.clone());
+                    bldg_underwater_exit_clear.clear();
                     painter.cylinder(bldg_connect_tube).fill(white.clone());
-                    painter.cylinder(bldg_connect_water).fill(water.clone());
-                    painter.cylinder(bldg_connect_entry).fill(white.clone());
+                    painter
+                        .cylinder(bldg_connect_tube_gold_ring)
+                        .fill(gold.clone());
+                    painter.cylinder(bldg_connect_clear).clear();
+                    painter
+                        .cylinder(bldg_connect_decor_ring)
+                        .fill(gold_decor.clone());
+                    painter.cylinder(bldg_connect_decor_ring_clear).clear();
+                    painter.cylinder(bldg_connect_step_1).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_1_clear).clear();
+                    painter.cylinder(bldg_connect_step_2).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_2_clear).clear();
+                    painter.cylinder(bldg_connect_step_3).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_3_clear).clear();
+                    painter.aabb(bldg_hut_rope).fill(rope.clone());
                     painter.sprite(bldg_room_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_cellar_chest_pos, SpriteKind::DungeonChest1);
                 },
@@ -4580,12 +2874,15 @@ impl Structure for SeaChapel {
                     painter.sphere(bldg_room).fill(white.clone());
                     painter.aabb(bldg_hut_entry_clear1).clear();
                     painter.aabb(bldg_hut_entry_clear2).clear();
-                    bldg_room_windows.fill(window_ver.clone());
-                    bldg_top.fill(top.clone());
+                    bldg_room_windows_1.fill(window_ver.clone());
+                    bldg_room_windows_2.fill(window_ver.clone());
                     bldg_washed_top.fill(washed.clone());
+                    bldg_top.fill(top.clone());
                     painter.sphere(bldg_room2).fill(white.clone());
                     bldg_room2_windows1.fill(window_ver.clone());
-                    bldg_room2_windows2.fill(window_ver2.clone());
+                    bldg_room2_windows2.fill(window_ver.clone());
+                    bldg_room2_windows3.fill(window_ver2.clone());
+                    bldg_room2_windows4.fill(window_ver2.clone());
                     bldg_room2_washed_top.fill(washed.clone());
                     bldg_room2_top.fill(top.clone());
                     painter.sphere(bldg_room2_clear).clear();
@@ -4594,8 +2891,8 @@ impl Structure for SeaChapel {
                     painter.sphere(bldg_room_clear).clear();
                     bldg_room_goldring.fill(gold.clone());
                     bldg_room_goldring_clear.clear();
-                    painter.cylinder(bldg_room_floor).fill(white.clone());
-                    painter.cylinder(bldg_room2_floor).fill(white.clone());
+                    painter.cylinder(bldg_room_floor).fill(floor_color.clone());
+                    painter.cylinder(bldg_room2_floor).fill(floor_color.clone());
                     bldg_tube.fill(white.clone());
                     bldg_tube_clear.clear();
                     painter.aabb(bldg_tube_windows1).fill(window_ver2.clone());
@@ -4612,15 +2909,11 @@ impl Structure for SeaChapel {
                     painter.aabb(bldg_room3_entry_clear3).clear();
                     painter.aabb(bldg_room3_entry_clear4).clear();
                     painter.cylinder(bldg_floor2_wall).fill(white.clone());
-                    painter
-                        .aabb(bldg_floor2_glass_barriers)
-                        .fill(glass_barrier.clone());
                     painter.cylinder(bldg_tower_floors_clear).clear();
-                    painter.aabb(bldg_floor2_step).fill(gold_decor.clone());
-                    bldg_room3_floor.fill(white.clone());
+                    bldg_room3_floor.fill(floor_color.clone());
+                    bldg_room3_floor_clear.clear();
                     painter.cylinder(bldg_tower_ropefix1).fill(ropefix1.clone());
                     painter.aabb(bldg_tower_ropefix2).fill(ropefix2.clone());
-                    painter.aabb(bldg_tower_rope).fill(rope.clone());
                     bldg_gold_top_antlers2.fill(gold.clone());
                     bldg_gold_top_antlers2_clear.clear();
                     bldg_gold_top_antlers4.fill(gold.clone());
@@ -4631,10 +2924,26 @@ impl Structure for SeaChapel {
                     painter.aabb(bldg_gold_top_pole).fill(gold.clone());
                     painter.aabb(bldg_gold_top_antlers1).fill(gold.clone());
                     painter.aabb(bldg_gold_top_antlers3).fill(gold.clone());
-                    painter.cylinder(bldg_water_puddle).fill(water.clone());
+                    bldg_underwater_tube.fill(white.clone());
+                    bldg_underwater_tube_clear.clear();
+                    bldg_underwater_exit.fill(white.clone());
+                    bldg_underwater_exit_clear.clear();
                     painter.cylinder(bldg_connect_tube).fill(white.clone());
-                    painter.cylinder(bldg_connect_water).fill(water.clone());
-                    painter.cylinder(bldg_connect_entry).fill(white.clone());
+                    painter
+                        .cylinder(bldg_connect_tube_gold_ring)
+                        .fill(gold.clone());
+                    painter.cylinder(bldg_connect_clear).clear();
+                    painter
+                        .cylinder(bldg_connect_decor_ring)
+                        .fill(gold_decor.clone());
+                    painter.cylinder(bldg_connect_decor_ring_clear).clear();
+                    painter.cylinder(bldg_connect_step_1).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_1_clear).clear();
+                    painter.cylinder(bldg_connect_step_2).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_2_clear).clear();
+                    painter.cylinder(bldg_connect_step_3).fill(white.clone());
+                    painter.cylinder(bldg_connect_step_3_clear).clear();
+                    painter.aabb(bldg_tower_rope).fill(rope.clone());
                     painter.sprite(bldg_room_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_floor_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_floor2_lantern_pos, SpriteKind::SeashellLantern);
@@ -4642,10 +2951,6 @@ impl Structure for SeaChapel {
                     painter.sprite(bldg_floor3_drawer_pos, SpriteKind::DrawerSmall);
                     painter.sprite(bldg_floor3_potion_pos, SpriteKind::PotionMinor);
                     painter.sprite(bldg_cellar_chest_pos, SpriteKind::DungeonChest1);
-                    painter
-                        .aabb(bldg_floor2_coral_chest_podium)
-                        .fill(gold_decor.clone());
-                    painter.rotated_sprite(bldg_floor2_coral_chest_pos, SpriteKind::CoralChest, 0);
                     painter.sprite(bldg_floor_bed_pos, SpriteKind::Bed);
                     painter.sprite(bldg_floor_drawer_pos, SpriteKind::DrawerSmall);
                     painter.sprite(bldg_floor_potion_pos, SpriteKind::PotionMinor);
@@ -4682,6 +2987,11 @@ impl Structure for SeaChapel {
             painter
                 .cylinder(bldg_connect_gate)
                 .fill(Fill::Block(Block::air(connect_gate_type)));
+            if connect_gate_type == SpriteKind::GlassBarrier {
+                painter
+                    .cylinder(bldg_connect_keyhole)
+                    .fill(glass_keyhole.clone());
+            };
         }
         // surrounding buildings foundling, small hut, small pavillon
         for dir in NEIGHBORS {
@@ -4751,38 +3061,28 @@ impl Structure for SeaChapel {
                     su_bldg_base + (su_bldg_diameter / 15) + 2,
                 ),
             };
-            let su_bldg_top = painter
+            let su_bldg_top_half = painter.aabb(Aabb {
+                min: (su_bldg_center - (su_bldg_diameter / 6))
+                    .with_z(su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 6)),
+                max: (su_bldg_center + (su_bldg_diameter / 6))
+                    .with_z(su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 3)),
+            });
+            let su_bldg_washed_top = painter
                 .sphere(Aabb {
                     min: (su_bldg_center - (su_bldg_diameter / 6))
                         .with_z(su_bldg_base - (su_bldg_diameter / 15)),
                     max: (su_bldg_center + (su_bldg_diameter / 6))
                         .with_z(su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 3)),
                 })
-                .without(
-                    painter.cylinder(Aabb {
-                        min: (su_bldg_center - (su_bldg_diameter / 6))
-                            .with_z(su_bldg_base - (su_bldg_diameter / 15)),
-                        max: (su_bldg_center + (su_bldg_diameter / 6)).with_z(
-                            su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 6),
-                        ),
-                    }),
-                );
-            let su_bldg_washed_top = painter
+                .intersect(su_bldg_top_half);
+            let su_bldg_top = painter
                 .sphere(Aabb {
-                    min: (su_bldg_center - (su_bldg_diameter / 6))
-                        .with_z(su_bldg_base - (su_bldg_diameter / 15)),
-                    max: (su_bldg_center + (su_bldg_diameter / 6) - 1)
+                    min: (su_bldg_center - (su_bldg_diameter / 6) + 1)
+                        .with_z(su_bldg_base - (su_bldg_diameter / 15) + 1),
+                    max: (su_bldg_center + (su_bldg_diameter / 6))
                         .with_z(su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 3)),
                 })
-                .without(
-                    painter.cylinder(Aabb {
-                        min: (su_bldg_center - (su_bldg_diameter / 6))
-                            .with_z(su_bldg_base - (su_bldg_diameter / 15)),
-                        max: (su_bldg_center + (su_bldg_diameter / 6)).with_z(
-                            su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 6),
-                        ),
-                    }),
-                );
+                .intersect(su_bldg_top_half);
             let su_bldg_goldring = Aabb {
                 min: (su_bldg_center - (su_bldg_diameter / 6))
                     .with_z(su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 6) + 1),
@@ -4833,7 +3133,7 @@ impl Structure for SeaChapel {
                     .with_z(su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 3) - 3),
             };
             let su_bldg_rope = Aabb {
-                min: (su_bldg_center).with_z(su_bldg_base - (su_bldg_diameter / 15) + 5),
+                min: (su_bldg_center).with_z(su_bldg_base - (su_bldg_diameter / 15) + 3),
                 max: (su_bldg_center + 1)
                     .with_z(su_bldg_base - (su_bldg_diameter / 15) + (su_bldg_diameter / 3) - 4),
             };
@@ -4909,14 +3209,74 @@ impl Structure for SeaChapel {
                     su_bldg_base + (su_bldg_diameter / 15) + 2,
                 ),
             };
+            let su_bldg_pavillon_entries7 = Aabb {
+                min: Vec3::new(
+                    su_bldg_center.x - 4,
+                    su_bldg_center.y,
+                    su_bldg_base + (su_bldg_diameter / 15) - 2,
+                ),
+                max: Vec3::new(
+                    su_bldg_center.x + 4,
+                    su_bldg_center.y + (su_bldg_diameter / 6),
+                    su_bldg_base + (su_bldg_diameter / 15),
+                ),
+            };
+            let su_bldg_pavillon_entries8 = Aabb {
+                min: Vec3::new(
+                    su_bldg_center.x - 2,
+                    su_bldg_center.y,
+                    su_bldg_base + (su_bldg_diameter / 15) + 1,
+                ),
+                max: Vec3::new(
+                    su_bldg_center.x + 2,
+                    su_bldg_center.y + (su_bldg_diameter / 6),
+                    su_bldg_base + (su_bldg_diameter / 15) + 2,
+                ),
+            };
+            let su_bldg_pavillon_barriers_1 = Aabb {
+                min: Vec3::new(
+                    su_bldg_center.x - 3,
+                    su_bldg_center.y + (su_bldg_diameter / 6) - 3,
+                    su_bldg_base + (su_bldg_diameter / 15),
+                ),
+                max: Vec3::new(
+                    su_bldg_center.x + 3,
+                    su_bldg_center.y + (su_bldg_diameter / 6) - 2,
+                    su_bldg_base + (su_bldg_diameter / 15) + 1,
+                ),
+            };
+            let su_bldg_pavillon_barriers_2 = Aabb {
+                min: Vec3::new(
+                    su_bldg_center.x - 4,
+                    su_bldg_center.y + (su_bldg_diameter / 6) - 3,
+                    su_bldg_base + (su_bldg_diameter / 15) - 1,
+                ),
+                max: Vec3::new(
+                    su_bldg_center.x + 4,
+                    su_bldg_center.y + (su_bldg_diameter / 6) - 2,
+                    su_bldg_base + (su_bldg_diameter / 15),
+                ),
+            };
+            let su_bldg_pavillon_barriers_keyhole = Aabb {
+                min: Vec3::new(
+                    su_bldg_center.x - 1,
+                    su_bldg_center.y + (su_bldg_diameter / 6) - 3,
+                    su_bldg_base + (su_bldg_diameter / 15) - 2,
+                ),
+                max: Vec3::new(
+                    su_bldg_center.x,
+                    su_bldg_center.y + (su_bldg_diameter / 6) - 2,
+                    su_bldg_base + (su_bldg_diameter / 15) - 1,
+                ),
+            };
             match su_bldg_variant {
                 0..=5 => {
                     // common parts for small hut / small pavillon,
                     painter.sphere(su_bldg_bottom1).fill(white.clone());
                     painter.sphere(su_bldg_bottom2).fill(white.clone());
                     painter.sphere(su_bldg_room).fill(white.clone());
-                    su_bldg_top.fill(top.clone());
                     su_bldg_washed_top.fill(washed.clone());
+                    su_bldg_top.fill(top.clone());
                     painter.cylinder(su_bldg_goldring).fill(gold.clone());
                     painter.sphere(su_bldg_room_clear).clear();
                     painter.sprite(su_bldg_room_lantern_pos, SpriteKind::SeashellLantern);
@@ -4936,13 +3296,40 @@ impl Structure for SeaChapel {
                             painter.sprite(su_bldg_floor_bed_pos, SpriteKind::Bed);
                         },
                         _ => {
-                            // small pavillon
-                            painter.aabb(su_bldg_pavillon_entries1).clear();
-                            painter.aabb(su_bldg_pavillon_entries2).clear();
-                            painter.aabb(su_bldg_pavillon_entries3).clear();
-                            painter.aabb(su_bldg_pavillon_entries4).clear();
-                            painter.aabb(su_bldg_pavillon_entries5).clear();
-                            painter.aabb(su_bldg_pavillon_entries6).clear();
+                            // small pavillon, some with prisoners
+                            if su_bldg_variant > 4 {
+                                painter.aabb(su_bldg_pavillon_entries2).clear();
+                                painter.aabb(su_bldg_pavillon_entries7).clear();
+                                painter.aabb(su_bldg_pavillon_entries5).clear();
+                                painter.aabb(su_bldg_pavillon_entries8).clear();
+                                painter
+                                    .aabb(su_bldg_pavillon_barriers_1)
+                                    .fill(glass_barrier.clone());
+                                painter
+                                    .aabb(su_bldg_pavillon_barriers_2)
+                                    .fill(glass_barrier.clone());
+                                painter
+                                    .aabb(su_bldg_pavillon_barriers_keyhole)
+                                    .fill(glass_keyhole.clone());
+                                let prisoner_pos = su_bldg_center.with_z(base + 2);
+                                for _ in 0..(6
+                                    + ((RandomField::new(0).get((prisoner_pos).with_z(base))) % 6))
+                                {
+                                    painter.spawn(
+                                        EntityInfo::at(prisoner_pos.as_()).with_asset_expect(
+                                            "common.entity.dungeon.sea_chapel.prisoner",
+                                            &mut rng,
+                                        ),
+                                    )
+                                }
+                            } else {
+                                painter.aabb(su_bldg_pavillon_entries1).clear();
+                                painter.aabb(su_bldg_pavillon_entries2).clear();
+                                painter.aabb(su_bldg_pavillon_entries3).clear();
+                                painter.aabb(su_bldg_pavillon_entries4).clear();
+                                painter.aabb(su_bldg_pavillon_entries5).clear();
+                                painter.aabb(su_bldg_pavillon_entries6).clear();
+                            };
                         },
                     }
                 },

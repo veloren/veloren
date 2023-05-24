@@ -392,6 +392,7 @@ impl ParticleMgr {
             | Outcome::IceCrack { .. }
             | Outcome::Glider { .. }
             | Outcome::Woosh { .. }
+            | Outcome::Steam { .. }
             | Outcome::LaserBeam { .. } => {},
         }
     }
