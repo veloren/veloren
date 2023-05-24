@@ -84,7 +84,7 @@ impl Body {
             Body::Galleon => Vec3::new(14.0, 48.0, 10.0),
             Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
             Body::Submarine => Vec3::new(2.0, 15.0, 8.0),
-            Body::Carriage => Vec3::new(2.0, 15.0, 8.0),
+            Body::Carriage => Vec3::new(6.0, 12.0, 8.0),
         }
     }
 
@@ -133,7 +133,7 @@ impl Body {
     pub fn flying_height(&self) -> f32 { if self.can_fly() { 200.0 } else { 0.0 } }
 
     pub fn has_water_thrust(&self) -> bool {
-        !self.can_fly() && !matches!(self, Body::Carriage) // TODO: Differentiate this more carefully
+        matches!(self, Body::SailBoat | Body::Galleon | Body::Skiff)
     }
 
     pub fn has_wheels(&self) -> bool { matches!(self, Body::Carriage) }

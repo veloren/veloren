@@ -589,7 +589,7 @@ pub fn handle_orientation(
         (a.to_quat().into_vec4() - b.to_quat().into_vec4()).reduce(|a, b| a.abs() + b.abs())
     }
 
-    let (tilt_ori, efficiency) = if let Body::Ship(ship) = data.body && ship.has_wheels() && data.physics.on_ground.is_some() {
+    let (tilt_ori, efficiency) = if let Body::Ship(ship) = data.body && ship.has_wheels() {
         let height_at = |rpos| data
             .terrain
             .ray(
@@ -600,6 +600,7 @@ pub fn handle_orientation(
             .cast()
             .0;
 
+        // Do some cheap raycasting with the ground to determine the appropriate orientation for the vehicle
         let x_diff = (height_at(data.ori.to_horizontal().right().to_vec() * 3.0) - height_at(data.ori.to_horizontal().right().to_vec() * -3.0)) / 10.0;
         let y_diff = (height_at(data.ori.to_horizontal().look_dir().to_vec() * -4.5) - height_at(data.ori.to_horizontal().look_dir().to_vec() * 4.5)) / 10.0;
 

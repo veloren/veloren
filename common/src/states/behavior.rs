@@ -5,8 +5,8 @@ use crate::{
         item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, ControlAction,
         Controller, ControllerInputs, Density, Energy, Health, InputAttr, InputKind, Inventory,
-        InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, PreviousPhysCache, Scale, SkillSet,
-        Stance, StateUpdate, Stats, Vel,
+        InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, Scale, SkillSet, Stance, StateUpdate,
+        Stats, Vel,
     },
     link::Is,
     mounting::{Rider, VolumeRider},
@@ -149,7 +149,6 @@ pub struct JoinData<'a> {
     pub mount_data: Option<&'a Is<Rider>>,
     pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
-    pub previous_physics: Option<&'a PreviousPhysCache>,
 }
 
 pub struct JoinStruct<'a> {
@@ -180,7 +179,6 @@ pub struct JoinStruct<'a> {
     pub mount_data: Option<&'a Is<Rider>>,
     pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
-    pub previous_physics: Option<&'a PreviousPhysCache>,
 }
 
 impl<'a> JoinData<'a> {
@@ -225,7 +223,6 @@ impl<'a> JoinData<'a> {
             mount_data: j.mount_data,
             volume_mount_data: j.volume_mount_data,
             stance: j.stance,
-            previous_physics: j.previous_physics,
         }
     }
 }

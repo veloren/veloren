@@ -10,7 +10,7 @@ use common::{
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, Controller, Density,
         Energy, Health, Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos,
-        PreviousPhysCache, Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
+        Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     link::Is,
@@ -54,7 +54,6 @@ pub struct ReadData<'a> {
     terrain: ReadExpect<'a, TerrainGrid>,
     inventories: ReadStorage<'a, Inventory>,
     stances: ReadStorage<'a, Stance>,
-    previous_physics: ReadStorage<'a, PreviousPhysCache>,
 }
 
 /// ## Character Behavior System
@@ -121,7 +120,7 @@ impl<'a> System<'a> for Sys {
             controller,
             health,
             body,
-            (physics, scale, stat, skill_set, active_abilities, previous_physics, is_rider),
+            (physics, scale, stat, skill_set, active_abilities, is_rider),
             combo,
         ) in (
             &read_data.entities,
@@ -144,7 +143,6 @@ impl<'a> System<'a> for Sys {
                 &read_data.stats,
                 &read_data.skill_sets,
                 read_data.active_abilities.maybe(),
-                read_data.previous_physics.maybe(),
                 read_data.is_riders.maybe(),
             ),
             read_data.combos.maybe(),
@@ -212,7 +210,6 @@ impl<'a> System<'a> for Sys {
                 mount_data: read_data.is_riders.get(entity),
                 volume_mount_data: read_data.is_volume_riders.get(entity),
                 stance: read_data.stances.get(entity),
-                previous_physics,
             };
 
             for action in actions {
