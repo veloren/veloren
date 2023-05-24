@@ -885,7 +885,6 @@ impl<'a> PhysicsData<'a> {
                                 tgt_pos,
                                 &mut vel,
                                 physics_state,
-                                Vec3::zero(),
                                 &read.dt,
                                 was_on_ground,
                                 block_snap,
@@ -918,7 +917,6 @@ impl<'a> PhysicsData<'a> {
                                 tgt_pos,
                                 &mut vel,
                                 physics_state,
-                                Vec3::zero(),
                                 &read.dt,
                                 was_on_ground,
                                 block_snap,
@@ -1198,7 +1196,6 @@ impl<'a> PhysicsData<'a> {
                                             transform_to.mul_point(tgt_pos - pos.0),
                                             &mut vel,
                                             &mut physics_state_delta,
-                                            previous_cache_other.ori.inverse() * vel_other,
                                             &read.dt,
                                             was_on_ground,
                                             block_snap,
@@ -1229,7 +1226,9 @@ impl<'a> PhysicsData<'a> {
                                     if physics_state_delta.on_ground.is_some() {
                                         // TODO: Do we need to do this? Perhaps just take the
                                         // ground_vel regardless?
-                                        physics_state.ground_vel = vel_other;
+                                        physics_state.ground_vel = previous_cache_other.ori
+                                            * physics_state_delta.ground_vel
+                                            + vel_other;
                                     }
                                     if physics_state_delta.on_surface().is_some() {
                                         // If the collision resulted in us being on a surface,
@@ -1415,7 +1414,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     tgt_pos: Vec3<f32>,
     vel: &mut Vel,
     physics_state: &mut PhysicsState,
-    ground_vel: Vec3<f32>,
     dt: &DeltaTime,
     was_on_ground: bool,
     block_snap: bool,
@@ -1793,14 +1791,17 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 (old_depth + old_pos.z - pos.0.z).max(depth)
             });
 
+            // TODO: Change this at some point to allow entities to be moved by liquids?
+            let vel = Vel::zero();
+
             if depth > 0.0 {
-                physics_state.ground_vel = ground_vel;
+                physics_state.ground_vel = vel.0;
             }
 
             Fluid::Liquid {
                 kind,
                 depth: new_depth,
-                vel: Vel::zero(),
+                vel,
             }
         })
         .or_else(|| match physics_state.in_fluid {
@@ -1898,7 +1899,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         let fric = ground_fric.max(wall_fric);
         if fric > 0.0 {
             vel.0 *= (1.0 - fric.min(1.0) * fric_mod).powf(dt.0 * 60.0);
-            physics_state.ground_vel = ground_vel;
+            physics_state.ground_vel = Vec3::zero();
         }
         physics_state.skating_active = false;
     }
