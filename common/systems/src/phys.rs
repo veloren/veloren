@@ -1209,7 +1209,7 @@ impl<'a> PhysicsData<'a> {
                                                     entity,
                                                     Vel(previous_cache_other.ori * vel.0
                                                         + vel_other),
-                                                    surface_normal,
+                                                    previous_cache_other.ori * surface_normal,
                                                 ));
                                             },
                                             read,
