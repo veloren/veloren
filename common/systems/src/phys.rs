@@ -889,7 +889,9 @@ impl<'a> PhysicsData<'a> {
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_ground = Some((entity, vel)),
+                                |entity, vel, surface_normal| {
+                                    land_on_ground = Some((entity, vel, surface_normal))
+                                },
                                 read,
                                 &ori,
                             );
@@ -921,7 +923,9 @@ impl<'a> PhysicsData<'a> {
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_ground = Some((entity, vel)),
+                                |entity, vel, surface_normal| {
+                                    land_on_ground = Some((entity, vel, surface_normal))
+                                },
                                 read,
                                 &ori,
                             );
@@ -1200,10 +1204,12 @@ impl<'a> PhysicsData<'a> {
                                             was_on_ground,
                                             block_snap,
                                             climbing,
-                                            |entity, vel| {
+                                            |entity, vel, surface_normal| {
                                                 land_on_ground = Some((
                                                     entity,
-                                                    Vel(ori_other.to_quat() * vel.0),
+                                                    Vel(previous_cache_other.ori * vel.0
+                                                        + vel_other),
+                                                    surface_normal,
                                                 ));
                                             },
                                             read,
@@ -1337,9 +1343,15 @@ impl<'a> PhysicsData<'a> {
         drop(guard);
 
         let mut event_emitter = read.event_bus.emitter();
-        land_on_grounds.into_iter().for_each(|(entity, vel)| {
-            event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
-        });
+        land_on_grounds
+            .into_iter()
+            .for_each(|(entity, vel, surface_normal)| {
+                event_emitter.emit(ServerEvent::LandOnGround {
+                    entity,
+                    vel: vel.0,
+                    surface_normal,
+                });
+            });
     }
 
     fn update_cached_spatial_grid(&mut self) {
@@ -1418,7 +1430,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     was_on_ground: bool,
     block_snap: bool,
     climbing: bool,
-    mut land_on_ground: impl FnMut(Entity, Vel),
+    mut land_on_ground: impl FnMut(Entity, Vel, Vec3<f32>),
     read: &PhysicsRead,
     ori: &Ori,
 ) {
@@ -1594,7 +1606,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             }
 
             if resolve_dir.magnitude_squared() > 0.0 {
-                land_on_ground(entity, *vel);
+                land_on_ground(entity, *vel, resolve_dir.normalized());
             }
 
             // When the resolution direction is non-vertical, we must be colliding

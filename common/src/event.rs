@@ -188,6 +188,7 @@ pub enum ServerEvent {
     LandOnGround {
         entity: EcsEntity,
         vel: Vec3<f32>,
+        surface_normal: Vec3<f32>,
     },
     EnableLantern(EcsEntity),
     DisableLantern(EcsEntity),

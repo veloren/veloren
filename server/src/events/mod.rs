@@ -120,9 +120,11 @@ impl Server {
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
                 ServerEvent::GroupManip(entity, manip) => handle_group(self, entity, manip),
                 ServerEvent::Respawn(entity) => handle_respawn(self, entity),
-                ServerEvent::LandOnGround { entity, vel } => {
-                    handle_land_on_ground(self, entity, vel)
-                },
+                ServerEvent::LandOnGround {
+                    entity,
+                    vel,
+                    surface_normal,
+                } => handle_land_on_ground(self, entity, vel, surface_normal),
                 ServerEvent::EnableLantern(entity) => handle_lantern(self, entity, true),
                 ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
                 ServerEvent::NpcInteract(interactor, target, subject) => {
