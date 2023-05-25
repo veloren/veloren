@@ -227,7 +227,7 @@
             13: Air(Window1, 2),
             14: Air(Crate, 0),
             15: Air(Cauldron, 2),
-            16: Air(Tent, 0),
+            16: Air(ChairSingle, 0),
             17: Air(CookingPot, 0),
             18: Air(WallLampSmall, 4),
             19: Air(Lantern, 4),

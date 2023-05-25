@@ -642,7 +642,9 @@ pub fn handle_orientation(
     // very rough guess
     let ticks_from_target_guess = ori_absdiff(&update.ori, &target_ori) / half_turns_per_tick;
     let instantaneous = ticks_from_target_guess < 1.0;
-    update.ori = if instantaneous {
+    update.ori = if data.volume_mount_data.is_some() {
+        update.ori
+    } else if instantaneous {
         target_ori
     } else {
         let target_fraction = {

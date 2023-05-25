@@ -2042,7 +2042,7 @@ impl Hud {
 
             // Render overtime for an interactable block
             if let Some(Interactable::Block(block, pos, interaction)) = interactable
-                && let Some((mat, _)) = pos.get_block_and_transform(
+                && let Some((mat, _, _)) = pos.get_block_and_transform(
                     &ecs.read_resource(),
                     &ecs.read_resource(),
                     |e| ecs.read_storage::<vcomp::Interpolated>().get(e).map(|interpolated| (comp::Pos(interpolated.pos), interpolated.ori)),
@@ -4751,7 +4751,7 @@ impl Hud {
                                 },
                                 &client.state().read_storage(),
                             )
-                            .map_or(false, |(mat, block)| {
+                            .map_or(false, |(mat, _, block)| {
                                 block.get_sprite() == Some(*sprite)
                                     && mat.mul_point(Vec3::broadcast(0.5)).distance(player_pos)
                                         < MAX_PICKUP_RANGE

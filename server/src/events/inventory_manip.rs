@@ -801,7 +801,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 },
                                 &state.read_storage(),
                             )
-                            .map(|(mat, _)| mat.mul_point(Vec3::broadcast(0.5)))
+                            .map(|(mat, _, _)| mat.mul_point(Vec3::broadcast(0.5)))
                         });
                         if !in_range {
                             debug!(
