@@ -79,9 +79,11 @@ impl<'a> System<'a> for Sys {
                     })
                     .unwrap_or_default();
                 let tether_pos = follower_pos.0 + tether_offset;
-                let pull_factor =
-                    (leader_pos.0.distance(tether_pos) - is_follower.tether_length).clamp(0.0, 1.0);
-                let strength = pull_factor * 30000.0;
+                let pull_factor = ((leader_pos.0.distance(tether_pos) - is_follower.tether_length)
+                    * 0.5)
+                    .clamp(0.0, 1.0)
+                    .powf(2.0);
+                let strength = pull_factor * 50000.0;
                 let pull_dir = (leader_pos.0 - follower_pos.0)
                     .try_normalized()
                     .unwrap_or_default();

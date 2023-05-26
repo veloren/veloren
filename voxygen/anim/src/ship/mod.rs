@@ -116,6 +116,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, 0.0, 0.0),
                 Carriage => (0.0, 0.0, 0.0),
+                Cart => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone1: match body {
@@ -126,6 +127,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, -15.0, 3.5),
                 Carriage => (0.0, 3.0, 2.0),
+                Cart => (0.0, 1.0, 1.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone2: match body {
@@ -136,6 +138,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, 0.0, 0.0),
                 Carriage => (0.0, -3.0, 2.0),
+                Cart => (0.0, -2.5, 1.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone3: match body {
@@ -146,18 +149,20 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Skiff => (0.0, 0.0, 0.0),
                 Submarine => (0.0, -18.0, 3.5),
                 Carriage => (0.0, 0.0, 0.0),
+                Cart => (0.0, 0.0, 0.0),
                 Volume => (0.0, 0.0, 0.0),
             },
             bone1_ori: match body {
-                Carriage => std::f32::consts::PI * 0.5,
+                Carriage | Cart => std::f32::consts::PI * 0.5,
                 _ => 0.0,
             },
             bone2_ori: match body {
-                Carriage => std::f32::consts::PI * -0.5,
+                Carriage | Cart => std::f32::consts::PI * -0.5,
                 _ => 0.0,
             },
             bone_rotation_rate: match body {
                 Carriage => 0.25,
+                Cart => 0.4,
                 _ => 0.8,
             },
             bone1_prop_trail_offset: match body {

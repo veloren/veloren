@@ -1198,6 +1198,7 @@ impl Body {
                 ship::Body::Skiff => [1.0, -2.0, 2.0],
                 ship::Body::Submarine => [1.0, -2.0, 2.0],
                 ship::Body::Carriage => [1.0, -2.0, 2.0],
+                ship::Body::Cart => [1.0, -2.0, 2.0],
                 ship::Body::Volume => [0.0, 0.0, 0.0],
             },
             _ => [0.0, 0.0, 0.0],
