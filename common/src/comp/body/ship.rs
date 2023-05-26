@@ -122,7 +122,7 @@ impl Body {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
             Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
-            Body::Carriage => Density(WATER_DENSITY * 0.5),
+            Body::Carriage => Density(AIR_DENSITY * 1.5),
             Body::Cart => Density(AIR_DENSITY * 1.2),
             _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
                                                                       * buoyant */
