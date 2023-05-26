@@ -52,3 +52,4 @@ hud-talk = Prata
 hud-trade = Byt
 hud-mount = Bestig
 hud-sit = Sitt
+hud-steer = Styr
