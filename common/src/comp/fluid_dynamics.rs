@@ -211,6 +211,13 @@ impl Body {
         }
     }
 
+    /// Physically incorrect (but relatively dt-independent) way to calculate
+    /// drag coefficients for liquids.
+    // TODO: Remove this in favour of `aerodynamic_forces` (see: `integrate_forces`)
+    pub fn drag_coefficient_liquid(&self, fluid_density: f32, scale: f32) -> f32 {
+        fluid_density * self.parasite_drag(scale)
+    }
+
     /// Parasite drag is the sum of pressure drag and skin friction.
     /// Skin friction is the drag arising from the shear forces between a fluid
     /// and a surface, while pressure drag is due to flow separation. Both are

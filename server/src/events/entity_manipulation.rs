@@ -595,14 +595,21 @@ pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
         .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
 }
 
-pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
+pub fn handle_land_on_ground(
+    server: &Server,
+    entity: EcsEntity,
+    vel: Vec3<f32>,
+    surface_normal: Vec3<f32>,
+) {
     let ecs = server.state.ecs();
+
+    let relative_vel = vel.dot(-surface_normal);
 
     // The second part of this if statement disables all fall damage when in the
     // water. This was added as a *temporary* fix a bug that causes you to take
     // fall damage while swimming downwards. FIXME: Fix the actual bug and
     // remove the following relevant part of the if statement.
-    if vel.z <= -30.0
+    if relative_vel >= 30.0
         && ecs
             .read_storage::<PhysicsState>()
             .get(entity)
@@ -610,10 +617,10 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     {
         let char_states = ecs.read_storage::<CharacterState>();
 
-        let reduced_vel_z = if let Some(CharacterState::DiveMelee(c)) = char_states.get(entity) {
-            (vel.z + c.static_data.vertical_speed).min(0.0)
+        let reduced_vel = if let Some(CharacterState::DiveMelee(c)) = char_states.get(entity) {
+            (relative_vel + c.static_data.vertical_speed).min(0.0)
         } else {
-            vel.z
+            relative_vel
         };
 
         let mass = ecs
@@ -621,7 +628,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
             .get(entity)
             .copied()
             .unwrap_or_default();
-        let impact_energy = mass.0 * reduced_vel_z.powi(2) / 2.0;
+        let impact_energy = mass.0 * reduced_vel.powi(2) / 2.0;
         let falldmg = impact_energy / 1000.0;
 
         let inventories = ecs.read_storage::<Inventory>();
@@ -655,7 +662,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         server_eventbus.emit_now(ServerEvent::HealthChange { entity, change });
 
         // Emit poise change
-        let poise_damage = -(mass.0 * reduced_vel_z.powi(2) / 1500.0);
+        let poise_damage = -(mass.0 * reduced_vel.powi(2) / 1500.0);
         let poise_change = Poise::apply_poise_reduction(
             poise_damage,
             inventories.get(entity),

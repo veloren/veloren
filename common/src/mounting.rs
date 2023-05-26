@@ -211,10 +211,11 @@ impl VolumePos {
         uid_allocator: &UidAllocator,
         mut read_pos_and_ori: impl FnMut(Entity) -> Option<(comp::Pos, comp::Ori)>,
         colliders: &ReadStorage<comp::Collider>,
-    ) -> Option<(Mat4<f32>, Block)> {
+    ) -> Option<(Mat4<f32>, comp::Ori, Block)> {
         match self.kind {
             Volume::Terrain => Some((
                 Mat4::translation_3d(self.pos.as_()),
+                comp::Ori::default(),
                 *terrain.get(self.pos).ok()?,
             )),
             Volume::Entity(uid) => {
@@ -234,7 +235,7 @@ impl VolumePos {
                         let trans = Mat4::from(ori.to_quat()).translated_3d(pos.0)
                             * Mat4::<f32>::translation_3d(local_translation);
 
-                        Some((trans, block))
+                        Some((trans, ori, block))
                     })
             },
         }

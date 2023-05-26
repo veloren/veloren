@@ -9,15 +9,23 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use vek::*;
 
-pub const ALL_BODIES: [Body; 4] = [
+pub const ALL_BODIES: [Body; 6] = [
     Body::DefaultAirship,
     Body::AirBalloon,
     Body::SailBoat,
     Body::Galleon,
+    Body::Skiff,
+    Body::Submarine,
 ];
 
 pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
-pub const ALL_SHIPS: [Body; 2] = [Body::SailBoat, Body::Galleon];
+pub const ALL_SHIPS: [Body; 5] = [
+    Body::SailBoat,
+    Body::Galleon,
+    Body::Skiff,
+    Body::Submarine,
+    Body::Carriage,
+];
 
 make_case_elim!(
     body,
@@ -29,6 +37,9 @@ make_case_elim!(
         SailBoat = 2,
         Galleon = 3,
         Volume = 4,
+        Skiff = 5,
+        Submarine = 6,
+        Carriage = 7,
     }
 );
 
@@ -58,6 +69,9 @@ impl Body {
             Body::AirBalloon => Some("air_balloon.structure"),
             Body::SailBoat => Some("sail_boat.structure"),
             Body::Galleon => Some("galleon.structure"),
+            Body::Skiff => Some("skiff.structure"),
+            Body::Submarine => Some("submarine.structure"),
+            Body::Carriage => Some("carriage.structure"),
             Body::Volume => None,
         }
     }
@@ -66,8 +80,11 @@ impl Body {
         match self {
             Body::DefaultAirship | Body::Volume => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
-            Body::SailBoat => Vec3::new(13.0, 31.0, 3.0),
-            Body::Galleon => Vec3::new(13.0, 32.0, 3.0),
+            Body::SailBoat => Vec3::new(12.0, 32.0, 6.0),
+            Body::Galleon => Vec3::new(14.0, 48.0, 10.0),
+            Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
+            Body::Submarine => Vec3::new(2.0, 15.0, 8.0),
+            Body::Carriage => Vec3::new(6.0, 12.0, 8.0),
         }
     }
 
@@ -100,7 +117,10 @@ impl Body {
     pub fn density(&self) -> Density {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
-            _ => Density(AIR_DENSITY * 0.2 + WATER_DENSITY * 0.8), // Most boats should be buoyant
+            Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
+            Body::Carriage => Density(WATER_DENSITY * 0.5),
+            _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
+                                                                      * buoyant */
         }
     }
 
@@ -113,8 +133,10 @@ impl Body {
     pub fn flying_height(&self) -> f32 { if self.can_fly() { 200.0 } else { 0.0 } }
 
     pub fn has_water_thrust(&self) -> bool {
-        !self.can_fly() // TODO: Differentiate this more carefully
+        matches!(self, Body::SailBoat | Body::Galleon | Body::Skiff)
     }
+
+    pub fn has_wheels(&self) -> bool { matches!(self, Body::Carriage) }
 
     pub fn make_collider(&self) -> Collider {
         match self.manifest_entry() {

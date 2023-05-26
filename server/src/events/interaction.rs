@@ -158,7 +158,7 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
         &state.read_storage(),
     );
 
-    if let Some((mat, block)) = block_transform
+    if let Some((mat, _, block)) = block_transform
     && let Some(mount_offset) = block.mount_offset() {
         let mount_pos = (mat * mount_offset.0.with_w(1.0)).xyz();
         let within_range = {

@@ -2275,8 +2275,8 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        // Running
-                        (false, _, true) => anim::quadruped_small::RunAnimation::update_skeleton(
+                        // Swimming
+                        (_, _, true) => anim::quadruped_small::RunAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::default(),
                             (
                                 rel_vel.magnitude(),
@@ -2303,13 +2303,6 @@ impl FigureMgr {
                                 rel_avg_vel,
                                 state.acc_vel,
                             ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        _ => anim::quadruped_small::IdleAnimation::update_skeleton(
-                            &QuadrupedSmallSkeleton::default(),
-                            time,
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2476,7 +2469,7 @@ impl FigureMgr {
                             )
                         },
                         //Swimming
-                        (false, _, true) => anim::quadruped_medium::RunAnimation::update_skeleton(
+                        (_, _, true) => anim::quadruped_medium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::default(),
                             (
                                 rel_vel.magnitude(),
@@ -2501,13 +2494,6 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        _ => anim::quadruped_medium::IdleAnimation::update_skeleton(
-                            &QuadrupedMediumSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
                     };
                     let target_bones = match &character {
                         CharacterState::BasicMelee(s) => {
@@ -2851,7 +2837,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Swimming
-                        (false, _, true) => anim::quadruped_low::RunAnimation::update_skeleton(
+                        (_, _, true) => anim::quadruped_low::RunAnimation::update_skeleton(
                             &QuadrupedLowSkeleton::default(),
                             (
                                 rel_vel.magnitude(),
@@ -2878,13 +2864,6 @@ impl FigureMgr {
                                 rel_avg_vel,
                                 state.acc_vel,
                             ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        _ => anim::quadruped_low::IdleAnimation::update_skeleton(
-                            &QuadrupedLowSkeleton::default(),
-                            time,
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,

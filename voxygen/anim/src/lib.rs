@@ -114,6 +114,7 @@ pub enum TrailSource {
     Weapon,
     GliderLeft,
     GliderRight,
+    Propeller(f32),
 }
 
 impl TrailSource {
@@ -146,6 +147,10 @@ impl TrailSource {
             Self::GliderRight => (
                 Vec4::new(-GLIDER_HORIZ, 0.0, GLIDER_VERT, 1.0),
                 Vec4::new(-(GLIDER_HORIZ + GLIDER_WIDTH), 0.0, GLIDER_VERT, 1.0),
+            ),
+            Self::Propeller(length) => (
+                Vec4::new(0.0, 0.0, *length * 0.5, 1.0),
+                Vec4::new(0.0, 0.0, *length, 1.0),
             ),
         }
     }

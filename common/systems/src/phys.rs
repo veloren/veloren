@@ -11,7 +11,7 @@ use common::{
     link::Is,
     mounting::{Rider, VolumeRider},
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, GameMode},
     states,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::Uid,
@@ -62,29 +62,48 @@ fn integrate_forces(
     // Aerodynamic/hydrodynamic forces
     if !rel_flow.0.is_approx_zero() {
         debug_assert!(!rel_flow.0.map(|a| a.is_nan()).reduce_or());
-        let impulse = dt.0
-            * body.aerodynamic_forces(
-                &rel_flow,
-                fluid_density.0,
-                wings,
-                scale.map_or(1.0, |s| s.0),
-            );
-        debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
-        if !impulse.is_approx_zero() {
-            let new_v = vel.0 + impulse / mass.0;
-            // If the new velocity is in the opposite direction, it's because the forces
-            // involved are too high for the current tick to handle. We deal with this by
-            // removing the component of our velocity vector along the direction of force.
-            // This way we can only ever lose velocity and will never experience a reverse
-            // in direction from events such as falling into water at high velocities.
-            if new_v.dot(vel.0) < 0.0 {
-                // Multiply by a factor to prevent full stop,
-                // as this can cause things to get stuck in high-density medium
-                vel.0 -= vel.0.projected(&impulse) * 0.9;
-            } else {
-                vel.0 = new_v;
+        // HACK: We should really use the latter logic (i.e: `aerodynamic_forces`) for
+        // liquids, but it results in pretty serious dt-dependent problems that
+        // are extremely difficult to resolve. This is a compromise: for liquids
+        // only, we calculate drag using an incorrect (but still visually plausible)
+        // model that is much more resistant to differences in dt. Because it's
+        // physically incorrect anyway, there are magic coefficients that
+        // exist simply to get us closer to what water 'should' feel like.
+        if fluid.is_liquid() {
+            let fric = body
+                .drag_coefficient_liquid(fluid_density.0, scale.map_or(1.0, |s| s.0))
+                .powf(0.75)
+                * 0.02;
+
+            let fvel = fluid.flow_vel();
+
+            // Drag is relative to fluid velocity, so compensate before applying drag
+            vel.0 = (vel.0 - fvel.0) * (1.0 / (1.0 + fric)).powf(dt.0 * 10.0) + fvel.0;
+        } else {
+            let impulse = dt.0
+                * body.aerodynamic_forces(
+                    &rel_flow,
+                    fluid_density.0,
+                    wings,
+                    scale.map_or(1.0, |s| s.0),
+                );
+            debug_assert!(!impulse.map(|a| a.is_nan()).reduce_or());
+            if !impulse.is_approx_zero() {
+                let new_v = vel.0 + impulse / mass.0;
+                // If the new velocity is in the opposite direction, it's because the forces
+                // involved are too high for the current tick to handle. We deal with this by
+                // removing the component of our velocity vector along the direction of force.
+                // This way we can only ever lose velocity and will never experience a reverse
+                // in direction from events such as falling into water at high velocities.
+                if new_v.dot(vel.0) < 0.0 {
+                    // Multiply by a factor to prevent full stop,
+                    // as this can cause things to get stuck in high-density medium
+                    vel.0 -= vel.0.projected(&impulse) * 0.9;
+                } else {
+                    vel.0 = new_v;
+                }
             }
-        };
+        }
         debug_assert!(!vel.0.map(|a| a.is_nan()).reduce_or());
     };
 
@@ -116,6 +135,7 @@ pub struct PhysicsRead<'a> {
     terrain: ReadExpect<'a, TerrainGrid>,
     dt: Read<'a, DeltaTime>,
     event_bus: Read<'a, EventBus<ServerEvent>>,
+    game_mode: ReadExpect<'a, GameMode>,
     scales: ReadStorage<'a, Scale>,
     stickies: ReadStorage<'a, Sticky>,
     immovables: ReadStorage<'a, Immovable>,
@@ -277,7 +297,6 @@ impl<'a> PhysicsData<'a> {
                 Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point => None,
             };
             phys_cache.origins = origins;
-            phys_cache.ori = ori;
         }
     }
 
@@ -651,6 +670,12 @@ impl<'a> PhysicsData<'a> {
                     if in_loaded_chunk
                     // And not already stuck on a block (e.g., for arrows)
                     && !(physics_state.on_surface().is_some() && sticky.is_some())
+                    // HACK: Special-case boats. Experimentally, clients are *bad* at making guesses about movement,
+                    // and this is a particular problem for volume entities since careful control of velocity is
+                    // required for nice movement of entities on top of the volume. Special-case volume entities here
+                    // to prevent weird drag/gravity guesses messing with movement, relying on the client's hermite
+                    // interpolation instead.
+                    && !(matches!(body, Body::Ship(_)) && matches!(&*read.game_mode, GameMode::Client))
                     {
                         // Clamp dt to an effective 10 TPS, to prevent gravity
                         // from slamming the players into the floor when
@@ -708,11 +733,10 @@ impl<'a> PhysicsData<'a> {
         // Update cached 'old' physics values to the current values ready for the next
         // tick
         prof_span!(guard, "record ori into phys_cache");
-        for (pos, ori, previous_phys_cache, _) in (
+        for (pos, ori, previous_phys_cache) in (
             &write.positions,
             &write.orientations,
             &mut write.previous_phys_cache,
-            &read.colliders,
         )
             .join()
         {
@@ -861,12 +885,13 @@ impl<'a> PhysicsData<'a> {
                                 tgt_pos,
                                 &mut vel,
                                 physics_state,
-                                Vec3::zero(),
                                 &read.dt,
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_ground = Some((entity, vel)),
+                                |entity, vel, surface_normal| {
+                                    land_on_ground = Some((entity, vel, surface_normal))
+                                },
                                 read,
                                 &ori,
                             );
@@ -894,12 +919,13 @@ impl<'a> PhysicsData<'a> {
                                 tgt_pos,
                                 &mut vel,
                                 physics_state,
-                                Vec3::zero(),
                                 &read.dt,
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_ground = Some((entity, vel)),
+                                |entity, vel, surface_normal| {
+                                    land_on_ground = Some((entity, vel, surface_normal))
+                                },
                                 read,
                                 &ori,
                             );
@@ -1095,88 +1121,128 @@ impl<'a> PhysicsData<'a> {
                                     }
 
                                     let mut physics_state_delta = physics_state.clone();
-                                    // deliberately don't use scale yet here, because the
-                                    // 11.0/0.8 thing is
-                                    // in the comp::Scale for visual reasons
-                                    let mut cpos = *pos;
-                                    let wpos = cpos.0;
 
-                                    // TODO: Cache the matrices here to avoid recomputing
+                                    // Helper function for computing a transformation matrix and its
+                                    // inverse. Should
+                                    // be much cheaper than using `Mat4::inverted`.
+                                    let from_to_matricies =
+                                        |entity_rpos: Vec3<f32>, collider_ori: Quaternion<f32>| {
+                                            (
+                                                Mat4::<f32>::translation_3d(entity_rpos)
+                                                    * Mat4::from(collider_ori)
+                                                    * Mat4::scaling_3d(previous_cache_other.scale)
+                                                    * Mat4::translation_3d(
+                                                        voxel_collider.translation,
+                                                    ),
+                                                Mat4::<f32>::translation_3d(
+                                                    -voxel_collider.translation,
+                                                ) * Mat4::scaling_3d(
+                                                    1.0 / previous_cache_other.scale,
+                                                ) * Mat4::from(collider_ori.inverse())
+                                                    * Mat4::translation_3d(-entity_rpos),
+                                            )
+                                        };
 
-                                    let transform_last_from =
-                                        Mat4::<f32>::translation_3d(
+                                    // Compute matrices that allow us to transform to and from the
+                                    // coordinate space of
+                                    // the collider. We have two variants of each, one for the
+                                    // current state and one for
+                                    // the previous state. This allows us to 'perfectly' track
+                                    // change in position
+                                    // between ticks, which prevents entities falling through voxel
+                                    // colliders due to spurious
+                                    // issues like differences in ping/variable dt.
+                                    // TODO: Cache the matrices here to avoid recomputing for each
+                                    // entity on them
+                                    let (_transform_last_from, transform_last_to) =
+                                        from_to_matricies(
                                             previous_cache_other.pos.unwrap_or(*pos_other).0
-                                                - previous_cache.pos.unwrap_or(Pos(wpos)).0,
-                                        ) * Mat4::from(previous_cache_other.ori)
-                                            * Mat4::<f32>::scaling_3d(previous_cache_other.scale)
-                                            * Mat4::<f32>::translation_3d(
-                                                voxel_collider.translation,
-                                            );
-                                    let transform_last_to = transform_last_from.inverted();
+                                                - previous_cache.pos.unwrap_or(*pos).0,
+                                            previous_cache_other.ori,
+                                        );
+                                    let (transform_from, transform_to) =
+                                        from_to_matricies(pos_other.0 - pos.0, ori_other.to_quat());
 
-                                    let transform_from =
-                                        Mat4::<f32>::translation_3d(pos_other.0 - wpos)
-                                            * Mat4::from(ori_other.to_quat())
-                                            * Mat4::<f32>::scaling_3d(previous_cache_other.scale)
-                                            * Mat4::<f32>::translation_3d(
-                                                voxel_collider.translation,
-                                            );
-                                    let transform_to = transform_from.inverted();
+                                    // Compute the velocity of the collider, accounting for changes
+                                    // in orientation
+                                    // from the last tick. We then model this change as a change in
+                                    // surface velocity
+                                    // for the collider.
+                                    let vel_other = {
+                                        let pos_rel =
+                                            (Mat4::<f32>::translation_3d(
+                                                -voxel_collider.translation,
+                                            ) * Mat4::from(ori_other.to_quat().inverse()))
+                                            .mul_point(pos.0 - pos_other.0);
+                                        let rpos_last =
+                                            (Mat4::<f32>::from(previous_cache_other.ori)
+                                                * Mat4::translation_3d(voxel_collider.translation))
+                                            .mul_point(pos_rel);
+                                        vel_other.0
+                                            + (pos.0 - (pos_other.0 + rpos_last)) / read.dt.0
+                                    };
 
-                                    let ori_last_from = Mat4::from(previous_cache_other.ori);
-                                    let ori_last_to = ori_last_from.inverted();
+                                    {
+                                        // Transform the entity attributes into the coordinate space
+                                        // of the collider ready
+                                        // for collision resolution
+                                        let mut rpos =
+                                            Pos(transform_last_to.mul_point(Vec3::zero()));
+                                        vel.0 = previous_cache_other.ori.inverse()
+                                            * (vel.0 - vel_other);
 
-                                    let ori_from = Mat4::from(ori_other.to_quat());
+                                        // Perform collision resolution
+                                        box_voxel_collision(
+                                            (radius, z_min, z_max),
+                                            &voxel_collider.volume(),
+                                            entity,
+                                            &mut rpos,
+                                            transform_to.mul_point(tgt_pos - pos.0),
+                                            &mut vel,
+                                            &mut physics_state_delta,
+                                            &read.dt,
+                                            was_on_ground,
+                                            block_snap,
+                                            climbing,
+                                            |entity, vel, surface_normal| {
+                                                land_on_ground = Some((
+                                                    entity,
+                                                    Vel(previous_cache_other.ori * vel.0
+                                                        + vel_other),
+                                                    previous_cache_other.ori * surface_normal,
+                                                ));
+                                            },
+                                            read,
+                                            &ori,
+                                        );
 
-                                    // The velocity of the collider, taking into account
-                                    // orientation.
-                                    let pos_rel = (Mat4::<f32>::translation_3d(Vec3::zero())
-                                        * Mat4::from(ori_other.to_quat())
-                                        * Mat4::<f32>::translation_3d(voxel_collider.translation))
-                                    .inverted()
-                                    .mul_point(wpos - pos_other.0);
-                                    let rpos_last = (Mat4::<f32>::translation_3d(Vec3::zero())
-                                        * Mat4::from(previous_cache_other.ori)
-                                        * Mat4::<f32>::translation_3d(voxel_collider.translation))
-                                    .mul_point(pos_rel);
-                                    let vel_other = vel_other.0
-                                        + (wpos - (pos_other.0 + rpos_last)) / read.dt.0;
+                                        // Transform entity attributes back into world space now
+                                        // that we've performed
+                                        // collision resolution with them
+                                        tgt_pos = transform_from.mul_point(rpos.0) + pos.0;
+                                        vel.0 = previous_cache_other.ori * vel.0 + vel_other;
+                                    }
 
-                                    cpos.0 = transform_last_to.mul_point(Vec3::zero());
-                                    vel.0 = ori_last_to.mul_direction(vel.0 - vel_other);
-                                    let cylinder = (radius, z_min, z_max);
-                                    box_voxel_collision(
-                                        cylinder,
-                                        &voxel_collider.volume(),
-                                        entity,
-                                        &mut cpos,
-                                        transform_to.mul_point(tgt_pos - wpos),
-                                        &mut vel,
-                                        &mut physics_state_delta,
-                                        ori_last_to.mul_direction(vel_other),
-                                        &read.dt,
-                                        was_on_ground,
-                                        block_snap,
-                                        climbing,
-                                        |entity, vel| {
-                                            land_on_ground =
-                                                Some((entity, Vel(ori_from.mul_direction(vel.0))));
-                                        },
-                                        read,
-                                        &ori,
-                                    );
-
-                                    cpos.0 = transform_from.mul_point(cpos.0) + wpos;
-                                    vel.0 = ori_from.mul_direction(vel.0) + vel_other;
-                                    tgt_pos = cpos.0;
-
-                                    // union in the state updates, so that the state isn't just
-                                    // based on the most
-                                    // recent terrain that collision was attempted with
+                                    // Collision resolution may also change the physics state. Since
+                                    // we may be interacting
+                                    // with multiple colliders at once (along with the regular
+                                    // terrain!) we keep track
+                                    // of a physics state 'delta' and try to sensibly resolve them
+                                    // against one-another at each step.
                                     if physics_state_delta.on_ground.is_some() {
-                                        physics_state.ground_vel = vel_other;
-
-                                        // Rotate if on ground
+                                        // TODO: Do we need to do this? Perhaps just take the
+                                        // ground_vel regardless?
+                                        physics_state.ground_vel = previous_cache_other.ori
+                                            * physics_state_delta.ground_vel
+                                            + vel_other;
+                                    }
+                                    if physics_state_delta.on_surface().is_some() {
+                                        // If the collision resulted in us being on a surface,
+                                        // rotate us with the
+                                        // collider. Really this should be modelled via friction or
+                                        // something, but
+                                        // our physics model doesn't really take orientation into
+                                        // consideration.
                                         ori = ori.rotated(
                                             ori_other.to_quat()
                                                 * previous_cache_other.ori.inverse(),
@@ -1188,7 +1254,7 @@ impl<'a> PhysicsData<'a> {
                                     physics_state.on_wall = physics_state.on_wall.or_else(|| {
                                         physics_state_delta
                                             .on_wall
-                                            .map(|dir| ori_from.mul_direction(dir))
+                                            .map(|dir| previous_cache_other.ori * dir)
                                     });
                                     physics_state.in_fluid = match (
                                         physics_state.in_fluid,
@@ -1277,9 +1343,15 @@ impl<'a> PhysicsData<'a> {
         drop(guard);
 
         let mut event_emitter = read.event_bus.emitter();
-        land_on_grounds.into_iter().for_each(|(entity, vel)| {
-            event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
-        });
+        land_on_grounds
+            .into_iter()
+            .for_each(|(entity, vel, surface_normal)| {
+                event_emitter.emit(ServerEvent::LandOnGround {
+                    entity,
+                    vel: vel.0,
+                    surface_normal,
+                });
+            });
     }
 
     fn update_cached_spatial_grid(&mut self) {
@@ -1354,12 +1426,11 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     tgt_pos: Vec3<f32>,
     vel: &mut Vel,
     physics_state: &mut PhysicsState,
-    ground_vel: Vec3<f32>,
     dt: &DeltaTime,
     was_on_ground: bool,
     block_snap: bool,
     climbing: bool,
-    mut land_on_ground: impl FnMut(Entity, Vel),
+    mut land_on_ground: impl FnMut(Entity, Vel, Vec3<f32>),
     read: &PhysicsRead,
     ori: &Ori,
 ) {
@@ -1530,12 +1601,12 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             /* if resolve_dir.z > 0.0 && vel.0.z <= 0.0 { */
             if resolve_dir.z > 0.0 {
                 on_ground = Some(block);
-
-                if !was_on_ground {
-                    land_on_ground(entity, *vel);
-                }
             } else if resolve_dir.z < 0.0 && vel.0.z >= 0.0 {
                 on_ceiling = true;
+            }
+
+            if resolve_dir.magnitude_squared() > 0.0 {
+                land_on_ground(entity, *vel, resolve_dir.normalized());
             }
 
             // When the resolution direction is non-vertical, we must be colliding
@@ -1612,17 +1683,22 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     if on_ground.is_some() {
         physics_state.on_ground = on_ground;
     // If the space below us is free, then "snap" to the ground
-    } else if vel.0.z <= 0.0 && was_on_ground && block_snap && {
-        //prof_span!("snap check");
-        collision_with(
-            pos.0 - Vec3::unit_z() * 1.1,
-            &terrain,
-            near_aabb,
-            radius,
-            z_range.clone(),
-            vel.0,
-        )
-    } {
+    } else if vel.0.z <= 0.0
+        && was_on_ground
+        && block_snap
+        && physics_state.in_liquid().is_none()
+        && {
+            //prof_span!("snap check");
+            collision_with(
+                pos.0 - Vec3::unit_z() * 1.1,
+                &terrain,
+                near_aabb,
+                radius,
+                z_range.clone(),
+                vel.0,
+            )
+        }
+    {
         //prof_span!("snap!!");
         let snap_height = terrain
             .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))
@@ -1715,6 +1791,39 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     physics_state.on_wall = on_wall;
     let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
 
+    physics_state.in_fluid = liquid
+        .map(|(kind, max_z)| {
+            // NOTE: assumes min_z == 0.0
+            let depth = max_z - pos.0.z;
+
+            // This is suboptimal because it doesn't check for true depth,
+            // so it can cause problems for situations like swimming down
+            // a river and spawning or teleporting in(/to) water
+            let new_depth = physics_state.in_liquid().map_or(depth, |old_depth| {
+                (old_depth + old_pos.z - pos.0.z).max(depth)
+            });
+
+            // TODO: Change this at some point to allow entities to be moved by liquids?
+            let vel = Vel::zero();
+
+            if depth > 0.0 {
+                physics_state.ground_vel = vel.0;
+            }
+
+            Fluid::Liquid {
+                kind,
+                depth: new_depth,
+                vel,
+            }
+        })
+        .or_else(|| match physics_state.in_fluid {
+            Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
+                elevation: pos.0.z,
+                vel: Vel::default(),
+            }),
+            fluid => fluid,
+        });
+
     // skating (ski)
     if !vel.0.xy().is_approx_zero()
         && physics_state
@@ -1778,7 +1887,19 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.skating_active = true;
         vel.0 = Vec3::new(new_ground_speed.x, new_ground_speed.y, 0.0);
     } else {
-        let ground_fric = physics_state
+        let ground_fric = if physics_state.in_liquid().is_some() {
+            // HACK:
+            // If we're in a liquid, radically reduce ground friction (i.e: assume that
+            // contact force is negligible due to buoyancy) Note that this might
+            // not be realistic for very dense entities (currently no entities in Veloren
+            // are sufficiently negatively buoyant for this to matter). We
+            // should really make friction be proportional to net downward force, but
+            // that means taking into account buoyancy which is a bit difficult to do here
+            // for now.
+            0.1
+        } else {
+            1.0
+        } * physics_state
             .on_ground
             .map(|b| b.get_friction())
             .unwrap_or(0.0);
@@ -1790,36 +1911,10 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         let fric = ground_fric.max(wall_fric);
         if fric > 0.0 {
             vel.0 *= (1.0 - fric.min(1.0) * fric_mod).powf(dt.0 * 60.0);
-            physics_state.ground_vel = ground_vel;
+            physics_state.ground_vel = Vec3::zero();
         }
         physics_state.skating_active = false;
     }
-
-    physics_state.in_fluid = liquid
-        .map(|(kind, max_z)| {
-            // NOTE: assumes min_z == 0.0
-            let depth = max_z - pos.0.z;
-
-            // This is suboptimal because it doesn't check for true depth,
-            // so it can cause problems for situations like swimming down
-            // a river and spawning or teleporting in(/to) water
-            let new_depth = physics_state.in_liquid().map_or(depth, |old_depth| {
-                (old_depth + old_pos.z - pos.0.z).max(depth)
-            });
-
-            Fluid::Liquid {
-                kind,
-                depth: new_depth,
-                vel: Vel::zero(),
-            }
-        })
-        .or_else(|| match physics_state.in_fluid {
-            Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
-                elevation: pos.0.z,
-                vel: Vel::default(),
-            }),
-            fluid => fluid,
-        });
 }
 
 fn voxel_collider_bounding_sphere(

@@ -103,7 +103,7 @@ impl<'a> System<'a> for Sys {
 
         // For each volume rider.
         for (entity, is_volume_rider) in (&entities, &is_volume_riders).join() {
-            if let Some((mut mat, _)) = is_volume_rider.pos.get_block_and_transform(
+            if let Some((mut mat, volume_ori, _)) = is_volume_rider.pos.get_block_and_transform(
                 &terrain,
                 &uid_allocator,
                 |e| positions.get(e).copied().zip(orientations.get(e).copied()),
@@ -114,21 +114,27 @@ impl<'a> System<'a> for Sys {
                     continue;
                 };
 
-                if let Some(ori) = is_volume_rider.block.get_ori() {
+                let mount_block_ori = if let Some(ori) = is_volume_rider.block.get_ori() {
                     mat *= Mat4::identity()
                         .translated_3d(mount_offset)
                         .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
                         .translated_3d(Vec3::new(0.5, 0.5, 0.0));
+                    ori
                 } else {
                     mat *= Mat4::identity().translated_3d(mount_offset + Vec3::new(0.5, 0.5, 0.0));
-                }
+                    0
+                };
 
                 if let Some(pos) = positions.get_mut(entity) {
                     pos.0 = mat.mul_point(Vec3::zero());
                 }
                 if let Some(ori) = orientations.get_mut(entity) {
-                    *ori = Ori::from_unnormalized_vec(mat.mul_direction(mount_dir))
-                        .unwrap_or_default();
+                    *ori = volume_ori.rotated(
+                        Ori::from_unnormalized_vec(mount_dir)
+                            .unwrap_or_default()
+                            .to_quat()
+                            .rotated_z(std::f32::consts::PI * 0.25 * mount_block_ori as f32),
+                    );
                 }
             }
             let v = match is_volume_rider.pos.kind {

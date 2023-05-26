@@ -153,7 +153,7 @@ impl Collider {
 
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
-            Collider::Voxel { .. } | Collider::Volume(_) => (0.0, 1.0),
+            Collider::Voxel { .. } | Collider::Volume(_) => (0.0, 2.0),
             Collider::CapsulePrism { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }

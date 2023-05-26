@@ -587,7 +587,13 @@ impl Scene {
                 let is_running = ecs
                     .read_storage::<comp::Vel>()
                     .get(scene_data.viewpoint_entity)
-                    .map(|v| v.0.magnitude_squared() > RUNNING_THRESHOLD.powi(2))
+                    .zip(
+                        ecs.read_storage::<comp::PhysicsState>()
+                            .get(scene_data.viewpoint_entity),
+                    )
+                    .map(|(v, ps)| {
+                        (v.0 - ps.ground_vel).magnitude_squared() > RUNNING_THRESHOLD.powi(2)
+                    })
                     .unwrap_or(false);
 
                 let on_ground = ecs

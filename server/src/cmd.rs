@@ -230,26 +230,28 @@ fn position_mut<T>(
     dismount_volume: Option<bool>,
     f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
 ) -> CmdResult<T> {
-    let entity = if dismount_volume.unwrap_or(true) {
+    if dismount_volume.unwrap_or(true) {
         server
             .state
             .ecs()
             .write_storage::<Is<VolumeRider>>()
             .remove(entity);
-        entity
-    } else {
-        server
-            .state
-            .read_storage::<Is<Rider>>()
-            .get(entity)
-            .and_then(|is_rider| {
-                server
-                    .state
-                    .ecs()
-                    .read_resource::<UidAllocator>()
-                    .retrieve_entity_internal(is_rider.mount.into())
-            })
-            .or(server
+    }
+
+    let entity = server
+        .state
+        .read_storage::<Is<Rider>>()
+        .get(entity)
+        .and_then(|is_rider| {
+            server
+                .state
+                .ecs()
+                .read_resource::<UidAllocator>()
+                .retrieve_entity_internal(is_rider.mount.into())
+        })
+        .map(Ok)
+        .or_else(|| {
+            server
                 .state
                 .read_storage::<Is<VolumeRider>>()
                 .get(entity)
@@ -265,9 +267,8 @@ fn position_mut<T>(
                             .retrieve_entity_internal(uid.into())?),
                     })
                 })
-                .transpose()?)
-            .unwrap_or(entity)
-    };
+        })
+        .unwrap_or(Ok(entity))?;
 
     let mut maybe_pos = None;
 
@@ -1638,25 +1639,25 @@ fn handle_spawn_airship(
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let angle = parse_cmd_args!(args, f32);
+    let (body_name, angle) = parse_cmd_args!(args, String, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 50.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
     let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
     let dir = angle.map(|a| Vec3::new(a.cos(), a.sin(), 0.0));
     let destination = dir.map(|dir| pos.0 + dir * DESTINATION_RADIUS + Vec3::new(0.0, 0.0, 200.0));
-    let mut rng = thread_rng();
-    let ship = comp::ship::Body::random_airship_with(&mut rng);
+    let ship = if let Some(body_name) = body_name {
+        *comp::ship::ALL_AIRSHIPS
+            .iter()
+            .find(|body| format!("{body:?}") == body_name)
+            .ok_or_else(|| format!("No such airship '{body_name}'."))?
+    } else {
+        comp::ship::Body::random_airship_with(&mut thread_rng())
+    };
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
-        .create_ship(pos, ori, ship, |ship| ship.make_collider())
-        .with(LightEmitter {
-            col: Rgb::new(1.0, 0.65, 0.2),
-            strength: 2.0,
-            flicker: 1.0,
-            animated: true,
-        });
+        .create_ship(pos, ori, ship, |ship| ship.make_collider());
     if let Some(pos) = destination {
         let (kp, ki, kd) =
             comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
@@ -1682,25 +1683,25 @@ fn handle_spawn_ship(
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let angle = parse_cmd_args!(args, f32);
+    let (body_name, angle) = parse_cmd_args!(args, String, f32);
     let mut pos = position(server, target, "target")?;
-    pos.0.z += 50.0;
+    pos.0.z += 2.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
     let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
     let dir = angle.map(|a| Vec3::new(a.cos(), a.sin(), 0.0));
     let destination = dir.map(|dir| pos.0 + dir * DESTINATION_RADIUS + Vec3::new(0.0, 0.0, 200.0));
-    let mut rng = thread_rng();
-    let ship = comp::ship::Body::random_ship_with(&mut rng);
+    let ship = if let Some(body_name) = body_name {
+        *comp::ship::ALL_SHIPS
+            .iter()
+            .find(|body| format!("{body:?}") == body_name)
+            .ok_or_else(|| format!("No such airship '{body_name}'."))?
+    } else {
+        comp::ship::Body::random_airship_with(&mut thread_rng())
+    };
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
         .state
-        .create_ship(pos, ori, ship, |ship| ship.make_collider())
-        .with(LightEmitter {
-            col: Rgb::new(1.0, 0.65, 0.2),
-            strength: 2.0,
-            flicker: 1.0,
-            animated: true,
-        });
+        .create_ship(pos, ori, ship, |ship| ship.make_collider());
     if let Some(pos) = destination {
         let (kp, ki, kd) =
             comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));

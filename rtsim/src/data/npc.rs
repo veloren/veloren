@@ -313,6 +313,8 @@ impl Vehicle {
             comp::ship::Body::AirBalloon => 8.0,
             comp::ship::Body::SailBoat => 5.0,
             comp::ship::Body::Galleon => 6.0,
+            comp::ship::Body::Skiff => 6.0,
+            comp::ship::Body::Submarine => 4.0,
             _ => 10.0,
         }
     }

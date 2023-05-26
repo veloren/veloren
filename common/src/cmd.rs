@@ -352,7 +352,17 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Airship => cmd(
-                vec![Float("destination_degrees_ccw_of_east", 90.0, Optional)],
+                vec![
+                    Enum(
+                        "kind",
+                        comp::ship::ALL_AIRSHIPS
+                            .iter()
+                            .map(|b| format!("{b:?}"))
+                            .collect(),
+                        Optional,
+                    ),
+                    Float("destination_degrees_ccw_of_east", 90.0, Optional),
+                ],
                 "Spawns an airship",
                 Some(Admin),
             ),
@@ -649,7 +659,17 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Ship => cmd(
-                vec![Float("destination_degrees_ccw_of_east", 90.0, Optional)],
+                vec![
+                    Enum(
+                        "kind",
+                        comp::ship::ALL_SHIPS
+                            .iter()
+                            .map(|b| format!("{b:?}"))
+                            .collect(),
+                        Optional,
+                    ),
+                    Float("destination_degrees_ccw_of_east", 90.0, Optional),
+                ],
                 "Spawns a ship",
                 Some(Admin),
             ),
