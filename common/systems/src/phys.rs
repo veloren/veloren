@@ -901,6 +901,7 @@ impl<'a> PhysicsData<'a> {
                                         .try_normalized()
                                         .and_then(|dir| Some(orientations.get(entity)?.right().dot(dir).abs()))
                                         .unwrap_or(1.0)
+                                        .max(0.2)
                                 } else {
                                     1.0
                                 },
@@ -945,6 +946,7 @@ impl<'a> PhysicsData<'a> {
                                         .try_normalized()
                                         .and_then(|dir| Some(1.0 - orientations.get(entity)?.right().dot(dir).abs()))
                                         .unwrap_or(1.0)
+                                        .max(0.2)
                                 } else {
                                     1.0
                                 },
@@ -1241,6 +1243,7 @@ impl<'a> PhysicsData<'a> {
                                                     .try_normalized()
                                                     .and_then(|dir| Some(1.0 - orientations.get(entity)?.right().dot(dir).abs()))
                                                     .unwrap_or(1.0)
+                                                    .max(0.2)
                                             } else {
                                                 1.0
                                             },

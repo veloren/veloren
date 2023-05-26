@@ -1630,7 +1630,7 @@ fn handle_spawn(
                             .link(Tethered {
                                 leader,
                                 follower,
-                                tether_length: 3.0,
+                                tether_length: 4.0,
                             })
                             .map_err(|_| "Failed to tether entities")?;
                     } else {
@@ -1824,7 +1824,7 @@ fn handle_spawn_ship(
                 .link(Tethered {
                     leader,
                     follower,
-                    tether_length: 3.0,
+                    tether_length: 4.0,
                 })
                 .map_err(|_| "Failed to tether entities")?;
         } else {

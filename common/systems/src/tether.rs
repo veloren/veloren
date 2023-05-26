@@ -79,8 +79,7 @@ impl<'a> System<'a> for Sys {
                     })
                     .unwrap_or_default();
                 let tether_pos = follower_pos.0 + tether_offset;
-                let pull_factor = ((leader_pos.0.distance(tether_pos) - is_follower.tether_length)
-                    * 0.5)
+                let pull_factor = (leader_pos.0.distance(tether_pos) - is_follower.tether_length)
                     .clamp(0.0, 1.0)
                     .powf(2.0);
                 let strength = pull_factor * 50000.0;
@@ -94,11 +93,9 @@ impl<'a> System<'a> for Sys {
                 velocities.get_mut(leader).unwrap().0 -= impulse / leader_mass.0;
 
                 if let Some(follower_ori) = orientations.get_mut(follower) {
-                    let turn_strength = pull_factor
-                        * follower_body
-                            .map(|b| b.tether_offset().magnitude())
-                            .unwrap_or(0.0)
-                        * 4.0;
+                    let turn_strength = pull_factor.min(0.2)
+                        // * (tether_offset.magnitude() - tether_offset.dot(pull_dir).abs())
+                        * 50.0;
                     let target_ori = follower_ori.yawed_towards(Dir::new(pull_dir));
                     *follower_ori = follower_ori.slerped_towards(target_ori, turn_strength * dt.0);
                 }

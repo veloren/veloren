@@ -150,7 +150,7 @@ impl Body {
                 quadruped_low::Species::Driggle => 120.0,
                 quadruped_low::Species::HermitAlligator => 120.0,
             },
-            Body::Ship(ship::Body::Carriage) => 200.0,
+            Body::Ship(ship::Body::Carriage) => 35.0,
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
                 arthropod::Species::Tarantula => 135.0,
