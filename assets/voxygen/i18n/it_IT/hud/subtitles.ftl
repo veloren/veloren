@@ -106,6 +106,7 @@ subtitle-giga_roar = Ruggito del Frost Gigas
 subtitle-attack-flash_freeze = Lampo ghiacciante
 subtitle-attack-icy_spikes = Punte di ghiaccio
 subtitle-attack-ice_crack = Crepa di ghiaccio
+subtitle-attack-steam = Vapore
 
 subtitle-consume_potion = Pozione bevuta
 subtitle-consume_apple = Mela morsa
