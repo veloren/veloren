@@ -64,22 +64,23 @@ subtitle-pickup_shield = Shöld upplockad
 subtitle-pickup_pick = Hacka upplockad
 subtitle-pickup_gemstone = Ädelsten upplockad
 
-subtitle-instrument_organ = Orgel spelning
+subtitle-instrument_organ = Orgel spelas
 
 subtitle-wield_instrument = Instrument framtagen
 subtitle-unwield_instrument = Instrument bortlagd
-subtitle-instrument_double_bass = Kontrabas spelning
-subtitle-instrument_flute = Flöjt spelning
-subtitle-instrument_glass_flute = Glas Flöjt spelning
-subtitle-instrument_lyre = Lyra spelning
-subtitle-instrument_icy_talharpa = Isig Talharpa spelning
-subtitle-instrument_kalimba = Kalimba spelning
-subtitle-instrument_melodica = Melodica spelning
-subtitle-instrument_lute = Luta spelning
-subtitle-instrument_sitar = Sitar spelning
-subtitle-instrument_guitar = Gitarr spelning
-subtitle-instrument_dark_guitar = Mörk Gitarr spelning
-subtitle-instrument_washboard = Tvättbräda spelning
+subtitle-instrument_double_bass = Kontrabas spelas
+subtitle-instrument_flute = Flöjt spelas
+subtitle-instrument_glass_flute = Glasflöjt spelas
+subtitle-instrument_lyre = Lyra spelas
+subtitle-instrument_icy_talharpa = Isig Talharpa spelas
+subtitle-instrument_kalimba = Kalimba spelas
+subtitle-instrument_melodica = Melodica spelas
+subtitle-instrument_lute = Luta spelas
+subtitle-instrument_sitar = Sitar spelas
+subtitle-instrument_guitar = Gitarr spelas
+subtitle-instrument_dark_guitar = Mörk Gitarr spelas
+subtitle-instrument_washboard = Tvättbräda spelas
+subtitle-instrument_wildskin_drum = Vildskinnstrumma spelas
 subtitle-pickup_instrument = Instrument upplockad
 
 subtitle-explosion = Explosion

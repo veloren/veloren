@@ -112,3 +112,4 @@ common-material-stone = Sten
 common-material-cloth = Tyg
 common-material-hide = Skinn
 common-sprite-chest = Kista
+common-sprite-chair = Stol
