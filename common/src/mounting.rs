@@ -2,7 +2,8 @@ use crate::{
     comp::{self, pet::is_mountable, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     link::{Is, Link, LinkHandle, Role},
     terrain::{Block, TerrainGrid},
-    uid::{IdMaps, Uid},
+    tether,
+    uid::{Uid, UidAllocator},
     vol::ReadVol,
 };
 use hashbrown::HashSet;
@@ -45,6 +46,7 @@ impl Link for Mounting {
         WriteStorage<'a, Is<Mount>>,
         WriteStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<VolumeRider>>,
+        ReadStorage<'a, Is<tether::Follower>>,
     );
     type DeleteData<'a> = (
         Read<'a, IdMaps>,
@@ -67,7 +69,7 @@ impl Link for Mounting {
 
     fn create(
         this: &LinkHandle<Self>,
-        (id_maps, is_mounts, is_riders, is_volume_rider): &mut Self::CreateData<'_>,
+        (id_maps, is_mounts, is_riders, is_volume_rider, is_followers): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
 
@@ -79,7 +81,7 @@ impl Link for Mounting {
             // relationship
             if !is_mounts.contains(mount)
                 && !is_riders.contains(rider)
-                && !is_riders.contains(rider)
+                && !is_followers.contains(rider)
                 // TODO: Does this definitely prevent mount cycles?
                 && (!is_mounts.contains(rider) || !is_riders.contains(mount))
                 && !is_volume_rider.contains(rider)

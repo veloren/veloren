@@ -19,6 +19,7 @@ use common::{
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::{Block, MapSizeLg, TerrainChunk, TerrainGrid},
+    tether,
     time::DayPeriod,
     trade::Trades,
     vol::{ReadVol, WriteVol},
@@ -202,6 +203,8 @@ impl State {
         ecs.register::<Is<Mount>>();
         ecs.register::<Is<Rider>>();
         ecs.register::<Is<VolumeRider>>();
+        ecs.register::<Is<tether::Leader>>();
+        ecs.register::<Is<tether::Follower>>();
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Density>();
         ecs.register::<comp::Collider>();

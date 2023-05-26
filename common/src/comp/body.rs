@@ -1214,6 +1214,8 @@ impl Body {
         .into()
     }
 
+    pub fn tether_offset(&self) -> Vec3<f32> { Vec3::new(0.0, self.dimensions().y * 0.5, 0.0) }
+
     pub fn localize(&self) -> Content {
         match self {
             Self::BipedLarge(biped_large) => biped_large.localize(),

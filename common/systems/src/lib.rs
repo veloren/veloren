@@ -13,6 +13,7 @@ pub mod phys;
 pub mod projectile;
 mod shockwave;
 mod stats;
+mod tether;
 
 // External
 use common_ecs::{dispatch, System};
@@ -21,6 +22,7 @@ use specs::DispatcherBuilder;
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     //TODO: don't run interpolation on server
     dispatch::<interpolation::Sys>(dispatch_builder, &[]);
+    dispatch::<tether::Sys>(dispatch_builder, &[]);
     dispatch::<mount::Sys>(dispatch_builder, &[]);
     dispatch::<controller::Sys>(dispatch_builder, &[&mount::Sys::sys_name()]);
     dispatch::<character_behavior::Sys>(dispatch_builder, &[&controller::Sys::sys_name()]);
