@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
                 let strength = pull_factor * 50000.0;
                 let pull_dir = (leader_pos.0 - follower_pos.0)
                     .try_normalized()
-                    .unwrap_or_default();
+                    .unwrap_or(Vec3::unit_y());
                 let impulse = pull_dir * strength * dt.0;
 
                 // Can't fail
