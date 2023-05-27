@@ -67,6 +67,23 @@ pub(crate) type C2cMpscConnect = (
 );
 pub(crate) type C2sProtocol = (Protocols, ConnectAddr, Cid);
 
+fn anonymize_addr(addr: &SocketAddr) -> String {
+    use std::net::IpAddr;
+    match addr.ip() {
+        IpAddr::V4(ip) => {
+            let [o0, _, o2, _] = ip.octets();
+            format!("{o0}.xxx.{o2}.xxx:{}", addr.port())
+        },
+        IpAddr::V6(ip) => {
+            let [s0, s1, _, _, s4, s5, _, _] = ip.segments();
+            format!(
+                "[{s0:04x}:{s1:04x}:xxxx:xxxx:{s4:04x}:{s5:04x}:xxxx:xxxx]:{}",
+                addr.port()
+            )
+        },
+    }
+}
+
 impl Protocols {
     const MPSC_CHANNEL_BOUND: usize = 1000;
 
@@ -131,7 +148,11 @@ impl Protocols {
                     );
                 }
                 let cid = cids.fetch_add(1, Ordering::Relaxed);
-                info!(?remote_addr, ?cid, "Accepting Tcp from");
+                info!(
+                    remote_addr = anonymize_addr(&remote_addr),
+                    ?cid,
+                    "Accepting Tcp from"
+                );
                 let metrics = ProtocolMetricCache::new(&cid.to_string(), Arc::clone(&metrics));
                 let _ = c2s_protocol_s.send((
                     Self::new_tcp(stream, metrics.clone()),
@@ -295,7 +316,7 @@ impl Protocols {
                 next = listener.next().fuse() => Some(next),
                 _ = &mut end_receiver => None,
             } {
-                let remote_addr = connecting.remote_address();
+                let remote_addr = anonymize_addr(&connecting.remote_address());
                 let connection = match connecting.await {
                     Ok(c) => c,
                     Err(e) => {
