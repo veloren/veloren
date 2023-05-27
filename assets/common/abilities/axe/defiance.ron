@@ -1,22 +1,9 @@
-ComboMelee2(
-    strikes: [
-        (
-            melee_constructor: (
-                kind: Slash(
-                    damage: 4,
-                    poise: 5,
-                    knockback: 0,
-                    energy_regen: 5,
-                ),
-                range: 3.0,
-                angle: 45.0,
-            ),
-            buildup_duration: 0.15,
-            swing_duration: 0.05,
-            hit_timing: 0.5,
-            recover_duration: 0.1,
-            ori_modifier: 0.6,
-        ),
-    ],
-    energy_cost_per_strike: 0,
+SelfBuff(
+    buildup_duration: 0.1,
+    cast_duration: 0.4,
+    recover_duration: 0.2,
+    buff_kind: Defiance,
+    buff_strength: 0.4,
+    buff_duration: Some(20.0),
+    energy_cost: /*20*/0,
 )

@@ -360,6 +360,38 @@ impl Animation for SelfBuffAnimation {
                 next.second.position += Vec3::new(0.0, move2 * -10.0, 0.0);
                 next.control.position += Vec3::new(0.0, 0.0, move2 * -5.0);
             },
+            Some("common.abilities.axe.defiance") => {
+                let (move1, tension, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, (anim_time * 20.0).sin(), 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+
+                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
+                    * Quaternion::rotation_y(s_a.ac.4)
+                    * Quaternion::rotation_z(s_a.ac.5);
+
+                next.control.orientation.rotate_z(move1 * -1.6);
+                next.control.orientation.rotate_x(move1 * 1.7);
+                next.control.position += Vec3::new(move1 * 12.0, move1 * -10.0, move1 * 18.0);
+                next.head.orientation.rotate_x(move1 * 0.6);
+                next.head.position += Vec3::new(0.0, 0.0, move1 * -3.0);
+                next.control.orientation.rotate_z(move1 * 0.4);
+
+                next.head.orientation.rotate_x(tension * 0.3);
+                next.control.position += Vec3::new(0.0, 0.0, tension * 2.0);
+            },
             _ => {},
         }
 

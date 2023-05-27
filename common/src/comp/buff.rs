@@ -91,6 +91,12 @@ pub enum BuffKind {
     /// increase. DR penetration is non-linear, 0.5 is 50% penetration and 1.0
     /// is a 67% penetration.
     Sunderer,
+    /// Increases damage resistance and poise resistance. Damage resistance is
+    /// increased by half of poise resistance. Poise resistance increases
+    /// non-linearly with strength, 0.5 is 50% and 1.0 is 67%.
+    /// Damage resistance increases non-linearly with strength, 0.5 is 25% and
+    /// 1.0 is 33%.
+    Defiance,
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -156,7 +162,8 @@ impl BuffKind {
             //| BuffKind::SalamanderAspect
             | BuffKind::ImminentCritical
             | BuffKind::Fury
-            | BuffKind::Sunderer => true,
+            | BuffKind::Sunderer
+            | BuffKind::Defiance => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -353,6 +360,10 @@ impl BuffKind {
             BuffKind::Sunderer => vec![
                 BuffEffect::AttackPoise(data.strength),
                 BuffEffect::MitigationsPenetration(nn_scaling(data.strength)),
+            ],
+            BuffKind::Defiance => vec![
+                BuffEffect::DamageReduction(nn_scaling(data.strength) / 2.0),
+                BuffEffect::PoiseReduction(nn_scaling(data.strength)),
             ],
         }
     }

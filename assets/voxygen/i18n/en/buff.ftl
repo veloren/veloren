@@ -100,6 +100,9 @@ buff-desc-fury = With your fury, you attack more swiftly.
 ## Sunderer
 buff-title-sunderer = Sunderer
 buff-desc-sunderer = Your attacks can break through your foes' defences and are more staggering.
+## Sunderer
+buff-title-defiance = Defiance
+buff-desc-defiance = You can withstand mightier and more staggering blows
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

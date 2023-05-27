@@ -589,9 +589,8 @@ fn execute_effect(
                 stat.max_energy_modifiers.mult_mod *= *value;
             },
         },
-        #[allow(clippy::manual_clamp)]
         BuffEffect::DamageReduction(dr) => {
-            stat.damage_reduction = stat.damage_reduction.max(*dr).min(1.0);
+            stat.damage_reduction = 1.0 - ((1.0 - stat.damage_reduction) * (1.0 - *dr));
         },
         BuffEffect::MaxHealthChangeOverTime {
             rate,
