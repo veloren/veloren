@@ -182,7 +182,13 @@
             Simple(Axe(Plunder), "common.abilities.axe.plunder"),
             Simple(Axe(Defiance), "common.abilities.axe.defiance"),
             Simple(Axe(Keelhaul), "common.abilities.axe.keelhaul"),
-            Simple(Axe(Bulkhead), "common.abilities.axe.bulkhead"),
+            Contextualized(
+                pseudo_id: "common.abilities.axe.bulkhead",
+                abilities: [
+                    ([Combo(50)], (Axe(Capsize), "common.abilities.axe.capsize")),
+                    ([], (Axe(Bulkhead), "common.abilities.axe.bulkhead")),
+                ],
+            ),
         ],
     ),
     Tool(Hammer): (
