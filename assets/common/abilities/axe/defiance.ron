@@ -5,5 +5,5 @@ SelfBuff(
     buff_kind: Defiance,
     buff_strength: 0.4,
     buff_duration: Some(20.0),
-    energy_cost: /*20*/0,
+    energy_cost: 20,
 )

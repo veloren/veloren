@@ -1,22 +1,27 @@
-ComboMelee2(
-    strikes: [
-        (
-            melee_constructor: (
-                kind: Slash(
-                    damage: 4,
-                    poise: 5,
-                    knockback: 0,
-                    energy_regen: 5,
-                ),
-                range: 3.0,
-                angle: 45.0,
-            ),
-            buildup_duration: 0.15,
-            swing_duration: 0.05,
-            hit_timing: 0.5,
-            recover_duration: 0.1,
-            ori_modifier: 0.6,
+FinisherMelee(
+    energy_cost: 0,
+    buildup_duration: 0.2,
+    swing_duration: 0.1,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Hook(
+            damage: 10,
+            poise: 10,
+            pull: 5,
         ),
-    ],
-    energy_cost_per_strike: 0,
+        scaled: Some(Hook(
+            damage: 1,
+            poise: 1,
+            pull: 0.5,
+        )),
+        range: 3.0,
+        angle: 30.0,
+    ),
+    minimum_combo: 1,
+    scaling: Some((
+        target: Attack,
+        kind: Linear,
+        max_factor: 20,
+    )),
+    combo_consumption: Half,
 )

@@ -857,7 +857,7 @@ impl CombatEffect {
                 strength,
             }) => CombatEffect::Knockback(Knockback {
                 direction,
-                strength: strength * stats.buff_strength,
+                strength: strength * stats.effect_power,
             }),
             CombatEffect::EnergyReward(e) => CombatEffect::EnergyReward(e),
             CombatEffect::Lifesteal(l) => CombatEffect::Lifesteal(l * stats.effect_power),
