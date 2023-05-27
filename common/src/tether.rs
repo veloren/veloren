@@ -1,14 +1,11 @@
 use crate::{
     comp,
     link::{Is, Link, LinkHandle, Role},
-    mounting::{Mount, Rider, VolumeRider},
+    mounting::{Rider, VolumeRider},
     uid::{Uid, UidAllocator},
 };
 use serde::{Deserialize, Serialize};
-use specs::{
-    saveload::MarkerAllocator, storage::GenericWriteStorage, Component, DenseVecStorage, Entities,
-    Entity, Read, ReadExpect, ReadStorage, Write, WriteStorage,
-};
+use specs::{saveload::MarkerAllocator, Entities, Read, ReadStorage, WriteStorage};
 use vek::*;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -44,25 +41,20 @@ impl Link for Tethered {
         WriteStorage<'a, Is<Leader>>,
         WriteStorage<'a, Is<Follower>>,
         ReadStorage<'a, Is<Rider>>,
-        ReadStorage<'a, Is<Mount>>,
         ReadStorage<'a, Is<VolumeRider>>,
     );
     type DeleteData<'a> = (
         Read<'a, UidAllocator>,
         WriteStorage<'a, Is<Leader>>,
         WriteStorage<'a, Is<Follower>>,
-        WriteStorage<'a, comp::Pos>,
-        WriteStorage<'a, comp::ForceUpdate>,
     );
     type Error = TetherError;
     type PersistData<'a> = (
         Read<'a, UidAllocator>,
         Entities<'a>,
         ReadStorage<'a, comp::Health>,
-        ReadStorage<'a, comp::Body>,
         ReadStorage<'a, Is<Leader>>,
         ReadStorage<'a, Is<Follower>>,
-        ReadStorage<'a, comp::CharacterState>,
     );
 
     fn create(
@@ -72,7 +64,6 @@ impl Link for Tethered {
             is_leaders,
             is_followers,
             is_riders,
-            is_mounts,
             is_volume_rider,
         ): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
@@ -103,7 +94,7 @@ impl Link for Tethered {
 
     fn persist(
         this: &LinkHandle<Self>,
-        (uid_allocator, entities, healths, bodies, is_leaders, is_followers, character_states): &mut Self::PersistData<'_>,
+        (uid_allocator, entities, healths, is_leaders, is_followers): &mut Self::PersistData<'_>,
     ) -> bool {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 
@@ -124,9 +115,7 @@ impl Link for Tethered {
 
     fn delete(
         this: &LinkHandle<Self>,
-        (uid_allocator, is_leaders, is_followers, positions, force_update): &mut Self::DeleteData<
-            '_,
-        >,
+        (uid_allocator, is_leaders, is_followers): &mut Self::DeleteData<'_>,
     ) {
         let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
 

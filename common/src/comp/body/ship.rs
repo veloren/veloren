@@ -88,7 +88,7 @@ impl Body {
             Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
             Body::Submarine => Vec3::new(2.0, 15.0, 8.0),
             Body::Carriage => Vec3::new(5.0, 12.0, 2.0),
-            Body::Cart => Vec3::new(5.0, 8.0, 5.0),
+            Body::Cart => Vec3::new(3.0, 6.0, 1.0),
         }
     }
 
@@ -122,14 +122,21 @@ impl Body {
         match self {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
             Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
-            Body::Carriage => Density(AIR_DENSITY * 1.5),
-            Body::Cart => Density(AIR_DENSITY * 1.2),
+            Body::Carriage => Density(WATER_DENSITY * 0.5),
+            Body::Cart => Density(500.0 / self.dimensions().product()), /* Carts get a constant
+                                                                          * mass */
             _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
                                                                       * buoyant */
         }
     }
 
-    pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
+    pub fn mass(&self) -> Mass {
+        if self.can_fly() {
+            Mass((self.hull_vol() + self.balloon_vol()) * self.density().0)
+        } else {
+            Mass(self.density().0 * self.dimensions().product())
+        }
+    }
 
     pub fn can_fly(&self) -> bool {
         matches!(self, Body::DefaultAirship | Body::AirBalloon | Body::Volume)

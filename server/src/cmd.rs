@@ -1778,7 +1778,7 @@ fn handle_spawn_ship(
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let (body_name, angle, tethered) = parse_cmd_args!(args, String, f32, bool);
+    let (body_name, tethered, angle) = parse_cmd_args!(args, String, bool, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 2.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
@@ -1798,15 +1798,15 @@ fn handle_spawn_ship(
         .state
         .create_ship(pos, ori, ship, |ship| ship.make_collider());
 
-    // if let Some(pos) = destination {
-    //     let (kp, ki, kd) =
-    //         comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.
-    // 0, 0.0, 0.0));     fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp -
-    // pv).z }     let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
-    //         .with_destination(pos)
-    //         .with_position_pid_controller(comp::PidController::new(kp, ki, kd,
-    // pos, 0.0, pure_z));     builder = builder.with(agent);
-    // }
+    if let Some(pos) = destination {
+        let (kp, ki, kd) =
+            comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
+        fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
+        let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
+            .with_destination(pos)
+            .with_position_pid_controller(comp::PidController::new(kp, ki, kd, pos, 0.0, pure_z));
+        builder = builder.with(agent);
+    }
 
     let new_entity = builder.build();
 

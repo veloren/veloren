@@ -688,12 +688,12 @@ impl ServerChatCommand {
                             .collect(),
                         Optional,
                     ),
-                    Float("destination_degrees_ccw_of_east", 90.0, Optional),
                     Boolean(
                         "Whether the ship should be tethered to the target (or its mount)",
                         "false".to_string(),
                         Optional,
                     ),
+                    Float("destination_degrees_ccw_of_east", 90.0, Optional),
                 ],
                 "Spawns a ship",
                 Some(Admin),
