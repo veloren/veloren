@@ -264,3 +264,77 @@ common-abilities-sword-cleaving_sky_splitter = Sky Splitter
     .desc =
         A powerful strike that purportedly can even split the sky, but will split through enemies
         Requires cleaving stance
+
+# Axe abilities
+common-abilities-axe-triple_chop = Triple Chop
+    .desc =
+        Three quick strikes
+common-abilities-axe-cleave = Cleave
+    .desc =
+        A downwards chop that can build multiple combo
+common-abilities-axe-brutal_swing = Brutal Swing
+    .desc =
+        A spinning cleave around you
+common-abilities-axe-berserk = Berserk
+    .desc =
+        Increases your strength at the cost of leaving you vulnerable
+common-abilities-axe-rising_tide = Rising Tide
+    .desc =
+        An upwards strike that greatly increases combo
+common-abilities-axe-savage_sense = Savage Sense
+    .desc =
+        Identify a vital point on your target, ensuring your next strike critically damages them
+common-abilities-axe-adrenaline_rush = Adrenaline Rush
+    .desc =
+        Consume all your combo to replenish your stamina
+common-abilities-axe-execute = Execute
+    .desc =
+        A devastating strike often known to be fatal
+common-abilities-axe-maelstrom = Maelstrom
+    .desc =
+        Strike everything in your vicinity with a devastating, spinning strike
+common-abilities-axe-rake = Rake
+    .desc =
+        Drag your axe across your foe, inducing bleeding
+common-abilities-axe-bloodfeast = Bloodfeast
+    .desc =
+        Your axe thirsts for the blood of your enemies, replenishing you with each strike
+common-abilities-axe-fierce_raze = Fierce Raze
+    .desc =
+        A rapid flurry of strikes on your foe
+common-abilities-axe-dueal_fierce_raze = Fierce Raze
+    .desc =
+        A rapid flurry of strikes on yoru foe using both of your axes
+common-abilities-axe-furor = Furor
+    .desc =
+        As your fury rises, your movement and attacks quicken
+common-abilities-axe-fracture = Fracture
+    .desc =
+        A crippling blow that hampers your foe's movement
+common-abilities-axe-lacerate = Lacerate
+    .desc =
+        Flay your target, causing their lifeblood to flow out
+common-abilities-axe-riptide = Riptide
+    .desc =
+        Flay everything nearby, parting them from their blood
+common-abilities-axe-skull_bash = Skullbash
+    .desc =
+        A strike with the flat of your axe that can stagger
+common-abilities-axe-sunder = Sunder
+    .desc =
+        By changing your grip, you become able to bypass your enemy's armor
+common-abilities-axe-plunder = Plunder
+    .desc =
+        Quickly step towards your foe, robbing them of their balance with a strike
+common-abilities-axe-defiance = Defiance
+    .desc =
+        Stare death in the eye longer as you make yourself resistant to both staggers and death
+common-abilities-axe-keelhaul = Keelhaul
+    .desc =
+        Hook your opponent to pull them closer towards you
+common-abilities-axe-bulkhead = Bulkhead
+    .desc =
+        A heavy swing that some say can even stagger titans
+common-abilities-axe-capsize = Capsize
+    .desc =
+        Stagger everything nearby with a heavy spinning strike
