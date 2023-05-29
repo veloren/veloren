@@ -309,11 +309,11 @@ pub type SelectedSkillTree = SkillGroupKind;
 const TREES: [&str; 8] = [
     "General Combat",
     "Sword",
-    "Hammer",
     "Axe",
-    "Sceptre",
+    "Hammer",
     "Bow",
     "Fire Staff",
+    "Sceptre",
     "Mining",
 ];
 
