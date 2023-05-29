@@ -107,20 +107,22 @@ impl ProximitySpec {
     }
 }
 
-struct ProximityRequirements {
+struct ProximityRequirementsBuilder {
     all_of: Vec<ProximitySpec>,
     any_of: Vec<ProximitySpec>,
 }
 
-impl ProximityRequirements {
-    pub fn satisfied_by(&self, site: Vec2<i32>) -> bool {
-        let all_of_compliance = self.all_of.iter().all(|spec| spec.satisfied_by(site));
-        let any_of_compliance =
-            self.any_of.is_empty() || self.any_of.iter().any(|spec| spec.satisfied_by(site));
-        all_of_compliance && any_of_compliance
+impl ProximityRequirementsBuilder {
+    pub fn finalize(self, world_dims: &Aabr<i32>) -> ProximityRequirements {
+        let location_hint = self.location_hint(world_dims);
+        ProximityRequirements {
+            all_of: self.all_of,
+            any_of: self.any_of,
+            location_hint,
+        }
     }
 
-    pub fn location_hint(&self, world_dims: &Aabr<i32>) -> Aabr<i32> {
+    fn location_hint(&self, world_dims: &Aabr<i32>) -> Aabr<i32> {
         let bounding_box_of_point = |point: Vec2<i32>, max_distance: i32| Aabr {
             min: Vec2 {
                 x: point.x - max_distance,
@@ -162,7 +164,7 @@ impl ProximityRequirements {
     }
 
     pub fn new() -> Self {
-        ProximityRequirements {
+        Self {
             all_of: Vec::new(),
             any_of: Vec::new(),
         }
@@ -186,6 +188,25 @@ impl ProximityRequirements {
         let specs = locations.map(|loc| ProximitySpec::be_near(loc, distance));
         self.any_of.extend(specs);
         self
+    }
+}
+
+struct ProximityRequirements {
+    all_of: Vec<ProximitySpec>,
+    any_of: Vec<ProximitySpec>,
+    location_hint: Aabr<i32>,
+}
+
+impl ProximityRequirements {
+    pub fn satisfied_by(&self, site: Vec2<i32>) -> bool {
+        if self.location_hint.contains_point(site) {
+            let all_of_compliance = self.all_of.iter().all(|spec| spec.satisfied_by(site));
+            let any_of_compliance =
+                self.any_of.is_empty() || self.any_of.iter().any(|spec| spec.satisfied_by(site));
+            all_of_compliance && any_of_compliance
+        } else {
+            false
+        }
     }
 }
 
@@ -235,15 +256,17 @@ impl Civs {
         info!(?initial_civ_count, "all civilisations created");
 
         prof_span!(guard, "find locations and establish sites");
+        let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (loc, kind) = match ctx.rng.gen_range(0..64) {
                     0..=5 => (
                         find_site_loc(
                             &mut ctx,
-                            &ProximityRequirements::new()
+                            &ProximityRequirementsBuilder::new()
                                 .avoid_all_of(this.castle_enemies(), 40)
-                                .close_to_one_of(this.towns(), 20),
+                                .close_to_one_of(this.towns(), 20)
+                                .finalize(&world_dims),
                             SiteKind::Castle,
                         )?,
                         SiteKind::Castle,
@@ -253,8 +276,9 @@ impl Civs {
                             (
                                 find_site_loc(
                                     &mut ctx,
-                                    &ProximityRequirements::new()
-                                        .avoid_all_of(this.tree_enemies(), 40),
+                                    &ProximityRequirementsBuilder::new()
+                                        .avoid_all_of(this.tree_enemies(), 40)
+                                        .finalize(&world_dims),
                                     SiteKind::GiantTree,
                                 )?,
                                 SiteKind::GiantTree,
@@ -263,8 +287,9 @@ impl Civs {
                             (
                                 find_site_loc(
                                     &mut ctx,
-                                    &ProximityRequirements::new()
-                                        .avoid_all_of(this.tree_enemies(), 40),
+                                    &ProximityRequirementsBuilder::new()
+                                        .avoid_all_of(this.tree_enemies(), 40)
+                                        .finalize(&world_dims),
                                     SiteKind::Tree,
                                 )?,
                                 SiteKind::Tree,
@@ -274,7 +299,9 @@ impl Civs {
                     32..=37 => (
                         find_site_loc(
                             &mut ctx,
-                            &ProximityRequirements::new().avoid_all_of(this.gnarling_enemies(), 40),
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.gnarling_enemies(), 40)
+                                .finalize(&world_dims),
                             SiteKind::Gnarling,
                         )?,
                         SiteKind::Gnarling,
@@ -283,8 +310,9 @@ impl Civs {
                     38..=43 => (
                         find_site_loc(
                             &mut ctx,
-                            &ProximityRequirements::new()
-                                .avoid_all_of(this.chapel_site_enemies(), 40),
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.chapel_site_enemies(), 40)
+                                .finalize(&world_dims),
                             SiteKind::ChapelSite,
                         )?,
                         SiteKind::ChapelSite,
@@ -292,7 +320,9 @@ impl Civs {
                     44..=49 => (
                         find_site_loc(
                             &mut ctx,
-                            &ProximityRequirements::new().avoid_all_of(this.gnarling_enemies(), 40),
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.gnarling_enemies(), 40)
+                                .finalize(&world_dims),
                             SiteKind::Adlet,
                         )?,
                         SiteKind::Adlet,
@@ -300,7 +330,9 @@ impl Civs {
                     _ => (
                         find_site_loc(
                             &mut ctx,
-                            &ProximityRequirements::new().avoid_all_of(this.dungeon_enemies(), 40),
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.dungeon_enemies(), 40)
+                                .finalize(&world_dims),
                             SiteKind::Dungeon,
                         )?,
                         SiteKind::Dungeon,
@@ -763,9 +795,11 @@ impl Civs {
             13..=18 => SiteKind::SavannahPit,
             _ => SiteKind::Refactor,
         };
+        let world_dims = ctx.sim.get_aabr();
         let site = attempt(100, || {
-            let avoid_town_enemies =
-                ProximityRequirements::new().avoid_all_of(self.town_enemies(), 60);
+            let avoid_town_enemies = ProximityRequirementsBuilder::new()
+                .avoid_all_of(self.town_enemies(), 60)
+                .finalize(&world_dims);
             let loc = find_site_loc(ctx, &avoid_town_enemies, kind)?;
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
@@ -1502,15 +1536,8 @@ fn find_site_loc(
     prof_span!("find_site_loc");
     const MAX_ATTEMPTS: usize = 10000;
     let mut loc = None;
+    let location_hint = proximity_reqs.location_hint;
     for _ in 0..MAX_ATTEMPTS {
-        let world_dims = Aabr {
-            min: Vec2 { x: 0, y: 0 },
-            max: Vec2 {
-                x: ctx.sim.get_size().x as i32,
-                y: ctx.sim.get_size().y as i32,
-            },
-        };
-        let location_hint = proximity_reqs.location_hint(&world_dims);
         let test_loc = loc.unwrap_or_else(|| {
             Vec2::new(
                 ctx.rng.gen_range(location_hint.min.x..location_hint.max.x),
@@ -1868,22 +1895,51 @@ mod tests {
 
     #[test]
     fn empty_proximity_requirements() {
-        let reqs = ProximityRequirements::new();
+        let world_dims = Aabr {
+            min: Vec2 { x: 0, y: 0 },
+            max: Vec2 {
+                x: 200_i32,
+                y: 200_i32,
+            },
+        };
+        let reqs = ProximityRequirementsBuilder::new().finalize(&world_dims);
         assert!(reqs.satisfied_by(Vec2 { x: 0, y: 0 }));
     }
 
     #[test]
     fn avoid_proximity_requirements() {
-        let reqs =
-            ProximityRequirements::new().avoid_all_of(vec![Vec2 { x: 0, y: 0 }].into_iter(), 10);
+        let world_dims = Aabr {
+            min: Vec2 {
+                x: -200_i32,
+                y: -200_i32,
+            },
+            max: Vec2 {
+                x: 200_i32,
+                y: 200_i32,
+            },
+        };
+        let reqs = ProximityRequirementsBuilder::new()
+            .avoid_all_of(vec![Vec2 { x: 0, y: 0 }].into_iter(), 10)
+            .finalize(&world_dims);
         assert!(reqs.satisfied_by(Vec2 { x: 8, y: -8 }));
         assert!(!reqs.satisfied_by(Vec2 { x: -1, y: 1 }));
     }
 
     #[test]
     fn near_proximity_requirements() {
-        let reqs =
-            ProximityRequirements::new().close_to_one_of(vec![Vec2 { x: 0, y: 0 }].into_iter(), 10);
+        let world_dims = Aabr {
+            min: Vec2 {
+                x: -200_i32,
+                y: -200_i32,
+            },
+            max: Vec2 {
+                x: 200_i32,
+                y: 200_i32,
+            },
+        };
+        let reqs = ProximityRequirementsBuilder::new()
+            .close_to_one_of(vec![Vec2 { x: 0, y: 0 }].into_iter(), 10)
+            .finalize(&world_dims);
         assert!(reqs.satisfied_by(Vec2 { x: 1, y: -1 }));
         assert!(!reqs.satisfied_by(Vec2 { x: -8, y: 8 }));
     }
@@ -1891,16 +1947,24 @@ mod tests {
     #[test]
     fn complex_proximity_requirements() {
         let a_site = Vec2 { x: 572, y: 724 };
-        let reqs = ProximityRequirements::new()
+        let world_dims = Aabr {
+            min: Vec2 { x: 0, y: 0 },
+            max: Vec2 {
+                x: 1000_i32,
+                y: 1000_i32,
+            },
+        };
+        let reqs = ProximityRequirementsBuilder::new()
             .close_to_one_of(vec![a_site].into_iter(), 60)
-            .avoid_all_of(vec![a_site].into_iter(), 40);
+            .avoid_all_of(vec![a_site].into_iter(), 40)
+            .finalize(&world_dims);
         assert!(reqs.satisfied_by(Vec2 { x: 572, y: 774 }));
         assert!(!reqs.satisfied_by(a_site));
     }
 
     #[test]
     fn location_hint() {
-        let reqs = ProximityRequirements::new().close_to_one_of(
+        let reqs = ProximityRequirementsBuilder::new().close_to_one_of(
             vec![Vec2 { x: 1, y: 0 }, Vec2 { x: 13, y: 12 }].into_iter(),
             10,
         );

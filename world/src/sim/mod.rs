@@ -1581,6 +1581,17 @@ impl WorldSim {
 
     pub fn get_size(&self) -> Vec2<u32> { self.map_size_lg().chunks().map(u32::from) }
 
+    pub fn get_aabr(&self) -> Aabr<i32> {
+        let size = self.get_size();
+        Aabr {
+            min: Vec2 { x: 0, y: 0 },
+            max: Vec2 {
+                x: size.x as i32,
+                y: size.y as i32,
+            },
+        }
+    }
+
     pub fn generate_oob_chunk(&self) -> TerrainChunk {
         TerrainChunk::water(CONFIG.sea_level as i32)
     }
