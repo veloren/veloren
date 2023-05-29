@@ -373,10 +373,10 @@ void main() {
 
             vec3 reflect_color;
             #if (FLUID_MODE == FLUID_MODE_HIGH)
-                reflect_color = get_sky_color(reflect_ray, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+                reflect_color = get_sky_color(reflect_ray, f_pos, vec3(-100000), 0.125, false, 1.0, true, sun_shade_frac);
                 reflect_color = get_cloud_color(reflect_color, reflect_ray, cam_pos.xyz, 100000.0, 0.1);
             #else
-                reflect_color = get_sky_color(reflect_ray, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+                reflect_color = get_sky_color(reflect_ray, f_pos, vec3(-100000), 0.125, false, 1.0, true, sun_shade_frac);
             #endif
             reflect_color *= sun_shade_frac * 0.75 + 0.25;
 
