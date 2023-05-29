@@ -36,9 +36,13 @@ The official authentication server uses TLS encryption extensively. It also empl
 ### Official social media and websites
 
 - [Website](https://veloren.net)
-- [Discord server](https://discord.gg/veloren-community-449602562165833758)
-- [Matrix server](https://matrix.to/#/#veloren-space:fachschaften.org)
-- [Subreddit](https://www.reddit.com/r/Veloren)
+- [Discord](https://discord.gg/veloren-community-449602562165833758)
+- [Matrix](https://matrix.to/#/#veloren-space:fachschaften.org)
+- [Twitter](https://twitter.com/velorenproject)
+- [Mastodon](https://floss.social/@veloren)
+- [Reddit](https://www.reddit.com/r/Veloren)
+- [YouTube](https://youtube.com/@Veloren)
+- [Twitch](https://www.twitch.tv/veloren_dev)
 
 ## Get Veloren
 
