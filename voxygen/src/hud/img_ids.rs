@@ -752,6 +752,10 @@ image_ids! {
         buff_haste_0: "voxygen.element.de_buffs.buff_haste_0",
         buff_fortitude_0: "voxygen.element.de_buffs.buff_fortitude_0",
         buff_reckless: "voxygen.element.de_buffs.buff_reckless",
+        buff_imminentcritical: "voxygen.element.de_buffs.buff_imminentcritical",
+        buff_fury: "voxygen.element.de_buffs.buff_fury",
+        buff_sunderer: "voxygen.element.de_buffs.buff_sunderer",
+        buff_defiance: "voxygen.element.de_buffs.buff_defiance",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
