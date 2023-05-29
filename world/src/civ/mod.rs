@@ -796,22 +796,29 @@ impl Civs {
             _ => SiteKind::Refactor,
         };
         let world_dims = ctx.sim.get_aabr();
-        let site = attempt(100, || {
-            let avoid_town_enemies = ProximityRequirementsBuilder::new()
-                .avoid_all_of(self.town_enemies(), 60)
-                .finalize(&world_dims);
-            let loc = find_site_loc(ctx, &avoid_town_enemies, &kind)?;
-            Some(self.establish_site(ctx, loc, |place| Site {
-                kind,
-                site_tmp: None,
-                center: loc,
-                place,
-                /* most economic members have moved to site/Economy */
-                /* last_exports: Stocks::from_default(0.0),
-                 * export_targets: Stocks::from_default(0.0),
-                 * //trade_states: Stocks::default(), */
-            }))
-        })?;
+        let avoid_town_enemies = ProximityRequirementsBuilder::new()
+            .avoid_all_of(self.town_enemies(), 60)
+            .finalize(&world_dims);
+        let loc = (0..100)
+            .flat_map(|_| {
+                find_site_loc(ctx, &avoid_town_enemies, &kind).and_then(|loc| {
+                    town_attributes_of_site(loc, ctx.sim)
+                        .map(|town_attrs| (loc, town_attrs.score()))
+                })
+            })
+            .reduce(|a, b| if a.1 > b.1 { a } else { b })?
+            .0;
+
+        let site = self.establish_site(ctx, loc, |place| Site {
+            kind,
+            site_tmp: None,
+            center: loc,
+            place,
+            /* most economic members have moved to site/Economy */
+            /* last_exports: Stocks::from_default(0.0),
+             * export_targets: Stocks::from_default(0.0),
+             * //trade_states: Stocks::default(), */
+        });
 
         let civ = self.civs.insert(Civ {
             capital: site,
@@ -1665,6 +1672,15 @@ pub struct TownSiteAttributes {
     building_materials: bool,
 }
 
+impl TownSiteAttributes {
+    pub fn score(&self) -> f32 {
+        3.0 * (self.food_score as f32 + 1.0).log2()
+            + 2.0 * (self.forestry_score as f32 + 1.0).log2()
+            + (self.mining_score as f32 + 1.0).log2()
+            + (self.trading_score as f32 + 1.0).log2()
+    }
+}
+
 #[derive(Debug)]
 pub struct Civ {
     capital: Id<Site>,
@@ -1749,17 +1765,12 @@ impl SiteKind {
         };
 
         sim.get(loc).map_or(false, |chunk| {
-            let suitable_for_town = |score_threshold: f32| -> bool {
+            let suitable_for_town = || -> bool {
                 let attributes = town_attributes_of_site(loc, sim);
-                attributes.map_or(false, |attr| {
-                    let industry_score = 3.0 * (attr.food_score as f32 + 1.0).log2()
-                        + 2.0 * (attr.forestry_score as f32 + 1.0).log2()
-                        + (attr.mining_score as f32 + 1.0).log2()
-                        + (attr.trading_score as f32 + 1.0).log2();
-                    attr.potable_water
-                        && attr.building_materials
-                        && industry_score > score_threshold
-                        && attr.heating
+                attributes.map_or(false, |attributes| {
+                    attributes.potable_water
+                        && attributes.building_materials
+                        && attributes.heating
                         // Because of how the algorithm for site2 towns work, they have to start on land.
                         && on_land()
                 })
@@ -1780,20 +1791,16 @@ impl SiteKind {
                 },
                 SiteKind::Citadel => true,
                 SiteKind::CliffTown => {
-                    (-0.6..0.4).contains(&chunk.temp)
-                        && chunk.near_cliffs()
-                        && suitable_for_town(4.0)
+                    (-0.6..0.4).contains(&chunk.temp) && chunk.near_cliffs() && suitable_for_town()
                 },
                 SiteKind::SavannahPit => {
                     matches!(chunk.get_biome(), BiomeKind::Savannah)
                         && !chunk.near_cliffs()
                         && !chunk.river.near_water()
-                        && suitable_for_town(4.0)
+                        && suitable_for_town()
                 },
                 SiteKind::DesertCity => {
-                    (0.9..1.0).contains(&chunk.temp)
-                        && !chunk.near_cliffs()
-                        && suitable_for_town(4.0)
+                    (0.9..1.0).contains(&chunk.temp) && !chunk.near_cliffs() && suitable_for_town()
                 },
                 SiteKind::ChapelSite => {
                     matches!(chunk.get_biome(), BiomeKind::Ocean)
@@ -1827,7 +1834,7 @@ impl SiteKind {
                     true
                 },
                 SiteKind::Dungeon => on_land(),
-                SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(6.7),
+                SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(),
                 SiteKind::Bridge(_, _) => true,
             }
         })
