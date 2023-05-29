@@ -267,7 +267,7 @@ impl Civs {
                                 .avoid_all_of(this.castle_enemies(), 40)
                                 .close_to_one_of(this.towns(), 20)
                                 .finalize(&world_dims),
-                            SiteKind::Castle,
+                            &SiteKind::Castle,
                         )?,
                         SiteKind::Castle,
                     ),
@@ -279,7 +279,7 @@ impl Civs {
                                     &ProximityRequirementsBuilder::new()
                                         .avoid_all_of(this.tree_enemies(), 40)
                                         .finalize(&world_dims),
-                                    SiteKind::GiantTree,
+                                    &SiteKind::GiantTree,
                                 )?,
                                 SiteKind::GiantTree,
                             )
@@ -290,7 +290,7 @@ impl Civs {
                                     &ProximityRequirementsBuilder::new()
                                         .avoid_all_of(this.tree_enemies(), 40)
                                         .finalize(&world_dims),
-                                    SiteKind::Tree,
+                                    &SiteKind::Tree,
                                 )?,
                                 SiteKind::Tree,
                             )
@@ -302,7 +302,7 @@ impl Civs {
                             &ProximityRequirementsBuilder::new()
                                 .avoid_all_of(this.gnarling_enemies(), 40)
                                 .finalize(&world_dims),
-                            SiteKind::Gnarling,
+                            &SiteKind::Gnarling,
                         )?,
                         SiteKind::Gnarling,
                     ),
@@ -313,7 +313,7 @@ impl Civs {
                             &ProximityRequirementsBuilder::new()
                                 .avoid_all_of(this.chapel_site_enemies(), 40)
                                 .finalize(&world_dims),
-                            SiteKind::ChapelSite,
+                            &SiteKind::ChapelSite,
                         )?,
                         SiteKind::ChapelSite,
                     ),
@@ -323,7 +323,7 @@ impl Civs {
                             &ProximityRequirementsBuilder::new()
                                 .avoid_all_of(this.gnarling_enemies(), 40)
                                 .finalize(&world_dims),
-                            SiteKind::Adlet,
+                            &SiteKind::Adlet,
                         )?,
                         SiteKind::Adlet,
                     ),
@@ -333,7 +333,7 @@ impl Civs {
                             &ProximityRequirementsBuilder::new()
                                 .avoid_all_of(this.dungeon_enemies(), 40)
                                 .finalize(&world_dims),
-                            SiteKind::Dungeon,
+                            &SiteKind::Dungeon,
                         )?,
                         SiteKind::Dungeon,
                     ),
@@ -800,7 +800,7 @@ impl Civs {
             let avoid_town_enemies = ProximityRequirementsBuilder::new()
                 .avoid_all_of(self.town_enemies(), 60)
                 .finalize(&world_dims);
-            let loc = find_site_loc(ctx, &avoid_town_enemies, kind)?;
+            let loc = find_site_loc(ctx, &avoid_town_enemies, &kind)?;
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
                 site_tmp: None,
@@ -1531,7 +1531,7 @@ fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
     proximity_reqs: &ProximityRequirements,
-    site_kind: SiteKind,
+    site_kind: &SiteKind,
 ) -> Option<Vec2<i32>> {
     prof_span!("find_site_loc");
     const MAX_ATTEMPTS: usize = 10000;
