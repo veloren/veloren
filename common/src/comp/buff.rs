@@ -801,7 +801,7 @@ pub mod tests {
     /// queue has correct total duration
     fn test_queueable_buffs_three() {
         let mut buff_comp: Buffs = Default::default();
-        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)));
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(buff_data, time_a), time_a);
         let time_b = Time(6.0);
@@ -832,8 +832,8 @@ pub mod tests {
     /// queueable buff is added, delayed buff has correct start time
     fn test_queueable_buff_delay_start() {
         let mut buff_comp: Buffs = Default::default();
-        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0)), Some(Secs(10.0)));
-        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
+        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0))).with_delay(Secs(10.0));
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)));
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
         let time_b = Time(6.0);
@@ -864,8 +864,8 @@ pub mod tests {
     /// does not move delayed buff start or end times
     fn test_queueable_buff_long_delay() {
         let mut buff_comp: Buffs = Default::default();
-        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0)), Some(Secs(50.0)));
-        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
+        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0))).with_delay(Secs(50.0));
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)));
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
         let time_b = Time(10.0);
