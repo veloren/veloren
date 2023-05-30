@@ -83,6 +83,7 @@ image_ids! {
         skills_bg: "voxygen.element.ui.diary.diary_skills_bg",
         slot_skills: "voxygen.element.ui.diary.buttons.slot_skilltree",
         sword_bg: "voxygen.element.ui.diary.sword_bg",
+        axe_bg: "voxygen.element.ui.diary.axe_bg",
         swords_crossed: "voxygen.element.weapons.swords_crossed",
         sceptre: "voxygen.element.weapons.sceptre",
         sword: "voxygen.element.weapons.sword",

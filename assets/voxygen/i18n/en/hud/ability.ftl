@@ -287,12 +287,16 @@ common-abilities-axe-savage_sense = Savage Sense
 common-abilities-axe-adrenaline_rush = Adrenaline Rush
     .desc =
         Consume all your combo to replenish your stamina
+        Scales with combo on activation, consumes all combo
 common-abilities-axe-execute = Execute
     .desc =
         A devastating strike often known to be fatal
+        Requires 30 combo to use
+        Automatically upgrades to maelstrom at 50 combo if unlocked
 common-abilities-axe-maelstrom = Maelstrom
     .desc =
         Strike everything in your vicinity with a devastating, spinning strike
+        Automatically upgrades from execute at 50 combo
 common-abilities-axe-rake = Rake
     .desc =
         Drag your axe across your foe, inducing bleeding
@@ -311,12 +315,16 @@ common-abilities-axe-furor = Furor
 common-abilities-axe-fracture = Fracture
     .desc =
         A crippling blow that hampers your foe's movement
+        Scales with combo on activation, consumes half of combo
 common-abilities-axe-lacerate = Lacerate
     .desc =
         Flay your target, causing their lifeblood to flow out
+        Requires 30 combo to use
+        Automatically upgrades to riptide at 50 combo if unlocked
 common-abilities-axe-riptide = Riptide
     .desc =
         Flay everything nearby, parting them from their blood
+        Automatically upgrades from lacerate at 50 combo
 common-abilities-axe-skull_bash = Skullbash
     .desc =
         A strike with the flat of your axe that can stagger
@@ -332,9 +340,13 @@ common-abilities-axe-defiance = Defiance
 common-abilities-axe-keelhaul = Keelhaul
     .desc =
         Hook your opponent to pull them closer towards you
+        Scales with combo on activation, consumes half of combo
 common-abilities-axe-bulkhead = Bulkhead
     .desc =
         A heavy swing that some say can even stagger titans
+        Requires 30 combo to use
+        Automatically upgrades to capsize at 50 combo if unlocked
 common-abilities-axe-capsize = Capsize
     .desc =
         Stagger everything nearby with a heavy spinning strike
+        Automatically upgrades from bulkhead at 50 combo

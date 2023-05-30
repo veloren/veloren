@@ -33,8 +33,8 @@ use common::{
             slot::EquipSlot,
         },
         skills::{
-            self, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill, RollSkill,
-            SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
+            self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
+            RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
         Body, Energy, Health, Inventory, Poise,
@@ -86,7 +86,7 @@ widget_ids! {
         skills[],
         skill_lock_imgs[],
         sword_bg,
-        axe_render,
+        axe_bg,
         hammer_render,
         skill_hammer_combo_0,
         skill_hammer_combo_1,
@@ -544,11 +544,11 @@ impl<'a> Widget for Diary<'a> {
                         let img = match skilltree_name {
                             "General Combat" => self.imgs.swords_crossed,
                             "Sword" => self.imgs.sword,
-                            "Hammer" => self.imgs.hammer,
                             "Axe" => self.imgs.axe,
-                            "Sceptre" => self.imgs.sceptre,
+                            "Hammer" => self.imgs.hammer,
                             "Bow" => self.imgs.bow,
                             "Fire Staff" => self.imgs.staff,
+                            "Sceptre" => self.imgs.sceptre,
                             "Mining" => self.imgs.mining,
                             _ => self.imgs.nothing,
                         };
@@ -765,20 +765,20 @@ impl<'a> Widget for Diary<'a> {
                     SelectedSkillTree::Weapon(ToolKind::Sword) => {
                         self.handle_sword_skills_window(&diary_tooltip, state, ui, events)
                     },
-                    SelectedSkillTree::Weapon(ToolKind::Hammer) => {
-                        self.handle_hammer_skills_window(&diary_tooltip, state, ui, events)
-                    },
                     SelectedSkillTree::Weapon(ToolKind::Axe) => {
                         self.handle_axe_skills_window(&diary_tooltip, state, ui, events)
                     },
-                    SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
-                        self.handle_sceptre_skills_window(&diary_tooltip, state, ui, events)
+                    SelectedSkillTree::Weapon(ToolKind::Hammer) => {
+                        self.handle_hammer_skills_window(&diary_tooltip, state, ui, events)
                     },
                     SelectedSkillTree::Weapon(ToolKind::Bow) => {
                         self.handle_bow_skills_window(&diary_tooltip, state, ui, events)
                     },
                     SelectedSkillTree::Weapon(ToolKind::Staff) => {
                         self.handle_staff_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
+                        self.handle_sceptre_skills_window(&diary_tooltip, state, ui, events)
                     },
                     SelectedSkillTree::Weapon(ToolKind::Pick) => {
                         self.handle_mining_skills_window(&diary_tooltip, state, ui, events)
@@ -1342,11 +1342,11 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
     match string {
         "General Combat" => Some(SelectedSkillTree::General),
         "Sword" => Some(SelectedSkillTree::Weapon(ToolKind::Sword)),
-        "Hammer" => Some(SelectedSkillTree::Weapon(ToolKind::Hammer)),
         "Axe" => Some(SelectedSkillTree::Weapon(ToolKind::Axe)),
-        "Sceptre" => Some(SelectedSkillTree::Weapon(ToolKind::Sceptre)),
+        "Hammer" => Some(SelectedSkillTree::Weapon(ToolKind::Hammer)),
         "Bow" => Some(SelectedSkillTree::Weapon(ToolKind::Bow)),
         "Fire Staff" => Some(SelectedSkillTree::Weapon(ToolKind::Staff)),
+        "Sceptre" => Some(SelectedSkillTree::Weapon(ToolKind::Sceptre)),
         "Mining" => Some(SelectedSkillTree::Weapon(ToolKind::Pick)),
         _ => None,
     }
@@ -1729,6 +1729,144 @@ impl<'a> Diary<'a> {
         events
     }
 
+    fn handle_axe_skills_window(
+        &mut self,
+        diary_tooltip: &Tooltip,
+        state: &mut State<DiaryState>,
+        ui: &mut UiCell,
+        mut events: Vec<Event>,
+    ) -> Vec<Event> {
+        // Axe
+        Image::new(self.imgs.axe_bg)
+            .wh([925.0, 619.0])
+            .mid_top_with_margin_on(state.ids.content_align, 65.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.axe_bg, ui);
+
+        use PositionSpecifier::TopLeftWithMarginsOn;
+        let skill_buttons = &[
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::BrutalSwing),
+                ability_id: "common.abilities.axe.brutal_swing",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 401.0, 415.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Berserk),
+                ability_id: "common.abilities.axe.berserk",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 297.0, 347.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::RisingTide),
+                ability_id: "common.abilities.axe.rising_tide",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 298.0, 480.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::SavageSense),
+                ability_id: "common.abilities.axe.savage_sense",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 191.0, 310.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::AdrenalineRush),
+                ability_id: "common.abilities.axe.adrenaline_rush",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 192.0, 520.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Execute),
+                ability_id: "common.abilities.axe.execute",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 190.0, 410.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Maelstrom),
+                ability_id: "common.abilities.axe.maelstrom",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 10.0, 415.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Rake),
+                ability_id: "common.abilities.axe.rake",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 538.0, 298.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Bloodfeast),
+                ability_id: "common.abilities.axe.bloodfeast",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 404.0, 47.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::FierceRaze),
+                ability_id: "common.abilities.axe.fierce_raze",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 405.0, 179.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Furor),
+                ability_id: "common.abilities.axe.furor",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 299.0, 9.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Fracture),
+                ability_id: "common.abilities.axe.fracture",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 299.0, 221.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Lacerate),
+                ability_id: "common.abilities.axe.lacerate",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 296.0, 109.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Riptide),
+                ability_id: "common.abilities.axe.riptide",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 115.0, 115.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::SkullBash),
+                ability_id: "common.abilities.axe.skull_bash",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 534.0, 561.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Sunder),
+                ability_id: "common.abilities.axe.sunder",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 405.0, 660.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Plunder),
+                ability_id: "common.abilities.axe.plunder",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 406.0, 793.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Defiance),
+                ability_id: "common.abilities.axe.defiance",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 301.0, 624.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Keelhaul),
+                ability_id: "common.abilities.axe.keelhaul",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 299.0, 834.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Bulkhead),
+                ability_id: "common.abilities.axe.bulkhead",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 298.0, 721.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Axe(AxeSkill::Capsize),
+                ability_id: "common.abilities.axe.capsize",
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 117.0, 728.0),
+            },
+        ];
+
+        state.update(|s| {
+            s.ids
+                .skills
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+        state.update(|s| {
+            s.ids
+                .skill_lock_imgs
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
+        events
+    }
+
     fn handle_hammer_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
@@ -1884,16 +2022,6 @@ impl<'a> Diary<'a> {
         ];
 
         self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
-        events
-    }
-
-    fn handle_axe_skills_window(
-        &mut self,
-        _diary_tooltip: &Tooltip,
-        _state: &mut State<DiaryState>,
-        _ui: &mut UiCell,
-        /* mut */ events: Vec<Event>,
-    ) -> Vec<Event> {
         events
     }
 
