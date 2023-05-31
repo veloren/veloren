@@ -314,5 +314,11 @@ void main() {
     #endif
 #endif
 
+    #ifdef EXPERIMENTAL_NEWSPAPER
+        float nz = hash_three(uvec3(uvec2(uv * screen_res.xy), tick.x * dot(fract(uv * 10) + 5, vec2(1)) * 0.3));
+        nz = (nz > 0.5) ? (pow(nz * 2 - 1, 1.5) * 0.5 + 0.5) : (pow(nz * 2, 1/1.5) * 0.5);
+        final_color.rgb = vec3(step(nz, length(final_color.rgb))) * mix(vec3(1, 0.5, 0.3), normalize(final_color.rgb), 0.05);
+    #endif
+
     tgt_color = vec4(final_color.rgb, 1);
 }

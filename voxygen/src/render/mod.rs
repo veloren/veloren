@@ -515,6 +515,8 @@ pub enum ExperimentalShader {
     ViewNormals,
     /// Show gbuffer materials.
     ViewMaterials,
+    /// Show gbuffer depth.
+    ViewDepth,
     /// Rather than fading out screen-space reflections at view space borders,
     /// smear screen space to cover the reflection vector.
     SmearReflections,
@@ -526,4 +528,6 @@ pub enum ExperimentalShader {
     /// Prefer using physically-based values for various rendering parameters,
     /// where possible.
     Photorealistic,
+    /// A dithered newspaper effect.
+    Newspaper,
 }
