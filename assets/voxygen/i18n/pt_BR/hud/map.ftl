@@ -34,3 +34,4 @@ hud-map-zoom_minimap_explanation =
 hud-map-gnarling = Fortificação Retorcida
 hud-map-chapel_site = Capela Marítima
 hud-map-placed_by = Marcado por { $name }
+hud-map-adlet = Fortaleza Adlet
