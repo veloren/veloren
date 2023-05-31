@@ -4,5 +4,5 @@ vec4 aa_apply(
     vec2 fragCoord,
     vec2 resolution
 ) {
-    return texelFetch(sampler2D(tex, smplr), ivec2(fragCoord * textureSize(sampler2D(tex, smplr), 0).xy / resolution), 0);
+    return texture(sampler2D(tex, smplr), fragCoord / resolution);
 }

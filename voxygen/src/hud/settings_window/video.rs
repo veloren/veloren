@@ -879,6 +879,7 @@ impl<'a> Widget for Video<'a> {
         // interaction with greedy meshing, and may eventually be removed.
         let mode_list = [
             AaMode::None,
+            AaMode::Bilinear,
             AaMode::Fxaa,
             /* AaMode::MsaaX4,
             AaMode::MsaaX8,
@@ -887,7 +888,8 @@ impl<'a> Widget for Video<'a> {
             AaMode::Hqx,
         ];
         let mode_label_list = [
-            "No anti-aliasing",
+            "None",
+            "Bilinear",
             "FXAA",
             /* "MSAA x4",
             "MSAA x8",
