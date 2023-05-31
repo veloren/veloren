@@ -77,3 +77,19 @@ buff-stat-potionsickness =
 buff-text-over_seconds = durante { $dur_secs } segundos
 buff-text-for_seconds = durante { $dur_secs } segundos
 buff-remove = Clique Para Remover
+buff-mysterious = Efeito misterioso
+## Imprudente
+buff-title-reckless = Imprudente
+buff-desc-reckless = Seus ataques são mais poderosos, mas você recebe mais dano.
+## Polimorfado
+buff-title-polymorphed = Polimorfado
+buff-desc-polymorphed = Seu corpo muda de forma.
+## Em chamas
+buff-title-flame = Chamas
+buff-desc-flame = Chamas são suas aliadas.
+## Congelante
+buff-title-frigid = Congelante
+buff-desc-frigid = Congele seus inimigos.
+## Roubo de vida
+buff-title-lifesteal = Roubo de vida
+buff-desc-lifesteal = Drene a vida de seus inimigos.

@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pet birds can now sit on the player's shoulder as they explore the world.
 - Adlet caves
 - Durability free areas (`/area_add <area_name> no_durability ...`)
+- Added Brazilian Portuguese translation.
 
 ### Changed
 
