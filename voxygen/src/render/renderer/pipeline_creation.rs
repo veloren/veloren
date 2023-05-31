@@ -258,6 +258,7 @@ impl ShaderModules {
         let anti_alias = shaders
             .get(match pipeline_modes.aa {
                 AaMode::None => "antialias.none",
+                AaMode::Bilinear => "antialias.bilinear",
                 AaMode::Fxaa => "antialias.fxaa",
                 AaMode::MsaaX4 => "antialias.msaa-x4",
                 AaMode::MsaaX8 => "antialias.msaa-x8",

@@ -95,6 +95,10 @@ void main() {
         tgt_color = vec4(mat_colors[mat.a % 5u], 1);
         return;
     #endif
+    #ifdef EXPERIMENTAL_VIEWDEPTH
+        tgt_color = vec4(vec3(pow(clamp(depth_at(uv) / 524288.0, 0, 1), 0.3)), 1);
+        return;
+    #endif
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(color.rgb, 1);

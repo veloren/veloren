@@ -38,6 +38,7 @@ impl assets::Compound for Shaders {
             "include.point_glow",
             "include.fxaa",
             "antialias.none",
+            "antialias.bilinear",
             "antialias.fxaa",
             "antialias.msaa-x4",
             "antialias.msaa-x8",

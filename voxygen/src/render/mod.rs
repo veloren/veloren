@@ -108,6 +108,15 @@ pub enum AaMode {
     /// Screen-space technique that uses a combination of FXAA and
     /// nearest-neighbour sample retargeting to produce crisp, clean upscaling.
     FxUpscale,
+    /// Bilinear filtering.
+    ///
+    /// Linear interpolation of the color buffer in each axis to determine the
+    /// pixel.
+    Bilinear,
+    /// Nearest-neighbour filtering.
+    ///
+    /// The colour of each pixel is determined by the colour of the spatially
+    /// closest texel in the color buffer.
     #[serde(other)]
     None,
 }
@@ -115,7 +124,7 @@ pub enum AaMode {
 impl AaMode {
     pub fn samples(&self) -> u32 {
         match self {
-            AaMode::None | AaMode::Fxaa | AaMode::Hqx | AaMode::FxUpscale => 1,
+            AaMode::None | AaMode::Bilinear | AaMode::Fxaa | AaMode::Hqx | AaMode::FxUpscale => 1,
             AaMode::MsaaX4 => 4,
             AaMode::MsaaX8 => 8,
             AaMode::MsaaX16 => 16,
@@ -515,6 +524,8 @@ pub enum ExperimentalShader {
     ViewNormals,
     /// Show gbuffer materials.
     ViewMaterials,
+    /// Show gbuffer depth.
+    ViewDepth,
     /// Rather than fading out screen-space reflections at view space borders,
     /// smear screen space to cover the reflection vector.
     SmearReflections,
@@ -526,4 +537,8 @@ pub enum ExperimentalShader {
     /// Prefer using physically-based values for various rendering parameters,
     /// where possible.
     Photorealistic,
+    /// A noisy newspaper effect.
+    Newspaper,
+    /// A colorful dithering effect.
+    ColorDithering,
 }
