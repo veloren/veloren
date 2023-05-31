@@ -184,6 +184,9 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
                 comp::biped_large::Species::Blueoni => "common.entity.wild.aggressive.blue_oni",
                 comp::biped_large::Species::Redoni => "common.entity.wild.aggressive.red_oni",
                 comp::biped_large::Species::Tursus => "common.entity.wild.aggressive.tursus",
+                comp::biped_large::Species::Gigasfrost => {
+                    "common.entity.world.world_bosses.gigas_frost"
+                },
                 species => unimplemented!("rtsim spawning for {:?}", species),
             },
             body => unimplemented!("rtsim spawning for {:?}", body),
