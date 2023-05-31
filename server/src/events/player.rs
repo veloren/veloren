@@ -105,6 +105,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             .with(uid)
             .build();
 
+        let ecs = state.ecs();
         // Ensure IdMaps maps this uid to the new entity
         ecs.write_resource::<IdMaps>().remap_entity(uid, new_entity);
 
@@ -112,7 +113,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         // Group component will be removed below, that prevents
         // `delete_entity_recorded` from making any changes to the group.
         if let Some(group) = maybe_group {
-            let mut group_manager = state.ecs().write_resource::<group::GroupManager>();
+            let mut group_manager = ecs.write_resource::<group::GroupManager>();
             if group_manager
                 .group_info(group)
                 .map(|info| info.leader == entity)
@@ -120,10 +121,10 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             {
                 group_manager.assign_leader(
                     new_entity,
-                    &state.ecs().read_storage(),
-                    &state.ecs().entities(),
-                    &state.ecs().read_storage(),
-                    &state.ecs().read_storage(),
+                    &ecs.read_storage(),
+                    &ecs.entities(),
+                    &ecs.read_storage(),
+                    &ecs.read_storage(),
                     // Nothing actually changing since Uid is transferred
                     |_, _| {},
                 );
@@ -131,7 +132,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         }
 
         // Erase group component to avoid group restructure when deleting the entity
-        state.ecs().write_storage::<group::Group>().remove(entity);
+        ecs.write_storage::<group::Group>().remove(entity);
     }
     // Delete old entity
     if let Err(e) = state.delete_entity_recorded(entity) {
@@ -264,6 +265,9 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         state.ecs().fetch_mut::<BattleModeBuffer>(),
     ) {
         match presence.kind {
+            PresenceKind::LoadingCharacter(_char_id) => { 
+                error!("Unexpected state when persist_entity is called! Some of the components required above should only be present after a character is loaded!");
+            },
             PresenceKind::Character(char_id) => {
                 let waypoint = state
                     .ecs()

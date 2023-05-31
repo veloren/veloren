@@ -9,6 +9,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Join, ReadStorage, Write, WriteExpect};
+use tracing::error;
 
 #[derive(Default)]
 pub struct Sys;
@@ -74,6 +75,14 @@ impl<'a> System<'a> for Sys {
                             active_abilities,
                             map_marker,
                         )| match presence.kind {
+                            PresenceKind::LoadingCharacter(_char_id) => {
+                                error!(
+                                    "Unexpected state when persisting characters! Some of the \
+                                     components required above should only be present after a \
+                                     character is loaded!"
+                                );
+                                None
+                            },
                             PresenceKind::Character(id) => {
                                 let pets = (&alignments, &bodies, &stats, &pets)
                                     .join()

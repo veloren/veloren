@@ -1678,6 +1678,7 @@ impl PlayState for SessionState {
                         // If we are changing the hotbar state this CANNOT be None.
                         let character_id = match client.presence().unwrap() {
                             PresenceKind::Character(id) => Some(id),
+                            PresenceKind::LoadingCharacter(id) => Some(id),
                             PresenceKind::Spectator => {
                                 unreachable!("HUD adaption in Spectator mode!")
                             },

@@ -1350,6 +1350,7 @@ impl Hud {
 
         let character_id = match client.presence().unwrap() {
             PresenceKind::Character(id) => Some(id),
+            PresenceKind::LoadingCharacter(id) => Some(id),
             PresenceKind::Spectator => None,
             PresenceKind::Possessor => None,
         };

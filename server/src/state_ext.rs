@@ -702,7 +702,7 @@ impl StateExt for State {
             let result =
                 if let Some(presence) = self.ecs().write_storage::<Presence>().get_mut(entity) {
                     if let PresenceKind::LoadingCharacter(id) = presence.kind {
-                        *presence.kind = PresenceKind::Character(id);
+                        presence.kind = PresenceKind::Character(id);
                         Ok(())
                     } else {
                         Err("PresenceKind is not LoadingCharacter")
@@ -1196,14 +1196,14 @@ impl StateExt for State {
             self.ecs().write_resource::<IdMaps>().remove_entity(
                 Some(entity),
                 uid,
-                maybe_presence.and_then(|p| match p.kind {
+                maybe_presence.and_then(|p| match p {
                     PresenceKind::Spectator
-                    | PresenceKind::Possessed
+                    | PresenceKind::Possessor
                     | PresenceKind::LoadingCharacter(_) => None,
                     PresenceKind::Character(id) => Some(id),
                 }),
                 maybe_rtsim_entity,
-            )
+            );
         } else {
             error!("Deleting entity without Uid component");
         }
