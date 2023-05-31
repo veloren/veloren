@@ -166,6 +166,23 @@ vec3 aa_sample(vec2 uv, vec2 off) {
 }
 #endif
 
+#ifdef EXPERIMENTAL_COLORDITHERING
+    float dither(ivec2 p, float level) {
+        // Bayer dithering
+        int dither[8][8] = {
+            { 0, 32, 8, 40, 2, 34, 10, 42}, /* 8x8 Bayer ordered dithering */
+            {48, 16, 56, 24, 50, 18, 58, 26}, /* pattern. Each input pixel */
+            {12, 44, 4, 36, 14, 46, 6, 38}, /* is scaled to the 0..63 range */
+            {60, 28, 52, 20, 62, 30, 54, 22}, /* before looking in this table */
+            { 3, 35, 11, 43, 1, 33, 9, 41}, /* to determine the action. */
+            {51, 19, 59, 27, 49, 17, 57, 25},
+            {15, 47, 7, 39, 13, 45, 5, 37},
+            {63, 31, 55, 23, 61, 29, 53, 21}
+        };
+        return step((dither[p.x % 8][p.y % 8]+1) * 0.016, level);
+    }
+#endif
+
 void main() {
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(texture(sampler2D(t_src_color, s_src_color), uv).rgb, 1);
@@ -315,9 +332,14 @@ void main() {
 #endif
 
     #ifdef EXPERIMENTAL_NEWSPAPER
-        float nz = hash_three(uvec3(uvec2(uv * screen_res.xy), tick.x * dot(fract(uv * 10) + 5, vec2(1)) * 0.3));
+        float nz = hash_three(uvec3(uvec2(uv * screen_res.xy), tick.x * dot(fract(uv * 10) + 5, vec2(1)) * 0.2));
         nz = (nz > 0.5) ? (pow(nz * 2 - 1, 1.5) * 0.5 + 0.5) : (pow(nz * 2, 1/1.5) * 0.5);
-        final_color.rgb = vec3(step(nz, length(final_color.rgb))) * mix(vec3(1, 0.5, 0.3), normalize(final_color.rgb), 0.05);
+        final_color.rgb = vec3(step(nz, length(final_color.rgb))) * vec3(1, 0.5, 0.3);
+    #else
+        #ifdef EXPERIMENTAL_COLORDITHERING
+            float d = dither(ivec2(uv * screen_res.xy), sqrt(length(final_color.rgb) * 0.25));
+            final_color.rgb = vec3(d) * sqrt(normalize(final_color.rgb));
+        #endif
     #endif
 
     tgt_color = vec4(final_color.rgb, 1);

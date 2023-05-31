@@ -537,6 +537,8 @@ pub enum ExperimentalShader {
     /// Prefer using physically-based values for various rendering parameters,
     /// where possible.
     Photorealistic,
-    /// A dithered newspaper effect.
+    /// A noisy newspaper effect.
     Newspaper,
+    /// A colorful dithering effect.
+    ColorDithering,
 }
