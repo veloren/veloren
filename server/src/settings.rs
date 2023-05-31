@@ -82,6 +82,7 @@ pub struct GameplaySettings {
     #[serde(default)]
     pub battle_mode: ServerBattleMode,
     #[serde(default)]
+    // explosion_burn_marks by players
     pub explosion_burn_marks: bool,
 }
 

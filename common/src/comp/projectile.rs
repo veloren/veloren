@@ -730,7 +730,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(30.0, Rgb::new(255.0, 255.0, 255.0)),
+                        RadiusEffect::TerrainDestruction(30.0, Rgb::new(0.0, 191.0, 255.0)),
                     ],
                     radius,
                     reagent: Some(Reagent::White),

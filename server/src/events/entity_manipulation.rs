@@ -860,7 +860,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 for block_pos in touched_blocks {
                     if let Ok(block) = terrain.get(block_pos) {
                         if !matches!(block.kind(), BlockKind::Lava | BlockKind::GlowingRock)
-                            && settings.gameplay.explosion_burn_marks
+                            && (
+                                // Check that owner is not player or explosion_burn_marks by players
+                                // is enabled
+                                owner_entity
+                                    .map_or(true, |e| ecs.read_storage::<Player>().get(e).is_none())
+                                    || settings.gameplay.explosion_burn_marks
+                            )
                         {
                             let diff2 = block_pos.map(|b| b as f32).distance_squared(pos);
                             let fade = (1.0 - diff2 / color_range.powi(2)).max(0.0);
