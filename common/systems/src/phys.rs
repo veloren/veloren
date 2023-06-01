@@ -1605,10 +1605,6 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 on_ceiling = true;
             }
 
-            if resolve_dir.magnitude_squared() > 0.0 {
-                land_on_ground(entity, *vel, resolve_dir.normalized());
-            }
-
             // When the resolution direction is non-vertical, we must be colliding
             // with a wall
             //
@@ -1642,7 +1638,11 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             } {
                 // ...block-hop!
                 pos.0.z = pos.0.z.max(block_aabb.max.z);
+
+                // Apply fall damage, in the vertical axis, and correct velocity
+                land_on_ground(entity, *vel, Vec3::unit_z());
                 vel.0.z = vel.0.z.max(0.0);
+
                 // Push the character on to the block very slightly
                 // to avoid jitter due to imprecision
                 if (vel.0 * resolve_dir).xy().magnitude_squared() < 1.0_f32.powi(2) {
@@ -1652,7 +1652,10 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
                 break;
             }
 
-            // If not, correct the velocity
+            // If not, correct the velocity, applying collision damage as we do
+            if resolve_dir.magnitude_squared() > 0.0 {
+                land_on_ground(entity, *vel, resolve_dir.normalized());
+            }
             vel.0 = vel.0.map2(
                 resolve_dir,
                 |e, d| {

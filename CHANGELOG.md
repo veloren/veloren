@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default audio volume should be less likely to destroy ear drums
 - Creatures flee less quickly when low on health
 - All `/build_area_*` commands have been renamed to `/area_*`, and you will have to pass an additional area type
+- Collision damage can now be applied in horizontal axes, in addition to the vertical axis
 
 ### Removed
 
