@@ -603,7 +603,7 @@ pub fn handle_land_on_ground(
 ) {
     let ecs = server.state.ecs();
 
-    // HACK: Certain ability movements currently take up above the fall damage
+    // HACK: Certain ability movements currently take us above the fall damage
     // threshold in the horizontal axis. This factor dampens velocity in the
     // horizontal axis when applying fall damage.
     let horizontal_damp = 0.5
