@@ -19,7 +19,7 @@ use common::{
         self,
         item::{ItemKind, MaterialStatManifest},
         skills::{GeneralSkill, Skill},
-        ChatType, Group, Inventory, Item, LootOwner, Player, Poise, Presence, PresenceKind,
+        ChatType, Group, Inventory, Item, LootOwner, Object, Player, Poise, Presence, PresenceKind,
     },
     effect::Effect,
     link::{Link, LinkHandle},
@@ -40,7 +40,7 @@ use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
     Join, WorldExt,
 };
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use tracing::{trace, warn};
 use vek::*;
 
@@ -366,6 +366,8 @@ impl StateExt for State {
             // Only if merging items fails do we give up and create a new item
         }
 
+        let spawned_at = *self.ecs().read_resource::<Time>();
+
         let item_drop = comp::item_drop::Body::from(&item);
         let body = comp::Body::ItemDrop(item_drop);
         let light_emitter = match &*item.kind() {
@@ -388,6 +390,11 @@ impl StateExt for State {
                 .with(item_drop.density())
                 .with(body.collider())
                 .with(body)
+                .with(Object::DeleteAfter {
+                    spawned_at,
+                    // Delete the item drop after 5 minutes
+                    timeout: Duration::from_secs(300),
+                })
                 .maybe_with(loot_owner)
                 .maybe_with(light_emitter)
                 .build(),

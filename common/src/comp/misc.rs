@@ -1,9 +1,10 @@
 use super::item::Reagent;
-use crate::uid::Uid;
+use crate::{resources::Time, uid::Uid};
 use serde::{Deserialize, Serialize};
-use specs::Component;
+use specs::{Component, DerefFlaggedStorage};
+use std::time::Duration;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Object {
     Bomb {
         owner: Option<Uid>,
@@ -12,8 +13,12 @@ pub enum Object {
         owner: Option<Uid>,
         reagent: Reagent,
     },
+    DeleteAfter {
+        spawned_at: Time,
+        timeout: Duration,
+    },
 }
 
 impl Component for Object {
-    type Storage = specs::VecStorage<Self>;
+    type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }
