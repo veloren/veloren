@@ -78,7 +78,6 @@ impl BodySpec for VolumeKey {
         _: &Self::Manifests,
         collider: Self::Extra,
     ) -> [Option<Self::BoneMesh>; anim::MAX_BONE_COUNT] {
-        println!("Generating segment...");
         [
             Some((
                 collider.volume().clone(),
