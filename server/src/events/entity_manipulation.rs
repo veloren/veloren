@@ -603,7 +603,18 @@ pub fn handle_land_on_ground(
 ) {
     let ecs = server.state.ecs();
 
-    let relative_vel = vel.dot(-surface_normal);
+    // HACK: Certain ability movements currently take up above the fall damage
+    // threshold in the horizontal axis. This factor dampens velocity in the
+    // horizontal axis when applying fall damage.
+    let horizontal_damp = 0.5
+        + vel
+            .try_normalized()
+            .unwrap_or_default()
+            .dot(Vec3::unit_z())
+            .abs()
+            * 0.5;
+
+    let relative_vel = vel.dot(-surface_normal) * horizontal_damp;
 
     // The second part of this if statement disables all fall damage when in the
     // water. This was added as a *temporary* fix a bug that causes you to take
