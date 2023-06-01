@@ -2,11 +2,11 @@ use common::{
     comp::{Object, PhysicsState, Pos, Vel},
     effect::Effect,
     event::{EventBus, ServerEvent},
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage};
 use vek::Rgb;
 
 /// This system is responsible for handling misc object behaviours
@@ -16,11 +16,12 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
+        Read<'a, Time>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
-        WriteStorage<'a, Object>,
+        ReadStorage<'a, Object>,
     );
 
     const NAME: &'static str = "object";
@@ -29,7 +30,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, _dt, server_bus, positions, velocities, physics_states, mut objects): Self::SystemData,
+        (entities, _dt, time, server_bus, positions, velocities, physics_states, objects): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
 
@@ -39,7 +40,7 @@ impl<'a> System<'a> for Sys {
             &positions,
             &velocities,
             &physics_states,
-            &mut objects,
+            &objects,
         )
             .join()
         {
@@ -158,6 +159,14 @@ impl<'a> System<'a> for Sys {
                             },
                             owner: *owner,
                         });
+                    }
+                },
+                Object::DeleteAfter {
+                    spawned_at,
+                    timeout,
+                } => {
+                    if (time.0 - spawned_at.0).max(0.0) > timeout.as_secs_f64() {
+                        server_emitter.emit(ServerEvent::Delete(entity));
                     }
                 },
             }

@@ -40,8 +40,8 @@ use common::{
         item::{tool::AbilityContext, Hands, ItemKind, ToolKind},
         ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
         Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, Item,
-        ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale,
-        SkillSet, Stance, Vel,
+        ItemKey, Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PoiseState, Pos,
+        Scale, SkillSet, Stance, Vel,
     },
     link::Is,
     mounting::{Rider, VolumeRider},
@@ -6394,6 +6394,7 @@ impl FigureMgr {
         filter_state: impl Fn(&FigureStateMeta) -> bool,
     ) {
         let ecs = state.ecs();
+        let time = ecs.read_resource::<Time>();
         let items = ecs.read_storage::<Item>();
         (
                 &ecs.entities(),
@@ -6404,11 +6405,13 @@ impl FigureMgr {
                 ecs.read_storage::<Inventory>().maybe(),
                 ecs.read_storage::<Scale>().maybe(),
                 ecs.read_storage::<Collider>().maybe(),
+                ecs.read_storage::<Object>().maybe(),
             )
             .join()
             // Don't render dead entities
-            .filter(|(_, _, _, _, health, _, _, _)| health.map_or(true, |h| !h.is_dead))
-            .for_each(|(entity, pos, _, body, _, inventory, scale, collider)| {
+            .filter(|(_, _, _, _, health, _, _, _, _)| health.map_or(true, |h| !h.is_dead))
+            .filter(|(_, _, _, _, _, _, _, _, obj)| !self.should_flicker(*time, *obj))
+            .for_each(|(entity, pos, _, body, _, inventory, scale, collider, _)| {
                 if let Some((bound, model, _)) = self.get_model_for_render(
                     tick,
                     camera,
@@ -6541,6 +6544,19 @@ impl FigureMgr {
         }
     }
 
+    // Returns `true` if an object should flicker because it's about to vanish
+    fn should_flicker(&self, time: Time, obj: Option<&Object>) -> bool {
+        if let Some(Object::DeleteAfter {
+            spawned_at,
+            timeout,
+        }) = obj
+        {
+            time.0 > spawned_at.0 + timeout.as_secs_f64() - 10.0 && (time.0 * 8.0).fract() < 0.5
+        } else {
+            false
+        }
+    }
+
     pub fn render<'a>(
         &'a self,
         drawer: &mut FigureDrawer<'_, 'a>,
@@ -6552,10 +6568,11 @@ impl FigureMgr {
         span!(_guard, "render", "FigureManager::render");
         let ecs = state.ecs();
 
+        let time = ecs.read_resource::<Time>();
         let character_state_storage = state.read_storage::<CharacterState>();
         let character_state = character_state_storage.get(viewpoint_entity);
         let items = ecs.read_storage::<Item>();
-        for (entity, pos, body, _, inventory, scale, collider) in (
+        for (entity, pos, body, _, inventory, scale, collider, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Body>(),
@@ -6563,12 +6580,14 @@ impl FigureMgr {
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Scale>().maybe(),
             ecs.read_storage::<Collider>().maybe(),
+            ecs.read_storage::<Object>().maybe(),
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, health, _, _, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, health, _, _, _, _)| health.map_or(true, |h| !h.is_dead))
         // Don't render player
-        .filter(|(entity, _, _, _, _, _, _)| *entity != viewpoint_entity)
+        .filter(|(entity, _, _, _, _, _, _, _)| *entity != viewpoint_entity)
+        .filter(|(_, _, _, _, _, _, _, obj)| !self.should_flicker(*time, *obj))
         {
             if let Some((bound, model, atlas)) = self.get_model_for_render(
                 tick,
