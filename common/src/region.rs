@@ -7,6 +7,9 @@ use vek::*;
 
 pub enum Event {
     // Contains the key of the region the entity moved to
+    // TODO: We only actually use the info from this when the entity moves to another region and
+    // isn't deleted, but we still generate and process these events in the case where the entity
+    // was deleted.
     Left(u32, Option<Vec2<i32>>),
     // Contains the key of the region the entity came from
     Entered(u32, Option<Vec2<i32>>),
@@ -147,7 +150,8 @@ impl RegionMap {
                         // component) TODO: distribute this between ticks
                         None => {
                             // TODO: shouldn't there be a way to extract the bitset of entities with
-                            // positions directly from specs?
+                            // positions directly from specs? Yes, with `.mask()` on the component
+                            // storage.
                             entities_to_remove.push((i, id));
                         },
                     }

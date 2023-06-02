@@ -146,8 +146,7 @@ impl WorldSyncExt for specs::World {
 // Private utilities
 //
 // Only used on the client.
-fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: u64) -> specs::Entity {
-    let entity_uid = Uid::from(entity_uid);
+fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: Uid) -> specs::Entity {
     let existing_entity = specs_world.read_resource::<IdMaps>().uid_entity(entity_uid);
 
     // TODO: Are there any expected cases where there is an existing entity with

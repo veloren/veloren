@@ -8,7 +8,6 @@ use common::{
     region::{Event as RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale},
     terrain::TerrainChunkSize,
-    uid::Uid,
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -192,7 +191,8 @@ impl<'a> System<'a> for Sys {
                                         .unwrap_or(true)
                                     {
                                         // TODO: I suspect it would be more efficient (in terms of
-                                        // bandwidth) to batch messages like this.
+                                        // bandwidth) to batch messages like this (same in
+                                        // subscription.rs).
                                         client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                     }
                                 }
@@ -352,7 +352,7 @@ impl<'a> System<'a> for Sys {
                 })
             {
                 for uid in &deleted {
-                    client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
+                    client.send_fallible(ServerGeneral::DeleteEntity(*uid));
                 }
             }
         }

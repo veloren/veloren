@@ -80,7 +80,6 @@ macro_rules! trackers {
                 vel: Option<Vel>,
                 ori: Option<Ori>,
             ) -> EntityPackage<EcsCompPacket> {
-                let uid = uid.0;
                 let mut comps = Vec::new();
                 // NOTE: we could potentially include a bitmap indicating which components are present instead of tagging
                 // components with the type in order to save bandwidth
@@ -208,7 +207,7 @@ macro_rules! trackers {
                 &self,
                 comps: &TrackedStorages,
                 filter: impl Join + Copy,
-                deleted_entities: Vec<u64>,
+                deleted_entities: Vec<Uid>,
             ) -> (EntitySyncPackage, CompSyncPackage<EcsCompPacket>) {
                 let entity_sync_package =
                     EntitySyncPackage::new(&comps.uid, &self.uid, filter, deleted_entities);
@@ -280,7 +279,7 @@ common_net::synced_components!(trackers);
 
 /// Deleted entities grouped by region
 pub struct DeletedEntities {
-    map: HashMap<Vec2<i32>, Vec<u64>>,
+    map: HashMap<Vec2<i32>, Vec<Uid>>,
 }
 
 impl Default for DeletedEntities {
@@ -293,18 +292,18 @@ impl Default for DeletedEntities {
 
 impl DeletedEntities {
     pub fn record_deleted_entity(&mut self, uid: Uid, region_key: Vec2<i32>) {
-        self.map.entry(region_key).or_default().push(uid.into());
+        self.map.entry(region_key).or_default().push(uid);
     }
 
-    pub fn take_deleted_in_region(&mut self, key: Vec2<i32>) -> Vec<u64> {
+    pub fn take_deleted_in_region(&mut self, key: Vec2<i32>) -> Vec<Uid> {
         self.map.remove(&key).unwrap_or_default()
     }
 
-    pub fn get_deleted_in_region(&self, key: Vec2<i32>) -> &[u64] {
+    pub fn get_deleted_in_region(&self, key: Vec2<i32>) -> &[Uid] {
         self.map.get(&key).map_or(&[], |v| v.as_slice())
     }
 
-    pub fn take_remaining_deleted(&mut self) -> impl Iterator<Item = (Vec2<i32>, Vec<u64>)> + '_ {
+    pub fn take_remaining_deleted(&mut self) -> impl Iterator<Item = (Vec2<i32>, Vec<Uid>)> + '_ {
         self.map.drain()
     }
 }

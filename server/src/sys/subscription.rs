@@ -135,10 +135,10 @@ impl<'a> System<'a> for Sys {
                         // TODO: consider changing system ordering??
                         for event in region.events() {
                             match event {
-                                RegionEvent::Entered(_, _) => {}, /* These don't need to be */
-                                // processed because this
-                                // region is being thrown out
-                                // anyway
+                                RegionEvent::Entered(_, _) => {
+                                    // These don't need to be processed because
+                                    // this region is being thrown out anyway
+                                },
                                 RegionEvent::Left(id, maybe_key) => {
                                     // Lookup UID for entity
                                     // Doesn't overlap with entity deletion in sync packages
@@ -147,7 +147,9 @@ impl<'a> System<'a> for Sys {
                                     if let Some(&uid) = uids.get(entities.entity(*id)) {
                                         if !maybe_key
                                             .as_ref()
-                                            // Don't need to check that this isn't also in the regions to remove since the entity will be removed when we get to that one
+                                            // Don't need to check that this isn't also in the
+                                            // regions to remove since the entity will be removed 
+                                            // when we get to that one.
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
                                         {
@@ -162,10 +164,10 @@ impl<'a> System<'a> for Sys {
                             client.send_fallible(ServerGeneral::DeleteEntity(uid));
                         }
                     }
-                    // Send deleted entities since they won't be processed for this client in entity
-                    // sync
+                    // Send deleted entities since they won't be processed for this client
+                    // in entity sync
                     for uid in deleted_entities.get_deleted_in_region(key).iter() {
-                        client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
+                        client.send_fallible(ServerGeneral::DeleteEntity(*uid));
                     }
                 }
 
@@ -195,6 +197,7 @@ impl<'a> System<'a> for Sys {
                                         ori.copied(),
                                     )
                                 })
+                                // TODO: batch this into a single message
                                 .for_each(|msg| {
                                     // Send message to create entity and tracked components and
                                     // physics components
