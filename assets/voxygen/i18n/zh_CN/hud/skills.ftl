@@ -46,8 +46,8 @@ hud-skill-swim = 在水中游动
 hud-skill-swim_speed_title = 速泳
 hud-skill-swim_speed = 加快{ $boost }%的游泳速度{ $SP }
 
-hud-skill-sc_lifesteal_title = 生命窃取光束
-hud-skill-sc_lifesteal = 窃取敌人的生命值
+hud-skill-sc_lifesteal_title = 生命窃取
+hud-skill-sc_lifesteal = 发射窃取目标生命值的光束
 hud-skill-sc_lifesteal_damage_title = 伤害提升
 hud-skill-sc_lifesteal_damage = 光束伤害提升{ $boost }%{ $SP }
 hud-skill-sc_lifesteal_range_title = 范围提升
@@ -57,8 +57,8 @@ hud-skill-sc_lifesteal_lifesteal = 生命窃取效率提升{ $boost }%{ $SP }
 hud-skill-sc_lifesteal_regen_title = 法力回复
 hud-skill-sc_lifesteal_regen = 每次击中敌人回复的法力增加{ $boost }%{ $SP }
 
-hud-skill-sc_heal_title = 治愈光束
-hud-skill-sc_heal = 你可以窃取敌人的生命值来治愈你的盟友
+hud-skill-sc_heal_title = 治愈灵气
+hud-skill-sc_heal = 治疗范围内的盟友，治疗效果与连击相关
 hud-skill-sc_heal_heal_title = 效率提升
 hud-skill-sc_heal_heal = 生命治愈效果提高{ $boost }%{ $SP }
 hud-skill-sc_heal_cost_title = 法力节省
@@ -69,7 +69,7 @@ hud-skill-sc_heal_range_title = 范围提升
 hud-skill-sc_heal_range = 光束最大射程提升{ $boost }%{ $SP }
 
 hud-skill-sc_wardaura_unlock_title = 守护领域
-hud-skill-sc_wardaura_unlock = 施展一个强大的魔法领域,守护你的盟友{ $SP }
+hud-skill-sc_wardaura_unlock = 施展一个强大的魔法领域，守护你的盟友{ $SP }
 hud-skill-sc_wardaura_strength_title = 效果提升
 hud-skill-sc_wardaura_strength = 领域提供的效果加强{ $boost }%{ $SP }
 hud-skill-sc_wardaura_duration_title = 持续时间
@@ -135,7 +135,7 @@ hud-skill-bow_repeater_speed_title = 速度提升
 hud-skill-bow_repeater_speed = 将射箭速度提高{ $boost }%{ $SP }
 
 hud-skill-bow_shotgun_unlock_title = 解锁迸发
-hud-skill-bow_shotgun_unlock = 解锁一次发射多支箭矢的能力{ $SP }
+hud-skill-bow_shotgun_unlock = 同时发射多支箭矢{ $SP }
 hud-skill-bow_shotgun_damage_title = 伤害提升
 hud-skill-bow_shotgun_damage = 将迸发的伤害提升{ $boost }%{ $SP }
 hud-skill-bow_shotgun_cost_title = 耐力节省
@@ -143,7 +143,7 @@ hud-skill-bow_shotgun_cost = 将使用迸发时的能量降低{ $boost }%{ $SP }
 hud-skill-bow_shotgun_arrow_count_title = 箭矢数量
 hud-skill-bow_shotgun_arrow_count = 你迸发时的箭矢数量增加{ $boost }{ $SP }
 hud-skill-bow_shotgun_spread_title = 集中
-hud-skill-bow_shotgun_spread = 将迸发时的散射范围降低{ $boost }%{ $SP }
+hud-skill-bow_shotgun_spread = 将迸发时的散布减少{ $boost }%{ $SP }
 
 hud-skill-hmr_leap_radius_title = 震荡
 hud-skill-hmr_leap_radius = 千斤坠伤害的作用半径扩大{ $boost }米{ $SP }
@@ -171,11 +171,11 @@ hud-skill-hmr_charged_melee_knockback = 蓄力打击击退的效果提高{ $boos
 
 hud-skill-hmr_single_strike_title = 锤击
 hud-skill-hmr_single_strike = 挥舞大锤打击敌人
-hud-skill-hmr_single_strike_regen_title = 热身(耐力回复)
+hud-skill-hmr_single_strike_regen_title = 热身-回复
 hud-skill-hmr_single_strike_regen = 随着连击数增加,每次击中敌人回复更多耐力{ $SP }
-hud-skill-hmr_single_strike_speed_title = 热身(攻击速度)
+hud-skill-hmr_single_strike_speed_title = 热身-攻速
 hud-skill-hmr_single_strike_speed = 随着连击数增加,每次击中敌人攻击速度加快{ $SP }
-hud-skill-hmr_single_strike_damage_title = 热身(伤害)
+hud-skill-hmr_single_strike_damage_title = 热身-伤害
 hud-skill-hmr_single_strike_damage = 随着连击数增加,每次击中敌人造成的伤害提升{ $SP }
 hud-skill-hmr_single_strike_knockback_title = 冲击强化
 hud-skill-hmr_single_strike_knockback = 锤击击退的效果提高{ $boost }%{ $SP }
