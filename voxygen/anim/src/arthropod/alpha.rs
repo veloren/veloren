@@ -40,7 +40,7 @@ impl Animation for AlphaAnimation {
         let movement3abs = movement3 * pullback;
 
         if s_a.snapper {
-            next.chest.scale = Vec3::one() / s_a.scaler;
+            next.chest.scale = Vec3::one() * s_a.scaler;
 
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
             next.head.orientation = Quaternion::rotation_x(

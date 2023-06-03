@@ -41,7 +41,7 @@ impl Animation for LeapMeleeAnimation {
 
         let shortalt = (global_time * 80.0).sin() * movement2base * early_pullback;
 
-        next.chest.scale = Vec3::one() / s_a.scaler;
+        next.chest.scale = Vec3::one() * s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation =

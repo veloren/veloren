@@ -79,6 +79,11 @@ pub enum ProjectileConstructor {
         radius: f32,
         min_falloff: f32,
     },
+    Magicball {
+        damage: f32,
+        radius: f32,
+        min_falloff: f32,
+    },
     Possess,
     ClayRocket {
         damage: f32,
@@ -401,6 +406,54 @@ impl ProjectileConstructor {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
                     reagent: Some(Reagent::Purple),
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
+            Magicball {
+                damage,
+                radius,
+                min_falloff,
+            } => {
+                let buff = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Buff(CombatBuff {
+                        kind: BuffKind::Poisoned,
+                        dur_secs: 5.0,
+                        strength: CombatBuffStrength::DamageFraction(0.8),
+                        chance: 1.0,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(buff);
+                let explosion = Explosion {
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(0.0, Rgb::black()),
+                    ],
+                    radius,
+                    reagent: Some(Reagent::Green),
                     min_falloff,
                 };
                 Projectile {
@@ -874,6 +927,14 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
+            Magicball {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
             Possess => {},
             ClayRocket {
                 ref mut damage,
@@ -955,6 +1016,7 @@ impl ProjectileConstructor {
             Frostball { .. } => true,
             Poisonball { .. } => true,
             NecroticSphere { .. } => true,
+            Magicball { .. } => true,
             Possess => false,
             ClayRocket { .. } => true,
             Snowball { .. } => true,

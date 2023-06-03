@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Emberfly"),
+    body: RandomWith("emberfly"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.arthropod.emberfly"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

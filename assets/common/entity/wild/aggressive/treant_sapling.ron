@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("TreantSapling"),
+    body: RandomWith("treant_sapling"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.quad_small.treant_sapling"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

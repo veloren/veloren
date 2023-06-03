@@ -1173,7 +1173,7 @@ impl<'a> Widget for Diary<'a> {
                     "Stealth",
                     "Weapon Power",
                     "Weapon Speed",
-                    "Weapon Poise",
+                    "Weapon Effect Power",
                     "Weapon Crit-Chance",
                 ];
 
@@ -1305,7 +1305,7 @@ impl<'a> Widget for Diary<'a> {
                                 _ => String::new(),
                             }
                         },
-                        "Weapon Poise" => match (main_weap_stats, off_weap_stats) {
+                        "Weapon Effect Power" => match (main_weap_stats, off_weap_stats) {
                             (Some(m_stats), Some(o_stats)) => {
                                 format!(
                                     "{}   {}",

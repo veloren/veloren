@@ -37,7 +37,7 @@ impl Animation for StunnedAnimation {
         let twitch1 = mirror * (twitch * 20.0).cos() * pullback;
         let twitch2 = mirror * (twitch * 20.0).sin() * pullback;
 
-        next.chest.scale = Vec3::one() / s_a.scaler;
+        next.chest.scale = Vec3::one() * s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(twitch2 * 0.6);

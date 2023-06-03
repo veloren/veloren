@@ -43,7 +43,7 @@ impl Animation for RunAnimation {
 
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * speednorm;
 
-        next.chest.scale = Vec3::one() / s_a.scaler;
+        next.chest.scale = Vec3::one() * s_a.scaler;
         next.wing_bl.scale = Vec3::one() * 0.98;
         next.wing_br.scale = Vec3::one() * 0.98;
 

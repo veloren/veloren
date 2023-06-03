@@ -973,4 +973,76 @@
             lateral: ("npc.seal.male.foot_br"),
         ),
     ),
+    (TreantSapling, Male): (
+        left_front: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_fr"),
+        ),
+        right_front: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_br"),
+        ),
+        right_back: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_br"),
+        ),
+    ),
+    (TreantSapling, Female): (
+        left_front: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_fr"),
+        ),
+        right_front: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_br"),
+        ),
+        right_back: (
+            offset: (-2.0, -2.0, -3.0),
+            lateral: ("npc.treant_sapling.male.foot_br"),
+        ),
+    ),
+    (MossySnail, Male): (
+        left_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        right_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        left_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        right_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+    ),
+    (MossySnail, Female): (
+        left_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        right_front: (
+            offset: (-2.5, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        left_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        right_back: (
+            offset: (-2.5, -3.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+    ),
 })

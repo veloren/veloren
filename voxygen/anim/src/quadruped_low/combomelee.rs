@@ -41,7 +41,8 @@ impl Animation for ComboAnimation {
             match ability_id {
                 Some(
                     "common.abilities.custom.icedrake.multi_bite"
-                    | "common.abilities.custom.icedrake.icy_bite",
+                    | "common.abilities.custom.icedrake.icy_bite"
+                    | "common.abilities.custom.driggle.bite",
                 ) => {
                     let (movement1base, movement2base, movement3) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0),

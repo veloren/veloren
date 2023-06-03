@@ -7,7 +7,7 @@ use crate::{
             slot::{ArmorSlot, EquipSlot},
         },
         item::{self, Item},
-        object, quadruped_low, quadruped_medium, theropod, Body,
+        object, quadruped_low, quadruped_medium, quadruped_small, theropod, Body,
     },
     resources::Time,
     trade::SiteInformation,
@@ -616,13 +616,24 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_low::Species::Icedrake => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.icedrake",
             )),
+            quadruped_low::Species::Driggle => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.driggle",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowbasic",
             )),
         },
-        Body::QuadrupedSmall(_) => Some(Item::new_from_asset_expect(
-            "common.items.npc_weapons.unique.quadsmallbasic",
-        )),
+        Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
+            quadruped_small::Species::TreantSapling => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.treantsapling",
+            )),
+            quadruped_small::Species::MossySnail => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.mossysnail",
+            )),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadsmallbasic",
+            )),
+        },
         Body::Theropod(theropod) => match theropod.species {
             theropod::Species::Sandraptor
             | theropod::Species::Snowraptor
@@ -646,6 +657,9 @@ fn default_main_tool(body: &Body) -> Item {
                     "common.items.npc_weapons.unique.arthropods.hornbeetle",
                 ))
             },
+            arthropod::Species::Emberfly => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.emberfly",
+            )),
             arthropod::Species::Cavespider => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropods.cavespider",
             )),
@@ -782,6 +796,12 @@ fn default_main_tool(body: &Body) -> Item {
         Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {
             (biped_small::Species::Gnome, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.adlet.tracker",
+            )),
+            (biped_small::Species::Bushly, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.bushly",
+            )),
+            (biped_small::Species::Irrwurz, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.irrwurz",
             )),
             (biped_small::Species::Husk, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.husk",
@@ -1308,6 +1328,7 @@ mod tests {
             quadruped_small: QuadrupedSmall,
             quadruped_medium: QuadrupedMedium,
             quadruped_low: QuadrupedLow,
+            quadruped_small: QuadrupedSmall,
             bird_medium: BirdMedium,
             bird_large: BirdLarge,
             fish_small: FishSmall,

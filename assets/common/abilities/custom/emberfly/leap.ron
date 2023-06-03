@@ -1,0 +1,20 @@
+LeapMelee(
+    energy_cost: 0,
+    buildup_duration: 0.4,
+    movement_duration: 0.4,
+    swing_duration: 0.05,
+    recover_duration: 0.4,
+    melee_constructor: (
+        kind: Bash(
+            damage: 6.0,
+            poise: 20.0,
+            knockback: 5.0,
+            energy_regen: 0.0,
+        ),
+        range: 4.0,
+        angle: 180.0,
+        multi_target: Some(Normal),
+    ),
+    forward_leap_strength: 40.0,
+    vertical_leap_strength: 8.0,
+)

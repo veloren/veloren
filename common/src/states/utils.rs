@@ -145,6 +145,7 @@ impl Body {
                 quadruped_low::Species::Basilisk => 90.0,
                 quadruped_low::Species::Deadwood => 140.0,
                 quadruped_low::Species::Mossdrake => 100.0,
+                quadruped_low::Species::Driggle => 120.0,
             },
             Body::Ship(ship::Body::Carriage) => 200.0,
             Body::Ship(_) => 0.0,
@@ -161,6 +162,7 @@ impl Body {
                 arthropod::Species::Mosscrawler => 70.0,
                 arthropod::Species::Sandcrawler => 70.0,
                 arthropod::Species::Dagonite => 70.0,
+                arthropod::Species::Emberfly => 75.0,
             },
         }
     }

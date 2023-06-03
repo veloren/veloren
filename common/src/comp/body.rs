@@ -353,6 +353,7 @@ impl Body {
                 quadruped_low::Species::Hakulaq => 400.0,
                 quadruped_low::Species::Dagon => 600.0,
                 quadruped_low::Species::Basilisk => 800.0,
+                quadruped_low::Species::Driggle => 55.0,
             },
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Bear => 500.0, // ~✅ (350-700 kg)
@@ -399,6 +400,8 @@ impl Body {
                 quadruped_small::Species::Truffler => 70.0,
                 quadruped_small::Species::Turtle => 40.0,
                 quadruped_small::Species::Seal => 15.0,
+                quadruped_small::Species::TreantSapling => 80.0,
+                quadruped_small::Species::MossySnail => 5.0,
             },
             Body::Theropod(body) => match body.species {
                 // for reference, elephants are in the range of 2.6-6.9 tons
@@ -452,7 +455,8 @@ impl Body {
                 biped_small::Species::Myrmidon => Vec3::new(1.3, 1.0, 2.2),
                 biped_small::Species::Husk => Vec3::new(1.7, 0.7, 2.7),
                 biped_small::Species::Boreal => Vec3::new(1.3, 2.0, 2.5),
-
+                biped_small::Species::Bushly => Vec3::new(1.2, 1.3, 1.6),
+                biped_small::Species::Irrwurz => Vec3::new(1.5, 1.5, 2.0),
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
             Body::BirdLarge(body) => match body.species {
@@ -511,6 +515,7 @@ impl Body {
                 quadruped_small::Species::Holladon => Vec3::new(1.3, 1.9, 1.5),
                 quadruped_small::Species::Hyena => Vec3::new(1.2, 1.4, 1.3),
                 quadruped_small::Species::Truffler => Vec3::new(1.2, 1.8, 2.2),
+                quadruped_small::Species::MossySnail => Vec3::new(1.4, 1.4, 1.2),
                 _ => Vec3::new(1.2, 1.2, 1.0),
             },
             Body::QuadrupedLow(body) => match body.species {
@@ -534,6 +539,7 @@ impl Body {
                 quadruped_low::Species::Salamander => Vec3::new(1.7, 4.0, 1.3),
                 quadruped_low::Species::Elbst => Vec3::new(1.7, 4.0, 1.3),
                 quadruped_low::Species::Tortoise => Vec3::new(1.7, 2.7, 1.5),
+                quadruped_low::Species::Driggle => Vec3::new(1.6, 2.7, 1.0),
                 _ => Vec3::new(1.0, 1.6, 1.3),
             },
             Body::Ship(ship) => ship.dimensions(),
@@ -562,6 +568,7 @@ impl Body {
                 arthropod::Species::Mosscrawler => Vec3::new(3.2, 4.0, 1.4),
                 arthropod::Species::Sandcrawler => Vec3::new(3.2, 4.0, 1.4),
                 arthropod::Species::Dagonite => Vec3::new(3.2, 4.7, 1.4),
+                arthropod::Species::Emberfly => Vec3::new(1.3, 1.5, 0.9),
             },
             Body::BirdMedium(body) => match body.species {
                 bird_medium::Species::SnowyOwl => Vec3::new(1.2, 1.2, 0.9),
@@ -735,6 +742,8 @@ impl Body {
                 quadruped_small::Species::Dog => 30,
                 quadruped_small::Species::Sheep => 30,
                 quadruped_small::Species::Seal => 15,
+                quadruped_small::Species::MossySnail => 15,
+                quadruped_small::Species::TreantSapling => 55,
                 _ => 20,
             },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -877,6 +886,7 @@ impl Body {
                 quadruped_low::Species::Basilisk => 200,
                 quadruped_low::Species::Deadwood => 120,
                 quadruped_low::Species::Mossdrake => 160,
+                quadruped_low::Species::Driggle => 40,
                 _ => 70,
             },
             Body::Arthropod(arthropod) => match arthropod.species {
@@ -891,6 +901,7 @@ impl Body {
                 arthropod::Species::Moltencrawler => 80,
                 arthropod::Species::Mosscrawler => 80,
                 arthropod::Species::Sandcrawler => 80,
+                arthropod::Species::Emberfly => 25,
                 _ => 70,
             },
             Body::Ship(_) => 1000,

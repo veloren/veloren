@@ -183,6 +183,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (4.0, -1.5),
                 (Sandcrawler, _) => (4.0, -1.0),
                 (Dagonite, _) => (4.0, -1.0),
+                (Emberfly, _) => (-1.5, 0.5),
             },
             chest: match (body.species, body.body_type) {
                 (Tarantula, _) => (-5.0, 6.0),
@@ -196,7 +197,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moltencrawler, _) => (-7.0, 6.0),
                 (Mosscrawler, _) => (-7.0, 6.5),
                 (Sandcrawler, _) => (-7.0, 6.0),
-                (Dagonite, _) => (-6.0, 6.0),
+                (Dagonite, _) => (-6.0, 8.0),
+                (Emberfly, _) => (-5.0, 2.5),
             },
             mandible: match (body.species, body.body_type) {
                 (Tarantula, _) => (1.5, 7.0, -0.5),
@@ -211,6 +213,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (2.5, 8.0, 0.0),
                 (Sandcrawler, _) => (2.5, 8.0, 0.0),
                 (Dagonite, _) => (2.5, 8.0, 0.0),
+                (Emberfly, _) => (1.5, 7.0, -0.5),
             },
             wing_f: match (body.species, body.body_type) {
                 (Tarantula, _) => (3.0, 0.0, -4.0),
@@ -225,6 +228,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (3.0, 0.0, -4.0),
                 (Sandcrawler, _) => (3.0, 0.0, -4.0),
                 (Dagonite, _) => (3.0, 0.0, -4.0),
+                (Emberfly, _) => (5.5, 6.0, 3.0),
             },
             wing_b: match (body.species, body.body_type) {
                 (Tarantula, _) => (3.0, 0.0, -4.0),
@@ -239,6 +243,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (3.0, 0.0, -4.0),
                 (Sandcrawler, _) => (3.0, 0.0, -4.0),
                 (Dagonite, _) => (3.0, 0.0, -4.0),
+                (Emberfly, _) => (4.0, 6.0, 2.0),
             },
             leg_f: match (body.species, body.body_type) {
                 (Tarantula, _) => (4.0, 11.0, -1.5),
@@ -253,6 +258,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (1.5, 14.0, -3.5),
                 (Sandcrawler, _) => (1.5, 14.0, -3.0),
                 (Dagonite, _) => (1.5, 14.0, -3.0),
+                (Emberfly, _) => (2.5, 6.0, -2.5),
             },
             leg_fc: match (body.species, body.body_type) {
                 (Tarantula, _) => (1.5, 13.5, -1.5),
@@ -267,6 +273,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (2.5, 11.0, -3.5),
                 (Sandcrawler, _) => (2.5, 11.0, -3.0),
                 (Dagonite, _) => (2.5, 11.0, -3.0),
+                (Emberfly, _) => (1.5, 7.5, -2.5),
             },
             leg_bc: match (body.species, body.body_type) {
                 (Tarantula, _) => (1.5, 10.5, -1.5),
@@ -281,6 +288,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (1.5, 8.0, -3.5),
                 (Sandcrawler, _) => (1.5, 8.0, -3.0),
                 (Dagonite, _) => (1.5, 8.0, -3.0),
+                (Emberfly, _) => (2.5, 3.5, -2.5),
             },
             leg_b: match (body.species, body.body_type) {
                 (Tarantula, _) => (1.5, 7.5, -1.5),
@@ -295,20 +303,22 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mosscrawler, _) => (2.5, 7.0, -5.5),
                 (Sandcrawler, _) => (2.5, 7.0, -5.5),
                 (Dagonite, _) => (2.5, 7.0, -5.5),
+                (Emberfly, _) => (1.5, 7.5, -1.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Tarantula, _) => 1.0,
                 (Blackwidow, _) => 1.0,
                 (Antlion, _) => 1.0,
-                (Hornbeetle, _) => 0.8,
-                (Leafbeetle, _) => 0.8,
-                (Stagbeetle, _) => 0.8,
-                (Weevil, _) => 0.8,
+                (Hornbeetle, _) => 1.0,
+                (Leafbeetle, _) => 1.0,
+                (Stagbeetle, _) => 1.0,
+                (Weevil, _) => 1.0,
                 (Cavespider, _) => 1.0,
-                (Moltencrawler, _) => 0.8,
-                (Mosscrawler, _) => 0.8,
-                (Sandcrawler, _) => 0.8,
-                (Dagonite, _) => 0.8,
+                (Moltencrawler, _) => 1.0,
+                (Mosscrawler, _) => 1.0,
+                (Sandcrawler, _) => 1.0,
+                (Dagonite, _) => 1.0,
+                (Emberfly, _) => 0.5,
             },
             // Z ori (front, front center, back center, center)
             leg_ori: match (body.species, body.body_type) {
