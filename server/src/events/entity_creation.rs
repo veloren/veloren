@@ -18,7 +18,7 @@ use common::{
     outcome::Outcome,
     resources::{Secs, Time},
     rtsim::RtSimVehicle,
-    uid::Uid,
+    uid::{IdMaps, Uid},
     util::Dir,
     vol::IntoFullVolIterator,
     ViewDistances,
@@ -140,7 +140,7 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
         entity
     };
 
-    // TODO: rtsim entity added here
+    // Rtsim entity added to IdMaps below.
     let entity = if let Some(rtsim_entity) = npc.rtsim_entity {
         entity.with(rtsim_entity).with(RepositionOnChunkLoad {
             needs_ground: false,
@@ -156,6 +156,14 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
     };
 
     let new_entity = entity.build();
+
+    if let Some(rtsim_entity) = npc.rtsim_entity {
+        server
+            .state()
+            .ecs()
+            .write_resource::<IdMaps>()
+            .add_rtsim(rtsim_entity, new_entity);
+    }
 
     // Add to group system if a pet
     if let comp::Alignment::Owned(owner_uid) = npc.alignment {

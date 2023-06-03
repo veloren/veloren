@@ -34,9 +34,9 @@ impl Component for Presence {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PresenceKind {
     Spectator,
-    // Note: we don't know if this character ID is valid and associated with the respective player
-    // until it the character has loaded successfully. The ID should only be trusted and included
-    // in the mapping when the variant changed to `Character`.
+    // Note: we don't know if this character ID is valid and associated with the player until the
+    // character has loaded successfully. The ID should only be trusted and included in the
+    // mapping when the variant is changed to `Character`.
     LoadingCharacter(CharacterId),
     Character(CharacterId),
     Possessor,
