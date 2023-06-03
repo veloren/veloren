@@ -755,4 +755,40 @@
             lateral: ("npc.mossdrake.male.foot_br", false),
         ),
     ),
+    (Driggle, Male): (
+        front_left: (
+            offset: (-6.0, 0.0, -4.0),
+            lateral: ("npc.driggle.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -4.0),
+            lateral: ("npc.driggle.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-6.0, 0.0, -3.0),
+            lateral: ("npc.driggle.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, 0.0, -3.0),
+            lateral: ("npc.driggle.male.foot_br", false),
+        ),
+    ),
+    (Driggle, Female): (
+        front_left: (
+            offset: (-6.0, 0.0, -4.0),
+            lateral: ("npc.driggle.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, 0.0, -4.0),
+            lateral: ("npc.driggle.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-6.0, 0.0, -3.0),
+            lateral: ("npc.driggle.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, 0.0, -3.0),
+            lateral: ("npc.driggle.male.foot_br", false),
+        ),
+    ),
 })

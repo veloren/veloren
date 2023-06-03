@@ -22,7 +22,7 @@ impl Animation for JumpAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.chest.scale = Vec3::one() / s_a.scaler;
+        next.chest.scale = Vec3::one() * s_a.scaler;
         next.wing_bl.scale = Vec3::one() * 0.98;
         next.wing_br.scale = Vec3::one() * 0.98;
 

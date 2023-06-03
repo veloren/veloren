@@ -1,0 +1,4 @@
+[
+    (1.0, Item("common.items.crafting_ing.living_embers")),
+    (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
+]

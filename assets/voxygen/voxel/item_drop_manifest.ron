@@ -902,6 +902,7 @@
     Simple("common.items.crafting_ing.cloth.sunsilk"): "voxel.sprite.crafting_ing.cloth.sunsilk",
     Simple("common.items.crafting_ing.cloth.linen_red"): "voxel.sprite.crafting_ing.cloth.linen_red",
     Simple("common.items.crafting_ing.sticky_thread"): "voxel.sprite.crafting_ing.sticky_thread",
+    Simple("common.items.crafting_ing.living_embers"): "voxel.sprite.crafting_ing.living_embers",
     Simple("common.items.crafting_ing.resin"): "voxel.sprite.crafting_ing.resin",
     Simple("common.items.crafting_ing.glacial_crystal"): "voxel.object.glacial_crystal",
     Simple("common.items.mineral.ingot.silver"): "voxel.sprite.mineral.ingot.silver",

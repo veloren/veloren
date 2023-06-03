@@ -7,7 +7,14 @@ SpawnEntry (
                 (1, (3, 7, "common.entity.wild.aggressive.wolf")),
             ],
             spawn_mode: Land,
-            day_period: [Night, Morning, Noon, Evening],
+            day_period: [Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.aggressive.irrwurz")),
+            ],
+            spawn_mode: Land,
+            day_period: [Night],
         ),
     ],
 )

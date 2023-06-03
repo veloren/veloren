@@ -3554,6 +3554,10 @@
         "voxel.sprite.crafting_ing.sticky_thread",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
+    Simple("common.items.crafting_ing.living_embers"): VoxTrans(
+        "voxel.sprite.crafting_ing.living_embers",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
     Simple("common.items.crafting_ing.resin"): VoxTrans(
         "voxel.sprite.crafting_ing.resin",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,

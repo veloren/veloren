@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("lavadrake"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.quad_low.carapace"),
+    loot: LootTable("common.loot_tables.creature.quad_low.lavadrake"),
     inventory: (
         loadout: FromBody,
     ),

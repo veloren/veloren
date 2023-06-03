@@ -1,0 +1,8 @@
+#![enable(implicit_some)]
+(
+    chest: Item("common.items.npc_armor.biped_small.irrwurz.chest.irrwurz"),
+    gloves: Item("common.items.npc_armor.biped_small.irrwurz.hand.irrwurz"),
+    legs: Item("common.items.npc_armor.biped_small.irrwurz.pants.irrwurz"),
+    feet: Item("common.items.npc_armor.biped_small.irrwurz.foot.irrwurz"),
+    active_hands: InHands((Item("common.items.npc_weapons.unique.irrwurz"), None)),
+)

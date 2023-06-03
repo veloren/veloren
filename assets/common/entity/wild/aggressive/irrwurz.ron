@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Name("Irrwurz"),
+    body: RandomWith("irrwurz"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.biped_small.irrwurz"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.irrwurz.irrwurz"),
+        )),    ),
+    meta: [],
+)

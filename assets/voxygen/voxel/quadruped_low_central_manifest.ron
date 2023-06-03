@@ -1092,4 +1092,56 @@
             central: ("npc.mossdrake.male.tail_front"),
         ),
     ),
+    (Driggle, Male): (
+        upper: (
+            offset: (-9.5, -5.0, -5.5),
+            central: ("npc.driggle.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -1.0, -4.0),
+            central: ("npc.driggle.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 0.0, -3.0),
+            central: ("npc.driggle.male.jaw"),
+        ),
+        chest: (
+            offset: (-5.5, -6.5, -8.0),
+            central: ("npc.driggle.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-2.5, -3.5, -3.5),
+            central: ("npc.driggle.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-2.5, -1.5, -4.0),
+            central: ("npc.driggle.male.tail_front"),
+        ),
+    ),
+    (Driggle, Female): (
+        upper: (
+            offset: (-9.5, -5.0, -5.5),
+            central: ("npc.driggle.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.5, -1.0, -4.0),
+            central: ("npc.driggle.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 0.0, -3.0),
+            central: ("npc.driggle.male.jaw"),
+        ),
+        chest: (
+            offset: (-5.5, -6.5, -8.0),
+            central: ("npc.driggle.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-2.5, -3.5, -3.5),
+            central: ("npc.driggle.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-2.5, -1.5, -4.0),
+            central: ("npc.driggle.male.tail_front"),
+        ),
+    ),
 })

@@ -1,5 +1,6 @@
 pub mod alpha;
 pub mod beam;
+pub mod combomelee;
 pub mod dash;
 pub mod idle;
 pub mod leapmelee;
@@ -13,10 +14,10 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beam::BeamAnimation, dash::DashAnimation, idle::IdleAnimation,
-    leapmelee::LeapAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
-    shoot::ShootAnimation, spinmelee::SpinMeleeAnimation, stunned::StunnedAnimation,
-    summon::SummonAnimation, wield::WieldAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, combomelee::ComboAnimation, dash::DashAnimation,
+    idle::IdleAnimation, leapmelee::LeapAnimation, run::RunAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
+    stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -146,6 +147,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, 8.0),
                 (Husk, _) => (0.5, 8.5),
                 (Boreal, _) => (-0.5, 13.0),
+                (Bushly, _) => (-1.0, 9.0),
+                (Irrwurz, _) => (-1.0, 9.0),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -160,6 +163,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, 11.0),
                 (Husk, _) => (0.0, 13.0),
                 (Boreal, _) => (0.0, 12.0),
+                (Bushly, _) => (0.0, 4.0),
+                (Irrwurz, _) => (0.0, 6.0),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -174,6 +179,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, -3.0),
                 (Husk, _) => (-1.0, -3.0),
                 (Boreal, _) => (1.5, -5.0),
+                (Bushly, _) => (0.0, 1.0),
+                (Irrwurz, _) => (-5.5, -0.5),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -188,6 +195,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (-2.5, -1.0),
                 (Husk, _) => (0.0, 0.0),
                 (Boreal, _) => (0.0, 0.0),
+                (Bushly, _) => (0.0, -1.0),
+                (Irrwurz, _) => (0.0, -1.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -202,6 +211,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (3.5, 1.5, 2.0),
                 (Husk, _) => (4.0, 0.0, 1.0),
                 (Boreal, _) => (5.0, 0.5, 5.0),
+                (Bushly, _) => (5.0, 2.0, 8.0),
+                (Irrwurz, _) => (3.5, 2.0, 3.0),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -216,6 +227,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (3.0, 0.5, 7.0),
                 (Husk, _) => (4.0, 0.5, 7.0),
                 (Boreal, _) => (3.0, 0.0, 9.0),
+                (Bushly, _) => (2.5, 0.0, 7.0),
+                (Irrwurz, _) => (4.0, 0.0, 6.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -230,6 +243,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, 0.0, 8.0),
                 (Husk, _) => (0.0, 0.0, 8.0),
                 (Boreal, _) => (1.0, 0.0, 5.0),
+                (Bushly, _) => (0.0, 0.0, 7.0),
+                (Irrwurz, _) => (0.0, 0.0, 7.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -244,6 +259,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => 1.24,
                 (Husk, _) => 1.12,
                 (Boreal, _) => 1.0,
+                (Bushly, _) => 1.0,
+                (Irrwurz, _) => 1.0,
             },
         }
     }

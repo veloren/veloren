@@ -365,6 +365,7 @@ impl<'a> From<&'a Body> for Psyche {
                     arthropod::Species::Mosscrawler => 0.2,
                     arthropod::Species::Sandcrawler => 0.2,
                     arthropod::Species::Dagonite => 0.2,
+                    arthropod::Species::Emberfly => 0.1,
                 },
             },
             sight_dist: 40.0,

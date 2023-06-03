@@ -61,6 +61,7 @@
         output: ("common.items.utility.collar", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 5, false),
+            (Item("common.items.mineral.ingot.iron"), 1, false),
             (Item("common.items.mineral.gem.ruby"), 1, false),
         ],
         craft_sprite: None,
@@ -71,6 +72,7 @@
             (Item("common.items.crafting_ing.stones"), 10, false),
             (Item("common.items.food.coconut"), 2, false),
             (Item("common.items.mineral.ore.veloritefrag"), 2, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
         craft_sprite: Some(CraftingBench),
@@ -81,6 +83,7 @@
             (Item("common.items.crafting_ing.twigs"), 1, false),
             (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
@@ -92,6 +95,7 @@
             (Item("common.items.crafting_ing.twigs"), 1, false),
             (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
@@ -103,6 +107,7 @@
             (Item("common.items.crafting_ing.twigs"), 1, false),
             (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
@@ -114,6 +119,7 @@
             (Item("common.items.crafting_ing.twigs"), 1, false),
             (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
@@ -125,6 +131,7 @@
             (Item("common.items.crafting_ing.twigs"), 1, false),
             (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
@@ -136,6 +143,7 @@
             (Item("common.items.crafting_ing.twigs"), 1, false),
             (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
@@ -1975,7 +1983,7 @@
         output: ("common.items.lantern.black_0", 1),
         inputs: [
             (Item("common.items.mineral.ingot.tin"), 5, false),
-            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
+            (Item("common.items.crafting_ing.living_embers"), 2, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -2106,7 +2114,7 @@
     "light_pyrocore": (
         output: ("common.items.modular.weapon.secondary.staff.light", 1),
         inputs: [
-            (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(Cauldron),
@@ -2115,7 +2123,7 @@
     "medium_pyrocore": (
         output: ("common.items.modular.weapon.secondary.staff.medium", 1),
         inputs: [
-            (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(Cauldron),
@@ -2124,7 +2132,7 @@
     "heavy_pyrocore": (
         output: ("common.items.modular.weapon.secondary.staff.heavy", 1),
         inputs: [
-            (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
         craft_sprite: Some(Cauldron),

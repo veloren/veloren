@@ -208,5 +208,21 @@
                  vox_spec: ("npc.boreal.warrior.hand_r", (0.0, -2.5, -10.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.bushly.hand.bushly": (
+            left: (
+                vox_spec: ("npc.bushly.male.hand_r", (-4.0, -3.0, -8.0)),
+            ),
+            right: (
+                vox_spec: ("npc.bushly.male.hand_r", (0.0, -3.0, -8.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.irrwurz.hand.irrwurz": (
+            left: (
+                vox_spec: ("npc.irrwurz.male.hand_r", (-6.0, -3.5, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.irrwurz.male.hand_r", (0.0, -3.5, -7.0)),
+            )
+        ),
     }
 ))

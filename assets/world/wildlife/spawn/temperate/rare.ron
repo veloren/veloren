@@ -7,9 +7,23 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.ogre")),
                 (1, (1, 1, "common.entity.wild.aggressive.swamp_troll")),
                 (1, (1, 1, "common.entity.wild.aggressive.dullahan")),
+                (2, (1, 1, "common.entity.wild.aggressive.bushly")),
+                (2, (1, 1, "common.entity.wild.aggressive.driggle")),
             ],
             spawn_mode: Land,
-            day_period: [Night, Morning, Noon, Evening],
+            day_period: [Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                // Solitary
+                (1, (1, 1, "common.entity.wild.aggressive.ogre")),
+                (1, (1, 1, "common.entity.wild.aggressive.swamp_troll")),
+                (1, (1, 1, "common.entity.wild.aggressive.dullahan")),
+                // Pack
+                (1, (1, 3, "common.entity.wild.aggressive.emberfly")),
+            ],
+            spawn_mode: Land,
+            day_period: [Night],
         ),
     ],
 )

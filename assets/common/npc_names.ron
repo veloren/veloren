@@ -789,6 +789,14 @@
             seal: (
                 keyword: "seal",
                 generic: "Seal"
+            ),
+            treant_sapling: (
+                keyword: "treant_sapling",
+                generic: "Treant Sapling"
+            ),
+            mossy_snail: (
+                keyword: "mossy_snail",
+                generic: "Mossy Snail"
             )
         )
     ),
@@ -1149,6 +1157,14 @@
                 keyword: "boreal",
                 generic: "Boreal",
             ),
+            bushly: (
+                keyword: "bushly",
+                generic: "Bushly",
+            ),
+            irrwurz: (
+                keyword: "irrwurz",
+                generic: "Irrwurz",
+            ),
         )
     ),
     fish_small: (
@@ -1321,6 +1337,10 @@
                 keyword: "mossdrake",
                 generic: "Moss Drake"
             ),
+            driggle: (
+                keyword: "driggle",
+                generic: "Driggle"
+            ),
         )
     ),
     arthropod: (
@@ -1378,6 +1398,10 @@
             dagonite: (
                 keyword: "dagonite",
                 generic: "Dagonite"
+            ),
+            emberfly: (
+                keyword: "emberfly",
+                generic: "Emberfly"
             ),
         )
     ),

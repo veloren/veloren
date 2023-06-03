@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Bushly",
+    description: "Plant Creature",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(4.0)),
+            energy_max: Some(3.4),
+            energy_reward: Some(0.81),
+            crit_power: Some(0.075),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

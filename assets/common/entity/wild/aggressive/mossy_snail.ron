@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Mossy Snail"),
+    body: RandomWith("mossy_snail"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.quad_small.mossy_snail"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

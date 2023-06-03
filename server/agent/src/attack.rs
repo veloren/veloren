@@ -5074,4 +5074,42 @@ impl<'a> AgentData<'a> {
             );
         }
     }
+
+    pub fn handle_simple_double_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const MAX_ATTACK_RANGE: f32 = 20.0;
+
+        if attack_data.angle < 60.0 && attack_data.dist_sqrd < MAX_ATTACK_RANGE.powi(2) {
+            controller.inputs.move_dir = Vec2::zero();
+            if attack_data.in_min_range() {
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
+    }
 }

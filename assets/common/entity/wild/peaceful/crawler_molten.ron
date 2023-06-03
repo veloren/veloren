@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("crawler_molten"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.arthropod.ooze"),
+    loot: LootTable("common.loot_tables.creature.arthropod.crawler_molten"),
     inventory: (
         loadout: FromBody,
     ),

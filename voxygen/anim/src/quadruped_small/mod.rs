@@ -1,14 +1,17 @@
 pub mod alpha;
+pub mod combomelee;
 pub mod feed;
 pub mod idle;
 pub mod jump;
 pub mod run;
+pub mod shockwave;
 pub mod stunned;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, feed::FeedAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    run::RunAnimation, stunned::StunnedAnimation,
+    alpha::AlphaAnimation, combomelee::ComboAnimation, feed::FeedAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    stunned::StunnedAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -154,6 +157,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Dog, _) => (3.0, 4.5),
                 (Goat, _) => (3.5, 4.0),
                 (Seal, _) => (4.0, 2.5),
+                (TreantSapling, _) => (5.0, -2.0),
+                (MossySnail, _) => (2.0, 2.0),
             },
             chest: match (body.species, body.body_type) {
                 (Pig, _) => (0.0, 6.0),
@@ -184,6 +189,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Dog, _) => (-2.0, 8.5),
                 (Goat, _) => (2.0, 7.5),
                 (Seal, _) => (-2.0, 4.0),
+                (TreantSapling, _) => (1.0, 13.0),
+                (MossySnail, _) => (-2.0, 4.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Pig, _) => (4.5, 3.5, -1.0),
@@ -214,6 +221,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Dog, _) => (3.5, 3.0, -2.5),
                 (Goat, _) => (3.0, 2.5, -3.5),
                 (Seal, _) => (6.5, 3.0, -2.0),
+                (TreantSapling, _) => (5.0, 4.0, -10.0),
+                (MossySnail, _) => (4.5, 6.5, 0.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Pig, _) => (3.5, -2.0, 0.0),
@@ -244,6 +253,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Dog, _) => (3.0, -3.5, -2.5),
                 (Goat, _) => (3.0, -4.0, -2.0),
                 (Seal, _) => (4.5, -6.0, -0.5),
+                (TreantSapling, _) => (5.5, -4.0, -10.0),
+                (MossySnail, _) => (5.0, -3.5, 0.0),
             },
             tail: match (body.species, body.body_type) {
                 (Pig, _) => (-4.5, 2.5),
@@ -274,6 +285,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Dog, _) => (-5.0, 0.5),
                 (Goat, _) => (-7.0, 0.0),
                 (Seal, _) => (-1.0, 4.0),
+                (TreantSapling, _) => (-6.0, -2.0),
+                (MossySnail, _) => (0.0, -0.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Pig, _) => 0.72,
@@ -313,6 +326,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => 1.2,
                 (Hare, _) => 1.15,
                 (Seal, _) => 2.5,
+                (TreantSapling, _) => 3.0,
+                (MossySnail, _) => 0.5,
                 _ => 1.0,
             },
             maximize: match (body.species, body.body_type) {
@@ -348,6 +363,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, _) => 0.8,
                 (Goat, _) => 0.8,
                 (Seal, _) => 0.7,
+                (TreantSapling, _) => 0.7,
                 _ => 1.0,
             },
             spring: match (body.species, body.body_type) {
@@ -373,6 +389,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Hare, Female) => 2.5,
                 (Goat, _) => 1.2,
                 (Seal, _) => 0.7,
+                (TreantSapling, _) => 0.5,
                 _ => 1.0,
             },
             feed: match (body.species, body.body_type) {
@@ -395,6 +412,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gecko, _) => 1.0,
                 (Turtle, _) => 1.0,
                 (Fungome, _) => 1.0,
+                (TreantSapling, _) => 1.0,
                 _ => 0.0,
             },
         }
@@ -431,6 +449,8 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Dog, _) => (0.0, -4.0, -2.5),
         (Goat, _) => (0.0, -4.0, -3.5),
         (Seal, _) => (0.0, -2.0, -2.5),
+        (TreantSapling, _) => (0.0, -4.0, -4.5),
+        (MossySnail, _) => (0.0, -4.0, -4.5),
     }
     .into()
 }

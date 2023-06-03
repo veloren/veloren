@@ -39,7 +39,7 @@ impl Animation for SummonAnimation {
         let movement2abs = movement2 * pullback;
         let movement3abs = movement3 * pullback;
 
-        next.chest.scale = Vec3::one() / s_a.scaler;
+        next.chest.scale = Vec3::one() * s_a.scaler;
         next.chest.orientation = Quaternion::rotation_x(movement2abs * 0.3)
             * Quaternion::rotation_z((movement1abs * 4.0 * PI).sin() * 0.02);
 

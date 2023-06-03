@@ -45,15 +45,15 @@ impl Animation for LeapShockAnimation {
 
         let shortalt = (global_time * 80.0).sin() * movement2base * early_pullback;
 
-        next.chest.scale = Vec3::one() / s_a.scaler;
+        next.chest.scale = Vec3::one() * s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation =
             Quaternion::rotation_x(movement1abs * -0.2 + movement2abs * 0.4 + movement3abs * -1.0)
                 * Quaternion::rotation_z((movement1abs * 4.0 * PI).sin() * 0.08);
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs * -0.5);
-        next.chest.orientation = Quaternion::rotation_x(movement2abs * 0.3)
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs * -0.25);
+        next.chest.orientation = Quaternion::rotation_x(movement2abs * 0.15)
             * Quaternion::rotation_z((movement1abs * 4.0 * PI).sin() * 0.08);
 
         next.mandible_l.position = Vec3::new(-s_a.mandible.0, s_a.mandible.1, s_a.mandible.2);

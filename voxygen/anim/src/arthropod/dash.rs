@@ -35,7 +35,7 @@ impl Animation for DashAnimation {
         let movement2abs = movement2base * pullback;
         let shortalt = (anim_time * 200.0 + PI * 0.25).sin() * chargemovementbase * pullback;
 
-        next.chest.scale = Vec3::one();
+        next.chest.scale = Vec3::one() * s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 1.4);

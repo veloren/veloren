@@ -180,6 +180,16 @@
         secondary: Simple(None, "common.abilities.custom.husk_brute.chargedmelee"),
         abilities: [],
     ),
+    Custom("Bushly"): (
+        primary: Simple(None, "common.abilities.custom.bushly.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.bushly.dash"),
+        abilities: [],
+    ),
+    Custom("Irrwurz"): (
+        primary: Simple(None, "common.abilities.custom.irrwurz.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.irrwurz.magicball"),
+        abilities: [],
+    ),
     Tool(Spear): (
         primary: Simple(None, "common.abilities.spear.doublestrike"),
         secondary: Simple(None, "common.abilities.spear.dash"),
@@ -424,6 +434,21 @@
         secondary: Simple(None, "common.abilities.custom.quadsmallbasic.singlestrike"),
         abilities: [],
     ),
+    Custom("Driggle"): (
+        primary: Simple(None, "common.abilities.custom.driggle.bite"),
+        secondary: Simple(None, "common.abilities.custom.driggle.flamethrower"),
+        abilities: [],
+    ),
+    Custom("Mossy Snail"): (
+        primary: Simple(None, "common.abilities.custom.mossy_snail.headbutt"),
+        secondary: Simple(None, "common.abilities.custom.mossy_snail.hastened"),
+        abilities: [],
+    ),
+    Custom("Treant Sapling"): (
+        primary: Simple(None, "common.abilities.custom.treant_sapling.shockwave"),
+        secondary: Simple(None, "common.abilities.custom.treant_sapling.shockwave"),
+        abilities: [],
+    ),
     Custom("Theropod Basic"): (
         primary: Simple(None, "common.abilities.custom.theropodbasic.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.theropodbasic.triplestrike"),
@@ -463,6 +488,11 @@
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.hornbeetle.leap"),
         ],
+    ),
+    Custom("Emberfly"): (
+        primary: Simple(None, "common.abilities.custom.emberfly.leap"),
+        secondary: Simple(None, "common.abilities.custom.emberfly.leap"),
+        abilities: [],
     ),
     Custom("Tarantula"): (
         primary: Simple(None, "common.abilities.custom.arthropods.tarantula.singlestrike"),
