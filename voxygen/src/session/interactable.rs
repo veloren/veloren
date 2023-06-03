@@ -14,7 +14,7 @@ use common::{
     link::Is,
     mounting::{Mount, Rider, VolumePos, VolumeRider},
     terrain::{Block, TerrainGrid, UnlockKind},
-    uid::{Uid, IdMaps},
+    uid::{IdMaps, Uid},
     util::find_dist::{Cube, Cylinder, FindDist},
     vol::ReadVol,
     CachedSpatialGrid,

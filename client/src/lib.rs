@@ -2738,9 +2738,7 @@ impl Client {
         // Clear pending trade
         self.pending_trade = None;
 
-        let client_uid = self
-            .uid()
-            .expect("Client doesn't have a Uid!!!");
+        let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
 
         // Clear ecs of all entities
         self.state.ecs_mut().delete_all();
