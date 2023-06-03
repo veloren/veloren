@@ -4287,8 +4287,12 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Ability(1));
             }
         } else if attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2) {
-            // if enemy is far, heal
-            controller.push_basic_input(InputKind::Ability(2));
+            // if enemy is far, heal and shoot bombs
+            if agent.action_state.timers[ActionStateTimers::TimerDagon as usize] > 2.0 {
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                controller.push_basic_input(InputKind::Ability(2));
+            }
             agent.action_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;
         } else if entities_have_line_of_sight(
             self.pos,
