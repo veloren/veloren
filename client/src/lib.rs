@@ -2233,7 +2233,7 @@ impl Client {
                     return Err(Error::Other("Failed to find entity from uid.".into()));
                 }
             },
-            ServerGeneral::TimeOfDay(time_of_day, calendar, new_time) => {
+            ServerGeneral::TimeOfDay(time_of_day, calendar, new_time, time_scale) => {
                 self.target_time_of_day = Some(time_of_day);
                 *self.state.ecs_mut().write_resource() = calendar;
                 let mut time = self.state.ecs_mut().write_resource::<Time>();
@@ -2249,7 +2249,7 @@ impl Client {
                 } else {
                     0.99
                 };
-                self.dt_adjustment = dt_adjustment;
+                self.dt_adjustment = dt_adjustment * time_scale.0;
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
                 self.state

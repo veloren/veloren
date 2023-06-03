@@ -6,7 +6,7 @@ use common::{
     event::EventBus,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
-    resources::{PlayerPhysicsSettings, Time, TimeOfDay},
+    resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
@@ -31,6 +31,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, Time>,
         ReadExpect<'a, Calendar>,
+        ReadExpect<'a, TimeScale>,
         ReadExpect<'a, RegionMap>,
         ReadExpect<'a, UpdateTrackers>,
         ReadStorage<'a, Pos>,
@@ -63,6 +64,7 @@ impl<'a> System<'a> for Sys {
             time_of_day,
             time,
             calendar,
+            time_scale,
             region_map,
             trackers,
             positions,
@@ -418,6 +420,7 @@ impl<'a> System<'a> for Sys {
                         *time_of_day,
                         (*calendar).clone(),
                         *time,
+                        *time_scale,
                     ))
                 });
                 // We don't care much about stream errors here since they could just represent

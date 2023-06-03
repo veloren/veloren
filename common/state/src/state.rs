@@ -15,7 +15,7 @@ use common::{
     region::RegionMap,
     resources::{
         DeltaTime, EntitiesDiedLastTick, GameMode, PlayerEntity, PlayerPhysicsSettings, Time,
-        TimeOfDay,
+        TimeOfDay, TimeScale,
     },
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
@@ -269,6 +269,7 @@ impl State {
         ecs.insert(Calendar::default());
         ecs.insert(WeatherGrid::new(Vec2::zero()));
         ecs.insert(Time(0.0));
+        ecs.insert(TimeScale(1.0));
 
         // Register unsynced resources used by the ECS.
         ecs.insert(DeltaTime(0.0));
@@ -644,14 +645,16 @@ impl State {
         }
 
         // Change the time accordingly.
+        let time_scale = self.ecs.read_resource::<TimeScale>().0;
         self.ecs.write_resource::<TimeOfDay>().0 +=
-            dt.as_secs_f64() * server_constants.day_cycle_coefficient;
-        self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
+            dt.as_secs_f64() * server_constants.day_cycle_coefficient * time_scale;
+        self.ecs.write_resource::<Time>().0 += dt.as_secs_f64() * time_scale;
 
         // Update delta time.
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping
         // important physics events.
-        self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f32().min(MAX_DELTA_TIME);
+        self.ecs.write_resource::<DeltaTime>().0 =
+            (dt.as_secs_f32() * time_scale as f32).min(MAX_DELTA_TIME);
 
         if update_terrain_and_regions {
             self.update_region_map();

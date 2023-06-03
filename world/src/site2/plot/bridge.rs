@@ -258,7 +258,7 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
 
     let len = bridge.dir.select(aabr.size());
     let true_offset = vault_width + vault_offset;
-    let n = len / true_offset;
+    let n = (len / true_offset).max(1);
     let p = len / n;
 
     let holes = painter

@@ -86,7 +86,7 @@ impl Controller {
 }
 
 pub struct Brain {
-    pub action: Box<dyn Action<!>>,
+    pub action: Box<dyn Action<(), !>>,
 }
 
 #[derive(Serialize, Deserialize)]

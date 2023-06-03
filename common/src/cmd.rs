@@ -328,6 +328,7 @@ pub enum ServerChatCommand {
     Sudo,
     Tell,
     Time,
+    TimeScale,
     Tp,
     Unban,
     Version,
@@ -722,6 +723,11 @@ impl ServerChatCommand {
                 "Set the time of day",
                 Some(Admin),
             ),
+            ServerChatCommand::TimeScale => cmd(
+                vec![Float("time scale", 1.0, Optional)],
+                "Set scaling of delta time",
+                Some(Admin),
+            ),
             ServerChatCommand::Tp => cmd(
                 vec![
                     PlayerName(Optional),
@@ -894,6 +900,7 @@ impl ServerChatCommand {
             ServerChatCommand::Sudo => "sudo",
             ServerChatCommand::Tell => "tell",
             ServerChatCommand::Time => "time",
+            ServerChatCommand::TimeScale => "time_scale",
             ServerChatCommand::Tp => "tp",
             ServerChatCommand::RtsimTp => "rtsim_tp",
             ServerChatCommand::RtsimInfo => "rtsim_info",

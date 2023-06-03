@@ -173,18 +173,18 @@ impl Role for VolumeRider {
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug, Hash)]
-pub enum Volume {
+pub enum Volume<E> {
     Terrain,
-    Entity(Uid),
+    Entity(E),
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Debug, Hash)]
-pub struct VolumePos {
-    pub kind: Volume,
+pub struct VolumePos<E = Uid> {
+    pub kind: Volume<E>,
     pub pos: Vec3<i32>,
 }
 
-impl VolumePos {
+impl<E> VolumePos<E> {
     pub fn terrain(block_pos: Vec3<i32>) -> Self {
         Self {
             kind: Volume::Terrain,
@@ -192,11 +192,21 @@ impl VolumePos {
         }
     }
 
-    pub fn entity(block_pos: Vec3<i32>, uid: Uid) -> Self {
+    pub fn entity(block_pos: Vec3<i32>, uid: E) -> Self {
         Self {
             kind: Volume::Entity(uid),
             pos: block_pos,
         }
+    }
+
+    pub fn try_map_entity<U>(self, f: impl FnOnce(E) -> Option<U>) -> Option<VolumePos<U>> {
+        Some(VolumePos {
+            pos: self.pos,
+            kind: match self.kind {
+                Volume::Terrain => Volume::Terrain,
+                Volume::Entity(e) => Volume::Entity(f(e)?),
+            },
+        })
     }
 }
 

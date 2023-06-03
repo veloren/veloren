@@ -103,6 +103,32 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub arthropod: BodyData<BodyMeta, arthropod::AllSpecies<SpeciesMeta>>,
 }
 
+impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
+    /// Get species meta associated with the body.
+    ///
+    /// Returns `None` if the body doesn't have any associated meta, i.e ships,
+    /// objects, itemdrops.
+    pub fn get_species_meta<'a>(&'a self, body: &Body) -> Option<&'a SpeciesMeta> {
+        Some(match body {
+            Body::Humanoid(b) => &self.humanoid.species[&b.species],
+            Body::QuadrupedSmall(b) => &self.quadruped_small.species[&b.species],
+            Body::QuadrupedMedium(b) => &self.quadruped_medium.species[&b.species],
+            Body::BirdMedium(b) => &self.bird_medium.species[&b.species],
+            Body::BirdLarge(b) => &self.bird_large.species[&b.species],
+            Body::FishMedium(b) => &self.fish_medium.species[&b.species],
+            Body::Dragon(b) => &self.dragon.species[&b.species],
+            Body::FishSmall(b) => &self.fish_small.species[&b.species],
+            Body::BipedLarge(b) => &self.biped_large.species[&b.species],
+            Body::BipedSmall(b) => &self.biped_small.species[&b.species],
+            Body::Golem(b) => &self.golem.species[&b.species],
+            Body::Theropod(b) => &self.theropod.species[&b.species],
+            Body::QuadrupedLow(b) => &self.quadruped_low.species[&b.species],
+            Body::Arthropod(b) => &self.arthropod.species[&b.species],
+            _ => return None,
+        })
+    }
+}
+
 /// Can only retrieve body metadata by direct index.
 impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, SpeciesMeta> {
     type Output = BodyMeta;

@@ -7,7 +7,10 @@
     trait_upcasting,
     control_flow_enum,
     let_chains,
-    binary_heap_drain_sorted
+    binary_heap_drain_sorted,
+    fn_traits,
+    unboxed_closures,
+    tuple_trait
 )]
 
 pub mod ai;
