@@ -7,7 +7,7 @@ use common::states::utils::StageSection;
 pub struct ShootAnimation;
 
 impl Animation for ShootAnimation {
-    type Dependency<'a> = (f32, f32, Option<StageSection>);
+    type Dependency<'a> = (Option<&'a str>, f32, f32, Option<StageSection>);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +16,7 @@ impl Animation for ShootAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_shoot")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, _global_time, stage_section): Self::Dependency<'_>,
+        (ability_id, velocity, _global_time, stage_section): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -31,37 +31,87 @@ impl Animation for ShootAnimation {
         };
 
         let twitch1 = (movement1 * 18.0).sin();
-        next.head_upper.position = Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1);
-        next.head_upper.orientation =
-            Quaternion::rotation_x((movement1 * 0.6 + movement2 * 0.7) * (1.0 - movement3))
-                * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
+        match ability_id {
+            Some("common.abilities.custom.dagon.dagonbombs") => {
+                next.head_upper.position =
+                    Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1 - movement1 * 2.0);
+                next.head_upper.orientation =
+                    Quaternion::rotation_x((movement1 * 0.3 + movement2 * 0.2) * (1.0 - movement3))
+                        * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
 
-        next.head_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
-        next.head_lower.orientation = Quaternion::rotation_x(
-            (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.6) * (1.0 - movement3),
-        );
+                next.head_lower.position =
+                    Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1 - movement1 * 0.5);
+                next.head_lower.orientation = Quaternion::rotation_x(
+                    (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.2) * (0.5 - movement3),
+                );
 
-        next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_x(movement1 * -0.5);
+                next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                next.jaw.orientation = Quaternion::rotation_x(movement1 * -0.5 + movement3 * 0.5);
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-        next.chest.orientation = Quaternion::rotation_x(0.0);
+                next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1 * 0.5);
+                next.chest.orientation = Quaternion::rotation_x(0.0 + movement1 * 0.1);
 
-        next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-        next.tail_front.orientation = Quaternion::rotation_x(movement1 * 0.15);
+                next.tail_front.position =
+                    Vec3::new(0.0, s_a.tail_front.0 + movement1 * 1.5, s_a.tail_front.1);
+                next.tail_front.orientation =
+                    Quaternion::rotation_x(movement1 * -0.4 + movement2 * 0.3);
 
-        next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-        next.tail_rear.orientation = Quaternion::rotation_x(0.0);
-        if velocity < 0.5 {
-            next.foot_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
+                next.tail_rear.position =
+                    Vec3::new(0.0, s_a.tail_rear.0 + movement1 * 1.5, s_a.tail_rear.1);
+                next.tail_rear.orientation =
+                    Quaternion::rotation_x(movement1 * -0.4 + movement2 * 0.3);
+                next.foot_fl.orientation = Quaternion::rotation_x(movement1 * -0.2);
 
-            next.foot_fr.position = Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
+                next.foot_fr.orientation = Quaternion::rotation_x(movement1 * -0.2);
 
-            next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
+                next.foot_bl.orientation = Quaternion::rotation_x(movement1 * -0.2);
 
-            next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
-        } else {
-        };
+                next.foot_br.orientation = Quaternion::rotation_x(movement1 * -0.2);
+                if velocity < 0.5 {
+                    next.foot_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
+
+                    next.foot_fr.position = Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
+
+                    next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
+
+                    next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
+                } else {
+                };
+            },
+            _ => {
+                next.head_upper.position = Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1);
+                next.head_upper.orientation =
+                    Quaternion::rotation_x((movement1 * 0.6 + movement2 * 0.7) * (1.0 - movement3))
+                        * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
+
+                next.head_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
+                next.head_lower.orientation = Quaternion::rotation_x(
+                    (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.6) * (1.0 - movement3),
+                );
+
+                next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                next.jaw.orientation = Quaternion::rotation_x(movement1 * -0.5);
+
+                next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
+                next.chest.orientation = Quaternion::rotation_x(0.0);
+
+                next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
+                next.tail_front.orientation = Quaternion::rotation_x(movement1 * 0.15);
+
+                next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
+                next.tail_rear.orientation = Quaternion::rotation_x(0.0);
+                if velocity < 0.5 {
+                    next.foot_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
+
+                    next.foot_fr.position = Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
+
+                    next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
+
+                    next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
+                } else {
+                };
+            },
+        }
         next
     }
 }
