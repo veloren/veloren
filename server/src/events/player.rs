@@ -80,7 +80,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         .get(entity)
         .cloned();
 
-    if let Some((client, uid, player)) = (|| {
+    let uid = if let Some((client, uid, player)) = (|| {
         let ecs = state.ecs();
         Some((
             ecs.write_storage::<Client>().remove(entity)?,
@@ -133,9 +133,14 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
 
         // Erase group component to avoid group restructure when deleting the entity
         ecs.write_storage::<group::Group>().remove(entity);
-    }
+
+        Some(uid)
+    } else {
+        None
+    };
+
     // Delete old entity
-    if let Err(e) = state.delete_entity_recorded(entity) {
+    if let Err(e) = state.delete_entity_recorded(entity, Some(uid)) {
         error!(
             ?e,
             ?entity,
@@ -230,7 +235,7 @@ pub fn handle_client_disconnect(
     }
 
     // Delete client entity
-    if let Err(e) = server.state.delete_entity_recorded(entity) {
+    if let Err(e) = server.state.delete_entity_recorded(entity, None) {
         error!(?e, ?entity, "Failed to delete disconnected client");
     }
 
@@ -265,8 +270,11 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         state.ecs().fetch_mut::<BattleModeBuffer>(),
     ) {
         match presence.kind {
-            PresenceKind::LoadingCharacter(_char_id) => { 
-                error!("Unexpected state when persist_entity is called! Some of the components required above should only be present after a character is loaded!");
+            PresenceKind::LoadingCharacter(_char_id) => {
+                error!(
+                    "Unexpected state when persist_entity is called! Some of the components \
+                     required above should only be present after a character is loaded!"
+                );
             },
             PresenceKind::Character(char_id) => {
                 let waypoint = state
@@ -344,7 +352,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
     ) {
         // In this section we check various invariants and can return early if any of
         // them are not met.
-        {
+        let new_presence = {
             let ecs = state.ecs();
             // Check that entities still exist
             if !possessor.gen().is_alive()
@@ -361,6 +369,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
 
             let clients = ecs.read_storage::<Client>();
             let players = ecs.read_storage::<comp::Player>();
+            let presences = ecs.read_storage::<comp::Presence>();
 
             if clients.contains(possessee) || players.contains(possessee) {
                 error!("Can't possess other players!");
@@ -387,8 +396,32 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                 return;
             }
 
+            if let Some(presence) = presences.get(possessor) {
+                delete_entity = match presence.kind {
+                    k @ (PresenceKind::LoadingCharacter(_) | PresenceKind::Spectator) => {
+                        error!(?k, "Unexpected presence kind for a possessor.");
+                        return;
+                    },
+                    PresenceKind::Possessor => None,
+                    // Since we call `persist_entity` below we will want to delete the entity (to
+                    // avoid item duplication).
+                    PresenceKind::Character(_) => Some(possessor),
+                };
+
+                Some(Presence {
+                    terrain_view_distance: presence.terrain_view_distance,
+                    entity_view_distance: presence.entity_view_distance,
+                    // This kind (rather than copying Character presence) prevents persistence
+                    // from overwriting original character info with stuff from the new character.
+                    kind: PresenceKind::Possessor,
+                    lossy_terrain_compression: presence.lossy_terrain_compression,
+                })
+            } else {
+                None
+            }
+
             // No early returns allowed after this.
-        }
+        };
 
         // Sync the player's character data to the database. This must be done before
         // moving any components from the entity.
@@ -436,31 +469,38 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
         }
 
         let mut players = ecs.write_storage::<comp::Player>();
-        let mut presence = ecs.write_storage::<Presence>();
         let mut subscriptions = ecs.write_storage::<RegionSubscription>();
         let mut admins = ecs.write_storage::<comp::Admin>();
         let mut waypoints = ecs.write_storage::<comp::Waypoint>();
+        let mut force_updates = ecs.write_storage::<comp::ForceUpdate>();
 
         transfer_component(&mut players, possessor, possessee, |x| x);
-        transfer_component(&mut presence, possessor, possessee, |mut presence| {
-            presence.kind = match presence.kind {
-                PresenceKind::Spectator => PresenceKind::Spectator,
-                // This prevents persistence from overwriting original character info with stuff
-                // from the new character.
-                PresenceKind::Character(_) | PresenceKind::LoadingCharacter(_) => {
-                    delete_entity = Some(possessor);
-                    PresenceKind::Possessor
-                },
-                PresenceKind::Possessor => PresenceKind::Possessor,
-            };
-
-            presence
-        });
         transfer_component(&mut subscriptions, possessor, possessee, |x| x);
         transfer_component(&mut admins, possessor, possessee, |x| x);
         transfer_component(&mut waypoints, possessor, possessee, |x| x);
+        let mut update_counter = 0;
+        transfer_component(&mut force_updates, possessor, possessee, |mut x| {
+            x.update();
+            update_counter = x.counter();
+            x
+        });
 
-        // If a player is posessing, add possessee to playerlist as player and remove
+        let mut presences = ecs.write_storage::<Presence>();
+        // We leave Presence on the old entity for character IDs to be properly removed
+        // from the ID mapping if deleting the previous entity.
+        //
+        // If the entity is not going to be deleted, we remove it so that the entity
+        // doesn't keep an area loaded.
+        if delete_entity.is_none() {
+            presences.remove(possessor);
+        }
+        if let Some(p) = new_presence {
+            presences
+                .insert(possessee, p)
+                .expect("Checked entity was alive!");
+        }
+
+        // If a player is possessing, add possessee to playerlist as player and remove
         // old player.
         // Fetches from possessee entity here since we have transferred over the
         // `Player` component.
@@ -535,7 +575,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
             possessee,
         );
         if !comp_sync_package.is_empty() {
-            client.send_fallible(ServerGeneral::CompSync(comp_sync_package, 0)); // TODO: Check if this should be zero
+            client.send_fallible(ServerGeneral::CompSync(comp_sync_package, update_counter));
         }
     }
 
@@ -544,7 +584,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
     // this). See note on `persist_entity` call above for why we do this.
     if let Some(entity) = delete_entity {
         // Delete old entity
-        if let Err(e) = state.delete_entity_recorded(entity) {
+        if let Err(e) = state.delete_entity_recorded(entity, None) {
             error!(
                 ?e,
                 ?entity,

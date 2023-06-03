@@ -2303,7 +2303,7 @@ fn handle_kill_npcs(
     let count = to_kill.len();
     for entity in to_kill {
         // Directly remove entities instead of modifying health to avoid loot drops.
-        if let Err(e) = server.state.delete_entity_recorded(entity) {
+        if let Err(e) = server.state.delete_entity_recorded(entity, None) {
             error!(?e, ?entity, "Failed to delete entity");
         }
     }
@@ -2560,6 +2560,7 @@ fn handle_light(
         .ecs_mut()
         .create_entity_synced()
         .with(pos)
+        // TODO: I don't think we intend to add this component to non-client entities?
         .with(comp::ForceUpdate::forced())
         .with(light_emitter);
     if let Some(light_offset) = light_offset_opt {
@@ -3464,7 +3465,7 @@ fn handle_remove_lights(
     let size = to_delete.len();
 
     for entity in to_delete {
-        if let Err(e) = server.state.delete_entity_recorded(entity) {
+        if let Err(e) = server.state.delete_entity_recorded(entity, None) {
             error!(?e, "Failed to delete light: {:?}", e);
         }
     }

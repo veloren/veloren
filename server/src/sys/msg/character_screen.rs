@@ -85,6 +85,12 @@ impl Sys {
             },
             ClientGeneral::Character(character_id, requested_view_distances) => {
                 if let Some(player) = players.get(entity) {
+                    // NOTE: Because clients retain their Uid when exiting to the character
+                    // selection screen, we rely on this check to prevent them from immediately
+                    // re-entering in-game in the same tick so that we can synchronize their
+                    // removal without this being mixed up (and e.g. telling other clients to
+                    // delete the re-joined version) or requiring more complex handling to avoid
+                    // this.
                     if presences.contains(entity) {
                         debug!("player already ingame, aborting");
                     } else if character_updater.has_pending_database_action(character_id)

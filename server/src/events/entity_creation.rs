@@ -50,7 +50,8 @@ pub fn handle_initialize_character(
         }
     } else {
         // A character delete or update was somehow initiated after the login commenced,
-        // so disconnect the client without saving any data and abort the login process.
+        // so kick the client out of "ingame" without saving any data and abort
+        // the character loading process.
         handle_exit_ingame(server, entity, true);
     }
 }

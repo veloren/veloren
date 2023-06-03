@@ -69,9 +69,9 @@ impl WorldSyncExt for specs::World {
     // TODO: rename method, document called from client only
     fn delete_entity_and_clear_from_id_maps(&mut self, uid: Uid) {
         // Clear from uid allocator
-        let maybe_entity = self
-            .write_resource::<IdMaps>()
-            .remove_entity(None, uid, None, None);
+        let maybe_entity =
+            self.write_resource::<IdMaps>()
+                .remove_entity(None, Some(uid), None, None);
         if let Some(entity) = maybe_entity {
             if let Err(e) = self.delete_entity(entity) {
                 error!(?e, "Failed to delete entity");

@@ -149,6 +149,7 @@ pub trait StateExt {
     fn delete_entity_recorded(
         &mut self,
         entity: EcsEntity,
+        exit_ingame: Option<Option<Uid>>,
     ) -> Result<(), specs::error::WrongGeneration>;
     /// Get the given entity as an [`Actor`], if it is one.
     fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor>;
@@ -696,13 +697,14 @@ impl StateExt for State {
             map_marker,
         } = components;
 
-        // TODO: CharacterId established here (update id map)
-
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             let result =
                 if let Some(presence) = self.ecs().write_storage::<Presence>().get_mut(entity) {
                     if let PresenceKind::LoadingCharacter(id) = presence.kind {
                         presence.kind = PresenceKind::Character(id);
+                        self.ecs()
+                            .write_resource::<IdMaps>()
+                            .add_character(id, entity);
                         Ok(())
                     } else {
                         Err("PresenceKind is not LoadingCharacter")
@@ -758,6 +760,9 @@ impl StateExt for State {
                 self.write_component_ignore_entity_dead(entity, waypoint);
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
+                // TODO: We probably want to increment the existing force update counter since
+                // it is added in initialized_character (to be robust we can also insert it if
+                // it doesn't exist)
                 self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
             }
 
@@ -814,6 +819,9 @@ impl StateExt for State {
                         player_info.last_battlemode_change = Some(*change);
                     }
                 } else {
+                    // TODO: this sounds related to handle_exit_ingame? Actually, sounds like
+                    // trying to place character specific info on the `Player` component. TODO
+                    // document component better.
                     // FIXME:
                     // ???
                     //
@@ -1143,9 +1151,19 @@ impl StateExt for State {
     fn delete_entity_recorded(
         &mut self,
         entity: EcsEntity,
+        // Indicates this is being called from handle_exit_ingame, where the `Uid` is removed and
+        // transferred to a new entity.
+        //
+        // Inner option is dependent on if the entity had a `Uid` component (which all clients
+        // should...).
+        exit_ingame: Option<Option<Uid>>,
     ) -> Result<(), specs::error::WrongGeneration> {
-        // Remove entity from a group if they are in one
-        {
+        // Remove entity from a group if they are in one.
+        //
+        // If called from exit ingame, all group related things are already handled
+        // (this code wouldn't do anything anyway since the Group component was
+        // removed).
+        if exit_ingame.is_none() {
             let clients = self.ecs().read_storage::<Client>();
             let uids = self.ecs().read_storage::<Uid>();
             let mut group_manager = self.ecs().write_resource::<comp::group::GroupManager>();
@@ -1173,13 +1191,19 @@ impl StateExt for State {
         }
 
         // Cancel extant trades
-        events::cancel_trades_for(self, entity);
+        //
+        // handle_exit_ingame already calls this since cancelling trades retrieves the
+        // Uid internally.
+        if exit_ingame.is_none() {
+            events::cancel_trades_for(self, entity);
+        }
 
         let (maybe_uid, maybe_presence, maybe_rtsim_entity, maybe_pos) = (
             self.ecs().read_storage::<Uid>().get(entity).copied(),
-            // TODO: what if one of these 2 components was removed from the entity?
-            // We could simulate rlinear types at runtime with a `dev_panic!` in the drop for these
-            // components?
+            // NOTE: We expect that these 2 components are never removed from an entity (nor
+            // mutated) (at least not without updating the relevant mappings)!
+            // TODO: I think Presence may have some other locations where kind is modified (double
+            // check)
             self.ecs()
                 .read_storage::<Presence>()
                 .get(entity)
@@ -1191,32 +1215,35 @@ impl StateExt for State {
             self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
         );
 
-        if let Some(uid) = maybe_uid {
-            // TODO: exit_ingame for player doesn't hit this path since Uid is removed
-            self.ecs().write_resource::<IdMaps>().remove_entity(
-                Some(entity),
-                uid,
-                maybe_presence.and_then(|p| match p {
-                    PresenceKind::Spectator
-                    | PresenceKind::Possessor
-                    | PresenceKind::LoadingCharacter(_) => None,
-                    PresenceKind::Character(id) => Some(id),
-                }),
-                maybe_rtsim_entity,
-            );
-        } else {
+        if maybe_uid.or(exit_ingame.flatten()).is_some() {
+            // For now we expect all entities have a Uid component.
             error!("Deleting entity without Uid component");
         }
 
+        self.ecs().write_resource::<IdMaps>().remove_entity(
+            Some(entity),
+            // We don't want to pass in the Uid from exit_ingame since it has already
+            // been mapped to another entity.
+            maybe_uid,
+            maybe_presence.and_then(|p| match p {
+                PresenceKind::Spectator
+                | PresenceKind::Possessor
+                | PresenceKind::LoadingCharacter(_) => None,
+                PresenceKind::Character(id) => Some(id),
+            }),
+            maybe_rtsim_entity,
+        );
+
         let res = self.ecs_mut().delete_entity(entity);
         if res.is_ok() {
-            if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
-                // TODO: exit_ingame for player doesn't hit this path since Uid is removed, not
-                // sure if that is correct. However, we don't want recording the UID in deleted
-                // entities to end up overwriting the rejoined client with that UID...
-                //
-                // What is the difference between leaving a region and the deleted entities
-                // list?
+            // Note: Adding the `Uid` to the deleted list when exiting "in-game" relies on
+            // the client not being able to immediately re-enter the game in the
+            // same tick (since we could then mix up the ordering of things and
+            // tell other clients to forget the new entity).
+            //
+            // The client will ignore requests to delete its own entity that are trigger by
+            // this. (TODO: implement this)
+            if let (Some(uid), Some(pos)) = (maybe_uid.or(exit_ingame.flatten()), maybe_pos) {
                 if let Some(region_key) = self
                     .ecs()
                     .read_resource::<common::region::RegionMap>()

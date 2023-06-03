@@ -102,7 +102,7 @@ mod not_wasm {
         pub fn remove_entity(
             &mut self,
             expected_entity: Option<Entity>,
-            uid: Uid,
+            uid: Option<Uid>,
             cid: Option<CharacterId>,
             rid: Option<RtSimEntity>,
         ) -> Option<Entity> {
@@ -139,7 +139,7 @@ mod not_wasm {
                 }
             }
 
-            let maybe_entity = remove(&mut self.uid_mapping, Some(uid), expected_entity);
+            let maybe_entity = remove(&mut self.uid_mapping, uid, expected_entity);
             let expected_entity = expected_entity.or(maybe_entity);
             remove(&mut self.cid_mapping, cid, expected_entity);
             remove(&mut self.rid_mapping, rid, expected_entity);
