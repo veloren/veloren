@@ -6,7 +6,7 @@ BasicAura(
     auras: [
         (
             kind: Regeneration,
-            strength: 10.0,
+            strength: 18.0,
             duration: Some(5),
             category: Magical,
         ),

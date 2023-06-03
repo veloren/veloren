@@ -11,7 +11,7 @@ BasicRanged(
     ),
     projectile_body: Object(SpectralSwordSmall),
     projectile_speed: 20.0,
-    num_projectiles: 36,
+    num_projectiles: 12,
     projectile_spread: 0.4,
     move_efficiency: 0.3,
 )
