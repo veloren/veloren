@@ -102,15 +102,12 @@ impl Sys {
                 }
             },
             ClientGeneral::ControlEvent(event) => {
-                if presence.kind.controlling_char() {
+                if presence.kind.controlling_char() && let Some(controller) = controller {
                     // Skip respawn if client entity is alive
-                    if let ControlEvent::Respawn = event {
-                        if healths.get(entity).map_or(true, |h| !h.is_dead) {
-                            //Todo: comment why return!
-                            return Ok(());
-                        }
-                    }
-                    if let Some(controller) = controller {
+                    let skip_respawn = matches!(event, ControlEvent::Respawn)
+                        && healths.get(entity).map_or(true, |h| !h.is_dead);
+
+                    if !skip_respawn {
                         controller.push_event(event);
                     }
                 }
