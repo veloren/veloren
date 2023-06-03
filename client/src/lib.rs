@@ -2269,7 +2269,7 @@ impl Client {
                 if self.uid() != Some(entity_uid) {
                     self.state
                         .ecs_mut()
-                        .delete_entity_and_clear_from_id_maps(entity_uid);
+                        .delete_entity_and_clear_uid_mapping(entity_uid);
                 }
             },
             ServerGeneral::Notification(n) => {

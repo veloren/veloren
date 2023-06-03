@@ -53,13 +53,14 @@ mod not_wasm {
         }
     }
 
+    /// Mappings from various Id types to `Entity`s.
     #[derive(Debug)]
     pub struct IdMaps {
         /// "Universal" IDs (used to communicate entity identity over the
         /// network).
         uid_mapping: HashMap<Uid, Entity>,
 
-        // -- Fields below only used on the server --
+        // -- Fields below are only used on the server --
         uid_allocator: UidAllocator,
 
         /// Character IDs.
@@ -91,14 +92,14 @@ mod not_wasm {
             self.rid_mapping.get(&id).copied()
         }
 
-        // TODO: I think this is suitable to use on both the client and the server.
-        // NOTE: This is only used on the client? Do we not remove on the server?
-        // NOTE: We need UID mapping also on the client but we don't need the other
-        // mappings on the client!
-        //
-        // Useful for when a single entity is deleted because it doesn't reconstruct the
-        // entire hashmap
+        /// Removes mappings for the provided Id(s).
+        ///
         /// Returns the `Entity` that the provided `Uid` was mapped to.
+        ///
+        /// Used on both the client and the server when deleting entities,
+        /// although the client only ever provides a Some value for the
+        /// `Uid` parameter since the other mappings are not used on the
+        /// client.
         pub fn remove_entity(
             &mut self,
             expected_entity: Option<Entity>,

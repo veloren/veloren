@@ -18,7 +18,7 @@ pub trait WorldSyncExt {
     where
         C::Storage: Default + specs::storage::Tracked;
     fn create_entity_synced(&mut self) -> specs::EntityBuilder;
-    fn delete_entity_and_clear_from_id_maps(&mut self, uid: Uid);
+    fn delete_entity_and_clear_uid_mapping(&mut self, uid: Uid);
     fn uid_from_entity(&self, entity: specs::Entity) -> Option<Uid>;
     fn entity_from_uid(&self, uid: Uid) -> Option<specs::Entity>;
     fn apply_entity_package<P: CompPacket>(
@@ -66,11 +66,14 @@ impl WorldSyncExt for specs::World {
 
     /// This method should be used from the client-side when processing network
     /// messages that delete entities.
-    // TODO: rename method, document called from client only
-    fn delete_entity_and_clear_from_id_maps(&mut self, uid: Uid) {
+    ///
+    /// Only used on the client.
+    fn delete_entity_and_clear_uid_mapping(&mut self, uid: Uid) {
         // Clear from uid allocator
-        let maybe_entity =
-            self.write_resource::<IdMaps>()
+        let maybe_entity = self.write_resource::<IdMaps>()
+                // Note, rtsim entity and character id mappings don't exist on the client but it is
+                // easier to reuse the same structure here since there is shared code that needs to
+                // lookup the entity from a uid.
                 .remove_entity(None, Some(uid), None, None);
         if let Some(entity) = maybe_entity {
             if let Err(e) = self.delete_entity(entity) {
@@ -122,7 +125,7 @@ impl WorldSyncExt for specs::World {
             // there. Although the client might not get this anyway since it
             // should no longer be subscribed to any regions.
             if client_uid != Some(uid) {
-                self.delete_entity_and_clear_from_id_maps(uid);
+                self.delete_entity_and_clear_uid_mapping(uid);
             }
         });
     }
