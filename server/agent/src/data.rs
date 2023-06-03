@@ -10,8 +10,8 @@ use common::{
             slot::EquipSlot,
         },
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
-        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, PresenceKind, Scale,
-        SkillSet, Stance, Stats, Vel,
+        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, Scale, SkillSet, Stance,
+        Stats, Vel,
     },
     consts::GRAVITY,
     link::Is,
@@ -24,8 +24,8 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use specs::{
-    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage,
-    SystemData, World,
+    shred::ResourceId, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
+    World,
 };
 
 // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate
@@ -325,18 +325,9 @@ pub struct ReadData<'a> {
 
 impl<'a> ReadData<'a> {
     pub fn lookup_actor(&self, actor: Actor) -> Option<EcsEntity> {
-        // TODO: We really shouldn't be doing a linear search here. The only saving
-        // grace is that the set of entities that fit each case should be
-        // *relatively* small.
         match actor {
-            Actor::Character(character_id) => (&self.entities, &self.presences)
-                .join()
-                .find(|(_, p)| p.kind == PresenceKind::Character(character_id))
-                .map(|(entity, _)| entity),
-            Actor::Npc(npc_id) => (&self.entities, &self.rtsim_entities)
-                .join()
-                .find(|(_, e)| e.0 == npc_id)
-                .map(|(entity, _)| entity),
+            Actor::Character(character_id) => self.id_maps.cid_entity(character_id),
+            Actor::Npc(npc_id) => self.id_maps.rid_entity(RtSimEntity(npc_id)),
         }
     }
 }
