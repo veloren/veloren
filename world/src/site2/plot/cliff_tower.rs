@@ -883,16 +883,6 @@ impl Structure for CliffTower {
                         ))
                         .fill(brick.clone());
                 }
-                // spawn mountaineers in each room
-                let spawn_pos = super_center.with_z(floor_level + 4);
-                let npc_amount = RandomField::new(0).get(spawn_pos) % 4;
-                for _ in 0..npc_amount {
-                    let mut rng = thread_rng();
-                    painter.spawn(
-                        EntityInfo::at(spawn_pos.map(|e| e as f32))
-                            .with_asset_expect("common.entity.village.mountaineer", &mut rng),
-                    );
-                }
             }
             // vary next storey
             length += -1;

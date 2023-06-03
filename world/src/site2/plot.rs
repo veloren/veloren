@@ -9,7 +9,9 @@ pub mod dungeon;
 mod giant_tree;
 mod gnarling;
 mod house;
+mod savannah_hut;
 mod savannah_pit;
+mod savannah_workshop;
 mod sea_chapel;
 mod workshop;
 
@@ -17,8 +19,9 @@ pub use self::{
     adlet::AdletStronghold, bridge::Bridge, castle::Castle, citadel::Citadel,
     cliff_tower::CliffTower, desert_city_multiplot::DesertCityMultiPlot,
     desert_city_temple::DesertCityTemple, dungeon::Dungeon, giant_tree::GiantTree,
-    gnarling::GnarlingFortification, house::House, savannah_pit::SavannahPit,
-    sea_chapel::SeaChapel, workshop::Workshop,
+    gnarling::GnarlingFortification, house::House, savannah_hut::SavannahHut,
+    savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
+    workshop::Workshop,
 };
 
 use super::*;
@@ -74,5 +77,7 @@ pub enum PlotKind {
     CliffTower(CliffTower),
     Citadel(Citadel),
     SavannahPit(SavannahPit),
+    SavannahHut(SavannahHut),
+    SavannahWorkshop(SavannahWorkshop),
     Bridge(Bridge),
 }
