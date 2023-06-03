@@ -311,6 +311,8 @@ impl<'a> System<'a> for Sys {
                         }
                     }
 
+                    // TODO: force update counter only needs to be sent with updates specifically
+                    // for a client's own entity. We can save bandwidth here.
                     client.send_fallible(ServerGeneral::CompSync(
                         comp_sync_package,
                         force_updates.get(*client_entity).map_or(0, |f| f.counter()),

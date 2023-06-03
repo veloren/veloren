@@ -25,7 +25,7 @@ pub trait WorldSyncExt {
         &mut self,
         entity_package: EntityPackage<P>,
     ) -> specs::Entity;
-    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage);
+    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage, client_uid: Option<Uid>);
     fn apply_comp_sync_package<P: CompPacket>(&mut self, package: CompSyncPackage<P>);
 }
 
@@ -103,7 +103,7 @@ impl WorldSyncExt for specs::World {
         entity
     }
 
-    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage) {
+    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage, client_uid: Option<Uid>) {
         // Take ownership of the fields
         let EntitySyncPackage {
             created_entities,
@@ -117,7 +117,13 @@ impl WorldSyncExt for specs::World {
 
         // Attempt to delete entities that were marked for deletion
         deleted_entities.into_iter().for_each(|uid| {
-            self.delete_entity_and_clear_from_id_maps(uid.into());
+            // Skip deleting the client's own entity. It will appear here when exiting
+            // "in-game" and the client already handles cleaning things up
+            // there. Although the client might not get this anyway since it
+            // should no longer be subscribed to any regions.
+            if client_uid != Some(uid) {
+                self.delete_entity_and_clear_from_id_maps(uid);
+            }
         });
     }
 

@@ -2251,9 +2251,10 @@ impl Client {
                 self.dt_adjustment = dt_adjustment * time_scale.0;
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
+                let uid = self.uid();
                 self.state
                     .ecs_mut()
-                    .apply_entity_sync_package(entity_sync_package);
+                    .apply_entity_sync_package(entity_sync_package, uid);
             },
             ServerGeneral::CompSync(comp_sync_package, force_counter) => {
                 self.force_update_counter = force_counter;
@@ -2739,7 +2740,6 @@ impl Client {
 
         let client_uid = self
             .uid()
-            .map(|u| u.into())
             .expect("Client doesn't have a Uid!!!");
 
         // Clear ecs of all entities

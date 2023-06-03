@@ -1,4 +1,3 @@
-#![allow(clippy::large_enum_variant)]
 use common::{
     comp::{
         item::{tool::AbilityMap, MaterialStatManifest},
@@ -277,7 +276,11 @@ use common_net::synced_components::*;
 // of components. This will declare the types defined in the macro above.
 common_net::synced_components!(trackers);
 
-/// Deleted entities grouped by region
+/// Deleted entities grouped by region.
+///
+/// Note, this is primarily for syncing purposes and can include the Uid of
+/// clients that have left "in-game" to return to the character screen (even
+/// though there is still an entity with this Uid!).
 pub struct DeletedEntities {
     map: HashMap<Vec2<i32>, Vec<Uid>>,
 }
