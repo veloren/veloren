@@ -440,12 +440,11 @@ mod tests {
             .build();
 
         {
-            use specs::saveload::MarkerAllocator;
             let mut uids = mockworld.write_component::<Uid>();
             let mut id_maps = mockworld.write_resource::<IdMaps>();
-            uids.insert(player, id_maps.allocate(player, None))
+            uids.insert(player, id_maps.allocate(player))
                 .expect("inserting player uid failed");
-            uids.insert(merchant, id_maps.allocate(merchant, None))
+            uids.insert(merchant, id_maps.allocate(merchant))
                 .expect("inserting merchant uid failed");
         }
 
