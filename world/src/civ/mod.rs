@@ -330,7 +330,7 @@ impl Civs {
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::CliffTown => (32i32, 10.0),
-                SiteKind::SavannahPit => (36i32, 20.0),
+                SiteKind::SavannahPit => (48i32, 25.0),
                 SiteKind::DesertCity => (64i32, 25.0),
                 SiteKind::ChapelSite => (36i32, 10.0),
                 SiteKind::Tree => (12i32, 8.0),

@@ -113,7 +113,15 @@ impl Data {
             let matches_buildings = (|kind: &PlotKind| {
                 matches!(
                     kind,
-                    PlotKind::House(_) | PlotKind::Workshop(_) | PlotKind::Plaza
+                    PlotKind::House(_)
+                        | PlotKind::Workshop(_)
+                        | PlotKind::Plaza
+                        | PlotKind::SavannahPit(_)
+                        | PlotKind::SavannahHut(_)
+                        | PlotKind::SavannahWorkshop(_)
+                        | PlotKind::CliffTower(_)
+                        | PlotKind::DesertCityMultiPlot(_)
+                        | PlotKind::DesertCityTemple(_)
                 )
             }) as _;
             let matches_plazas = (|kind: &PlotKind| matches!(kind, PlotKind::Plaza)) as _;

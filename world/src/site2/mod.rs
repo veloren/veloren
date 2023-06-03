@@ -893,6 +893,11 @@ impl Site {
             name: NameGen::location(&mut rng).generate_savannah_custom(),
             ..Site::default()
         };
+
+        site.demarcate_obstacles(land);
+
+        site.make_plaza(land, &mut rng);
+
         let size = 11.0 as i32;
         let aabr = Aabr {
             min: Vec2::broadcast(-size),
@@ -914,6 +919,86 @@ impl Site {
                 plot: Some(plot),
                 hard_alt: Some(savannah_pit_alt),
             });
+        }
+
+        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2)]);
+
+        for _ in 0..45 {
+            match *build_chance.choose_seeded(rng.gen()) {
+                1 => {
+                    // SavannahHut
+
+                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            4..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let savannah_hut = plot::SavannahHut::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let savannah_hut_alt = savannah_hut.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::SavannahHut(savannah_hut),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(savannah_hut_alt),
+                        });
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                2 => {
+                    // SavannahWorkshop
+
+                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            4..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let savannah_workshop = plot::SavannahWorkshop::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let savannah_workshop_alt = savannah_workshop.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::SavannahWorkshop(savannah_workshop),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(savannah_workshop_alt),
+                        });
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                _ => {},
+            }
         }
         site
     }
@@ -1382,6 +1467,10 @@ impl Site {
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
                 PlotKind::SavannahPit(savannah_pit) => savannah_pit.render_collect(self, canvas),
+                PlotKind::SavannahHut(savannah_hut) => savannah_hut.render_collect(self, canvas),
+                PlotKind::SavannahWorkshop(savannah_workshop) => {
+                    savannah_workshop.render_collect(self, canvas)
+                },
                 PlotKind::DesertCityMultiPlot(desert_city_multi_plot) => {
                     desert_city_multi_plot.render_collect(self, canvas)
                 },

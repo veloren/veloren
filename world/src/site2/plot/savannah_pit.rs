@@ -284,6 +284,135 @@ impl Structure for SavannahPit {
                 max: (center + length).with_z(base - (2 * length)),
             })
             .clear();
+        // floor -1 donut room & floor -2 donut room
+        let rooms_clear = painter
+            .cylinder(Aabb {
+                min: (center - (4 * length)).with_z(base - (2 * length)),
+                max: (center + (4 * length)).with_z(base - length - 1),
+            })
+            .union(painter.cylinder(Aabb {
+                min: (center - (4 * length)).with_z(base - (3 * length)),
+                max: (center + (4 * length)).with_z(base - (2 * length) - 1),
+            }));
+
+        let rooms = painter
+            .cylinder(Aabb {
+                min: (center - (2 * length) - 2).with_z(base - (2 * length)),
+                max: (center + (2 * length) + 2).with_z(base - length - 1),
+            })
+            .union(painter.cylinder(Aabb {
+                min: (center - length - 2).with_z(base - (3 * length)),
+                max: (center + length + 2).with_z(base - (2 * length) - 1),
+            }));
+        rooms_clear.without(rooms).clear();
+
+        // floor 0 wood ring
+        painter
+            .cylinder(Aabb {
+                min: (center - (3 * length)).with_z(base - length + (length / 2) - 3),
+                max: (center + (3 * length)).with_z(base - length + (length / 2) - 2),
+            })
+            .fill(wood_light.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (3 * length) + 1).with_z(base - length + (length / 2) - 3),
+                max: (center + (3 * length) - 1).with_z(base - length + (length / 2) - 2),
+            })
+            .clear();
+        // floor -1 wood ring
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length)).with_z(base - (2 * length) + (length / 2) - 3),
+                max: (center + (4 * length)).with_z(base - (2 * length) + (length / 2) - 2),
+            })
+            .fill(wood_light.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length) + 1).with_z(base - (2 * length) + (length / 2) - 3),
+                max: (center + (4 * length) - 1).with_z(base - (2 * length) + (length / 2) - 2),
+            })
+            .clear();
+        // floor -1 wood ring sprites
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length)).with_z(base - (2 * length) + (length / 2) - 2),
+                max: (center + (4 * length)).with_z(base - (2 * length) + (length / 2) - 1),
+            })
+            .fill(sprite_fill.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length) + 1).with_z(base - (2 * length) + (length / 2) - 2),
+                max: (center + (4 * length) - 1).with_z(base - (2 * length) + (length / 2) - 1),
+            })
+            .clear();
+        // floor -1 center decor ring
+        painter
+            .cylinder(Aabb {
+                min: (center - (2 * length) - 2).with_z(base - (2 * length) + (length / 2) - 3),
+                max: (center + (2 * length) + 2).with_z(base - (2 * length) + (length / 2) - 1),
+            })
+            .fill(color.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (2 * length)).with_z(base - (2 * length) + (length / 2) - 3),
+                max: (center + (2 * length)).with_z(base - (2 * length) + (length / 2) - 1),
+            })
+            .clear();
+        // floor -1 room entry
+        let room1_entry_pos = Vec2::new(center.x, center.y - (2 * length));
+        painter
+            .sphere(Aabb {
+                min: (room1_entry_pos - 5).with_z(base - (2 * length)),
+                max: (room1_entry_pos + 5).with_z(base - (2 * length) + 5),
+            })
+            .clear();
+        // floor -2 wood ring
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length)).with_z(base - (3 * length) + (length / 2) - 3),
+                max: (center + (4 * length)).with_z(base - (3 * length) + (length / 2) - 2),
+            })
+            .fill(wood_light.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length) + 1).with_z(base - (3 * length) + (length / 2) - 3),
+                max: (center + (4 * length) - 1).with_z(base - (3 * length) + (length / 2) - 2),
+            })
+            .clear();
+        // floor -2 wood ring sprites
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length)).with_z(base - (3 * length) + (length / 2) - 2),
+                max: (center + (4 * length)).with_z(base - (3 * length) + (length / 2) - 1),
+            })
+            .fill(sprite_fill.clone());
+        painter
+            .cylinder(Aabb {
+                min: (center - (4 * length) + 1).with_z(base - (3 * length) + (length / 2) - 2),
+                max: (center + (4 * length) - 1).with_z(base - (3 * length) + (length / 2) - 1),
+            })
+            .clear();
+        // floor -2 center decor ring
+        painter
+            .cylinder(Aabb {
+                min: (center - length - 2).with_z(base - (3 * length) + (length / 2) - 3),
+                max: (center + length + 2).with_z(base - (3 * length) + (length / 2) - 1),
+            })
+            .fill(color);
+        painter
+            .cylinder(Aabb {
+                min: (center - length).with_z(base - (3 * length) + (length / 2) - 3),
+                max: (center + length).with_z(base - (3 * length) + (length / 2) - 1),
+            })
+            .clear();
+        // floor -2 room entry
+        let room2_entry_pos = Vec2::new(center.x, center.y - length);
+        painter
+            .sphere(Aabb {
+                min: (room2_entry_pos - 5).with_z(base - (3 * length)),
+                max: (room2_entry_pos + 5).with_z(base - (3 * length) + 5),
+            })
+            .clear();
 
         // floor stairs lamps
         for dir in SQUARE_4 {
@@ -391,8 +520,8 @@ impl Structure for SavannahPit {
             .fill(wood_dark.clone());
         let stair_radius2 = ((2 * length) + 1) as f32;
         let stairs_clear2 = painter.prim(Primitive::Cylinder(Aabb {
-            min: (center - (3 * length)).with_z(base - (3 * length)),
-            max: (center + (3 * length)).with_z(base - (2 * length)),
+            min: (center - length).with_z(base - (3 * length)),
+            max: (center + length).with_z(base - (2 * length)),
         }));
         painter
             .prim(Primitive::sampling(
@@ -405,101 +534,6 @@ impl Structure for SavannahPit {
                 ),
             ))
             .fill(wood_dark.clone());
-        // floor -1 donut room
-        painter
-            .cylinder(Aabb {
-                min: (center - (4 * length)).with_z(base - (2 * length)),
-                max: (center + (4 * length)).with_z(base - length - 1),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (2 * length) - 2).with_z(base - (2 * length)),
-                max: (center + (2 * length) + 2).with_z(base - length - 1),
-            }))
-            .clear();
-        // floor -1 room entry
-        let room1_entry_pos = Vec2::new(center.x, center.y - (2 * length));
-        painter
-            .sphere(Aabb {
-                min: (room1_entry_pos - 5).with_z(base - (2 * length)),
-                max: (room1_entry_pos + 5).with_z(base - (2 * length) + 5),
-            })
-            .clear();
-
-        // floor -2 donut room
-        painter
-            .cylinder(Aabb {
-                min: (center - (4 * length)).with_z(base - (3 * length)),
-                max: (center + (4 * length)).with_z(base - (2 * length) - 1),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - length - 2).with_z(base - (3 * length)),
-                max: (center + length + 2).with_z(base - (2 * length) - 1),
-            }))
-            .clear();
-        // floor -2 room entry
-        let room2_entry_pos = Vec2::new(center.x, center.y - length);
-        painter
-            .sphere(Aabb {
-                min: (room2_entry_pos - 5).with_z(base - (3 * length)),
-                max: (room2_entry_pos + 5).with_z(base - (3 * length) + 5),
-            })
-            .clear();
-        // floor 0 wood ring
-        painter
-            .cylinder(Aabb {
-                min: (center - (3 * length)).with_z(base - length + (length / 2) - 3),
-                max: (center + (3 * length)).with_z(base - length + (length / 2) - 2),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (3 * length) + 1).with_z(base - length + (length / 2) - 3),
-                max: (center + (3 * length) - 1).with_z(base - length + (length / 2) - 2),
-            }))
-            .fill(wood_light.clone());
-        // floor -1 wood ring
-        painter
-            .cylinder(Aabb {
-                min: (center - (4 * length)).with_z(base - (2 * length) + (length / 2) - 3),
-                max: (center + (4 * length)).with_z(base - (2 * length) + (length / 2) - 2),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (4 * length) + 1).with_z(base - (2 * length) + (length / 2) - 3),
-                max: (center + (4 * length) - 1).with_z(base - (2 * length) + (length / 2) - 2),
-            }))
-            .fill(wood_light.clone());
-        // floor -2 wood ring
-        painter
-            .cylinder(Aabb {
-                min: (center - (4 * length)).with_z(base - (3 * length) + (length / 2) - 3),
-                max: (center + (4 * length)).with_z(base - (3 * length) + (length / 2) - 2),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (4 * length) + 1).with_z(base - (3 * length) + (length / 2) - 3),
-                max: (center + (4 * length) - 1).with_z(base - (3 * length) + (length / 2) - 2),
-            }))
-            .fill(wood_light.clone());
-        // floor -1 wood ring sprites
-        painter
-            .cylinder(Aabb {
-                min: (center - (4 * length)).with_z(base - (2 * length) + (length / 2) - 2),
-                max: (center + (4 * length)).with_z(base - (2 * length) + (length / 2) - 1),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (4 * length) + 1).with_z(base - (2 * length) + (length / 2) - 2),
-                max: (center + (4 * length) - 1).with_z(base - (2 * length) + (length / 2) - 1),
-            }))
-            .fill(sprite_fill.clone());
-        // floor -2 wood ring sprites
-        painter
-            .cylinder(Aabb {
-                min: (center - (4 * length)).with_z(base - (3 * length) + (length / 2) - 2),
-                max: (center + (4 * length)).with_z(base - (3 * length) + (length / 2) - 1),
-            })
-            .without(painter.cylinder(Aabb {
-                min: (center - (4 * length) + 1).with_z(base - (3 * length) + (length / 2) - 2),
-                max: (center + (4 * length) - 1).with_z(base - (3 * length) + (length / 2) - 1),
-            }))
-            .fill(sprite_fill.clone());
-
         // top wood cone
         painter
             .cone(Aabb {
@@ -597,16 +631,6 @@ impl Structure for SavannahPit {
                         max: (entries_clear + 2).with_z(base - ((1 + f) * length) + 4),
                     })
                     .clear();
-                // villagers in each room
-                let spawn_pos = (room_center - 3).with_z(base - ((1 + f) * length));
-                let npc_amount = RandomField::new(0).get(spawn_pos) % 3;
-                for _ in 0..npc_amount {
-                    let mut rng = thread_rng();
-                    painter.spawn(
-                        EntityInfo::at(spawn_pos.map(|e| e as f32))
-                            .with_asset_expect("common.entity.village.villager", &mut rng),
-                    );
-                }
             }
             // outside platforms
             painter
@@ -641,16 +665,6 @@ impl Structure for SavannahPit {
                             .with_z(base + (2 * length) + 5 + (3 * top_var) as i32),
                     })
                     .fill(wood_dark.clone());
-            }
-            // villagers on platforms
-            let spawn_pos = (room_center - 2).with_z(base + length + 2);
-            let npc_amount = RandomField::new(0).get(spawn_pos) % 3;
-            for _ in 0..npc_amount {
-                let mut rng = thread_rng();
-                painter.spawn(
-                    EntityInfo::at(spawn_pos.map(|e| e as f32))
-                        .with_asset_expect("common.entity.village.villager", &mut rng),
-                );
             }
             let lantern_pos = center + dir * ((4 * length) - (length / 4) + 4);
             painter.sprite(lantern_pos.with_z(base + length + 1), SpriteKind::Lantern);
@@ -698,16 +712,6 @@ impl Structure for SavannahPit {
                         max: (entries_clear + 3).with_z(base - ((1 + f) * length) + 4),
                     })
                     .clear();
-                // villagers in each room
-                let spawn_pos = (room_center - 3).with_z(base - ((1 + f) * length));
-                let npc_amount = RandomField::new(0).get(spawn_pos) % 3;
-                for _ in 0..npc_amount {
-                    let mut rng = thread_rng();
-                    painter.spawn(
-                        EntityInfo::at(spawn_pos.map(|e| e as f32))
-                            .with_asset_expect("common.entity.village.villager", &mut rng),
-                    );
-                }
                 // furniture
                 match RandomField::new(0).get(room_center.with_z(base)) % 2 {
                     0 => {
@@ -814,16 +818,6 @@ impl Structure for SavannahPit {
                             .with_z(base + (2 * length) + 5 + (3 * top_var) as i32),
                     })
                     .fill(wood_dark.clone());
-            }
-            // villagers on platforms
-            let spawn_pos = (room_center - 2).with_z(base + length + 2);
-            let npc_amount = RandomField::new(0).get(spawn_pos) % 3;
-            for _ in 0..npc_amount {
-                let mut rng = thread_rng();
-                painter.spawn(
-                    EntityInfo::at(spawn_pos.map(|e| e as f32))
-                        .with_asset_expect("common.entity.village.villager", &mut rng),
-                );
             }
             let lantern_pos = center + dir * ((3 * length) - (length / 3) + 4);
             painter.sprite(lantern_pos.with_z(base + length + 1), SpriteKind::Lantern);
@@ -944,18 +938,6 @@ impl Structure for SavannahPit {
                 }
             }
         }
-        // villagers outside on every floor
-        for a in 0..5 {
-            let spawn_pos = (center - 5).with_z(base + length - (length * a));
-            let npc_amount = RandomField::new(0).get(spawn_pos) % 4;
-            for _ in 0..npc_amount {
-                let mut rng = thread_rng();
-                painter.spawn(
-                    EntityInfo::at(spawn_pos.map(|e| e as f32))
-                        .with_asset_expect("common.entity.village.villager", &mut rng),
-                );
-            }
-        }
 
         // campfire
         let campfire_pos = (center - 10).with_z(base);
@@ -1059,13 +1041,6 @@ impl Structure for SavannahPit {
                     max: (crate_pos + 2).with_z(base - (5 * length) + 5),
                 })
                 .clear();
-            // villager and lantern in each stand
-            let spawn_pos = (crate_pos - 1).with_z(base - (5 * length) + 3);
-            let mut rng = thread_rng();
-            painter.spawn(
-                EntityInfo::at(spawn_pos.map(|e| e as f32))
-                    .with_asset_expect("common.entity.village.villager", &mut rng),
-            );
             painter.sprite(
                 (crate_pos + 1).with_z(base - (5 * length) + 3),
                 SpriteKind::Lantern,
@@ -1097,16 +1072,6 @@ impl Structure for SavannahPit {
                 })
                 // placeholder for market items
                 .fill(Fill::Block(Block::air(SpriteKind::Crate)));
-        }
-        // villagers in market hall
-        let spawn_pos = (center + 10).with_z(base - (5 * length) + 4);
-        let npc_amount = RandomField::new(0).get(spawn_pos) % 12;
-        for _ in 0..npc_amount {
-            let mut rng = thread_rng();
-            painter.spawn(
-                EntityInfo::at(spawn_pos.map(|e| e as f32))
-                    .with_asset_expect("common.entity.village.villager", &mut rng),
-            );
         }
         // supports
         for dir in CARDINALS {
@@ -1574,16 +1539,6 @@ impl Structure for SavannahPit {
                     })
                     .fill(wood_dark.clone());
             }
-            // guards and lanterns on towers
-            let spawn_pos = (tower_center - 2).with_z(base + (length / 2) + 2);
-            let npc_amount = 1 + RandomField::new(0).get(spawn_pos) % 3;
-            for _ in 1..(npc_amount + 1) {
-                let mut rng = thread_rng();
-                painter.spawn(
-                    EntityInfo::at(spawn_pos.map(|e| e as f32))
-                        .with_asset_expect("common.entity.village.guard", &mut rng),
-                );
-            }
             let lantern_pos = tower_center - 3;
             painter.sprite(lantern_pos.with_z(base + (length / 2)), SpriteKind::Lantern);
             // tunnel lanterns
@@ -1642,16 +1597,6 @@ impl Structure for SavannahPit {
                             .with_z(base + (2 * length) + (length / 2) - 2 + (3 * top_var) as i32),
                     })
                     .fill(wood_dark.clone());
-            }
-            // guards and lanterns on towers
-            let spawn_pos = (tower_center - 2).with_z(base + (length / 2) + 2);
-            let npc_amount = 1 + RandomField::new(0).get(spawn_pos) % 3;
-            for _ in 1..(npc_amount + 1) {
-                let mut rng = thread_rng();
-                painter.spawn(
-                    EntityInfo::at(spawn_pos.map(|e| e as f32))
-                        .with_asset_expect("common.entity.village.guard", &mut rng),
-                );
             }
             let lantern_pos = center + dir * (7 * wall_length);
             painter.sprite(lantern_pos.with_z(base + (length / 2)), SpriteKind::Lantern);
