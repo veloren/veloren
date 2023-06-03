@@ -127,7 +127,7 @@ mod not_wasm {
             ) -> Option<Entity> {
                 if let Some(id) = id {
                     if let Some(e) = mapping.remove(&id) {
-                        if expected.map_or(true, |expected| e != expected) {
+                        if expected.map_or(false, |expected| e != expected) {
                             unexpected_entity::<ID>();
                         }
                         Some(e)

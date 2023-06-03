@@ -1215,7 +1215,7 @@ impl StateExt for State {
             self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
         );
 
-        if maybe_uid.or(exit_ingame.flatten()).is_some() {
+        if maybe_uid.or(exit_ingame.flatten()).is_none() {
             // For now we expect all entities have a Uid component.
             error!("Deleting entity without Uid component");
         }
