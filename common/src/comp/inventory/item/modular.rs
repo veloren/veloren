@@ -99,6 +99,7 @@ impl ModularBase {
         hand_restriction.unwrap_or(Hands::One)
     }
 
+    #[inline(never)]
     pub(super) fn kind(
         &self,
         components: &[Item],

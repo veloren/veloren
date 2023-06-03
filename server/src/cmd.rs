@@ -44,7 +44,7 @@ use common::{
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
-    resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay},
+    resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
@@ -186,6 +186,7 @@ fn do_command(
         ServerChatCommand::Sudo => handle_sudo,
         ServerChatCommand::Tell => handle_tell,
         ServerChatCommand::Time => handle_time,
+        ServerChatCommand::TimeScale => handle_time_scale,
         ServerChatCommand::Tp => handle_tp,
         ServerChatCommand::RtsimTp => handle_rtsim_tp,
         ServerChatCommand::RtsimInfo => handle_rtsim_info,
@@ -1118,12 +1119,14 @@ fn handle_time(
     let mut tod_lazymsg = None;
     let clients = server.state.ecs().read_storage::<Client>();
     let calendar = server.state.ecs().read_resource::<Calendar>();
+    let time_scale = server.state.ecs().read_resource::<TimeScale>();
     for client in (&clients).join() {
         let msg = tod_lazymsg.unwrap_or_else(|| {
             client.prepare(ServerGeneral::TimeOfDay(
                 TimeOfDay(new_time),
                 (*calendar).clone(),
                 *time,
+                *time_scale,
             ))
         });
         let _ = client.send_prepared(&msg);
@@ -1138,6 +1141,64 @@ fn handle_time(
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
                 format!("Time changed to: {}", new_time.format("%H:%M")),
+            ),
+        );
+    }
+    Ok(())
+}
+
+fn handle_time_scale(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let time_scale = server
+        .state
+        .ecs_mut()
+        .get_mut::<TimeScale>()
+        .expect("Expected time scale to be added.");
+    if args.is_empty() {
+        let time_scale = time_scale.0;
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                format!("The current time scale is {time_scale}."),
+            ),
+        );
+    } else if let Some(scale) = parse_cmd_args!(args, f64) {
+        time_scale.0 = scale.clamp(0.0001, 1000.0);
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, format!("Set time scale to {scale}.")),
+        );
+        // Update all clients with the new TimeOfDay (without this they would have to
+        // wait for the next 100th tick to receive the update).
+        let mut tod_lazymsg = None;
+        let clients = server.state.ecs().read_storage::<Client>();
+        let time = server.state.ecs().read_resource::<Time>();
+        let time_of_day = server.state.ecs().read_resource::<TimeOfDay>();
+        let calendar = server.state.ecs().read_resource::<Calendar>();
+        for client in (&clients).join() {
+            let msg = tod_lazymsg.unwrap_or_else(|| {
+                client.prepare(ServerGeneral::TimeOfDay(
+                    *time_of_day,
+                    (*calendar).clone(),
+                    *time,
+                    TimeScale(scale),
+                ))
+            });
+            let _ = client.send_prepared(&msg);
+            tod_lazymsg = Some(msg);
+        }
+    } else {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandError,
+                "Wrong parameter, expected f32.".to_string(),
             ),
         );
     }
@@ -1302,6 +1363,7 @@ fn handle_rtsim_info(
 
         let _ = writeln!(&mut info, "-- General Information --");
         let _ = writeln!(&mut info, "Seed: {}", npc.seed);
+        let _ = writeln!(&mut info, "Pos: {:?}", npc.wpos);
         let _ = writeln!(&mut info, "Role: {:?}", npc.role);
         let _ = writeln!(&mut info, "Home: {:?}", npc.home);
         let _ = writeln!(&mut info, "Faction: {:?}", npc.faction);
@@ -1309,6 +1371,11 @@ fn handle_rtsim_info(
         let _ = writeln!(&mut info, "-- Status --");
         let _ = writeln!(&mut info, "Current site: {:?}", npc.current_site);
         let _ = writeln!(&mut info, "Current mode: {:?}", npc.mode);
+        let _ = writeln!(
+            &mut info,
+            "Riding: {:?}",
+            npc.riding.as_ref().map(|riding| riding.vehicle)
+        );
         let _ = writeln!(&mut info, "-- Action State --");
         if let Some(brain) = &npc.brain {
             let mut bt = Vec::new();
@@ -1345,7 +1412,7 @@ fn handle_rtsim_npc(
             .filter(|s| !s.is_empty())
             .map(|s| s.trim().to_lowercase())
             .collect::<Vec<_>>();
-
+        let npc_names = &*common::npc::NPC_NAMES.read();
         let rtsim = server.state.ecs().read_resource::<RtSim>();
         let data = rtsim.state().data();
         let mut npcs = data
@@ -1353,7 +1420,7 @@ fn handle_rtsim_npc(
             .values()
             .enumerate()
             .filter(|(idx, npc)| {
-                let tags = [
+                let mut tags = vec![
                     npc.profession()
                         .map(|p| format!("{:?}", p))
                         .unwrap_or_default(),
@@ -1364,7 +1431,11 @@ fn handle_rtsim_npc(
                     },
                     format!("{:?}", npc.mode),
                     format!("{}", idx),
+                    npc_names[&npc.body].keyword.clone(),
                 ];
+                if let Some(species_meta) = npc_names.get_species_meta(&npc.body) {
+                    tags.push(species_meta.keyword.clone());
+                }
                 terms
                     .iter()
                     .all(|term| tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim())))

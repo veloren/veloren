@@ -87,6 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Underwater fall damage
 - The scale component now behaves properly
 - Multiple model support for dropped items (orichalcum armor)
+- Made rtsim monsters not go into too deep water, and certainly not outside the map.
+- Fixed bug where npcs would be dismounted from vehicles if loaded/unloaded in a certain order.
 
 ## [0.14.0] - 2023-01-07
 

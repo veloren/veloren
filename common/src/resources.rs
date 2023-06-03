@@ -13,6 +13,13 @@ pub struct TimeOfDay(pub f64);
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Time(pub f64);
 
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct TimeScale(pub f64);
+
+impl Default for TimeScale {
+    fn default() -> Self { Self(1.0) }
+}
+
 /// A resource that stores the time since the previous tick.
 #[derive(Default)]
 pub struct DeltaTime(pub f32);

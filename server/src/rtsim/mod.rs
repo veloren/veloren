@@ -5,7 +5,8 @@ pub mod tick;
 use atomicwrites::{AtomicFile, OverwriteBehavior};
 use common::{
     grid::Grid,
-    rtsim::{Actor, ChunkResource, RtSimEntity, RtSimVehicle, WorldSettings},
+    mounting::VolumePos,
+    rtsim::{Actor, ChunkResource, RtSimEntity, RtSimVehicle, VehicleId, WorldSettings},
 };
 use common_ecs::dispatch;
 use common_state::BlockDiff;
@@ -13,7 +14,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use enum_map::EnumMap;
 use rtsim::{
     data::{npc::SimulationMode, Data, ReadError},
-    event::{OnDeath, OnSetup},
+    event::{OnDeath, OnMountVolume, OnSetup},
     RtState,
 };
 use specs::DispatcherBuilder;
@@ -147,6 +148,16 @@ impl RtSim {
         path
     }
 
+    pub fn hook_character_mount_volume(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        pos: VolumePos<VehicleId>,
+        actor: Actor,
+    ) {
+        self.state.emit(OnMountVolume { actor, pos }, world, index)
+    }
+
     pub fn hook_load_chunk(&mut self, key: Vec2<i32>, max_res: EnumMap<ChunkResource, usize>) {
         if let Some(chunk_state) = self.state.get_resource_mut::<ChunkStates>().0.get_mut(key) {
             *chunk_state = Some(LoadedChunkState { max_res });
@@ -167,14 +178,26 @@ impl RtSim {
     }
 
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
-        if let Some(npc) = self.state.get_data_mut().npcs.get_mut(entity.0) {
+        if let Some(npc) = self
+            .state
+            .get_data_mut()
+            .npcs
+            .get_mut(entity.0)
+            .filter(|npc| npc.riding.is_none())
+        {
             npc.mode = SimulationMode::Simulated;
         }
     }
 
     pub fn hook_rtsim_vehicle_unload(&mut self, entity: RtSimVehicle) {
-        if let Some(vehicle) = self.state.get_data_mut().npcs.vehicles.get_mut(entity.0) {
+        let data = self.state.get_data_mut();
+        if let Some(vehicle) = data.npcs.vehicles.get_mut(entity.0) {
             vehicle.mode = SimulationMode::Simulated;
+            if let Some(Actor::Npc(npc)) = vehicle.driver {
+                if let Some(npc) = data.npcs.get_mut(npc) {
+                    npc.mode = SimulationMode::Simulated;
+                }
+            }
         }
     }
 

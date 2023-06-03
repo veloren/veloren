@@ -203,7 +203,7 @@ impl Client {
                     | ServerGeneral::ChatMsg(_)
                     | ServerGeneral::ChatMode(_)
                     | ServerGeneral::SetPlayerEntity(_)
-                    | ServerGeneral::TimeOfDay(_, _, _)
+                    | ServerGeneral::TimeOfDay(_, _, _, _)
                     | ServerGeneral::EntitySync(_)
                     | ServerGeneral::CompSync(_, _)
                     | ServerGeneral::CreateEntity(_)

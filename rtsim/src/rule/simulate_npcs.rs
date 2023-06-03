@@ -1,26 +1,29 @@
 use crate::{
     data::{npc::SimulationMode, Npc},
-    event::{EventCtx, OnDeath, OnSetup, OnTick},
+    event::{EventCtx, OnDeath, OnMountVolume, OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
 use common::{
     comp::{self, Body},
+    mounting::{Volume, VolumePos},
     rtsim::{Actor, NpcAction, NpcActivity, Personality},
-    terrain::CoordinateConversions,
+    terrain::{CoordinateConversions, TerrainChunkSize},
+    vol::RectVolSize,
 };
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::{error, warn};
-use vek::Vec2;
+use vek::{Clamp, Vec2};
 use world::site::SiteKind;
 
 pub struct SimulateNpcs;
 
 impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
-        rtstate.bind::<Self, OnSetup>(on_setup);
-        rtstate.bind::<Self, OnDeath>(on_death);
-        rtstate.bind::<Self, OnTick>(on_tick);
+        rtstate.bind(on_setup);
+        rtstate.bind(on_death);
+        rtstate.bind(on_tick);
+        rtstate.bind(on_mount_volume);
 
         Ok(Self)
     }
@@ -40,6 +43,17 @@ fn on_setup(ctx: EventCtx<SimulateNpcs, OnSetup>) {
                 }
             }
         }
+    }
+}
+
+fn on_mount_volume(ctx: EventCtx<SimulateNpcs, OnMountVolume>) {
+    let data = &mut *ctx.state.data_mut();
+
+    if let VolumePos { kind: Volume::Entity(vehicle), .. } = ctx.event.pos
+        && let Some(vehicle) = data.npcs.vehicles.get(vehicle)
+        && let Some(Actor::Npc(driver)) = vehicle.driver
+        && let Some(driver) = data.npcs.get_mut(driver)  {
+        driver.controller.actions.push(NpcAction::Say(Some(ctx.event.actor), comp::Content::localized("npc-speech-welcome-aboard")))
     }
 }
 
@@ -238,6 +252,20 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     },
                     None => {},
                 }
+                // Make sure NPCs remain on the surface and within the map
+                npc.wpos = npc
+                    .wpos
+                    .xy()
+                    .clamped(
+                        Vec2::zero(),
+                        (ctx.world.sim().get_size() * TerrainChunkSize::RECT_SIZE).as_(),
+                    )
+                    .with_z(
+                        ctx.world
+                            .sim()
+                            .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
+                            + npc.body.flying_height(),
+                    );
             }
 
             // Consume NPC actions
@@ -247,13 +275,6 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
                 }
             }
-            // Make sure NPCs remain on the surface
-            npc.wpos.z = ctx
-                .world
-                .sim()
-                .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
-                .unwrap_or(0.0)
-                + npc.body.flying_height();
         }
 
         // Move home if required
@@ -269,6 +290,26 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 new_home.population.insert(npc_id);
             }
             npc.home = Some(new_home);
+        }
+    }
+
+    for (_, vehicle) in data.npcs.vehicles.iter_mut() {
+        // Try to keep ships above ground and within the map
+        if matches!(vehicle.mode, SimulationMode::Simulated) {
+            vehicle.wpos = vehicle
+                .wpos
+                .xy()
+                .clamped(
+                    Vec2::zero(),
+                    (ctx.world.sim().get_size() * TerrainChunkSize::RECT_SIZE).as_(),
+                )
+                .with_z(
+                    vehicle.wpos.z.max(
+                        ctx.world
+                            .sim()
+                            .get_surface_alt_approx(vehicle.wpos.xy().as_()),
+                    ),
+                );
         }
     }
 }

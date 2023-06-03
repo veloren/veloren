@@ -1,4 +1,4 @@
-use specs::{world::WorldExt, Entity as EcsEntity, Join};
+use specs::{saveload::MarkerAllocator, world::WorldExt, Entity as EcsEntity, Join};
 use vek::*;
 
 use common::{
@@ -19,19 +19,20 @@ use common::{
     link::Is,
     mounting::{Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
     outcome::Outcome,
+    rtsim::RtSimVehicle,
     terrain::{Block, SpriteKind},
-    uid::Uid,
+    uid::{Uid, UidAllocator},
     vol::ReadVol,
 };
 use common_net::sync::WorldSyncExt;
 
-use crate::{state_ext::StateExt, Server, Time};
+use crate::{rtsim::RtSim, state_ext::StateExt, Server, Time};
 
 use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use std::iter::FromIterator;
+use std::{iter::FromIterator, sync::Arc};
 
 pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
     let ecs = server.state_mut().ecs();
@@ -169,11 +170,28 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
         let maybe_uid = state.ecs().read_storage::<Uid>().get(rider).copied();
 
         if let Some(rider) = maybe_uid && within_range {
-            let _ = state.link(VolumeMounting {
+            let _link_successful = state.link(VolumeMounting {
                 pos: volume_pos,
                 block,
                 rider,
-            });
+            }).is_ok();
+            #[cfg(feature = "worldgen")] 
+            if _link_successful {
+                let uid_allocator = state.ecs().read_resource::<UidAllocator>();
+                if let Some(rider_entity) = uid_allocator.retrieve_entity_internal(rider.0)
+                    && let Some(rider_actor) = state.entity_as_actor(rider_entity)
+                    && let Some(volume_pos) = volume_pos.try_map_entity(|uid| {
+                        let entity = uid_allocator.retrieve_entity_internal(uid.0)?;
+                        state.read_storage::<RtSimVehicle>().get(entity).map(|v| v.0)
+                    }) {
+                    state.ecs().write_resource::<RtSim>().hook_character_mount_volume(
+                            &state.ecs().read_resource::<Arc<world::World>>(),
+                            state.ecs().read_resource::<world::IndexOwned>().as_index_ref(),
+                            volume_pos,
+                            rider_actor,
+                    );
+                }
+            }
         }
     }
 }
