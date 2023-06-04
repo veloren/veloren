@@ -3,6 +3,9 @@ hud-crafting-recipes = Recettes
 hud-crafting-ingredients = Ingrédients :
 hud-crafting-craft = Fabriquer
 hud-crafting-craft_all = Tout Fabriquer
+hud-crafting-repair = Réparer
+hud-crafting-repair_equipped = Réparer équipé
+hud-crafting-repair_all = Tout réparer
 hud-crafting-tool_cata = Nécessite :
 hud-crafting-req_crafting_station = Nécessite:
 hud-crafting-anvil = Enclume
@@ -14,6 +17,7 @@ hud-crafting-loom = Métier à tisser
 hud-crafting-spinning_wheel = Rouet
 hud-crafting-tanning_rack = Chevalet de tannage
 hud-crafting-salvaging_station = Table d'extraction
+hud-crafting-repair_bench = Établi de réparation
 hud-crafting-campfire = Feu de camp
 hud-crafting-tabs-all = Global
 hud-crafting-tabs-armor = Armure
@@ -30,7 +34,7 @@ hud-crafting-dismantle_title = Démantelage
 hud-crafting-dismantle_explanation =
     Survoler un objet dans votre sac pour pouvoir voir
     ce que vous pouvez récupérer.
-    
+
     Double-Clique pour pouvoir le démanteler.
 hud-crafting-modular_desc = Glissez ici les parties de l'objet pour fabriquer une arme
 hud-crafting-mod_weap_prim_slot_title = Composant principal de l'arme
@@ -43,3 +47,5 @@ hud-crafting-mod_comp_wood_prim_slot_title = Bois
 hud-crafting-mod_comp_wood_prim_slot_desc = Placez un morceaux de bois ici, seuls certains bois peuvent être utilisés pour fabriquer des armes.
 hud-crafting-mod_comp_sec_slot_title = Composant animal
 hud-crafting-mod_comp_sec_slot_desc = Placez éventuellement un ingrédient d'origine animal, seuls certains ingrédients peuvent être utilisés pour améliorer les armes.
+hud-crafting-repair_slot_title = Item endommagé
+hud-crafting-repair_slot_desc = Placez un item ici pour voir le coût de réparation à son niveau de durabilité actuel.

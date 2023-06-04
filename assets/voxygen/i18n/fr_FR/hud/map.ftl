@@ -18,7 +18,7 @@ hud-map-bridge = Pont
 hud-map-dungeon = Donjon
 hud-map-difficulty_dungeon =
     Difficulté
-    
+
     du Donjon: { $difficulty }
 hud-map-drag = Déplacer
 hud-map-zoom = Zoomer
@@ -33,4 +33,5 @@ hud-map-zoom_minimap_explanation =
     de voir plus précisément la zone alentour
 hud-map-gnarling = Gnarling Fortification
 hud-map-chapel_site = Chapelle marine
+hud-map-adlet = Forteresse Adlet
 hud-map-placed_by = Ajouté par { $name }
