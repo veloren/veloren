@@ -311,8 +311,11 @@ impl<'a> System<'a> for Sys {
                         }
                     }
 
-                    // TODO: force update counter only needs to be sent with updates specifically
-                    // for a client's own entity. We can save bandwidth here.
+                    // TODO: force update counter only needs to be sent once per frame (and only if
+                    // it changed, although it might not be worth having a separate message for
+                    // optionally sending it since individual messages may have a bandwidth
+                    // overhead), however, here we send it potentially 2 times per subscribed
+                    // region by including it in the `CompSync` message.
                     client.send_fallible(ServerGeneral::CompSync(
                         comp_sync_package,
                         force_updates.get(*client_entity).map_or(0, |f| f.counter()),
