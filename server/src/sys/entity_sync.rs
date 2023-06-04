@@ -8,6 +8,7 @@ use common::{
     region::{Event as RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale},
     terrain::TerrainChunkSize,
+    uid::Uid,
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -233,14 +234,13 @@ impl<'a> System<'a> for Sys {
                 for (client, _, client_entity, client_pos) in &mut subscribers {
                     let mut comp_sync_package = CompSyncPackage::new();
 
-                    for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider) in (
+                    for (_, entity, &uid, (&pos, last_pos), vel, ori, collider) in (
                         region.entities(),
                         &entities,
                         uids,
                         (&positions, last_pos.mask().maybe()),
                         (&velocities, last_vel.mask().maybe()).maybe(),
                         (&orientations, last_vel.mask().maybe()).maybe(),
-                        force_updates.maybe(),
                         colliders.maybe(),
                     )
                         .join()
@@ -256,7 +256,7 @@ impl<'a> System<'a> for Sys {
                             // Don't send client physics updates about itself unless force update is
                             // set or the client is subject to
                             // server-authoritative physics
-                            force_update.map_or(false, |f| f.is_forced())
+                            force_updates.get(entity).map_or(false, |f| f.is_forced())
                                 || player_physics_setting.server_authoritative()
                                 || is_rider.get(entity).is_some()
                         } else if matches!(collider, Some(Collider::Voxel { .. })) {
@@ -288,27 +288,15 @@ impl<'a> System<'a> for Sys {
                             }
                         };
 
-                        if last_pos.is_none() {
-                            comp_sync_package.comp_inserted(uid, pos);
-                        } else if send_now {
-                            comp_sync_package.comp_modified(uid, pos);
-                        }
-
-                        if let Some((v, last_vel)) = vel {
-                            if last_vel.is_none() {
-                                comp_sync_package.comp_inserted(uid, *v);
-                            } else if send_now {
-                                comp_sync_package.comp_modified(uid, *v);
-                            }
-                        }
-
-                        if let Some((o, last_ori)) = ori {
-                            if last_ori.is_none() {
-                                comp_sync_package.comp_inserted(uid, *o);
-                            } else if send_now {
-                                comp_sync_package.comp_modified(uid, *o);
-                            }
-                        }
+                        add_physics_components(
+                            send_now,
+                            &mut comp_sync_package,
+                            uid,
+                            pos,
+                            last_pos,
+                            ori,
+                            vel,
+                        );
                     }
 
                     // TODO: force update counter only needs to be sent once per frame (and only if
@@ -325,6 +313,41 @@ impl<'a> System<'a> for Sys {
         );
         drop(guard);
         job.cpu_stats.measure(common_ecs::ParMode::Single);
+
+        // Sync components that are only synced for the client's own entity.
+        for (entity, client, &uid, (maybe_pos, last_pos), vel, ori) in (
+            &entities,
+            &clients,
+            uids,
+            (positions.maybe(), last_pos.mask().maybe()),
+            (&velocities, last_vel.mask().maybe()).maybe(),
+            (&orientations, last_vel.mask().maybe()).maybe(),
+        )
+            .join()
+        {
+            // Include additional components for clients that aren't in a region (e.g. due
+            // to having no position or have sync_me as `false`) since those
+            // won't be synced above.
+            let include_all_comps =
+                !maybe_pos.is_some_and(|pos| region_map.in_region_map_relaxed(entity, pos.0));
+
+            let mut comp_sync_package = trackers.create_sync_from_client_package(
+                &tracked_storages,
+                entity,
+                include_all_comps,
+            );
+
+            if include_all_comps && let Some(&pos) = maybe_pos {
+                add_physics_components(true, &mut comp_sync_package, uid, pos, last_pos, ori, vel);
+            }
+
+            if !comp_sync_package.is_empty() {
+                client.send_fallible(ServerGeneral::CompSync(
+                    comp_sync_package,
+                    force_updates.get(entity).map_or(0, |f| f.counter()),
+                ));
+            }
+        }
 
         // Update the last physics components for each entity
         for (_, &pos, vel, ori, last_pos, last_vel, last_ori) in (
@@ -368,27 +391,6 @@ impl<'a> System<'a> for Sys {
                 inventory.clone(),
                 update.take_events(),
             ));
-        }
-
-        // Sync components that are only synced for the client's own entity.
-        for (entity, client, maybe_pos) in (&entities, &clients, positions.maybe()).join() {
-            // Include additional components for clients that aren't in a region (e.g. due
-            // to having no position or have sync_me as `false`) since those
-            // won't be synced above.
-            let include_all_comps =
-                !maybe_pos.is_some_and(|pos| region_map.in_region_map_relaxed(entity, pos.0));
-
-            let comp_sync_package = trackers.create_sync_from_client_package(
-                &tracked_storages,
-                entity,
-                include_all_comps,
-            );
-            if !comp_sync_package.is_empty() {
-                client.send_fallible(ServerGeneral::CompSync(
-                    comp_sync_package,
-                    force_updates.get(entity).map_or(0, |f| f.counter()),
-                ));
-            }
         }
 
         // Consume/clear the current outcomes and convert them to a vec
@@ -442,6 +444,43 @@ impl<'a> System<'a> for Sys {
                 let _ = client.send_prepared(&msg);
                 tod_lazymsg = Some(msg);
             }
+        }
+    }
+}
+
+/// Adds physics components if `send_now` is true or `Option<Last<T>>` is
+/// `None`.
+///
+/// If `Last<T>` isn't present, this is recorded as an insertion rather than a
+/// modification.
+fn add_physics_components(
+    send_now: bool,
+    comp_sync_package: &mut CompSyncPackage<common_net::msg::EcsCompPacket>,
+    uid: Uid,
+    pos: Pos,
+    last_pos: Option<u32>,
+    ori: Option<(&Ori, Option<u32>)>,
+    vel: Option<(&Vel, Option<u32>)>,
+) {
+    if last_pos.is_none() {
+        comp_sync_package.comp_inserted(uid, pos);
+    } else if send_now {
+        comp_sync_package.comp_modified(uid, pos);
+    }
+
+    if let Some((v, last_vel)) = vel {
+        if last_vel.is_none() {
+            comp_sync_package.comp_inserted(uid, *v);
+        } else if send_now {
+            comp_sync_package.comp_modified(uid, *v);
+        }
+    }
+
+    if let Some((o, last_ori)) = ori {
+        if last_ori.is_none() {
+            comp_sync_package.comp_inserted(uid, *o);
+        } else if send_now {
+            comp_sync_package.comp_modified(uid, *o);
         }
     }
 }
