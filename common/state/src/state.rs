@@ -534,6 +534,7 @@ impl State {
         self.ecs.write_resource::<RegionMap>().tick(
             self.ecs.read_storage::<comp::Pos>(),
             self.ecs.read_storage::<comp::Vel>(),
+            self.ecs.read_storage::<comp::Presence>(),
             self.ecs.entities(),
         );
     }

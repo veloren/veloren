@@ -604,6 +604,7 @@ impl StateExt for State {
                     entity: view_distance,
                 },
                 PresenceKind::Spectator,
+                false,
             ))
     }
 
@@ -644,7 +645,11 @@ impl StateExt for State {
 
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(view_distances, PresenceKind::LoadingCharacter(character_id)),
+                Presence::new(
+                    view_distances,
+                    PresenceKind::LoadingCharacter(character_id),
+                    false,
+                ),
             );
 
             // Tell the client its request was successful.
@@ -669,7 +674,7 @@ impl StateExt for State {
 
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(view_distances, PresenceKind::Spectator),
+                Presence::new(view_distances, PresenceKind::Spectator, false),
             );
 
             // Tell the client its request was successful.
@@ -704,6 +709,7 @@ impl StateExt for State {
                         self.ecs()
                             .write_resource::<IdMaps>()
                             .add_character(id, entity);
+                        presence.sync_me = true;
                         Ok(())
                     } else {
                         Err("PresenceKind is not LoadingCharacter")

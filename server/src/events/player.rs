@@ -418,6 +418,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                     // from overwriting original character info with stuff from the new character.
                     kind: PresenceKind::Possessor,
                     lossy_terrain_compression: presence.lossy_terrain_compression,
+                    sync_me: presence.sync_me,
                 })
             } else {
                 None
