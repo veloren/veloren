@@ -306,9 +306,9 @@ common-abilities-axe-bloodfeast = Bloodfeast
 common-abilities-axe-fierce_raze = Fierce Raze
     .desc =
         A rapid flurry of strikes on your foe
-common-abilities-axe-dueal_fierce_raze = Fierce Raze
+common-abilities-axe-dual_fierce_raze = Fierce Raze
     .desc =
-        A rapid flurry of strikes on yoru foe using both of your axes
+        A rapid flurry of strikes on your foe using both of your axes
 common-abilities-axe-furor = Furor
     .desc =
         As your fury rises, your movement and attacks quicken
