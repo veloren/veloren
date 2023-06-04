@@ -362,8 +362,6 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        // TODO: Sync clients that don't have a position?
-
         // Sync inventories
         for (inventory, update, client) in (inventories, &mut inventory_updates, &clients).join() {
             client.send_fallible(ServerGeneral::InventoryUpdate(
@@ -372,18 +370,19 @@ impl<'a> System<'a> for Sys {
             ));
         }
 
-        // TODO: this seems like the ideal spot to sync other components for clients
-        // that don't have a position or otherwise aren't included in the regions that
-        // the client is subscribed to...
-        //
-        // Maybe we can pass a bool into `create_sync_from_client_package`... renamed it
-        // to create_sync_package_for_client_entity(?)
-        // create_client_sync_package(?)
-        //
         // Sync components that are only synced for the client's own entity.
-        for (entity, client) in (&entities, &clients).join() {
-            let comp_sync_package =
-                trackers.create_sync_from_client_package(&tracked_storages, entity);
+        for (entity, client, maybe_pos) in (&entities, &clients, positions.maybe()).join() {
+            // Include additional components for clients that aren't in a region (e.g. due
+            // to having no position or have sync_me as `false`) since those
+            // won't be synced above.
+            let include_all_comps =
+                !maybe_pos.is_some_and(|pos| region_map.in_region_map_relaxed(entity, pos.0));
+
+            let comp_sync_package = trackers.create_sync_from_client_package(
+                &tracked_storages,
+                entity,
+                include_all_comps,
+            );
             if !comp_sync_package.is_empty() {
                 client.send_fallible(ServerGeneral::CompSync(
                     comp_sync_package,

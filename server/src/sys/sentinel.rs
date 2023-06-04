@@ -231,10 +231,14 @@ macro_rules! trackers {
 
 
             /// Create sync package for components that are only synced for the client's entity.
+            ///
+            /// This can optionally include components that are synced "for any entity" for cases
+            /// where other mechanisms don't sync those components.
             pub fn create_sync_from_client_package(
                 &self,
                 comps: &TrackedStorages,
                 entity: specs::Entity,
+                include_all_comps: bool,
             ) -> CompSyncPackage<EcsCompPacket> {
                 // TODO: this type repeats the entity uid for each component but
                 // we know they will all be the same here, using it for now for
@@ -249,10 +253,10 @@ macro_rules! trackers {
                 };
 
                 $(
-                    if matches!(
-                        <$component_type as NetSync>::SYNC_FROM,
-                        SyncFrom::ClientEntity,
-                    ) {
+                    if match <$component_type as NetSync>::SYNC_FROM {
+                        SyncFrom::ClientEntity => true,
+                        SyncFrom::AnyEntity => include_all_comps,
+                    } {
                         comp_sync_package.add_component_update(
                             &self.$component_name,
                             &comps.$component_name,

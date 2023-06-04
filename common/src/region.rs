@@ -269,6 +269,28 @@ impl RegionMap {
         None
     }
 
+    /// Checks if this entity is located in the `RegionMap` using the provided
+    /// position to limit which regions are checked.
+    ///
+    /// May produce false negatives (e.g. if for some reason the entity is not
+    /// in a region near the provided position).
+    pub fn in_region_map_relaxed(&self, entity: specs::Entity, pos: Vec3<f32>) -> bool {
+        let id = entity.id();
+        let pos = pos.map(|e| e as i32);
+
+        // Compute key for most likely region
+        let key = Self::pos_key(pos);
+        if let Some(region) = self.regions.get(&key) && region.entities().contains(id) { return true }
+
+        // Get the base of the four nearest regions.
+        let quad_base = Self::pos_key(pos - (REGION_SIZE / 2) as i32);
+        [(0, 0), (0, 1), (1, 0), (1, 1)]
+            .iter()
+            .map(|&offset| Vec2::<i32>::from(offset) + quad_base)
+            // skip key we already checked
+            .any(|k| k != key && self.regions.get(&key).is_some_and(|r| r.entities().contains(id)))
+    }
+
     fn key_index(&self, key: Vec2<i32>) -> Option<usize> {
         self.regions.get_full(&key).map(|(i, _, _)| i)
     }
