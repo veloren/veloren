@@ -715,6 +715,7 @@ impl StateExt for State {
             if let Err(err) = result {
                 let err = format!("Unexpected state when applying loaded character info: {err}");
                 error!("{err}");
+                // TODO: we could produce a `comp::Content` for this to allow localization.
                 return Err(err);
             }
 
@@ -1225,12 +1226,7 @@ impl StateExt for State {
             // We don't want to pass in the Uid from exit_ingame since it has already
             // been mapped to another entity.
             maybe_uid,
-            maybe_presence.and_then(|p| match p {
-                PresenceKind::Spectator
-                | PresenceKind::Possessor
-                | PresenceKind::LoadingCharacter(_) => None,
-                PresenceKind::Character(id) => Some(id),
-            }),
+            maybe_presence.and_then(|p| p.character_id()),
             maybe_rtsim_entity,
         );
 

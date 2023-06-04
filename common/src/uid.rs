@@ -1,4 +1,3 @@
-// TODO: rename this module or create new one for ID maps
 use serde::{Deserialize, Serialize};
 use std::{fmt, u64};
 
@@ -54,7 +53,7 @@ mod not_wasm {
     }
 
     /// Mappings from various Id types to `Entity`s.
-    #[derive(Debug)]
+    #[derive(Default, Debug)]
     pub struct IdMaps {
         /// "Universal" IDs (used to communicate entity identity over the
         /// network).
@@ -64,32 +63,25 @@ mod not_wasm {
         uid_allocator: UidAllocator,
 
         /// Character IDs.
-        cid_mapping: HashMap<CharacterId, Entity>,
+        character_to_ecs: HashMap<CharacterId, Entity>,
         /// Rtsim Entities.
-        rid_mapping: HashMap<RtSimEntity, Entity>,
+        rtsim_to_ecs: HashMap<RtSimEntity, Entity>,
     }
 
     impl IdMaps {
-        pub fn new() -> Self {
-            Self {
-                uid_mapping: HashMap::new(),
-                uid_allocator: UidAllocator::new(),
-                cid_mapping: HashMap::new(),
-                rid_mapping: HashMap::new(),
-            }
-        }
+        pub fn new() -> Self { Default::default() }
 
         /// Given a `Uid` retrieve the corresponding `Entity`.
         pub fn uid_entity(&self, id: Uid) -> Option<Entity> { self.uid_mapping.get(&id).copied() }
 
         /// Given a `CharacterId` retrieve the corresponding `Entity`.
-        pub fn cid_entity(&self, id: CharacterId) -> Option<Entity> {
-            self.cid_mapping.get(&id).copied()
+        pub fn character_entity(&self, id: CharacterId) -> Option<Entity> {
+            self.character_to_ecs.get(&id).copied()
         }
 
         /// Given a `RtSimEntity` retrieve the corresponding `Entity`.
-        pub fn rid_entity(&self, id: RtSimEntity) -> Option<Entity> {
-            self.rid_mapping.get(&id).copied()
+        pub fn rtsim_entity(&self, id: RtSimEntity) -> Option<Entity> {
+            self.rtsim_to_ecs.get(&id).copied()
         }
 
         /// Removes mappings for the provided Id(s).
@@ -142,8 +134,8 @@ mod not_wasm {
 
             let maybe_entity = remove(&mut self.uid_mapping, uid, expected_entity);
             let expected_entity = expected_entity.or(maybe_entity);
-            remove(&mut self.cid_mapping, cid, expected_entity);
-            remove(&mut self.rid_mapping, rid, expected_entity);
+            remove(&mut self.character_to_ecs, cid, expected_entity);
+            remove(&mut self.rtsim_to_ecs, rid, expected_entity);
             maybe_entity
         }
 
@@ -156,12 +148,12 @@ mod not_wasm {
 
         /// Only used on the server.
         pub fn add_character(&mut self, cid: CharacterId, entity: Entity) {
-            Self::insert(&mut self.cid_mapping, cid, entity);
+            Self::insert(&mut self.character_to_ecs, cid, entity);
         }
 
         /// Only used on the server.
         pub fn add_rtsim(&mut self, rid: RtSimEntity, entity: Entity) {
-            Self::insert(&mut self.rid_mapping, rid, entity);
+            Self::insert(&mut self.rtsim_to_ecs, rid, entity);
         }
 
         /// Allocates a new `Uid` and links it to the provided entity.
@@ -200,10 +192,6 @@ mod not_wasm {
     }
 
     impl Default for UidAllocator {
-        fn default() -> Self { Self::new() }
-    }
-
-    impl Default for IdMaps {
         fn default() -> Self { Self::new() }
     }
 }

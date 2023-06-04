@@ -326,8 +326,8 @@ pub struct ReadData<'a> {
 impl<'a> ReadData<'a> {
     pub fn lookup_actor(&self, actor: Actor) -> Option<EcsEntity> {
         match actor {
-            Actor::Character(character_id) => self.id_maps.cid_entity(character_id),
-            Actor::Npc(npc_id) => self.id_maps.rid_entity(RtSimEntity(npc_id)),
+            Actor::Character(character_id) => self.id_maps.character_entity(character_id),
+            Actor::Npc(npc_id) => self.id_maps.rtsim_entity(RtSimEntity(npc_id)),
         }
     }
 }
