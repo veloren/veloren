@@ -372,6 +372,14 @@ impl<'a> System<'a> for Sys {
             ));
         }
 
+        // TODO: this seems like the ideal spot to sync other components for clients
+        // that don't have a position or otherwise aren't included in the regions that
+        // the client is subscribed to...
+        //
+        // Maybe we can pass a bool into `create_sync_from_client_package`... renamed it
+        // to create_sync_package_for_client_entity(?)
+        // create_client_sync_package(?)
+        //
         // Sync components that are only synced for the client's own entity.
         for (entity, client) in (&entities, &clients).join() {
             let comp_sync_package =
