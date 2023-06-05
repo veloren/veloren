@@ -24,7 +24,7 @@ slotmap::new_key_type! { pub struct FactionId; }
 
 slotmap::new_key_type! { pub struct ReportId; }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RtSimEntity(pub NpcId);
 
 impl Component for RtSimEntity {

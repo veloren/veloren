@@ -14,7 +14,7 @@ use common::{
     link::Is,
     mounting::{Mount, Rider, VolumePos, VolumeRider},
     terrain::{Block, TerrainGrid, UnlockKind},
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     util::find_dist::{Cube, Cylinder, FindDist},
     vol::ReadVol,
     CachedSpatialGrid,
@@ -53,12 +53,12 @@ impl Interactable {
 
     fn from_block_pos(
         terrain: &TerrainGrid,
-        uid_allocator: &UidAllocator,
+        id_maps: &IdMaps,
         colliders: &ReadStorage<Collider>,
         volume_pos: VolumePos,
         interaction: Interaction,
     ) -> Option<Self> {
-        let Some(block) = volume_pos.get_block(terrain, uid_allocator, colliders) else { return None };
+        let Some(block) = volume_pos.get_block(terrain, id_maps, colliders) else { return None };
         let block_interaction = match interaction {
             Interaction::Collect => {
                 // Check if this is an unlockable sprite
@@ -346,7 +346,7 @@ pub(super) fn select_interactable(
             .and_then(|(_, block_pos, interaction)| {
                 Interactable::from_block_pos(
                     &terrain,
-                    &ecs.read_resource::<UidAllocator>(),
+                    &ecs.read_resource::<IdMaps>(),
                     &ecs.read_storage(),
                     block_pos,
                     *interaction,

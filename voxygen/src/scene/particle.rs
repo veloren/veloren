@@ -20,13 +20,13 @@ use common::{
     spiral::Spiral2d,
     states::{self, utils::StageSection},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
-    uid::UidAllocator,
+    uid::IdMaps,
     vol::{ReadVol, RectRasterableVol, SizedVol},
 };
 use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
-use specs::{saveload::MarkerAllocator, Join, WorldExt};
+use specs::{Join, WorldExt};
 use std::{
     f32::consts::{PI, TAU},
     time::Duration,
@@ -287,10 +287,7 @@ impl ParticleMgr {
                 if target.is_some() {
                     let ecs = scene_data.state.ecs();
                     if target
-                        .and_then(|target| {
-                            ecs.read_resource::<UidAllocator>()
-                                .retrieve_entity_internal(target.0)
-                        })
+                        .and_then(|target| ecs.read_resource::<IdMaps>().uid_entity(target))
                         .and_then(|entity| {
                             ecs.read_storage::<Body>()
                                 .get(entity)

@@ -47,7 +47,7 @@ use common::{
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
@@ -60,9 +60,7 @@ use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::{thread_rng, Rng};
-use specs::{
-    saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
-};
+use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt};
 use std::{fmt::Write, ops::DerefMut, str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
@@ -247,8 +245,8 @@ fn position_mut<T>(
             server
                 .state
                 .ecs()
-                .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(is_rider.mount.into())
+                .read_resource::<IdMaps>()
+                .uid_entity(is_rider.mount)
         })
         .map(Ok)
         .or_else(|| {
@@ -264,8 +262,8 @@ fn position_mut<T>(
                         common::mounting::Volume::Entity(uid) => Ok(server
                             .state
                             .ecs()
-                            .read_resource::<UidAllocator>()
-                            .retrieve_entity_internal(uid.into())?),
+                            .read_resource::<IdMaps>()
+                            .uid_entity(uid)?),
                     })
                 })
         })
@@ -2279,7 +2277,7 @@ fn handle_kill_npcs(
             .filter_map(|(entity, _health, (), alignment, pos)| {
                 let should_kill = kill_pets
                     || if let Some(Alignment::Owned(owned)) = alignment {
-                        ecs.entity_from_uid(owned.0)
+                        ecs.entity_from_uid(*owned)
                             .map_or(true, |owner| !players.contains(owner))
                     } else {
                         true
@@ -2562,6 +2560,7 @@ fn handle_light(
         .ecs_mut()
         .create_entity_synced()
         .with(pos)
+        // TODO: I don't think we intend to add this component to non-client entities?
         .with(comp::ForceUpdate::forced())
         .with(light_emitter);
     if let Some(light_offset) = light_offset_opt {

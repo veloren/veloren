@@ -27,7 +27,7 @@ use common::{
     resources::{Secs, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     LoadoutBuilder, ViewDistances,
 };
 use common_net::{
@@ -36,12 +36,9 @@ use common_net::{
 };
 use common_state::State;
 use rand::prelude::*;
-use specs::{
-    saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
-    Join, WorldExt,
-};
+use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
 use std::time::{Duration, Instant};
-use tracing::{trace, warn};
+use tracing::{error, trace, warn};
 use vek::*;
 
 pub trait StateExt {
@@ -128,7 +125,11 @@ pub trait StateExt {
     fn initialize_spectator_data(&mut self, entity: EcsEntity, view_distances: ViewDistances);
     /// Update the components associated with the entity's current character.
     /// Performed after loading component data from the database
-    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents);
+    fn update_character_data(
+        &mut self,
+        entity: EcsEntity,
+        components: PersistedComponents,
+    ) -> Result<(), String>;
     /// Iterates over registered clients and send each `ServerMsg`
     fn validate_chat_msg(
         &self,
@@ -169,7 +170,7 @@ impl StateExt for State {
                 let groups = self.ecs().read_storage::<Group>();
 
                 let damage_contributor = source.and_then(|uid| {
-                    self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
+                    self.ecs().entity_from_uid(uid).map(|attacker_entity| {
                         DamageContributor::new(uid, groups.get(attacker_entity).cloned())
                     })
                 });
@@ -214,7 +215,7 @@ impl StateExt for State {
                     if !character_state.is_stunned() {
                         let groups = self.ecs().read_storage::<Group>();
                         let damage_contributor = source.and_then(|uid| {
-                            self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
+                            self.ecs().entity_from_uid(uid).map(|attacker_entity| {
                                 DamageContributor::new(uid, groups.get(attacker_entity).cloned())
                             })
                         });
@@ -643,7 +644,7 @@ impl StateExt for State {
 
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(view_distances, PresenceKind::Character(character_id)),
+                Presence::new(view_distances, PresenceKind::LoadingCharacter(character_id)),
             );
 
             // Tell the client its request was successful.
@@ -678,7 +679,12 @@ impl StateExt for State {
         }
     }
 
-    fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
+    /// Returned error intended to be sent to the client.
+    fn update_character_data(
+        &mut self,
+        entity: EcsEntity,
+        components: PersistedComponents,
+    ) -> Result<(), String> {
         let PersistedComponents {
             body,
             stats,
@@ -691,6 +697,27 @@ impl StateExt for State {
         } = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
+            let result =
+                if let Some(presence) = self.ecs().write_storage::<Presence>().get_mut(entity) {
+                    if let PresenceKind::LoadingCharacter(id) = presence.kind {
+                        presence.kind = PresenceKind::Character(id);
+                        self.ecs()
+                            .write_resource::<IdMaps>()
+                            .add_character(id, entity);
+                        Ok(())
+                    } else {
+                        Err("PresenceKind is not LoadingCharacter")
+                    }
+                } else {
+                    Err("Presence component missing")
+                };
+            if let Err(err) = result {
+                let err = format!("Unexpected state when applying loaded character info: {err}");
+                error!("{err}");
+                // TODO: we could produce a `comp::Content` for this to allow localization.
+                return Err(err);
+            }
+
             // Notify clients of a player list update
             self.notify_players(ServerGeneral::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
@@ -733,6 +760,9 @@ impl StateExt for State {
                 self.write_component_ignore_entity_dead(entity, waypoint);
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
+                // TODO: We probably want to increment the existing force update counter since
+                // it is added in initialized_character (to be robust we can also insert it if
+                // it doesn't exist)
                 self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());
             }
 
@@ -771,7 +801,7 @@ impl StateExt for State {
                     restore_pet(self.ecs(), pet_entity, entity, pet);
                 }
             } else {
-                warn!("Player has no pos, cannot load {} pets", pets.len());
+                error!("Player has no pos, cannot load {} pets", pets.len());
             }
 
             let presences = self.ecs().read_storage::<Presence>();
@@ -789,6 +819,9 @@ impl StateExt for State {
                         player_info.last_battlemode_change = Some(*change);
                     }
                 } else {
+                    // TODO: this sounds related to handle_exit_ingame? Actually, sounds like
+                    // trying to place character specific info on the `Player` component. TODO
+                    // document component better.
                     // FIXME:
                     // ???
                     //
@@ -804,6 +837,8 @@ impl StateExt for State {
                 }
             }
         }
+
+        Ok(())
     }
 
     fn validate_chat_msg(
@@ -862,16 +897,17 @@ impl StateExt for State {
             .clone()
             .map_group(|_| group_info.map_or_else(|| "???".to_string(), |i| i.name.clone()));
 
+        let id_maps = ecs.read_resource::<IdMaps>();
+        let entity_from_uid = |uid| id_maps.uid_entity(uid);
+
         if msg.chat_type.uid().map_or(true, |sender| {
-            (*ecs.read_resource::<UidAllocator>())
-                .retrieve_entity_internal(sender.0)
-                .map_or(false, |e| {
-                    self.validate_chat_msg(
-                        e,
-                        &msg.chat_type,
-                        msg.content().as_plain().unwrap_or_default(),
-                    )
-                })
+            entity_from_uid(sender).map_or(false, |e| {
+                self.validate_chat_msg(
+                    e,
+                    &msg.chat_type,
+                    msg.content().as_plain().unwrap_or_default(),
+                )
+            })
         }) {
             match &msg.chat_type {
                 comp::ChatType::Offline(_)
@@ -911,8 +947,7 @@ impl StateExt for State {
                             .unwrap_or_default()
                     {
                         // Send kill message to the dead player's group
-                        let killed_entity =
-                            (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                        let killed_entity = entity_from_uid(*uid);
                         let groups = ecs.read_storage::<Group>();
                         let killed_group = killed_entity.and_then(|e| groups.get(e));
                         if let Some(g) = &killed_group {
@@ -947,8 +982,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Say(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
@@ -960,8 +994,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Region(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
@@ -973,8 +1006,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::Npc(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
@@ -986,8 +1018,7 @@ impl StateExt for State {
                     }
                 },
                 comp::ChatType::NpcSay(uid) => {
-                    let entity_opt =
-                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let entity_opt = entity_from_uid(*uid);
 
                     let positions = ecs.read_storage::<comp::Pos>();
                     if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
@@ -1121,7 +1152,11 @@ impl StateExt for State {
         &mut self,
         entity: EcsEntity,
     ) -> Result<(), specs::error::WrongGeneration> {
-        // Remove entity from a group if they are in one
+        // NOTE: both this and handle_exit_ingame call delete_entity_common, so cleanup
+        // added here may need to be duplicated in handle_exit_ingame (depending
+        // on its nature).
+
+        // Remove entity from a group if they are in one.
         {
             let clients = self.ecs().read_storage::<Client>();
             let uids = self.ecs().read_storage::<Uid>();
@@ -1152,37 +1187,23 @@ impl StateExt for State {
         // Cancel extant trades
         events::cancel_trades_for(self, entity);
 
-        let (maybe_uid, maybe_pos) = (
-            self.ecs().read_storage::<Uid>().get(entity).copied(),
-            self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
+        // NOTE: We expect that these 3 components are never removed from an entity (nor
+        // mutated) (at least not without updating the relevant mappings)!
+        let maybe_uid = self.read_component_copied::<Uid>(entity);
+        let maybe_character = self
+            .read_storage::<Presence>()
+            .get(entity)
+            .and_then(|p| p.kind.character_id());
+        let maybe_rtsim = self.read_component_copied::<RtSimEntity>(entity);
+
+        self.mut_resource::<IdMaps>().remove_entity(
+            Some(entity),
+            maybe_uid,
+            maybe_character,
+            maybe_rtsim,
         );
 
-        let res = self.ecs_mut().delete_entity(entity);
-        if res.is_ok() {
-            if let (Some(uid), Some(pos)) = (maybe_uid, maybe_pos) {
-                if let Some(region_key) = self
-                    .ecs()
-                    .read_resource::<common::region::RegionMap>()
-                    .find_region(entity, pos.0)
-                {
-                    self.ecs()
-                        .write_resource::<DeletedEntities>()
-                        .record_deleted_entity(uid, region_key);
-                } else {
-                    // Don't panic if the entity wasn't found in a region maybe it was just created
-                    // and then deleted before the region manager had a chance to assign it a
-                    // region
-                    warn!(
-                        ?uid,
-                        ?pos,
-                        "Failed to find region containing entity during entity deletion, assuming \
-                         it wasn't sent to any clients and so deletion doesn't need to be \
-                         recorded for sync purposes"
-                    );
-                }
-            }
-        }
-        res
+        delete_entity_common(self, entity, maybe_uid)
     }
 
     fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor> {
@@ -1212,4 +1233,51 @@ fn send_to_group(g: &Group, ecs: &specs::World, msg: &comp::ChatMsg) {
             client.send_fallible(ServerGeneral::ChatMsg(msg.clone()));
         }
     }
+}
+
+/// This should only be called from `handle_exit_ingame` and
+/// `delete_entity_recorded`!!!!!!!
+pub(crate) fn delete_entity_common(
+    state: &mut State,
+    entity: EcsEntity,
+    maybe_uid: Option<Uid>,
+) -> Result<(), specs::error::WrongGeneration> {
+    if maybe_uid.is_none() {
+        // For now we expect all entities have a Uid component.
+        error!("Deleting entity without Uid component");
+    }
+    let maybe_pos = state.read_component_copied::<comp::Pos>(entity);
+
+    let res = state.ecs_mut().delete_entity(entity);
+    if res.is_ok() {
+        // Note: Adding the `Uid` to the deleted list when exiting "in-game" relies on
+        // the client not being able to immediately re-enter the game in the
+        // same tick (since we could then mix up the ordering of things and
+        // tell other clients to forget the new entity).
+        //
+        // The client will ignore requests to delete its own entity that are triggered
+        // by this.
+        if let Some((uid, pos)) = maybe_uid.zip(maybe_pos) {
+            let region_key = state
+                .ecs()
+                .read_resource::<common::region::RegionMap>()
+                .find_region(entity, pos.0);
+            if let Some(region_key) = region_key {
+                state
+                    .mut_resource::<DeletedEntities>()
+                    .record_deleted_entity(uid, region_key);
+            } else {
+                // Don't panic if the entity wasn't found in a region, maybe it was just created
+                // and then deleted before the region manager had a chance to assign it a region
+                warn!(
+                    ?uid,
+                    ?pos,
+                    "Failed to find region containing entity during entity deletion, assuming it \
+                     wasn't sent to any clients and so deletion doesn't need to be recorded for \
+                     sync purposes"
+                );
+            }
+        }
+    }
+    res
 }

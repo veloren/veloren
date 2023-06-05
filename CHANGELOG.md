@@ -89,6 +89,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multiple model support for dropped items (orichalcum armor)
 - Made rtsim monsters not go into too deep water, and certainly not outside the map.
 - Fixed bug where npcs would be dismounted from vehicles if loaded/unloaded in a certain order.
+- Fixed a slow leak on the server where Uid -> Entity mappings weren't cleaned up.
+- Clients going back into the character screen now properly have their old entity cleaned up on
+  other clients.
 
 ## [0.14.0] - 2023-01-07
 

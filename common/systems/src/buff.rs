@@ -15,15 +15,15 @@ use common::{
     event::{Emitter, EventBus, ServerEvent},
     resources::{DeltaTime, Secs, Time},
     terrain::SpriteKind,
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     Damage, DamageSource,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Entity, Join, ParJoin, Read,
-    ReadExpect, ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
+    World, WriteStorage,
 };
 
 #[derive(SystemData)]
@@ -36,7 +36,7 @@ pub struct ReadData<'a> {
     energies: ReadStorage<'a, Energy>,
     physics_states: ReadStorage<'a, PhysicsState>,
     groups: ReadStorage<'a, Group>,
-    uid_allocator: Read<'a, UidAllocator>,
+    id_maps: Read<'a, IdMaps>,
     time: Read<'a, Time>,
     msm: ReadExpect<'a, MaterialStatManifest>,
     buffs: ReadStorage<'a, Buffs>,
@@ -275,10 +275,7 @@ impl<'a> System<'a> for Sys {
                     }
                 })
                 .for_each(|(buff_id, buff, uid, aura_key)| {
-                    let replace = if let Some(aura_entity) = read_data
-                        .uid_allocator
-                        .retrieve_entity_internal((*uid).into())
-                    {
+                    let replace = if let Some(aura_entity) = read_data.id_maps.uid_entity(*uid) {
                         if let Some(aura) = read_data
                             .auras
                             .get(aura_entity)
@@ -504,12 +501,9 @@ fn execute_effect(
                     ModifierKind::Fractional => health.maximum() * amount,
                 };
                 let damage_contributor = by.and_then(|uid| {
-                    read_data
-                        .uid_allocator
-                        .retrieve_entity_internal(uid.0)
-                        .map(|entity| {
-                            DamageContributor::new(uid, read_data.groups.get(entity).cloned())
-                        })
+                    read_data.id_maps.uid_entity(uid).map(|entity| {
+                        DamageContributor::new(uid, read_data.groups.get(entity).cloned())
+                    })
                 });
                 server_emitter.emit(ServerEvent::HealthChange {
                     entity,

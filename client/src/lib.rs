@@ -10,9 +10,7 @@ pub use crate::error::Error;
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
 pub use specs::{
-    join::Join,
-    saveload::{Marker, MarkerAllocator},
-    Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, World, WorldExt,
+    join::Join, Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, World, WorldExt,
 };
 
 use crate::addr::ConnectionArgs;
@@ -49,7 +47,7 @@ use common::{
         TerrainGrid,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     vol::RectVolSize,
     weather::{Weather, WeatherGrid},
 };
@@ -2203,7 +2201,7 @@ impl Client {
                 self.chat_mode = m;
             },
             ServerGeneral::SetPlayerEntity(uid) => {
-                if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
+                if let Some(entity) = self.state.ecs().entity_from_uid(uid) {
                     let old_player_entity = mem::replace(
                         &mut *self.state.ecs_mut().write_resource(),
                         PlayerEntity(Some(entity)),
@@ -2223,6 +2221,7 @@ impl Client {
                     if let Some(presence) = self.presence {
                         self.presence = Some(match presence {
                             PresenceKind::Spectator => PresenceKind::Spectator,
+                            PresenceKind::LoadingCharacter(_) => PresenceKind::Possessor,
                             PresenceKind::Character(_) => PresenceKind::Possessor,
                             PresenceKind::Possessor => PresenceKind::Possessor,
                         });
@@ -2252,9 +2251,10 @@ impl Client {
                 self.dt_adjustment = dt_adjustment * time_scale.0;
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
+                let uid = self.uid();
                 self.state
                     .ecs_mut()
-                    .apply_entity_sync_package(entity_sync_package);
+                    .apply_entity_sync_package(entity_sync_package, uid);
             },
             ServerGeneral::CompSync(comp_sync_package, force_counter) => {
                 self.force_update_counter = force_counter;
@@ -2265,11 +2265,11 @@ impl Client {
             ServerGeneral::CreateEntity(entity_package) => {
                 self.state.ecs_mut().apply_entity_package(entity_package);
             },
-            ServerGeneral::DeleteEntity(entity) => {
-                if self.uid() != Some(entity) {
+            ServerGeneral::DeleteEntity(entity_uid) => {
+                if self.uid() != Some(entity_uid) {
                     self.state
                         .ecs_mut()
-                        .delete_entity_and_clear_from_uid_allocator(entity.0);
+                        .delete_entity_and_clear_uid_mapping(entity_uid);
                 }
             },
             ServerGeneral::Notification(n) => {
@@ -2738,24 +2738,21 @@ impl Client {
         // Clear pending trade
         self.pending_trade = None;
 
-        let client_uid = self
-            .uid()
-            .map(|u| u.into())
-            .expect("Client doesn't have a Uid!!!");
+        let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
 
         // Clear ecs of all entities
         self.state.ecs_mut().delete_all();
         self.state.ecs_mut().maintain();
-        self.state.ecs_mut().insert(UidAllocator::default());
+        self.state.ecs_mut().insert(IdMaps::default());
 
         // Recreate client entity with Uid
         let entity_builder = self.state.ecs_mut().create_entity();
-        let uid = entity_builder
+        entity_builder
             .world
-            .write_resource::<UidAllocator>()
-            .allocate(entity_builder.entity, Some(client_uid));
+            .write_resource::<IdMaps>()
+            .add_entity(client_uid, entity_builder.entity);
 
-        let entity = entity_builder.with(uid).build();
+        let entity = entity_builder.with(client_uid).build();
         self.state.ecs().write_resource::<PlayerEntity>().0 = Some(entity);
     }
 

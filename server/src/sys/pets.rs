@@ -1,12 +1,10 @@
 use common::{
     comp::{Alignment, Pet, PhysicsState, Pos},
     terrain::TerrainGrid,
-    uid::UidAllocator,
+    uid::IdMaps,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{
-    saveload::MarkerAllocator, Entities, Entity, Join, Read, ReadExpect, ReadStorage, WriteStorage,
-};
+use specs::{Entities, Entity, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 
 /// This system is responsible for handling pets
 #[derive(Default)]
@@ -19,7 +17,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Pet>,
         ReadStorage<'a, PhysicsState>,
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
     );
 
     const NAME: &'static str = "pets";
@@ -28,7 +26,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, terrain, mut positions, alignments, pets, physics, uid_allocator): Self::SystemData,
+        (entities, terrain, mut positions, alignments, pets, physics, id_maps): Self::SystemData,
     ) {
         const LOST_PET_DISTANCE_THRESHOLD: f32 = 200.0;
 
@@ -36,20 +34,18 @@ impl<'a> System<'a> for Sys {
         let lost_pets: Vec<(Entity, Pos)> = (&entities, &positions, &alignments, &pets)
             .join()
             .filter_map(|(entity, pos, alignment, _)| match alignment {
-                Alignment::Owned(owner_uid) => Some((entity, pos, owner_uid)),
+                Alignment::Owned(owner_uid) => Some((entity, pos, *owner_uid)),
                 _ => None,
             })
             .filter_map(|(pet_entity, pet_pos, owner_uid)| {
-                uid_allocator
-                    .retrieve_entity_internal(owner_uid.0)
-                    .and_then(|owner_entity| {
-                        match (positions.get(owner_entity), physics.get(owner_entity)) {
-                            (Some(position), Some(physics)) => {
-                                Some((pet_entity, position, physics, pet_pos))
-                            },
-                            _ => None,
-                        }
-                    })
+                id_maps.uid_entity(owner_uid).and_then(|owner_entity| {
+                    match (positions.get(owner_entity), physics.get(owner_entity)) {
+                        (Some(position), Some(physics)) => {
+                            Some((pet_entity, position, physics, pet_pos))
+                        },
+                        _ => None,
+                    }
+                })
             })
             .filter(|(_, owner_pos, owner_physics, pet_pos)| {
                 // Don't teleport pets to the player if they're in the air, nobody wants

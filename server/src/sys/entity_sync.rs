@@ -8,7 +8,6 @@ use common::{
     region::{Event as RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale},
     terrain::TerrainChunkSize,
-    uid::Uid,
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -191,6 +190,9 @@ impl<'a> System<'a> for Sys {
                                         .map(|key| !regions.contains(key))
                                         .unwrap_or(true)
                                     {
+                                        // TODO: I suspect it would be more efficient (in terms of
+                                        // bandwidth) to batch messages like this (same in
+                                        // subscription.rs).
                                         client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                     }
                                 }
@@ -309,6 +311,11 @@ impl<'a> System<'a> for Sys {
                         }
                     }
 
+                    // TODO: force update counter only needs to be sent once per frame (and only if
+                    // it changed, although it might not be worth having a separate message for
+                    // optionally sending it since individual messages may have a bandwidth
+                    // overhead), however, here we send it potentially 2 times per subscribed
+                    // region by including it in the `CompSync` message.
                     client.send_fallible(ServerGeneral::CompSync(
                         comp_sync_package,
                         force_updates.get(*client_entity).map_or(0, |f| f.counter()),
@@ -350,7 +357,7 @@ impl<'a> System<'a> for Sys {
                 })
             {
                 for uid in &deleted {
-                    client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
+                    client.send_fallible(ServerGeneral::DeleteEntity(*uid));
                 }
             }
         }

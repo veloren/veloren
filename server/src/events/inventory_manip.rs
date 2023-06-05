@@ -120,16 +120,15 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     match manip {
         comp::InventoryManip::Pickup(pickup_uid) => {
-            let item_entity =
-                if let Some(item_entity) = state.ecs().entity_from_uid(pickup_uid.into()) {
-                    item_entity
-                } else {
-                    // Item entity could not be found - most likely because the entity
-                    // attempted to pick up the same item very quickly before its deletion of the
-                    // world from the first pickup attempt was processed.
-                    debug!("Failed to get entity for item Uid: {}", pickup_uid);
-                    return;
-                };
+            let item_entity = if let Some(item_entity) = state.ecs().entity_from_uid(pickup_uid) {
+                item_entity
+            } else {
+                // Item entity could not be found - most likely because the entity
+                // attempted to pick up the same item very quickly before its deletion of the
+                // world from the first pickup attempt was processed.
+                debug!("Failed to get entity for item Uid: {}", pickup_uid);
+                return;
+            };
             let entity_cylinder = get_cylinder(state, entity);
 
             // FIXME: Raycast so we can't pick up items through walls.

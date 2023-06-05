@@ -101,26 +101,26 @@ pub enum CompUpdateKind<P: CompPacket> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityPackage<P: CompPacket> {
-    pub uid: u64,
+    pub uid: Uid,
     pub comps: Vec<P>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntitySyncPackage {
-    pub created_entities: Vec<u64>,
-    pub deleted_entities: Vec<u64>,
+    pub created_entities: Vec<Uid>,
+    pub deleted_entities: Vec<Uid>,
 }
 impl EntitySyncPackage {
     pub fn new(
         uids: &ReadStorage<'_, Uid>,
         uid_tracker: &UpdateTracker<Uid>,
         filter: impl Join + Copy,
-        deleted_entities: Vec<u64>,
+        deleted_entities: Vec<Uid>,
     ) -> Self {
         // Add created and deleted entities
         let created_entities = (uids, filter, uid_tracker.inserted())
             .join()
-            .map(|(uid, _, _)| (*uid).into())
+            .map(|(uid, _, _)| *uid)
             .collect();
 
         Self {

@@ -4,13 +4,9 @@ use super::{
 };
 use common::{
     resources::PlayerEntity,
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
 };
-use specs::{
-    saveload::{MarkedBuilder, MarkerAllocator},
-    world::Builder,
-    WorldExt,
-};
+use specs::{world::Builder, WorldExt};
 use tracing::error;
 
 pub trait WorldSyncExt {
@@ -22,21 +18,21 @@ pub trait WorldSyncExt {
     where
         C::Storage: Default + specs::storage::Tracked;
     fn create_entity_synced(&mut self) -> specs::EntityBuilder;
-    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64);
+    fn delete_entity_and_clear_uid_mapping(&mut self, uid: Uid);
     fn uid_from_entity(&self, entity: specs::Entity) -> Option<Uid>;
-    fn entity_from_uid(&self, uid: u64) -> Option<specs::Entity>;
+    fn entity_from_uid(&self, uid: Uid) -> Option<specs::Entity>;
     fn apply_entity_package<P: CompPacket>(
         &mut self,
         entity_package: EntityPackage<P>,
     ) -> specs::Entity;
-    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage);
+    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage, client_uid: Option<Uid>);
     fn apply_comp_sync_package<P: CompPacket>(&mut self, package: CompSyncPackage<P>);
 }
 
 impl WorldSyncExt for specs::World {
     fn register_sync_marker(&mut self) {
         self.register_synced::<Uid>();
-        self.insert(UidAllocator::new());
+        self.insert(IdMaps::new());
     }
 
     fn register_synced<C: specs::Component + Clone + Send + Sync>(&mut self)
@@ -56,12 +52,29 @@ impl WorldSyncExt for specs::World {
     }
 
     fn create_entity_synced(&mut self) -> specs::EntityBuilder {
-        self.create_entity().marked::<Uid>()
+        // TODO: Add metric for number of new entities created in a tick? Most
+        // convenient would be to store counter in `IdMaps` so that we don't
+        // have to fetch another resource nor require an additional parameter here
+        // nor use globals.
+        let builder = self.create_entity();
+        let uid = builder
+            .world
+            .write_resource::<IdMaps>()
+            .allocate(builder.entity);
+        builder.with(uid)
     }
 
-    fn delete_entity_and_clear_from_uid_allocator(&mut self, uid: u64) {
+    /// This method should be used from the client-side when processing network
+    /// messages that delete entities.
+    ///
+    /// Only used on the client.
+    fn delete_entity_and_clear_uid_mapping(&mut self, uid: Uid) {
         // Clear from uid allocator
-        let maybe_entity = self.write_resource::<UidAllocator>().remove_entity(uid);
+        let maybe_entity = self.write_resource::<IdMaps>()
+                // Note, rtsim entity and character id mappings don't exist on the client but it is
+                // easier to reuse the same structure here since there is shared code that needs to
+                // lookup the entity from a uid.
+                .remove_entity(None, Some(uid), None, None);
         if let Some(entity) = maybe_entity {
             if let Err(e) = self.delete_entity(entity) {
                 error!(?e, "Failed to delete entity");
@@ -75,9 +88,8 @@ impl WorldSyncExt for specs::World {
     }
 
     /// Get an entity from a UID
-    fn entity_from_uid(&self, uid: u64) -> Option<specs::Entity> {
-        self.read_resource::<UidAllocator>()
-            .retrieve_entity_internal(uid)
+    fn entity_from_uid(&self, uid: Uid) -> Option<specs::Entity> {
+        self.read_resource::<IdMaps>().uid_entity(uid)
     }
 
     fn apply_entity_package<P: CompPacket>(
@@ -94,7 +106,7 @@ impl WorldSyncExt for specs::World {
         entity
     }
 
-    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage) {
+    fn apply_entity_sync_package(&mut self, package: EntitySyncPackage, client_uid: Option<Uid>) {
         // Take ownership of the fields
         let EntitySyncPackage {
             created_entities,
@@ -108,7 +120,13 @@ impl WorldSyncExt for specs::World {
 
         // Attempt to delete entities that were marked for deletion
         deleted_entities.into_iter().for_each(|uid| {
-            self.delete_entity_and_clear_from_uid_allocator(uid);
+            // Skip deleting the client's own entity. It will appear here when exiting
+            // "in-game" and the client already handles cleaning things up
+            // there. Although the client might not get this anyway since it
+            // should no longer be subscribed to any regions.
+            if client_uid != Some(uid) {
+                self.delete_entity_and_clear_uid_mapping(uid);
+            }
         });
     }
 
@@ -116,10 +134,7 @@ impl WorldSyncExt for specs::World {
         // Update components
         let player_entity = self.read_resource::<PlayerEntity>().0;
         package.comp_updates.into_iter().for_each(|(uid, update)| {
-            if let Some(entity) = self
-                .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(uid)
-            {
+            if let Some(entity) = self.read_resource::<IdMaps>().uid_entity(uid.into()) {
                 let force_update = player_entity == Some(entity);
                 match update {
                     CompUpdateKind::Inserted(packet) => {
@@ -138,20 +153,23 @@ impl WorldSyncExt for specs::World {
 }
 
 // Private utilities
-fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: u64) -> specs::Entity {
-    let existing_entity = specs_world
-        .read_resource::<UidAllocator>()
-        .retrieve_entity_internal(entity_uid);
+//
+// Only used on the client.
+fn create_entity_with_uid(specs_world: &mut specs::World, entity_uid: Uid) -> specs::Entity {
+    let existing_entity = specs_world.read_resource::<IdMaps>().uid_entity(entity_uid);
 
+    // TODO: Are there any expected cases where there is an existing entity with
+    // this UID? If not, we may want to log an error. Otherwise, it may be useful to
+    // document these cases.
     match existing_entity {
         Some(entity) => entity,
         None => {
             let entity_builder = specs_world.create_entity();
-            let uid = entity_builder
+            entity_builder
                 .world
-                .write_resource::<UidAllocator>()
-                .allocate(entity_builder.entity, Some(entity_uid));
-            entity_builder.with(uid).build()
+                .write_resource::<IdMaps>()
+                .add_entity(entity_uid, entity_builder.entity);
+            entity_builder.with(entity_uid).build()
         },
     }
 }

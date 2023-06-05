@@ -8,12 +8,11 @@ use common::{
     },
     event::{Emitter, EventBus, ServerEvent},
     resources::Time,
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
-    ReadStorage, SystemData, World,
+    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData, World,
 };
 
 #[derive(SystemData)]
@@ -22,7 +21,7 @@ pub struct ReadData<'a> {
     players: ReadStorage<'a, Player>,
     time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
-    uid_allocator: Read<'a, UidAllocator>,
+    id_maps: Read<'a, IdMaps>,
     cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
     positions: ReadStorage<'a, Pos>,
     char_states: ReadStorage<'a, CharacterState>,
@@ -96,8 +95,8 @@ impl<'a> System<'a> for Sys {
                         // Ensure the entity is in the group we want to target
                         let same_group = |uid: Uid| {
                             read_data
-                                .uid_allocator
-                                .retrieve_entity_internal(uid.into())
+                                .id_maps
+                                .uid_entity(uid)
                                 .and_then(|e| read_data.groups.get(e))
                                 .map_or(false, |owner_group| {
                                     Some(owner_group) == read_data.groups.get(target)
@@ -167,11 +166,7 @@ fn activate_aura(
                                     Alignment::Owned(uid) => Some(uid),
                                     _ => None,
                                 })
-                                .and_then(|uid| {
-                                    read_data
-                                        .uid_allocator
-                                        .retrieve_entity_internal((*uid).into())
-                                })
+                                .and_then(|uid| read_data.id_maps.uid_entity(*uid))
                                 .and_then(|owner| read_data.char_states.get(owner))
                                 .map_or(false, CharacterState::is_sitting))
                 },
@@ -188,15 +183,13 @@ fn activate_aura(
             // when we will add this.
             let may_harm = || {
                 let owner = match source {
-                    BuffSource::Character { by } => {
-                        read_data.uid_allocator.retrieve_entity_internal(by.into())
-                    },
+                    BuffSource::Character { by } => read_data.id_maps.uid_entity(by),
                     _ => None,
                 };
                 combat::may_harm(
                     &read_data.alignments,
                     &read_data.players,
-                    &read_data.uid_allocator,
+                    &read_data.id_maps,
                     owner,
                     target,
                 )

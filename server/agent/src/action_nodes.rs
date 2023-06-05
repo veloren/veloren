@@ -39,7 +39,7 @@ use common::{
 };
 use itertools::Itertools;
 use rand::{thread_rng, Rng};
-use specs::{saveload::Marker, Entity as EcsEntity};
+use specs::Entity as EcsEntity;
 use vek::*;
 
 #[cfg(feature = "use-dyn-lib")]
@@ -397,7 +397,7 @@ impl<'a> AgentData<'a> {
                     break 'activity;
                 }
             } else if let Some(Alignment::Owned(owner_uid)) = self.alignment
-                && let Some(owner) = get_entity_by_id(owner_uid.id(), read_data)
+                && let Some(owner) = get_entity_by_id(*owner_uid, read_data)
                 && let Some(pos) = read_data.positions.get(owner)
                 && pos.0.distance_squared(self.pos.0) < MAX_MOUNT_RANGE.powi(2)
                 && rng.gen_bool(0.01)
@@ -455,7 +455,7 @@ impl<'a> AgentData<'a> {
             if let Some(patrol_origin) = agent.patrol_origin
                 // Use owner as patrol origin otherwise
                 .or_else(|| if let Some(Alignment::Owned(owner_uid)) = self.alignment
-                    && let Some(owner) = get_entity_by_id(owner_uid.id(), read_data)
+                    && let Some(owner) = get_entity_by_id(*owner_uid, read_data)
                     && let Some(pos) = read_data.positions.get(owner)
                 {
                     Some(pos.0)
@@ -1613,7 +1613,7 @@ impl<'a> AgentData<'a> {
         if let Some(Target { target, .. }) = agent.target {
             if let Some(tgt_health) = read_data.healths.get(target) {
                 if let Some(by) = tgt_health.last_change.damage_by() {
-                    if let Some(attacker) = get_entity_by_id(by.uid().0, read_data) {
+                    if let Some(attacker) = get_entity_by_id(by.uid(), read_data) {
                         if agent.target.is_none() {
                             controller.push_utterance(UtteranceKind::Angry);
                         }

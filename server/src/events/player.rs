@@ -8,12 +8,12 @@ use common::{
     comp,
     comp::{group, pet::is_tameable, Presence, PresenceKind},
     resources::Time,
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
 };
 use common_base::span;
 use common_net::msg::{PlayerListUpdate, ServerGeneral};
 use common_state::State;
-use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use tracing::{debug, error, trace, warn, Instrument};
 
 pub fn handle_character_delete(
@@ -56,59 +56,55 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         entity
     };
 
-    // Create new entity with just `Client`, `Uid`, `Player`, and `...Stream`
+    // Create new entity with just `Client`, `Uid`, `Player`, `Admin`, `Group`
     // components.
     //
     // Easier than checking and removing all other known components.
     //
+    // Also, allows clients to not update their Uid based references to this
+    // client (e.g. for this specific client's knowledge of its own Uid and for
+    // groups since exiting in-game does not affect group membership)
+    //
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted.
 
-    // Since we remove `Uid` below, any trades won't be cancelled by
-    // `delete_entity_recorded`. So we cancel the trade here. (maybe the trade
-    // key could be switched from `Uid` to `Entity`)
+    // Cancel trades here since we don't use `delete_entity_recorded` and we
+    // remove `Uid` below.
     super::cancel_trades_for(state, entity);
 
-    let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
-    let maybe_group = state
-        .ecs()
-        .write_storage::<group::Group>()
-        .get(entity)
-        .cloned();
+    let maybe_group = state.read_component_copied::<group::Group>(entity);
+    let maybe_admin = state.delete_component::<comp::Admin>(entity);
+    // Not sure if we still need to actually remove the Uid or if the group
+    // logic below relies on this...
+    let maybe_uid = state.delete_component::<Uid>(entity);
 
-    if let Some((client, uid, player)) = (|| {
-        let ecs = state.ecs();
-        Some((
-            ecs.write_storage::<Client>().remove(entity)?,
-            ecs.write_storage::<Uid>().remove(entity)?,
-            ecs.write_storage::<comp::Player>().remove(entity)?,
-        ))
-    })() {
+    if let Some(client) = state.delete_component::<Client>(entity)
+        && let Some(uid) = maybe_uid
+        && let Some(player) = state.delete_component::<comp::Player>(entity)
+    {
         // Tell client its request was successful
         client.send_fallible(ServerGeneral::ExitInGameSuccess);
 
-        let entity_builder = state.ecs_mut().create_entity().with(client).with(player);
+        let new_entity = state
+            .ecs_mut()
+            .create_entity()
+            .with(client)
+            .with(player)
+            // Preserve group component if present
+            .maybe_with(maybe_group)
+            // Preserve admin component if present
+            .maybe_with(maybe_admin)
+            .with(uid)
+            .build();
 
-        // Preserve group component if present
-        let entity_builder = match maybe_group {
-            Some(group) => entity_builder.with(group),
-            None => entity_builder,
-        };
+        // Ensure IdMaps maps this uid to the new entity.
+        state.mut_resource::<IdMaps>().remap_entity(uid, new_entity);
 
-        // Preserve admin component if present
-        let entity_builder = match maybe_admin {
-            Some(admin) => entity_builder.with(admin),
-            None => entity_builder,
-        };
-
-        // Ensure UidAllocator maps this uid to the new entity
-        let uid = entity_builder
-            .world
-            .write_resource::<UidAllocator>()
-            .allocate(entity_builder.entity, Some(uid.into()));
-        let new_entity = entity_builder.with(uid).build();
+        let ecs = state.ecs();
+        // Note, we use `delete_entity_common` directly to avoid `delete_entity_recorded` from
+        // making any changes to the group.
         if let Some(group) = maybe_group {
-            let mut group_manager = state.ecs().write_resource::<group::GroupManager>();
+            let mut group_manager = ecs.write_resource::<group::GroupManager>();
             if group_manager
                 .group_info(group)
                 .map(|info| info.leader == entity)
@@ -116,21 +112,38 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             {
                 group_manager.assign_leader(
                     new_entity,
-                    &state.ecs().read_storage(),
-                    &state.ecs().entities(),
-                    &state.ecs().read_storage(),
-                    &state.ecs().read_storage(),
+                    &ecs.read_storage(),
+                    &ecs.entities(),
+                    &ecs.read_storage(),
+                    &ecs.read_storage(),
                     // Nothing actually changing since Uid is transferred
                     |_, _| {},
                 );
             }
         }
+        // delete_entity_recorded` is not used so we don't need to worry aobut
+        // group restructuring when deleting this entity.
+    } else {
+        error!("handle_exit_ingame called with entity that is missing expected components");
     }
-    // Erase group component to avoid group restructure when deleting the entity
-    state.ecs().write_storage::<group::Group>().remove(entity);
 
+    let maybe_character = state
+        .read_storage::<Presence>()
+        .get(entity)
+        .and_then(|p| p.kind.character_id());
+    let maybe_rtsim = state.read_component_copied::<common::rtsim::RtSimEntity>(entity);
+    state.mut_resource::<IdMaps>().remove_entity(
+        Some(entity),
+        None, // Uid re-mapped, we don't want to remove the mapping
+        maybe_character,
+        maybe_rtsim,
+    );
+
+    // We don't want to use delete_entity_recorded since we are transfering the
+    // Uid to a new entity (and e.g. don't want it to be unmapped).
+    //
     // Delete old entity
-    if let Err(e) = state.delete_entity_recorded(entity) {
+    if let Err(e) = crate::state_ext::delete_entity_common(state, entity, maybe_uid) {
         error!(
             ?e,
             ?entity,
@@ -260,6 +273,12 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         state.ecs().fetch_mut::<BattleModeBuffer>(),
     ) {
         match presence.kind {
+            PresenceKind::LoadingCharacter(_char_id) => {
+                error!(
+                    "Unexpected state when persist_entity is called! Some of the components \
+                     required above should only be present after a character is loaded!"
+                );
+            },
             PresenceKind::Character(char_id) => {
                 let waypoint = state
                     .ecs()
@@ -331,12 +350,12 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
     let mut delete_entity = None;
 
     if let (Some(possessor), Some(possessee)) = (
-        state.ecs().entity_from_uid(possessor_uid.into()),
-        state.ecs().entity_from_uid(possessee_uid.into()),
+        state.ecs().entity_from_uid(possessor_uid),
+        state.ecs().entity_from_uid(possessee_uid),
     ) {
         // In this section we check various invariants and can return early if any of
         // them are not met.
-        {
+        let new_presence = {
             let ecs = state.ecs();
             // Check that entities still exist
             if !possessor.gen().is_alive()
@@ -353,6 +372,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
 
             let clients = ecs.read_storage::<Client>();
             let players = ecs.read_storage::<comp::Player>();
+            let presences = ecs.read_storage::<comp::Presence>();
 
             if clients.contains(possessee) || players.contains(possessee) {
                 error!("Can't possess other players!");
@@ -379,8 +399,32 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                 return;
             }
 
+            if let Some(presence) = presences.get(possessor) {
+                delete_entity = match presence.kind {
+                    k @ (PresenceKind::LoadingCharacter(_) | PresenceKind::Spectator) => {
+                        error!(?k, "Unexpected presence kind for a possessor.");
+                        return;
+                    },
+                    PresenceKind::Possessor => None,
+                    // Since we call `persist_entity` below we will want to delete the entity (to
+                    // avoid item duplication).
+                    PresenceKind::Character(_) => Some(possessor),
+                };
+
+                Some(Presence {
+                    terrain_view_distance: presence.terrain_view_distance,
+                    entity_view_distance: presence.entity_view_distance,
+                    // This kind (rather than copying Character presence) prevents persistence
+                    // from overwriting original character info with stuff from the new character.
+                    kind: PresenceKind::Possessor,
+                    lossy_terrain_compression: presence.lossy_terrain_compression,
+                })
+            } else {
+                None
+            }
+
             // No early returns allowed after this.
-        }
+        };
 
         // Sync the player's character data to the database. This must be done before
         // moving any components from the entity.
@@ -428,31 +472,38 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
         }
 
         let mut players = ecs.write_storage::<comp::Player>();
-        let mut presence = ecs.write_storage::<Presence>();
         let mut subscriptions = ecs.write_storage::<RegionSubscription>();
         let mut admins = ecs.write_storage::<comp::Admin>();
         let mut waypoints = ecs.write_storage::<comp::Waypoint>();
+        let mut force_updates = ecs.write_storage::<comp::ForceUpdate>();
 
         transfer_component(&mut players, possessor, possessee, |x| x);
-        transfer_component(&mut presence, possessor, possessee, |mut presence| {
-            presence.kind = match presence.kind {
-                PresenceKind::Spectator => PresenceKind::Spectator,
-                // This prevents persistence from overwriting original character info with stuff
-                // from the new character.
-                PresenceKind::Character(_) => {
-                    delete_entity = Some(possessor);
-                    PresenceKind::Possessor
-                },
-                PresenceKind::Possessor => PresenceKind::Possessor,
-            };
-
-            presence
-        });
         transfer_component(&mut subscriptions, possessor, possessee, |x| x);
         transfer_component(&mut admins, possessor, possessee, |x| x);
         transfer_component(&mut waypoints, possessor, possessee, |x| x);
+        let mut update_counter = 0;
+        transfer_component(&mut force_updates, possessor, possessee, |mut x| {
+            x.update();
+            update_counter = x.counter();
+            x
+        });
 
-        // If a player is posessing, add possessee to playerlist as player and remove
+        let mut presences = ecs.write_storage::<Presence>();
+        // We leave Presence on the old entity for character IDs to be properly removed
+        // from the ID mapping if deleting the previous entity.
+        //
+        // If the entity is not going to be deleted, we remove it so that the entity
+        // doesn't keep an area loaded.
+        if delete_entity.is_none() {
+            presences.remove(possessor);
+        }
+        if let Some(p) = new_presence {
+            presences
+                .insert(possessee, p)
+                .expect("Checked entity was alive!");
+        }
+
+        // If a player is possessing, add possessee to playerlist as player and remove
         // old player.
         // Fetches from possessee entity here since we have transferred over the
         // `Player` component.
@@ -527,7 +578,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
             possessee,
         );
         if !comp_sync_package.is_empty() {
-            client.send_fallible(ServerGeneral::CompSync(comp_sync_package, 0)); // TODO: Check if this should be zero
+            client.send_fallible(ServerGeneral::CompSync(comp_sync_package, update_counter));
         }
     }
 

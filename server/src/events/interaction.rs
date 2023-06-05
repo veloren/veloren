@@ -1,4 +1,4 @@
-use specs::{saveload::MarkerAllocator, world::WorldExt, Entity as EcsEntity, Join};
+use specs::{world::WorldExt, Entity as EcsEntity, Join};
 use vek::*;
 
 use common::{
@@ -21,7 +21,7 @@ use common::{
     outcome::Outcome,
     rtsim::RtSimVehicle,
     terrain::{Block, SpriteKind},
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     vol::ReadVol,
 };
 use common_net::sync::WorldSyncExt;
@@ -177,11 +177,11 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
             }).is_ok();
             #[cfg(feature = "worldgen")] 
             if _link_successful {
-                let uid_allocator = state.ecs().read_resource::<UidAllocator>();
-                if let Some(rider_entity) = uid_allocator.retrieve_entity_internal(rider.0)
+                let uid_allocator = state.ecs().read_resource::<IdMaps>();
+                if let Some(rider_entity) = uid_allocator.uid_entity(rider)
                     && let Some(rider_actor) = state.entity_as_actor(rider_entity)
                     && let Some(volume_pos) = volume_pos.try_map_entity(|uid| {
-                        let entity = uid_allocator.retrieve_entity_internal(uid.0)?;
+                        let entity = uid_allocator.uid_entity(uid)?;
                         state.read_storage::<RtSimVehicle>().get(entity).map(|v| v.0)
                     }) {
                     state.ecs().write_resource::<RtSim>().hook_character_mount_volume(

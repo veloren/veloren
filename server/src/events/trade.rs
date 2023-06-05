@@ -64,7 +64,7 @@ pub(super) fn handle_process_trade_action(
         if let TradeAction::Decline = action {
             let to_notify = trades.decline_trade(trade_id, uid);
             to_notify
-                .and_then(|u| server.state.ecs().entity_from_uid(u.0))
+                .and_then(|u| server.state.ecs().entity_from_uid(u))
                 .map(|e| {
                     server.notify_client(e, ServerGeneral::FinishedTrade(TradeResult::Declined));
                     notify_agent_simple(
@@ -78,7 +78,7 @@ pub(super) fn handle_process_trade_action(
                 let ecs = server.state.ecs();
                 let inventories = ecs.read_component::<Inventory>();
                 let get_inventory = |uid: Uid| {
-                    if let Some(entity) = ecs.entity_from_uid(uid.0) {
+                    if let Some(entity) = ecs.entity_from_uid(uid) {
                         inventories.get(entity)
                     } else {
                         None
@@ -92,7 +92,7 @@ pub(super) fn handle_process_trade_action(
                     let result = commit_trade(server.state.ecs(), entry.get());
                     entry.remove();
                     for party in parties.iter() {
-                        if let Some(e) = server.state.ecs().entity_from_uid(party.0) {
+                        if let Some(e) = server.state.ecs().entity_from_uid(*party) {
                             server.notify_client(e, ServerGeneral::FinishedTrade(result.clone()));
                             notify_agent_simple(
                                 server.state.ecs().write_storage::<Agent>(),
@@ -110,7 +110,7 @@ pub(super) fn handle_process_trade_action(
                     // sadly there is no map and collect on arrays
                     for i in 0..2 {
                         // parties.len()) {
-                        entities[i] = server.state.ecs().entity_from_uid(parties[i].0);
+                        entities[i] = server.state.ecs().entity_from_uid(parties[i]);
                         if let Some(e) = entities[i] {
                             inventories[i] = server
                                 .state
@@ -180,7 +180,7 @@ pub(crate) fn cancel_trades_for(state: &mut common_state::State, entity: EcsEnti
         };
 
         let to_notify = trades.decline_trade(active_trade, uid);
-        to_notify.and_then(|u| ecs.entity_from_uid(u.0)).map(|e| {
+        to_notify.and_then(|u| ecs.entity_from_uid(u)).map(|e| {
             if let Some(c) = ecs.read_storage::<crate::Client>().get(e) {
                 c.send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
             }
@@ -198,7 +198,7 @@ pub(crate) fn cancel_trades_for(state: &mut common_state::State, entity: EcsEnti
 fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
     let mut entities = Vec::new();
     for party in trade.parties.iter() {
-        match ecs.entity_from_uid(party.0) {
+        match ecs.entity_from_uid(*party) {
             Some(entity) => entities.push(entity),
             None => return TradeResult::Declined,
         }
@@ -410,7 +410,7 @@ mod tests {
     use hashbrown::HashMap;
 
     use super::*;
-    use common::{comp::slot::InvSlotId, uid::UidAllocator};
+    use common::{comp::slot::InvSlotId, uid::IdMaps};
 
     use specs::{Builder, World};
 
@@ -423,7 +423,7 @@ mod tests {
         merchant_inv_size: usize,
     ) -> (World, EcsEntity, EcsEntity) {
         let mut mockworld = World::new();
-        mockworld.insert(UidAllocator::new());
+        mockworld.insert(IdMaps::new());
         mockworld.insert(MaterialStatManifest::load().cloned());
         mockworld.insert(AbilityMap::load().cloned());
         mockworld.register::<Inventory>();
@@ -440,12 +440,11 @@ mod tests {
             .build();
 
         {
-            use specs::saveload::MarkerAllocator;
             let mut uids = mockworld.write_component::<Uid>();
-            let mut uid_allocator = mockworld.write_resource::<UidAllocator>();
-            uids.insert(player, uid_allocator.allocate(player, None))
+            let mut id_maps = mockworld.write_resource::<IdMaps>();
+            uids.insert(player, id_maps.allocate(player))
                 .expect("inserting player uid failed");
-            uids.insert(merchant, uid_allocator.allocate(merchant, None))
+            uids.insert(merchant, id_maps.allocate(merchant))
                 .expect("inserting merchant uid failed");
         }
 

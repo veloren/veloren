@@ -18,7 +18,7 @@ use common::{
     outcome::Outcome,
     resources::{Secs, Time},
     rtsim::RtSimVehicle,
-    uid::Uid,
+    uid::{IdMaps, Uid},
     util::Dir,
     vol::IntoFullVolIterator,
     ViewDistances,
@@ -50,7 +50,8 @@ pub fn handle_initialize_character(
         }
     } else {
         // A character delete or update was somehow initiated after the login commenced,
-        // so disconnect the client without saving any data and abort the login process.
+        // so kick the client out of "ingame" without saving any data and abort
+        // the character loading process.
         handle_exit_ingame(server, entity, true);
     }
 }
@@ -83,12 +84,19 @@ pub fn handle_loaded_character_data(
             ))),
         );
     }
-    server
+
+    let result_msg = if let Err(err) = server
         .state
-        .update_character_data(entity, loaded_components);
-    sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
-    // We notify the client with the metadata result from the operation.
-    server.notify_client(entity, ServerGeneral::CharacterDataLoadResult(Ok(metadata)));
+        .update_character_data(entity, loaded_components)
+    {
+        handle_exit_ingame(server, entity, false); // remove client from in-game state
+        ServerGeneral::CharacterDataLoadResult(Err(err))
+    } else {
+        sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
+        // We notify the client with the metadata result from the operation.
+        ServerGeneral::CharacterDataLoadResult(Ok(metadata))
+    };
+    server.notify_client(entity, result_msg);
 }
 
 pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> EcsEntity {
@@ -132,6 +140,7 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
         entity
     };
 
+    // Rtsim entity added to IdMaps below.
     let entity = if let Some(rtsim_entity) = npc.rtsim_entity {
         entity.with(rtsim_entity).with(RepositionOnChunkLoad {
             needs_ground: false,
@@ -148,13 +157,21 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
 
     let new_entity = entity.build();
 
+    if let Some(rtsim_entity) = npc.rtsim_entity {
+        server
+            .state()
+            .ecs()
+            .write_resource::<IdMaps>()
+            .add_rtsim(rtsim_entity, new_entity);
+    }
+
     // Add to group system if a pet
     if let comp::Alignment::Owned(owner_uid) = npc.alignment {
         let state = server.state();
         let clients = state.ecs().read_storage::<Client>();
         let uids = state.ecs().read_storage::<Uid>();
         let mut group_manager = state.ecs().write_resource::<comp::group::GroupManager>();
-        if let Some(owner) = state.ecs().entity_from_uid(owner_uid.into()) {
+        if let Some(owner) = state.ecs().entity_from_uid(owner_uid) {
             let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             group_manager.new_pet(
                 new_entity,

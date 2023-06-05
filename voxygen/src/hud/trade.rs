@@ -204,7 +204,7 @@ impl<'a> Trade<'a> {
         let inventories = self.client.inventories();
         let check_if_us = |who: usize| -> Option<_> {
             let uid = trade.parties[who];
-            let entity = self.client.state().ecs().entity_from_uid(uid.0)?;
+            let entity = self.client.state().ecs().entity_from_uid(uid)?;
             let is_ours = entity == self.client.entity();
             Some(((who, uid, entity), is_ours))
         };

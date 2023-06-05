@@ -8,6 +8,9 @@ use vek::*;
 pub struct Presence {
     pub terrain_view_distance: ViewDistance,
     pub entity_view_distance: ViewDistance,
+    /// If mutating this (or the adding/replacing the Presence component as a
+    /// whole), make sure the mapping of `CharacterId` in `IdMaps` is
+    /// updated!
     pub kind: PresenceKind,
     pub lossy_terrain_compression: bool,
 }
@@ -31,6 +34,10 @@ impl Component for Presence {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PresenceKind {
     Spectator,
+    // Note: we don't know if this character ID is valid and associated with the player until the
+    // character has loaded successfully. The ID should only be trusted and included in the
+    // mapping when the variant is changed to `Character`.
+    LoadingCharacter(CharacterId),
     Character(CharacterId),
     Possessor,
 }
@@ -63,7 +70,7 @@ enum Direction {
 /// (e.g. shifting from increasing the value to decreasing it). This is useful
 /// since we want to avoid rapid cycles of shrinking and expanding of the view
 /// distance.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ViewDistance {
     direction: Direction,
     last_direction_change_time: Instant,

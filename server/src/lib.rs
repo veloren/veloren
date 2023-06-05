@@ -123,7 +123,7 @@ use crate::settings::Protocol;
 
 #[cfg(feature = "plugins")]
 use {
-    common::uid::UidAllocator,
+    common::uid::IdMaps,
     common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
 };
 
@@ -954,6 +954,8 @@ impl Server {
                                         active_abilities,
                                         map_marker,
                                     );
+                                    // TODO: Does this need to be a server event? E.g. we could
+                                    // just handle it here.
                                     ServerEvent::UpdateCharacterData {
                                         entity: response.target_entity,
                                         components: character_data,
@@ -962,9 +964,8 @@ impl Server {
                                 },
                                 Err(error) => {
                                     // We failed to load data for the character from the DB. Notify
-                                    // the client to push the
-                                    // state back to character selection, with the error
-                                    // to display
+                                    // the client to push the state back to character selection,
+                                    // with the error to display
                                     self.notify_client(
                                         response.target_entity,
                                         ServerGeneral::CharacterDataLoadResult(Err(
@@ -1218,7 +1219,7 @@ impl Server {
                     entities: &self.state.ecs().entities(),
                     health: self.state.ecs().read_component().into(),
                     uid: self.state.ecs().read_component().into(),
-                    uid_allocator: &self.state.ecs().read_resource::<UidAllocator>().into(),
+                    id_maps: &self.state.ecs().read_resource::<IdMaps>().into(),
                     player: self.state.ecs().read_component().into(),
                 };
                 let uid = if let Some(uid) = ecs_world.uid.get(entity).copied() {

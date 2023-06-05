@@ -3,13 +3,10 @@ use common::{
     link::Is,
     mounting::{Mount, VolumeRider},
     terrain::TerrainGrid,
-    uid::UidAllocator,
+    uid::IdMaps,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{
-    saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage,
-};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 use tracing::error;
 use vek::*;
 
@@ -18,7 +15,7 @@ use vek::*;
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         ReadExpect<'a, TerrainGrid>,
         Entities<'a>,
         WriteStorage<'a, Controller>,
@@ -39,7 +36,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
-            uid_allocator,
+            id_maps,
             terrain,
             entities,
             mut controllers,
@@ -56,8 +53,8 @@ impl<'a> System<'a> for Sys {
         // For each mount...
         for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
             // ...find the rider...
-            let Some((inputs_and_actions, rider)) = uid_allocator
-                .retrieve_entity_internal(is_mount.rider.id())
+            let Some((inputs_and_actions, rider)) = id_maps
+                .uid_entity(is_mount.rider)
                 .and_then(|rider| {
                     controllers
                         .get_mut(rider)
@@ -105,7 +102,7 @@ impl<'a> System<'a> for Sys {
         for (entity, is_volume_rider) in (&entities, &is_volume_riders).join() {
             if let Some((mut mat, volume_ori, _)) = is_volume_rider.pos.get_block_and_transform(
                 &terrain,
-                &uid_allocator,
+                &id_maps,
                 |e| positions.get(e).copied().zip(orientations.get(e).copied()),
                 &colliders,
             ) {
@@ -140,10 +137,7 @@ impl<'a> System<'a> for Sys {
             let v = match is_volume_rider.pos.kind {
                 common::mounting::Volume::Terrain => Vec3::zero(),
                 common::mounting::Volume::Entity(uid) => {
-                    if let Some(v) = uid_allocator
-                        .retrieve_entity_internal(uid.into())
-                        .and_then(|e| velocities.get(e))
-                    {
+                    if let Some(v) = id_maps.uid_entity(uid).and_then(|e| velocities.get(e)) {
                         v.0
                     } else {
                         Vec3::zero()
@@ -174,9 +168,8 @@ impl<'a> System<'a> for Sys {
                 if let Some((actions, inputs)) = inputs {
                     match is_volume_rider.pos.kind {
                         common::mounting::Volume::Entity(uid) => {
-                            if let Some(controller) = uid_allocator
-                                .retrieve_entity_internal(uid.into())
-                                .and_then(|e| controllers.get_mut(e))
+                            if let Some(controller) =
+                                id_maps.uid_entity(uid).and_then(|e| controllers.get_mut(e))
                             {
                                 controller.inputs = inputs;
                                 controller.actions = actions;
