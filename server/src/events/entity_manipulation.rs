@@ -577,7 +577,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     }
 
     if should_delete {
-        if let Err(e) = state.delete_entity_recorded(entity, None) {
+        if let Err(e) = state.delete_entity_recorded(entity) {
             error!(?e, ?entity, "Failed to delete destroyed entity");
         }
     }
@@ -589,7 +589,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
     let _ = server
         .state_mut()
-        .delete_entity_recorded(entity, None)
+        .delete_entity_recorded(entity)
         .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
 }
 

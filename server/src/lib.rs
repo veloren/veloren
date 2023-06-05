@@ -855,7 +855,7 @@ impl Server {
 
         // Actually perform entity deletion
         for entity in to_delete {
-            if let Err(e) = self.state.delete_entity_recorded(entity, None) {
+            if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");
             }
         }

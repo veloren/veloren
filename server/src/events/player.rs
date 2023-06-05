@@ -56,7 +56,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         entity
     };
 
-    // Create new entity with just `Client`, `Uid`, `Player`, and `...Stream`
+    // Create new entity with just `Client`, `Uid`, `Player`, `Admin`, `Group`
     // components.
     //
     // Easier than checking and removing all other known components.
@@ -68,28 +68,20 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
     // Note: If other `ServerEvent`s are referring to this entity they will be
     // disrupted.
 
-    // Since we remove `Uid` below, any trades won't be cancelled by
-    // `delete_entity_recorded`. So we cancel the trade here. (maybe the trade
-    // key could be switched from `Uid` to `Entity`)
+    // Cancel trades here since we don't use `delete_entity_recorded` and we
+    // remove `Uid` below.
     super::cancel_trades_for(state, entity);
 
-    let maybe_admin = state.ecs().write_storage::<comp::Admin>().remove(entity);
-    let maybe_group = state
-        .ecs()
-        .write_storage::<group::Group>()
-        .get(entity)
-        .cloned();
+    let maybe_group = state.read_component_copied::<group::Group>(entity);
+    let maybe_admin = state.delete_component::<comp::Admin>(entity);
+    // Not sure if we still need to actually remove the Uid or if the group
+    // logic below relies on this...
+    let maybe_uid = state.delete_component::<Uid>(entity);
 
-    let uid = if let Some((client, uid, player)) = (|| {
-        let ecs = state.ecs();
-        Some((
-            ecs.write_storage::<Client>().remove(entity)?,
-            // TODO: we need to handle the case where the UID component is removed but there may be
-            // a character ID mapping that also needs to be removed!
-            ecs.write_storage::<Uid>().remove(entity)?,
-            ecs.write_storage::<comp::Player>().remove(entity)?,
-        ))
-    })() {
+    if let Some(client) = state.delete_component::<Client>(entity)
+        && let Some(uid) = maybe_uid
+        && let Some(player) = state.delete_component::<comp::Player>(entity)
+    {
         // Tell client its request was successful
         client.send_fallible(ServerGeneral::ExitInGameSuccess);
 
@@ -105,13 +97,12 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             .with(uid)
             .build();
 
-        let ecs = state.ecs();
-        // Ensure IdMaps maps this uid to the new entity
-        ecs.write_resource::<IdMaps>().remap_entity(uid, new_entity);
+        // Ensure IdMaps maps this uid to the new entity.
+        state.mut_resource::<IdMaps>().remap_entity(uid, new_entity);
 
-        // Note, since the Uid has been removed from the old entity and the
-        // Group component will be removed below, that prevents
-        // `delete_entity_recorded` from making any changes to the group.
+        let ecs = state.ecs();
+        // Note, we use `delete_entity_common` directly to avoid `delete_entity_recorded` from
+        // making any changes to the group.
         if let Some(group) = maybe_group {
             let mut group_manager = ecs.write_resource::<group::GroupManager>();
             if group_manager
@@ -130,17 +121,29 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
                 );
             }
         }
-
-        // Erase group component to avoid group restructure when deleting the entity
-        ecs.write_storage::<group::Group>().remove(entity);
-
-        Some(uid)
+        // delete_entity_recorded` is not used so we don't need to worry aobut
+        // group restructuring when deleting this entity.
     } else {
-        None
-    };
+        error!("handle_exit_ingame called with entity that is missing expected components");
+    }
 
+    let maybe_character = state
+        .read_storage::<Presence>()
+        .get(entity)
+        .and_then(|p| p.kind.character_id());
+    let maybe_rtsim = state.read_component_copied::<common::rtsim::RtSimEntity>(entity);
+    state.mut_resource::<IdMaps>().remove_entity(
+        Some(entity),
+        None, // Uid re-mapped, we don't want to remove the mapping
+        maybe_character,
+        maybe_rtsim,
+    );
+
+    // We don't want to use delete_entity_recorded since we are transfering the
+    // Uid to a new entity (and e.g. don't want it to be unmapped).
+    //
     // Delete old entity
-    if let Err(e) = state.delete_entity_recorded(entity, Some(uid)) {
+    if let Err(e) = crate::state_ext::delete_entity_common(state, entity, maybe_uid) {
         error!(
             ?e,
             ?entity,
@@ -235,7 +238,7 @@ pub fn handle_client_disconnect(
     }
 
     // Delete client entity
-    if let Err(e) = server.state.delete_entity_recorded(entity, None) {
+    if let Err(e) = server.state.delete_entity_recorded(entity) {
         error!(?e, ?entity, "Failed to delete disconnected client");
     }
 
@@ -584,7 +587,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
     // this). See note on `persist_entity` call above for why we do this.
     if let Some(entity) = delete_entity {
         // Delete old entity
-        if let Err(e) = state.delete_entity_recorded(entity, None) {
+        if let Err(e) = state.delete_entity_recorded(entity) {
             error!(
                 ?e,
                 ?entity,

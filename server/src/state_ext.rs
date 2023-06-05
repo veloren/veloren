@@ -149,7 +149,6 @@ pub trait StateExt {
     fn delete_entity_recorded(
         &mut self,
         entity: EcsEntity,
-        exit_ingame: Option<Option<Uid>>,
     ) -> Result<(), specs::error::WrongGeneration>;
     /// Get the given entity as an [`Actor`], if it is one.
     fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor>;
@@ -1152,19 +1151,13 @@ impl StateExt for State {
     fn delete_entity_recorded(
         &mut self,
         entity: EcsEntity,
-        // Indicates this is being called from handle_exit_ingame, where the `Uid` is removed and
-        // transferred to a new entity.
-        //
-        // Inner option is dependent on if the entity had a `Uid` component (which all clients
-        // should...).
-        exit_ingame: Option<Option<Uid>>,
     ) -> Result<(), specs::error::WrongGeneration> {
+        // NOTE: both this and handle_exit_ingame call delete_entity_common, so cleanup
+        // added here may need to be duplicated in handle_exit_ingame (depending
+        // on its nature).
+
         // Remove entity from a group if they are in one.
-        //
-        // If called from exit ingame, all group related things are already handled
-        // (this code wouldn't do anything anyway since the Group component was
-        // removed).
-        if exit_ingame.is_none() {
+        {
             let clients = self.ecs().read_storage::<Client>();
             let uids = self.ecs().read_storage::<Uid>();
             let mut group_manager = self.ecs().write_resource::<comp::group::GroupManager>();
@@ -1192,77 +1185,25 @@ impl StateExt for State {
         }
 
         // Cancel extant trades
-        //
-        // handle_exit_ingame already calls this since cancelling trades retrieves the
-        // Uid internally.
-        if exit_ingame.is_none() {
-            events::cancel_trades_for(self, entity);
-        }
+        events::cancel_trades_for(self, entity);
 
-        let (maybe_uid, maybe_presence, maybe_rtsim_entity, maybe_pos) = (
-            self.ecs().read_storage::<Uid>().get(entity).copied(),
-            // NOTE: We expect that these 2 components are never removed from an entity (nor
-            // mutated) (at least not without updating the relevant mappings)!
-            // TODO: I think Presence may have some other locations where kind is modified (double
-            // check)
-            self.ecs()
-                .read_storage::<Presence>()
-                .get(entity)
-                .map(|p| p.kind),
-            self.ecs()
-                .read_storage::<RtSimEntity>()
-                .get(entity)
-                .copied(),
-            self.ecs().read_storage::<comp::Pos>().get(entity).copied(),
-        );
+        // NOTE: We expect that these 3 components are never removed from an entity (nor
+        // mutated) (at least not without updating the relevant mappings)!
+        let maybe_uid = self.read_component_copied::<Uid>(entity);
+        let maybe_character = self
+            .read_storage::<Presence>()
+            .get(entity)
+            .and_then(|p| p.kind.character_id());
+        let maybe_rtsim = self.read_component_copied::<RtSimEntity>(entity);
 
-        if maybe_uid.or(exit_ingame.flatten()).is_none() {
-            // For now we expect all entities have a Uid component.
-            error!("Deleting entity without Uid component");
-        }
-
-        self.ecs().write_resource::<IdMaps>().remove_entity(
+        self.mut_resource::<IdMaps>().remove_entity(
             Some(entity),
-            // We don't want to pass in the Uid from exit_ingame since it has already
-            // been mapped to another entity.
             maybe_uid,
-            maybe_presence.and_then(|p| p.character_id()),
-            maybe_rtsim_entity,
+            maybe_character,
+            maybe_rtsim,
         );
 
-        let res = self.ecs_mut().delete_entity(entity);
-        if res.is_ok() {
-            // Note: Adding the `Uid` to the deleted list when exiting "in-game" relies on
-            // the client not being able to immediately re-enter the game in the
-            // same tick (since we could then mix up the ordering of things and
-            // tell other clients to forget the new entity).
-            //
-            // The client will ignore requests to delete its own entity that are trigger by
-            // this. (TODO: implement this)
-            if let (Some(uid), Some(pos)) = (maybe_uid.or(exit_ingame.flatten()), maybe_pos) {
-                if let Some(region_key) = self
-                    .ecs()
-                    .read_resource::<common::region::RegionMap>()
-                    .find_region(entity, pos.0)
-                {
-                    self.ecs()
-                        .write_resource::<DeletedEntities>()
-                        .record_deleted_entity(uid, region_key);
-                } else {
-                    // Don't panic if the entity wasn't found in a region maybe it was just created
-                    // and then deleted before the region manager had a chance to assign it a
-                    // region
-                    warn!(
-                        ?uid,
-                        ?pos,
-                        "Failed to find region containing entity during entity deletion, assuming \
-                         it wasn't sent to any clients and so deletion doesn't need to be \
-                         recorded for sync purposes"
-                    );
-                }
-            }
-        }
-        res
+        delete_entity_common(self, entity, maybe_uid)
     }
 
     fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor> {
@@ -1292,4 +1233,51 @@ fn send_to_group(g: &Group, ecs: &specs::World, msg: &comp::ChatMsg) {
             client.send_fallible(ServerGeneral::ChatMsg(msg.clone()));
         }
     }
+}
+
+/// This should only be called from `handle_exit_ingame` and
+/// `delete_entity_recorded`!!!!!!!
+pub(crate) fn delete_entity_common(
+    state: &mut State,
+    entity: EcsEntity,
+    maybe_uid: Option<Uid>,
+) -> Result<(), specs::error::WrongGeneration> {
+    if maybe_uid.is_none() {
+        // For now we expect all entities have a Uid component.
+        error!("Deleting entity without Uid component");
+    }
+    let maybe_pos = state.read_component_copied::<comp::Pos>(entity);
+
+    let res = state.ecs_mut().delete_entity(entity);
+    if res.is_ok() {
+        // Note: Adding the `Uid` to the deleted list when exiting "in-game" relies on
+        // the client not being able to immediately re-enter the game in the
+        // same tick (since we could then mix up the ordering of things and
+        // tell other clients to forget the new entity).
+        //
+        // The client will ignore requests to delete its own entity that are triggered
+        // by this.
+        if let Some((uid, pos)) = maybe_uid.zip(maybe_pos) {
+            let region_key = state
+                .ecs()
+                .read_resource::<common::region::RegionMap>()
+                .find_region(entity, pos.0);
+            if let Some(region_key) = region_key {
+                state
+                    .mut_resource::<DeletedEntities>()
+                    .record_deleted_entity(uid, region_key);
+            } else {
+                // Don't panic if the entity wasn't found in a region, maybe it was just created
+                // and then deleted before the region manager had a chance to assign it a region
+                warn!(
+                    ?uid,
+                    ?pos,
+                    "Failed to find region containing entity during entity deletion, assuming it \
+                     wasn't sent to any clients and so deletion doesn't need to be recorded for \
+                     sync purposes"
+                );
+            }
+        }
+    }
+    res
 }

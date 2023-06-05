@@ -228,7 +228,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     // entirely.
                     drop(item_storage);
                     drop(inventories);
-                    state.delete_entity_recorded(item_entity, None).expect(
+                    state.delete_entity_recorded(item_entity).expect(
                         "We knew item_entity existed since we just successfully removed its Item \
                          component.",
                     );
