@@ -709,7 +709,7 @@ impl StateExt for State {
                         self.ecs()
                             .write_resource::<IdMaps>()
                             .add_character(id, entity);
-                        presence.sync_me = true;
+                        //presence.sync_me = true;
                         Ok(())
                     } else {
                         Err("PresenceKind is not LoadingCharacter")

@@ -4,6 +4,8 @@ use common::{
     calendar::Calendar,
     comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Presence, Vel},
     event::EventBus,
+    link::Is,
+    mounting::Rider,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale},
@@ -247,18 +249,13 @@ impl<'a> System<'a> for Sys {
                     {
                         // Decide how regularly to send physics updates.
                         let send_now = if client_entity == &entity {
-                            let player_physics_setting = players
-                                .get(entity)
-                                .and_then(|p| {
-                                    player_physics_settings.settings.get(&p.uuid()).copied()
-                                })
-                                .unwrap_or_default();
-                            // Don't send client physics updates about itself unless force update is
-                            // set or the client is subject to
-                            // server-authoritative physics
-                            force_updates.get(entity).map_or(false, |f| f.is_forced())
-                                || player_physics_setting.server_authoritative()
-                                || is_rider.get(entity).is_some()
+                            should_sync_client_physics(
+                                entity,
+                                &player_physics_settings,
+                                &players,
+                                &force_updates,
+                                is_rider,
+                            )
                         } else if matches!(collider, Some(Collider::Voxel { .. })) {
                             // Things with a voxel collider (airships, etc.) need to have very
                             // stable physics so we always send updated
@@ -338,7 +335,8 @@ impl<'a> System<'a> for Sys {
             );
 
             if include_all_comps && let Some(&pos) = maybe_pos {
-                add_physics_components(true, &mut comp_sync_package, uid, pos, last_pos, ori, vel);
+                let send_now = should_sync_client_physics(entity, &player_physics_settings, &players, &force_updates, is_rider);
+                add_physics_components(send_now, &mut comp_sync_package, uid, pos, last_pos, ori, vel);
             }
 
             if !comp_sync_package.is_empty() {
@@ -446,6 +444,27 @@ impl<'a> System<'a> for Sys {
             }
         }
     }
+}
+
+/// Determines whether a client should receive an update about its own physics
+/// components.
+fn should_sync_client_physics(
+    entity: specs::Entity,
+    player_physics_settings: &PlayerPhysicsSettings,
+    players: &ReadStorage<'_, Player>,
+    force_updates: &WriteStorage<'_, ForceUpdate>,
+    is_rider: &ReadStorage<'_, Is<Rider>>,
+) -> bool {
+    let player_physics_setting = players
+        .get(entity)
+        .and_then(|p| player_physics_settings.settings.get(&p.uuid()).copied())
+        .unwrap_or_default();
+    // Don't send client physics updates about itself unless force update is
+    // set or the client is subject to
+    // server-authoritative physics
+    force_updates.get(entity).map_or(false, |f| f.is_forced())
+        || player_physics_setting.server_authoritative()
+        || is_rider.contains(entity)
 }
 
 /// Adds physics components if `send_now` is true or `Option<Last<T>>` is
