@@ -709,7 +709,7 @@ impl StateExt for State {
                         self.ecs()
                             .write_resource::<IdMaps>()
                             .add_character(id, entity);
-                        //presence.sync_me = true;
+                        presence.sync_me = true;
                         Ok(())
                     } else {
                         Err("PresenceKind is not LoadingCharacter")
@@ -1196,20 +1196,21 @@ impl StateExt for State {
         // NOTE: We expect that these 3 components are never removed from an entity (nor
         // mutated) (at least not without updating the relevant mappings)!
         let maybe_uid = self.read_component_copied::<Uid>(entity);
-        let maybe_character = self
+        let (maybe_character, sync_me) = self
             .read_storage::<Presence>()
             .get(entity)
-            .and_then(|p| p.kind.character_id());
+            .map(|p| (p.kind.character_id(), p.sync_me))
+            .unzip();
         let maybe_rtsim = self.read_component_copied::<RtSimEntity>(entity);
 
         self.mut_resource::<IdMaps>().remove_entity(
             Some(entity),
             maybe_uid,
-            maybe_character,
+            maybe_character.flatten(),
             maybe_rtsim,
         );
 
-        delete_entity_common(self, entity, maybe_uid)
+        delete_entity_common(self, entity, maybe_uid, sync_me.unwrap_or(true))
     }
 
     fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor> {
@@ -1247,6 +1248,7 @@ pub(crate) fn delete_entity_common(
     state: &mut State,
     entity: EcsEntity,
     maybe_uid: Option<Uid>,
+    sync_me: bool,
 ) -> Result<(), specs::error::WrongGeneration> {
     if maybe_uid.is_none() {
         // For now we expect all entities have a Uid component.
@@ -1254,8 +1256,24 @@ pub(crate) fn delete_entity_common(
     }
     let maybe_pos = state.read_component_copied::<comp::Pos>(entity);
 
-    let res = state.ecs_mut().delete_entity(entity);
+    // TODO: workaround for https://github.com/amethyst/specs/pull/766
+    let actual_gen = state.ecs().entities().entity(entity.id()).gen();
+    let res = if actual_gen == entity.gen() {
+        state.ecs_mut().delete_entity(entity)
+    } else {
+        Err(specs::error::WrongGeneration {
+            action: "delete",
+            actual_gen,
+            entity,
+        })
+    };
+
     if res.is_ok() {
+        let region_map = state.mut_resource::<common::region::RegionMap>();
+        let uid_pos_region_key = maybe_uid
+            .zip(maybe_pos)
+            .map(|(uid, pos)| (uid, pos, region_map.find_region(entity, pos.0)));
+        region_map.entity_deleted(entity);
         // Note: Adding the `Uid` to the deleted list when exiting "in-game" relies on
         // the client not being able to immediately re-enter the game in the
         // same tick (since we could then mix up the ordering of things and
@@ -1263,16 +1281,14 @@ pub(crate) fn delete_entity_common(
         //
         // The client will ignore requests to delete its own entity that are triggered
         // by this.
-        if let Some((uid, pos)) = maybe_uid.zip(maybe_pos) {
-            let region_key = state
-                .ecs()
-                .read_resource::<common::region::RegionMap>()
-                .find_region(entity, pos.0);
+        if let Some((uid, pos, region_key)) = uid_pos_region_key {
             if let Some(region_key) = region_key {
                 state
                     .mut_resource::<DeletedEntities>()
                     .record_deleted_entity(uid, region_key);
-            } else {
+            // If there is a position and sync_me is true, but the entity is not
+            // in a region, something might be wrong.
+            } else if sync_me {
                 // Don't panic if the entity wasn't found in a region, maybe it was just created
                 // and then deleted before the region manager had a chance to assign it a region
                 warn!(

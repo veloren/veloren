@@ -325,8 +325,7 @@ impl<'a> System<'a> for Sys {
             // Include additional components for clients that aren't in a region (e.g. due
             // to having no position or have sync_me as `false`) since those
             // won't be synced above.
-            let include_all_comps =
-                !maybe_pos.is_some_and(|pos| region_map.in_region_map_relaxed(entity, pos.0));
+            let include_all_comps = region_map.in_region_map(entity);
 
             let mut comp_sync_package = trackers.create_sync_from_client_package(
                 &tracked_storages,

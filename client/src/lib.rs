@@ -2257,17 +2257,10 @@ impl Client {
                     .apply_entity_sync_package(entity_sync_package, uid);
             },
             ServerGeneral::CompSync(comp_sync_package, force_counter) => {
-                // TODO: Test with and without sync_me = true commented out to see if results are
-                // as expected. (client shouldn't normally receive updates if client physics is
-                // enabled)
-                let b = self.position();
                 self.force_update_counter = force_counter;
                 self.state
                     .ecs_mut()
                     .apply_comp_sync_package(comp_sync_package);
-                if b != self.position() {
-                    println!("{b:?}");
-                }
             },
             ServerGeneral::CreateEntity(entity_package) => {
                 self.state.ecs_mut().apply_entity_package(entity_package);
