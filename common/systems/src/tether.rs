@@ -104,11 +104,26 @@ impl<'a> System<'a> for Sys {
 
                 if let Some(follower_ori) = orientations.get_mut(follower) {
                     let turn_strength = pull_factor
-                        * (tether_offset.magnitude() * (attach_pos - tether_pos).magnitude()
+                        * (tether_offset.magnitude() * tether_pos.distance(attach_pos)
                             - tether_offset.dot(attach_pos - tether_pos).abs())
-                        * 2.0;
+                        // TODO: proper moment of inertia
+                        * 500.0
+                        / follower_mass.0;
+                    // TODO: Should consider the offset
                     let target_ori = follower_ori.yawed_towards(Dir::new(pull_dir));
                     *follower_ori = follower_ori.slerped_towards(target_ori, turn_strength * dt.0);
+                }
+
+                if let Some(leader_ori) = orientations.get_mut(leader) {
+                    let turn_strength = pull_factor
+                        * (attach_offset.magnitude() * tether_pos.distance(attach_pos)
+                            - attach_offset.dot(tether_pos - attach_pos).abs())
+                        // TODO: proper moment of inertia
+                        * 500.0
+                        / leader_mass.0;
+                    // TODO: Should consider the offset
+                    let target_ori = leader_ori.yawed_towards(Dir::new(pull_dir));
+                    *leader_ori = leader_ori.slerped_towards(target_ori, turn_strength * dt.0);
                 }
             }
         }

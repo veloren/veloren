@@ -40,8 +40,8 @@ void main() {
     float dist = distance(pos_a.xyz, pos_b.xyz);
     vec3 pos = pos_a.xyz + (rx * v_pos.x + ry * v_pos.y) * 0.1 + rz * v_pos.z * dist;
     vec2 ideal_wind_sway = wind_vel * vec2(
-        wind_wave(pos.y * 1.5, 2.9, wind_vel.x, wind_vel.y),
-        wind_wave(pos.x * 1.5, 3.1, wind_vel.y, wind_vel.x)
+        wind_wave(pos.y * 1.5, 1.9, wind_vel.x, wind_vel.y),
+        wind_wave(pos.x * 1.5, 2.1, wind_vel.y, wind_vel.x)
     );
     float dip = (1 - pow(abs(v_pos.z - 0.5) * 2.0, 2)) * max(tether_length - dist, 0.0);
     pos += vec3(ideal_wind_sway * min(pow(dip, 2), 0.005), -0.5 * dip);

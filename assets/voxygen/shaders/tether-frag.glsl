@@ -72,11 +72,10 @@ void main() {
     // float f_ao = f_col_light.a;
 
     float f_ao = 1.0;
-    uint material = 0xFFu;
     vec3 f_col = mix(
-        vec3(0.035, 0.02, 0.01),
-        vec3(0.06, 0.05, 0.03),
-        floor(abs(fract(m_pos.z * 10.0) - 0.5) * 6.0) / 3.0
+        vec3(0.05, 0.03, 0.01),
+        vec3(0.1, 0.07, 0.05),
+        floor(abs(fract(m_pos.z * 10.0 + atan(m_pos.x, m_pos.y) * 0.159) - 0.5) * 6.0) / 3.0
     );
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
@@ -201,13 +200,6 @@ void main() {
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
 
-    // Apply emissive glow
-    // For now, just make glowing material light be the same colour as the surface
-    // TODO: Add a way to control this better outside the shaders
-    if ((material & (1u << 0u)) > 0u) {
-        emitted_light += 20 * surf_color;
-    }
-
     /* reflected_light *= cloud_shadow(f_pos); */
     /* vec3 point_light = light_at(f_pos, f_norm);
     emitted_light += point_light;
@@ -226,14 +218,6 @@ void main() {
     float reflectance = 0.0;
     // TODO: Do reflectance properly like this later
     vec3 reflect_color = vec3(0);
-    /*
-    if ((material & (1u << 1u)) > 0u && false) {
-        vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
-        reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-        reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
-        reflectance = 1.0;
-    }
-    */
 
     surf_color = illuminate(max_light, view_dir, mix(surf_color * emitted_light, reflect_color, reflectance), mix(surf_color * reflected_light, reflect_color, reflectance));
 
