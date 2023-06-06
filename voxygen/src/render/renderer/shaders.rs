@@ -59,6 +59,8 @@ impl assets::Compound for Shaders {
             "debug-vert",
             "debug-frag",
             "figure-frag",
+            "tether-vert",
+            "tether-frag",
             "terrain-vert",
             "terrain-frag",
             "fluid-vert",

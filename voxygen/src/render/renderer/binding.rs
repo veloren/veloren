@@ -3,7 +3,7 @@ use crate::render::pipelines::rain_occlusion;
 use super::{
     super::{
         pipelines::{
-            debug, figure, lod_terrain, shadow, sprite, terrain, ui, AtlasTextures,
+            debug, figure, lod_terrain, shadow, sprite, terrain, tether, ui, AtlasTextures,
             FigureSpriteAtlasData, GlobalModel, GlobalsBindGroup, TerrainAtlasData,
         },
         texture::Texture,
@@ -65,6 +65,11 @@ impl Renderer {
         self.layouts
             .figure
             .bind_locals(&self.device, locals, bone_data)
+    }
+
+    pub fn create_tether_bound_locals(&mut self, locals: &[tether::Locals]) -> tether::BoundLocals {
+        let locals = self.create_consts(locals);
+        self.layouts.tether.bind_locals(&self.device, locals)
     }
 
     pub fn create_terrain_bound_locals(

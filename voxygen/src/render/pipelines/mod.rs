@@ -13,6 +13,7 @@ pub mod shadow;
 pub mod skybox;
 pub mod sprite;
 pub mod terrain;
+pub mod tether;
 pub mod trail;
 pub mod ui;
 

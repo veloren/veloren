@@ -1,0 +1,96 @@
+use crate::{
+    render::{
+        pipelines::tether::{BoundLocals, Locals, Vertex},
+        Consts, CullingMode, FirstPassDrawer, Instances, LodObjectInstance, LodObjectVertex, Mesh,
+        Model, Quad, Renderer, Tri,
+    },
+    scene::{camera, Camera},
+    settings::Settings,
+};
+use client::Client;
+use common::{
+    assets::{AssetExt, ObjAsset},
+    comp,
+    link::Is,
+    tether::Follower,
+    uid::Uid,
+    util::srgba_to_linear,
+};
+use hashbrown::HashMap;
+use specs::Join;
+use vek::*;
+
+pub struct TetherMgr {
+    model: Model<Vertex>,
+    stale_flag: bool,
+    tethers: HashMap<(Uid, Uid), (BoundLocals, bool)>,
+}
+
+impl TetherMgr {
+    pub fn new(renderer: &mut Renderer) -> Self {
+        Self {
+            model: renderer.create_model(&create_tether_mesh()).unwrap(),
+            stale_flag: true,
+            tethers: HashMap::default(),
+        }
+    }
+
+    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, focus_off: Vec3<f32>) {
+        let positions = client.state().read_storage::<comp::Pos>();
+        let is_followers = client.state().read_storage::<Is<Follower>>();
+        for (pos, is_follower) in (&positions, &is_followers).join() {
+            let (locals, stale_flag) = self
+                .tethers
+                .entry((is_follower.leader, is_follower.follower))
+                .or_insert_with(|| {
+                    (
+                        renderer.create_tether_bound_locals(&[Locals::new(
+                            pos.0 - focus_off,
+                            pos.0 - focus_off,
+                        )]),
+                        self.stale_flag,
+                    )
+                });
+
+            renderer.update_consts(locals, &[Locals::new(pos.0 - focus_off, pos.0 - focus_off)]);
+
+            *stale_flag = self.stale_flag;
+        }
+
+        self.tethers.retain(|_, (_, flag)| *flag == self.stale_flag);
+
+        self.stale_flag ^= true;
+    }
+
+    pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {
+        let mut tether_drawer = drawer.draw_tethers();
+        for (locals, _) in self.tethers.values() {
+            tether_drawer.draw(&self.model, locals);
+        }
+    }
+}
+
+fn create_tether_mesh() -> Mesh<Vertex> {
+    const SEGMENTS: usize = 10;
+    const RADIAL_SEGMENTS: usize = 6;
+
+    (0..RADIAL_SEGMENTS)
+        .flat_map(|i| {
+            let at_angle = |x: f32| {
+                let theta = x / RADIAL_SEGMENTS as f32 * std::f32::consts::TAU;
+                Vec2::new(theta.sin(), theta.cos())
+            };
+            let start = at_angle(i as f32);
+            let end = at_angle(i as f32 + 1.0);
+            (0..SEGMENTS).map(move |s| {
+                let z = s as f32 / SEGMENTS as f32;
+                Quad {
+                    a: Vertex::new(start.with_z(z), start.with_z(0.0)),
+                    b: Vertex::new(start.with_z(z + 1.0), start.with_z(0.0)),
+                    c: Vertex::new(end.with_z(z + 1.0), end.with_z(0.0)),
+                    d: Vertex::new(end.with_z(z), end.with_z(0.0)),
+                }
+            })
+        })
+        .collect()
+}

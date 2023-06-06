@@ -151,9 +151,9 @@ impl<V: Vertex> FromIterator<Quad<V>> for Mesh<V> {
 
 /// Represents a triangle stored on the CPU.
 pub struct Tri<V: Vertex> {
-    a: V,
-    b: V,
-    c: V,
+    pub a: V,
+    pub b: V,
+    pub c: V,
 }
 
 impl<V: Vertex> Tri<V> {
@@ -162,10 +162,10 @@ impl<V: Vertex> Tri<V> {
 
 /// Represents a quad stored on the CPU.
 pub struct Quad<V: Vertex> {
-    a: V,
-    b: V,
-    c: V,
-    d: V,
+    pub a: V,
+    pub b: V,
+    pub c: V,
+    pub d: V,
 }
 
 impl<V: Vertex> Quad<V> {

@@ -7,6 +7,7 @@ pub mod particle;
 pub mod simple;
 pub mod smoke_cycle;
 pub mod terrain;
+pub mod tether;
 pub mod trail;
 
 pub use self::{
@@ -16,6 +17,7 @@ pub use self::{
     lod::Lod,
     particle::ParticleMgr,
     terrain::{SpriteRenderContextLazy, Terrain},
+    tether::TetherMgr,
     trail::TrailMgr,
 };
 use crate::{
@@ -105,6 +107,7 @@ pub struct Scene {
     particle_mgr: ParticleMgr,
     trail_mgr: TrailMgr,
     figure_mgr: FigureMgr,
+    tether_mgr: TetherMgr,
     pub sfx_mgr: SfxMgr,
     pub music_mgr: MusicMgr,
     ambient_mgr: AmbientMgr,
@@ -340,6 +343,7 @@ impl Scene {
             particle_mgr: ParticleMgr::new(renderer),
             trail_mgr: TrailMgr::default(),
             figure_mgr: FigureMgr::new(renderer),
+            tether_mgr: TetherMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::new(&calendar),
             ambient_mgr: AmbientMgr {
@@ -879,6 +883,9 @@ impl Scene {
 
         // Maintain LoD.
         self.lod.maintain(renderer, client, focus_pos, &self.camera);
+
+        // Maintain tethers.
+        self.tether_mgr.maintain(renderer, client, focus_pos);
 
         // Maintain debug shapes
         self.debug.maintain(renderer);
@@ -1438,6 +1445,9 @@ impl Scene {
                 culling_mode,
             );
             drop(sprite_drawer);
+
+            // Render tethers.
+            self.tether_mgr.render(&mut first_pass);
 
             // Draws translucent
             self.terrain.render_translucent(&mut first_pass, focus_pos);
