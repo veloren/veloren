@@ -13,11 +13,11 @@ use common::{
     comp,
     link::Is,
     tether::Follower,
-    uid::Uid,
+    uid::{IdMaps, Uid},
     util::srgba_to_linear,
 };
 use hashbrown::HashMap;
-use specs::Join;
+use specs::{Join, WorldExt};
 use vek::*;
 
 pub struct TetherMgr {
@@ -36,23 +36,48 @@ impl TetherMgr {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, focus_off: Vec3<f32>) {
-        let positions = client.state().read_storage::<comp::Pos>();
+        let interpolated = client
+            .state()
+            .read_storage::<crate::ecs::comp::Interpolated>();
+        let scales = client.state().read_storage::<comp::Scale>();
+        let bodies = client.state().read_storage::<comp::Body>();
+        let id_maps = client.state().ecs().read_resource::<IdMaps>();
         let is_followers = client.state().read_storage::<Is<Follower>>();
-        for (pos, is_follower) in (&positions, &is_followers).join() {
+        for (interp, is_follower, body, scale) in
+            (&interpolated, &is_followers, bodies.maybe(), scales.maybe()).join()
+        {
+            let Some(leader) = id_maps.uid_entity(is_follower.leader) else { continue };
+            let pos_a = interpolated.get(leader).map_or(Vec3::zero(), |i| i.pos)
+                + interpolated.get(leader).zip(bodies.get(leader)).map_or(
+                    Vec3::zero(),
+                    |(i, body)| {
+                        i.ori.to_quat()
+                            * body.tether_offset_leader()
+                            * scales.get(leader).copied().unwrap_or(comp::Scale(1.0)).0
+                    },
+                );
+            let pos_b = interp.pos
+                + body.map_or(Vec3::zero(), |body| {
+                    interp.ori.to_quat()
+                        * body.tether_offset_follower()
+                        * scale.copied().unwrap_or(comp::Scale(1.0)).0
+                });
+
             let (locals, stale_flag) = self
                 .tethers
                 .entry((is_follower.leader, is_follower.follower))
                 .or_insert_with(|| {
                     (
-                        renderer.create_tether_bound_locals(&[Locals::new(
-                            pos.0 - focus_off,
-                            pos.0 - focus_off,
-                        )]),
+                        renderer.create_tether_bound_locals(&[Locals::default()]),
                         self.stale_flag,
                     )
                 });
 
-            renderer.update_consts(locals, &[Locals::new(pos.0 - focus_off, pos.0 - focus_off)]);
+            renderer.update_consts(locals, &[Locals::new(
+                pos_a - focus_off,
+                pos_b - focus_off,
+                is_follower.tether_length,
+            )]);
 
             *stale_flag = self.stale_flag;
         }
@@ -86,8 +111,8 @@ fn create_tether_mesh() -> Mesh<Vertex> {
                 let z = s as f32 / SEGMENTS as f32;
                 Quad {
                     a: Vertex::new(start.with_z(z), start.with_z(0.0)),
-                    b: Vertex::new(start.with_z(z + 1.0), start.with_z(0.0)),
-                    c: Vertex::new(end.with_z(z + 1.0), end.with_z(0.0)),
+                    b: Vertex::new(start.with_z(z + 1.0 / SEGMENTS as f32), start.with_z(0.0)),
+                    c: Vertex::new(end.with_z(z + 1.0 / SEGMENTS as f32), end.with_z(0.0)),
                     d: Vertex::new(end.with_z(z), end.with_z(0.0)),
                 }
             })

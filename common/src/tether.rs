@@ -2,10 +2,10 @@ use crate::{
     comp,
     link::{Is, Link, LinkHandle, Role},
     mounting::{Rider, VolumeRider},
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
 };
 use serde::{Deserialize, Serialize};
-use specs::{saveload::MarkerAllocator, Entities, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Read, ReadStorage, WriteStorage};
 use vek::*;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -37,20 +37,20 @@ pub enum TetherError {
 
 impl Link for Tethered {
     type CreateData<'a> = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Is<Leader>>,
         WriteStorage<'a, Is<Follower>>,
         ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<VolumeRider>>,
     );
     type DeleteData<'a> = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Is<Leader>>,
         WriteStorage<'a, Is<Follower>>,
     );
     type Error = TetherError;
     type PersistData<'a> = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         Entities<'a>,
         ReadStorage<'a, comp::Health>,
         ReadStorage<'a, Is<Leader>>,
@@ -59,15 +59,9 @@ impl Link for Tethered {
 
     fn create(
         this: &LinkHandle<Self>,
-        (
-            uid_allocator,
-            is_leaders,
-            is_followers,
-            is_riders,
-            is_volume_rider,
-        ): &mut Self::CreateData<'_>,
+        (id_maps, is_leaders, is_followers, is_riders, is_volume_rider): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
-        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         if this.leader == this.follower {
             // Forbid self-tethering
@@ -94,9 +88,9 @@ impl Link for Tethered {
 
     fn persist(
         this: &LinkHandle<Self>,
-        (uid_allocator, entities, healths, is_leaders, is_followers): &mut Self::PersistData<'_>,
+        (id_maps, entities, healths, is_leaders, is_followers): &mut Self::PersistData<'_>,
     ) -> bool {
-        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         if let Some((leader, follower)) = entity(this.leader).zip(entity(this.follower)) {
             let is_alive = |entity| {
@@ -115,9 +109,9 @@ impl Link for Tethered {
 
     fn delete(
         this: &LinkHandle<Self>,
-        (uid_allocator, is_leaders, is_followers): &mut Self::DeleteData<'_>,
+        (id_maps, is_leaders, is_followers): &mut Self::DeleteData<'_>,
     ) {
-        let entity = |uid: Uid| uid_allocator.retrieve_entity_internal(uid.into());
+        let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         let leader = entity(this.leader);
         let follower = entity(this.follower);

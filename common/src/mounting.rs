@@ -3,7 +3,7 @@ use crate::{
     link::{Is, Link, LinkHandle, Role},
     terrain::{Block, TerrainGrid},
     tether,
-    uid::{Uid, UidAllocator},
+    uid::{IdMaps, Uid},
     vol::ReadVol,
 };
 use hashbrown::HashSet;

@@ -8,19 +8,21 @@ use vek::*;
 pub struct Locals {
     pos_a: [f32; 4],
     pos_b: [f32; 4],
+    tether_length: f32,
 }
 
 impl Locals {
-    pub fn new(pos_a: Vec3<f32>, pos_b: Vec3<f32>) -> Self {
+    pub fn new(pos_a: Vec3<f32>, pos_b: Vec3<f32>, tether_length: f32) -> Self {
         Self {
             pos_a: pos_a.with_w(0.0).into_array(),
             pos_b: pos_b.with_w(0.0).into_array(),
+            tether_length,
         }
     }
 }
 
 impl Default for Locals {
-    fn default() -> Self { Self::new(Vec3::zero(), Vec3::zero()) }
+    fn default() -> Self { Self::new(Vec3::zero(), Vec3::zero(), 0.0) }
 }
 
 pub type BoundLocals = Bound<Consts<Locals>>;

@@ -31,6 +31,7 @@ layout(location = 0) in vec3 f_pos;
 // in float f_ao;
 // flat in uint f_pos_norm;
 layout(location = 1) in vec3 f_norm;
+layout(location = 2) in vec3 m_pos;
 // in float f_alt;
 // in vec4 f_shadow;
 // in vec3 light_pos[2];
@@ -72,7 +73,11 @@ void main() {
 
     float f_ao = 1.0;
     uint material = 0xFFu;
-    vec3 f_col = vec3(0.1);
+    vec3 f_col = mix(
+        vec3(0.035, 0.02, 0.01),
+        vec3(0.06, 0.05, 0.03),
+        floor(abs(fract(m_pos.z * 10.0) - 0.5) * 6.0) / 3.0
+    );
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);

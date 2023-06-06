@@ -3,14 +3,11 @@ use common::{
     link::Is,
     resources::DeltaTime,
     tether::Follower,
-    uid::UidAllocator,
+    uid::IdMaps,
     util::Dir,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{
-    saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadStorage, WriteStorage,
-};
+use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 use vek::*;
 
 /// This system is responsible for controlling mounts
@@ -18,7 +15,7 @@ use vek::*;
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        Read<'a, UidAllocator>,
+        Read<'a, IdMaps>,
         Entities<'a>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, Is<Follower>>,
@@ -37,7 +34,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
-            uid_allocator,
+            id_maps,
             entities,
             dt,
             is_followers,
@@ -49,12 +46,10 @@ impl<'a> System<'a> for Sys {
             masses,
         ): Self::SystemData,
     ) {
-        for (follower, is_follower, follower_body, scale) in
+        for (follower, is_follower, follower_body, follower_scale) in
             (&entities, &is_followers, bodies.maybe(), scales.maybe()).join()
         {
-            let Some(leader) = uid_allocator
-                .retrieve_entity_internal(is_follower.leader.id())
-            else { continue };
+            let Some(leader) = id_maps.uid_entity(is_follower.leader) else { continue };
 
             let (Some(leader_pos), Some(follower_pos)) = (
                 positions.get(leader).copied(),
@@ -67,18 +62,36 @@ impl<'a> System<'a> for Sys {
             ) else { continue };
 
             if velocities.contains(follower) && velocities.contains(leader) {
+                let attach_offset = orientations
+                    .get(leader)
+                    .map(|ori| {
+                        ori.to_quat()
+                            * bodies
+                                .get(leader)
+                                .map(|b| {
+                                    b.tether_offset_leader()
+                                        * scales.get(leader).copied().unwrap_or(Scale(1.0)).0
+                                })
+                                .unwrap_or_default()
+                    })
+                    .unwrap_or_default();
+                let attach_pos = leader_pos.0 + attach_offset;
+
                 let tether_offset = orientations
                     .get(follower)
                     .map(|ori| {
                         ori.to_quat()
                             * follower_body
-                                .map(|b| b.tether_offset() * scale.copied().unwrap_or(Scale(1.0)).0)
+                                .map(|b| {
+                                    b.tether_offset_follower()
+                                        * follower_scale.copied().unwrap_or(Scale(1.0)).0
+                                })
                                 .unwrap_or_default()
                     })
                     .unwrap_or_default();
                 let tether_pos = follower_pos.0 + tether_offset;
                 let pull_factor =
-                    (leader_pos.0.distance(tether_pos) - is_follower.tether_length).max(0.0);
+                    (attach_pos.distance(tether_pos) - is_follower.tether_length).max(0.0);
                 let strength = pull_factor * 50000.0;
                 let pull_dir = (leader_pos.0 - follower_pos.0)
                     .try_normalized()
@@ -91,8 +104,8 @@ impl<'a> System<'a> for Sys {
 
                 if let Some(follower_ori) = orientations.get_mut(follower) {
                     let turn_strength = pull_factor
-                        * (tether_offset.magnitude() * (leader_pos.0 - tether_pos).magnitude()
-                            - tether_offset.dot(leader_pos.0 - tether_pos).abs())
+                        * (tether_offset.magnitude() * (attach_pos - tether_pos).magnitude()
+                            - tether_offset.dot(attach_pos - tether_pos).abs())
                         * 2.0;
                     let target_ori = follower_ori.yawed_towards(Dir::new(pull_dir));
                     *follower_ori = follower_ori.slerped_towards(target_ori, turn_strength * dt.0);
