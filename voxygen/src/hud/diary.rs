@@ -51,8 +51,6 @@ use std::borrow::Cow;
 use vek::*;
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
 
-use inline_tweak::*;
-
 widget_ids! {
     pub struct Ids {
         frame,
@@ -1750,107 +1748,107 @@ impl<'a> Diary<'a> {
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::BrutalSwing),
                 ability_id: "common.abilities.axe.brutal_swing",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(387.0), tweak!(419.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 387.0, 424.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Berserk),
                 ability_id: "common.abilities.axe.berserk",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(369.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 374.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::RisingTide),
                 ability_id: "common.abilities.axe.rising_tide",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(469.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 474.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::SavageSense),
                 ability_id: "common.abilities.axe.savage_sense",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(187.0), tweak!(319.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 187.0, 324.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::AdrenalineRush),
                 ability_id: "common.abilities.axe.adrenaline_rush",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(187.0), tweak!(519.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 187.0, 524.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Execute),
                 ability_id: "common.abilities.axe.execute",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(187.0), tweak!(419.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 187.0, 424.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Maelstrom),
                 ability_id: "common.abilities.axe.maelstrom",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(4.0), tweak!(419.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 4.0, 424.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Rake),
                 ability_id: "common.abilities.axe.rake",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(507.0), tweak!(319.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 507.0, 325.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Bloodfeast),
                 ability_id: "common.abilities.axe.bloodfeast",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(387.0), tweak!(69.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 387.0, 74.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::FierceRaze),
                 ability_id: "common.abilities.axe.fierce_raze",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(387.0), tweak!(169.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 387.0, 174.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Furor),
                 ability_id: "common.abilities.axe.furor",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(19.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 24.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Fracture),
                 ability_id: "common.abilities.axe.fracture",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(219.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 224.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Lacerate),
                 ability_id: "common.abilities.axe.lacerate",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(119.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 124.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Riptide),
                 ability_id: "common.abilities.axe.riptide",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(104.0), tweak!(119.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 104.0, 124.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::SkullBash),
                 ability_id: "common.abilities.axe.skull_bash",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(507.0), tweak!(524.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 507.0, 523.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Sunder),
                 ability_id: "common.abilities.axe.sunder",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(387.0), tweak!(668.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 387.0, 674.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Plunder),
                 ability_id: "common.abilities.axe.plunder",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(387.0), tweak!(768.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 387.0, 774.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Defiance),
                 ability_id: "common.abilities.axe.defiance",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(618.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 624.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Keelhaul),
                 ability_id: "common.abilities.axe.keelhaul",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(818.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 824.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Bulkhead),
                 ability_id: "common.abilities.axe.bulkhead",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(287.0), tweak!(718.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 287.0, 724.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Axe(AxeSkill::Capsize),
                 ability_id: "common.abilities.axe.capsize",
-                position: TopLeftWithMarginsOn(state.ids.axe_bg, tweak!(104.0), tweak!(718.0)),
+                position: TopLeftWithMarginsOn(state.ids.axe_bg, 104.0, 724.0),
             },
         ];
 
