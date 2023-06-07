@@ -1,4 +1,4 @@
-use super::super::{Consts, GlobalsLayouts, PipelineModes};
+use super::super::{Consts, ExperimentalShader, GlobalsLayouts, PipelineModes};
 use bytemuck::{Pod, Zeroable};
 use vek::*;
 
@@ -28,6 +28,7 @@ pub struct BindGroup {
 
 pub struct PostProcessLayout {
     pub layout: wgpu::BindGroupLayout,
+    mat_tex_present: bool,
 }
 
 impl PostProcessLayout {
@@ -84,24 +85,14 @@ impl PostProcessLayout {
                 },
                 count: None,
             },
-            // Material source
-            wgpu::BindGroupLayoutEntry {
-                binding: 6,
-                visibility: wgpu::ShaderStage::FRAGMENT,
-                ty: wgpu::BindingType::Texture {
-                    sample_type: wgpu::TextureSampleType::Uint,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    multisampled: false,
-                },
-                count: None,
-            },
         ];
 
+        let mut binding = 5;
         if pipeline_modes.bloom.is_on() {
             bind_entries.push(
                 // src bloom
                 wgpu::BindGroupLayoutEntry {
-                    binding: 5,
+                    binding,
                     visibility: wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Texture {
                         sample_type: wgpu::TextureSampleType::Float { filterable: true },
@@ -111,6 +102,23 @@ impl PostProcessLayout {
                     count: None,
                 },
             );
+            binding += 1;
+        }
+        let mat_tex_present = pipeline_modes
+            .experimental_shaders
+            .contains(&ExperimentalShader::GradientSobel);
+        if mat_tex_present {
+            // Material source
+            bind_entries.push(wgpu::BindGroupLayoutEntry {
+                binding,
+                visibility: wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Uint,
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            });
         }
 
         Self {
@@ -118,6 +126,7 @@ impl PostProcessLayout {
                 label: None,
                 entries: &bind_entries,
             }),
+            mat_tex_present,
         }
     }
 
@@ -153,11 +162,8 @@ impl PostProcessLayout {
                 binding: 4,
                 resource: locals.buf().as_entire_binding(),
             },
-            wgpu::BindGroupEntry {
-                binding: 6,
-                resource: wgpu::BindingResource::TextureView(src_mat),
-            },
         ];
+        let mut binding = 5;
         // Optional bloom source
         if let Some(src_bloom) = src_bloom {
             entries.push(
@@ -166,10 +172,17 @@ impl PostProcessLayout {
                 // TODO: if there is no upscaling we can do the last bloom upsampling in post
                 // process to save a pass and the need for the final full size bloom render target
                 wgpu::BindGroupEntry {
-                    binding: 5,
+                    binding,
                     resource: wgpu::BindingResource::TextureView(src_bloom),
                 },
             );
+            binding += 1;
+        }
+        if self.mat_tex_present {
+            entries.push(wgpu::BindGroupEntry {
+                binding,
+                resource: wgpu::BindingResource::TextureView(src_mat),
+            });
         }
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {

@@ -34,9 +34,6 @@ uniform texture2D t_src_depth;
 layout(set = 1, binding = 3)
 uniform sampler s_src_depth;
 
-layout(set = 1, binding = 6)
-uniform utexture2D t_src_mat;
-
 layout(location = 0) in vec2 uv;
 
 layout (std140, set = 1, binding = 4)
@@ -48,6 +45,15 @@ uniform u_locals {
 #ifdef BLOOM_FACTOR
 layout(set = 1, binding = 5)
 uniform texture2D t_src_bloom;
+#ifdef EXPERIMENTAL_GRADIENTSOBEL
+layout(set = 1, binding = 6)
+uniform utexture2D t_src_mat;
+#endif
+#else
+#ifdef EXPERIMENTAL_GRADIENTSOBEL
+layout(set = 1, binding = 5)
+uniform utexture2D t_src_mat;
+#endif
 #endif
 
 layout(location = 0) out vec4 tgt_color;
