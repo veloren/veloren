@@ -490,6 +490,8 @@ pub enum ExperimentalShader {
     /// post-processing so there is potentially a significant performance
     /// impact especially with anti aliasing enabled.
     Sobel,
+    /// Like Sobel, but on the gradient texture instead of the color texture.
+    GradientSobel,
     /// Simulate a curved world.
     CurvedWorld,
     /// Adds extra detail to distant LoD (Level of Detail) terrain procedurally.

@@ -84,6 +84,17 @@ impl PostProcessLayout {
                 },
                 count: None,
             },
+            // Material source
+            wgpu::BindGroupLayoutEntry {
+                binding: 6,
+                visibility: wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Uint,
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            },
         ];
 
         if pipeline_modes.bloom.is_on() {
@@ -115,6 +126,7 @@ impl PostProcessLayout {
         device: &wgpu::Device,
         src_color: &wgpu::TextureView,
         src_depth: &wgpu::TextureView,
+        src_mat: &wgpu::TextureView,
         src_bloom: Option<&wgpu::TextureView>,
         sampler: &wgpu::Sampler,
         depth_sampler: &wgpu::Sampler,
@@ -140,6 +152,10 @@ impl PostProcessLayout {
             wgpu::BindGroupEntry {
                 binding: 4,
                 resource: locals.buf().as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 6,
+                resource: wgpu::BindingResource::TextureView(src_mat),
             },
         ];
         // Optional bloom source

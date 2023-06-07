@@ -34,6 +34,9 @@ uniform texture2D t_src_depth;
 layout(set = 1, binding = 3)
 uniform sampler s_src_depth;
 
+layout(set = 1, binding = 6)
+uniform utexture2D t_src_mat;
+
 layout(location = 0) in vec2 uv;
 
 layout (std140, set = 1, binding = 4)
@@ -165,6 +168,13 @@ vec3 aa_sample(vec2 uv, vec2 off) {
     return aa_apply(t_src_color, s_src_color, t_src_depth, s_src_depth, uv * screen_res.xy + off, screen_res.xy).rgb;
 }
 #endif
+#ifdef EXPERIMENTAL_GRADIENTSOBEL
+vec3 aa_sample_grad(vec2 uv, vec2 off) {
+    uvec2 mat_sz = textureSize(usampler2D(t_src_mat, s_src_depth), 0);
+    uvec4 mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(uv * mat_sz + off), ivec2(0), ivec2(mat_sz) - 1), 0);
+    return vec3(mat.xyz) / 255.0;
+}
+#endif
 
 #ifdef EXPERIMENTAL_COLORDITHERING
     float dither(ivec2 p, float level) {
@@ -248,6 +258,21 @@ void main() {
         vec3 gy = s[0] + s[1] * 2.0 + s[2] - s[5] - s[6] * 2 - s[7];
         float mag = length(gx) + length(gy);
         aa_color.rgb = mix(vec3(0.9), aa_color.rgb * 0.8, clamp(1.0 - mag * 0.3, 0.0, 1.0));
+    #endif
+    #ifdef EXPERIMENTAL_GRADIENTSOBEL
+        vec3 s2[8];
+        s2[0] = aa_sample_grad(uv, vec2(-1,  1));
+        s2[1] = aa_sample_grad(uv, vec2( 0,  1));
+        s2[2] = aa_sample_grad(uv, vec2( 1,  1));
+        s2[3] = aa_sample_grad(uv, vec2(-1,  0));
+        s2[4] = aa_sample_grad(uv, vec2( 1,  0));
+        s2[5] = aa_sample_grad(uv, vec2(-1, -1));
+        s2[6] = aa_sample_grad(uv, vec2( 0, -1));
+        s2[7] = aa_sample_grad(uv, vec2( 1, -1));
+        vec3 gx2 = s2[0] + s2[3] * 2.0 + s2[5] - s2[2] - s2[4] * 2 - s2[7];
+        vec3 gy2 = s2[0] + s2[1] * 2.0 + s2[2] - s2[5] - s2[6] * 2 - s2[7];
+        float mag2 = length(gx2) + length(gy2);
+        aa_color.rgb = mix(vec3(0.0), aa_color.rgb * 0.8, clamp(1.0 - mag2 * 0.3, 0.0, 1.0));
     #endif
 
     // Bloom
