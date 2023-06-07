@@ -1,0 +1,32 @@
+/// 警告: ローカライズファイルは、UTF-8のBOM無しで保存する必要があります
+
+/// Localization for 日本語 Japanese
+(
+    metadata: (
+        language_name: "日本語 (Japanese)",
+        language_identifier: "ja",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.9,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.9,
+        ),
+    }
+)

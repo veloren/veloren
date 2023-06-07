@@ -1,10 +1,10 @@
-/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+/// CUIDADO: Arquivos de tradução devem ser criados no formato UTF-8 sem Marca de Ordem de byte - BOM(https://pt.wikipedia.org/wiki/Marca_de_ordem_de_byte)
 
-/// Localization for "global" Euskara
+/// Localization for Portuguese (Brazil)
 (
     metadata: (
-        language_name: "Euskara (Basque)",
-        language_identifier: "eu",
+        language_name: "Português Brasileiro (Portuguese - Brazil)",
+        language_identifier: "pt-BR",
     ),
     convert_utf8_to_ascii: false,
     fonts: {

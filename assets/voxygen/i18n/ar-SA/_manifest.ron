@@ -1,12 +1,12 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" Euskara
+/// Localization for Arabic (Saudi locale)
 (
     metadata: (
-        language_name: "Euskara (Basque)",
-        language_identifier: "eu",
+        language_name: "العربية (Arabic - Saudi Arabia)",
+        language_identifier: "ar-SA",
     ),
-    convert_utf8_to_ascii: false,
+    convert_utf8_to_ascii: true,
     fonts: {
         "opensans": Font (
             asset_key: "voxygen.font.OpenSans-Regular",
