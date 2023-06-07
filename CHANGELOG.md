@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All `/build_area_*` commands have been renamed to `/area_*`, and you will have to pass an additional area type
 - Collision damage can now be applied in horizontal axes, in addition to the vertical axis
 - Items will vanish after 5 minutes to minimise performance problems
+- The language identifiers used by the i18n translation system have been converted to IETF BCP 47 (RFC 5646) language tags.
 
 ### Removed
 

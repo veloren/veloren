@@ -1,10 +1,22 @@
+/// Translation document instructions
+///
+/// In order to keep localization documents readible please follow the following
+/// rules:
+/// - separate the string map sections using a commentary describing the purpose
+///   of the next section
+/// - prepend multi-line strings with a commentary
+/// - append one blank lines after a multi-line strings and two after sections
+///
+/// To add a new language in Veloren, just write an additional `.ron` file in
+/// `assets/voxygen/i18n` and that's it!
+///
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" Euskara
+/// Localization for netherlands Dutch
 (
     metadata: (
-        language_name: "Euskara (Basque)",
-        language_identifier: "eu",
+        language_name: "Nederlands (Dutch)",
+        language_identifier: "nl",
     ),
     convert_utf8_to_ascii: false,
     fonts: {

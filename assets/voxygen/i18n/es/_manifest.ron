@@ -1,10 +1,10 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" Euskara
+/// Localization for Spanish (Spain)
 (
     metadata: (
-        language_name: "Euskara (Basque)",
-        language_identifier: "eu",
+        language_name: "Español de España (Spanish - Spain)",
+        language_identifier: "es",
     ),
     convert_utf8_to_ascii: false,
     fonts: {
@@ -21,7 +21,7 @@
             scale_ratio: 1.0,
         ),
         "wizard": Font (
-            asset_key: "voxygen.font.wizard",
+            asset_key: "voxygen.font.wizard_extended",
             scale_ratio: 1.0,
         ),
         "cyri": Font (

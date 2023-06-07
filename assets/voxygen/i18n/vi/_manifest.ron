@@ -1,10 +1,10 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for "global" Euskara
+/// Localization for Vietnamese (Vietnam)
 (
     metadata: (
-        language_name: "Euskara (Basque)",
-        language_identifier: "eu",
+        language_name: "Tiếng Việt (Vietnamese)",
+        language_identifier: "vi",
     ),
     convert_utf8_to_ascii: false,
     fonts: {
@@ -25,7 +25,7 @@
             scale_ratio: 1.0,
         ),
         "cyri": Font (
-            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            asset_key: "voxygen.font.OpenSans-Regular",
             scale_ratio: 1.0,
         ),
     }
