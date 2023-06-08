@@ -5,16 +5,16 @@ FinisherMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Hook(
-            damage: 10,
-            poise: 10,
-            pull: 5,
+            damage: 0,
+            poise: 0,
+            pull: 0,
         ),
         scaled: Some(Hook(
-            damage: 1,
-            poise: 1,
-            pull: 0.5,
+            damage: 2,
+            poise: 3,
+            pull: 1,
         )),
-        range: 3.0,
+        range: 6.0,
         angle: 30.0,
     ),
     minimum_combo: 1,

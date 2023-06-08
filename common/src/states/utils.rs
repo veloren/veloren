@@ -4,6 +4,7 @@ use crate::{
     comp::{
         ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
+        buff::{BuffCategory, BuffChange},
         character_state::OutputEvents,
         controller::InventoryManip,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
@@ -914,11 +915,7 @@ pub fn attempt_swap_equipped_weapons(
             .and_then(|inv| inv.equipped(EquipSlot::InactiveOffhand))
             .is_some()
     {
-        // Reset combo to 0 after manipulating loadout
-        output_events.emit_server(ServerEvent::ComboChange {
-            entity: data.entity,
-            change: -data.combo.map_or(0, |c| c.counter() as i32),
-        });
+        loadout_change_hook(data, output_events);
         update.swap_equipped_weapons = true;
     }
 }
@@ -1004,11 +1001,7 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
-    // Reset combo to 0 after manipulating loadout
-    output_events.emit_server(ServerEvent::ComboChange {
-        entity: data.entity,
-        change: -data.combo.map_or(0, |c| c.counter() as i32),
-    });
+    loadout_change_hook(data, output_events);
     match inv_action {
         InventoryAction::Use(slot @ Slot::Inventory(inv_slot)) => {
             // If inventory action is using a slot, and slot is in the inventory
@@ -1638,4 +1631,21 @@ impl ComboConsumption {
 
 impl Default for ComboConsumption {
     fn default() -> Self { Self::All }
+}
+
+fn loadout_change_hook(data: &JoinData<'_>, output_events: &mut OutputEvents) {
+    // Reset combo to 0
+    output_events.emit_server(ServerEvent::ComboChange {
+        entity: data.entity,
+        change: -data.combo.map_or(0, |c| c.counter() as i32),
+    });
+    // Clear any buffs from equipped weapons
+    output_events.emit_server(ServerEvent::Buff {
+        entity: data.entity,
+        buff_change: BuffChange::RemoveByCategory {
+            all_required: vec![BuffCategory::RemoveOnLoadoutChange],
+            any_required: vec![],
+            none_required: vec![],
+        },
+    });
 }

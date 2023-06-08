@@ -433,6 +433,16 @@ impl Ability {
             Ability::Empty => None,
         }
     }
+
+    pub fn is_from_tool(&self) -> bool {
+        match self {
+            Ability::ToolPrimary
+            | Ability::ToolSecondary
+            | Ability::MainWeaponAux(_)
+            | Ability::OffWeaponAux(_) => true,
+            Ability::SpeciesMovement | Ability::Empty => false,
+        }
+    }
 }
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum GuardAbility {
@@ -449,8 +459,6 @@ impl From<GuardAbility> for Ability {
     }
 }
 
-// Only use for specifying to the front end what ability is being used, do not
-// actually use it for any logic in common or server
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct SpecifiedAbility {
     pub ability: Ability,

@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffCategory, BuffChange, BuffData, BuffKind, BuffSource},
         character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
@@ -79,6 +79,16 @@ impl CharacterBehavior for Data {
                             self.static_data.combo_cost as f32,
                         )
                     });
+                    let buff_cat_ids = if self
+                        .static_data
+                        .ability_info
+                        .ability
+                        .map_or(false, |a| a.ability.is_from_tool())
+                    {
+                        vec![BuffCategory::RemoveOnLoadoutChange]
+                    } else {
+                        Vec::new()
+                    };
                     // Creates buff
                     let buff = Buff::new(
                         self.static_data.buff_kind,
@@ -86,7 +96,7 @@ impl CharacterBehavior for Data {
                             self.static_data.buff_strength * scaling_factor,
                             self.static_data.buff_duration,
                         ),
-                        Vec::new(),
+                        buff_cat_ids,
                         BuffSource::Character { by: *data.uid },
                         *data.time,
                         Some(data.stats),

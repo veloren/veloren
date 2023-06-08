@@ -425,6 +425,7 @@ pub enum BuffCategory {
     PersistOnDeath,
     FromActiveAura(Uid, AuraKey),
     RemoveOnAttack,
+    RemoveOnLoadoutChange,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

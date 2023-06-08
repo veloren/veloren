@@ -4,7 +4,7 @@ SelfBuff(
     recover_duration: 0.1,
     buff_kind: Lifesteal,
     buff_strength: 0.3,
-    buff_duration: Some(10.0),
+    buff_duration: Some(12.0),
     energy_cost: 0,
-    combo_cost: 10,
+    combo_cost: 15,
 )

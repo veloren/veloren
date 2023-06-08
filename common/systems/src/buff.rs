@@ -694,7 +694,8 @@ fn execute_effect(
             stat.poise_damage_modifier *= p;
         },
         BuffEffect::MitigationsPenetration(mp) => {
-            stat.mitigations_penetration *= mp;
+            stat.mitigations_penetration =
+                1.0 - ((1.0 - stat.mitigations_penetration) * (1.0 - *mp));
         },
     };
 }
