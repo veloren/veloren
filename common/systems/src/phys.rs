@@ -12,22 +12,25 @@ use common::{
     link::Is,
     mounting::{Rider, VolumeRider},
     outcome::Outcome,
-    resources::{DeltaTime, GameMode},
+    resources::{DeltaTime, GameMode, TimeOfDay},
     states,
-    terrain::{Block, BlockKind, TerrainGrid},
+    terrain::{Block, BlockKind, CoordinateConversions, TerrainGrid, NEIGHBOR_DELTA},
+    time::DayPeriod,
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
+    weather::WeatherGrid,
 };
 use common_base::{prof_span, span};
 use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
+use itertools::Itertools;
 use rayon::iter::ParallelIterator;
 use specs::{
     shred, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
     Write, WriteExpect, WriteStorage,
 };
 use std::ops::Range;
-use vek::*;
+use vek::{num_traits::Signed, *};
 
 /// The density of the fluid as a function of submersion ratio in given fluid
 /// where it is assumed that any unsubmersed part is is air.
@@ -150,11 +153,12 @@ pub struct PhysicsRead<'a> {
     is_ridings: ReadStorage<'a, Is<Rider>>,
     is_volume_ridings: ReadStorage<'a, Is<VolumeRider>>,
     projectiles: ReadStorage<'a, Projectile>,
-    char_states: ReadStorage<'a, CharacterState>,
-    bodies: ReadStorage<'a, Body>,
     character_states: ReadStorage<'a, CharacterState>,
+    bodies: ReadStorage<'a, Body>,
     densities: ReadStorage<'a, Density>,
     stats: ReadStorage<'a, Stats>,
+    weather: Option<Read<'a, WeatherGrid>>,
+    time_of_day: Read<'a, TimeOfDay>,
 }
 
 #[derive(SystemData)]
@@ -236,7 +240,7 @@ impl<'a> PhysicsData<'a> {
             &mut self.write.previous_phys_cache,
             &self.read.colliders,
             self.read.scales.maybe(),
-            self.read.char_states.maybe(),
+            self.read.character_states.maybe(),
         )
             .join()
         {
@@ -369,7 +373,7 @@ impl<'a> PhysicsData<'a> {
             // moving whether it should interact into the collider component
             // or into a separate component.
             read.projectiles.maybe(),
-            read.char_states.maybe(),
+            read.character_states.maybe(),
         )
             .par_join()
             .map_init(
@@ -438,7 +442,7 @@ impl<'a> PhysicsData<'a> {
                                 previous_cache,
                                 mass,
                                 collider,
-                                read.char_states.get(entity),
+                                read.character_states.get(entity),
                                 read.is_ridings.get(entity),
                             ))
                         })
@@ -600,6 +604,154 @@ impl<'a> PhysicsData<'a> {
             ref read,
             ref mut write,
         } = self;
+
+        prof_span!(guard, "Apply Weather");
+        if let Some(weather) = &read.weather {
+            let day_period: DayPeriod = read.time_of_day.0.into();
+            for (_, state, pos, phys) in (
+                &read.entities,
+                &read.character_states,
+                &write.positions,
+                &mut write.physics_states,
+            )
+                .join()
+            {
+                if !state.is_glide() {
+                    continue;
+                }
+                prof_span!(guard, "Apply Weather INIT");
+                let chunk_pos: Vec2<i32> = pos.0.xy().wpos_to_cpos().as_();
+                let Some(current_chunk) = read.terrain.get_key(chunk_pos) else { continue; };
+
+                let meta = current_chunk.meta();
+                let interp_weather = weather.get_interpolated(pos.0.xy());
+                // TODO: use tree density to scale down surface wind
+                // TODO: use temperature to estimate updraft
+                // TODO: use slope to estimate updraft (wind direction goes up along slope)
+                // TODO: use biome to refine
+
+                // Weather sim wind
+                let above_ground = pos.0.z - meta.alt();
+                let wind_velocity = interp_weather.wind_vel();
+
+                let surrounding_chunks_metas = {
+                    NEIGHBOR_DELTA
+                        .iter()
+                        .map(move |&(x, y)| chunk_pos + Vec2::new(x, y))
+                        .filter(|pos| read.terrain.contains_key(*pos))
+                        .filter_map(|cpos| read.terrain.get_key(cpos).map(|c| c.meta()))
+                };
+
+                drop(guard);
+
+                prof_span!(guard, "Apply Weather THERMALS");
+
+                // === THERMALS ===
+                let mut lift = dbg!(dbg!(meta.temp()) * 4.0);
+
+                let temperatures = surrounding_chunks_metas.clone().map(|m| m.temp()).minmax();
+
+                // more thermals if hot chunks border cold chunks
+                lift *= match temperatures {
+                    itertools::MinMaxResult::NoElements
+                    | itertools::MinMaxResult::OneElement(_) => 1.0,
+                    itertools::MinMaxResult::MinMax(a, b) => 0.8 + ((a - b).abs() * 1.1),
+                }
+                .clamp(0.1, 2.0);
+
+                // way less thermals at after/night - long term heat.
+                lift *= match day_period {
+                    DayPeriod::Night => 0.0,
+                    DayPeriod::Morning => 0.9,
+                    DayPeriod::Noon => 1.8,
+                    DayPeriod::Evening => 1.2,
+                };
+
+                // way more thermals in strong rain (its often caused by strong thermals). less
+                // in weak rain or cloudy..
+                lift *= if interp_weather.rain.is_between(0.5, 1.0)
+                    && interp_weather.cloud.is_between(0.6, 1.0)
+                {
+                    1.5
+                } else if interp_weather.rain.is_between(0.0, 0.5)
+                    && interp_weather.cloud.is_between(0.01, 1.0)
+                {
+                    0.1
+                } else {
+                    1.0
+                };
+                lift *= (above_ground / 60.).max(1.); // the first 60 blocks are weaker. starting from the ground should be difficult.
+
+                // biome thermals modifiers
+                use common::terrain::BiomeKind::*;
+                lift *= match meta.biome() {
+                    Void => 0.0,
+                    Lake => 2.0,
+                    Ocean => 1.5,
+                    Swamp => 0.8, // swamps are usually not hot
+                    Taiga | Grassland | Savannah => 1.0,
+                    Mountain => 0.8,
+                    Snowland => 0.9,
+                    Desert => 0.2, // deserts are too uniformly hot for nice thermal columns
+                    Jungle | Forest => 0.5, // trees cool the air by evaporation
+                };
+                drop(guard);
+
+                prof_span!(guard, "Apply Weather RIDGE_WAVE");
+
+                // === Ridge/Wave lift ===
+
+                let mut ridge_lift = meta
+                    .downhill_chunk()
+                    .map(|cpos| {
+                        let upwards: Vec2<f32> = -(chunk_pos.cpos_to_wpos_center().as_()
+                            - cpos.cpos_to_wpos_center().as_());
+                        match read.terrain.get_key(cpos).map(|c| c.meta()) {
+                            Some(other_meta) => {
+                                let wind = dbg!(
+                                    (upwards + wind_velocity)
+                                        .clamped(Vec2::zero(), Vec2::broadcast(1.0))
+                                );
+                                let vertical_distance =
+                                    ((meta.alt() - other_meta.alt()) / 20.0).clamp(0.0, 14.0); // just guessing, 50 blocks seems like a decent max
+                                if wind.magnitude_squared().is_positive() {
+                                    0.5 + dbg!(wind.magnitude()).clamp(0.0, 1.0)
+                                        + dbg!(vertical_distance)
+                                } else {
+                                    1.0
+                                }
+                            },
+                            None => 0.0,
+                        }
+                    })
+                    .unwrap_or(0.0);
+                dbg!(ridge_lift);
+
+                // Cliffs mean more lift
+                ridge_lift *= 0.9 + (meta.cliff_height() / 44.0) * 1.2; // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs
+
+                // trees mean less lift
+                ridge_lift *= (1.0 - meta.tree_density()).max(0.7); // probably 0. to 1. src: SiteKind::is_suitable_loc comparisons
+                drop(guard);
+                // see: https://en.wikipedia.org/wiki/Lift_(soaring)
+                // ridge/wave lift:
+                //   - along the ridge of a mountain if wind is blowing against and up it
+                //   - around the tops of large mountains
+                // convergence zones:
+                //   - where hot and cold meet.
+                //   - could use biomes/temp difference between chunks to model this
+                let wind_vel = (wind_velocity, dbg!(lift) + dbg!(ridge_lift)).into();
+                phys.in_fluid = phys.in_fluid.map(|f| match f {
+                    Fluid::Air { elevation, .. } => Fluid::Air {
+                        vel: Vel(wind_vel),
+                        elevation,
+                    },
+                    fluid => fluid,
+                });
+            }
+        }
+
+        drop(guard);
 
         prof_span!(guard, "insert PosVelOriDefer");
         // NOTE: keep in sync with join below

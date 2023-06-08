@@ -754,8 +754,7 @@ fn selected_entity_window(
                                 two_col_row(ui, "On Wall", physics_state.on_wall.map_or("-".to_owned(), |x| format!("{:.1},{:.1},{:.1}", x.x, x.y, x.z )));
                                 two_col_row(ui, "Touching Entities", physics_state.touch_entities.len().to_string());
                                 two_col_row(ui, "In Fluid", match physics_state.in_fluid {
-
-                                    Some(Fluid::Air { elevation, .. }) => format!("Air (Elevation: {:.1})", elevation),
+                                    Some(Fluid::Air { elevation, vel, .. }) => format!("Air (Elevation: {:.1}), vel: ({:.1},{:.1},{:.1}) ({:.1} u/s)", elevation, vel.0.x, vel.0.y, vel.0.z, vel.0.magnitude()),
                                     Some(Fluid::Liquid { depth, kind, .. }) => format!("{:?} (Depth: {:.1})", kind, depth),
                                     _ => "None".to_owned() });
                                 });

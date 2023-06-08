@@ -390,7 +390,24 @@ impl World {
                         .get_origin()
                         .distance_squared(chunk_center_wpos2d)
                 })
-                .map(|id| index.sites[*id].kind.convert_to_meta().unwrap_or_default()),
+                .map(|id| index.sites[*id].kind.convert_to_meta().unwrap_or_default())
+                .or_else(|| sim_chunk.poi.map(|poi| self.civs.pois[poi].name.clone())),
+            sim_chunk.get_biome(),
+            sim_chunk.alt,
+            sim_chunk.tree_density,
+            sim_chunk.cave.1.alt != 0.0,
+            sim_chunk.river.is_river(),
+            sim_chunk.river.velocity,
+            sim_chunk.temp,
+            sim_chunk.humidity,
+            sim_chunk
+                .sites
+                .iter()
+                .find_map(|site| index.sites[*site].kind.convert_to_meta()),
+            sim_chunk.downhill.map(|e| e.wpos_to_cpos()),
+            self.sim.get_gradient_approx(chunk_pos),
+            sim_chunk.rockiness,
+            sim_chunk.cliff_height,
         );
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);

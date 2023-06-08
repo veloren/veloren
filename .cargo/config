@@ -32,3 +32,6 @@ dbg-voxygen = "run --bin veloren-voxygen --profile debuginfo"
 swarm = "run --bin swarm --features client/bin_bot,client/tick_network --"
 ci-clippy = "clippy --all-targets --locked --features=bin_cmd_doc_gen,bin_compression,bin_csv,bin_graphviz,bin_bot,bin_asset_migrate,asset_tweak,bin,stat"
 ci-clippy2 = "clippy -p veloren-voxygen --locked --no-default-features --features=default-publish"
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"

@@ -141,6 +141,10 @@ pub struct TerrainChunkMeta {
     contains_cave: bool,
     contains_river: bool,
     river_velocity: Vec3<f32>,
+    downhill_chunk: Option<Vec2<i32>>,
+    gradient: Option<f32>,
+    rockiness: f32,
+    cliff_height: f32,
     temp: f32,
     humidity: f32,
     site: Option<SiteKindMeta>,
@@ -162,6 +166,10 @@ impl TerrainChunkMeta {
         temp: f32,
         humidity: f32,
         site: Option<SiteKindMeta>,
+        downhill_chunk: Option<Vec2<i32>>,
+        gradient: Option<f32>,
+        rockiness: f32,
+        cliff_height: f32,
     ) -> Self {
         Self {
             name,
@@ -178,6 +186,10 @@ impl TerrainChunkMeta {
             debug_points: Vec::new(),
             debug_lines: Vec::new(),
             sprite_cfgs: HashMap::default(),
+            downhill_chunk,
+            rockiness,
+            cliff_height,
+            gradient,
         }
     }
 
@@ -197,6 +209,10 @@ impl TerrainChunkMeta {
             debug_points: Vec::new(),
             debug_lines: Vec::new(),
             sprite_cfgs: HashMap::default(),
+            downhill_chunk: None,
+            gradient: None,
+            rockiness: 0.0,
+            cliff_height: 0.0,
         }
     }
 
@@ -204,6 +220,7 @@ impl TerrainChunkMeta {
 
     pub fn biome(&self) -> BiomeKind { self.biome }
 
+    /// Altitude in blocks
     pub fn alt(&self) -> f32 { self.alt }
 
     pub fn tree_density(&self) -> f32 { self.tree_density }
@@ -216,6 +233,7 @@ impl TerrainChunkMeta {
 
     pub fn site(&self) -> Option<SiteKindMeta> { self.site }
 
+    /// Temperature from 0 to 1 (possibly -1 to 1)
     pub fn temp(&self) -> f32 { self.temp }
 
     pub fn humidity(&self) -> f32 { self.humidity }
@@ -239,6 +257,14 @@ impl TerrainChunkMeta {
     pub fn set_sprite_cfg_at(&mut self, rpos: Vec3<i32>, sprite_cfg: SpriteCfg) {
         self.sprite_cfgs.insert(rpos, sprite_cfg);
     }
+
+    pub fn downhill_chunk(&self) -> Option<Vec2<i32>> { self.downhill_chunk }
+
+    pub fn gradient(&self) -> Option<f32> { self.gradient }
+
+    pub fn rockiness(&self) -> f32 { self.rockiness }
+
+    pub fn cliff_height(&self) -> f32 { self.cliff_height }
 }
 
 // Terrain type aliases
