@@ -404,8 +404,7 @@ impl World {
                 .sites
                 .iter()
                 .find_map(|site| index.sites[*site].kind.convert_to_meta()),
-            sim_chunk.downhill.map(|e| e.wpos_to_cpos()),
-            self.sim.get_gradient_approx(chunk_pos),
+            self.sim.approx_chunk_terrain_normal(chunk_pos),
             sim_chunk.rockiness,
             sim_chunk.cliff_height,
         );

@@ -692,31 +692,35 @@ impl<'a> PhysicsData<'a> {
 
                 // === Ridge/Wave lift ===
 
-                let mut ridge_lift = meta
-                    .downhill_chunk()
-                    .map(|cpos| {
-                        let upwards: Vec2<f32> = -(chunk_pos.cpos_to_wpos_center().as_()
-                            - cpos.cpos_to_wpos_center().as_());
-                        match read.terrain.get_key(cpos).map(|c| c.meta()) {
-                            Some(other_meta) => {
-                                let wind = dbg!(
-                                    (upwards + wind_velocity)
-                                        .clamped(Vec2::zero(), Vec2::broadcast(1.0))
-                                );
-                                let vertical_distance =
-                                    ((meta.alt() - other_meta.alt()) / 20.0).clamp(0.0, 14.0); // just guessing, 50 blocks seems like a decent max
-                                if wind.magnitude_squared().is_positive() {
-                                    0.5 + dbg!(wind.magnitude()).clamp(0.0, 1.0)
-                                        + dbg!(vertical_distance)
-                                } else {
-                                    1.0
-                                }
-                            },
-                            None => 0.0,
-                        }
-                    })
-                    .unwrap_or(0.0);
-                dbg!(ridge_lift);
+                // TODO: reimplement with chunk terrain normals
+                let mut ridge_lift = 1.;
+
+                // let mut ridge_lift = meta
+                //     .downhill_chunk()
+                //     .map(|cpos| {
+                //         let upwards: Vec2<f32> = -(chunk_pos.cpos_to_wpos_center().as_()
+                //             - cpos.cpos_to_wpos_center().as_());
+                //         match read.terrain.get_key(cpos).map(|c| c.meta()) {
+                //             Some(other_meta) => {
+                //                 let wind = dbg!(
+                //                     (upwards + wind_velocity)
+                //                         .clamped(Vec2::zero(), Vec2::broadcast(1.0))
+                //                 );
+                //                 let vertical_distance =
+                //                     ((meta.alt() - other_meta.alt()) / 20.0).clamp(0.0,
+                // 14.0); // just guessing, 50 blocks seems like a decent max
+                //                 if wind.magnitude_squared().is_positive() {
+                //                     0.5 + dbg!(wind.magnitude()).clamp(0.0, 1.0)
+                //                         + dbg!(vertical_distance)
+                //                 } else {
+                //                     1.0
+                //                 }
+                //             },
+                //             None => 0.0,
+                //         }
+                //     })
+                //     .unwrap_or(0.0);
+                // dbg!(ridge_lift);
 
                 // Cliffs mean more lift
                 ridge_lift *= 0.9 + (meta.cliff_height() / 44.0) * 1.2; // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs

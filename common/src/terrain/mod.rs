@@ -141,8 +141,7 @@ pub struct TerrainChunkMeta {
     contains_cave: bool,
     contains_river: bool,
     river_velocity: Vec3<f32>,
-    downhill_chunk: Option<Vec2<i32>>,
-    gradient: Option<f32>,
+    approx_chunk_terrain_normal: Option<Vec3<f32>>,
     rockiness: f32,
     cliff_height: f32,
     temp: f32,
@@ -166,8 +165,7 @@ impl TerrainChunkMeta {
         temp: f32,
         humidity: f32,
         site: Option<SiteKindMeta>,
-        downhill_chunk: Option<Vec2<i32>>,
-        gradient: Option<f32>,
+        approx_chunk_terrain_normal: Option<Vec3<f32>>,
         rockiness: f32,
         cliff_height: f32,
     ) -> Self {
@@ -186,10 +184,9 @@ impl TerrainChunkMeta {
             debug_points: Vec::new(),
             debug_lines: Vec::new(),
             sprite_cfgs: HashMap::default(),
-            downhill_chunk,
+            approx_chunk_terrain_normal,
             rockiness,
             cliff_height,
-            gradient,
         }
     }
 
@@ -209,8 +206,7 @@ impl TerrainChunkMeta {
             debug_points: Vec::new(),
             debug_lines: Vec::new(),
             sprite_cfgs: HashMap::default(),
-            downhill_chunk: None,
-            gradient: None,
+            approx_chunk_terrain_normal: None,
             rockiness: 0.0,
             cliff_height: 0.0,
         }
@@ -258,9 +254,9 @@ impl TerrainChunkMeta {
         self.sprite_cfgs.insert(rpos, sprite_cfg);
     }
 
-    pub fn downhill_chunk(&self) -> Option<Vec2<i32>> { self.downhill_chunk }
-
-    pub fn gradient(&self) -> Option<f32> { self.gradient }
+    pub fn approx_chunk_terrain_normal(&self) -> Option<Vec3<f32>> {
+        self.approx_chunk_terrain_normal
+    }
 
     pub fn rockiness(&self) -> f32 { self.rockiness }
 
