@@ -607,7 +607,11 @@ impl<'a> PhysicsData<'a> {
 
         prof_span!(guard, "Apply Weather");
         if let Some(weather) = &read.weather {
-            let day_period: DayPeriod = read.time_of_day.0.into();
+            // 0.0..1.0, 0.25 morning, 0.45 midday, 0.66 evening, 0.79 night, 0.0/1.0
+            // midnight
+            const SECONDS_PER_DAY: f64 = 60.0 * 60.0 * 24.0;
+            let fraction_of_day: f32 =
+                (read.time_of_day.0.rem_euclid(SECONDS_PER_DAY) / SECONDS_PER_DAY) as f32;
             for (_, state, pos, phys) in (
                 &read.entities,
                 &read.character_states,
@@ -625,31 +629,25 @@ impl<'a> PhysicsData<'a> {
 
                 let meta = current_chunk.meta();
                 let interp_weather = weather.get_interpolated(pos.0.xy());
-                // TODO: use tree density to scale down surface wind
-                // TODO: use temperature to estimate updraft
-                // TODO: use slope to estimate updraft (wind direction goes up along slope)
-                // TODO: use biome to refine
-
                 // Weather sim wind
                 let above_ground = pos.0.z - meta.alt();
                 let wind_velocity = interp_weather.wind_vel();
 
-                let surrounding_chunks_metas = {
-                    NEIGHBOR_DELTA
-                        .iter()
-                        .map(move |&(x, y)| chunk_pos + Vec2::new(x, y))
-                        .filter(|pos| read.terrain.contains_key(*pos))
-                        .filter_map(|cpos| read.terrain.get_key(cpos).map(|c| c.meta()))
-                };
+                let surrounding_chunks_metas = NEIGHBOR_DELTA
+                    .iter()
+                    .map(move |&(x, y)| chunk_pos + Vec2::new(x, y))
+                    .filter(|pos| read.terrain.contains_key(*pos))
+                    .filter_map(|cpos| read.terrain.get_key(cpos).map(|c| c.meta()))
+                    .collect::<Vec<_>>();
 
                 drop(guard);
 
                 prof_span!(guard, "Apply Weather THERMALS");
 
                 // === THERMALS ===
-                let mut lift = dbg!(dbg!(meta.temp()) * 4.0);
+                let mut lift = meta.temp() * 5.0;
 
-                let temperatures = surrounding_chunks_metas.clone().map(|m| m.temp()).minmax();
+                let temperatures = surrounding_chunks_metas.iter().map(|m| m.temp()).minmax();
 
                 // more thermals if hot chunks border cold chunks
                 lift *= match temperatures {
@@ -659,13 +657,8 @@ impl<'a> PhysicsData<'a> {
                 }
                 .clamp(0.1, 2.0);
 
-                // way less thermals at after/night - long term heat.
-                lift *= match day_period {
-                    DayPeriod::Night => 0.0,
-                    DayPeriod::Morning => 0.9,
-                    DayPeriod::Noon => 1.8,
-                    DayPeriod::Evening => 1.2,
-                };
+                // Estimate warmth over day based on time of day. https://www.desmos.com/calculator/kw0ba0i7mf
+                lift *= f32::exp(-((fraction_of_day - 0.5).powf(6.0)) / 0.0001);
 
                 // way more thermals in strong rain (its often caused by strong thermals). less
                 // in weak rain or cloudy..
@@ -686,9 +679,7 @@ impl<'a> PhysicsData<'a> {
                 use common::terrain::BiomeKind::*;
                 lift *= match meta.biome() {
                     Void => 0.0,
-                    Lake => 2.0,
-                    Ocean => 1.5,
-                    Swamp => 0.8, // swamps are usually not hot
+                    Lake | Ocean | Swamp => 0.1,
                     Taiga | Grassland | Savannah => 1.0,
                     Mountain => 0.8,
                     Snowland => 0.9,
