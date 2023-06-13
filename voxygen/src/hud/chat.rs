@@ -13,7 +13,7 @@ use conrod_core::{
         self,
         cursor::{self, Index},
     },
-    widget::{self, Button, Id, Image, List, Rectangle, Text, TextEdit},
+    widget::{self, Button, Id, Image, Line, List, Rectangle, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Ui, UiCell, Widget,
     WidgetCommon,
 };
@@ -28,6 +28,10 @@ widget_ids! {
         chat_input,
         chat_input_bg,
         chat_input_icon,
+        chat_input_border_up,
+        chat_input_border_down,
+        chat_input_border_left,
+        chat_input_border_right,
         chat_arrow,
         chat_icon_align,
         chat_icons[],
@@ -47,6 +51,7 @@ const X: f64 = 18.0;*/
 const MAX_MESSAGES: usize = 100;
 
 const CHAT_ICON_WIDTH: f64 = 16.0;
+const CHAT_MARGIN_THICKNESS: f64 = 3.0;
 const CHAT_ICON_HEIGHT: f64 = 16.0;
 const CHAT_BOX_WIDTH: f64 = 470.0;
 const CHAT_BOX_INPUT_WIDTH: f64 = 460.0 - CHAT_ICON_WIDTH - 1.0;
@@ -385,6 +390,39 @@ impl<'a> Widget for Chat<'a> {
                 .w(CHAT_BOX_WIDTH)
                 .set(state.ids.chat_input_bg, ui);
 
+            //border around focused chat window
+            fn adjust_border_opacity(color: Color, opacity: f32) -> Color {
+                match color {
+                    Color::Rgba(r, g, b, a) => Color::Rgba(r, g, b, (a + opacity) / 2.0),
+                    _ => panic!("Color input should be Rgba, instead found: {:?}", color),
+                }
+            }
+            let border_color = adjust_border_opacity(color, chat_settings.chat_opacity);
+            //top line
+            Line::centred([0.0, 0.0], [CHAT_BOX_WIDTH, 0.0])
+                .color(border_color)
+                .thickness(CHAT_MARGIN_THICKNESS)
+                .bottom_left_of(state.ids.chat_input_bg)
+                .set(state.ids.chat_input_border_down, ui);
+            //bottom
+            Line::centred([0.0, 0.0], [CHAT_BOX_WIDTH, 0.0])
+                .color(border_color)
+                .thickness(CHAT_MARGIN_THICKNESS)
+                .top_left_of(state.ids.chat_input_bg)
+                .set(state.ids.chat_input_border_up, ui);
+            //left
+            Line::centred([0.0, 0.0], [0.0, y])
+                .color(border_color)
+                .thickness(CHAT_MARGIN_THICKNESS)
+                .bottom_left_of(state.ids.chat_input_bg)
+                .set(state.ids.chat_input_border_left, ui);
+            //right
+            Line::centred([0.0, 0.0], [0.0, y])
+                .color(border_color)
+                .thickness(CHAT_MARGIN_THICKNESS)
+                .bottom_right_of(state.ids.chat_input_bg)
+                .set(state.ids.chat_input_border_right, ui);
+
             if let Some(mut input) = text_edit
                 .right_from(state.ids.chat_input_icon, 1.0)
                 .set(state.ids.chat_input, ui)
@@ -399,7 +437,10 @@ impl<'a> Widget for Chat<'a> {
             .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity)
             .and(|r| {
                 if input_focused {
-                    r.up_from(state.ids.chat_input_bg, 0.0)
+                    r.up_from(
+                        state.ids.chat_input_border_up,
+                        0.0 + CHAT_MARGIN_THICKNESS / 2.0,
+                    )
                 } else {
                     r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 }
