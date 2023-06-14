@@ -787,7 +787,7 @@ impl assets::Asset for RawItemDef {
 pub struct OperationFailure;
 
 impl Item {
-    pub const MAX_DURABILITY: u32 = 8;
+    pub const MAX_DURABILITY: u32 = 12;
 
     // TODO: consider alternatives such as default abilities that can be added to a
     // loadout when no weapon is present
@@ -1279,8 +1279,9 @@ impl Item {
     pub fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
         let durability_lost = self.durability_lost.unwrap_or(0);
         debug_assert!(durability_lost <= Self::MAX_DURABILITY);
-        const DURABILITY_THRESHOLD: u32 = 4;
-        const MIN_FRAC: f32 = 0.2;
+        // How much durability must be lost before stats start to decay
+        const DURABILITY_THRESHOLD: u32 = 9;
+        const MIN_FRAC: f32 = 0.25;
         let mult = (1.0
             - durability_lost.saturating_sub(DURABILITY_THRESHOLD) as f32
                 / (Self::MAX_DURABILITY - DURABILITY_THRESHOLD) as f32)
