@@ -577,23 +577,23 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             },
         },
         ScatterConfig {
-            kind: TallCactus,
-            water_mode: Ground,
-            permit: |b| matches!(b, BlockKind::Grass),
-            f: |_, col| {
-                (
-                    close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 1.5,
-                    None,
-                )
-            },
-        },
-        ScatterConfig {
             kind: BarrelCactus,
             water_mode: Ground,
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
                     close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 2.0,
+                    None,
+                )
+            },
+        },
+        ScatterConfig {
+            kind: TallCactus,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Grass),
+            f: |_, col| {
+                (
+                    close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 1.5,
                     None,
                 )
             },
