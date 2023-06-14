@@ -1,4 +1,5 @@
 use crate::{
+    chunk_generator::ChunkGenerator,
     metrics::{EcsSystemMetrics, JobMetrics, PhysicsMetrics, TickMetrics},
     HwStats, Tick, TickStart,
 };
@@ -12,11 +13,12 @@ use std::time::Instant;
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        Option<Entities<'a>>,
+        Entities<'a>,
         ReadExpect<'a, HwStats>,
         ReadExpect<'a, Tick>,
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, TickStart>,
+        ReadExpect<'a, ChunkGenerator>,
         Option<Read<'a, TerrainGrid>>,
         Read<'a, SysMetrics>,
         Read<'a, common_ecs::PhysicsMetrics>,
@@ -39,6 +41,7 @@ impl<'a> System<'a> for Sys {
             tick,
             time_of_day,
             tick_start,
+            chunk_generator,
             terrain,
             sys_metrics,
             phys_metrics,
@@ -89,7 +92,7 @@ impl<'a> System<'a> for Sys {
         // Report other info
         export_tick.time_of_day.set(time_of_day.0);
         if tick.0.rem_euclid(100) == 0 {
-            if let Some(terrain) = terrain {
+            if let Some(terrain) = terrain.as_ref() {
                 let mut chonk_cnt = 0;
                 let mut group_cnt = 0;
                 let chunk_cnt = terrain.iter().fold(0, |a, (_, c)| {
@@ -102,11 +105,16 @@ impl<'a> System<'a> for Sys {
                 export_tick.chunk_groups_count.set(group_cnt as i64);
             }
 
-            if let Some(entities) = entities {
-                let entity_count = entities.join().count();
-                export_tick.entity_count.set(entity_count as i64);
-                common_base::plot!("entity count", entity_count as f64);
-            }
+            let entity_count = entities.join().count();
+            export_tick.entity_count.set(entity_count as i64);
+        }
+        common_base::plot!("entity count", entities.join().count() as f64);
+        common_base::plot!(
+            "pending chunks",
+            chunk_generator.pending_chunks().count() as f64
+        );
+        if let Some(terrain) = terrain.as_ref() {
+            common_base::plot!("chunk count", terrain.iter().count() as f64);
         }
 
         //detailed physics metrics
