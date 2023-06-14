@@ -1644,28 +1644,16 @@ impl WorldSim {
         if (curr_chunk.alt - downhill_chunk.alt) == 0. {
             return Some(Vec3::unit_z());
         }
-
-        let calc_zero = chunk_pos
+        let curr = chunk_pos.cpos_to_wpos_center().as_().with_z(curr_chunk.alt);
+        let down = downhill_chunk_pos
             .cpos_to_wpos_center()
             .as_()
             .with_z(downhill_chunk.alt);
-        let downhill = calc_zero
-            - Vec3::<f32>::from((
-                downhill_chunk_pos.cpos_to_wpos_center().as_(),
-                downhill_chunk.alt,
-            ));
-        let curr = Vec3::zero().with_z(curr_chunk.alt);
-        let flat_dist = downhill.magnitude();
-
-        let f = curr.z.powi(2) / flat_dist;
-        let neg_normal = Vec3::new(
-            (-downhill.x / flat_dist) * f,
-            (-downhill.y / flat_dist) * f,
-            0.,
-        );
-        let normal = neg_normal - curr;
-
-        Some(normal.normalized())
+        let downwards = curr - down;
+        let flat = downwards.with_z(down.z);
+        let mut res = downwards.cross(flat).cross(downwards);
+        res.normalize();
+        Some(res)
     }
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
