@@ -267,6 +267,7 @@ impl SpriteKind {
             SpriteKind::BedrollSnow => 0.4,
             SpriteKind::BedrollPirate => 0.3,
             SpriteKind::Tomato => 1.65,
+            SpriteKind::BarrelCactus => 1.0,
             SpriteKind::LargeCactus => 3.0,
             SpriteKind::TallCactus => 2.5,
             SpriteKind::Scarecrow => 3.0,
@@ -325,8 +326,7 @@ impl SpriteKind {
             SpriteKind::IceSpike => 1.0,
             SpriteKind::RepairBench => 1.2,
             // TODO: Find suitable heights.
-            SpriteKind::BarrelCactus
-            | SpriteKind::RoundCactus
+            SpriteKind::RoundCactus
             | SpriteKind::ShortCactus
             | SpriteKind::MedFlatCactus
             | SpriteKind::ShortFlatCactus
