@@ -51,7 +51,7 @@ const X: f64 = 18.0;*/
 const MAX_MESSAGES: usize = 100;
 
 const CHAT_ICON_WIDTH: f64 = 16.0;
-const CHAT_MARGIN_THICKNESS: f64 = 3.0;
+const CHAT_MARGIN_THICKNESS: f64 = 2.0;
 const CHAT_ICON_HEIGHT: f64 = 16.0;
 const CHAT_BOX_WIDTH: f64 = 470.0;
 const CHAT_BOX_INPUT_WIDTH: f64 = 460.0 - CHAT_ICON_WIDTH - 1.0;
@@ -208,6 +208,12 @@ impl<'a> Widget for Chat<'a> {
     fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        fn adjust_border_opacity(color: Color, opacity: f32) -> Color {
+            match color {
+                Color::Rgba(r, g, b, a) => Color::Rgba(r, g, b, (a + opacity) / 2.0),
+                _ => panic!("Color input should be Rgba, instead found: {:?}", color),
+            }
+        }
         common_base::prof_span!("Chat::update");
 
         let widget::UpdateArgs { id, state, ui, .. } = args;
@@ -391,32 +397,26 @@ impl<'a> Widget for Chat<'a> {
                 .set(state.ids.chat_input_bg, ui);
 
             //border around focused chat window
-            fn adjust_border_opacity(color: Color, opacity: f32) -> Color {
-                match color {
-                    Color::Rgba(r, g, b, a) => Color::Rgba(r, g, b, (a + opacity) / 2.0),
-                    _ => panic!("Color input should be Rgba, instead found: {:?}", color),
-                }
-            }
             let border_color = adjust_border_opacity(color, chat_settings.chat_opacity);
             //top line
             Line::centred([0.0, 0.0], [CHAT_BOX_WIDTH, 0.0])
                 .color(border_color)
                 .thickness(CHAT_MARGIN_THICKNESS)
-                .bottom_left_of(state.ids.chat_input_bg)
-                .set(state.ids.chat_input_border_down, ui);
-            //bottom
+                .top_left_of(state.ids.chat_input_bg)
+                .set(state.ids.chat_input_border_up, ui);
+            //bottom line
             Line::centred([0.0, 0.0], [CHAT_BOX_WIDTH, 0.0])
                 .color(border_color)
                 .thickness(CHAT_MARGIN_THICKNESS)
-                .top_left_of(state.ids.chat_input_bg)
-                .set(state.ids.chat_input_border_up, ui);
-            //left
+                .bottom_left_of(state.ids.chat_input_bg)
+                .set(state.ids.chat_input_border_down, ui);
+            //left line
             Line::centred([0.0, 0.0], [0.0, y])
                 .color(border_color)
                 .thickness(CHAT_MARGIN_THICKNESS)
                 .bottom_left_of(state.ids.chat_input_bg)
                 .set(state.ids.chat_input_border_left, ui);
-            //right
+            //right line
             Line::centred([0.0, 0.0], [0.0, y])
                 .color(border_color)
                 .thickness(CHAT_MARGIN_THICKNESS)
