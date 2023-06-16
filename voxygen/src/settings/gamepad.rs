@@ -66,7 +66,7 @@ pub mod con_settings {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[serde(default)]
     pub struct GameLayerEntries {
-       pub primary: LayerEntry,
+        pub primary: LayerEntry,
         pub secondary: LayerEntry,
         pub block: LayerEntry,
         pub slot1: LayerEntry,

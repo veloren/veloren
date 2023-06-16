@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     game_input::GameInput,
     render::Renderer,
-    settings::{ControlSettings, Settings, gamepad::con_settings::LayerEntry},
+    settings::{gamepad::con_settings::LayerEntry, ControlSettings, Settings},
     ui,
 };
 use common_base::span;
@@ -610,12 +610,25 @@ impl Window {
 
                     let l_entry: LayerEntry;
                     if modifiers.len() == 2 {
-                        //this line uses the known modifiers from ControllerSettings so RB+LB represents the same layer as LB+RB
-                        l_entry = LayerEntry { button: *button, mod1: settings.modifier_buttons[0], mod2: settings.modifier_buttons[1] };
+                        // this uses the known modifiers from ControllerSettings so RB+LB
+                        // represents the same layer as LB+RB
+                        l_entry = LayerEntry {
+                            button: *button,
+                            mod1: settings.modifier_buttons[0],
+                            mod2: settings.modifier_buttons[1],
+                        };
                     } else if modifiers.len() == 1 {
-                        l_entry = LayerEntry { button: *button, mod1: modifiers[0], mod2: Button::default() };
+                        l_entry = LayerEntry {
+                            button: *button,
+                            mod1: modifiers[0],
+                            mod2: Button::default(),
+                        };
                     } else {
-                        l_entry = LayerEntry { button: *button, mod1: Button::default(), mod2: Button::default() };
+                        l_entry = LayerEntry {
+                            button: *button,
+                            mod1: Button::default(),
+                            mod2: Button::default(),
+                        };
                     }
 
                     if let Some(evs) = settings.layer_button_map.get(&l_entry) {
