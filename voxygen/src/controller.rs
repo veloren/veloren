@@ -1,7 +1,7 @@
 //! Module containing controller-specific abstractions allowing complex
 //! keybindings
 
-use crate::{game_input::GameInput, window::MenuInput};
+use crate::{game_input::GameInput, window::MenuInput, settings::gamepad::con_settings::LayerEntry};
 use gilrs::{ev::Code as GilCode, Axis as GilAxis, Button as GilButton};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,8 @@ pub struct ControllerSettings {
     pub menu_analog_button_map: HashMap<AnalogButton, Vec<AnalogButtonMenuAction>>,
     pub game_axis_map: HashMap<Axis, Vec<AxisGameAction>>,
     pub menu_axis_map: HashMap<Axis, Vec<AxisMenuAction>>,
+    pub layer_button_map: HashMap<LayerEntry, Vec<GameInput>>,
+    pub modifier_buttons: Vec<Button>,
     pub pan_sensitivity: u32,
     pub pan_invert_y: bool,
     pub axis_deadzones: HashMap<Axis, f32>,
@@ -292,6 +294,171 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                     .or_default()
                     .push(AxisMenuAction::ScrollY);
                 map
+            },
+            layer_button_map: {
+                let mut map: HashMap<_, Vec<_>> = HashMap::new();
+                map.entry(settings.game_layer_buttons.primary)
+                    .or_default()
+                    .push(GameInput::Primary);
+                map.entry(settings.game_layer_buttons.secondary)
+                    .or_default()
+                    .push(GameInput::Secondary);
+                map.entry(settings.game_layer_buttons.block)
+                    .or_default()
+                    .push(GameInput::Block);
+                map.entry(settings.game_layer_buttons.slot1)
+                    .or_default()
+                    .push(GameInput::Slot1);
+                map.entry(settings.game_layer_buttons.slot2)
+                    .or_default()
+                    .push(GameInput::Slot2);
+                map.entry(settings.game_layer_buttons.slot3)
+                    .or_default()
+                    .push(GameInput::Slot3);
+                map.entry(settings.game_layer_buttons.slot4)
+                    .or_default()
+                    .push(GameInput::Slot4);
+                map.entry(settings.game_layer_buttons.slot5)
+                    .or_default()
+                    .push(GameInput::Slot5);
+                map.entry(settings.game_layer_buttons.slot6)
+                    .or_default()
+                    .push(GameInput::Slot6);
+                map.entry(settings.game_layer_buttons.slot7)
+                    .or_default()
+                    .push(GameInput::Slot7);
+                map.entry(settings.game_layer_buttons.slot8)
+                    .or_default()
+                    .push(GameInput::Slot8);
+                map.entry(settings.game_layer_buttons.slot9)
+                    .or_default()
+                    .push(GameInput::Slot9);
+                map.entry(settings.game_layer_buttons.slot10)
+                    .or_default()
+                    .push(GameInput::Slot10);
+                map.entry(settings.game_layer_buttons.toggle_cursor)
+                    .or_default()
+                    .push(GameInput::ToggleCursor);
+                map.entry(settings.game_layer_buttons.escape)
+                    .or_default()
+                    .push(GameInput::Escape);
+                map.entry(settings.game_layer_buttons.enter)
+                    .or_default()
+                    .push(GameInput::Chat);
+                map.entry(settings.game_layer_buttons.command)
+                    .or_default()
+                    .push(GameInput::Command);
+                map.entry(settings.game_layer_buttons.move_forward)
+                    .or_default()
+                    .push(GameInput::MoveForward);
+                map.entry(settings.game_layer_buttons.move_left)
+                    .or_default()
+                    .push(GameInput::MoveLeft);
+                map.entry(settings.game_layer_buttons.move_back)
+                    .or_default()
+                    .push(GameInput::MoveBack);
+                map.entry(settings.game_layer_buttons.move_right)
+                    .or_default()
+                    .push(GameInput::MoveRight);
+                map.entry(settings.game_layer_buttons.jump)
+                    .or_default()
+                    .push(GameInput::Jump);
+                map.entry(settings.game_layer_buttons.sit)
+                    .or_default()
+                    .push(GameInput::Sit);
+                map.entry(settings.game_layer_buttons.dance)
+                    .or_default()
+                    .push(GameInput::Dance);
+                map.entry(settings.game_layer_buttons.glide)
+                    .or_default()
+                    .push(GameInput::Glide);
+                map.entry(settings.game_layer_buttons.climb)
+                    .or_default()
+                    .push(GameInput::Climb);
+                map.entry(settings.game_layer_buttons.climb_down)
+                    .or_default()
+                    .push(GameInput::ClimbDown);
+                map.entry(settings.game_layer_buttons.swimup)
+                    .or_default()
+                    .push(GameInput::SwimUp);
+                map.entry(settings.game_layer_buttons.swimdown)
+                    .or_default()
+                    .push(GameInput::SwimDown);
+                map.entry(settings.game_layer_buttons.sneak)
+                    .or_default()
+                    .push(GameInput::Sneak);
+                map.entry(settings.game_layer_buttons.toggle_lantern)
+                    .or_default()
+                    .push(GameInput::ToggleLantern);
+                map.entry(settings.game_layer_buttons.mount)
+                    .or_default()
+                    .push(GameInput::Mount);
+                map.entry(settings.game_layer_buttons.map)
+                    .or_default()
+                    .push(GameInput::Map);
+                map.entry(settings.game_layer_buttons.bag)
+                    .or_default()
+                    .push(GameInput::Bag);
+                map.entry(settings.game_layer_buttons.social)
+                    .or_default()
+                    .push(GameInput::Social);
+                map.entry(settings.game_layer_buttons.crafting)
+                    .or_default()
+                    .push(GameInput::Crafting);
+                map.entry(settings.game_layer_buttons.spellbook)
+                    .or_default()
+                    .push(GameInput::Spellbook);
+                map.entry(settings.game_layer_buttons.settings)
+                    .or_default()
+                    .push(GameInput::Settings);
+                map.entry(settings.game_layer_buttons.help)
+                    .or_default()
+                    .push(GameInput::Help);
+                map.entry(settings.game_layer_buttons.toggle_interface)
+                    .or_default()
+                    .push(GameInput::ToggleInterface);
+                map.entry(settings.game_layer_buttons.toggle_debug)
+                    .or_default()
+                    .push(GameInput::ToggleDebug);
+                #[cfg(feature = "egui-ui")]
+                map.entry(settings.game_layer_buttons.toggle_debug)
+                    .or_default()
+                    .push(GameInput::ToggleEguiDebug);
+                map.entry(settings.game_layer_buttons.toggle_chat)
+                    .or_default()
+                    .push(GameInput::ToggleChat);
+                map.entry(settings.game_layer_buttons.fullscreen)
+                    .or_default()
+                    .push(GameInput::Fullscreen);
+                map.entry(settings.game_layer_buttons.screenshot)
+                    .or_default()
+                    .push(GameInput::Screenshot);
+                map.entry(settings.game_layer_buttons.toggle_ingame_ui)
+                    .or_default()
+                    .push(GameInput::ToggleIngameUi);
+                map.entry(settings.game_layer_buttons.roll)
+                    .or_default()
+                    .push(GameInput::Roll);
+                map.entry(settings.game_layer_buttons.respawn)
+                    .or_default()
+                    .push(GameInput::Respawn);
+                map.entry(settings.game_layer_buttons.interact)
+                    .or_default()
+                    .push(GameInput::Interact);
+                map.entry(settings.game_layer_buttons.toggle_wield)
+                    .or_default()
+                    .push(GameInput::ToggleWield);
+                map.entry(settings.game_layer_buttons.swap_loadout)
+                    .or_default()
+                    .push(GameInput::SwapLoadout);
+                map
+            },
+            modifier_buttons: {
+                let vec: Vec<Button> = vec![
+                    Button::Simple(GilButton::RightTrigger),
+                    Button::Simple(GilButton::LeftTrigger),
+                ];
+                vec
             },
             pan_sensitivity: settings.pan_sensitivity,
             pan_invert_y: settings.pan_invert_y,

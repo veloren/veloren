@@ -10,6 +10,7 @@ pub struct GamepadSettings {
     pub menu_axis: con_settings::MenuAxis,
     pub game_analog_buttons: con_settings::GameAnalogButton,
     pub menu_analog_buttons: con_settings::MenuAnalogButton,
+    pub game_layer_buttons: con_settings::GameLayerEntries,
     pub pan_sensitivity: u32,
     pub pan_invert_y: bool,
     pub axis_deadzones: HashMap<crate::controller::Axis, f32>,
@@ -27,6 +28,7 @@ impl Default for GamepadSettings {
             menu_axis: con_settings::MenuAxis::default(),
             game_analog_buttons: con_settings::GameAnalogButton::default(),
             menu_analog_buttons: con_settings::MenuAnalogButton::default(),
+            game_layer_buttons: con_settings::GameLayerEntries::default(),
             pan_sensitivity: 10,
             pan_invert_y: false,
             axis_deadzones: HashMap::new(),
@@ -41,6 +43,241 @@ pub mod con_settings {
     use crate::controller::*;
     use gilrs::{Axis as GilAxis, Button as GilButton};
     use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[serde(default)]
+    pub struct LayerEntry {
+        pub button: Button,
+        pub mod1: Button,
+        pub mod2: Button,
+    }
+
+    impl Default for LayerEntry {
+        fn default() -> Self {
+            // binding to unknown = getting skipped from processing
+            Self {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }
+        }
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[serde(default)]
+    pub struct GameLayerEntries {
+       pub primary: LayerEntry,
+        pub secondary: LayerEntry,
+        pub block: LayerEntry,
+        pub slot1: LayerEntry,
+        pub slot2: LayerEntry,
+        pub slot3: LayerEntry,
+        pub slot4: LayerEntry,
+        pub slot5: LayerEntry,
+        pub slot6: LayerEntry,
+        pub slot7: LayerEntry,
+        pub slot8: LayerEntry,
+        pub slot9: LayerEntry,
+        pub slot10: LayerEntry,
+        pub toggle_cursor: LayerEntry,
+        pub escape: LayerEntry,
+        pub enter: LayerEntry,
+        pub command: LayerEntry,
+        pub move_forward: LayerEntry,
+        pub move_left: LayerEntry,
+        pub move_back: LayerEntry,
+        pub move_right: LayerEntry,
+        pub jump: LayerEntry,
+        pub sit: LayerEntry,
+        pub dance: LayerEntry,
+        pub glide: LayerEntry,
+        pub climb: LayerEntry,
+        pub climb_down: LayerEntry,
+        pub swimup: LayerEntry,
+        pub swimdown: LayerEntry,
+        pub sneak: LayerEntry,
+        pub toggle_lantern: LayerEntry,
+        pub mount: LayerEntry,
+        pub map: LayerEntry,
+        pub bag: LayerEntry,
+        pub quest_log: LayerEntry,
+        pub character_window: LayerEntry,
+        pub social: LayerEntry,
+        pub crafting: LayerEntry,
+        pub spellbook: LayerEntry,
+        pub settings: LayerEntry,
+        pub help: LayerEntry,
+        pub toggle_interface: LayerEntry,
+        pub toggle_debug: LayerEntry,
+        #[cfg(feature = "egui-ui")]
+        pub toggle_egui_debug: LayerEntry,
+        pub toggle_chat: LayerEntry,
+        pub fullscreen: LayerEntry,
+        pub screenshot: LayerEntry,
+        pub toggle_ingame_ui: LayerEntry,
+        pub roll: LayerEntry,
+        pub respawn: LayerEntry,
+        pub interact: LayerEntry,
+        pub toggle_wield: LayerEntry,
+        pub swap_loadout: LayerEntry,
+    }
+
+    impl Default for GameLayerEntries {
+        fn default() -> Self {
+            Self {
+                primary: LayerEntry::default(),
+                secondary: LayerEntry::default(),
+                block: LayerEntry::default(),
+                slot1: LayerEntry {
+                    button: Button::Simple(GilButton::DPadRight),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot2: LayerEntry {
+                    button: Button::Simple(GilButton::DPadDown),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot3: LayerEntry {
+                    button: Button::Simple(GilButton::DPadUp),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot4: LayerEntry {
+                    button: Button::Simple(GilButton::DPadLeft),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot5: LayerEntry {
+                    button: Button::Simple(GilButton::DPadRight),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot6: LayerEntry {
+                    button: Button::Simple(GilButton::DPadDown),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot7: LayerEntry {
+                    button: Button::Simple(GilButton::DPadUp),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::LeftTrigger),
+                },
+                slot8: LayerEntry {
+                    button: Button::Simple(GilButton::DPadLeft),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::LeftTrigger),
+                },
+                slot9: LayerEntry {
+                    button: Button::Simple(GilButton::DPadRight),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::LeftTrigger),
+                },
+                slot10: LayerEntry {
+                    button: Button::Simple(GilButton::DPadDown),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::LeftTrigger),
+                },
+                toggle_cursor: LayerEntry {
+                    button: Button::Simple(GilButton::Start),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::LeftTrigger),
+                },
+                escape: LayerEntry {
+                    button: Button::Simple(GilButton::Start),
+                    mod1: Button::Simple(GilButton::Unknown),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                enter: LayerEntry::default(),
+                command: LayerEntry::default(),
+                move_forward: LayerEntry::default(),
+                move_left: LayerEntry::default(),
+                move_back: LayerEntry::default(),
+                move_right: LayerEntry::default(),
+                jump: LayerEntry::default(),
+                sit: LayerEntry {
+                    button: Button::Simple(GilButton::Select),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::LeftTrigger),
+                },
+                dance: LayerEntry {
+                    button: Button::Simple(GilButton::Select),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                glide: LayerEntry {
+                    button: Button::Simple(GilButton::DPadUp),
+                    mod1: Button::Simple(GilButton::Unknown),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                climb: LayerEntry::default(),
+                climb_down: LayerEntry::default(),
+                swimup: LayerEntry::default(),
+                swimdown: LayerEntry::default(),
+                sneak: LayerEntry::default(),
+                toggle_lantern: LayerEntry {
+                    button: Button::Simple(GilButton::DPadLeft),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                mount: LayerEntry::default(),
+                map: LayerEntry {
+                    button: Button::Simple(GilButton::DPadLeft),
+                    mod1: Button::Simple(GilButton::Unknown),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                bag: LayerEntry::default(),
+                quest_log: LayerEntry {
+                    button: Button::Simple(GilButton::DPadRight),
+                    mod1: Button::Simple(GilButton::Unknown),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                character_window: LayerEntry::default(),
+                social: LayerEntry {
+                    button: Button::Simple(GilButton::DPadUp),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                crafting: LayerEntry {
+                    button: Button::Simple(GilButton::Select),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                spellbook: LayerEntry {
+                    button: Button::Simple(GilButton::Select),
+                    mod1: Button::Simple(GilButton::Unknown),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                settings: LayerEntry {
+                    button: Button::Simple(GilButton::Start),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                help: LayerEntry {
+                    button: Button::Simple(GilButton::Start),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                toggle_interface: LayerEntry::default(),
+                toggle_debug: LayerEntry::default(),
+                #[cfg(feature = "egui-ui")]
+                toggle_egui_debug: LayerEntry::default(),
+                toggle_chat: LayerEntry::default(),
+                fullscreen: LayerEntry::default(),
+                screenshot: LayerEntry::default(),
+                toggle_ingame_ui: LayerEntry::default(),
+                roll: LayerEntry::default(),
+                respawn: LayerEntry::default(),
+                interact: LayerEntry::default(),
+                toggle_wield: LayerEntry::default(),
+                swap_loadout: LayerEntry {
+                    button: Button::Simple(GilButton::DPadDown),
+                    mod1: Button::Simple(GilButton::Unknown),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+            }
+        }
+    }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[serde(default)]
@@ -151,8 +388,8 @@ pub mod con_settings {
             Self {
                 primary: Button::Simple(GilButton::RightTrigger2),
                 secondary: Button::Simple(GilButton::LeftTrigger2),
-                block: Button::Simple(GilButton::LeftThumb),
-                slot1: Button::Simple(GilButton::RightThumb),
+                block: Button::Simple(GilButton::North),
+                slot1: Button::Simple(GilButton::Unknown),
                 slot2: Button::Simple(GilButton::Unknown),
                 slot3: Button::Simple(GilButton::Unknown),
                 slot4: Button::Simple(GilButton::Unknown),
@@ -161,9 +398,9 @@ pub mod con_settings {
                 slot7: Button::Simple(GilButton::Unknown),
                 slot8: Button::Simple(GilButton::Unknown),
                 slot9: Button::Simple(GilButton::Unknown),
-                slot10: Button::Simple(GilButton::DPadDown),
-                toggle_cursor: Button::Simple(GilButton::DPadRight),
-                escape: Button::Simple(GilButton::Select),
+                slot10: Button::Simple(GilButton::Unknown),
+                toggle_cursor: Button::Simple(GilButton::Unknown),
+                escape: Button::Simple(GilButton::Unknown),
                 enter: Button::Simple(GilButton::Unknown),
                 command: Button::Simple(GilButton::Unknown),
                 move_forward: Button::Simple(GilButton::Unknown),
@@ -173,16 +410,16 @@ pub mod con_settings {
                 jump: Button::Simple(GilButton::South),
                 sit: Button::Simple(GilButton::Unknown),
                 dance: Button::Simple(GilButton::Unknown),
-                glide: Button::Simple(GilButton::LeftTrigger),
+                glide: Button::Simple(GilButton::Unknown),
                 climb: Button::Simple(GilButton::South),
-                climb_down: Button::Simple(GilButton::East),
+                climb_down: Button::Simple(GilButton::West),
                 swimup: Button::Simple(GilButton::South),
-                swimdown: Button::Simple(GilButton::East),
-                sneak: Button::Simple(GilButton::East),
-                toggle_lantern: Button::Simple(GilButton::DPadLeft),
-                mount: Button::Simple(GilButton::North),
-                map: Button::Simple(GilButton::Start),
-                bag: Button::Simple(GilButton::Unknown),
+                swimdown: Button::Simple(GilButton::West),
+                sneak: Button::Simple(GilButton::LeftThumb),
+                toggle_lantern: Button::Simple(GilButton::Unknown),
+                mount: Button::Simple(GilButton::South),
+                map: Button::Simple(GilButton::Unknown),
+                bag: Button::Simple(GilButton::East),
                 quest_log: Button::Simple(GilButton::Unknown),
                 character_window: Button::Simple(GilButton::Unknown),
                 social: Button::Simple(GilButton::Unknown),
@@ -198,11 +435,11 @@ pub mod con_settings {
                 fullscreen: Button::Simple(GilButton::Unknown),
                 screenshot: Button::Simple(GilButton::Unknown),
                 toggle_ingame_ui: Button::Simple(GilButton::Unknown),
-                roll: Button::Simple(GilButton::RightTrigger),
+                roll: Button::Simple(GilButton::RightThumb),
                 respawn: Button::Simple(GilButton::South),
-                interact: Button::Simple(GilButton::North),
-                toggle_wield: Button::Simple(GilButton::West),
-                swap_loadout: Button::Simple(GilButton::DPadUp),
+                interact: Button::Simple(GilButton::West),
+                toggle_wield: Button::Simple(GilButton::Unknown),
+                swap_loadout: Button::Simple(GilButton::Unknown),
             }
         }
     }
@@ -210,16 +447,16 @@ pub mod con_settings {
     impl Default for MenuButtons {
         fn default() -> Self {
             Self {
-                up: Button::Simple(GilButton::Unknown),
-                down: Button::Simple(GilButton::Unknown),
-                left: Button::Simple(GilButton::Unknown),
-                right: Button::Simple(GilButton::Unknown),
+                up: Button::Simple(GilButton::DPadUp),
+                down: Button::Simple(GilButton::DPadDown),
+                left: Button::Simple(GilButton::DPadLeft),
+                right: Button::Simple(GilButton::DPadRight),
                 scroll_up: Button::Simple(GilButton::Unknown),
                 scroll_down: Button::Simple(GilButton::Unknown),
                 scroll_left: Button::Simple(GilButton::Unknown),
                 scroll_right: Button::Simple(GilButton::Unknown),
-                home: Button::Simple(GilButton::DPadUp),
-                end: Button::Simple(GilButton::DPadDown),
+                home: Button::Simple(GilButton::Unknown),
+                end: Button::Simple(GilButton::Unknown),
                 apply: Button::Simple(GilButton::South),
                 back: Button::Simple(GilButton::East),
                 exit: Button::Simple(GilButton::Mode),

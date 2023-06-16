@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     game_input::GameInput,
     render::Renderer,
-    settings::{ControlSettings, Settings},
+    settings::{ControlSettings, Settings, gamepad::con_settings::LayerEntry},
     ui,
 };
 use common_base::span;
@@ -399,6 +399,7 @@ pub struct Window {
     pub focused: bool,
     gilrs: Option<Gilrs>,
     pub controller_settings: ControllerSettings,
+    pub controller_modifiers: Vec<Button>,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
     // Currently used to send and receive screenshot result messages
@@ -501,6 +502,7 @@ impl Window {
             focused: true,
             gilrs,
             controller_settings,
+            controller_modifiers: Vec::new(),
             cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
             // Currently used to send and receive screenshot result messages
@@ -592,10 +594,35 @@ impl Window {
             while let Some(event) = gilrs.next_event() {
                 fn handle_buttons(
                     settings: &ControllerSettings,
+                    modifiers: &mut Vec<Button>,
                     events: &mut Vec<Event>,
                     button: &Button,
                     is_pressed: bool,
                 ) {
+                    if settings.modifier_buttons.contains(button) {
+                        if is_pressed {
+                            modifiers.push(*button);
+                        } else {
+                            let index = modifiers.iter().position(|x| x == button).unwrap();
+                            modifiers.remove(index);
+                        }
+                    }
+
+                    let l_entry: LayerEntry;
+                    if modifiers.len() == 2 {
+                        //this line uses the known modifiers from ControllerSettings so RB+LB represents the same layer as LB+RB
+                        l_entry = LayerEntry { button: *button, mod1: settings.modifier_buttons[0], mod2: settings.modifier_buttons[1] };
+                    } else if modifiers.len() == 1 {
+                        l_entry = LayerEntry { button: *button, mod1: modifiers[0], mod2: Button::default() };
+                    } else {
+                        l_entry = LayerEntry { button: *button, mod1: Button::default(), mod2: Button::default() };
+                    }
+
+                    if let Some(evs) = settings.layer_button_map.get(&l_entry) {
+                        for ev in evs {
+                            events.push(Event::InputUpdate(*ev, is_pressed));
+                        }
+                    }
                     if let Some(evs) = settings.game_button_map.get(button) {
                         for ev in evs {
                             events.push(Event::InputUpdate(*ev, is_pressed));
@@ -613,6 +640,7 @@ impl Window {
                     | EventType::ButtonRepeated(button, code) => {
                         handle_buttons(
                             &self.controller_settings,
+                            &mut self.controller_modifiers,
                             &mut self.events,
                             &Button::from((button, code)),
                             true,
@@ -621,6 +649,7 @@ impl Window {
                     EventType::ButtonReleased(button, code) => {
                         handle_buttons(
                             &self.controller_settings,
+                            &mut self.controller_modifiers,
                             &mut self.events,
                             &Button::from((button, code)),
                             false,
