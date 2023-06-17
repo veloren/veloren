@@ -6,6 +6,8 @@ pub mod site;
 pub mod sprite;
 pub mod structure;
 
+use std::ops::{Add, Mul};
+
 // Reexports
 pub use self::{
     biome::BiomeKind,
@@ -300,6 +302,39 @@ impl TerrainGrid {
                     .map_or(false, |b| b.is_filled())
                     && self.is_space(*pos)
             })
+    }
+
+    pub fn get_interpolated<T, F>(&self, pos: Vec2<i32>, mut f: F) -> Option<T>
+    where
+        T: Copy + Default + Add<Output = T> + Mul<f32, Output = T>,
+        F: FnMut(&TerrainChunk) -> T,
+    {
+        let pos = pos.as_::<f64>().wpos_to_cpos();
+
+        let cubic = |a: T, b: T, c: T, d: T, x: f32| -> T {
+            let x2 = x * x;
+
+            // Catmull-Rom splines
+            let co0 = a * -0.5 + b * 1.5 + c * -1.5 + d * 0.5;
+            let co1 = a + b * -2.5 + c * 2.0 + d * -0.5;
+            let co2 = a * -0.5 + c * 0.5;
+            let co3 = b;
+
+            co0 * x2 * x + co1 * x2 + co2 * x + co3
+        };
+
+        let mut x = [T::default(); 4];
+
+        for (x_idx, j) in (-1..3).enumerate() {
+            let y0 = f(self.get_key(pos.map2(Vec2::new(j, -1), |e, q| e.max(0.0) as i32 + q))?);
+            let y1 = f(self.get_key(pos.map2(Vec2::new(j, 0), |e, q| e.max(0.0) as i32 + q))?);
+            let y2 = f(self.get_key(pos.map2(Vec2::new(j, 1), |e, q| e.max(0.0) as i32 + q))?);
+            let y3 = f(self.get_key(pos.map2(Vec2::new(j, 2), |e, q| e.max(0.0) as i32 + q))?);
+
+            x[x_idx] = cubic(y0, y1, y2, y3, pos.y.fract() as f32);
+        }
+
+        Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
     }
 }
 
