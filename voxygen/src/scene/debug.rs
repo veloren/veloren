@@ -9,7 +9,8 @@ use vek::*;
 
 #[derive(Debug, PartialEq)]
 pub enum DebugShape {
-    Line([Vec3<f32>; 2]),
+    /// [Start, End], width
+    Line([Vec3<f32>; 2], f32),
     Cylinder {
         radius: f32,
         height: f32,
@@ -96,13 +97,13 @@ impl DebugShape {
         };
 
         match self {
-            DebugShape::Line([a, b]) => {
+            DebugShape::Line([a, b], width) => {
                 //let h = Vec3::new(0.0, 1.0, 0.0);
                 //mesh.push_quad(quad(*a, a + h, b + h, *b));
                 box_along_line(
                     LineSegment3 { start: *a, end: *b },
-                    0.1,
-                    0.1,
+                    *width,
+                    *width,
                     [1.0; 4],
                     &mut mesh,
                 );

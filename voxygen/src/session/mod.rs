@@ -89,6 +89,14 @@ enum TickAction {
     Disconnect,
 }
 
+#[derive(Default)]
+pub struct PlayerDebugLines {
+    pub chunk_normal: Option<DebugShapeId>,
+    pub wind: Option<DebugShapeId>,
+    pub fluid_vel: Option<DebugShapeId>,
+    pub vel: Option<DebugShapeId>,
+}
+
 pub struct SessionState {
     scene: Scene,
     pub(crate) client: Rc<RefCell<Client>>,
@@ -113,6 +121,7 @@ pub struct SessionState {
     #[cfg(not(target_os = "macos"))]
     mumble_link: SharedLink,
     hitboxes: HashMap<specs::Entity, DebugShapeId>,
+    lines: PlayerDebugLines,
     tracks: HashMap<Vec2<i32>, Vec<DebugShapeId>>,
 }
 
@@ -186,6 +195,7 @@ impl SessionState {
             hitboxes: HashMap::new(),
             metadata,
             tracks: HashMap::new(),
+            lines: Default::default(),
         }
     }
 
@@ -237,6 +247,7 @@ impl SessionState {
             &mut self.hitboxes,
             &mut self.tracks,
         );
+        self.scene.maintain_debug_vectors(&client, &mut self.lines);
 
         // All this camera code is just to determine if it's underwater for the sfx
         // filter
