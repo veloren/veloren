@@ -29,7 +29,7 @@ use specs::{
     shred, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
     Write, WriteExpect, WriteStorage,
 };
-use std::ops::Range;
+use std::{f32::consts::PI, ops::Range};
 use vek::{num_traits::Signed, *};
 
 /// The density of the fluid as a function of submersion ratio in given fluid
@@ -655,7 +655,7 @@ impl<'a> PhysicsData<'a> {
                     | itertools::MinMaxResult::OneElement(_) => 1.0,
                     itertools::MinMaxResult::MinMax(a, b) => 0.8 + ((a - b).abs() * 1.1),
                 }
-                .clamp(0.1, 2.0);
+                .min(2.0);
 
                 // Estimate warmth over day based on time of day. https://www.desmos.com/calculator/kw0ba0i7mf
                 lift *= f32::exp(-((fraction_of_day - 0.5).powf(6.0)) / 0.0001);
@@ -673,7 +673,7 @@ impl<'a> PhysicsData<'a> {
                 } else {
                     1.0
                 };
-                lift *= (above_ground / 60.).max(1.); // the first 60 blocks are weaker. starting from the ground should be difficult.
+                lift *= (above_ground / 60.).min(1.); // the first 60 blocks are weaker. starting from the ground should be difficult.
 
                 // biome thermals modifiers
                 use common::terrain::BiomeKind::*;
@@ -692,41 +692,41 @@ impl<'a> PhysicsData<'a> {
 
                 // === Ridge/Wave lift ===
 
-                // TODO: reimplement with chunk terrain normals
-                let mut ridge_lift = 1.;
+                // WORKING!
+                // TODO: average out over 4 surrounding chunks to make chunk borders less harsh.
+                // theres sometimes a noticeable bump while gliding whereas it should feel
+                // smooth.
+                let mut ridge_wind = {
+                    let normal = read
+                        .terrain
+                        .get_interpolated(pos.0.as_().xy(), |c| {
+                            c.meta()
+                                .approx_chunk_terrain_normal()
+                                .unwrap_or(Vec3::unit_z())
+                        })
+                        .unwrap_or(Vec3::unit_z());
+                    // the the line along the surface of the chunk (perpendicular to normal)
+                    let mut up = normal.cross(normal.with_z(0.)).cross(normal) * -1.;
+                    up.normalize();
+                    // a bit further up than just flat along the surface
+                    up = up.with_z(up.z + 0.2);
 
-                // let mut ridge_lift = meta
-                //     .downhill_chunk()
-                //     .map(|cpos| {
-                //         let upwards: Vec2<f32> = -(chunk_pos.cpos_to_wpos_center().as_()
-                //             - cpos.cpos_to_wpos_center().as_());
-                //         match read.terrain.get_key(cpos).map(|c| c.meta()) {
-                //             Some(other_meta) => {
-                //                 let wind = dbg!(
-                //                     (upwards + wind_velocity)
-                //                         .clamped(Vec2::zero(), Vec2::broadcast(1.0))
-                //                 );
-                //                 let vertical_distance =
-                //                     ((meta.alt() - other_meta.alt()) / 20.0).clamp(0.0,
-                // 14.0); // just guessing, 50 blocks seems like a decent max
-                //                 if wind.magnitude_squared().is_positive() {
-                //                     0.5 + dbg!(wind.magnitude()).clamp(0.0, 1.0)
-                //                         + dbg!(vertical_distance)
-                //                 } else {
-                //                     1.0
-                //                 }
-                //             },
-                //             None => 0.0,
-                //         }
-                //     })
-                //     .unwrap_or(0.0);
-                // dbg!(ridge_lift);
+                    // angle between normal and wind
+                    let mut angle = wind_velocity.angle_between(normal.xy()); // 1.4 radians of zero
+                    // a deadzone of +-1.5 radians if wind is blowing away from
+                    // the mountainside.
+                    angle = (angle - 1.3).max(0.0);
+                    // multiply the upwards vector by angle of wind incidence. less incidence means
+                    // less lift. This feels better ingame than actually
+                    // calculating how the wind would be redirected.
+                    (up * angle) * wind_velocity.magnitude_squared() * 7.
+                };
 
                 // Cliffs mean more lift
-                ridge_lift *= 0.9 + (meta.cliff_height() / 44.0) * 1.2; // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs
+                ridge_wind *= 0.9 + (meta.cliff_height() / 44.0) * 1.2; // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs
 
                 // trees mean less lift
-                ridge_lift *= (1.0 - meta.tree_density()).max(0.7); // probably 0. to 1. src: SiteKind::is_suitable_loc comparisons
+                ridge_wind *= (1.0 - meta.tree_density()).min(0.7); // probably 0. to 1. src: SiteKind::is_suitable_loc comparisons
                 drop(guard);
                 // see: https://en.wikipedia.org/wiki/Lift_(soaring)
                 // ridge/wave lift:
@@ -735,7 +735,7 @@ impl<'a> PhysicsData<'a> {
                 // convergence zones:
                 //   - where hot and cold meet.
                 //   - could use biomes/temp difference between chunks to model this
-                let wind_vel = (wind_velocity, dbg!(lift) + dbg!(ridge_lift)).into();
+                let wind_vel = ridge_wind.with_z(ridge_wind.z + lift);
                 phys.in_fluid = phys.in_fluid.map(|f| match f {
                     Fluid::Air { elevation, .. } => Fluid::Air {
                         vel: Vel(wind_vel),
