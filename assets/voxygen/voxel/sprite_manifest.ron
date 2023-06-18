@@ -52,7 +52,7 @@ BarrelCactus: Some((
             lod_axes: (1.0, 1.0, 1.0),
         ),
 		(
-            model: "voxygen.voxel.sprite.cacti.Cactus_Barrel_Flower",
+            model: "voxygen.voxel.sprite.cacti.cactus_barrel_flower",
             offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -67,23 +67,23 @@ LargeCactus: Some((
             lod_axes: (1.0, 1.0, 1.0),
         ),
 		(
-            model: "voxygen.voxel.sprite.cacti.Cactus_Branch_Large_1",
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_1",
             offset: (-2.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cacti.Cactus_Branch_Large_2",
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_2",
             offset: (-11.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
 			
         ),
 		(
-            model: "voxygen.voxel.sprite.cacti.Cactus_Branch_Large_1_Flower",
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_1_flower",
             offset: (-2.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
 		(
-            model: "voxygen.voxel.sprite.cacti.Cactus_Branch_Large_2_Flower",
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_2_flower",
             offset: (-11.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
