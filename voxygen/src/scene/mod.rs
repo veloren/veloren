@@ -39,7 +39,7 @@ use common::{
         tool::ToolKind,
     },
     outcome::Outcome,
-    resources::{DeltaTime, TimeScale},
+    resources::{DeltaTime, TimeScale, TimeOfDay},
     terrain::{BlockKind, CoordinateConversions, TerrainChunk, TerrainGrid, NEIGHBOR_DELTA},
     vol::ReadVol,
     weather::WeatherGrid,
@@ -150,11 +150,11 @@ pub struct SceneData<'a> {
 
 impl<'a> SceneData<'a> {
     pub fn get_sun_dir(&self) -> Vec3<f32> {
-        Globals::get_sun_dir(self.interpolated_time_of_day.unwrap_or(0.0))
+        TimeOfDay::new(self.interpolated_time_of_day.unwrap_or(0.0)).get_sun_dir()
     }
 
     pub fn get_moon_dir(&self) -> Vec3<f32> {
-        Globals::get_moon_dir(self.interpolated_time_of_day.unwrap_or(0.0))
+        TimeOfDay::new(self.interpolated_time_of_day.unwrap_or(0.0)).get_moon_dir()
     }
 }
 

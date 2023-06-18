@@ -2,10 +2,31 @@ use crate::comp::Pos;
 use serde::{Deserialize, Serialize};
 use specs::Entity;
 use std::ops::{Mul, MulAssign};
+use vek::Vec3;
 
 /// A resource that stores the time of day.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Default)]
 pub struct TimeOfDay(pub f64);
+impl TimeOfDay {
+    pub fn new(t: f64) -> Self { TimeOfDay(t) }
+
+    fn get_angle_rad(self) -> f32 {
+        const TIME_FACTOR: f64 = (std::f64::consts::PI * 2.0) / (3600.0 * 24.0);
+        ((self.0 as f32 * TIME_FACTOR) % (std::f64::consts::PI * 2.0)) as f32
+    }
+
+    /// Computes the direction of light from the sun based on the time of day.
+    pub fn get_sun_dir(self) -> Vec3<f32> {
+        let angle_rad = self.get_angle_rad();
+        Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos())
+    }
+
+    /// Computes the direction of light from the moon based on the time of day.
+    pub fn get_moon_dir(self) -> Vec3<f32> {
+        let angle_rad = self.get_angle_rad();
+        -Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos() - 0.5).normalized()
+    }
+}
 
 impl TimeOfDay {
     pub fn day(&self) -> f64 { self.0.rem_euclid(24.0 * 3600.0) }

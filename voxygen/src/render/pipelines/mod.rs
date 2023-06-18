@@ -20,7 +20,7 @@ pub mod ui;
 use super::{Consts, Renderer, Texture};
 use crate::scene::camera::CameraMode;
 use bytemuck::{Pod, Zeroable};
-use common::{terrain::BlockKind, util::srgb_to_linear};
+use common::{resources::TimeOfDay, terrain::BlockKind, util::srgb_to_linear};
 use std::marker::PhantomData;
 use vek::*;
 
@@ -144,8 +144,8 @@ impl Globals {
                 0.0,
                 0.0,
             ],
-            sun_dir: Vec4::from_direction(Self::get_sun_dir(time_of_day)).into_array(),
-            moon_dir: Vec4::from_direction(Self::get_moon_dir(time_of_day)).into_array(),
+            sun_dir: Vec4::from_direction(TimeOfDay::new(time_of_day).get_sun_dir()).into_array(),
+            moon_dir: Vec4::from_direction(TimeOfDay::new(time_of_day).get_moon_dir()).into_array(),
             tick: [
                 (tick % TIME_OVERFLOW) as f32,
                 (tick / TIME_OVERFLOW).floor() as f32,
@@ -194,23 +194,6 @@ impl Globals {
             sprite_render_distance,
             globals_dummy: [0.0; 3],
         }
-    }
-
-    fn get_angle_rad(time_of_day: f64) -> f32 {
-        const TIME_FACTOR: f64 = (std::f64::consts::PI * 2.0) / (3600.0 * 24.0);
-        ((time_of_day * TIME_FACTOR) % (std::f64::consts::PI * 2.0)) as f32
-    }
-
-    /// Computes the direction of light from the sun based on the time of day.
-    pub fn get_sun_dir(time_of_day: f64) -> Vec3<f32> {
-        let angle_rad = Self::get_angle_rad(time_of_day);
-        Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos())
-    }
-
-    /// Computes the direction of light from the moon based on the time of day.
-    pub fn get_moon_dir(time_of_day: f64) -> Vec3<f32> {
-        let angle_rad = Self::get_angle_rad(time_of_day);
-        -Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos() - 0.5).normalized()
     }
 }
 
