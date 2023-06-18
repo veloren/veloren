@@ -223,7 +223,7 @@ fn execute_raw(
         &mut module.store.as_store_mut(),
         &module.memory,
         &module.allocator,
-        bytes,
+        (bytes, &[]),
     )?;
 
     // This gets the event function from module exports
@@ -270,26 +270,6 @@ fn execute_raw(
         result_len,
     )?;
     Ok(bytes)
-    // Waiting for `multi-value` to be added to LLVM. So we encode a pointer to
-    // a u128 that represent [u64; 2]
-
-    // let u128_pointer = from_i64(
-    //     function_result[0]
-    //         .i64()
-    //         .ok_or_else(PluginModuleError::InvalidArgumentType)?,
-    // );
-
-    // let bytes = memory_manager::read_bytes(&module.memory, u128_pointer, 16);
-
-    // We read the return object and deserialize it
-
-    // The first 8 bytes are encoded as le and represent the pointer to the data
-    // The next 8 bytes are encoded as le and represent the length of the data
-    // Ok(memory_manager::read_bytes(
-    //     &module.memory,
-    //     u64::from_le_bytes(bytes[0..8].try_into().unwrap()),
-    //     u64::from_le_bytes(bytes[8..16].try_into().unwrap()),
-    // ))
 }
 
 fn retrieve_action(

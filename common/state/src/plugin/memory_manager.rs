@@ -147,7 +147,10 @@ impl MemoryManager {
             store,
             memory,
             allocator,
-            &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
+            (
+                &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
+                &[],
+            ),
         )
     }
 
@@ -184,7 +187,7 @@ impl MemoryManager {
             <MemoryModel as wasmer::MemorySize>::Offset,
             WasmPtr<u8, MemoryModel>,
         >,
-        bytes: &[u8],
+        bytes: (&[u8], &[u8]),
     ) -> Result<
         (
             WasmPtr<u8, MemoryModel>,
@@ -192,15 +195,22 @@ impl MemoryManager {
         ),
         PluginModuleError,
     > {
-        let len = bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset;
+        let len = (bytes.0.len() + bytes.1.len()) as <MemoryModel as wasmer::MemorySize>::Offset;
         let ptr = self
             .get_pointer(store, len, allocator)
             .map_err(PluginModuleError::MemoryAllocation)?;
         ptr.slice(
             &memory.view(store),
-            bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset,
+            len as <MemoryModel as wasmer::MemorySize>::Offset,
         )
-        .and_then(|s| s.write_slice(bytes))
+        .and_then(|s| {
+            if !bytes.1.is_empty() {
+                s.subslice(0..bytes.0.len() as u64).write_slice(bytes.0)?;
+                s.subslice(bytes.0.len() as u64..len).write_slice(bytes.1)
+            } else {
+                s.write_slice(bytes.0)
+            }
+        })
         .map_err(|_| PluginModuleError::InvalidPointer)?;
         Ok((ptr, len))
     }
@@ -221,9 +231,7 @@ impl MemoryManager {
         bytes: &[u8],
     ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
         let len = bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset;
-        let new_bytes = [&len.to_le_bytes(), bytes].concat();
-        // TODO: could make write_bytes take an IntoIterator to avoid this concat?
-        self.write_bytes(store, memory, allocator, &new_bytes)
+        self.write_bytes(store, memory, allocator, (&len.to_le_bytes(), &bytes))
             .map(|val| val.0)
     }
 }
