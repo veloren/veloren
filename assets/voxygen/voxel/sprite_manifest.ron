@@ -44,25 +44,61 @@ Window4: Some((
     wind_sway: 0.0,
 )),
 // Cacti
-LargeCactus: Some((
+BarrelCactus: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.cacti.large_cactus",
-            offset: (-13.5, -5.5, 0.0),
+            model: "voxygen.voxel.sprite.cacti.barrel_cactus",
+            offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-        (
-            model: "voxygen.voxel.sprite.cacti.tall",
+		(
+            model: "voxygen.voxel.sprite.cacti.cactus_barrel_flower",
             offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0.0,
 )),
-BarrelCactus: Some((
+LargeCactus: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.cacti.barrel_cactus",
+            model: "voxygen.voxel.sprite.cacti.large_cactus",
+            offset: (-12.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_1",
+            offset: (-2.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_2",
+            offset: (-11.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+			
+        ),
+		(
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_1_flower",
+            offset: (-2.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.cacti.cactus_branch_large_2_flower",
+            offset: (-11.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TallCactus: Some((
+    variations: [
+		(
+            model: "voxygen.voxel.sprite.cacti.tall",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cacti.tall2",
             offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -73,7 +109,7 @@ RoundCactus: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.cactus_round",
-            offset: (-6.0, -6.0, 0.0),
+            offset: (-4.5, -4.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -83,7 +119,7 @@ ShortCactus: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.cactus_short",
-            offset: (-6.0, -6.0, 0.0),
+            offset: (-10.5, -4.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -93,7 +129,7 @@ MedFlatCactus: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.flat_cactus_med",
-            offset: (-6.0, -6.0, 0.0),
+            offset: (-6.0, -2.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -103,7 +139,7 @@ ShortFlatCactus: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.flat_cactus_short",
-            offset: (-6.0, -6.0, 0.0),
+            offset: (-6.0, -2.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],

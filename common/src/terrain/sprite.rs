@@ -253,6 +253,7 @@ make_case_elim!(
         GlowIceCrystal = 0xE1,
         OneWayWall = 0xE2,
         GlassKeyhole = 0xE3,
+        TallCactus = 0xE4,
     }
 );
 
@@ -266,7 +267,9 @@ impl SpriteKind {
             SpriteKind::BedrollSnow => 0.4,
             SpriteKind::BedrollPirate => 0.3,
             SpriteKind::Tomato => 1.65,
-            SpriteKind::LargeCactus => 2.5,
+            SpriteKind::BarrelCactus => 1.0,
+            SpriteKind::LargeCactus => 3.0,
+            SpriteKind::TallCactus => 2.5,
             SpriteKind::Scarecrow => 3.0,
             SpriteKind::Turnip => 0.36,
             SpriteKind::Pumpkin => 0.81,
@@ -323,8 +326,7 @@ impl SpriteKind {
             SpriteKind::IceSpike => 1.0,
             SpriteKind::RepairBench => 1.2,
             // TODO: Find suitable heights.
-            SpriteKind::BarrelCactus
-            | SpriteKind::RoundCactus
+            SpriteKind::RoundCactus
             | SpriteKind::ShortCactus
             | SpriteKind::MedFlatCactus
             | SpriteKind::ShortFlatCactus
