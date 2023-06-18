@@ -32,10 +32,11 @@ scopeguard = "1.1.0"
 serde = { workspace = true, optional = true }
 toml = { version = "0.7", optional = true }
 tar = { version = "0.4.37", optional = true }
-wasmer = { version = "2.0.0", optional = true, default-features = false, features = ["wat", "default-cranelift", "default-universal"] }
+wasmer = { version = "4.0.0-beta.3", optional = true, default-features = false, features = ["sys", "wat", "cranelift"] }
 bincode = { workspace = true, optional = true }
 plugin-api = { package = "veloren-plugin-api", path = "../../plugin/api", optional = true }
 timer-queue = "0.1.0"
+wasmer-wasix-types = { version = "0.8.0", default-features = false }
 
 # Tweak running code
 #inline_tweak = { version = "1.0.8", features = ["release_tweak"] }

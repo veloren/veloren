@@ -1214,7 +1214,7 @@ impl Server {
         } else {
             #[cfg(feature = "plugins")]
             {
-                let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
+                let mut plugin_manager = self.state.ecs().write_resource::<PluginMgr>();
                 let ecs_world = EcsWorld {
                     entities: &self.state.ecs().entities(),
                     health: self.state.ecs().read_component().into(),

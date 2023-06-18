@@ -1,56 +1,42 @@
-#[cfg(not(target_arch = "wasm32"))]
 pub mod ability;
-#[cfg(not(target_arch = "wasm32"))] mod admin;
-#[cfg(not(target_arch = "wasm32"))] pub mod agent;
-#[cfg(not(target_arch = "wasm32"))]
+mod admin;
+pub mod agent;
 pub mod anchor;
-#[cfg(not(target_arch = "wasm32"))] pub mod aura;
-#[cfg(not(target_arch = "wasm32"))] pub mod beam;
-#[cfg(not(target_arch = "wasm32"))] pub mod body;
+pub mod aura;
+pub mod beam;
+pub mod body;
 pub mod buff;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod character_state;
-#[cfg(not(target_arch = "wasm32"))] pub mod chat;
-#[cfg(not(target_arch = "wasm32"))] pub mod combo;
+pub mod chat;
+pub mod combo;
 pub mod compass;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod controller;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod dialogue;
-#[cfg(not(target_arch = "wasm32"))] mod energy;
-#[cfg(not(target_arch = "wasm32"))]
+mod energy;
 pub mod fluid_dynamics;
-#[cfg(not(target_arch = "wasm32"))] pub mod group;
+pub mod group;
 mod health;
-#[cfg(not(target_arch = "wasm32"))] mod inputs;
-#[cfg(not(target_arch = "wasm32"))]
+mod inputs;
 pub mod inventory;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod invite;
-#[cfg(not(target_arch = "wasm32"))] mod last;
-#[cfg(not(target_arch = "wasm32"))] mod location;
+mod last;
+mod location;
 pub mod loot_owner;
-#[cfg(not(target_arch = "wasm32"))] pub mod melee;
-#[cfg(not(target_arch = "wasm32"))] mod misc;
-#[cfg(not(target_arch = "wasm32"))] pub mod ori;
-#[cfg(not(target_arch = "wasm32"))] pub mod pet;
-#[cfg(not(target_arch = "wasm32"))] mod phys;
-#[cfg(not(target_arch = "wasm32"))] mod player;
-#[cfg(not(target_arch = "wasm32"))] pub mod poise;
-#[cfg(not(target_arch = "wasm32"))]
+pub mod melee;
+mod misc;
+pub mod ori;
+pub mod pet;
+mod phys;
+mod player;
+pub mod poise;
 pub mod presence;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod projectile;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod shockwave;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod skillset;
-#[cfg(not(target_arch = "wasm32"))] mod stats;
-#[cfg(not(target_arch = "wasm32"))]
+mod stats;
 pub mod visual;
 
 // Reexports
-#[cfg(not(target_arch = "wasm32"))]
 pub use self::{
     ability::{
         Ability, AbilityInput, ActiveAbilities, CharacterAbility, CharacterAbilityType, Stance,
@@ -107,8 +93,7 @@ pub use self::{
         Collider, Density, ForceUpdate, Immovable, Mass, PhysicsState, Pos, PosVelOriDefer,
         PreviousPhysCache, Scale, Sticky, Vel,
     },
-    player::DisconnectReason,
-    player::{AliasError, Player, MAX_ALIAS_LEN},
+    player::{AliasError, DisconnectReason, Player, MAX_ALIAS_LEN},
     poise::{Poise, PoiseChange, PoiseState},
     presence::{Presence, PresenceKind},
     projectile::{Projectile, ProjectileConstructor},

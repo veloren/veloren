@@ -75,3 +75,6 @@ nix/result*
 
 # Bash
 .history
+
+# Plugins
+/assets/plugins/*

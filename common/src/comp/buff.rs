@@ -7,11 +7,9 @@ use crate::{
 };
 
 use core::cmp::Ordering;
-#[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
 use itertools::Either;
 use serde::{Deserialize, Serialize};
-#[cfg(not(target_arch = "wasm32"))]
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use strum::EnumIter;
 
@@ -121,7 +119,6 @@ pub enum BuffKind {
     Lifesteal,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl BuffKind {
     /// Checks if buff is buff or debuff.
     pub fn is_buff(self) -> bool {
@@ -330,7 +327,6 @@ pub struct BuffData {
     pub delay: Option<Secs>,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl BuffData {
     pub fn new(strength: f32, duration: Option<Secs>, delay: Option<Secs>) -> Self {
         Self {
@@ -456,7 +452,6 @@ pub enum BuffChange {
     Refresh(BuffKind),
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl Buff {
     /// Builder function for buffs
     pub fn new(
@@ -493,7 +488,6 @@ impl Buff {
     pub fn elapsed(&self, time: Time) -> Secs { Secs(time.0 - self.start_time.0) }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl PartialOrd for Buff {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self == other {
@@ -516,12 +510,10 @@ impl PartialOrd for Buff {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 fn compare_end_time(a: Option<Time>, b: Option<Time>) -> bool {
     a.map_or(true, |time_a| b.map_or(false, |time_b| time_a.0 > time_b.0))
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl PartialEq for Buff {
     fn eq(&self, other: &Self) -> bool {
         self.data.strength == other.data.strength
@@ -558,7 +550,6 @@ pub enum BuffSource {
 /// and undone on removal of the buff (by the specs system).
 /// Example could be decreasing max health, which, if repeated each tick,
 /// would be probably an undesired effect).
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Buffs {
     /// Uid used for synchronization
@@ -571,7 +562,6 @@ pub struct Buffs {
     pub buffs: HashMap<BuffId, Buff>,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl Buffs {
     fn sort_kind(&mut self, kind: BuffKind) {
         if let Some(buff_order) = self.kinds.get_mut(&kind) {
@@ -686,7 +676,6 @@ impl Buffs {
 
 pub type BuffId = u64;
 
-#[cfg(not(target_arch = "wasm32"))]
 impl Component for Buffs {
     type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }

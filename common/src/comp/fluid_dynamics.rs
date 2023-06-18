@@ -1,6 +1,7 @@
-#[cfg(not(target_arch = "wasm32"))]
-use super::body::{object, Body};
-use super::{Density, Ori, Vel};
+use super::{
+    body::{object, Body},
+    Density, Ori, Vel,
+};
 use crate::{
     consts::{AIR_DENSITY, LAVA_DENSITY, WATER_DENSITY},
     util::{Dir, Plane, Projection},
@@ -128,7 +129,6 @@ pub struct Wings {
     pub ori: Ori,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 impl Body {
     pub fn aerodynamic_forces(
         &self,

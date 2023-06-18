@@ -1,4 +1,5 @@
 pub mod errors;
+pub mod exports;
 pub mod memory_manager;
 pub mod module;
 pub mod wasm_env;
@@ -13,6 +14,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tracing::{error, info};
+use wasmer::Memory64;
 
 use plugin_api::Event;
 
@@ -24,6 +26,8 @@ use self::{
 
 use rayon::prelude::*;
 
+pub type MemoryModel = Memory64;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginData {
     name: String,
@@ -31,7 +35,6 @@ pub struct PluginData {
     dependencies: HashSet<String>,
 }
 
-#[derive(Clone)]
 pub struct Plugin {
     data: PluginData,
     modules: Vec<PluginModule>,
@@ -87,7 +90,7 @@ impl Plugin {
     }
 
     pub fn execute_prepared<T>(
-        &self,
+        &mut self,
         ecs: &EcsWorld,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
@@ -95,7 +98,7 @@ impl Plugin {
         T: Event,
     {
         self.modules
-            .iter()
+            .iter_mut()
             .flat_map(|module| {
                 module.try_execute(ecs, event).map(|x| {
                     x.map_err(|e| {
@@ -111,7 +114,7 @@ impl Plugin {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct PluginMgr {
     plugins: Vec<Plugin>,
 }
@@ -125,7 +128,7 @@ impl PluginMgr {
     }
 
     pub fn execute_prepared<T>(
-        &self,
+        &mut self,
         ecs: &EcsWorld,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
@@ -134,7 +137,7 @@ impl PluginMgr {
     {
         Ok(self
             .plugins
-            .par_iter()
+            .par_iter_mut()
             .map(|plugin| plugin.execute_prepared(ecs, event))
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()
@@ -143,7 +146,7 @@ impl PluginMgr {
     }
 
     pub fn execute_event<T>(
-        &self,
+        &mut self,
         ecs: &EcsWorld,
         event: &T,
     ) -> Result<Vec<T::Response>, PluginError>

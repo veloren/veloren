@@ -1,17 +1,20 @@
-use std::sync::atomic::{AtomicPtr, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicPtr, Ordering};
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Deserialize, Serialize};
 use specs::{
     storage::GenericReadStorage, Component, Entities, Entity, Read, ReadStorage, WriteStorage,
 };
-use wasmer::{Function, Memory, Value};
+use wasmer::{Memory, StoreMut, StoreRef, TypedFunction, WasmPtr};
 
 use common::{
     comp::{Health, Player},
     uid::{IdMaps, Uid},
 };
 
-use super::errors::{MemoryAllocationError, PluginModuleError};
+use super::{
+    errors::{MemoryAllocationError, PluginModuleError},
+    MemoryModel,
+};
 
 pub struct EcsWorld<'a, 'b> {
     pub entities: &'b Entities<'a>,
@@ -54,10 +57,6 @@ impl<'a, 'b, T: Component> From<&'b WriteStorage<'a, T>> for EcsComponentAccess<
 impl<'a, 'b, T: Component> From<WriteStorage<'a, T>> for EcsComponentAccess<'a, 'b, T> {
     fn from(a: WriteStorage<'a, T>) -> Self { Self::WriteOwned(a) }
 }
-
-// pub enum EcsResourceAccess<'a, T> {
-//     Read(Read<'a, T>),
-// }
 
 /// This structure wraps the ECS pointer to ensure safety
 pub struct EcsAccessManager {
@@ -104,19 +103,8 @@ impl EcsAccessManager {
     }
 }
 
-pub struct MemoryManager {
-    pub pointer: AtomicU64,
-    pub length: AtomicU32,
-}
-
-impl Default for MemoryManager {
-    fn default() -> Self {
-        Self {
-            pointer: AtomicU64::new(0),
-            length: AtomicU32::new(0),
-        }
-    }
-}
+#[derive(Default)]
+pub struct MemoryManager;
 
 impl MemoryManager {
     /// This function check if the buffer is wide enough if not it realloc the
@@ -125,38 +113,47 @@ impl MemoryManager {
     /// ordering
     pub fn get_pointer(
         &self,
-        object_length: u32,
-        allocator: &Function,
-    ) -> Result<u64, MemoryAllocationError> {
-        if self.length.load(Ordering::SeqCst) >= object_length {
-            return Ok(self.pointer.load(Ordering::SeqCst));
-        }
-        let pointer = allocator
-            .call(&[Value::I32(object_length as i32)])
-            .map_err(MemoryAllocationError::CantAllocate)?;
-        let pointer = super::module::from_i64(
-            pointer[0]
-                .i64()
-                .ok_or(MemoryAllocationError::InvalidReturnType)?,
-        );
-        self.length.store(object_length, Ordering::SeqCst);
-        self.pointer.store(pointer, Ordering::SeqCst);
-        Ok(pointer)
+        store: &mut StoreMut,
+        object_length: <MemoryModel as wasmer::MemorySize>::Offset,
+        allocator: &TypedFunction<
+            <MemoryModel as wasmer::MemorySize>::Offset,
+            WasmPtr<u8, MemoryModel>,
+        >,
+    ) -> Result<WasmPtr<u8, MemoryModel>, MemoryAllocationError> {
+        allocator
+            .call(store, object_length)
+            .map_err(MemoryAllocationError::CantAllocate)
     }
 
     /// This function writes an object to WASM memory returning a pointer and a
     /// length. Will realloc the buffer is not wide enough
     pub fn write_data<T: Serialize>(
         &self,
+        store: &mut StoreMut,
         memory: &Memory,
-        allocator: &Function,
+        allocator: &TypedFunction<
+            <MemoryModel as wasmer::MemorySize>::Offset,
+            WasmPtr<u8, MemoryModel>,
+        >,
         object: &T,
-    ) -> Result<(u64, u64), PluginModuleError> {
+    ) -> Result<
+        (
+            WasmPtr<u8, MemoryModel>,
+            <MemoryModel as wasmer::MemorySize>::Offset,
+        ),
+        PluginModuleError,
+    > {
         self.write_bytes(
+            store,
             memory,
             allocator,
             &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
         )
+    }
+
+    /// This functions wraps the serialization process
+    pub fn serialize_data<T: Serialize>(object: &T) -> Result<Vec<u8>, PluginModuleError> {
+        bincode::serialize(object).map_err(PluginModuleError::Encoding)
     }
 
     /// This function writes an object to the wasm memory using the allocator if
@@ -166,34 +163,46 @@ impl MemoryManager {
     /// following slice (The object serialized).
     pub fn write_data_as_pointer<T: Serialize>(
         &self,
+        store: &mut StoreMut,
         memory: &Memory,
-        allocator: &Function,
+        allocator: &TypedFunction<
+            <MemoryModel as wasmer::MemorySize>::Offset,
+            WasmPtr<u8, MemoryModel>,
+        >,
         object: &T,
-    ) -> Result<u64, PluginModuleError> {
-        self.write_bytes_as_pointer(
-            memory,
-            allocator,
-            &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
-        )
+    ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
+        self.write_bytes_as_pointer(store, memory, allocator, &Self::serialize_data(object)?)
     }
 
     /// This function writes an raw bytes to WASM memory returning a pointer and
     /// a length. Will realloc the buffer is not wide enough
     pub fn write_bytes(
         &self,
+        store: &mut StoreMut,
         memory: &Memory,
-        allocator: &Function,
+        allocator: &TypedFunction<
+            <MemoryModel as wasmer::MemorySize>::Offset,
+            WasmPtr<u8, MemoryModel>,
+        >,
         bytes: &[u8],
-    ) -> Result<(u64, u64), PluginModuleError> {
-        let len = bytes.len();
-        let mem_position = self
-            .get_pointer(len as u32, allocator)
-            .map_err(PluginModuleError::MemoryAllocation)? as usize;
-        memory.view()[mem_position..mem_position + len]
-            .iter()
-            .zip(bytes.iter())
-            .for_each(|(cell, byte)| cell.set(*byte));
-        Ok((mem_position as u64, len as u64))
+    ) -> Result<
+        (
+            WasmPtr<u8, MemoryModel>,
+            <MemoryModel as wasmer::MemorySize>::Offset,
+        ),
+        PluginModuleError,
+    > {
+        let len = bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset;
+        let ptr = self
+            .get_pointer(store, len, allocator)
+            .map_err(PluginModuleError::MemoryAllocation)?;
+        ptr.slice(
+            &memory.view(store),
+            bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset,
+        )
+        .and_then(|s| s.write_slice(bytes))
+        .map_err(|_| PluginModuleError::InvalidPointer)?;
+        Ok((ptr, len))
     }
 
     /// This function writes bytes to the wasm memory using the allocator if
@@ -203,38 +212,44 @@ impl MemoryManager {
     /// following slice.
     pub fn write_bytes_as_pointer(
         &self,
+        store: &mut StoreMut,
         memory: &Memory,
-        allocator: &Function,
+        allocator: &TypedFunction<
+            <MemoryModel as wasmer::MemorySize>::Offset,
+            WasmPtr<u8, MemoryModel>,
+        >,
         bytes: &[u8],
-    ) -> Result<u64, PluginModuleError> {
-        let len = bytes.len();
-        let mem_position = self
-            .get_pointer(len as u32 + 8, allocator)
-            .map_err(PluginModuleError::MemoryAllocation)? as usize;
-        // Here we write the length as le bytes followed by the slice data itself in
-        // WASM memory
-        memory.view()[mem_position..mem_position + len + 8]
-            .iter()
-            .zip((len as u64).to_le_bytes().iter().chain(bytes.iter()))
-            .for_each(|(cell, byte)| cell.set(*byte));
-        Ok(mem_position as u64)
+    ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
+        let len = bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset;
+        let new_bytes = [&len.to_le_bytes(), bytes].concat();
+        // TODO: could make write_bytes take an IntoIterator to avoid this concat?
+        self.write_bytes(store, memory, allocator, &new_bytes)
+            .map(|val| val.0)
     }
 }
 
-/// This function read data from memory at a position with the array length and
+/// This function reads data from memory at a position with the array length and
 /// converts it to an object using bincode
-pub fn read_data<T: DeserializeOwned>(
-    memory: &Memory,
-    position: u64,
-    length: u64,
+pub fn read_data<'a, T: for<'b> Deserialize<'b>>(
+    memory: &'a Memory,
+    store: &StoreRef,
+    ptr: WasmPtr<u8, MemoryModel>,
+    len: <MemoryModel as wasmer::MemorySize>::Offset,
 ) -> Result<T, bincode::Error> {
-    bincode::deserialize(&read_bytes(memory, position, length))
+    bincode::deserialize(
+        &read_bytes(memory, store, ptr, len).map_err(|_| bincode::ErrorKind::SizeLimit)?,
+    )
 }
 
-/// This function read raw bytes from memory at a position with the array length
-pub fn read_bytes(memory: &Memory, position: u64, length: u64) -> Vec<u8> {
-    memory.view()[(position as usize)..(position as usize) + length as usize]
-        .iter()
-        .map(|x| x.get())
-        .collect()
+/// This function reads raw bytes from memory at a position with the array
+/// length
+pub fn read_bytes(
+    memory: &Memory,
+    store: &StoreRef,
+    ptr: WasmPtr<u8, MemoryModel>,
+    len: <MemoryModel as wasmer::MemorySize>::Offset,
+) -> Result<Vec<u8>, PluginModuleError> {
+    ptr.slice(&memory.view(store), len)
+        .and_then(|s| s.read_to_vec())
+        .map_err(|_| PluginModuleError::InvalidPointer)
 }
