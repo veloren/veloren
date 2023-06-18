@@ -217,7 +217,7 @@ impl Tunnel {
     }
 }
 
-fn tunnels_at<'a>(
+pub(crate) fn tunnels_at<'a>(
     wpos: Vec2<i32>,
     level: u32,
     land: &'a Land,

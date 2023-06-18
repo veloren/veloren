@@ -4,6 +4,7 @@ mod econ;
 
 use crate::{
     config::CONFIG,
+    layer::cave,
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
@@ -1879,7 +1880,20 @@ impl SiteKind {
                     }
                     true
                 },
-                SiteKind::Dungeon => on_land(),
+                SiteKind::Dungeon => {
+                    on_land() && {
+                        let land = Land::from_sim(sim);
+                        let loc = loc.map(|v| TerrainChunkSize::RECT_SIZE.y as i32 * v);
+
+                        // Get shallow caves under the dungeon
+                        let mut tunnels =
+                            cave::tunnels_at(loc /* very surely wrong */, 1, &land)
+                                .chain(cave::tunnels_at(loc, 2, &land));
+
+                        // Make sure there are no shallow caves near the dungeon
+                        tunnels.next().is_none()
+                    }
+                },
                 SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(),
                 SiteKind::Bridge(_, _) => true,
             }
