@@ -5,7 +5,7 @@ use wasmer::{ExportError, Instance, Memory, Store, StoreMut, StoreRef, TypedFunc
 
 use super::{
     errors::PluginModuleError,
-    memory_manager::{self, EcsAccessManager, MemoryManager},
+    memory_manager::{self, EcsAccessManager},
     MemoryModel,
 };
 
@@ -18,9 +18,7 @@ pub struct HostFunctionEnvironment {
     pub allocator: Option<
         TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>>,
     >, /* Linked to: wasm_prepare_buffer */
-    pub memory_manager: Arc<MemoryManager>, /* This object represent the current buffer size and
-                                 * pointer */
-    pub name: String, // This represent the plugin name
+    pub name: String,           // This represent the plugin name
 }
 
 pub struct HostFunctionEnvironmentInit {
@@ -29,13 +27,8 @@ pub struct HostFunctionEnvironmentInit {
 }
 
 impl HostFunctionEnvironment {
-    pub fn new(
-        name: String,
-        ecs: Arc<EcsAccessManager>,
-        memory_manager: Arc<MemoryManager>,
-    ) -> Self {
+    pub fn new(name: String, ecs: Arc<EcsAccessManager>) -> Self {
         Self {
-            memory_manager,
             ecs,
             allocator: Default::default(),
             memory: Default::default(),
@@ -57,9 +50,6 @@ impl HostFunctionEnvironment {
     }
 
     #[inline]
-    pub fn memory_manager(&self) -> &Arc<MemoryManager> { &self.memory_manager }
-
-    #[inline]
     pub fn name(&self) -> &str { &self.name }
 
     /// This function is a safe interface to WASM memory that writes data to the
@@ -75,8 +65,7 @@ impl HostFunctionEnvironment {
         ),
         PluginModuleError,
     > {
-        self.memory_manager
-            .write_data(store, self.memory(), self.allocator(), object)
+        memory_manager::write_data(store, self.memory(), self.allocator(), object)
     }
 
     /// This function is a safe interface to WASM memory that writes data to the
@@ -86,8 +75,7 @@ impl HostFunctionEnvironment {
         store: &mut StoreMut,
         object: &T,
     ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
-        self.memory_manager
-            .write_data_as_pointer(store, self.memory(), self.allocator(), object)
+        memory_manager::write_data_as_pointer(store, self.memory(), self.allocator(), object)
     }
 
     /// This function is a safe interface to WASM memory that reads memory from

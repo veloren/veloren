@@ -103,137 +103,124 @@ impl EcsAccessManager {
     }
 }
 
-#[derive(Default)]
-pub struct MemoryManager;
+/// This function check if the buffer is wide enough if not it realloc the
+/// buffer calling the `wasm_prepare_buffer` function Note: There is
+/// probably optimizations that can be done using less restrictive
+/// ordering
+pub fn get_pointer(
+    store: &mut StoreMut,
+    object_length: <MemoryModel as wasmer::MemorySize>::Offset,
+    allocator: &TypedFunction<
+        <MemoryModel as wasmer::MemorySize>::Offset,
+        WasmPtr<u8, MemoryModel>,
+    >,
+) -> Result<WasmPtr<u8, MemoryModel>, MemoryAllocationError> {
+    allocator
+        .call(store, object_length)
+        .map_err(MemoryAllocationError::CantAllocate)
+}
 
-impl MemoryManager {
-    /// This function check if the buffer is wide enough if not it realloc the
-    /// buffer calling the `wasm_prepare_buffer` function Note: There is
-    /// probably optimizations that can be done using less restrictive
-    /// ordering
-    pub fn get_pointer(
-        &self,
-        store: &mut StoreMut,
-        object_length: <MemoryModel as wasmer::MemorySize>::Offset,
-        allocator: &TypedFunction<
-            <MemoryModel as wasmer::MemorySize>::Offset,
-            WasmPtr<u8, MemoryModel>,
-        >,
-    ) -> Result<WasmPtr<u8, MemoryModel>, MemoryAllocationError> {
-        allocator
-            .call(store, object_length)
-            .map_err(MemoryAllocationError::CantAllocate)
-    }
-
-    /// This function writes an object to WASM memory returning a pointer and a
-    /// length. Will realloc the buffer is not wide enough
-    pub fn write_data<T: Serialize>(
-        &self,
-        store: &mut StoreMut,
-        memory: &Memory,
-        allocator: &TypedFunction<
-            <MemoryModel as wasmer::MemorySize>::Offset,
-            WasmPtr<u8, MemoryModel>,
-        >,
-        object: &T,
-    ) -> Result<
+/// This function writes an object to WASM memory returning a pointer and a
+/// length. Will realloc the buffer is not wide enough
+pub fn write_data<T: Serialize>(
+    store: &mut StoreMut,
+    memory: &Memory,
+    allocator: &TypedFunction<
+        <MemoryModel as wasmer::MemorySize>::Offset,
+        WasmPtr<u8, MemoryModel>,
+    >,
+    object: &T,
+) -> Result<
+    (
+        WasmPtr<u8, MemoryModel>,
+        <MemoryModel as wasmer::MemorySize>::Offset,
+    ),
+    PluginModuleError,
+> {
+    write_bytes(
+        store,
+        memory,
+        allocator,
         (
-            WasmPtr<u8, MemoryModel>,
-            <MemoryModel as wasmer::MemorySize>::Offset,
+            &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
+            &[],
         ),
-        PluginModuleError,
-    > {
-        self.write_bytes(
-            store,
-            memory,
-            allocator,
-            (
-                &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
-                &[],
-            ),
-        )
-    }
+    )
+}
 
-    /// This functions wraps the serialization process
-    pub fn serialize_data<T: Serialize>(object: &T) -> Result<Vec<u8>, PluginModuleError> {
-        bincode::serialize(object).map_err(PluginModuleError::Encoding)
-    }
+/// This functions wraps the serialization process
+pub fn serialize_data<T: Serialize>(object: &T) -> Result<Vec<u8>, PluginModuleError> {
+    bincode::serialize(object).map_err(PluginModuleError::Encoding)
+}
 
-    /// This function writes an object to the wasm memory using the allocator if
-    /// necessary using length padding.
-    ///
-    /// With length padding the first 8 bytes written are the length of the the
-    /// following slice (The object serialized).
-    pub fn write_data_as_pointer<T: Serialize>(
-        &self,
-        store: &mut StoreMut,
-        memory: &Memory,
-        allocator: &TypedFunction<
-            <MemoryModel as wasmer::MemorySize>::Offset,
-            WasmPtr<u8, MemoryModel>,
-        >,
-        object: &T,
-    ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
-        self.write_bytes_as_pointer(store, memory, allocator, &Self::serialize_data(object)?)
-    }
+/// This function writes an object to the wasm memory using the allocator if
+/// necessary using length padding.
+///
+/// With length padding the first 8 bytes written are the length of the the
+/// following slice (The object serialized).
+pub fn write_data_as_pointer<T: Serialize>(
+    store: &mut StoreMut,
+    memory: &Memory,
+    allocator: &TypedFunction<
+        <MemoryModel as wasmer::MemorySize>::Offset,
+        WasmPtr<u8, MemoryModel>,
+    >,
+    object: &T,
+) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
+    write_bytes_as_pointer(store, memory, allocator, &serialize_data(object)?)
+}
 
-    /// This function writes an raw bytes to WASM memory returning a pointer and
-    /// a length. Will realloc the buffer is not wide enough
-    pub fn write_bytes(
-        &self,
-        store: &mut StoreMut,
-        memory: &Memory,
-        allocator: &TypedFunction<
-            <MemoryModel as wasmer::MemorySize>::Offset,
-            WasmPtr<u8, MemoryModel>,
-        >,
-        bytes: (&[u8], &[u8]),
-    ) -> Result<
-        (
-            WasmPtr<u8, MemoryModel>,
-            <MemoryModel as wasmer::MemorySize>::Offset,
-        ),
-        PluginModuleError,
-    > {
-        let len = (bytes.0.len() + bytes.1.len()) as <MemoryModel as wasmer::MemorySize>::Offset;
-        let ptr = self
-            .get_pointer(store, len, allocator)
-            .map_err(PluginModuleError::MemoryAllocation)?;
-        ptr.slice(
-            &memory.view(store),
-            len as <MemoryModel as wasmer::MemorySize>::Offset,
-        )
-        .and_then(|s| {
-            if !bytes.1.is_empty() {
-                s.subslice(0..bytes.0.len() as u64).write_slice(bytes.0)?;
-                s.subslice(bytes.0.len() as u64..len).write_slice(bytes.1)
-            } else {
-                s.write_slice(bytes.0)
-            }
-        })
-        .map_err(|_| PluginModuleError::InvalidPointer)?;
-        Ok((ptr, len))
-    }
+/// This function writes an raw bytes to WASM memory returning a pointer and
+/// a length. Will realloc the buffer is not wide enough
+pub fn write_bytes(
+    store: &mut StoreMut,
+    memory: &Memory,
+    allocator: &TypedFunction<
+        <MemoryModel as wasmer::MemorySize>::Offset,
+        WasmPtr<u8, MemoryModel>,
+    >,
+    bytes: (&[u8], &[u8]),
+) -> Result<
+    (
+        WasmPtr<u8, MemoryModel>,
+        <MemoryModel as wasmer::MemorySize>::Offset,
+    ),
+    PluginModuleError,
+> {
+    let len = (bytes.0.len() + bytes.1.len()) as <MemoryModel as wasmer::MemorySize>::Offset;
+    let ptr = get_pointer(store, len, allocator).map_err(PluginModuleError::MemoryAllocation)?;
+    ptr.slice(
+        &memory.view(store),
+        len as <MemoryModel as wasmer::MemorySize>::Offset,
+    )
+    .and_then(|s| {
+        if !bytes.1.is_empty() {
+            s.subslice(0..bytes.0.len() as u64).write_slice(bytes.0)?;
+            s.subslice(bytes.0.len() as u64..len).write_slice(bytes.1)
+        } else {
+            s.write_slice(bytes.0)
+        }
+    })
+    .map_err(|_| PluginModuleError::InvalidPointer)?;
+    Ok((ptr, len))
+}
 
-    /// This function writes bytes to the wasm memory using the allocator if
-    /// necessary using length padding.
-    ///
-    /// With length padding the first 8 bytes written are the length of the the
-    /// following slice.
-    pub fn write_bytes_as_pointer(
-        &self,
-        store: &mut StoreMut,
-        memory: &Memory,
-        allocator: &TypedFunction<
-            <MemoryModel as wasmer::MemorySize>::Offset,
-            WasmPtr<u8, MemoryModel>,
-        >,
-        bytes: &[u8],
-    ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
-        let len = bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset;
-        self.write_bytes(store, memory, allocator, (&len.to_le_bytes(), &bytes))
-            .map(|val| val.0)
-    }
+/// This function writes bytes to the wasm memory using the allocator if
+/// necessary using length padding.
+///
+/// With length padding the first 8 bytes written are the length of the the
+/// following slice.
+pub fn write_bytes_as_pointer(
+    store: &mut StoreMut,
+    memory: &Memory,
+    allocator: &TypedFunction<
+        <MemoryModel as wasmer::MemorySize>::Offset,
+        WasmPtr<u8, MemoryModel>,
+    >,
+    bytes: &[u8],
+) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
+    let len = bytes.len() as <MemoryModel as wasmer::MemorySize>::Offset;
+    write_bytes(store, memory, allocator, (&len.to_le_bytes(), bytes)).map(|val| val.0)
 }
 
 /// This function reads data from memory at a position with the array length and

@@ -9,7 +9,7 @@ use wasmer::{
 use super::{
     errors::{PluginError, PluginModuleError},
     exports,
-    memory_manager::{self, EcsAccessManager, EcsWorld, MemoryManager},
+    memory_manager::{self, EcsAccessManager, EcsWorld},
     wasm_env::HostFunctionEnvironment,
     MemoryModel,
 };
@@ -21,7 +21,6 @@ use plugin_api::{Action, EcsAccessError, Event, Retrieve, RetrieveError, Retriev
 pub struct PluginModule {
     ecs: Arc<EcsAccessManager>,
     wasm_state: Arc<Instance>,
-    memory_manager: Arc<MemoryManager>,
     events: HashSet<String>,
     allocator: TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>>,
     memory: Memory,
@@ -80,16 +79,11 @@ impl PluginModule {
         }
 
         let ecs = Arc::new(EcsAccessManager::default());
-        let memory_manager = Arc::new(MemoryManager::default());
 
         // Environment to pass ecs and memory_manager to callbacks
         let env = FunctionEnv::new(
             &mut store,
-            HostFunctionEnvironment::new(
-                name.clone(),
-                Arc::clone(&ecs),
-                Arc::clone(&memory_manager),
-            ),
+            HostFunctionEnvironment::new(name.clone(), Arc::clone(&ecs)),
         );
         // Create an import object.
         let import_object = imports! {
@@ -113,7 +107,6 @@ impl PluginModule {
             .map_err(PluginModuleError::FindFunction)?;
         env.as_mut(&mut store).init_with_instance(init_args);
         Ok(Self {
-            memory_manager,
             ecs,
             memory: instance
                 .exports
@@ -219,7 +212,7 @@ fn execute_raw(
     // This write into memory `bytes` using allocation if necessary returning a
     // pointer and a length
 
-    let (ptr, len) = module.memory_manager.write_bytes(
+    let (ptr, len) = memory_manager::write_bytes(
         &mut module.store.as_store_mut(),
         &module.memory,
         &module.allocator,
