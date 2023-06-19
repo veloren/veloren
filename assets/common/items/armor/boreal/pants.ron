@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Boreal's Tunic",
+    name: "Boreal Tunic",
     description: "Colder than the climate it protects you from.",
     kind: Armor((
         kind: Pants,

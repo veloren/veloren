@@ -1676,7 +1676,7 @@
     ),
     // Picks
     Simple("common.items.tool.pickaxe_stone"): VoxTrans(
-        "voxel.weapon.tool.pickaxe_green-0",
+        "voxel.weapon.tool.pickaxe_stone",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     Simple("common.items.tool.pickaxe_steel"): VoxTrans(
@@ -3526,6 +3526,10 @@
         "voxel.sprite.crafting_ing.cloth.linen",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
+    Simple("common.items.crafting_ing.cloth.cloth_strips"): VoxTrans(
+        "voxel.sprite.crafting_ing.cloth.cloth_strips",
+        (1.0, 0.0, 0.0), (0.0, 0.0, 25.0), 0.9,
+    ),
     Simple("common.items.crafting_ing.cloth.wool"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.wool",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
@@ -3557,6 +3561,10 @@
     Simple("common.items.crafting_ing.living_embers"): VoxTrans(
         "voxel.sprite.crafting_ing.living_embers",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
+    ),
+    Simple("common.items.crafting_ing.sentient_seed"): VoxTrans(
+        "voxel.sprite.crafting_ing.sentient_seed",
+        (0.0, 0.0, 0.0), (-75.0, 25.0, 10.0), 0.9,
     ),
     Simple("common.items.crafting_ing.resin"): VoxTrans(
         "voxel.sprite.crafting_ing.resin",

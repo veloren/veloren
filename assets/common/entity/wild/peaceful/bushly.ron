@@ -2,7 +2,7 @@
 (
     name: Name("Bushly"),
     body: RandomWith("bushly"),
-    alignment: Alignment(Enemy),
+    alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.biped_small.bushly"),
     inventory: (
         loadout: Inline((

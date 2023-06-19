@@ -1,3 +1,4 @@
 [
-    (1.0, Item("common.items.flowers.plant_fiber")),
+    (2.0, Item("common.items.flowers.plant_fiber")),
+    (1.0, Item("common.items.crafting_ing.sentient_seed")),
 ]

@@ -7,9 +7,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: None,
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -19,9 +17,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: None,
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -79,9 +75,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -91,9 +85,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -151,9 +143,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -163,9 +153,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -223,9 +211,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -235,9 +221,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -295,9 +279,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -307,9 +289,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -367,9 +347,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -379,9 +357,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -439,9 +415,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -451,9 +425,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -512,9 +484,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: None,
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -524,9 +494,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: None,
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -584,9 +552,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -596,9 +562,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -656,9 +620,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -668,9 +630,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -728,9 +688,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -740,9 +698,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -800,9 +756,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -812,9 +766,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -872,9 +824,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -884,9 +834,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -944,9 +892,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -956,9 +902,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1017,9 +961,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: None,
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1029,9 +971,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: None,
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1089,9 +1029,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1101,9 +1039,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1161,9 +1097,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1173,9 +1107,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1233,9 +1165,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1245,9 +1175,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1305,9 +1233,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1317,9 +1243,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1377,9 +1301,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1389,9 +1311,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1449,9 +1369,7 @@
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1461,9 +1379,7 @@
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
-        additional_inputs: [
-            (Item("common.items.tool.craftsman_hammer"), 0),
-        ],
+        additional_inputs: [],
         craft_sprite: Some(Anvil),
     ),
     (
@@ -1986,7 +1902,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -1998,7 +1914,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2010,7 +1926,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2022,7 +1938,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2034,7 +1950,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2046,7 +1962,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2058,7 +1974,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2070,7 +1986,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2082,7 +1998,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2094,7 +2010,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2106,7 +2022,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2118,7 +2034,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2130,7 +2046,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2142,7 +2058,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2154,7 +2070,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2166,7 +2082,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2178,7 +2094,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2190,7 +2106,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2202,7 +2118,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2214,7 +2130,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2226,7 +2142,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2238,7 +2154,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2250,7 +2166,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2262,7 +2178,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2274,7 +2190,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2286,7 +2202,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2298,7 +2214,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2310,7 +2226,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2322,7 +2238,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2334,7 +2250,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2346,7 +2262,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2358,7 +2274,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2370,7 +2286,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2382,7 +2298,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2394,7 +2310,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2406,7 +2322,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2418,7 +2334,7 @@
         material: ("common.items.log.wood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2430,7 +2346,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2442,7 +2358,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2454,7 +2370,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2466,7 +2382,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2478,7 +2394,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2491,7 +2407,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2503,7 +2419,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2515,7 +2431,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2527,7 +2443,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2539,7 +2455,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2551,7 +2467,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2563,7 +2479,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2575,7 +2491,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2587,7 +2503,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2599,7 +2515,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2611,7 +2527,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2623,7 +2539,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2635,7 +2551,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2647,7 +2563,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2659,7 +2575,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2671,7 +2587,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2683,7 +2599,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2695,7 +2611,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2707,7 +2623,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2719,7 +2635,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2731,7 +2647,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2743,7 +2659,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2755,7 +2671,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2767,7 +2683,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2779,7 +2695,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2791,7 +2707,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2803,7 +2719,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2815,7 +2731,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2827,7 +2743,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2839,7 +2755,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2851,7 +2767,7 @@
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2863,7 +2779,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2875,7 +2791,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2887,7 +2803,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2899,7 +2815,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 15)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2911,7 +2827,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 25)),
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2923,7 +2839,7 @@
         material: ("common.items.log.wood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2935,7 +2851,7 @@
         material: ("common.items.log.bamboo", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2947,7 +2863,7 @@
         material: ("common.items.log.hardwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2959,7 +2875,7 @@
         material: ("common.items.log.ironwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2971,7 +2887,7 @@
         material: ("common.items.log.frostwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2983,7 +2899,7 @@
         material: ("common.items.log.eldwood", 5),
         modifier: None,
         additional_inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 2),
         ],
         craft_sprite: Some(CraftingBench),
     ),

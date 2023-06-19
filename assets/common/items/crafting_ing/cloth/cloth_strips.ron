@@ -1,10 +1,10 @@
 ItemDef(
-    name: "Living Embers",
-    description: "The smouldering remains of a fiery creature.",
+    name: "Cloth Strips",
+    description: "Small and soft, yet useful",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",
     ),
     quality: Common,
-    tags: [],
+    tags: [BaseMaterial],
 )

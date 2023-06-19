@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Boreal's Chestplate",
+    name: "Boreal Chestplate",
     description: "So frigid that you can feel it in your heart.",
     kind: Armor((
         kind: Chest,

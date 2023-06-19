@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Boreal's Guantlets",
+    name: "Boreal Gauntlets",
     description: "Colder than the touch of death.",
     kind: Armor((
         kind: Hand,
