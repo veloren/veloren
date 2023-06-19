@@ -2,7 +2,7 @@
 (
     name: Name("TreantSapling"),
     body: RandomWith("treant_sapling"),
-    alignment: Alignment(Enemy),
+    alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.quad_small.treant_sapling"),
     inventory: (
         loadout: FromBody,

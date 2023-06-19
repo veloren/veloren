@@ -395,7 +395,7 @@
     Simple("common.items.weapons.tool.shovel-0"): "voxel.weapon.tool.shovel_green",
     Simple("common.items.weapons.tool.shovel-1"): "voxel.weapon.tool.shovel_gold",
     // Picks
-    Simple("common.items.tool.pickaxe_stone"): "voxel.weapon.tool.pickaxe_green-0",
+    Simple("common.items.tool.pickaxe_stone"): "voxel.weapon.tool.pickaxe_stone",
     Simple("common.items.tool.pickaxe_steel"): "voxel.weapon.tool.pickaxe_green-1",
     // Instruments
     Simple("common.items.tool.instruments.double_bass"): "voxel.weapon.tool.wooden_bass",
@@ -895,6 +895,7 @@
     Simple("common.items.crafting_ing.cotton_boll"): "voxel.sprite.crafting_ing.cotton_boll",
     Simple("common.items.crafting_ing.cloth.cotton"): "voxel.sprite.crafting_ing.cloth.cotton",
     Simple("common.items.crafting_ing.cloth.linen"): "voxel.sprite.crafting_ing.cloth.linen",
+    Simple("common.items.crafting_ing.cloth.cloth_strips"): "voxel.sprite.crafting_ing.cloth.cloth_strips",
     Simple("common.items.crafting_ing.cloth.wool"): "voxel.sprite.crafting_ing.cloth.wool",
     Simple("common.items.crafting_ing.cloth.silk"): "voxel.sprite.crafting_ing.cloth.silk",
     Simple("common.items.crafting_ing.cloth.lifecloth"): "voxel.sprite.crafting_ing.cloth.lifecloth",
@@ -903,6 +904,7 @@
     Simple("common.items.crafting_ing.cloth.linen_red"): "voxel.sprite.crafting_ing.cloth.linen_red",
     Simple("common.items.crafting_ing.sticky_thread"): "voxel.sprite.crafting_ing.sticky_thread",
     Simple("common.items.crafting_ing.living_embers"): "voxel.sprite.crafting_ing.living_embers",
+    Simple("common.items.crafting_ing.sentient_seed"): "voxel.sprite.crafting_ing.sentient_seed",
     Simple("common.items.crafting_ing.resin"): "voxel.sprite.crafting_ing.resin",
     Simple("common.items.crafting_ing.glacial_crystal"): "voxel.object.glacial_crystal",
     Simple("common.items.mineral.ingot.silver"): "voxel.sprite.mineral.ingot.silver",

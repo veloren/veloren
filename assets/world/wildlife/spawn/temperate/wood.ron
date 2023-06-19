@@ -4,16 +4,18 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
+                // Aggressive
                 (1, (1, 1, "common.entity.wild.aggressive.bear")),
                 (1, (1, 1, "common.entity.wild.aggressive.tarasque")),
                 (1, (1, 1, "common.entity.wild.aggressive.wood_raptor")),
                 (1, (1, 1, "common.entity.wild.aggressive.deadwood")),
                 (1, (1, 1, "common.entity.wild.aggressive.saber")),
                 (1, (1, 1, "common.entity.wild.aggressive.weevil")),
+                // Peaceful
                 (1, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
-                (1, (1, 1, "common.entity.wild.aggressive.bushly")),
-                (1, (1, 1, "common.entity.wild.aggressive.mossy_snail")),
-                (1, (1, 1, "common.entity.wild.aggressive.treant_sapling")),
+                (1, (1, 1, "common.entity.wild.peaceful.bushly")),
+                (1, (1, 1, "common.entity.wild.peaceful.mossy_snail")),
+                (1, (1, 1, "common.entity.wild.peaceful.treant_sapling")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal's Spaulders",
-    description: "I should probbaly think of something before merging",
+    name: "Boreal Spaulders",
+    description: "As though the icy grip of death touches your shoulder.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Boreal"),

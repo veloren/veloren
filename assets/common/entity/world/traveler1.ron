@@ -3,7 +3,7 @@
     name: Name("Traveler"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
-    loot: LootTable("common.loot_tables.world.traveler1"),
+    loot: LootTable("common.loot_tables.nothing"),
     inventory: (
         loadout: Inline((
             inherit: Choice([

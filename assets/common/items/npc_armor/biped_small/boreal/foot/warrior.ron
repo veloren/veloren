@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Boreal's Wrappings",
+    name: "Boreal Wrappings",
     description: "The blistering cold makes it hard to move.",
     kind: Armor((
         kind: Foot,

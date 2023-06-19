@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Brinestone Guantlets",
+    name: "Brinestone Gauntlets",
     description: "Hits like a rock.",
     kind: Armor((
         kind: Hand,

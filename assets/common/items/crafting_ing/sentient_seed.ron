@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Living Embers",
-    description: "The smouldering remains of a fiery creature.",
+    name: "Sentient Seed",
+    description: "The undeveloped spawn of a sentient plant.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",
