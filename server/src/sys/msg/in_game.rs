@@ -9,7 +9,7 @@ use common::{
     event::{EventBus, ServerEvent},
     link::Is,
     mounting::{Rider, VolumeRider},
-    resources::{PlayerPhysicsSetting, PlayerPhysicsSettings},
+    resources::{DeltaTime, PlayerPhysicsSetting, PlayerPhysicsSettings},
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
     vol::ReadVol,
@@ -53,7 +53,7 @@ impl Sys {
         can_build: &ReadStorage<'_, CanBuild>,
         is_rider: &ReadStorage<'_, Is<Rider>>,
         is_volume_rider: &ReadStorage<'_, Is<VolumeRider>>,
-        force_updates: &ReadStorage<'_, ForceUpdate>,
+        force_update: Option<&&mut ForceUpdate>,
         skill_set: &mut Option<Cow<'_, SkillSet>>,
         healths: &ReadStorage<'_, Health>,
         rare_writes: &parking_lot::Mutex<RareWrites<'_, '_>>,
@@ -120,7 +120,7 @@ impl Sys {
             },
             ClientGeneral::PlayerPhysics { pos, vel, ori, force_counter } => {
                 if presence.kind.controlling_char()
-                    && force_updates.get(entity).map_or(true, |force_update| force_update.counter() == force_counter)
+                    && force_update.map_or(true, |force_update| force_update.counter() == force_counter)
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && is_rider.get(entity).is_none()
                     && is_volume_rider.get(entity).is_none()
@@ -250,7 +250,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, SlowJobPool>,
         ReadStorage<'a, CanBuild>,
-        ReadStorage<'a, ForceUpdate>,
+        WriteStorage<'a, ForceUpdate>,
         ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<VolumeRider>>,
         WriteStorage<'a, SkillSet>,
@@ -262,6 +262,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Presence>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
+        Read<'a, DeltaTime>,
         Read<'a, Settings>,
         Read<'a, AreasContainer<BuildArea>>,
         Write<'a, PlayerPhysicsSettings>,
@@ -282,7 +283,7 @@ impl<'a> System<'a> for Sys {
             terrain,
             slow_jobs,
             can_build,
-            force_updates,
+            mut force_updates,
             is_rider,
             is_volume_rider,
             mut skill_sets,
@@ -294,6 +295,7 @@ impl<'a> System<'a> for Sys {
             mut presences,
             mut clients,
             mut controllers,
+            dt,
             settings,
             build_areas,
             mut player_physics_settings_,
@@ -323,6 +325,7 @@ impl<'a> System<'a> for Sys {
             (&mut velocities).maybe(),
             (&mut orientations).maybe(),
             (&mut controllers).maybe(),
+            (&mut force_updates).maybe(),
         )
             .join()
             // NOTE: Required because Specs has very poor work splitting for sparse joins.
@@ -340,6 +343,7 @@ impl<'a> System<'a> for Sys {
                     ref mut vel,
                     ref mut ori,
                     ref mut controller,
+                    ref mut force_update,
                 )| {
                     let old_player_physics_setting = maybe_player.map(|p| {
                         player_physics_settings
@@ -364,7 +368,7 @@ impl<'a> System<'a> for Sys {
                             &can_build,
                             &is_rider,
                             &is_volume_rider,
-                            &force_updates,
+                            force_update.as_ref(),
                             &mut skill_set,
                             &healths,
                             &rare_writes,
@@ -380,11 +384,11 @@ impl<'a> System<'a> for Sys {
                         )
                     });
 
-                    if let Some((new_pos, new_vel, new_ori)) = player_physics {
-                        let old_pos = pos.as_deref_mut();
-                        let old_vel = vel.as_deref_mut();
-                        let old_ori = ori.as_deref_mut();
-
+                    if let Some((new_pos, new_vel, new_ori)) = player_physics
+                        && let Some(old_pos) = pos.as_deref_mut()
+                        && let Some(old_vel) = vel.as_deref_mut()
+                        && let Some(old_ori) = ori.as_deref_mut()
+                    {
                         enum Rejection {
                             TooFar { old: Vec3<f32>, new: Vec3<f32> },
                             TooFast { vel: Vec3<f32> },
@@ -392,67 +396,62 @@ impl<'a> System<'a> for Sys {
 
                         let rejection = if maybe_admin.is_some() {
                             None
-                        } else if let Some(mut setting) = new_player_physics_setting.as_mut() {
-                            // If we detect any thresholds being exceeded, force server-authoritative
-                            // physics for that player. This doesn't detect subtle hacks, but it
-                            // prevents blatant ones and forces people to not debug physics hacks on the
-                            // live server (and also mitigates some floating-point overflow crashes)
-                            let rejection = None
-                                // Check position
-                                .or_else(|| {
-                                    if let Some(Pos(prev_pos)) = &old_pos {
-                                        if prev_pos.distance_squared(new_pos.0) > (500.0f32).powf(2.0) {
-                                            Some(Rejection::TooFar { old: *prev_pos, new: new_pos.0 })
-                                        } else {
-                                            None
-                                        }
-                                    } else {
-                                        None
-                                    }
-                                })
-                                // Check velocity
-                                .or_else(|| {
-                                    if new_vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
-                                        Some(Rejection::TooFast { vel: new_vel.0 })
-                                    } else {
-                                        None
-                                    }
-                                });
-
-                            // Force a client-side physics update if rejectable physics data is
-                            // received.
-                            if rejection.is_some() {
-                                // We skip this for `TooFar` because false positives can occur when
-                                // using server-side teleportation commands
-                                // that the client doesn't know about (leading to the client sending
-                                // physics state that disagree with the server). In the future,
-                                // client-authoritative physics will be gone
-                                // and this will no longer be necessary.
-                                setting.server_force =
-                                    !matches!(rejection, Some(Rejection::TooFar { .. })); // true;
-                            }
-
-                            rejection
                         } else {
-                            None
+                            // Reminder: review these frequently to ensure they're reasonable
+                            const MAX_H_VELOCITY: f32 = 75.0;
+                            const MAX_V_VELOCITY: std::ops::Range<f32> = -100.0..50.0;
+
+                            'rejection: {
+                                let is_velocity_ok = new_vel.0.xy().magnitude_squared() < MAX_H_VELOCITY.powi(2)
+                                    && MAX_V_VELOCITY.contains(&new_vel.0.z);
+
+                                if !is_velocity_ok {
+                                    break 'rejection Some(Rejection::TooFast { vel: new_vel.0 });
+                                }
+
+                                // The position can either be sensible with respect to either the old or the new
+                                // velocity such that we don't punish for edge cases after a sudden change
+                                let is_position_ok = [old_vel.0, new_vel.0]
+                                    .into_iter()
+                                    .any(|ref_vel| {
+                                        let rpos = new_pos.0 - old_pos.0;
+                                        // Determine whether the change in position is broadly consistent with both
+                                        // the magnitude and direction of the velocity, with appropriate thresholds.
+                                        LineSegment3 {
+                                            start: Vec3::zero(),
+                                            end: ref_vel * dt.0,
+                                        }
+                                            .projected_point(rpos)
+                                            // + 1.5 accounts for minor changes in position without corresponding
+                                            // velocity like block hopping/snapping
+                                            .distance_squared(rpos) < (rpos.magnitude() * 0.5 + 1.5).powi(2)
+                                    });
+
+                                if !is_position_ok {
+                                    break 'rejection Some(Rejection::TooFar { old: old_pos.0, new: new_pos.0 });
+                                }
+
+                                None
+                            }
                         };
 
-                        match rejection {
-                            Some(Rejection::TooFar { old, new }) => warn!(
-                                "Rejected player physics update (new position {:?} is too far from \
-                                 old position {:?})",
-                                new, old
-                            ),
-                            Some(Rejection::TooFast { vel }) => warn!(
-                                "Rejected player physics update (new velocity {:?} is too fast)",
-                                vel
-                            ),
-                            None => {
-                                // Don't insert unless the component already exists
-                                old_pos.map(|p| *p = new_pos);
-                                old_vel.map(|v| *v = new_vel);
-                                old_ori.map(|o| *o = new_ori);
-                            },
+                        if let Some(rejection) = rejection {
+                            match rejection {
+                                Rejection::TooFar { old, new } => warn!("Rejected player physics update (new position {:?} is too far from old position {:?})", new, old),
+                                Rejection::TooFast { vel } => warn!("Rejected player physics update (new velocity {:?} is too fast)", vel),
+                            }
+
+                            if let Some(mut setting) = new_player_physics_setting.as_mut() {
+                                // Perhaps this is overzealous?
+                                //setting.server_force = true;
+                            }
+
+                            // Reject the change and force the server's view of the physics state
+                            force_update.as_mut().map(|fu| fu.update());
+                        } else {
+                            *old_pos = new_pos;
+                            *old_vel = new_vel;
+                            *old_ori = new_ori;
                         }
                     }
 
