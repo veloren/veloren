@@ -35,7 +35,6 @@ fn print_impl(
         })
         .and_then(|bytes| {
             std::str::from_utf8(bytes.as_slice())
-                .map(|msg| tracing::info!("[{}]: {}", env.name, msg))
                 .map_err(|error| {
                     tracing::error!(
                         "Logging message from plugin {} failed with {}!",
@@ -44,10 +43,12 @@ fn print_impl(
                     );
                     wasmer_wasix_types::wasi::Errno::Inval
                 })
+                .map(|msg| tracing::info!("[{}]: {}", env.name, msg))
         })
 }
 
 #[derive(Clone, Copy)]
+#[repr(C)]
 pub(crate) struct CioVec {
     buf: WasmPtr<u8, MemoryModel>,
     buf_len: <MemoryModel as wasmer::MemorySize>::Offset,
@@ -55,7 +56,13 @@ pub(crate) struct CioVec {
 
 // CioVec has no padding bytes, thus no action is necessary
 unsafe impl wasmer::ValueType for CioVec {
-    fn zero_padding_bytes(&self, _bytes: &mut [std::mem::MaybeUninit<u8>]) {}
+    fn zero_padding_bytes(&self, _bytes: &mut [std::mem::MaybeUninit<u8>]) {
+        const _: () = assert!(
+            core::mem::size_of::<CioVec>()
+                == core::mem::size_of::<WasmPtr<u8, MemoryModel>>()
+                    + core::mem::size_of::<<MemoryModel as wasmer::MemorySize>::Offset>()
+        );
+    }
 }
 
 // fd_write(fd: fd, iovs: ciovec_array) -> Result<size, errno>
@@ -67,7 +74,7 @@ pub(crate) fn wasi_fd_write(
     out_result: WasmPtr<<MemoryModel as wasmer::MemorySize>::Offset, MemoryModel>,
 ) -> i32 {
     use wasmer_wasix_types::wasi::Errno;
-    if fd != 0 {
+    if fd != 1 && fd != 2 {
         Errno::Badf as i32
     } else {
         let memory = env.data().memory().clone();
@@ -111,12 +118,11 @@ pub(crate) fn wasi_env_sizes_get(
     let memory = env.data().memory().clone();
     let store = env.as_store_mut();
     let mem = memory.view(&store);
-    if numptr.write(&mem, 0).is_err() {
-        return Errno::Memviolation as i32;
-    }
-    bytesptr
+    numptr
         .write(&mem, 0)
-        .map_or(Errno::Memviolation as i32, |()| Errno::Success as i32)
+        .and_then(|()| bytesptr.write(&mem, 0))
+        .map(|()| Errno::Success)
+        .unwrap_or(Errno::Memviolation) as i32
 }
 
 // proc_exit(rval: exitcode)

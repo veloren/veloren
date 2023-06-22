@@ -172,6 +172,8 @@ pub fn write_data_as_pointer<T: Serialize>(
 
 /// This function writes an raw bytes to WASM memory returning a pointer and
 /// a length. Will realloc the buffer is not wide enough
+/// As this is often called with a length and an object it accepts to slices and
+/// concatenates them
 pub fn write_bytes(
     store: &mut StoreMut,
     memory: &Memory,
@@ -194,12 +196,8 @@ pub fn write_bytes(
         len as <MemoryModel as wasmer::MemorySize>::Offset,
     )
     .and_then(|s| {
-        if !bytes.1.is_empty() {
-            s.subslice(0..bytes.0.len() as u64).write_slice(bytes.0)?;
-            s.subslice(bytes.0.len() as u64..len).write_slice(bytes.1)
-        } else {
-            s.write_slice(bytes.0)
-        }
+        s.subslice(0..bytes.0.len() as u64).write_slice(bytes.0)?;
+        s.subslice(bytes.0.len() as u64..len).write_slice(bytes.1)
     })
     .map_err(|_| PluginModuleError::InvalidPointer)?;
     Ok((ptr, len))
