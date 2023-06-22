@@ -436,15 +436,20 @@ impl<'a> System<'a> for Sys {
                         };
 
                         if let Some(rejection) = rejection {
+                            let alias = maybe_player.map(|p| &p.alias);
+
                             match rejection {
-                                Rejection::TooFar { old, new } => warn!("Rejected player physics update (new position {:?} is too far from old position {:?})", new, old),
-                                Rejection::TooFast { vel } => warn!("Rejected player physics update (new velocity {:?} is too fast)", vel),
+                                Rejection::TooFar { old, new } => warn!("Rejected physics for player {alias:?} (new position {new:?} is too far from old position {old:?})"),
+                                Rejection::TooFast { vel } => warn!("Rejected physics for player {alias:?} (new velocity {vel:?} is too fast)"),
                             }
 
+                            /*
+                            // Perhaps this is overzealous?
                             if let Some(mut setting) = new_player_physics_setting.as_mut() {
-                                // Perhaps this is overzealous?
-                                //setting.server_force = true;
+                                setting.server_force = true;
+                                warn!("Switching player {alias:?} to server-side physics");
                             }
+                            */
 
                             // Reject the change and force the server's view of the physics state
                             force_update.as_mut().map(|fu| fu.update());
