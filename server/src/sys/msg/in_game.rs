@@ -399,7 +399,7 @@ impl<'a> System<'a> for Sys {
                         } else {
                             // Reminder: review these frequently to ensure they're reasonable
                             const MAX_H_VELOCITY: f32 = 75.0;
-                            const MAX_V_VELOCITY: std::ops::Range<f32> = -100.0..50.0;
+                            const MAX_V_VELOCITY: std::ops::Range<f32> = -100.0..80.0;
 
                             'rejection: {
                                 let is_velocity_ok = new_vel.0.xy().magnitude_squared() < MAX_H_VELOCITY.powi(2)
