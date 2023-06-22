@@ -58,8 +58,6 @@ impl Sys {
         healths: &ReadStorage<'_, Health>,
         rare_writes: &parking_lot::Mutex<RareWrites<'_, '_>>,
         position: Option<&mut Pos>,
-        velocity: Option<&mut Vel>,
-        orientation: Option<&mut Ori>,
         controller: Option<&mut Controller>,
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, AreasContainer<BuildArea>>,
@@ -67,6 +65,7 @@ impl Sys {
         maybe_admin: &Option<&Admin>,
         time_for_vd_changes: Instant,
         msg: ClientGeneral,
+        player_physics: &mut Option<(Pos, Vel, Ori)>,
     ) -> Result<(), crate::error::Error> {
         let presence = match maybe_presence.as_deref_mut() {
             Some(g) => g,
@@ -129,75 +128,7 @@ impl Sys {
                         .as_ref()
                         .map_or(true, |s| s.client_authoritative())
                 {
-                    enum Rejection {
-                        TooFar { old: Vec3<f32>, new: Vec3<f32> },
-                        TooFast { vel: Vec3<f32> },
-                    }
-
-                    let rejection = if maybe_admin.is_some() {
-                        None
-                    } else if let Some(mut setting) = player_physics_setting {
-                        // If we detect any thresholds being exceeded, force server-authoritative
-                        // physics for that player. This doesn't detect subtle hacks, but it
-                        // prevents blatant ones and forces people to not debug physics hacks on the
-                        // live server (and also mitigates some floating-point overflow crashes)
-                        let rejection = None
-                            // Check position
-                            .or_else(|| {
-                                if let Some(prev_pos) = &position {
-                                    if prev_pos.0.distance_squared(pos.0) > (500.0f32).powf(2.0) {
-                                        Some(Rejection::TooFar { old: prev_pos.0, new: pos.0 })
-                                    } else {
-                                        None
-                                    }
-                                } else {
-                                    None
-                                }
-                            })
-                            // Check velocity
-                            .or_else(|| {
-                                if vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
-                                    Some(Rejection::TooFast { vel: vel.0 })
-                                } else {
-                                    None
-                                }
-                            });
-
-                        // Force a client-side physics update if rejectable physics data is
-                        // received.
-                        if rejection.is_some() {
-                            // We skip this for `TooFar` because false positives can occur when
-                            // using server-side teleportation commands
-                            // that the client doesn't know about (leading to the client sending
-                            // physics state that disagree with the server). In the future,
-                            // client-authoritative physics will be gone
-                            // and this will no longer be necessary.
-                            setting.server_force =
-                                !matches!(rejection, Some(Rejection::TooFar { .. })); // true;
-                        }
-
-                        rejection
-                    } else {
-                        None
-                    };
-
-                    match rejection {
-                        Some(Rejection::TooFar { old, new }) => warn!(
-                            "Rejected player physics update (new position {:?} is too far from \
-                             old position {:?})",
-                            new, old
-                        ),
-                        Some(Rejection::TooFast { vel }) => warn!(
-                            "Rejected player physics update (new velocity {:?} is too fast)",
-                            vel
-                        ),
-                        None => {
-                            // Don't insert unless the component already exists
-                            position.map(|p| *p = pos);
-                            velocity.map(|v| *v = vel);
-                            orientation.map(|o| *o = ori);
-                        },
-                    }
+                    *player_physics = Some((pos, vel, ori));
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
@@ -422,6 +353,7 @@ impl<'a> System<'a> for Sys {
                     // ingame messages to be ignored.
                     let mut clearable_maybe_presence = maybe_presence.as_deref_mut();
                     let mut skill_set = skill_set.map(Cow::Borrowed);
+                    let mut player_physics = None;
                     let _ = super::try_recv_all(client, 2, |client, msg| {
                         Self::handle_client_in_game_msg(
                             server_emitter,
@@ -437,8 +369,6 @@ impl<'a> System<'a> for Sys {
                             &healths,
                             &rare_writes,
                             pos.as_deref_mut(),
-                            vel.as_deref_mut(),
-                            ori.as_deref_mut(),
                             controller.as_deref_mut(),
                             &settings,
                             &build_areas,
@@ -446,8 +376,85 @@ impl<'a> System<'a> for Sys {
                             &maybe_admin,
                             time_for_vd_changes,
                             msg,
+                            &mut player_physics,
                         )
                     });
+
+                    if let Some((new_pos, new_vel, new_ori)) = player_physics {
+                        let old_pos = pos.as_deref_mut();
+                        let old_vel = vel.as_deref_mut();
+                        let old_ori = ori.as_deref_mut();
+
+                        enum Rejection {
+                            TooFar { old: Vec3<f32>, new: Vec3<f32> },
+                            TooFast { vel: Vec3<f32> },
+                        }
+
+                        let rejection = if maybe_admin.is_some() {
+                            None
+                        } else if let Some(mut setting) = new_player_physics_setting.as_mut() {
+                            // If we detect any thresholds being exceeded, force server-authoritative
+                            // physics for that player. This doesn't detect subtle hacks, but it
+                            // prevents blatant ones and forces people to not debug physics hacks on the
+                            // live server (and also mitigates some floating-point overflow crashes)
+                            let rejection = None
+                                // Check position
+                                .or_else(|| {
+                                    if let Some(Pos(prev_pos)) = &old_pos {
+                                        if prev_pos.distance_squared(new_pos.0) > (500.0f32).powf(2.0) {
+                                            Some(Rejection::TooFar { old: *prev_pos, new: new_pos.0 })
+                                        } else {
+                                            None
+                                        }
+                                    } else {
+                                        None
+                                    }
+                                })
+                                // Check velocity
+                                .or_else(|| {
+                                    if new_vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
+                                        Some(Rejection::TooFast { vel: new_vel.0 })
+                                    } else {
+                                        None
+                                    }
+                                });
+
+                            // Force a client-side physics update if rejectable physics data is
+                            // received.
+                            if rejection.is_some() {
+                                // We skip this for `TooFar` because false positives can occur when
+                                // using server-side teleportation commands
+                                // that the client doesn't know about (leading to the client sending
+                                // physics state that disagree with the server). In the future,
+                                // client-authoritative physics will be gone
+                                // and this will no longer be necessary.
+                                setting.server_force =
+                                    !matches!(rejection, Some(Rejection::TooFar { .. })); // true;
+                            }
+
+                            rejection
+                        } else {
+                            None
+                        };
+
+                        match rejection {
+                            Some(Rejection::TooFar { old, new }) => warn!(
+                                "Rejected player physics update (new position {:?} is too far from \
+                                 old position {:?})",
+                                new, old
+                            ),
+                            Some(Rejection::TooFast { vel }) => warn!(
+                                "Rejected player physics update (new velocity {:?} is too fast)",
+                                vel
+                            ),
+                            None => {
+                                // Don't insert unless the component already exists
+                                old_pos.map(|p| *p = new_pos);
+                                old_vel.map(|v| *v = new_vel);
+                                old_ori.map(|o| *o = new_ori);
+                            },
+                        }
+                    }
 
                     // Ensure deferred view distance changes are applied (if the
                     // requsite time has elapsed).
