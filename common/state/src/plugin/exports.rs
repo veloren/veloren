@@ -1,4 +1,4 @@
-use crate::plugin::wasm_env::HostFunctionEnvironment;
+use crate::plugin::wasm_env::{HostFunctionEnvironment, HostFunctionException};
 use wasmer::{AsStoreMut, AsStoreRef, FunctionEnvMut, Memory32, Memory64, MemorySize, WasmPtr};
 // there is no WASI defined for wasm64, yet, so always use 32bit pointers
 type MemoryModel = wasmer::Memory32;
@@ -105,6 +105,8 @@ pub(crate) fn wasi_env_get(
     _environ: WasmPtr<WasmPtr<u8, MemoryModel>, MemoryModel>,
     _environ_buf: WasmPtr<u8, MemoryModel>,
 ) -> i32 {
+    // as the environment is always empty (0 bytes, 0 entries) this function will
+    // just unconditionally return Success.
     wasmer_wasix_types::wasi::Errno::Success as i32
 }
 
@@ -118,14 +120,18 @@ pub(crate) fn wasi_env_sizes_get(
     let memory = env.data().memory().clone();
     let store = env.as_store_mut();
     let mem = memory.view(&store);
+    const NUMBER_OF_ENVIRONMENT_ENTRIES: u32 = 0;
+    const NUMBER_OF_ENVIRONMENT_BYTES: u32 = 0;
     numptr
-        .write(&mem, 0)
-        .and_then(|()| bytesptr.write(&mem, 0))
-        .map(|()| Errno::Success)
-        .unwrap_or(Errno::Memviolation) as i32
+        .write(&mem, NUMBER_OF_ENVIRONMENT_ENTRIES)
+        .and_then(|()| bytesptr.write(&mem, NUMBER_OF_ENVIRONMENT_BYTES))
+        .map_or(Errno::Memviolation, |()| Errno::Success) as i32
 }
 
 // proc_exit(rval: exitcode)
-pub(crate) fn wasi_proc_exit(env: FunctionEnvMut<HostFunctionEnvironment>, _exitcode: i32) {
-    tracing::warn!("Plugin {} called exit().", env.data().name)
+pub(crate) fn wasi_proc_exit(
+    _env: FunctionEnvMut<HostFunctionEnvironment>,
+    exitcode: i32,
+) -> Result<(), HostFunctionException> {
+    Err(HostFunctionException::ProcessExit(exitcode))
 }

@@ -27,6 +27,7 @@ pub struct PluginModule {
     store: Store,
     #[allow(dead_code)]
     name: String,
+    pub(crate) exit_code: Option<i32>,
 }
 
 impl PluginModule {
@@ -125,6 +126,7 @@ impl PluginModule {
             wasm_state: Arc::new(instance),
             store,
             name,
+            exit_code: None,
         })
     }
 
@@ -151,6 +153,8 @@ impl PluginModule {
         };
         Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
     }
+
+    pub fn name(&self) -> &str { &self.name }
 }
 
 /// This structure represent a Pre-encoded event object (Useful to avoid

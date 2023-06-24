@@ -26,6 +26,19 @@ pub struct HostFunctionEnvironmentInit {
     memory: Memory,
 }
 
+#[derive(Debug, Clone, Copy)]
+// Exception thrown from a native wasm callback
+pub enum HostFunctionException {
+    ProcessExit(i32),
+}
+
+// needed for `std::error::Error`
+impl core::fmt::Display for HostFunctionException {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+
+impl std::error::Error for HostFunctionException {}
+
 impl HostFunctionEnvironment {
     pub fn new(name: String, ecs: Arc<EcsAccessManager>) -> Self {
         Self {

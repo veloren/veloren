@@ -22,6 +22,7 @@ use self::{
     errors::PluginError,
     memory_manager::EcsWorld,
     module::{PluginModule, PreparedEventQuery},
+    wasm_env::HostFunctionException,
 };
 
 use rayon::prelude::*;
@@ -102,6 +103,24 @@ impl Plugin {
             .flat_map(|module| {
                 module.try_execute(ecs, event).map(|x| {
                     x.map_err(|e| {
+                        if let errors::PluginModuleError::RunFunction(runtime_err) = &e {
+                            if let Some(host_except) =
+                                runtime_err.downcast_ref::<HostFunctionException>()
+                            {
+                                match host_except {
+                                    HostFunctionException::ProcessExit(code) => {
+                                        module.exit_code = Some(*code);
+                                        tracing::warn!(
+                                            "Module {} binary {} exited with {}",
+                                            self.data.name,
+                                            module.name(),
+                                            *code
+                                        );
+                                        return PluginError::ProcessExit;
+                                    },
+                                }
+                            }
+                        }
                         PluginError::PluginModuleError(
                             self.data.name.to_owned(),
                             event.get_function_name().to_owned(),
@@ -111,6 +130,13 @@ impl Plugin {
                 })
             })
             .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| {
+                if matches!(e, PluginError::ProcessExit) {
+                    // remove the executable from the module which called process exit
+                    self.modules.retain(|m| m.exit_code.is_none())
+                }
+                e
+            })
     }
 }
 

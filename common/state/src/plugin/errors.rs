@@ -9,6 +9,7 @@ pub enum PluginError {
     NoSuchModule,
     Encoding(Box<ErrorKind>),
     PluginModuleError(String, String, PluginModuleError),
+    ProcessExit,
 }
 
 #[derive(Debug)]
