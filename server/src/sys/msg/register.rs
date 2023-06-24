@@ -215,10 +215,6 @@ impl<'a> System<'a> for Sys {
                             mut new_players_guard,
                         ) = match LoginProvider::login(
                             pending,
-                            // #[cfg(feature = "plugins")]
-                            // &ecs_world,
-                            // #[cfg(feature = "plugins")]
-                            // &read_data._plugin_mgr,
                             &read_data.editable_settings.admins,
                             &read_data.editable_settings.whitelist,
                             &read_data.editable_settings.banlist,
