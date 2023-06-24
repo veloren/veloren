@@ -110,7 +110,7 @@ impl EcsAccessManager {
 /// buffer calling the `wasm_prepare_buffer` function Note: There is
 /// probably optimizations that can be done using less restrictive
 /// ordering
-pub fn get_pointer(
+fn get_pointer(
     store: &mut StoreMut,
     object_length: <MemoryModel as wasmer::MemorySize>::Offset,
     allocator: &TypedFunction<
@@ -123,45 +123,17 @@ pub fn get_pointer(
         .map_err(MemoryAllocationError::CantAllocate)
 }
 
-/// This function writes an object to WASM memory returning a pointer and a
-/// length. Will realloc the buffer is not wide enough
-pub fn write_data<T: Serialize>(
-    store: &mut StoreMut,
-    memory: &Memory,
-    allocator: &TypedFunction<
-        <MemoryModel as wasmer::MemorySize>::Offset,
-        WasmPtr<u8, MemoryModel>,
-    >,
-    object: &T,
-) -> Result<
-    (
-        WasmPtr<u8, MemoryModel>,
-        <MemoryModel as wasmer::MemorySize>::Offset,
-    ),
-    PluginModuleError,
-> {
-    write_bytes(
-        store,
-        memory,
-        allocator,
-        (
-            &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
-            &[],
-        ),
-    )
-}
-
 /// This functions wraps the serialization process
-pub fn serialize_data<T: Serialize>(object: &T) -> Result<Vec<u8>, PluginModuleError> {
+fn serialize_data<T: Serialize>(object: &T) -> Result<Vec<u8>, PluginModuleError> {
     bincode::serialize(object).map_err(PluginModuleError::Encoding)
 }
 
 /// This function writes an object to the wasm memory using the allocator if
 /// necessary using length padding.
 ///
-/// With length padding the first 8 bytes written are the length of the the
+/// With length padding the first bytes written are the length of the the
 /// following slice (The object serialized).
-pub fn write_data_as_pointer<T: Serialize>(
+pub(crate) fn write_serialized_with_length<T: Serialize>(
     store: &mut StoreMut,
     memory: &Memory,
     allocator: &TypedFunction<
@@ -170,7 +142,7 @@ pub fn write_data_as_pointer<T: Serialize>(
     >,
     object: &T,
 ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
-    write_bytes_as_pointer(store, memory, allocator, &serialize_data(object)?)
+    write_length_and_bytes(store, memory, allocator, &serialize_data(object)?)
 }
 
 /// This function writes an raw bytes to WASM memory returning a pointer and
@@ -179,7 +151,7 @@ pub fn write_data_as_pointer<T: Serialize>(
 /// As this function is often called after prepending a length to an existing
 /// object it accepts two slices and concatenates them to cut down copying in
 /// the caller.
-pub fn write_bytes(
+pub(crate) fn write_bytes(
     store: &mut StoreMut,
     memory: &Memory,
     allocator: &TypedFunction<
@@ -211,9 +183,9 @@ pub fn write_bytes(
 /// This function writes bytes to the wasm memory using the allocator if
 /// necessary using length padding.
 ///
-/// With length padding the first 8 bytes written are the length of the the
+/// With length padding the first bytes written are the length of the the
 /// following slice.
-pub fn write_bytes_as_pointer(
+pub(crate) fn write_length_and_bytes(
     store: &mut StoreMut,
     memory: &Memory,
     allocator: &TypedFunction<
@@ -228,7 +200,7 @@ pub fn write_bytes_as_pointer(
 
 /// This function reads data from memory at a position with the array length and
 /// converts it to an object using bincode
-pub fn read_data<'a, T: for<'b> Deserialize<'b>>(
+pub(crate) fn read_serialized<'a, T: for<'b> Deserialize<'b>>(
     memory: &'a Memory,
     store: &StoreRef,
     ptr: WasmPtr<u8, MemoryModel>,
@@ -241,7 +213,7 @@ pub fn read_data<'a, T: for<'b> Deserialize<'b>>(
 
 /// This function reads raw bytes from memory at a position with the array
 /// length
-pub fn read_bytes(
+pub(crate) fn read_bytes(
     memory: &Memory,
     store: &StoreRef,
     ptr: WasmPtr<u8, MemoryModel>,
@@ -253,7 +225,7 @@ pub fn read_bytes(
 }
 
 /// This function reads a constant amount of raw bytes from memory
-pub fn read_exact_bytes<const N: usize>(
+pub(crate) fn read_exact_bytes<const N: usize>(
     memory: &Memory,
     store: &StoreRef,
     ptr: WasmPtr<u8, MemoryModel>,

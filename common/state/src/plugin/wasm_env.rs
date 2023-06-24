@@ -65,41 +65,25 @@ impl HostFunctionEnvironment {
     #[inline]
     pub fn name(&self) -> &str { &self.name }
 
-    /// This function is a safe interface to WASM memory that writes data to the
-    /// memory returning a pointer and length
-    pub fn write_data<T: Serialize>(
-        &self,
-        store: &mut StoreMut,
-        object: &T,
-    ) -> Result<
-        (
-            WasmPtr<u8, MemoryModel>,
-            <MemoryModel as wasmer::MemorySize>::Offset,
-        ),
-        PluginModuleError,
-    > {
-        memory_manager::write_data(store, self.memory(), self.allocator(), object)
-    }
-
-    /// This function is a safe interface to WASM memory that writes data to the
-    /// memory returning a pointer and length
-    pub fn write_data_as_pointer<T: Serialize>(
+    /// This function is a safe interface to WASM memory that serializes and
+    /// writes an object to linear memory returning a pointer
+    pub fn write_serialized_with_length<T: Serialize>(
         &self,
         store: &mut StoreMut,
         object: &T,
     ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
-        memory_manager::write_data_as_pointer(store, self.memory(), self.allocator(), object)
+        memory_manager::write_serialized_with_length(store, self.memory(), self.allocator(), object)
     }
 
     /// This function is a safe interface to WASM memory that reads memory from
     /// pointer and length returning an object
-    pub fn read_data<T: DeserializeOwned>(
+    pub fn read_serialized<T: DeserializeOwned>(
         &self,
         store: &StoreRef,
         position: WasmPtr<u8, MemoryModel>,
         length: <MemoryModel as wasmer::MemorySize>::Offset,
     ) -> Result<T, bincode::Error> {
-        memory_manager::read_data(self.memory(), store, position, length)
+        memory_manager::read_serialized(self.memory(), store, position, length)
     }
 
     /// This function is a safe interface to WASM memory that reads memory from
@@ -110,10 +94,7 @@ impl HostFunctionEnvironment {
         ptr: WasmPtr<u8, MemoryModel>,
         len: <MemoryModel as wasmer::MemorySize>::Offset,
     ) -> Result<Vec<u8>, PluginModuleError> {
-        self.memory.as_ref().map_or_else(
-            || Err(PluginModuleError::InvalidPointer),
-            |m| memory_manager::read_bytes(m, store, ptr, len),
-        )
+        memory_manager::read_bytes(self.memory(), store, ptr, len)
     }
 
     pub fn args_from_instance(

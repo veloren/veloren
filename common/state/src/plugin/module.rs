@@ -1,5 +1,5 @@
 use hashbrown::HashSet;
-use std::{convert::TryInto, marker::PhantomData, sync::Arc};
+use std::{marker::PhantomData, sync::Arc};
 
 use wasmer::{
     imports, AsStoreMut, AsStoreRef, Function, FunctionEnv, FunctionEnvMut, Instance, Memory,
@@ -47,13 +47,15 @@ impl PluginModule {
             ptr: WasmPtr<u8, MemoryModel>,
             len: <MemoryModel as wasmer::MemorySize>::Offset,
         ) {
-            handle_actions(match env.data().read_data(&env.as_store_ref(), ptr, len) {
-                Ok(e) => e,
-                Err(e) => {
-                    tracing::error!(?e, "Can't decode action");
-                    return;
+            handle_actions(
+                match env.data().read_serialized(&env.as_store_ref(), ptr, len) {
+                    Ok(e) => e,
+                    Err(e) => {
+                        tracing::error!(?e, "Can't decode action");
+                        return;
+                    },
                 },
-            });
+            );
         }
 
         fn raw_retrieve_action(
@@ -62,16 +64,16 @@ impl PluginModule {
             ptr: WasmPtr<u8, MemoryModel>,
             len: <MemoryModel as wasmer::MemorySize>::Offset,
         ) -> <MemoryModel as wasmer::MemorySize>::Offset {
-            let out = match env.data().read_data(&env.as_store_ref(), ptr, len) {
+            let out = match env.data().read_serialized(&env.as_store_ref(), ptr, len) {
                 Ok(data) => retrieve_action(&env.data().ecs, data),
                 Err(e) => Err(RetrieveError::BincodeError(e.to_string())),
             };
 
             let data = env.data().clone();
-            // If an error happen set the i64 to 0 so the WASM side can tell an error
-            // occured
-            data.write_data_as_pointer(&mut env.as_store_mut(), &out)
-                .unwrap_or_else(|_e| WasmPtr::null())
+            data.write_serialized_with_length(&mut env.as_store_mut(), &out)
+                .unwrap_or_else(|_e|
+                    // return a null pointer so the WASM side can tell an error occured
+                    WasmPtr::null())
                 .offset()
         }
 
@@ -182,28 +184,6 @@ impl<T: Event> PreparedEventQuery<T> {
 
     pub fn get_function_name(&self) -> &str { &self.function_name }
 }
-
-/// This function split a u128 in two u64 encoding them as le bytes
-pub fn from_u128(i: u128) -> (u64, u64) {
-    let i = i.to_le_bytes();
-    (
-        u64::from_le_bytes(i[0..8].try_into().unwrap()),
-        u64::from_le_bytes(i[8..16].try_into().unwrap()),
-    )
-}
-
-/// This function merge two u64 encoded as le in one u128
-pub fn to_u128(a: u64, b: u64) -> u128 {
-    let a = a.to_le_bytes();
-    let b = b.to_le_bytes();
-    u128::from_le_bytes([a, b].concat().try_into().unwrap())
-}
-
-/// This function encode a u64 into a i64 using le bytes
-pub fn to_i64(i: u64) -> i64 { i64::from_le_bytes(i.to_le_bytes()) }
-
-/// This function decode a i64 into a u64 using le bytes
-pub fn from_i64(i: i64) -> u64 { u64::from_le_bytes(i.to_le_bytes()) }
 
 // This function is not public because this function should not be used without
 // an interface to limit unsafe behaviours
