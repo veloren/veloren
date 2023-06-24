@@ -65,7 +65,7 @@ impl PluginModule {
             len: <MemoryModel as wasmer::MemorySize>::Offset,
         ) -> <MemoryModel as wasmer::MemorySize>::Offset {
             let out = match env.data().read_serialized(&env.as_store_ref(), ptr, len) {
-                Ok(data) => retrieve_action(&env.data().ecs(), data),
+                Ok(data) => retrieve_action(env.data().ecs(), data),
                 Err(e) => Err(RetrieveError::BincodeError(e.to_string())),
             };
 
