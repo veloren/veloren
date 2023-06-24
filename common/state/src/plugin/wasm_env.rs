@@ -11,14 +11,14 @@ use super::{
 
 #[derive(Clone)]
 pub struct HostFunctionEnvironment {
-    pub ecs: Arc<EcsAccessManager>, /* This represent the pointer to the ECS object (set to
-                                     * i32::MAX if to ECS is
-                                     * availible) */
-    pub memory: Option<Memory>, // This object represent the WASM Memory
-    pub allocator: Option<
+    ecs: Arc<EcsAccessManager>, /* This represent the pointer to the ECS object (set to
+                                 * i32::MAX if to ECS is
+                                 * availible) */
+    memory: Option<Memory>, // This object represent the WASM Memory
+    allocator: Option<
         TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>>,
     >, /* Linked to: wasm_prepare_buffer */
-    pub name: String,           // This represent the plugin name
+    name: String,           // This represent the plugin name
 }
 
 pub struct HostFunctionEnvironmentInit {
@@ -40,6 +40,7 @@ impl core::fmt::Display for HostFunctionException {
 impl std::error::Error for HostFunctionException {}
 
 impl HostFunctionEnvironment {
+    /// Create a new environment for functions providing functionality to WASM
     pub fn new(name: String, ecs: Arc<EcsAccessManager>) -> Self {
         Self {
             ecs,
@@ -50,24 +51,24 @@ impl HostFunctionEnvironment {
     }
 
     #[inline]
-    pub fn ecs(&self) -> &Arc<EcsAccessManager> { &self.ecs }
+    pub(crate) fn ecs(&self) -> &Arc<EcsAccessManager> { &self.ecs }
 
     #[inline]
-    pub fn memory(&self) -> &Memory { self.memory.as_ref().unwrap() }
+    pub(crate) fn memory(&self) -> &Memory { self.memory.as_ref().unwrap() }
 
     #[inline]
-    pub fn allocator(
+    pub(crate) fn allocator(
         &self,
     ) -> &TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>> {
         self.allocator.as_ref().unwrap()
     }
 
     #[inline]
-    pub fn name(&self) -> &str { &self.name }
+    pub(crate) fn name(&self) -> &str { &self.name }
 
     /// This function is a safe interface to WASM memory that serializes and
     /// writes an object to linear memory returning a pointer
-    pub fn write_serialized_with_length<T: Serialize>(
+    pub(crate) fn write_serialized_with_length<T: Serialize>(
         &self,
         store: &mut StoreMut,
         object: &T,
@@ -77,7 +78,7 @@ impl HostFunctionEnvironment {
 
     /// This function is a safe interface to WASM memory that reads memory from
     /// pointer and length returning an object
-    pub fn read_serialized<T: DeserializeOwned>(
+    pub(crate) fn read_serialized<T: DeserializeOwned>(
         &self,
         store: &StoreRef,
         position: WasmPtr<u8, MemoryModel>,
@@ -88,7 +89,7 @@ impl HostFunctionEnvironment {
 
     /// This function is a safe interface to WASM memory that reads memory from
     /// a pointer and a length and returns some bytes
-    pub fn read_bytes(
+    pub(crate) fn read_bytes(
         &self,
         store: &StoreRef,
         ptr: WasmPtr<u8, MemoryModel>,
@@ -97,6 +98,8 @@ impl HostFunctionEnvironment {
         memory_manager::read_bytes(self.memory(), store, ptr, len)
     }
 
+    /// This function creates the argument for init_with_instance() from
+    /// exported symbol lookup
     pub fn args_from_instance(
         store: &Store,
         instance: &Instance,
@@ -108,6 +111,7 @@ impl HostFunctionEnvironment {
         Ok(HostFunctionEnvironmentInit { memory, allocator })
     }
 
+    /// Initialize the wasm exports in the environment
     pub fn init_with_instance(&mut self, args: HostFunctionEnvironmentInit) {
         self.memory = Some(args.memory);
         self.allocator = Some(args.allocator);

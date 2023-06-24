@@ -28,7 +28,7 @@ fn print_impl(
         .map_err(|error| {
             tracing::error!(
                 "Logging message from plugin {} failed with {:?}!",
-                env.name,
+                env.name(),
                 error
             );
             wasmer_wasix_types::wasi::Errno::Memviolation
@@ -38,12 +38,12 @@ fn print_impl(
                 .map_err(|error| {
                     tracing::error!(
                         "Logging message from plugin {} failed with {}!",
-                        env.name,
+                        env.name(),
                         error
                     );
                     wasmer_wasix_types::wasi::Errno::Inval
                 })
-                .map(|msg| tracing::info!("[{}]: {}", env.name, msg))
+                .map(|msg| tracing::info!("[{}]: {}", env.name(), msg))
         })
 }
 
