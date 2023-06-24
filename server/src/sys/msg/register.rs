@@ -138,16 +138,6 @@ impl<'a> System<'a> for Sys {
         }
 
         let old_player_count = player_list.len();
-        // #[cfg(feature = "plugins")]
-        // let ecs_world = EcsWorld {
-        //     entities: &read_data.entities,
-        //     health: (&read_data._healths).into(),
-        //     uid: (&read_data.uids).into(),
-        //     // NOTE: Only the old player list is provided, to avoid scalability
-        //     // bottlenecks.
-        //     player: (&players).into(),
-        //     id_maps: &read_data._id_maps,
-        // };
 
         // NOTE: this is just default value.
         //

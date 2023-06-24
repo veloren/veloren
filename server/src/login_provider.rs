@@ -9,8 +9,6 @@ use std::{str::FromStr, sync::Arc};
 use tokio::{runtime::Runtime, sync::oneshot};
 use tracing::{error, info};
 
-// #[cfg(feature = "plugins")] use {};
-
 fn derive_uuid(username: &str) -> Uuid {
     let mut state = 144066263297769815596495629667062367629;
 
@@ -95,8 +93,6 @@ impl LoginProvider {
 
     pub(crate) fn login<R>(
         pending: &mut PendingLogin,
-        // #[cfg(feature = "plugins")] world: &EcsWorld,
-        // #[cfg(feature = "plugins")] plugin_manager: &PluginMgr,
         admins: &HashMap<Uuid, AdminRecord>,
         whitelist: &HashMap<Uuid, WhitelistRecord>,
         banlist: &HashMap<Uuid, BanEntry>,
@@ -131,37 +127,6 @@ impl LoginProvider {
                 // or their name is in the whitelist.
                 if admin.is_none() && !whitelist.is_empty() && !whitelist.contains_key(&uuid) {
                     return Some(Err(RegisterError::NotOnWhitelist));
-                }
-
-                #[cfg(feature = "plugins")]
-                {
-                    // Plugin player join hooks execute for all players, but are
-                    // only allowed to filter non-admins.
-                    //
-                    // We also run it before checking player count, to avoid
-                    // lock contention in the plugin.
-
-                    // Two events can't be handled on the same plugin in
-                    // parallel, so this needs rework
-
-                    // match plugin_manager.execute_event(world,
-                    // &PlayerJoinEvent {     player_name:
-                    // username.clone(),     player_id:
-                    // *uuid.as_bytes(), }) {
-                    //     Ok(e) => {
-                    //         if admin.is_none() {
-                    //             for i in e.into_iter() {
-                    //                 if let PlayerJoinResult::Kick(a) = i {
-                    //                     return
-                    // Some(Err(RegisterError::Kicked(a)));
-                    //                 }
-                    //             }
-                    //         }
-                    //     },
-                    //     Err(e) => {
-                    //         error!("Error occured while executing `on_join`:
-                    // {:?}", e);     },
-                    // };
                 }
 
                 // non-admins can only join if the player count has not been exceeded.

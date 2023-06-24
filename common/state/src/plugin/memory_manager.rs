@@ -1,4 +1,7 @@
-use std::sync::atomic::{AtomicPtr, Ordering};
+use std::{
+    mem::MaybeUninit,
+    sync::atomic::{AtomicPtr, Ordering},
+};
 
 use serde::{Deserialize, Serialize};
 use specs::{
@@ -171,9 +174,11 @@ pub fn write_data_as_pointer<T: Serialize>(
 }
 
 /// This function writes an raw bytes to WASM memory returning a pointer and
-/// a length. Will realloc the buffer is not wide enough
-/// As this is often called with a length and an object it accepts to slices and
-/// concatenates them
+/// a length. Will realloc the buffer is not wide enough.
+///
+/// As this function is often called after prepending a length to an existing
+/// object it accepts two slices and concatenates them to cut down copying in
+/// the caller.
 pub fn write_bytes(
     store: &mut StoreMut,
     memory: &Memory,
@@ -245,4 +250,17 @@ pub fn read_bytes(
     ptr.slice(&memory.view(store), len)
         .and_then(|s| s.read_to_vec())
         .map_err(|_| PluginModuleError::InvalidPointer)
+}
+
+/// This function reads a constant amount of raw bytes from memory
+pub fn read_exact_bytes<const N: usize>(
+    memory: &Memory,
+    store: &StoreRef,
+    ptr: WasmPtr<u8, MemoryModel>,
+) -> Result<[u8; N], PluginModuleError> {
+    let mut result = MaybeUninit::uninit_array();
+    ptr.slice(&memory.view(store), N.try_into().unwrap())
+        .and_then(|s| s.read_slice_uninit(&mut result))
+        .map_err(|_| PluginModuleError::InvalidPointer)?;
+    unsafe { Ok(MaybeUninit::array_assume_init(result)) }
 }

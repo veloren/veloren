@@ -243,16 +243,10 @@ fn execute_raw(
         .call(&mut module.store.as_store_mut(), ptr, len)
         .map_err(PluginModuleError::RunFunction)?;
 
-    // The first 4/8 bytes correspond to the length of the result
-    let mut result_len = [0u8; std::mem::size_of::<<MemoryModel as wasmer::MemorySize>::Offset>()];
-    result_ptr
-        .slice(
-            &module.memory.view(&module.store.as_store_ref()),
-            std::mem::size_of::<<MemoryModel as wasmer::MemorySize>::Offset>()
-                as <MemoryModel as wasmer::MemorySize>::Offset,
-        )
-        .and_then(|s| s.read_slice(&mut result_len))
-        .map_err(|_| PluginModuleError::InvalidPointer)?;
+    // The first bytes correspond to the length of the result
+    let result_len: [u8; std::mem::size_of::<<MemoryModel as wasmer::MemorySize>::Offset>()] =
+        memory_manager::read_exact_bytes(&module.memory, &module.store.as_store_ref(), result_ptr)
+            .map_err(|_| PluginModuleError::InvalidPointer)?;
     let result_len = <MemoryModel as wasmer::MemorySize>::Offset::from_le_bytes(result_len);
 
     // Read the result of the function with the pointer and the length
