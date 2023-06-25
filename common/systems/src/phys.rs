@@ -30,7 +30,10 @@ use specs::{
     Write, WriteExpect, WriteStorage,
 };
 use std::{f32::consts::PI, ops::Range};
-use vek::{num_traits::Signed, *};
+use vek::{
+    num_traits::{Pow, Signed},
+    *,
+};
 
 /// The density of the fluid as a function of submersion ratio in given fluid
 /// where it is assumed that any unsubmersed part is is air.
@@ -620,7 +623,13 @@ impl<'a> PhysicsData<'a> {
             )
                 .join()
             {
-                if !state.is_glide() {
+                prof_span!(guard, "Apply Weather INIT");
+                let pos_2d = pos.0.as_().xy();
+                let chunk_pos: Vec2<i32> = pos_2d.wpos_to_cpos();
+                let Some(current_chunk) = read.terrain.get_key(chunk_pos) else { continue; };
+
+                let meta = current_chunk.meta();
+                if !state.is_glide() || meta.alt() - 25. > pos.0.z {
                     phys.in_fluid = phys.in_fluid.map(|f| match f {
                         Fluid::Air { elevation, .. } => Fluid::Air {
                             vel: Vel::zero(),
@@ -630,12 +639,6 @@ impl<'a> PhysicsData<'a> {
                     });
                     continue;
                 }
-                prof_span!(guard, "Apply Weather INIT");
-                let pos_2d = pos.0.as_().xy();
-                let chunk_pos: Vec2<i32> = pos_2d.wpos_to_cpos();
-                let Some(current_chunk) = read.terrain.get_key(chunk_pos) else { continue; };
-
-                let meta = current_chunk.meta();
                 let interp_weather = weather.get_interpolated(pos.0.xy());
                 // Weather sim wind
                 let interp_alt = read
@@ -645,6 +648,13 @@ impl<'a> PhysicsData<'a> {
                 let interp_tree_density = read
                     .terrain
                     .get_interpolated(pos_2d, |c| c.meta().tree_density())
+                    .unwrap_or(0.);
+                let interp_town = read
+                    .terrain
+                    .get_interpolated(pos_2d, |c| match c.meta().site() {
+                        Some(SiteKindMeta::Castle) | Some(SiteKindMeta::Settlement(_)) => 3.5,
+                        _ => 1.0,
+                    })
                     .unwrap_or(0.);
                 let normal = read
                     .terrain
@@ -669,12 +679,10 @@ impl<'a> PhysicsData<'a> {
                 prof_span!(guard, "thermals");
 
                 // === THERMALS ===
-                // TODO: doesnt work well
-                let mut lift = meta.temp() * 5.0;
 
                 // sun angle of incidence.
                 let sun_dir = read.time_of_day.get_sun_dir().normalized();
-                lift += ((sun_dir - normal.normalized()).magnitude() - 0.5).max(0.2) * 5.;
+                let mut lift = ((sun_dir - normal.normalized()).magnitude() - 0.5).max(0.2) * 3.;
 
                 let temperatures = surrounding_chunks_metas.iter().map(|m| m.temp()).minmax();
 
@@ -701,17 +709,14 @@ impl<'a> PhysicsData<'a> {
                 };
                 // the first 15 blocks are weaker. starting from the ground should be difficult.
                 lift *= (above_ground / 15.).min(1.);
-                lift *= (280. - above_ground / 80.).clamp(0.0, 1.0);
+                lift *= (220. - above_ground / 20.).clamp(0.0, 1.0);
 
                 if interp_alt > 500.0 {
                     lift *= 0.8;
                 }
 
                 // more thermals above towns, the materials tend to heat up more.
-                lift *= match meta.site() {
-                    Some(SiteKindMeta::Castle) | Some(SiteKindMeta::Settlement(_)) => 4.0,
-                    _ => 1.0,
-                };
+                lift *= interp_town;
 
                 // bodies of water cool the air, causing less thermals
                 lift *= read
@@ -726,42 +731,29 @@ impl<'a> PhysicsData<'a> {
                 // === Ridge/Wave lift ===
 
                 // WORKING!
-                // TODO: average out over 4 surrounding chunks to make chunk borders less harsh.
-                // theres sometimes a noticeable bump while gliding whereas it should feel
-                // smooth.
-                let mut ridge_wind = {
-                    // the the line along the surface of the chunk (perpendicular to normal)
-                    let mut up = normal.cross(normal.with_z(0.)).cross(normal) * -1.;
-                    // sometimes the cross product thing might be (0,0,0) which causes normalize to
-                    // spit out NaN. so this just says "yeah actually, that means up".
-                    if up.magnitude().is_between(-0.0001, 0.0001) {
-                        up = Vec3::unit_z();
-                    }
-                    up.normalize();
-
-                    // a bit further up than just flat along the surface
-                    up = up.with_z(up.z + 0.4);
-
+                let mut ridge_lift = {
+                    let steepness = normal.angle_between(normal.with_z(0.)).max(0.5);
                     // angle between normal and wind
                     let mut angle = wind_velocity.angle_between(normal.xy()); // 1.4 radians of zero
                     // a deadzone of +-1.5 radians if wind is blowing away from
                     // the mountainside.
                     angle = (angle - 1.3).max(0.0);
 
-                    // multiply the upwards vector by angle of wind incidence. less incidence means
-                    // less lift. This feels better ingame than actually
-                    // calculating how the wind would be redirected.
-                    (up * angle) * wind_velocity.magnitude() * 1.5
+                    // the ridge lift is based on the angle and the velocity of the wind
+                    angle * steepness * wind_velocity.magnitude() * 2.5
                 };
 
                 // Cliffs mean more lift
-                ridge_wind *= (0.9 + (meta.cliff_height() / 44.0) * 1.2); // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs
+                ridge_lift *= (0.9 + (meta.cliff_height() / 44.0) * 1.2); // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs
 
-                // height based fall-off
-                ridge_wind *= ((150. - above_ground) / 40.).clamp(0.0, 1.0);
+                // height based fall-off https://www.desmos.com/calculator/jijqfunchg
+                ridge_lift *= 1. / (1. + (1.3f32.powf(0.1 * above_ground - 15.)));
                 drop(guard);
 
-                let mut wind_vel = (wind_velocity / 4.).with_z(lift) + ridge_wind;
+                // more flat wind above ground https://www.desmos.com/calculator/jryiyqsdnx
+                let wind_factor = 1. / (0.25 + (0.96f32.powf(0.1 * above_ground - 15.)));
+
+                let mut wind_vel = (wind_velocity * wind_factor).with_z(lift + ridge_lift);
                 wind_vel *= (1.0 - interp_tree_density).max(0.7); // probably 0. to 1. src: SiteKind::is_suitable_loc comparisons
 
                 // clamp magnitude, we never want to throw players around way too fast.
