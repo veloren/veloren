@@ -28,7 +28,7 @@ translation:
     - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql
     - echo '\copy translations ("country_code", "file_name", "translation_key", "status", "git_commit") from '"'translation_analysis.csv' csv header" >> upload.sql
     - cat upload.sql
-    - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=grafana.veloren.net port=15432 dbname=translations" -U hgseehzjtsrghtjdcqw -f upload.sql;
+    - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=cidb.veloren.net port=30432 dbname=translations" -U hgseehzjtsrghtjdcqw -f upload.sql;
   retry:
     max: 2
 
