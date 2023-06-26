@@ -3183,11 +3183,15 @@ impl Hud {
                             } else {
                                 self.force_ungrab = true
                             };
+                            self.show.prompt_dialog = None;
                         }
                         events.push(Event::TradeAction(action));
                     },
                     trade::TradeEvent::SetDetailsMode(mode) => {
                         self.show.trade_details = mode;
+                    },
+                    trade::TradeEvent::ShowPrompt(prompt) => {
+                        self.show.prompt_dialog = Some(prompt);
                     },
                 }
             }

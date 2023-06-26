@@ -19,7 +19,10 @@ use common_net::sync::WorldSyncExt;
 use i18n::Localization;
 
 use crate::{
-    hud::bag::{BackgroundIds, InventoryScroller},
+    hud::{
+        bag::{BackgroundIds, InventoryScroller},
+        Event as HudEvent, PromptDialogSettings,
+    },
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
@@ -36,11 +39,11 @@ use super::{
 };
 use std::borrow::Cow;
 
-#[derive(Debug)]
 pub enum TradeEvent {
     TradeAction(TradeAction),
     SetDetailsMode(bool),
     HudUpdate(HudUpdate),
+    ShowPrompt(PromptDialogSettings),
 }
 
 #[derive(Debug)]
@@ -98,6 +101,7 @@ pub struct Trade<'a> {
     msm: &'a MaterialStatManifest,
     pulse: f32,
     show: &'a mut Show,
+    needs_thirdconfirm: bool,
 }
 
 impl<'a> Trade<'a> {
@@ -131,6 +135,7 @@ impl<'a> Trade<'a> {
             msm,
             pulse,
             show,
+            needs_thirdconfirm: false,
         }
     }
 }
@@ -552,6 +557,10 @@ impl<'a> Trade<'a> {
                     1.0,
                 ))
                 .set(state.ids.inv_textslots[who * MAX_TRADE_SLOTS], ui);
+
+            if !ours {
+                self.needs_thirdconfirm = true;
+            }
         }
     }
 
@@ -590,7 +599,17 @@ impl<'a> Trade<'a> {
             .set(state.ids.accept_button, ui)
             .was_clicked()
         {
-            event = Some(TradeAction::Accept(trade.phase()));
+            if matches!(trade.phase, TradePhase::Review) && self.needs_thirdconfirm {
+                event = Some(TradeEvent::ShowPrompt(PromptDialogSettings::new(
+                    self.localized_strings
+                        .get_msg("hud-confirm-trade-for-nothing")
+                        .to_string(),
+                    HudEvent::TradeAction(TradeAction::Accept(trade.phase())),
+                    None,
+                )));
+            } else {
+                event = Some(TradeEvent::TradeAction(TradeAction::Accept(trade.phase())));
+            }
         }
 
         if Button::image(self.imgs.button)
@@ -606,9 +625,9 @@ impl<'a> Trade<'a> {
             .set(state.ids.decline_button, ui)
             .was_clicked()
         {
-            event = Some(TradeAction::Decline);
+            event = Some(TradeEvent::TradeAction(TradeAction::Decline));
         }
-        event.map(TradeEvent::TradeAction)
+        event
     }
 
     fn input_item_amount(

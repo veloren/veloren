@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adlet caves
 - Durability free areas (`/area_add <area_name> no_durability ...`)
 - Added Brazilian Portuguese translation.
+- Added additional confirmation when trading for nothing.
 
 ### Changed
 
