@@ -6,7 +6,9 @@ use crate::{
         character_state::AttackFilters,
         inventory::{
             item::{
-                tool::{AbilityContext, AbilityItem, AbilityKind, Stats, ToolKind},
+                tool::{
+                    AbilityContext, AbilityItem, AbilityKind, ContextualIndex, Stats, ToolKind,
+                },
                 ItemKind,
             },
             slot::EquipSlot,
@@ -462,7 +464,7 @@ impl From<GuardAbility> for Ability {
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct SpecifiedAbility {
     pub ability: Ability,
-    pub context_index: Option<usize>,
+    pub context_index: Option<ContextualIndex>,
 }
 
 impl SpecifiedAbility {
@@ -480,7 +482,7 @@ impl SpecifiedAbility {
                     abilities,
                 } => spec_ability
                     .context_index
-                    .and_then(|i| abilities.get(i))
+                    .and_then(|i| abilities.get(i.0))
                     .map_or(pseudo_id.as_str(), |(_, (_, a))| a.id.as_str()),
             }
         }

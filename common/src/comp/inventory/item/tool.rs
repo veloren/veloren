@@ -309,6 +309,9 @@ pub enum AbilityKind<T> {
     },
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq)]
+pub struct ContextualIndex(pub usize);
+
 impl<T> AbilityKind<T> {
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilityKind<U> {
         match self {
@@ -346,7 +349,7 @@ impl<T> AbilityKind<T> {
         &self,
         skillset: Option<&SkillSet>,
         contexts: &[AbilityContext],
-    ) -> Option<(&T, Option<usize>)> {
+    ) -> Option<(&T, Option<ContextualIndex>)> {
         let unlocked = |s: Option<Skill>, a| {
             // If there is a skill requirement and the skillset does not contain the
             // required skill, return None
@@ -369,7 +372,7 @@ impl<T> AbilityKind<T> {
                     req_contexts
                         .iter()
                         .all(|req| req.fulfilled_by(contexts))
-                        .then_some((a, Some(i)))
+                        .then_some((a, Some(ContextualIndex(i))))
                 }),
         }
     }
@@ -420,9 +423,7 @@ impl AbilityContext {
 
     fn fulfilled_by(&self, contexts: &[AbilityContext]) -> bool {
         match self {
-            basic_context @ Self::Stance(_) | basic_context @ Self::DualWieldingSameKind => {
-                contexts.contains(basic_context)
-            },
+            Self::Stance(_) | Self::DualWieldingSameKind => contexts.contains(self),
             Self::Combo(required) => contexts
                 .iter()
                 .filter_map(|context| {
@@ -486,7 +487,7 @@ impl<T> AbilitySet<T> {
         &self,
         skillset: Option<&SkillSet>,
         contexts: &[AbilityContext],
-    ) -> Option<(&T, Option<usize>)> {
+    ) -> Option<(&T, Option<ContextualIndex>)> {
         self.primary.ability(skillset, contexts)
     }
 
@@ -494,7 +495,7 @@ impl<T> AbilitySet<T> {
         &self,
         skillset: Option<&SkillSet>,
         contexts: &[AbilityContext],
-    ) -> Option<(&T, Option<usize>)> {
+    ) -> Option<(&T, Option<ContextualIndex>)> {
         self.secondary.ability(skillset, contexts)
     }
 
@@ -503,7 +504,7 @@ impl<T> AbilitySet<T> {
         index: usize,
         skillset: Option<&SkillSet>,
         contexts: &[AbilityContext],
-    ) -> Option<(&T, Option<usize>)> {
+    ) -> Option<(&T, Option<ContextualIndex>)> {
         self.abilities
             .get(index)
             .and_then(|a| a.ability(skillset, contexts))
