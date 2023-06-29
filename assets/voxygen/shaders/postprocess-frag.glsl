@@ -283,7 +283,7 @@ void main() {
 
     // Bloom
     #ifdef BLOOM_FACTOR
-        vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), uv, 0);
+        vec4 bloom = textureLod(sampler2D(t_src_bloom, s_src_color), sample_uv, 0);
         #if (BLOOM_UNIFORM_BLUR == false)
             // divide by 4.0 to account for adding blurred layers together
             bloom /= 4.0;
@@ -294,7 +294,11 @@ void main() {
     // Tonemapping
     float exposure_offset = 1.0;
     // Adding an in-code offset to gamma and exposure let us have more precise control over the game's look
-    float gamma_offset = 0.3;
+    #ifdef EXPERIMENTAL_CINEMATIC
+        float gamma_offset = 0.5;
+    #else
+        float gamma_offset = 0.3;
+    #endif
     aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * (gamma_exposure.y + exposure_offset));
     // gamma correction
     aa_color.rgb = pow(aa_color.rgb, vec3(gamma_exposure.x + gamma_offset));
@@ -371,6 +375,10 @@ void main() {
             float d = dither(ivec2(uv * screen_res.xy), sqrt(length(final_color.rgb) * 0.25));
             final_color.rgb = vec3(d) * sqrt(normalize(final_color.rgb));
         #endif
+    #endif
+
+    #ifdef EXPERIMENTAL_CINEMATIC
+        final_color.rgb = hsv2rgb(rgb2hsv(final_color.rgb) * vec3(1, 1, 1.3) + vec3(-0.01, 0.05, 0));
     #endif
 
     tgt_color = vec4(final_color.rgb, 1);

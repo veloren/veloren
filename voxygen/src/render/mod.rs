@@ -543,4 +543,6 @@ pub enum ExperimentalShader {
     Newspaper,
     /// A colorful dithering effect.
     ColorDithering,
+    /// Cinematic color grading.
+    Cinematic,
 }
