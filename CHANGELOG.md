@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.15.0] - 2023-07-01
+
+### Added
+
 - Command to toggle experimental shaders.
 - Faster Energy Regeneration while sitting.
 - Lantern glow for dropped lanterns.
@@ -1163,7 +1173,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _0.1.0 was part of the legacy engine_
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.14.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.15.0&to=master
+[0.15.0]: https://gitlab.com/veloren/veloren/compare?from=v0.14.0&to=v0.15.0
 [0.14.0]: https://gitlab.com/veloren/veloren/compare?from=v0.13.0&to=v0.14.0
 [0.13.0]: https://gitlab.com/veloren/veloren/compare?from=v0.12.0&to=v0.13.0
 [0.12.0]: https://gitlab.com/veloren/veloren/compare?from=v0.11.0&to=v0.12.0
