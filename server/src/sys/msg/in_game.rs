@@ -21,7 +21,7 @@ use core::mem;
 use rayon::prelude::*;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use std::{borrow::Cow, time::Instant};
-use tracing::{debug, trace, warn};
+use tracing::{debug, trace};
 use vek::*;
 
 #[cfg(feature = "persistent_world")]
@@ -389,6 +389,7 @@ impl<'a> System<'a> for Sys {
                         && let Some(old_vel) = vel.as_deref_mut()
                         && let Some(old_ori) = ori.as_deref_mut()
                     {
+                        #[allow(dead_code)]
                         enum Rejection {
                             TooFar { old: Vec3<f32>, new: Vec3<f32> },
                             TooFast { vel: Vec3<f32> },
@@ -409,6 +410,10 @@ impl<'a> System<'a> for Sys {
                                     break 'rejection Some(Rejection::TooFast { vel: new_vel.0 });
                                 }
 
+                                // How far the player is permitted to stray from the correct position (perhaps due to
+                                // latency problems).
+                                const POSITION_THRESHOLD: f32 = 16.0;
+
                                 // The position can either be sensible with respect to either the old or the new
                                 // velocity such that we don't punish for edge cases after a sudden change
                                 let is_position_ok = [old_vel.0, new_vel.0]
@@ -424,7 +429,7 @@ impl<'a> System<'a> for Sys {
                                             .projected_point(rpos)
                                             // + 1.5 accounts for minor changes in position without corresponding
                                             // velocity like block hopping/snapping
-                                            .distance_squared(rpos) < (rpos.magnitude() * 0.5 + 1.5).powi(2)
+                                            .distance_squared(rpos) < (rpos.magnitude() * 0.5 + 1.5 + POSITION_THRESHOLD).powi(2)
                                     });
 
                                 if !is_position_ok {
@@ -435,13 +440,13 @@ impl<'a> System<'a> for Sys {
                             }
                         };
 
-                        if let Some(rejection) = rejection {
-                            let alias = maybe_player.map(|p| &p.alias);
-
-                            match rejection {
-                                Rejection::TooFar { old, new } => warn!("Rejected physics for player {alias:?} (new position {new:?} is too far from old position {old:?})"),
-                                Rejection::TooFast { vel } => warn!("Rejected physics for player {alias:?} (new velocity {vel:?} is too fast)"),
-                            }
+                        if let Some(_rejection) = rejection {
+                            // TODO: Log when false positives aren't generated often
+                            // let alias = maybe_player.map(|p| &p.alias);
+                            // match rejection {
+                            //     Rejection::TooFar { old, new } => warn!("Rejected physics for player {alias:?} (new position {new:?} is too far from old position {old:?})"),
+                            //     Rejection::TooFast { vel } => warn!("Rejected physics for player {alias:?} (new velocity {vel:?} is too fast)"),
+                            // }
 
                             /*
                             // Perhaps this is overzealous?
