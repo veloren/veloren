@@ -21,7 +21,7 @@ use core::mem;
 use rayon::prelude::*;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use std::{borrow::Cow, time::Instant};
-use tracing::{debug, trace};
+use tracing::{debug, trace, warn};
 use vek::*;
 
 #[cfg(feature = "persistent_world")]
@@ -440,13 +440,13 @@ impl<'a> System<'a> for Sys {
                             }
                         };
 
-                        if let Some(_rejection) = rejection {
+                        if let Some(rejection) = rejection {
                             // TODO: Log when false positives aren't generated often
-                            // let alias = maybe_player.map(|p| &p.alias);
-                            // match rejection {
-                            //     Rejection::TooFar { old, new } => warn!("Rejected physics for player {alias:?} (new position {new:?} is too far from old position {old:?})"),
-                            //     Rejection::TooFast { vel } => warn!("Rejected physics for player {alias:?} (new velocity {vel:?} is too fast)"),
-                            // }
+                            let alias = maybe_player.map(|p| &p.alias);
+                            match rejection {
+                                Rejection::TooFar { old, new } => warn!("Rejected physics for player {alias:?} (new position {new:?} is too far from old position {old:?})"),
+                                Rejection::TooFast { vel } => warn!("Rejected physics for player {alias:?} (new velocity {vel:?} is too fast)"),
+                            }
 
                             /*
                             // Perhaps this is overzealous?
