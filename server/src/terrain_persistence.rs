@@ -294,7 +294,7 @@ impl Limiter<Vec2<i32>, Chunk> for ByBlockLimiter {
     }
 
     fn on_removed(&mut self, _key: &mut Vec2<i32>, chunk: &mut Chunk) {
-        self.counted_blocks -= chunk.len();
+        self.counted_blocks = self.counted_blocks.saturating_sub(chunk.len());
     }
 
     fn on_cleared(&mut self) { self.counted_blocks = 0; }
