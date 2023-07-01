@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Plugins now target wasm32-unknown-wasi and all wasm cfgs are gone
+
 ### Removed
+
+- Plugins can no longer prevent users from logging in
 
 ### Fixed
 
@@ -81,11 +85,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collision damage can now be applied in horizontal axes, in addition to the vertical axis
 - Items will vanish after 5 minutes to minimise performance problems
 - The language identifiers used by the i18n translation system have been converted to IETF BCP 47 (RFC 5646) language tags.
-- Plugins now target wasm32-unknown-wasi and all wasm cfgs are gone
 
 ### Removed
-
-- Plugins can no longer prevent users from logging in
 
 ### Fixed
 
