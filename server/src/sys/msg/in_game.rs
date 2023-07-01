@@ -389,7 +389,6 @@ impl<'a> System<'a> for Sys {
                         && let Some(old_vel) = vel.as_deref_mut()
                         && let Some(old_ori) = ori.as_deref_mut()
                     {
-                        #[allow(dead_code)]
                         enum Rejection {
                             TooFar { old: Vec3<f32>, new: Vec3<f32> },
                             TooFast { vel: Vec3<f32> },
