@@ -1,0 +1,9 @@
+gameinput-primary = Основна атака
+gameinput-jump = Скачане
+gameinput-climb = Катерене
+gameinput-map = Карта
+gameinput-bag = Bag
+gameinput-trade = Търгуване
+gameinput-sit = Сядане
+gameinput-settings = Настройки
+gameinput-fly = Летене
