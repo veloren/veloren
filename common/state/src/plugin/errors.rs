@@ -1,5 +1,5 @@
 use bincode::ErrorKind;
-use wasmer::{ExportError, InstantiationError, RuntimeError};
+use wasmer::{CompileError, ExportError, InstantiationError, RuntimeError};
 
 #[derive(Debug)]
 pub enum PluginError {
@@ -9,17 +9,20 @@ pub enum PluginError {
     NoSuchModule,
     Encoding(Box<ErrorKind>),
     PluginModuleError(String, String, PluginModuleError),
+    ProcessExit,
 }
 
 #[derive(Debug)]
 pub enum PluginModuleError {
     InstantiationError(Box<InstantiationError>),
+    InvalidPointer,
     MemoryAllocation(MemoryAllocationError),
     MemoryUninit(ExportError),
     FindFunction(ExportError),
     RunFunction(RuntimeError),
     InvalidArgumentType(),
     Encoding(Box<ErrorKind>),
+    CompileError(CompileError),
 }
 
 #[derive(Debug)]

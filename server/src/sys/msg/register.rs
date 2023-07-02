@@ -30,7 +30,7 @@ use specs::{
 use tracing::{debug, info, trace, warn};
 
 #[cfg(feature = "plugins")]
-use {common_state::plugin::memory_manager::EcsWorld, common_state::plugin::PluginMgr};
+use common_state::plugin::PluginMgr;
 
 #[cfg(feature = "plugins")]
 type ReadPlugin<'a> = Read<'a, PluginMgr>;
@@ -138,16 +138,6 @@ impl<'a> System<'a> for Sys {
         }
 
         let old_player_count = player_list.len();
-        #[cfg(feature = "plugins")]
-        let ecs_world = EcsWorld {
-            entities: &read_data.entities,
-            health: (&read_data._healths).into(),
-            uid: (&read_data.uids).into(),
-            // NOTE: Only the old player list is provided, to avoid scalability
-            // bottlenecks.
-            player: (&players).into(),
-            id_maps: &read_data._id_maps,
-        };
 
         // NOTE: this is just default value.
         //
@@ -225,10 +215,6 @@ impl<'a> System<'a> for Sys {
                             mut new_players_guard,
                         ) = match LoginProvider::login(
                             pending,
-                            #[cfg(feature = "plugins")]
-                            &ecs_world,
-                            #[cfg(feature = "plugins")]
-                            &read_data._plugin_mgr,
                             &read_data.editable_settings.admins,
                             &read_data.editable_settings.whitelist,
                             &read_data.editable_settings.banlist,

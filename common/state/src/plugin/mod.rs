@@ -1,4 +1,5 @@
 pub mod errors;
+pub mod exports;
 pub mod memory_manager;
 pub mod module;
 pub mod wasm_env;
@@ -13,6 +14,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tracing::{error, info};
+use wasmer::Memory64;
 
 use plugin_api::Event;
 
@@ -20,9 +22,12 @@ use self::{
     errors::PluginError,
     memory_manager::EcsWorld,
     module::{PluginModule, PreparedEventQuery},
+    wasm_env::HostFunctionException,
 };
 
 use rayon::prelude::*;
+
+pub type MemoryModel = Memory64;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginData {
@@ -31,7 +36,6 @@ pub struct PluginData {
     dependencies: HashSet<String>,
 }
 
-#[derive(Clone)]
 pub struct Plugin {
     data: PluginData,
     modules: Vec<PluginModule>,
@@ -87,7 +91,7 @@ impl Plugin {
     }
 
     pub fn execute_prepared<T>(
-        &self,
+        &mut self,
         ecs: &EcsWorld,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
@@ -95,10 +99,28 @@ impl Plugin {
         T: Event,
     {
         self.modules
-            .iter()
+            .iter_mut()
             .flat_map(|module| {
                 module.try_execute(ecs, event).map(|x| {
                     x.map_err(|e| {
+                        if let errors::PluginModuleError::RunFunction(runtime_err) = &e {
+                            if let Some(host_except) =
+                                runtime_err.downcast_ref::<HostFunctionException>()
+                            {
+                                match host_except {
+                                    HostFunctionException::ProcessExit(code) => {
+                                        module.exit_code = Some(*code);
+                                        tracing::warn!(
+                                            "Module {} binary {} exited with {}",
+                                            self.data.name,
+                                            module.name(),
+                                            *code
+                                        );
+                                        return PluginError::ProcessExit;
+                                    },
+                                }
+                            }
+                        }
                         PluginError::PluginModuleError(
                             self.data.name.to_owned(),
                             event.get_function_name().to_owned(),
@@ -108,10 +130,17 @@ impl Plugin {
                 })
             })
             .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| {
+                if matches!(e, PluginError::ProcessExit) {
+                    // remove the executable from the module which called process exit
+                    self.modules.retain(|m| m.exit_code.is_none())
+                }
+                e
+            })
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct PluginMgr {
     plugins: Vec<Plugin>,
 }
@@ -125,7 +154,7 @@ impl PluginMgr {
     }
 
     pub fn execute_prepared<T>(
-        &self,
+        &mut self,
         ecs: &EcsWorld,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
@@ -134,7 +163,7 @@ impl PluginMgr {
     {
         Ok(self
             .plugins
-            .par_iter()
+            .par_iter_mut()
             .map(|plugin| plugin.execute_prepared(ecs, event))
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()
@@ -143,7 +172,7 @@ impl PluginMgr {
     }
 
     pub fn execute_event<T>(
-        &self,
+        &mut self,
         ecs: &EcsWorld,
         event: &T,
     ) -> Result<Vec<T::Response>, PluginError>

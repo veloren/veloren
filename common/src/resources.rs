@@ -1,7 +1,5 @@
-#[cfg(not(target_arch = "wasm32"))]
 use crate::comp::Pos;
 use serde::{Deserialize, Serialize};
-#[cfg(not(target_arch = "wasm32"))]
 use specs::Entity;
 use std::ops::{Mul, MulAssign};
 
@@ -38,7 +36,6 @@ impl MulAssign<f64> for Secs {
     fn mul_assign(&mut self, mult: f64) { *self = *self * mult; }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Default)]
 pub struct EntitiesDiedLastTick(pub Vec<(Entity, Pos)>);
 
@@ -59,7 +56,6 @@ pub enum GameMode {
 
 /// A resource that stores the player's entity (on the client), and None on the
 /// server
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Default, Debug)]
 pub struct PlayerEntity(pub Option<Entity>);
 
@@ -82,7 +78,6 @@ impl PlayerPhysicsSetting {
 /// List of which players are using client-authoratative vs server-authoratative
 /// physics, as a stop-gap until we can use server-authoratative physics for
 /// everyone
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Default, Debug)]
 pub struct PlayerPhysicsSettings {
     pub settings: hashbrown::HashMap<uuid::Uuid, PlayerPhysicsSetting>,

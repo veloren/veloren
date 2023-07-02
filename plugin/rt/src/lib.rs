@@ -102,7 +102,7 @@ static mut BUFFERS: Vec<u8> = Vec::new();
 /// # Safety
 /// This function should never be used only intended to by used by the host
 #[no_mangle]
-pub unsafe fn wasm_prepare_buffer(size: i32) -> i64 {
+pub unsafe fn wasm_prepare_buffer(size: i64) -> i64 {
     BUFFERS = vec![0u8; size as usize];
     BUFFERS.as_ptr() as i64
 }

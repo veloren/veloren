@@ -304,7 +304,7 @@ impl State {
         // Load plugins from asset directory
         #[cfg(feature = "plugins")]
         ecs.insert(match PluginMgr::from_assets() {
-            Ok(plugin_mgr) => {
+            Ok(mut plugin_mgr) => {
                 let ecs_world = EcsWorld {
                     entities: &ecs.entities(),
                     health: ecs.read_component().into(),

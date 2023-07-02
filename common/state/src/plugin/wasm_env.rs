@@ -1,83 +1,119 @@
 use std::sync::Arc;
 
 use serde::{de::DeserializeOwned, Serialize};
-use wasmer::{Function, HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
+use wasmer::{ExportError, Instance, Memory, Store, StoreMut, StoreRef, TypedFunction, WasmPtr};
 
 use super::{
     errors::PluginModuleError,
-    memory_manager::{self, EcsAccessManager, MemoryManager},
+    memory_manager::{self, EcsAccessManager},
+    MemoryModel,
 };
 
 #[derive(Clone)]
-pub struct HostFunctionEnvironement {
-    pub ecs: Arc<EcsAccessManager>, /* This represent the pointer to the ECS object (set to
-                                     * i32::MAX if to ECS is
-                                     * availible) */
-    pub memory: LazyInit<Memory>, // This object represent the WASM Memory
-    pub allocator: LazyInit<Function>, // Linked to: wasm_prepare_buffer
-    pub memory_manager: Arc<MemoryManager>, /* This object represent the current buffer size and
-                                   * pointer */
-    pub name: String, // This represent the plugin name
+pub struct HostFunctionEnvironment {
+    ecs: Arc<EcsAccessManager>, /* This represent the pointer to the ECS object (set to
+                                 * i32::MAX if to ECS is
+                                 * availible) */
+    memory: Option<Memory>, // This object represent the WASM Memory
+    allocator: Option<
+        TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>>,
+    >, /* Linked to: wasm_prepare_buffer */
+    name: String,           // This represent the plugin name
 }
 
-impl HostFunctionEnvironement {
-    pub fn new(
-        name: String,
-        ecs: Arc<EcsAccessManager>,
-        memory_manager: Arc<MemoryManager>,
-    ) -> Self {
+pub struct HostFunctionEnvironmentInit {
+    allocator: TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>>,
+    memory: Memory,
+}
+
+#[derive(Debug, Clone, Copy)]
+// Exception thrown from a native wasm callback
+pub enum HostFunctionException {
+    ProcessExit(i32),
+}
+
+// needed for `std::error::Error`
+impl core::fmt::Display for HostFunctionException {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result { write!(f, "{:?}", self) }
+}
+
+impl std::error::Error for HostFunctionException {}
+
+impl HostFunctionEnvironment {
+    /// Create a new environment for functions providing functionality to WASM
+    pub fn new(name: String, ecs: Arc<EcsAccessManager>) -> Self {
         Self {
-            memory_manager,
             ecs,
-            allocator: LazyInit::new(),
-            memory: LazyInit::new(),
+            allocator: Default::default(),
+            memory: Default::default(),
             name,
         }
     }
 
-    /// This function is a safe interface to WASM memory that writes data to the
-    /// memory returning a pointer and length
-    pub fn write_data<T: Serialize>(&self, object: &T) -> Result<(u64, u64), PluginModuleError> {
-        self.memory_manager.write_data(
-            self.memory.get_ref().unwrap(),
-            self.allocator.get_ref().unwrap(),
-            object,
-        )
+    #[inline]
+    pub(crate) fn ecs(&self) -> &Arc<EcsAccessManager> { &self.ecs }
+
+    #[inline]
+    pub(crate) fn memory(&self) -> &Memory { self.memory.as_ref().unwrap() }
+
+    #[inline]
+    pub(crate) fn allocator(
+        &self,
+    ) -> &TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>> {
+        self.allocator.as_ref().unwrap()
     }
 
-    /// This function is a safe interface to WASM memory that writes data to the
-    /// memory returning a pointer and length
-    pub fn write_data_as_pointer<T: Serialize>(
+    #[inline]
+    pub(crate) fn name(&self) -> &str { &self.name }
+
+    /// This function is a safe interface to WASM memory that serializes and
+    /// writes an object to linear memory returning a pointer
+    pub(crate) fn write_serialized_with_length<T: Serialize>(
         &self,
+        store: &mut StoreMut,
         object: &T,
-    ) -> Result<u64, PluginModuleError> {
-        self.memory_manager.write_data_as_pointer(
-            self.memory.get_ref().unwrap(),
-            self.allocator.get_ref().unwrap(),
-            object,
-        )
+    ) -> Result<WasmPtr<u8, MemoryModel>, PluginModuleError> {
+        memory_manager::write_serialized_with_length(store, self.memory(), self.allocator(), object)
     }
 
     /// This function is a safe interface to WASM memory that reads memory from
     /// pointer and length returning an object
-    pub fn read_data<T: DeserializeOwned>(
+    pub(crate) fn read_serialized<T: DeserializeOwned>(
         &self,
-        position: u64,
-        length: u64,
+        store: &StoreRef,
+        position: WasmPtr<u8, MemoryModel>,
+        length: <MemoryModel as wasmer::MemorySize>::Offset,
     ) -> Result<T, bincode::Error> {
-        memory_manager::read_data(self.memory.get_ref().unwrap(), position, length)
+        memory_manager::read_serialized(self.memory(), store, position, length)
     }
-}
 
-impl WasmerEnv for HostFunctionEnvironement {
-    fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
-        let memory = instance.exports.get_memory("memory").unwrap();
-        self.memory.initialize(memory.clone());
+    /// This function is a safe interface to WASM memory that reads memory from
+    /// a pointer and a length and returns some bytes
+    pub(crate) fn read_bytes(
+        &self,
+        store: &StoreRef,
+        ptr: WasmPtr<u8, MemoryModel>,
+        len: <MemoryModel as wasmer::MemorySize>::Offset,
+    ) -> Result<Vec<u8>, PluginModuleError> {
+        memory_manager::read_bytes(self.memory(), store, ptr, len)
+    }
+
+    /// This function creates the argument for init_with_instance() from
+    /// exported symbol lookup
+    pub fn args_from_instance(
+        store: &Store,
+        instance: &Instance,
+    ) -> Result<HostFunctionEnvironmentInit, ExportError> {
+        let memory = instance.exports.get_memory("memory")?.clone();
         let allocator = instance
             .exports
-            .get_function("wasm_prepare_buffer")
-            .expect("Can't get allocator");
-        self.allocator.initialize(allocator.clone());
-        Ok(())
+            .get_typed_function(store, "wasm_prepare_buffer")?;
+        Ok(HostFunctionEnvironmentInit { memory, allocator })
+    }
+
+    /// Initialize the wasm exports in the environment
+    pub fn init_with_instance(&mut self, args: HostFunctionEnvironmentInit) {
+        self.memory = Some(args.memory);
+        self.allocator = Some(args.allocator);
     }
 }

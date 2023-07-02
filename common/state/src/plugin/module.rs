@@ -1,63 +1,80 @@
-use std::{
-    collections::HashSet,
-    convert::TryInto,
-    marker::PhantomData,
-    sync::{Arc, Mutex},
-};
+use hashbrown::HashSet;
+use std::{marker::PhantomData, sync::Arc};
 
-use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Universal, Value};
+use wasmer::{
+    imports, AsStoreMut, AsStoreRef, Function, FunctionEnv, FunctionEnvMut, Instance, Memory,
+    Module, Store, TypedFunction, WasmPtr,
+};
 
 use super::{
     errors::{PluginError, PluginModuleError},
-    memory_manager::{self, EcsAccessManager, EcsWorld, MemoryManager},
-    wasm_env::HostFunctionEnvironement,
+    exports,
+    memory_manager::{self, EcsAccessManager, EcsWorld},
+    wasm_env::HostFunctionEnvironment,
+    MemoryModel,
 };
 
 use plugin_api::{Action, EcsAccessError, Event, Retrieve, RetrieveError, RetrieveResult};
 
-#[derive(Clone)]
+// #[derive(Clone)]
 /// This structure represent the WASM State of the plugin.
 pub struct PluginModule {
     ecs: Arc<EcsAccessManager>,
-    wasm_state: Arc<Mutex<Instance>>,
-    memory_manager: Arc<MemoryManager>,
+    wasm_state: Arc<Instance>,
     events: HashSet<String>,
-    allocator: Function,
+    allocator: TypedFunction<<MemoryModel as wasmer::MemorySize>::Offset, WasmPtr<u8, MemoryModel>>,
     memory: Memory,
+    store: Store,
     #[allow(dead_code)]
     name: String,
+    pub(crate) exit_code: Option<i32>,
 }
 
 impl PluginModule {
     /// This function takes bytes from a WASM File and compile them
     pub fn new(name: String, wasm_data: &[u8]) -> Result<Self, PluginModuleError> {
-        // This is creating the engine is this case a JIT based on Cranelift
-        let engine = Universal::new(Cranelift::default()).engine();
-        // We are creating an enironnement
-        let store = Store::new(&engine);
+        // The store contains all data for a specific instance, including the linear
+        // memory
+        let mut store = Store::default();
         // We are compiling the WASM file in the previously generated environement
-        let module = Module::new(&store, wasm_data).expect("Can't compile");
+        let module = Module::from_binary(store.engine(), wasm_data)
+            .map_err(PluginModuleError::CompileError)?;
 
         // This is the function imported into the wasm environement
-        fn raw_emit_actions(env: &HostFunctionEnvironement, ptr: i64, len: i64) {
-            handle_actions(match env.read_data(from_i64(ptr), from_i64(len)) {
-                Ok(e) => e,
-                Err(e) => {
-                    tracing::error!(?e, "Can't decode action");
-                    return;
+        fn raw_emit_actions(
+            env: FunctionEnvMut<HostFunctionEnvironment>,
+            // store: &wasmer::StoreRef<'_>,
+            ptr: WasmPtr<u8, MemoryModel>,
+            len: <MemoryModel as wasmer::MemorySize>::Offset,
+        ) {
+            handle_actions(
+                match env.data().read_serialized(&env.as_store_ref(), ptr, len) {
+                    Ok(e) => e,
+                    Err(e) => {
+                        tracing::error!(?e, "Can't decode action");
+                        return;
+                    },
                 },
-            });
+            );
         }
 
-        fn raw_retrieve_action(env: &HostFunctionEnvironement, ptr: i64, len: i64) -> i64 {
-            let out = match env.read_data(from_i64(ptr), from_i64(len)) {
-                Ok(data) => retrieve_action(&env.ecs, data),
+        fn raw_retrieve_action(
+            mut env: FunctionEnvMut<HostFunctionEnvironment>,
+            // store: &wasmer::StoreRef<'_>,
+            ptr: WasmPtr<u8, MemoryModel>,
+            len: <MemoryModel as wasmer::MemorySize>::Offset,
+        ) -> <MemoryModel as wasmer::MemorySize>::Offset {
+            let out = match env.data().read_serialized(&env.as_store_ref(), ptr, len) {
+                Ok(data) => retrieve_action(env.data().ecs(), data),
                 Err(e) => Err(RetrieveError::BincodeError(e.to_string())),
             };
 
-            // If an error happen set the i64 to 0 so the WASM side can tell an error
-            // occured
-            to_i64(env.write_data_as_pointer(&out).unwrap())
+            let data = env.data().clone();
+            data.write_serialized_with_length(&mut env.as_store_mut(), &out)
+                .unwrap_or_else(|_e|
+                    // return a null pointer so the WASM side can tell an error occured
+                    WasmPtr::null())
+                .offset()
         }
 
         fn dbg(a: i32) {
@@ -65,22 +82,34 @@ impl PluginModule {
         }
 
         let ecs = Arc::new(EcsAccessManager::default());
-        let memory_manager = Arc::new(MemoryManager::default());
 
+        // Environment to pass ecs and memory_manager to callbacks
+        let env = FunctionEnv::new(
+            &mut store,
+            HostFunctionEnvironment::new(name.clone(), Arc::clone(&ecs)),
+        );
         // Create an import object.
         let import_object = imports! {
             "env" => {
-                "raw_emit_actions" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_emit_actions),
-                "raw_retrieve_action" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_retrieve_action),
-                "dbg" => Function::new_native(&store, dbg),
-            }
+                "raw_emit_actions" => Function::new_typed_with_env(&mut store, &env, raw_emit_actions),
+                "raw_retrieve_action" => Function::new_typed_with_env(&mut store, &env, raw_retrieve_action),
+                "dbg" => Function::new_typed(&mut store, dbg),
+            },
+            "wasi_snapshot_preview1" => {
+                "fd_write" => Function::new_typed_with_env(&mut store, &env, exports::wasi_fd_write),
+                "environ_get" => Function::new_typed_with_env(&mut store, &env, exports::wasi_env_get),
+                "environ_sizes_get" => Function::new_typed_with_env(&mut store, &env, exports::wasi_env_sizes_get),
+                "proc_exit" => Function::new_typed_with_env(&mut store, &env, exports::wasi_proc_exit),
+            },
         };
 
         // Create an instance (Code execution environement)
-        let instance = Instance::new(&module, &import_object)
+        let instance = Instance::new(&mut store, &module, &import_object)
             .map_err(|err| PluginModuleError::InstantiationError(Box::new(err)))?;
+        let init_args = HostFunctionEnvironment::args_from_instance(&store, &instance)
+            .map_err(PluginModuleError::FindFunction)?;
+        env.as_mut(&mut store).init_with_instance(init_args);
         Ok(Self {
-            memory_manager,
             ecs,
             memory: instance
                 .exports
@@ -89,23 +118,24 @@ impl PluginModule {
                 .clone(),
             allocator: instance
                 .exports
-                .get_function("wasm_prepare_buffer")
-                .map_err(PluginModuleError::MemoryUninit)?
-                .clone(),
+                .get_typed_function(&store, "wasm_prepare_buffer")
+                .map_err(PluginModuleError::MemoryUninit)?,
             events: instance
                 .exports
                 .iter()
                 .map(|(name, _)| name.to_string())
                 .collect(),
-            wasm_state: Arc::new(Mutex::new(instance)),
+            wasm_state: Arc::new(instance),
+            store,
             name,
+            exit_code: None,
         })
     }
 
     /// This function tries to execute an event for the current module. Will
     /// return None if the event doesn't exists
     pub fn try_execute<T>(
-        &self,
+        &mut self,
         ecs: &EcsWorld,
         request: &PreparedEventQuery<T>,
     ) -> Option<Result<T::Response, PluginModuleError>>
@@ -116,15 +146,17 @@ impl PluginModule {
             return None;
         }
         // Store the ECS Pointer for later use in `retreives`
-        let bytes = match self.ecs.execute_with(ecs, || {
-            let mut state = self.wasm_state.lock().unwrap();
-            execute_raw(self, &mut state, &request.function_name, &request.bytes)
+        let s_ecs = self.ecs.clone();
+        let bytes = match s_ecs.execute_with(ecs, || {
+            execute_raw(self, &request.function_name, &request.bytes)
         }) {
             Ok(e) => e,
             Err(e) => return Some(Err(e)),
         };
         Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
     }
+
+    pub fn name(&self) -> &str { &self.name }
 }
 
 /// This structure represent a Pre-encoded event object (Useful to avoid
@@ -153,77 +185,62 @@ impl<T: Event> PreparedEventQuery<T> {
     pub fn get_function_name(&self) -> &str { &self.function_name }
 }
 
-/// This function split a u128 in two u64 encoding them as le bytes
-pub fn from_u128(i: u128) -> (u64, u64) {
-    let i = i.to_le_bytes();
-    (
-        u64::from_le_bytes(i[0..8].try_into().unwrap()),
-        u64::from_le_bytes(i[8..16].try_into().unwrap()),
-    )
-}
-
-/// This function merge two u64 encoded as le in one u128
-pub fn to_u128(a: u64, b: u64) -> u128 {
-    let a = a.to_le_bytes();
-    let b = b.to_le_bytes();
-    u128::from_le_bytes([a, b].concat().try_into().unwrap())
-}
-
-/// This function encode a u64 into a i64 using le bytes
-pub fn to_i64(i: u64) -> i64 { i64::from_le_bytes(i.to_le_bytes()) }
-
-/// This function decode a i64 into a u64 using le bytes
-pub fn from_i64(i: i64) -> u64 { u64::from_le_bytes(i.to_le_bytes()) }
-
 // This function is not public because this function should not be used without
 // an interface to limit unsafe behaviours
 fn execute_raw(
-    module: &PluginModule,
-    instance: &mut Instance,
+    module: &mut PluginModule,
+    // instance: &mut Instance,
     event_name: &str,
     bytes: &[u8],
 ) -> Result<Vec<u8>, PluginModuleError> {
     // This write into memory `bytes` using allocation if necessary returning a
     // pointer and a length
 
-    let (mem_position, len) =
-        module
-            .memory_manager
-            .write_bytes(&module.memory, &module.allocator, bytes)?;
+    let (ptr, len) = memory_manager::write_bytes(
+        &mut module.store.as_store_mut(),
+        &module.memory,
+        &module.allocator,
+        (bytes, &[]),
+    )?;
 
     // This gets the event function from module exports
 
-    let func = instance
+    let func: TypedFunction<
+        (
+            WasmPtr<u8, MemoryModel>,
+            <MemoryModel as wasmer::MemorySize>::Offset,
+        ),
+        WasmPtr<u8, MemoryModel>,
+    > = module
+        .wasm_state
         .exports
-        .get_function(event_name)
+        .get_typed_function(&module.store.as_store_ref(), event_name)
         .map_err(PluginModuleError::MemoryUninit)?;
 
     // We call the function with the pointer and the length
 
-    let function_result = func
-        .call(&[Value::I64(to_i64(mem_position)), Value::I64(to_i64(len))])
+    let result_ptr = func
+        .call(&mut module.store.as_store_mut(), ptr, len)
         .map_err(PluginModuleError::RunFunction)?;
 
-    // Waiting for `multi-value` to be added to LLVM. So we encode a pointer to a
-    // u128 that represent [u64; 2]
+    // The first bytes correspond to the length of the result
+    let result_len: [u8; std::mem::size_of::<<MemoryModel as wasmer::MemorySize>::Offset>()] =
+        memory_manager::read_exact_bytes(&module.memory, &module.store.as_store_ref(), result_ptr)
+            .map_err(|_| PluginModuleError::InvalidPointer)?;
+    let result_len = <MemoryModel as wasmer::MemorySize>::Offset::from_le_bytes(result_len);
 
-    let u128_pointer = from_i64(
-        function_result[0]
-            .i64()
-            .ok_or_else(PluginModuleError::InvalidArgumentType)?,
-    );
-
-    let bytes = memory_manager::read_bytes(&module.memory, u128_pointer, 16);
-
-    // We read the return object and deserialize it
-
-    // The first 8 bytes are encoded as le and represent the pointer to the data
-    // The next 8 bytes are encoded as le and represent the length of the data
-    Ok(memory_manager::read_bytes(
+    // Read the result of the function with the pointer and the length
+    let bytes = memory_manager::read_bytes(
         &module.memory,
-        u64::from_le_bytes(bytes[0..8].try_into().unwrap()),
-        u64::from_le_bytes(bytes[8..16].try_into().unwrap()),
-    ))
+        &module.store.as_store_ref(),
+        WasmPtr::new(
+            result_ptr.offset()
+                + std::mem::size_of::<<MemoryModel as wasmer::MemorySize>::Offset>()
+                    as <MemoryModel as wasmer::MemorySize>::Offset,
+        ),
+        result_len,
+    )?;
+    Ok(bytes)
 }
 
 fn retrieve_action(

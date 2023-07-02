@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Plugins now target wasm32-unknown-wasi and all wasm cfgs are gone
+
 ### Removed
+
+- Plugins can no longer prevent users from logging in
 
 ### Fixed
 
