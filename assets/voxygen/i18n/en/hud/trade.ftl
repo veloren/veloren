@@ -29,3 +29,4 @@ hud-trade-tooltip_hint_2 = <Ctrl-Click to Auto-Balance with this.>
 hud-trade-your_offer = Your offer
 hud-trade-their_offer = Their offer
 hud-trade-amount_input = Select an item
+hud-confirm-trade-for-nothing = Really give away these items in exchange for nothing?
