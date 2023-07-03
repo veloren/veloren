@@ -302,7 +302,7 @@ common-abilities-axe-rake = Rake
         Drag your axe across your foe, inducing bleeding
 common-abilities-axe-bloodfeast = Bloodfeast
     .desc =
-        Your axe thirsts for the blood of your enemies, replenishing you with each strike
+        Your axe thirsts for the blood of your enemies, replenishing you with each strike against a bleeding enemy
 common-abilities-axe-fierce_raze = Fierce Raze
     .desc =
         A rapid flurry of strikes on your foe
@@ -311,7 +311,7 @@ common-abilities-axe-dual_fierce_raze = Fierce Raze
         A rapid flurry of strikes on your foe using both of your axes
 common-abilities-axe-furor = Furor
     .desc =
-        As your fury rises, your movement and attacks quicken
+        As your fury rises, your strikes generate more combo
 common-abilities-axe-fracture = Fracture
     .desc =
         A crippling blow that hampers your foe's movement
@@ -330,7 +330,7 @@ common-abilities-axe-skull_bash = Skullbash
         A strike with the flat of your axe that can stagger
 common-abilities-axe-sunder = Sunder
     .desc =
-        By changing your grip, you become able to bypass your enemy's armor
+        By changing your grip, you become able to bypass your enemy's armor while restoring your energy more effectively
 common-abilities-axe-plunder = Plunder
     .desc =
         Quickly step towards your foe, robbing them of their balance with a strike

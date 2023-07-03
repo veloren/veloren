@@ -678,7 +678,6 @@ fn execute_effect(
                 *body_override = Some(*b)
             }
         },
-        BuffEffect::BuffOnHit(effect) => stat.buffs_on_hit.push(effect.clone()),
         BuffEffect::BuffImmunity(buff_kind) => {
             if buffs_comp.contains(*buff_kind) {
                 server_emitter.emit(ServerEvent::Buff {
@@ -690,6 +689,7 @@ fn execute_effect(
         BuffEffect::SwimSpeed(speed) => {
             stat.swim_speed_modifier *= speed;
         },
+        BuffEffect::AttackEffect(effect) => stat.effects_on_attack.push(effect.clone()),
         BuffEffect::AttackPoise(p) => {
             stat.poise_damage_modifier *= p;
         },
@@ -697,5 +697,9 @@ fn execute_effect(
             stat.mitigations_penetration =
                 1.0 - ((1.0 - stat.mitigations_penetration) * (1.0 - *mp));
         },
+        BuffEffect::EnergyReward(er) => {
+            stat.energy_reward_modifier *= er;
+        },
+        BuffEffect::DamagedEffect(effect) => stat.effects_on_damaged.push(effect.clone()),
     };
 }

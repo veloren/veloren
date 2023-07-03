@@ -904,7 +904,7 @@ pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
 pub fn attempt_swap_equipped_weapons(
     data: &JoinData<'_>,
     update: &mut StateUpdate,
-    output_events: &mut OutputEvents,
+    _output_events: &mut OutputEvents,
 ) {
     if data
         .inventory
@@ -915,7 +915,6 @@ pub fn attempt_swap_equipped_weapons(
             .and_then(|inv| inv.equipped(EquipSlot::InactiveOffhand))
             .is_some()
     {
-        loadout_change_hook(data, output_events);
         update.swap_equipped_weapons = true;
     }
 }

@@ -2,9 +2,9 @@ SelfBuff(
     buildup_duration: 0.2,
     cast_duration: 0.2,
     recover_duration: 0.1,
-    buff_kind: Lifesteal,
-    buff_strength: 0.3,
-    buff_duration: Some(12.0),
+    buff_kind: Bloodfeast,
+    buff_strength: 0.1,
+    buff_duration: Some(15.0),
     energy_cost: 0,
-    combo_cost: 15,
+    combo_cost: 10,
 )

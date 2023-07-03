@@ -1539,6 +1539,18 @@ pub fn handle_entity_attacked_hook(
                 });
         }
     }
+
+    let stats = ecs.read_storage::<Stats>();
+    if let Some(stats) = stats.get(entity) {
+        for effect in &stats.effects_on_damaged {
+            use combat::DamagedEffect;
+            match effect {
+                DamagedEffect::Combo(c) => {
+                    server_eventbus.emit_now(ServerEvent::ComboChange { entity, change: *c });
+                },
+            }
+        }
+    }
 }
 
 pub fn handle_change_ability(

@@ -1,6 +1,9 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{
-    combat::{AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect},
+    combat::{
+        AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
+        DamagedEffect,
+    },
     comp::{aura::AuraKey, Health, Stats},
     resources::{Secs, Time},
     uid::Uid,
@@ -74,29 +77,47 @@ pub enum BuffKind {
     /// Provides immunity to burning and increases movement speed in lava.
     /// Movement speed increases linearly with strength, 1.0 is a 100% increase.
     // SalamanderAspect, TODO: Readd in second dwarven mine MR
-    /// Inflict burning on your attack
+    /// Your attacks cause targets to receive the burning debuff
+    /// Strength of burning debuff is a fraction of the damage, fraction
+    /// increases linearly with strength
     Flame,
-    /// Inflict frost on your attack
+    /// Your attacks cause targets to receive the frozen debuff
+    /// Strength of frozen debuff is equal to the strength of this buff
     Frigid,
-    /// Gain Lifesteal on your attack
+    /// Your attacks have lifesteal
+    /// Strength increases the fraction of damage restored as life
     Lifesteal,
+    /// Your attacks against bleeding targets have lifesteal
+    /// Strength increases the fraction of damage restored as life
+    Bloodfeast,
     /// Guarantees that the next attack is a critical hit. Does this kind of
     /// hackily by adding 100% to the crit, will need to be adjusted if we ever
     /// allow double crits instead of treating 100 as a ceiling.
     ImminentCritical,
-    /// Increases attack speed linearly with strength, 1.0 is a 100% increase
+    /// Increases combo gain, every 1 strength increases combo per strike by 1,
+    /// rounds to nearest integer
     Fury,
-    /// Increases poise damage and allows attacks to ignore DR
-    /// Poise damage increased linearly relative to strength, 1.0 is a 100%
-    /// increase. DR penetration is non-linear, 0.5 is 50% penetration and 1.0
-    /// is a 67% penetration.
+    /// Allows attacks to ignore DR and increases energy reward
+    /// DR penetration is non-linear, 0.5 is 50% penetration and 1.0 is a 67%
+    /// penetration. Energy reward is increased linearly to strength, 1.0 is a
+    /// 200 % increase.
     Sunderer,
-    /// Increases damage resistance and poise resistance. Damage resistance is
-    /// increased by half of poise resistance. Poise resistance increases
-    /// non-linearly with strength, 0.5 is 50% and 1.0 is 67%.
-    /// Damage resistance increases non-linearly with strength, 0.5 is 25% and
-    /// 1.0 is 33%.
+    /// Increases damage resistance and poise resistance, causes combo to be
+    /// generated when damaged, and decreases movement speed.
+    /// Damage resistance increases non-linearly with strength, 0.5 is 50% and
+    /// 1.0 is 67%. Poise resistance increases non-linearly with strength, 0.5
+    /// is 50% and 1.0 is 67%. Movement speed decreases linearly with strength,
+    /// 0.5 is 50% and 1.0 is 33%. Combo generation is linear with strength, 1.0
+    /// is 5 combo generated on being hit.
     Defiance,
+    /// Increases both attack damage, vulnerability to damage, attack speed, and
+    /// movement speed Damage increases linearly with strength, 1.0 is a
+    /// 100% increase. Damage reduction decreases linearly with strength,
+    /// 1.0 is a 100% Attack speed increases non-linearly with strength, 0.5
+    /// is a 25% increase, 1.0 is a 33% increase Movement speed increases
+    /// non-linearly with strength, 0.5 is a 12.5% increase, 1.0 is a 16.7%
+    /// increase decrease.
+    Berserk,
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -163,7 +184,9 @@ impl BuffKind {
             | BuffKind::ImminentCritical
             | BuffKind::Fury
             | BuffKind::Sunderer
-            | BuffKind::Defiance => true,
+            | BuffKind::Defiance
+            | BuffKind::Bloodfeast
+            | BuffKind::Berserk => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -326,7 +349,7 @@ impl BuffKind {
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
             BuffKind::Polymorphed(body) => vec![BuffEffect::BodyChange(*body)],
-            BuffKind::Flame => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+            BuffKind::Flame => vec![BuffEffect::AttackEffect(AttackEffect::new(
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Burning,
@@ -335,16 +358,16 @@ impl BuffKind {
                     chance: 1.0,
                 }),
             ))],
-            BuffKind::Frigid => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+            BuffKind::Frigid => vec![BuffEffect::AttackEffect(AttackEffect::new(
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Frozen,
                     dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
-                    strength: CombatBuffStrength::DamageFraction(data.strength),
+                    strength: CombatBuffStrength::Value(data.strength),
                     chance: 1.0,
                 }),
             ))],
-            BuffKind::Lifesteal => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+            BuffKind::Lifesteal => vec![BuffEffect::AttackEffect(AttackEffect::new(
                 None,
                 CombatEffect::Lifesteal(data.strength),
             ))],
@@ -352,18 +375,35 @@ impl BuffKind {
                 BuffEffect::BuffImmunity(BuffKind::Burning),
                 BuffEffect::SwimSpeed(1.0 + data.strength),
             ],*/
+            BuffKind::Bloodfeast => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(None, CombatEffect::Lifesteal(data.strength))
+                    .with_requirement(CombatRequirement::TargetHasBuff(BuffKind::Bleeding)),
+            )],
             BuffKind::ImminentCritical => vec![BuffEffect::CriticalChance {
                 kind: ModifierKind::Additive,
                 val: 1.0,
             }],
-            BuffKind::Fury => vec![BuffEffect::AttackSpeed(1.0 + data.strength)],
+            BuffKind::Fury => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(None, CombatEffect::Combo(data.strength.round() as i32))
+                    .with_requirement(CombatRequirement::AnyDamage),
+            )],
             BuffKind::Sunderer => vec![
-                BuffEffect::AttackPoise(data.strength),
                 BuffEffect::MitigationsPenetration(nn_scaling(data.strength)),
+                BuffEffect::EnergyReward(1.0 + 2.0 * data.strength),
             ],
             BuffKind::Defiance => vec![
-                BuffEffect::DamageReduction(nn_scaling(data.strength) / 2.0),
+                BuffEffect::DamageReduction(nn_scaling(data.strength)),
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
+                BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
+                BuffEffect::DamagedEffect(DamagedEffect::Combo(
+                    (data.strength * 5.0).round() as i32
+                )),
+            ],
+            BuffKind::Berserk => vec![
+                BuffEffect::DamageReduction(-data.strength),
+                BuffEffect::AttackDamage(1.0 + data.strength),
+                BuffEffect::AttackSpeed(1.0 + nn_scaling(data.strength) / 2.0),
+                BuffEffect::MovementSpeed(1.0 + nn_scaling(data.strength) / 4.0),
             ],
         }
     }
@@ -492,14 +532,18 @@ pub enum BuffEffect {
     },
     /// Changes body.
     BodyChange(Body),
-    /// Inflict buff to target
-    BuffOnHit(AttackEffect),
     BuffImmunity(BuffKind),
     SwimSpeed(f32),
+    /// Add an attack effect to attacks made while buff is active
+    AttackEffect(AttackEffect),
     /// Increases poise damage dealt by attacks
     AttackPoise(f32),
     /// Ignores some damage reduction on target
     MitigationsPenetration(f32),
+    /// Modifies energy rewarded on successful strikes
+    EnergyReward(f32),
+    /// Add an effect to the entity when damaged by an attack
+    DamagedEffect(DamagedEffect),
 }
 
 /// Actual de/buff.

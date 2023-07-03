@@ -5112,18 +5112,12 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Lifesteal => imgs.buff_plus_0,
         // TODO: Get image
         // BuffKind::SalamanderAspect => imgs.debuff_burning_0,
-        // TODO: Get buff image
-        BuffKind::ImminentCritical => imgs.buff_reckless,
-        // TODO: Get buff image
-        BuffKind::Fury => imgs.buff_reckless,
-        // TODO: Get buff image
-        BuffKind::Sunderer => imgs.debuff_crippled_0,
-        // TODO: Get buff image
-        BuffKind::Defiance => imgs.buff_fortitude_0,
         BuffKind::ImminentCritical => imgs.buff_imminentcritical,
         BuffKind::Fury => imgs.buff_fury,
         BuffKind::Sunderer => imgs.buff_sunderer,
         BuffKind::Defiance => imgs.buff_defiance,
+        BuffKind::Bloodfeast => imgs.buff_plus_0,
+        BuffKind::Berserk => imgs.buff_reckless,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -5163,6 +5157,8 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Fury => localized_strings.get_msg("buff-title-fury"),
         BuffKind::Sunderer => localized_strings.get_msg("buff-title-sunderer"),
         BuffKind::Defiance => localized_strings.get_msg("buff-title-defiance"),
+        BuffKind::Bloodfeast => localized_strings.get_msg("buff-title-bloodfeast"),
+        BuffKind::Berserk => localized_strings.get_msg("buff-title-berserk"),
         // Debuffs
         BuffKind::Bleeding => localized_strings.get_msg("buff-title-bleed"),
         BuffKind::Cursed => localized_strings.get_msg("buff-title-cursed"),
@@ -5207,6 +5203,8 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Fury => localized_strings.get_msg("buff-desc-fury"),
         BuffKind::Sunderer => localized_strings.get_msg("buff-desc-sunderer"),
         BuffKind::Defiance => localized_strings.get_msg("buff-desc-defiance"),
+        BuffKind::Bloodfeast => localized_strings.get_msg("buff-desc-bloodfeast"),
+        BuffKind::Berserk => localized_strings.get_msg("buff-desc-berserk"),
         // Debuffs
         BuffKind::Bleeding => localized_strings.get_msg("buff-desc-bleed"),
         BuffKind::Cursed => localized_strings.get_msg("buff-desc-cursed"),

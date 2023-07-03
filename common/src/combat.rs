@@ -370,7 +370,8 @@ impl Attack {
                                     entity: attacker.entity,
                                     change: *ec
                                         * compute_energy_reward_mod(attacker.inventory, msm)
-                                        * strength_modifier,
+                                        * strength_modifier
+                                        * attacker.stats.map_or(1.0, |s| s.energy_reward_modifier),
                                 });
                             }
                         },
@@ -519,7 +520,7 @@ impl Attack {
                 attacker
                     .and_then(|attacker| attacker.stats)
                     .iter()
-                    .flat_map(|stats| stats.buffs_on_hit.iter()),
+                    .flat_map(|stats| stats.effects_on_attack.iter()),
             )
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !avoid_effect(e))
@@ -566,6 +567,9 @@ impl Attack {
                         false
                     }
                 },
+                CombatRequirement::TargetHasBuff(buff) => {
+                    target.buffs.map_or(false, |buffs| buffs.contains(*buff))
+                },
             });
             if requirements_met {
                 is_applied = true;
@@ -586,7 +590,8 @@ impl Attack {
                                 entity: attacker.entity,
                                 change: ec
                                     * compute_energy_reward_mod(attacker.inventory, msm)
-                                    * strength_modifier,
+                                    * strength_modifier
+                                    * attacker.stats.map_or(1.0, |s| s.energy_reward_modifier),
                             });
                         }
                     },
@@ -882,6 +887,12 @@ pub enum CombatRequirement {
     AnyDamage,
     Energy(f32),
     Combo(u32),
+    TargetHasBuff(BuffKind),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum DamagedEffect {
+    Combo(i32),
 }
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]

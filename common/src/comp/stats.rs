@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{error::Error, fmt};
 
-use crate::combat::AttackEffect;
+use crate::combat::{AttackEffect, DamagedEffect};
 
 use super::Body;
 
@@ -64,9 +64,11 @@ pub struct Stats {
     pub poise_damage_modifier: f32,
     pub attack_damage_modifier: f32,
     pub crit_chance_modifier: StatsModifier,
-    pub buffs_on_hit: Vec<AttackEffect>,
     pub swim_speed_modifier: f32,
+    pub effects_on_attack: Vec<AttackEffect>,
     pub mitigations_penetration: f32,
+    pub energy_reward_modifier: f32,
+    pub effects_on_damaged: Vec<DamagedEffect>,
 }
 
 impl Stats {
@@ -85,9 +87,11 @@ impl Stats {
             poise_damage_modifier: 1.0,
             attack_damage_modifier: 1.0,
             crit_chance_modifier: StatsModifier::default(),
-            buffs_on_hit: Vec::new(),
             swim_speed_modifier: 1.0,
+            effects_on_attack: Vec::new(),
             mitigations_penetration: 0.0,
+            energy_reward_modifier: 1.0,
+            effects_on_damaged: Vec::new(),
         }
     }
 
