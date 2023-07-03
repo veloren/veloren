@@ -211,6 +211,18 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         ("world.wildlife.spawn.tundra.forest", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4
         }),
+        // River wildlife
+        ("world.wildlife.spawn.tundra.river", |c, col| {
+            close(col.temp, CONFIG.snow_temp, 0.3)
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                    && c.alt > CONFIG.sea_level + 20.0
+                {
+                    0.001
+                } else {
+                    0.0
+                }
+        }),
         // Forest animals event
         (
             "world.wildlife.spawn.calendar.christmas.tundra.forest",
@@ -264,15 +276,37 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         ("world.wildlife.spawn.taiga.water", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.15) * col.tree_density * BASE_DENSITY * 5.0
         }),
+        // River wildlife
+        ("world.wildlife.spawn.taiga.river", |c, col| {
+            close(col.temp, CONFIG.snow_temp + 0.2, 0.6)
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                    && c.alt > CONFIG.sea_level + 20.0
+                {
+                    0.001
+                } else {
+                    0.0
+                }
+        }),
         // **Temperate**
         // Area rare
         ("world.wildlife.spawn.temperate.rare", |c, _col| {
             close(c.temp, CONFIG.temperate_temp, 0.8) * BASE_DENSITY * 0.08
         }),
+        // Plains
+        ("world.wildlife.spawn.temperate.plains", |c, _col| {
+            close(c.temp, CONFIG.temperate_temp, 0.8)
+                * close(c.tree_density, 0.0, 0.1)
+                * BASE_DENSITY
+                * 4.0
+        }),
         // River wildlife
-        ("world.wildlife.spawn.temperate.river", |_c, col| {
+        ("world.wildlife.spawn.temperate.river", |c, col| {
             close(col.temp, CONFIG.temperate_temp, 0.6)
-                * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                    && c.alt > CONFIG.sea_level + 20.0
+                {
                     0.001
                 } else {
                     0.0
@@ -280,7 +314,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         }),
         // Forest animals
         ("world.wildlife.spawn.temperate.wood", |c, col| {
-            close(c.temp, CONFIG.temperate_temp + 0.1, 0.5) * col.tree_density * BASE_DENSITY * 1.0
+            close(c.temp, CONFIG.temperate_temp + 0.1, 0.5) * col.tree_density * BASE_DENSITY * 3.0
         }),
         // Rainforest animals
         ("world.wildlife.spawn.temperate.rainforest", |c, _col| {
@@ -308,9 +342,28 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                     * 4.0
             },
         ),
-        // Water animals
-        ("world.wildlife.spawn.temperate.water", |c, col| {
-            close(c.temp, CONFIG.temperate_temp, 1.0) * col.tree_density * BASE_DENSITY * 5.0
+        // Ocean animals
+        ("world.wildlife.spawn.temperate.ocean", |_c, col| {
+            close(col.temp, CONFIG.temperate_temp, 1.0) / 10.0
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                {
+                    0.001
+                } else {
+                    0.0
+                }
+        }),
+        // Ocean beach animals
+        ("world.wildlife.spawn.temperate.beach", |c, col| {
+            close(col.temp, CONFIG.temperate_temp, 1.0) / 10.0
+                * if col.water_dist.map(|d| d < 30.0).unwrap_or(false)
+                    && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                    && c.alt < CONFIG.sea_level + 2.0
+                {
+                    0.001
+                } else {
+                    0.0
+                }
         }),
         // **Jungle**
         // Rainforest animals
@@ -347,19 +400,13 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             },
         ),
         // **Tropical**
-        // Rare river animals
-        ("world.wildlife.spawn.tropical.river_rare", |_c, col| {
-            close(col.temp, CONFIG.tropical_temp + 0.2, 0.5)
-                * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
-                    0.0001
-                } else {
-                    0.0
-                }
-        }),
         // River animals
-        ("world.wildlife.spawn.tropical.river", |_c, col| {
+        ("world.wildlife.spawn.tropical.river", |c, col| {
             close(col.temp, CONFIG.tropical_temp, 0.5)
-                * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                    && c.alt > CONFIG.sea_level + 20.0
+                {
                     0.001
                 } else {
                     0.0
@@ -369,7 +416,19 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         ("world.wildlife.spawn.tropical.ocean", |_c, col| {
             close(col.temp, CONFIG.tropical_temp, 0.1) / 10.0
                 * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                {
+                    0.001
+                } else {
+                    0.0
+                }
+        }),
+        // Ocean beach animals
+        ("world.wildlife.spawn.tropical.beach", |c, col| {
+            close(col.temp, CONFIG.tropical_temp, 1.0) / 10.0
+                * if col.water_dist.map(|d| d < 30.0).unwrap_or(false)
                     && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                    && c.alt < CONFIG.sea_level + 2.0
                 {
                     0.001
                 } else {
@@ -378,7 +437,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         }),
         // Arctic ocean animals
         ("world.wildlife.spawn.arctic.ocean", |_c, col| {
-            close(col.temp, 0.0, 0.25) / 10.0
+            close(col.temp, CONFIG.snow_temp, 0.25) / 10.0
                 * if matches!(col.chunk.get_biome(), BiomeKind::Ocean) {
                     0.001
                 } else {
@@ -431,10 +490,13 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                 * 1.3
         }),
         // River animals
-        ("world.wildlife.spawn.desert.river", |_c, col| {
+        ("world.wildlife.spawn.desert.river", |c, col| {
             close(col.temp, CONFIG.desert_temp + 0.2, 0.3)
-                * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
-                    0.0001
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                    && c.alt > CONFIG.sea_level + 20.0
+                {
+                    0.001
                 } else {
                     0.0
                 }

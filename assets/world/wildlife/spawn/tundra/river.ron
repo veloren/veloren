@@ -1,0 +1,21 @@
+SpawnEntry (
+    name: "Tundra river wildlife.",
+    note: "",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.aggressive.hakulaq")),
+                (1, (1, 2, "common.entity.wild.aggressive.icepike")),
+            ],
+            spawn_mode: Water,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.wild.aggressive.hakulaq")),
+            ],
+            spawn_mode: Ice,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

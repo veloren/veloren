@@ -4,9 +4,17 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 2, "common.entity.wild.peaceful.frog")),
-                (1, (1, 2, "common.entity.wild.peaceful.axolotl")),
-                (1, (1, 2, "common.entity.wild.peaceful.fungome")),
+                (5, (3, 4, "common.entity.wild.peaceful.piranha")),
+                (5, (1, 2, "common.entity.wild.peaceful.axolotl")),
+                (4, (1, 2, "common.entity.wild.aggressive.alligator")),
+            ],
+            spawn_mode: Water,
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (2, (1, 1, "common.entity.wild.peaceful.kelpie")),
+                (2, (1, 1, "common.entity.wild.aggressive.crocodile")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
