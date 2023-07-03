@@ -1,10 +1,10 @@
 SpawnEntry (
-    name: "Taiga water wildlife.",
-    note: "River inhabitants",
+    name: "Temperate Ocean wildlife.",
+    note: "Ocean inhabitants",
     rules: [
         Pack(
             groups: [
-                (1, (1, 2, "common.entity.wild.peaceful.marlin")),
+                (3, (3, 4, "common.entity.wild.peaceful.marlin")),
             ],
             spawn_mode: Water,
             day_period: [Night, Morning, Noon, Evening],

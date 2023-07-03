@@ -1,12 +1,13 @@
 SpawnEntry (
-    name: "Tundra rare animals.",
+    name: "Tundra core animals.",
     note: "Search for them in the heart of tundra.",
     rules: [
         Pack(
             groups: [
-                (15, (1, 1, "common.entity.wild.aggressive.snow_raptor")),
+                (1, (1, 1, "common.entity.wild.aggressive.snow_raptor")),
                 (1, (1, 1, "common.entity.wild.aggressive.wendigo")),
                 (1, (2, 6, "common.entity.wild.peaceful.mammoth")),
+                (1, (1, 3, "common.entity.wild.peaceful.yak")),
                 (1, (1, 1, "common.entity.wild.aggressive.mountain_troll")),
             ],
             spawn_mode: Land,

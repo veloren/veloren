@@ -1,5 +1,5 @@
 SpawnEntry (
-    name: "Jungle rainforest rare wildlife.",
+    name: "Jungle rainforest wildlife.",
     note: "Spread through the area.",
     rules: [
         Pack(
@@ -9,6 +9,7 @@ SpawnEntry (
                 (5, (1, 1, "common.entity.wild.peaceful.quokka")),
                 (5, (1, 1, "common.entity.wild.peaceful.parakeet")),
                 // Rare
+                (1, (1, 1, "common.entity.wild.aggressive.tarasque")),
                 (1, (1, 1, "common.entity.wild.peaceful.tortoise")),
                 (1, (1, 1, "common.entity.wild.aggressive.monitor")),
                 (1, (1, 1, "common.entity.wild.aggressive.horn_beetle")),
@@ -18,6 +19,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.axebeak")),
                 (1, (1, 1, "common.entity.wild.peaceful.toucan")),
                 (1, (1, 1, "common.entity.wild.peaceful.peacock")),
+                (1, (1, 1, "common.entity.wild.aggressive.swamp_troll")),
             ],
             spawn_mode: Land,
             day_period: [Morning, Noon, Evening],
@@ -26,7 +28,7 @@ SpawnEntry (
             groups: [
                 (5, (1, 1, "common.entity.wild.peaceful.quokka")),
                 (1, (1, 1, "common.entity.wild.peaceful.tortoise")),
-                (2, (1, 3, "common.entity.wild.aggressive.bat")),
+                (1, (1, 1, "common.entity.wild.aggressive.swamp_troll")),
             ],
             spawn_mode: Land,
             day_period: [Night],

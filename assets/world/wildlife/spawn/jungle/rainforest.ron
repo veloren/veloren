@@ -5,9 +5,11 @@ SpawnEntry (
         Pack(
             groups: [
                 // Casual
-                (5, (1, 1, "common.entity.wild.aggressive.asp")),
                 (5, (1, 1, "common.entity.wild.aggressive.tiger")),
                 (5, (1, 1, "common.entity.wild.aggressive.maneater")),
+                (5, (1, 3, "common.entity.wild.aggressive.wood_raptor")),
+                (5, (1, 1, "common.entity.wild.aggressive.deadwood")),
+                (5, (1, 1, "common.entity.wild.peaceful.dodo")),
                 // Rare
                 (1, (1, 1, "common.entity.wild.aggressive.sunlizard")),
                 (1, (1, 1, "common.entity.wild.aggressive.odonto")),
