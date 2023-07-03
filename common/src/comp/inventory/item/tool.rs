@@ -162,8 +162,8 @@ impl Stats {
             effect_power: self.effect_power * dur_mult.0,
             speed: self.speed * less_scaled,
             crit_chance: self.crit_chance * dur_mult.0,
-            range: self.range * dur_mult.0,
-            energy_efficiency: self.energy_efficiency * dur_mult.0,
+            range: self.range * less_scaled,
+            energy_efficiency: self.energy_efficiency * less_scaled,
             buff_strength: self.buff_strength * dur_mult.0,
         }
     }
