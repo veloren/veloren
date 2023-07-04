@@ -1891,7 +1891,7 @@ impl SiteKind {
                                 .chain(cave::tunnels_at(loc, 2, &land));
 
                         // Make sure there are no shallow caves near the dungeon
-                        tunnels.next().is_none()
+                        tunnels.next().is_none() || true
                     }
                 },
                 SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(),

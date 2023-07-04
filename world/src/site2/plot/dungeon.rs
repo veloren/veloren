@@ -976,6 +976,7 @@ impl Floor {
         let lava = Block::new(BlockKind::Lava, noisy_color(Rgb::new(184, 39, 0), 8));
         let stone = Block::new(BlockKind::Rock, Rgb::new(150, 150, 175));
         let stone_purple = Block::new(BlockKind::GlowingRock, Rgb::new(96, 0, 128));
+        let stone_wall = Block::new(BlockKind::Rock, Rgb::new(120, 120, 135));
 
         // Sprites are randomly positioned and have random kinds, this primitive
         // produces a box of dots that will later get truncated to just the
@@ -1015,6 +1016,20 @@ impl Floor {
             let tiles = Arc::clone(&tiles);
             make_wall_contours(tiles, floor_corner, floor_z, wall_thickness, tunnel_height)
         }));
+        let walls_fat = painter.prim(Primitive::sampling(floor_prim, {
+            let tiles = Arc::clone(&tiles);
+            make_wall_contours(
+                tiles,
+                floor_corner,
+                floor_z,
+                wall_thickness - 1.,
+                tunnel_height + 1.,
+            )
+        }));
+
+        // Fill Walls
+        let walls_only = painter.prim(Primitive::without(wall_contours, walls_fat));
+        painter.fill(walls_only, Fill::Block(stone_wall));
 
         // The surface 1 unit thicker than the walls is used to place the torches onto
         let wall_contour_surface = painter.prim(Primitive::sampling(floor_prim, {
@@ -1085,6 +1100,7 @@ impl Floor {
         // after handling all the local information per-tile
         let mut stairs_bb = Vec::new();
         let mut stairs = Vec::new();
+        let mut stair_walls = Vec::new();
         let mut pillars = Vec::new();
         let mut boss_room_center = None;
         let mut sprites = Vec::new();
@@ -1097,6 +1113,10 @@ impl Floor {
                 min: tile_corner,
                 max: tile_corner + Vec2::broadcast(TILE_SIZE),
             };
+            let outer_tile_aabr = Aabr {
+                min: tile_corner - Vec2::broadcast(2),
+                max: tile_corner + Vec2::broadcast(TILE_SIZE + 2),
+            };
             let tile_center = tile_corner + Vec2::broadcast(TILE_SIZE / 2);
             let (mut height, room) = match tile {
                 Tile::UpStair(room, _) => (self.hollow_depth, Some(room)),
@@ -1105,6 +1125,9 @@ impl Floor {
                 Tile::Tunnel => (tunnel_height as i32, None),
                 Tile::Solid => continue,
             };
+
+            let tile_floor_fill = painter.prim(Primitive::Aabb(aabr_with_z(tile_aabr, floor_z - 1..floor_z)));
+            painter.fill(tile_floor_fill, Fill::Block(stone_wall));
 
             // Sprites are contained to the level above the floor, and not within walls
             let sprite_layer = painter.prim(Primitive::Aabb(aabr_with_z(
@@ -1131,9 +1154,17 @@ impl Floor {
                     let center = tile_center.with_z(floor_z);
                     let radius = TILE_SIZE as f32 / 2.0;
                     let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
+                    let outer_aabb = aabr_with_z(
+                        outer_tile_aabr,
+                        floor_z + tunnel_height as i32..floor_z + self.total_depth() - 1,
+                    );
                     let bb = painter.prim(match kind {
                         StairsKind::Spiral => Primitive::Cylinder(aabb),
                         StairsKind::WallSpiral => Primitive::Aabb(aabb),
+                    });
+                    let outer_bb = painter.prim(match kind {
+                        StairsKind::WallSpiral => Primitive::Aabb(outer_aabb),
+                        StairsKind::Spiral => Primitive::Cylinder(outer_aabb),
                     });
                     let stair = painter.prim(Primitive::sampling(bb, match kind {
                         StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
@@ -1159,6 +1190,7 @@ impl Floor {
                     }
                     lights = painter.prim(Primitive::intersect(lights, lighting_mask));
                     stairs_bb.push(bb);
+                    stair_walls.push(outer_bb);
                     stairs.push((stair, lights));
                 }
                 if matches!(tile, Tile::Room(_) | Tile::DownStair(_)) {
@@ -1274,7 +1306,7 @@ impl Floor {
             // Carve out the room's air inside the walls
             let tile_air = painter.prim(Primitive::Aabb(aabr_with_z(
                 tile_aabr,
-                floor_z..floor_z + height,
+                floor_z..floor_z + tunnel_height as i32,
             )));
             let tile_air = painter.prim(Primitive::without(tile_air, wall_contours));
             painter.fill(tile_air, Fill::Block(vacant));
@@ -1319,8 +1351,13 @@ impl Floor {
             painter.fill(*lights, sconces_inward.clone());
             painter.fill(*pillar, Fill::Block(stone));
         }
+
         // Carve out space for the stairs
-        for stair_bb in stairs_bb.iter() {
+        for (stair_bb, outer_stairs_bb) in stairs_bb.iter().zip(stair_walls.iter()) {
+            painter.fill(
+                painter.prim(Primitive::without(*outer_stairs_bb, *stair_bb)),
+                Fill::Block(stone_wall),
+            );
             painter.fill(*stair_bb, Fill::Block(vacant));
             // Prevent sprites from floating above the stairs
             let stair_bb_up = painter.prim(Primitive::translate(*stair_bb, Vec3::unit_z()));
