@@ -78,7 +78,16 @@ buff-title-reckless = Hänsynslös
 buff-desc-reckless = Dina attacker är kraftfullare, men du lämnar ditt försvar öppet.
 ## Polymorped
 buff-title-polymorphed = Polymorferad
-buff-desc-polymorphed = Din kropp byter form
+buff-desc-polymorphed = Din kropp byter form.
+## Flame
+buff-title-flame = Flamma
+buff-desc-flame = Flamman är din alierade.
+## Frigid
+buff-title-frigid = Frusen
+buff-desc-frigid = Frys dina fiender.
+## Lifesteal
+buff-title-lifesteal = Hälsostöld
+buff-desc-lifesteal = Sug livet ur dina fiender.
 ## Util
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder
