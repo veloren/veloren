@@ -61,6 +61,7 @@ pub enum InventorySortOrder {
     Quality,
     Category,
     Tag,
+    Amount,
 }
 
 impl InventorySortOrder {
@@ -69,7 +70,8 @@ impl InventorySortOrder {
             InventorySortOrder::Name => InventorySortOrder::Quality,
             InventorySortOrder::Quality => InventorySortOrder::Tag,
             InventorySortOrder::Tag => InventorySortOrder::Category,
-            InventorySortOrder::Category => InventorySortOrder::Name,
+            InventorySortOrder::Category => InventorySortOrder::Amount,
+            InventorySortOrder::Amount => InventorySortOrder::Name,
         }
     }
 }
@@ -217,6 +219,8 @@ impl Inventory {
                 &a.tags().first().map_or("", |tag| tag.name()),
                 &b.tags().first().map_or("", |tag| tag.name()),
             ),
+            // Amount is sorted in reverse since we want high amounts items first
+            InventorySortOrder::Amount => Ord::cmp(&b.amount(), &a.amount()),
         });
 
         self.push_all(items.into_iter()).expect(
