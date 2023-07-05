@@ -915,6 +915,7 @@ impl<'a> Widget for Bag<'a> {
                     InventorySortOrder::Quality => i18n.get_msg("hud-bag-sort_by_quality"),
                     InventorySortOrder::Category => i18n.get_msg("hud-bag-sort_by_category"),
                     InventorySortOrder::Tag => i18n.get_msg("hud-bag-sort_by_tag"),
+                    InventorySortOrder::Amount => i18n.get_msg("hud-bag-sort_by_quantity"),
                 }),
                 "",
                 &tooltip,

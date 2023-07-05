@@ -40,3 +40,4 @@ hud-bag-sort_by_name = Sort by Name
 hud-bag-sort_by_quality = Sort by Quality
 hud-bag-sort_by_category = Sort by Category
 hud-bag-sort_by_tag = Sort by Tag
+hud-bag-sort_by_quantity = Sort by Quantity

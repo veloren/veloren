@@ -40,3 +40,4 @@ hud-bag-sort_by_name = Trier par Nom
 hud-bag-sort_by_quality = Trier par Qualité
 hud-bag-sort_by_category = Trier par Catégorie
 hud-bag-sort_by_tag = Trier par Tag
+hud-bag-sort_by_quantity = Trier par Quantité
