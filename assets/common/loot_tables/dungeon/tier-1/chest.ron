@@ -1,10 +1,10 @@
 [
     // Gear
-    (1.0, LootTable("common.loot_tables.weapons.components.tier-1")),
-    (1.0, LootTable("common.loot_tables.armor.tier-1")),
+    (0.5, LootTable("common.loot_tables.weapons.tier-1")),
+    (0.5, LootTable("common.loot_tables.armor.tier-1")),
     (0.5, Item("common.items.armor.misc.head.hog_hood")),
     // Currency
-    (3.0, MultiDrop(Item("common.items.utility.coins"), 20, 50)),
+    (3.0, MultiDrop(Item("common.items.utility.coins"), 50, 100)),
     // Materials
     (2.0, MultiDrop(Item("common.items.mineral.ore.veloritefrag"), 3, 10)),
     (1.0, MultiDrop(Item("common.items.crafting_ing.cloth.wool"), 3, 10)),
@@ -13,4 +13,6 @@
     (1.0, MultiDrop(Item("common.items.log.bamboo"), 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.poor")),
+    // Food 
+    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 3)),
 ]

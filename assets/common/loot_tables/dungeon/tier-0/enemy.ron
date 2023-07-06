@@ -1,8 +1,0 @@
-[
-    // Currency
-    (1.0, MultiDrop(Item("common.items.utility.coins"), 2, 4)),
-    // Food
-    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
-    // Nothing
-    (2.0, Nothing),
-]

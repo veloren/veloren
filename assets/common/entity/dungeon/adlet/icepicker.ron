@@ -3,7 +3,7 @@
     name: Name("Adlet Icepicker"),
     body: RandomWith("adlet"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-1.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.tier-1.icepicker"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.adlet.icepicker"),

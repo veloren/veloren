@@ -1,5 +1,5 @@
 [
-    (1.0, LootTable("common.loot_tables.dungeon.tier-0.enemy")),
+    (1.0, MultiDrop(LootTable("common.loot_tables.food.wild_ingredients"), 1, 2)),
     (1.0, MultiDrop(Item("common.items.flowers.plant_fiber"), 2, 4)),
-    (1.0, Item("common.items.crafting_ing.sentient_seed")),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.sentient_seed"), 1, 2)),
 ]
