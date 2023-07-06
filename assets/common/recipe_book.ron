@@ -52,7 +52,7 @@
         output: ("common.items.food.cactus_colada", 1),
         inputs: [
             (Item("common.items.crafting_ing.empty_vial"), 1, false),
-            (Item("common.items.crafting_ing.cactus"), 8, false),
+            (Item("common.items.crafting_ing.cactus"), 4, false),
         ],
         craft_sprite: Some(Cauldron),
     ),
@@ -151,9 +151,9 @@
     "apple_shroom_curry": (
         output: ("common.items.food.apple_mushroom_curry", 1),
         inputs: [
-            (Item("common.items.food.mushroom"), 8, false),
+            (Item("common.items.food.mushroom"), 4, false),
             (Item("common.items.food.coconut"), 1, false),
-            (Item("common.items.food.apple"), 4, false),
+            (Item("common.items.food.apple"), 2, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
         ],
         craft_sprite: Some(CookingPot),
@@ -381,16 +381,16 @@
     "apples_stick": (
         output: ("common.items.food.apple_stick", 1),
         inputs: [
-            (Item("common.items.crafting_ing.twigs"), 2, false),
-            (Item("common.items.food.apple"), 2, false),
+            (Item("common.items.crafting_ing.twigs"), 1, false),
+            (Item("common.items.food.apple"), 1, false),
         ],
         craft_sprite: None,
     ),
     "mushroom_stick": (
         output: ("common.items.food.mushroom_stick", 1),
         inputs: [
-            (Item("common.items.crafting_ing.twigs"), 2, false),
-            (Item("common.items.food.mushroom"), 3, false),
+            (Item("common.items.crafting_ing.twigs"), 1, false),
+            (Item("common.items.food.mushroom"), 2, false),
         ],
         craft_sprite: None,
     ),
