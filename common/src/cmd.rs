@@ -216,7 +216,7 @@ lazy_static! {
     };
 
     /// List of all entity configs. Useful for tab completing
-    static ref ENTITY_CONFIGS: Vec<String> = {
+    pub static ref ENTITY_CONFIGS: Vec<String> = {
         try_all_entity_configs()
             .unwrap_or_else(|e| {
                 warn!(?e, "Failed to load entity configs");

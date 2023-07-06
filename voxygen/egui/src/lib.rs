@@ -65,6 +65,9 @@ pub struct AdminCommandState {
     give_item_selected_idx: usize,
     give_item_search_text: String,
     kits_selected_idx: usize,
+    spawn_entity_qty: u32,
+    spawn_entity_selected_idx: usize,
+    spawn_entity_search_text: String,
 }
 
 impl AdminCommandState {
@@ -74,6 +77,9 @@ impl AdminCommandState {
             give_item_selected_idx: 0,
             give_item_search_text: String::new(),
             kits_selected_idx: 0,
+            spawn_entity_qty: 1,
+            spawn_entity_selected_idx: 0,
+            spawn_entity_search_text: String::new(),
         }
     }
 }
