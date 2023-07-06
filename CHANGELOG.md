@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Plugins now target wasm32-unknown-wasi and all wasm cfgs are gone
+- Slightly reduced quantities of ingredients needed to craft cooked foods
+- Improved and cleaned loot tables for T1 and T2 dungeons as well as large cave monsters (Good bye, Bowls and Stones!)
 
 ### Removed
 

@@ -1,0 +1,12 @@
+[
+    // Food
+    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    // Materials
+    (0.50, MultiDrop(Item("common.items.mineral.ore.veloritefrag"), 1, 3)),
+    (0.25, MultiDrop(Item("common.items.crafting_ing.animal_misc.fur"), 1, 2)),
+    (0.25, MultiDrop(Item("common.items.crafting_ing.leather.thick_leather"), 1, 2)),
+    // Weapons
+    (0.25, LootTable("common.loot_tables.weapons.tier-1")),
+    // Nothing
+    (0.75, Nothing),
+]

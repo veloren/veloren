@@ -1,14 +1,14 @@
 [
     // Fireworks
-    (1.0, MultiDrop(Item("common.items.utility.firework_blue"), 3, 5)),
-    (1.0, MultiDrop(Item("common.items.utility.firework_green"), 3, 5)),
-    (1.0, MultiDrop(Item("common.items.utility.firework_purple"), 3, 5)),
-    (1.0, MultiDrop(Item("common.items.utility.firework_red"), 3, 5)),
-    (1.0, MultiDrop(Item("common.items.utility.firework_white"), 3, 5)),
-    (1.0, MultiDrop(Item("common.items.utility.firework_yellow"), 3, 5)),
+    (0.1, Item("common.items.utility.firework_blue")),
+    (0.1, Item("common.items.utility.firework_green")),
+    (0.1, Item("common.items.utility.firework_purple")),
+    (0.1, Item("common.items.utility.firework_red")),
+    (0.1, Item("common.items.utility.firework_white")),
+    (0.1, Item("common.items.utility.firework_yellow")),
     // Potions
     (10.0, MultiDrop(Item("common.items.consumable.potion_med"), 2, 5)),
     // Misc
-    (5.0, MultiDrop(Item("common.items.utility.collar"), 1, 2)),
-    (5.0, MultiDrop(Item("common.items.utility.bomb"), 3, 5)),
+    (2.0, MultiDrop(Item("common.items.utility.collar"), 1, 2)),
+    (2.0, MultiDrop(Item("common.items.utility.bomb"), 3, 5)),
 ]
