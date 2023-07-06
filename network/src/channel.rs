@@ -122,6 +122,14 @@ impl Protocols {
         // See https://docs.rs/tokio/latest/tokio/net/struct.TcpSocket.html
         #[cfg(not(windows))]
         socket2_socket.set_reuse_address(true)?;
+        const SEND_BUFFER_SIZE: usize = 262144;
+        const RECV_BUFFER_SIZE: usize = SEND_BUFFER_SIZE * 2;
+        if let Err(e) = socket2_socket.set_recv_buffer_size(RECV_BUFFER_SIZE) {
+            warn!(?e, "Couldn't set recv_buffer size")
+        };
+        if let Err(e) = socket2_socket.set_send_buffer_size(SEND_BUFFER_SIZE) {
+            warn!(?e, "Couldn't set set_buffer size")
+        };
         let socket2_addr = addr.into();
         socket2_socket.bind(&socket2_addr)?;
         socket2_socket.listen(1024)?;
