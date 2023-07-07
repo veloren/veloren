@@ -14,6 +14,7 @@ hud-map-trees = Mammutbäume
 hud-map-tree = Mammutbaum
 hud-map-town = Stadt
 hud-map-castle = Burg
+hud-map-bridge = Brücke
 hud-map-dungeon = Verlies
 hud-map-difficulty_dungeon =
     Verlies
@@ -32,4 +33,5 @@ hud-map-zoom_minimap_explanation =
     um die Welt um dich herum im Detail zu sehen.
 hud-map-gnarling = Gnarling Festung
 hud-map-chapel_site = Meereskapelle
+hud-map-adlet = Adlet Festung
 hud-map-placed_by = Platziert von { $name }
