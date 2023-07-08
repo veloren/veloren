@@ -1,6 +1,6 @@
 hud-group = Skupina
 hud-group-invite_to_join = [{ $name }] tě pozval do skupiny!
-hud-group-invite_to_trade = [{ $name }] by chtěl s tebou obchodovat.
+hud-group-invite_to_trade = [{ $name }] by s tebou chtěl obchodovat.
 hud-group-invite = Pozvat
 hud-group-kick = Vyhodit
 hud-group-assign_leader = Nastavit Vůdcem

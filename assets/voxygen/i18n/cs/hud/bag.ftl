@@ -1,11 +1,11 @@
-hud-bag-glider = Glider
+hud-bag-glider = Kluzák
 hud-bag-bag = Batoh
 hud-bag-health = Život
 hud-bag-energy = Výdrž
 hud-bag-combat_rating = Bojové hodnocení
 hud-bag-protection = Ochrana
-hud-bag-combat_rating_desc = Vypočítáno z života/zbroje.
-hud-bag-protection_desc = Redukce poškození přes brnení
+hud-bag-combat_rating_desc = Vypočítáno ze života/zbroje.
+hud-bag-protection_desc = Redukce poškození přes brnění
 hud-bag-inventory = Inventář { $playername }
 hud-bag-stats_title = Statistiky { $playername }
 hud-bag-exp = Zkušenosti
