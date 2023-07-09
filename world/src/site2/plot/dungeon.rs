@@ -1027,10 +1027,6 @@ impl Floor {
             )
         }));
 
-        // Fill Walls
-        let walls_only = painter.prim(Primitive::without(wall_contours, walls_fat));
-        painter.fill(walls_only, Fill::Block(stone_wall));
-
         // The surface 1 unit thicker than the walls is used to place the torches onto
         let wall_contour_surface = painter.prim(Primitive::sampling(floor_prim, {
             let tiles = Arc::clone(&tiles);
@@ -1096,6 +1092,8 @@ impl Floor {
                 .without(lighting_mask_x.intersect(lighting_mask_y))
         };
 
+        let walls_only = painter.prim(Primitive::without(wall_contours, walls_fat));
+
         // Declare collections of various disjoint primitives that need postprocessing
         // after handling all the local information per-tile
         let mut stairs_bb = Vec::new();
@@ -1113,9 +1111,9 @@ impl Floor {
                 min: tile_corner,
                 max: tile_corner + Vec2::broadcast(TILE_SIZE),
             };
-            let outer_tile_aabr = Aabr {
-                min: tile_corner - Vec2::broadcast(2),
-                max: tile_corner + Vec2::broadcast(TILE_SIZE + 2),
+            let outer_tile_aabr = |dist| Aabr {
+                min: tile_corner - Vec2::broadcast(dist),
+                max: tile_corner + Vec2::broadcast(TILE_SIZE + dist),
             };
             let tile_center = tile_corner + Vec2::broadcast(TILE_SIZE / 2);
             let (mut height, room) = match tile {
@@ -1126,7 +1124,21 @@ impl Floor {
                 Tile::Solid => continue,
             };
 
-            let tile_floor_fill = painter.prim(Primitive::Aabb(aabr_with_z(tile_aabr, floor_z - 1..floor_z)));
+            // TODO: Get outer tile aabb
+
+            let outer_tile_aabb = painter.prim(Primitive::Aabb(aabr_with_z(
+                outer_tile_aabr(0),
+                floor_z - 2..(floor_z + tunnel_height as i32) + 2,
+            )));
+            let walls_in_tile = painter.prim(Primitive::intersect(outer_tile_aabb, walls_only));
+
+            // Fill Walls
+            painter.fill(walls_in_tile, Fill::Block(stone_wall));
+
+            let tile_floor_fill = painter.prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z - 1..floor_z,
+            )));
             painter.fill(tile_floor_fill, Fill::Block(stone_wall));
 
             // Sprites are contained to the level above the floor, and not within walls
@@ -1155,7 +1167,7 @@ impl Floor {
                     let radius = TILE_SIZE as f32 / 2.0;
                     let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
                     let outer_aabb = aabr_with_z(
-                        outer_tile_aabr,
+                        outer_tile_aabr(2),
                         floor_z + tunnel_height as i32..floor_z + self.total_depth() - 1,
                     );
                     let bb = painter.prim(match kind {
