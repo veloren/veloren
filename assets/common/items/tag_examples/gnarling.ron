@@ -3,7 +3,7 @@ ItemDef(
     description: "Worn by Gnarlings and their Chieftains.",
     kind: TagExamples(
         item_ids: [
-            "common.items.armor.mist.head.gnarling_mask",            
+            "common.items.armor.mist.head.gnarling_mask",
         ],
     ),
     quality: Common,

@@ -43,6 +43,7 @@ hud-collect = Collect
 hud-pick_up = Pick up
 hud-open = Open
 hud-use = Use
+hud-read = Read
 hud-unlock-requires = Open with { $item }
 hud-unlock-consumes = Use { $item } to open
 hud-mine = Mine

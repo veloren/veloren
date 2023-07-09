@@ -255,6 +255,13 @@ pub struct Psyche {
     /// A factor that controls how much further an agent will wander when in the
     /// idle state. `1.0` is normal.
     pub idle_wander_factor: f32,
+    /// Aggro range is multiplied by this factor. `1.0` is normal.
+    ///
+    /// This includes scaling the effective `sight_dist` and `listen_dist`
+    /// when finding new targets to attack, adjusting the strength of
+    /// wandering behavior in the idle state, and scaling `aggro_dist` in
+    /// certain situations.
+    pub aggro_range_multiplier: f32,
 }
 
 impl<'a> From<&'a Body> for Psyche {
@@ -313,6 +320,7 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_low::Species::Rootsnapper => 0.05,
                     quadruped_low::Species::Reefsnapper => 0.05,
                     quadruped_low::Species::Asp => 0.05,
+                    quadruped_low::Species::HermitAlligator => 0.0,
                     _ => 0.0,
                 },
                 Body::BipedSmall(biped_small) => match biped_small.species {
@@ -321,7 +329,11 @@ impl<'a> From<&'a Body> for Psyche {
                     biped_small::Species::Haniwa => 0.1,
                     biped_small::Species::Sahagin => 0.1,
                     biped_small::Species::Myrmidon => 0.0,
-                    biped_small::Species::Husk | biped_small::Species::Boreal => 0.0,
+                    biped_small::Species::Husk
+                    | biped_small::Species::Boreal
+                    | biped_small::Species::Clockwork
+                    | biped_small::Species::Flamekeeper => 0.0,
+
                     _ => 0.5,
                 },
                 Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -375,13 +387,17 @@ impl<'a> From<&'a Body> for Psyche {
                 _ => None, // Always aggressive if detected
             },
             idle_wander_factor: 1.0,
+            aggro_range_multiplier: 1.0,
         }
     }
 }
 
 impl Psyche {
-    /// The maximum distance that targets might be detected by this agent.
-    pub fn search_dist(&self) -> f32 { self.sight_dist.max(self.listen_dist) }
+    /// The maximum distance that targets to attack might be detected by this
+    /// agent.
+    pub fn search_dist(&self) -> f32 {
+        self.sight_dist.max(self.listen_dist) * self.aggro_range_multiplier
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -719,6 +735,11 @@ impl Agent {
     #[must_use]
     pub fn with_idle_wander_factor(mut self, idle_wander_factor: f32) -> Self {
         self.psyche.idle_wander_factor = idle_wander_factor;
+        self
+    }
+
+    pub fn with_aggro_range_multiplier(mut self, aggro_range_multiplier: f32) -> Self {
+        self.psyche.aggro_range_multiplier = aggro_range_multiplier;
         self
     }
 

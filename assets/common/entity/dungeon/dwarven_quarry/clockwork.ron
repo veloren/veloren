@@ -1,0 +1,17 @@
+#![enable(implicit_some)]
+(
+    name: Name("Clockwork"),
+    body: RandomWith("clockwork"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.nothing"),
+    inventory: (
+        loadout: Inline((
+            active_hands: InHands((Item("common.items.npc_weapons.unique.husk"), None)),
+            inherit: Asset("common.loadout.dungeon.dwarven_quarry.clockwork"),
+        )),
+    ),
+    agent: (
+        idle_wander_factor: 0.1,
+    ),
+    meta: [],
+)

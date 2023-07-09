@@ -959,19 +959,22 @@ impl HumArmorLanternSpec {
 }
 impl HumArmorHeadSpec {
     fn load_head(&self, body: &Body, head: Option<&str>) -> Option<(Segment, Vec3<i32>)> {
-        match self
+        if let Some(spec) = self
             .0
             .map
             .get(&(body.species, body.body_type, head?.to_string()))
         {
-            Some(spec) => Some((
-                graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2),
-                Vec3::<f32>::from(spec.vox_spec.1).as_(),
-            )),
-            None => {
-                warn!("No specification for this head: {:?}", head);
-                None
-            },
+            let segment = graceful_load_segment(&spec.vox_spec.0, spec.vox_spec.2);
+            let segment = if let Some(color) = spec.color {
+                let color = Vec3::from(color);
+                segment.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(color)))
+            } else {
+                segment
+            };
+            Some((segment, Vec3::<f32>::from(spec.vox_spec.1).as_()))
+        } else {
+            warn!("No specification for this head: {:?}", head);
+            None
         }
     }
 }

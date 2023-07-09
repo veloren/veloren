@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Miner's Gloves",
+    description: "Someone carved 'Mine!' into the inside.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Miner"),
+    )),
+    quality: High,
+    tags: [],
+)

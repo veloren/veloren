@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Flamekeeper Miner Helmet.",
+    description: "Someone carved 'Mine!' into the inside.",
+    kind: Armor((
+        kind: Head,
+        stats: FromSet("Miner"),
+    )),
+    quality: Epic,
+    tags: [],
+)

@@ -364,6 +364,15 @@ impl ParticleMgr {
                     *pos + Vec3::new(0.0, 0.0, 5.6 + 0.5 * rng.gen_range(0.0..0.2)),
                 ));
             },
+            Outcome::FlamethrowerCharge { pos } => {
+                self.particles.push(Particle::new_directed(
+                    Duration::from_secs_f32(rng.gen_range(0.1..0.2)),
+                    time,
+                    ParticleMode::CampfireFire,
+                    *pos + Vec3::new(0.0, 0.0, 1.2),
+                    *pos + Vec3::new(0.0, 0.0, 1.5 + 0.5 * rng.gen_range(0.0..0.2)),
+                ));
+            },
             Outcome::Death { pos, .. } => {
                 self.particles.resize_with(self.particles.len() + 40, || {
                     Particle::new(
@@ -390,6 +399,7 @@ impl ParticleMgr {
             | Outcome::Glider { .. }
             | Outcome::Woosh { .. }
             | Outcome::Steam { .. }
+            | Outcome::FireShockwave { .. }
             | Outcome::LaserBeam { .. } => {},
         }
     }
@@ -465,6 +475,9 @@ impl ParticleMgr {
                 },
                 Body::Object(object::Body::Tornado) => {
                     self.maintain_tornado_particles(scene_data, interpolated.pos)
+                },
+                Body::Object(object::Body::Mine) => {
+                    self.maintain_mine_particles(scene_data, interpolated.pos)
                 },
                 Body::Object(
                     object::Body::Bomb
@@ -695,6 +708,25 @@ impl ParticleMgr {
                 time,
                 ParticleMode::CampfireSmoke,
                 pos + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+            ));
+        }
+    }
+
+    fn maintain_mine_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
+        span!(
+            _guard,
+            "mine_particles",
+            "ParticleMgr::maintain_mine_particles"
+        );
+        let time = scene_data.state.get_time();
+
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
+            // sparks
+            self.particles.push(Particle::new(
+                Duration::from_millis(25),
+                time,
+                ParticleMode::GunPowderSpark,
+                pos,
             ));
         }
     }
@@ -1485,7 +1517,7 @@ impl ParticleMgr {
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.leaves),
                 range: 4,
-                rate: 0.001,
+                rate: 0.0125,
                 lifetime: 30.0,
                 mode: ParticleMode::Leaf,
                 cond: |_| true,
@@ -1558,6 +1590,9 @@ impl ParticleMgr {
 
         let ecs = scene_data.state.ecs();
         let mut rng = thread_rng();
+        // Hard cap for performance reasons; Assuming that 25% of a chunk is covered in
+        // lava or 32*32*0.25 = 256 TODO: Make this a setting?
+        let cap = 512;
         for particles in particles.iter() {
             if !(particles.cond)(scene_data) {
                 continue;
@@ -1569,7 +1604,7 @@ impl ParticleMgr {
                 terrain.get(chunk_pos).map(|chunk_data| {
                     let blocks = (particles.blocks)(&chunk_data.blocks_of_interest);
 
-                    let avg_particles = dt * blocks.len() as f32 * particles.rate;
+                    let avg_particles = dt * (blocks.len() as f32 * particles.rate).min(cap as f32);
                     let particle_count = avg_particles.trunc() as usize
                         + (rng.gen::<f32>() < avg_particles.fract()) as usize;
 

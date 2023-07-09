@@ -1294,6 +1294,7 @@ pub struct Hud {
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
+    content_bubbles: Vec<(Vec3<f32>, comp::SpeechBubble)>,
     pub show: Show,
     //never_show: bool,
     //intro: bool,
@@ -1385,6 +1386,7 @@ impl Hud {
             new_messages: VecDeque::new(),
             new_notifications: VecDeque::new(),
             speech_bubbles: HashMap::new(),
+            content_bubbles: Vec::new(),
             //intro: false,
             //intro_2: false,
             show: Show {
@@ -1957,6 +1959,8 @@ impl Hud {
             let now = Instant::now();
             self.speech_bubbles
                 .retain(|_uid, bubble| bubble.timeout > now);
+            self.content_bubbles
+                .retain(|(_pos, bubble)| bubble.timeout > now);
 
             // Don't show messages from muted players
             self.new_messages.retain(|msg| match msg.uid() {
@@ -2122,6 +2126,10 @@ impl Hud {
                         };
                         vec![(Some(GameInput::Mount), i18n.get_msg(key).to_string())]
                     },
+                    BlockInteraction::Read(_) => vec![(
+                        Some(GameInput::Interact),
+                        i18n.get_msg("hud-read").to_string(),
+                    )],
                 };
 
                 // This is only done once per frame, so it's not a performance issue
@@ -2330,18 +2338,18 @@ impl Hud {
                                 .powi(2);
 
                         let info = display_overhead_info.then(|| overhead::Info {
-                            name: &stats.name,
+                            name: Some(&stats.name),
                             health,
-                            buffs,
+                            buffs: Some(buffs),
                             energy,
                             combat_rating: if let (Some(health), Some(energy), Some(poise)) =
                                 (health, energy, poise)
                             {
-                                combat::combat_rating(
+                                Some(combat::combat_rating(
                                     inventory, health, energy, poise, skill_set, *body, &msm,
-                                )
+                                ))
                             } else {
-                                0.0
+                                None
                             },
                             stance,
                         });
@@ -2543,6 +2551,31 @@ impl Hud {
                             .set(sct_id, ui_widgets);
                     }
                 }
+            }
+
+            for (pos, bubble) in &self.content_bubbles {
+                let overhead_id = overhead_walker.next(
+                    &mut self.ids.overheads,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+
+                overhead::Overhead::new(
+                    None,
+                    Some(bubble),
+                    false,
+                    &global_state.settings.interface,
+                    self.pulse,
+                    i18n,
+                    &global_state.settings.controls,
+                    &self.imgs,
+                    &self.fonts,
+                    &global_state.window.key_layout,
+                    Vec::new(),
+                    &time,
+                )
+                .x_y(0.0, 100.0)
+                .position_ingame(*pos)
+                .set(overhead_id, ui_widgets);
             }
         }
 
@@ -4834,6 +4867,13 @@ impl Hud {
         self.show.zoom_lock = ChangeNotification::from_state(state);
     }
 
+    pub fn show_content_bubble(&mut self, pos: Vec3<f32>, content: comp::Content) {
+        self.content_bubbles.push((
+            pos,
+            comp::SpeechBubble::new(content, comp::SpeechBubbleType::None),
+        ));
+    }
+
     pub fn handle_outcome(
         &mut self,
         outcome: &Outcome,
@@ -5069,6 +5109,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Flame => imgs.debuff_burning_0,
         BuffKind::Frigid => imgs.debuff_frozen_0,
         BuffKind::Lifesteal => imgs.buff_plus_0,
+        // TODO: Get image
+        // BuffKind::SalamanderAspect => imgs.debuff_burning_0,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -5104,6 +5146,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
         BuffKind::Fortitude => localized_strings.get_msg("buff-title-fortitude"),
         BuffKind::Reckless => localized_strings.get_msg("buff-title-reckless"),
+        // BuffKind::SalamanderAspect => localized_strings.get_msg("buff-title-salamanderaspect"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
@@ -5146,6 +5189,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
         BuffKind::Fortitude => localized_strings.get_msg("buff-desc-fortitude"),
         BuffKind::Reckless => localized_strings.get_msg("buff-desc-reckless"),
+        // BuffKind::SalamanderAspect => localized_strings.get_msg("buff-desc-salamanderaspect"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),

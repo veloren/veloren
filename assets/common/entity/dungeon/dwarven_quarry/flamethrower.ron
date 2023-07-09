@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Name("Lava Thrower"),
+    body: Exact(Object(Flamethrower)),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: FromBody,
+    ),
+    agent: (
+        aggro_range_multiplier: 6.0,
+    ),
+    meta: [],
+)

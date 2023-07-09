@@ -228,6 +228,7 @@ pub enum Tactic {
     GnarlingChieftain,
     OrganAura,
     Dagon,
+    HermitAlligator,
     Cardinal,
     SeaBishop,
     Roshwalr,
@@ -236,6 +237,7 @@ pub enum Tactic {
     Dullahan,
     Cyclops,
     IceDrake,
+    Flamekeeper,
 
     // Adlets
     AdletHunter,

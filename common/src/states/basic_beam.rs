@@ -4,10 +4,11 @@ use crate::{
         DamageSource, GroupTarget,
     },
     comp::{
-        beam, body::biped_large, character_state::OutputEvents, Body, CharacterState, Ori, Pos,
-        StateUpdate,
+        beam, body::biped_large, character_state::OutputEvents, object::Body::Flamethrower, Body,
+        CharacterState, Ori, Pos, StateUpdate,
     },
-    event::ServerEvent,
+    event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -80,6 +81,17 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
+                    if let Body::Object(object) = data.body {
+                        if object == &Flamethrower {
+                            // Send local event used for frontend shenanigans
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::FlamethrowerCharge {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        }
+                    };
                 } else {
                     // Creates beam
                     data.updater.insert(data.entity, beam::Beam {

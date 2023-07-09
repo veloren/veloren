@@ -146,6 +146,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 140.0,
                 quadruped_low::Species::Mossdrake => 100.0,
                 quadruped_low::Species::Driggle => 120.0,
+                quadruped_low::Species::HermitAlligator => 120.0,
             },
             Body::Ship(ship::Body::Carriage) => 200.0,
             Body::Ship(_) => 0.0,
@@ -672,7 +673,7 @@ fn swim_move(
     efficiency: f32,
     submersion: f32,
 ) -> bool {
-    let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
+    let efficiency = efficiency * data.stats.swim_speed_modifier * data.stats.friction_modifier;
     if let Some(force) = data.body.swim_thrust() {
         let force = efficiency * force * data.scale.map_or(1.0, |s| s.0);
         let mut water_accel = force / data.mass.0;

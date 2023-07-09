@@ -151,6 +151,7 @@ pub enum SiteKind {
     ChapelSite,
     Bridge,
     Adlet,
+    DwarvenMine,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

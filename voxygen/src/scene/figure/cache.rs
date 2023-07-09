@@ -852,7 +852,7 @@ where
                             );
                             instances
                         },
-                        blocks_of_interest: BlocksOfInterest::from_blocks(block_iter, 0.0, 10.0, 0.0),
+                        blocks_of_interest: BlocksOfInterest::from_blocks(block_iter, 0.0, 10.0, 0.0, dyna),
                         blocks_offset: *offset,
                     }));
                 });

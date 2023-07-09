@@ -1152,16 +1152,29 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
                                     Some(SpriteKind::Beehive) => comp::object::Body::Hive,
                                     Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
                                     Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
+                                    Some(SpriteKind::Mine) => comp::object::Body::Mine,
                                     _ => comp::object::Body::Pouch,
                                 },
                             )
                             .with(item)
                             .maybe_with(match block.get_sprite() {
-                                Some(SpriteKind::Bomb) => Some(comp::Object::Bomb { owner }),
+                                Some(SpriteKind::Bomb) | Some(SpriteKind::Mine) => {
+                                    Some(comp::Object::Bomb { owner })
+                                },
                                 _ => None,
                             })
                             .build();
                     }
+                } else if let Some(SpriteKind::Mine) = block.get_sprite() {
+                    // Some objects can't be reclaimed as items but still have bonk effects
+                    server
+                        .state
+                        .create_object(
+                            Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
+                            comp::object::Body::Bomb,
+                        )
+                        .with(comp::Object::Bomb { owner })
+                        .build();
                 }
             }
         }

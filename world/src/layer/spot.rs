@@ -135,20 +135,6 @@ impl Spot {
             false,
         );
         Self::generate_spots(
-            Spot::DwarvenGrave,
-            world,
-            1.3,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Jungle | Forest)
-            },
-            false,
-        );
-        Self::generate_spots(
             Spot::SaurokAltar,
             world,
             1.0,

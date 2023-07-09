@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Hermit Alligator"),
+    body: RandomWith("hermit_alligator"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.alligator"),
+        inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

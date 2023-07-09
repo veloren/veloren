@@ -11,7 +11,7 @@
 
 #![enable(implicit_some)]
 (
-    tracks: 
+    tracks:
         [
 
         // Overworld exploration tracks
@@ -246,7 +246,7 @@
             music_state: Activity(Explore),
             artist: ("DragonDee", "https://soundcloud.com/deanna-rusnock"),
         )),
-        
+
         // Cave music
 
         Individual((
@@ -293,7 +293,7 @@
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
-        Individual((   
+        Individual((
             title: "Down The Rabbit Hole",
             path: "voxygen.audio.soundtrack.cave.down_the_rabbit_hole",
             length: 244.0,
@@ -306,7 +306,7 @@
         )),
 
         // Dungeon music
-        
+
         Individual((
             title: "Mysty Temple",
             path: "voxygen.audio.soundtrack.dungeon.mysty_temple",
@@ -433,7 +433,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old), 
+                Dungeon(Old),
             ],
             segments: [
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 56.0, Transition(Explore, Combat(High)), Some(Combat(High))),
@@ -463,7 +463,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old), 
+                Dungeon(Old),
             ],
             segments: [
                 ("voxygen.audio.soundtrack.combat.valiant_voxels.valiant_voxels-start", 7.846, Transition(Explore, Combat(High)), Some(Combat(High))),

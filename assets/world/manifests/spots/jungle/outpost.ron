@@ -4,10 +4,10 @@
     (
         specifier: "world.structure.spots.jungle_outpost",
         center: (32, 28, 33),
-        custom_indices: {            
+        custom_indices: {
             8: Filled(Air, (r: 255, g: 255, b: 255)),
-            156: Sprite(FireBowlGround), 
-            157: EntitySpawner("common.entity.wild.aggressive.occult_saurok", 1.0),           
+            156: Sprite(FireBowlGround),
+            157: EntitySpawner("common.entity.wild.aggressive.occult_saurok", 1.0),
          },
     ),
 ]

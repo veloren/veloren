@@ -106,6 +106,8 @@ make_case_elim!(
         LaserBeam = 91,
         AdletSpear = 92,
         AdletTrap = 93,
+        Flamethrower = 94,
+        Mine = 95,
     }
 );
 
@@ -116,7 +118,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 94] = [
+pub const ALL_OBJECTS: [Body; 96] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -211,6 +213,8 @@ pub const ALL_OBJECTS: [Body; 94] = [
     Body::LaserBeam,
     Body::AdletSpear,
     Body::AdletTrap,
+    Body::Flamethrower,
+    Body::Mine,
 ];
 
 impl From<Body> for super::Body {
@@ -314,6 +318,8 @@ impl Body {
             Body::LaserBeam => "laser_beam",
             Body::AdletSpear => "adlet_spear",
             Body::AdletTrap => "adlet_trap",
+            Body::Flamethrower => "flamethrower",
+            Body::Mine => "mine",
         }
     }
 
@@ -340,9 +346,10 @@ impl Body {
             | Body::SpectralSwordSmall
             | Body::SpectralSwordLarge
             | Body::AdletSpear
-            | Body::AdletTrap => 500.0,
-            Body::Bomb => 2000.0, // I have no idea what it's supposed to be
-            Body::Crate => 300.0, // let's say it's a lot of wood and maybe some contents
+            | Body::AdletTrap
+            | Body::Flamethrower => 500.0,
+            Body::Bomb | Body::Mine => 2000.0, // I have no idea what it's supposed to be
+            Body::Crate => 300.0,              // a lot of wood and maybe some contents
             Body::Scarecrow => 900.0,
             Body::TrainingDummy => 2000.0,
             Body::Snowball => 0.9 * WATER_DENSITY,
@@ -393,6 +400,7 @@ impl Body {
             Body::CraftingBench => 100.0,
             Body::Crate => 50.0,
             Body::Crossbow => 200.0,
+            Body::Flamethrower => 200.0,
             Body::DoorSpooky => 20.0,
             Body::Drawer => 50.0,
             Body::FireworkBlue
@@ -437,6 +445,7 @@ impl Body {
             Body::LaserBeam => 80000.0,
             Body::AdletSpear => 1.5,
             Body::AdletTrap => 10.0,
+            Body::Mine => 100.0,
         };
 
         Mass(m)
@@ -455,6 +464,7 @@ impl Body {
             Body::SpectralSwordSmall => Vec3::new(0.2, 0.9, 0.1),
             Body::SpectralSwordLarge => Vec3::new(0.2, 1.5, 0.1),
             Body::Crossbow => Vec3::new(3.0, 3.0, 1.5),
+            Body::Flamethrower => Vec3::new(3.0, 3.0, 2.5),
             Body::HaniwaSentry => Vec3::new(0.8, 0.8, 1.4),
             Body::SeaLantern => Vec3::new(0.8, 0.8, 1.4),
             Body::Snowball => Vec3::broadcast(2.5),
@@ -466,6 +476,7 @@ impl Body {
             Body::BarrelOrgan => Vec3::new(4.0, 2.0, 3.0),
             Body::IceBomb => Vec3::broadcast(2.5),
             Body::LaserBeam => Vec3::new(8.0, 8.0, 8.0),
+            Body::Mine => Vec3::new(0.8, 0.8, 0.5),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

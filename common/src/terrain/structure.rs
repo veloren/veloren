@@ -1,6 +1,7 @@
 use super::{BlockKind, SpriteKind};
 use crate::{
     assets::{self, AssetExt, AssetHandle, BoxedError, DotVoxAsset},
+    comp::Content,
     make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
@@ -44,6 +45,8 @@ make_case_elim!(
         Keyhole(consumes: String) = 25,
         BoneKeyhole(consumes: String) = 26,
         GlassKeyhole(consumes: String) = 27,
+        Sign(content: Content, ori: u8) = 28,
+        KeyholeBars(consumes: String) = 29,
     }
 );
 

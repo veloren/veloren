@@ -7,7 +7,8 @@ use std::f32::consts::PI;
 
 pub struct SummonAnimation;
 
-type SummonAnimationDependency = (
+type SummonAnimationDependency<'a> = (
+    Option<&'a str>,
     Option<ToolKind>,
     Vec3<f32>,
     Vec3<f32>,
@@ -20,7 +21,7 @@ type SummonAnimationDependency = (
 );
 
 impl Animation for SummonAnimation {
-    type Dependency<'a> = SummonAnimationDependency;
+    type Dependency<'a> = SummonAnimationDependency<'a>;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -31,6 +32,7 @@ impl Animation for SummonAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
+            ability_id,
             active_tool_kind,
             _velocity,
             _orientation,
@@ -75,37 +77,76 @@ impl Animation for SummonAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
         match active_tool_kind {
-            Some(ToolKind::Staff) => {
-                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
-                next.control_r.position = Vec3::new(
-                    7.0 + s_a.grip.0 * 2.0,
-                    -4.0 + move1abs * -14.0,
-                    3.0 + twitch * 2.0 + twitch2 * 2.0,
-                );
+            Some(ToolKind::Staff) => match ability_id {
+                Some(
+                    "common.abilities.custom.dwarves.flamekeeper.summon_flamethrower"
+                    | "common.abilities.custom.dwarves.flamekeeper.summon_clockwork",
+                ) => {
+                    next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 3.0, 3.0);
+                    next.control_r.position = Vec3::new(
+                        12.0 + s_a.grip.0 * 2.0,
+                        -4.0 + move1abs * -20.0,
+                        3.0 + twitch * 2.0 + twitch2 * 2.0,
+                    );
 
-                next.control.position = Vec3::new(
-                    -5.0 + move1abs * -5.0,
-                    -1.0 + s_a.grip.2 + move1abs * -8.0,
-                    -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + twitch2 * -2.0,
-                );
-                next.chest.position =
-                    Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + twitch2 + move2abs * 3.0);
-                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
-                    * Quaternion::rotation_y(-0.3)
-                    * Quaternion::rotation_z(-0.3);
-                next.control_r.orientation = Quaternion::rotation_x(
-                    PI / 2.0 + s_a.grip.0 * 0.2 + twitch * 0.2 + twitch2 * 0.2,
-                ) * Quaternion::rotation_y(
-                    -0.4 + s_a.grip.0 * 0.2 + move1abs * -2.0,
-                ) * Quaternion::rotation_z(move1abs * 0.5);
+                    next.control.position = Vec3::new(
+                        -5.0 + move1abs * -5.0,
+                        -1.0 + s_a.grip.2 + move1abs * -8.0,
+                        -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + twitch2 * -2.0,
+                    );
+                    next.chest.position =
+                        Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + twitch2 + move2abs * 2.0);
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                        * Quaternion::rotation_y(-0.3)
+                        * Quaternion::rotation_z(-0.3);
+                    next.control_r.orientation = Quaternion::rotation_x(
+                        PI / 2.0 + s_a.grip.0 * 0.2 + twitch * 0.2 + twitch2 * 0.2,
+                    ) * Quaternion::rotation_y(
+                        -0.4 + s_a.grip.0 * 0.2 + move1abs * -2.0,
+                    ) * Quaternion::rotation_z(move1abs * 0.5);
 
-                next.control.orientation = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.5 + move1abs * 1.0);
-                next.chest.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_z(0.0);
-                next.head.orientation =
-                    Quaternion::rotation_z(twitch * 0.2 + twitch2 * 0.4 + move2abs * -0.5)
-                        * Quaternion::rotation_x(move2abs * 0.7);
+                    next.control.orientation = Quaternion::rotation_x(-0.3)
+                        * Quaternion::rotation_y(0.0)
+                        * Quaternion::rotation_z(0.5 + move1abs * 1.0);
+                    next.chest.orientation =
+                        Quaternion::rotation_x(0.0) * Quaternion::rotation_z(0.0);
+                    next.head.orientation =
+                        Quaternion::rotation_z(twitch * 0.2 + twitch2 * 0.4 + move2abs * -0.5)
+                            * Quaternion::rotation_x(move2abs * 0.7);
+                },
+                _ => {
+                    next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                    next.control_r.position = Vec3::new(
+                        7.0 + s_a.grip.0 * 2.0,
+                        -4.0 + move1abs * -14.0,
+                        3.0 + twitch * 2.0 + twitch2 * 2.0,
+                    );
+
+                    next.control.position = Vec3::new(
+                        -5.0 + move1abs * -5.0,
+                        -1.0 + s_a.grip.2 + move1abs * -8.0,
+                        -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + twitch2 * -2.0,
+                    );
+                    next.chest.position =
+                        Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + twitch2 + move2abs * 3.0);
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                        * Quaternion::rotation_y(-0.3)
+                        * Quaternion::rotation_z(-0.3);
+                    next.control_r.orientation = Quaternion::rotation_x(
+                        PI / 2.0 + s_a.grip.0 * 0.2 + twitch * 0.2 + twitch2 * 0.2,
+                    ) * Quaternion::rotation_y(
+                        -0.4 + s_a.grip.0 * 0.2 + move1abs * -2.0,
+                    ) * Quaternion::rotation_z(move1abs * 0.5);
+
+                    next.control.orientation = Quaternion::rotation_x(-0.3)
+                        * Quaternion::rotation_y(0.0)
+                        * Quaternion::rotation_z(0.5 + move1abs * 1.0);
+                    next.chest.orientation =
+                        Quaternion::rotation_x(0.0) * Quaternion::rotation_z(0.0);
+                    next.head.orientation =
+                        Quaternion::rotation_z(twitch * 0.2 + twitch2 * 0.4 + move2abs * -0.5)
+                            * Quaternion::rotation_x(move2abs * 0.7);
+                },
             },
             _ => {
                 next.chest.orientation = Quaternion::rotation_x(move2abs * -1.0)

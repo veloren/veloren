@@ -88,6 +88,9 @@ buff-desc-frigid = Freeze your foes.
 ## Lifesteal
 buff-title-lifesteal = Lifesteal
 buff-desc-lifesteal = Siphon your enemies life away.
+## Polymorped
+buff-title-salamanderaspect = Salamander's Aspect
+buff-desc-salamanderaspect = You cannot burn and move fast through lava.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

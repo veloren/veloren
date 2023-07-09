@@ -1,0 +1,8 @@
+[
+  (1, All([
+        Item("common.items.keys.quarry_keys.overseer"),
+        MultiDrop(Item("common.items.crafting_ing.hide.plate"), 1, 1),
+        LootTable("common.loot_tables.weapons.components.tier-2"),
+        ],
+   )),
+]

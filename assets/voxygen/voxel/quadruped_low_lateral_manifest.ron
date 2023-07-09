@@ -107,6 +107,42 @@
             lateral: ("npc.alligator.male.foot_br", false),
         ),
     ),
+    (HermitAlligator, Male): (
+        front_left: (
+            offset: (-7.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (-0.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-8.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (-0.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_br", false),
+        ),
+    ),
+    (HermitAlligator, Female): (
+        front_left: (
+            offset: (-7.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (-0.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-8.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (-0.0, 0.0, -4.0),
+            lateral: ("npc.hermit_alligator.male.foot_br", false),
+        ),
+    ),
     (Salamander, Male): (
         front_left: (
             offset: (-6.0, 0.0, -3.0),

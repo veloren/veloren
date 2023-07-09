@@ -13,6 +13,6 @@
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.good")),
     (0.1, MultiDrop(Item("common.items.food.spore_corruption"), 1, 3)),
-    // Food 
+    // Food
     (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 3, 6)),
 ]

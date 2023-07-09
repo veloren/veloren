@@ -474,7 +474,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
                 (Ogre, Female) => 1.12,
-                (Cyclops, _) => 1.28,
+                (Cyclops, _) => 1.6,
                 (Wendigo, _) => 1.1,
                 (Cavetroll, _) => 1.1,
                 (Mountaintroll, _) => 1.1,

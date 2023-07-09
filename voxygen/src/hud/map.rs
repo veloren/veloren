@@ -925,6 +925,7 @@ impl<'a> Widget for Map<'a> {
                         SiteKind::ChapelSite => i18n.get_msg("hud-map-chapel_Site"),
                         SiteKind::Bridge => i18n.get_msg("hud-map-bridge"),
                         SiteKind::Adlet => i18n.get_msg("hud-map-adlet"),
+                        SiteKind::DwarvenMine => i18n.get_msg("hud-map-df_mine"),
                     });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (None, i18n.get_msg("hud-map-town")),
@@ -952,6 +953,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::ChapelSite => (Some(3), i18n.get_msg("hud-map-chapel_site")),
                 SiteKind::Bridge => (None, i18n.get_msg("hud-map-bridge")),
                 SiteKind::Adlet => (Some(1), i18n.get_msg("hud-map-adlet")),
+                SiteKind::DwarvenMine => (Some(5), i18n.get_msg("hud-map-df_mine")),
             };
             let desc = desc.into_owned() + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
@@ -962,6 +964,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Tree => self.imgs.mmap_site_tree,
                 SiteKind::Gnarling => self.imgs.mmap_site_gnarling,
                 SiteKind::Adlet => self.imgs.mmap_site_adlet,
+                SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
                 SiteKind::Dungeon { difficulty } => match difficulty {
                     4 => self.imgs.mmap_site_minotaur,
                     5 => self.imgs.mmap_site_mindflayer,
@@ -983,6 +986,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Tree => self.imgs.mmap_site_tree_hover,
                 SiteKind::Gnarling => self.imgs.mmap_site_gnarling_hover,
                 SiteKind::Adlet => self.imgs.mmap_site_adlet_hover,
+                SiteKind::DwarvenMine => self.imgs.mmap_site_mine_hover,
                 SiteKind::Dungeon { difficulty } => match difficulty {
                     4 => self.imgs.mmap_site_minotaur_hover,
                     5 => self.imgs.mmap_site_mindflayer_hover,
@@ -997,12 +1001,11 @@ impl<'a> Widget for Map<'a> {
                 &desc,
                 &site_tooltip,
                 match &site.kind {
-                    SiteKind::Town => TEXT_COLOR,
-                    SiteKind::Castle => TEXT_COLOR,
                     SiteKind::Dungeon { .. }
                     | SiteKind::Gnarling
                     | SiteKind::ChapelSite
-                    | SiteKind::Adlet => match difficulty {
+                    | SiteKind::Adlet
+                    | SiteKind::DwarvenMine => match difficulty {
                         Some(0) => QUALITY_LOW,
                         Some(1) => QUALITY_COMMON,
                         Some(2) => QUALITY_MODERATE,
@@ -1010,9 +1013,7 @@ impl<'a> Widget for Map<'a> {
                         Some(4 | 5) => QUALITY_EPIC,
                         _ => TEXT_COLOR,
                     },
-                    SiteKind::Cave => TEXT_COLOR,
-                    SiteKind::Tree => TEXT_COLOR,
-                    SiteKind::Bridge => TEXT_COLOR,
+                    _ => TEXT_COLOR,
                 },
             );
 
@@ -1030,6 +1031,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Dungeon { .. }
                 | SiteKind::Gnarling
                 | SiteKind::ChapelSite
+                | SiteKind::DwarvenMine
                 | SiteKind::Adlet => show_dungeons,
                 SiteKind::Castle => show_castles,
                 SiteKind::Cave => show_caves,
@@ -1091,6 +1093,11 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::Gnarling
                     | SiteKind::ChapelSite
                     | SiteKind::Adlet => {
+                        if show_dungeons {
+                            dif_img.set(state.ids.site_difs[i], ui)
+                        }
+                    },
+                    SiteKind::DwarvenMine => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }

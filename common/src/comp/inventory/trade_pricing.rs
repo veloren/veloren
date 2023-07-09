@@ -434,6 +434,10 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                     }
                     content
                 },
+                LootSpec::All(loot_specs) => loot_specs
+                    .into_iter()
+                    .flat_map(|loot| get_content(rescale, p0, loot))
+                    .collect(),
             }
         }
         Self {

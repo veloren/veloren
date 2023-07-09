@@ -1113,6 +1113,14 @@
                 keyword: "gnome",
                 generic: "Gnome"
             ),
+            clockwork: (
+                keyword: "clockwork",
+                generic: "Clockwork"
+            ),
+            flamekeeper: (
+                keyword: "flamekeeper",
+                generic: "Flamekeeper"
+            ),
             sahagin: (
                 keyword: "sahagin",
                 generic: "Sahagin"
@@ -1264,6 +1272,10 @@
             alligator: (
                 keyword: "alligator",
                 generic: "Alligator"
+            ),
+            hermit_alligator: (
+                keyword: "hermit_alligator",
+                generic: "Hermit Alligator"
             ),
             salamander: (
                 keyword: "salamander",

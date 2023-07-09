@@ -42,7 +42,11 @@ impl Animation for ComboAnimation {
             match ability_id {
                 Some(
                     "common.abilities.custom.bushly.singlestrike"
-                    | "common.abilities.custom.irrwurz.singlestrike",
+                    | "common.abilities.custom.irrwurz.singlestrike"
+                    | "common.abilities.custom.husk.singlestrike"
+                    | "common.abilities.custom.husk.triplestrike"
+                    | "common.abilities.custom.dwarves.clockwork.singlestrike"
+                    | "common.abilities.custom.dwarves.clockwork.triplestrike",
                 ) => {
                     let (move1, move2) = if strike == current_strike {
                         match stage_section {
@@ -66,7 +70,7 @@ impl Animation for ComboAnimation {
                     next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
                     match strike {
-                        0 => {
+                        0..=2 => {
                             next.chest.orientation = Quaternion::rotation_x(move2 * -1.0)
                                 * Quaternion::rotation_z(move1 * 1.2 + move2 * -1.8);
                             next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);

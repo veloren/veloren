@@ -223,8 +223,12 @@ pub enum LootSpec<T: AsRef<str>> {
         material: item::Material,
         hands: Option<item::tool::Hands>,
     },
-    /// LootSpec, lower range, upper range
+    /// Dropping lower-upper range items at random from the respective Category
+    /// (often a Loottable or Item(Coin)) LootSpec, lower range, upper range
     MultiDrop(Box<LootSpec<T>>, u32, u32),
+    /// Each category is evaluated, often used to have guaranteed quest Item +
+    /// random reward
+    All(Vec<LootSpec<T>>),
 }
 
 impl<T: AsRef<str>> LootSpec<T> {
@@ -333,6 +337,11 @@ impl<T: AsRef<str>> LootSpec<T> {
                 // desirable.
                 loot_spec.to_items_inner(rng, sub_amount.saturating_mul(amount), items);
             },
+            Self::All(loot_specs) => {
+                for loot_spec in loot_specs {
+                    loot_spec.to_items_inner(rng, amount, items);
+                }
+            },
         }
     }
 
@@ -412,6 +421,11 @@ pub mod tests {
                     lower
                 );
                 validate_loot_spec(loot_spec);
+            },
+            LootSpec::All(loot_specs) => {
+                for loot_spec in loot_specs {
+                    validate_loot_spec(loot_spec);
+                }
             },
         }
     }

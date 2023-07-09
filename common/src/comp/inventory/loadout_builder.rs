@@ -594,6 +594,9 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_low::Species::Dagon => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.dagon",
             )),
+            quadruped_low::Species::HermitAlligator => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.hermit_alligator",
+            )),
             quadruped_low::Species::Crocodile
             | quadruped_low::Species::SeaCrocodile
             | quadruped_low::Species::Alligator
@@ -770,6 +773,9 @@ fn default_main_tool(body: &Body) -> Item {
             object::Body::Crossbow => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.turret",
             )),
+            object::Body::Flamethrower => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.flamethrower",
+            )),
             object::Body::BarrelOrgan => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.organ",
             )),
@@ -805,6 +811,12 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (biped_small::Species::Husk, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.husk",
+            )),
+            (biped_small::Species::Flamekeeper, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.flamekeeper_staff",
+            )),
+            (biped_small::Species::Clockwork, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.clockwork",
             )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.adlet.hunter",
@@ -876,6 +888,7 @@ pub struct LoadoutBuilder(Loadout);
 pub enum Preset {
     HuskSummon,
     BorealSummon,
+    ClockworkSummon,
 }
 
 impl LoadoutBuilder {
@@ -1040,6 +1053,10 @@ impl LoadoutBuilder {
             },
             Preset::BorealSummon => {
                 self = self.with_asset_expect("common.loadout.world.boreal.boreal_warrior", rng);
+            },
+            Preset::ClockworkSummon => {
+                self =
+                    self.with_asset_expect("common.loadout.dungeon.dwarven_quarry.clockwork", rng);
             },
         }
 

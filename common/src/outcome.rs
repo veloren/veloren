@@ -106,6 +106,9 @@ pub enum Outcome {
     CyclopsCharge {
         pos: Vec3<f32>,
     },
+    FlamethrowerCharge {
+        pos: Vec3<f32>,
+    },
     Utterance {
         pos: Vec3<f32>,
         body: comp::Body,
@@ -126,6 +129,9 @@ pub enum Outcome {
         pos: Vec3<i32>,
     },
     Woosh {
+        pos: Vec3<f32>,
+    },
+    FireShockwave {
         pos: Vec3<f32>,
     },
 }
@@ -149,10 +155,12 @@ impl Outcome {
             | Outcome::Woosh { pos }
             | Outcome::IceSpikes { pos }
             | Outcome::Steam { pos }
+            | Outcome::FireShockwave { pos }
             | Outcome::IceCrack { pos }
             | Outcome::Utterance { pos, .. }
             | Outcome::SpriteDelete { pos, .. }
             | Outcome::CyclopsCharge { pos }
+            | Outcome::FlamethrowerCharge { pos }
             | Outcome::LaserBeam { pos }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }

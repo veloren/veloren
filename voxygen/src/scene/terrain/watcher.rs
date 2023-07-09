@@ -1,5 +1,8 @@
 use crate::hud::CraftingTab;
-use common::terrain::{Block, BlockKind, SpriteKind};
+use common::{
+    terrain::{Block, BlockKind, SpriteKind},
+    vol::ReadVol,
+};
 use common_base::span;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -12,6 +15,7 @@ pub enum Interaction {
     Collect,
     Craft(CraftingTab),
     Mount,
+    Read,
 }
 
 pub enum FireplaceType {
@@ -64,6 +68,7 @@ impl BlocksOfInterest {
         river_speed_sq: f32,
         temperature: f32,
         humidity: f32,
+        chunk: &impl ReadVol<Vox = Block>,
     ) -> Self {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
@@ -94,7 +99,14 @@ impl BlocksOfInterest {
 
         blocks.for_each(|(pos, block)| {
             match block.kind() {
-                BlockKind::Leaves if rng.gen_range(0..16) == 0 => leaves.push(pos),
+                BlockKind::Leaves
+                    if rng.gen_range(0..16) == 0
+                        && chunk
+                            .get(pos - Vec3::unit_z())
+                            .map_or(true, |b| !b.is_filled()) =>
+                {
+                    leaves.push(pos)
+                },
                 BlockKind::WeakRock if rng.gen_range(0..6) == 0 => drip.push(pos),
                 BlockKind::Grass => {
                     if rng.gen_range(0..16) == 0 {
@@ -111,7 +123,14 @@ impl BlocksOfInterest {
                 BlockKind::Water if river_speed_sq > 0.9_f32.powi(2) => fast_river.push(pos),
                 BlockKind::Water if river_speed_sq > 0.3_f32.powi(2) => slow_river.push(pos),
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
-                BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
+                BlockKind::Lava
+                    if rng.gen_range(0..5) == 0
+                        && chunk
+                            .get(pos + Vec3::unit_z())
+                            .map_or(true, |b| !b.is_filled()) =>
+                {
+                    fires.push(pos + Vec3::unit_z())
+                },
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
@@ -182,6 +201,7 @@ impl BlocksOfInterest {
                             )
                             .with_z(0.0),
                     )),
+                    Some(SpriteKind::Sign) => interactables.push((pos, Interaction::Read)),
                     _ if block.is_mountable() => interactables.push((pos, Interaction::Mount)),
                     _ => {},
                 },

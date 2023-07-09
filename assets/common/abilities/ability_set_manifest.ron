@@ -521,10 +521,17 @@
         secondary: Simple(None, "common.abilities.custom.turret.arrows"),
         abilities: [],
     ),
+    Custom("Flamethrower"): (
+        primary: Simple(None, "common.abilities.custom.turret.flamethrower_strong"),
+        secondary: Simple(None, "common.abilities.custom.turret.flamethrower_strong"),
+        abilities: [],
+    ),
     Custom("Organ"): (
         primary: Simple(None, "common.abilities.custom.organ.organaura"),
         secondary: Simple(None, "common.abilities.custom.organ.organaura"),
-        abilities: [],
+        abilities: [
+            Simple(None, "common.abilities.custom.arthropods.weevil.threadshot"),
+        ],
     ),
     Custom("Haniwa Sentry"): (
         primary: Simple(None, "common.abilities.custom.turret.flamethrower"),
@@ -538,6 +545,31 @@
             Simple(None, "common.abilities.custom.mindflayer.dimensionaldoor"),
             Simple(None, "common.abilities.custom.mindflayer.necroticsphere"),
             Simple(None, "common.abilities.custom.mindflayer.summonminions"),
+        ],
+    ),
+    Custom("Flamekeeper"): (
+        primary: Simple(None, "common.abilities.custom.dwarves.flamekeeper.lava_mortar"),
+        secondary: Simple(None, "common.abilities.custom.dwarves.flamekeeper.flamecrush"),
+        abilities: [
+            Simple(None, "common.abilities.custom.dwarves.flamekeeper.summon_flamethrower"),
+            Simple(None, "common.abilities.custom.dwarves.flamekeeper.summon_clockwork"),
+            Simple(None, "common.abilities.custom.dwarves.flamekeeper.flamethrower"),
+            Simple(None, "common.abilities.custom.dwarves.flamekeeper.lavawave"),
+            Simple(None, "common.abilities.custom.dwarves.flamekeeper.mines"),
+        ],
+    ),
+    Custom("Clockwork"): (
+        primary: Simple(None, "common.abilities.custom.dwarves.clockwork.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.dwarves.clockwork.triplestrike"),
+        abilities: [],
+    ),
+    Custom("HermitAlligator"): (
+        primary: Simple(None, "common.abilities.custom.dwarves.hermit_alligator.tail"),
+        secondary: Simple(None, "common.abilities.custom.dwarves.hermit_alligator.wave"),
+        abilities: [
+            Simple(None, "common.abilities.custom.dwarves.hermit_alligator.bombs"),
+            Simple(None, "common.abilities.custom.dwarves.hermit_alligator.beam"),
+            Simple(None, "common.abilities.custom.dwarves.hermit_alligator.heal"),
         ],
     ),
     Custom("Minotaur"): (

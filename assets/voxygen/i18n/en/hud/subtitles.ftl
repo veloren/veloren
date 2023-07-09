@@ -103,6 +103,7 @@ subtitle-attack-ground_slam = Ground slam
 subtitle-attack-laser_beam = Laser beam
 subtitle-attack-cyclops_charge = Cyclops charge
 subtitle-giga_roar = Frost gigas roar
+subtitle-deep_laugh = Deep Laugh
 subtitle-attack-flash_freeze = Flash freeze
 subtitle-attack-icy_spikes = Icy spikes
 subtitle-attack-ice_crack = Ice crack

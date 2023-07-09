@@ -131,6 +131,7 @@ impl Environment {
                     SiteKind::Gnarling(_) => {},
                     SiteKind::Adlet(_) => {},
                     SiteKind::ChapelSite(_) => {},
+                    SiteKind::DwarvenMine(_) => {},
                     SiteKind::Bridge(_) => {},
                 }
             }

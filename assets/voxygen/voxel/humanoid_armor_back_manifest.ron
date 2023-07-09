@@ -72,6 +72,10 @@
             vox_spec: ("armor.hide.leather.back", (-5.0, -1.0, -11.0)),
             color: None
         ),
+        "common.items.armor.miner.back": (
+            vox_spec: ("armor.hide.leather.back", (-5.0, -1.0, -11.0)),
+            color: None
+        ),
         "common.items.armor.hide.scale.back": (
             vox_spec: ("armor.hide.scale.back", (-5.0, -2.0, -10.5)),
             color: None

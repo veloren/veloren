@@ -317,7 +317,11 @@ impl Body {
                 biped_large::Species::AdletElder => 350.0,
                 _ => 400.0,
             },
-            Body::BipedSmall(_) => 50.0,
+            Body::BipedSmall(body) => match body.species {
+                biped_small::Species::Clockwork => 1000.0,
+                biped_small::Species::Flamekeeper => 1000.0,
+                _ => 50.0,
+            },
             // ravens are 0.69-2 kg, crows are 0.51 kg on average.
             Body::BirdMedium(body) => match body.species {
                 bird_medium::Species::SnowyOwl => 3.0,
@@ -357,6 +361,7 @@ impl Body {
             Body::ItemDrop(item_drop) => item_drop.mass().0,
             Body::QuadrupedLow(body) => match body.species {
                 quadruped_low::Species::Alligator => 360.0, // ~✅
+                quadruped_low::Species::HermitAlligator => 1000.0,
                 quadruped_low::Species::Asp => 300.0,
                 // saltwater crocodiles can weigh around 1 ton, but our version is the size of an
                 // alligator or smaller, so whatever
@@ -455,7 +460,7 @@ impl Body {
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
             Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Cyclops => Vec3::new(5.6, 3.0, 6.5),
+                biped_large::Species::Cyclops => Vec3::new(5.6, 3.0, 8.0),
                 biped_large::Species::Dullahan => Vec3::new(4.6, 3.0, 5.5),
                 biped_large::Species::Mightysaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Mindflayer => Vec3::new(4.4, 3.0, 8.0),
@@ -483,6 +488,8 @@ impl Body {
                 biped_small::Species::Boreal => Vec3::new(1.3, 2.0, 2.5),
                 biped_small::Species::Bushly => Vec3::new(1.2, 1.3, 1.6),
                 biped_small::Species::Irrwurz => Vec3::new(1.5, 1.5, 2.0),
+                biped_small::Species::Clockwork => Vec3::new(1.3, 2.0, 2.5),
+                biped_small::Species::Flamekeeper => Vec3::new(5.0, 5.0, 10.0),
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
             Body::BirdLarge(body) => match body.species {
@@ -566,6 +573,7 @@ impl Body {
                 quadruped_low::Species::Elbst => Vec3::new(1.7, 4.0, 1.3),
                 quadruped_low::Species::Tortoise => Vec3::new(1.7, 2.7, 1.5),
                 quadruped_low::Species::Driggle => Vec3::new(1.6, 2.7, 1.0),
+                quadruped_low::Species::HermitAlligator => Vec3::new(2.0, 7.7, 1.8),
                 _ => Vec3::new(1.0, 1.6, 1.3),
             },
             Body::Ship(ship) => ship.dimensions(),
@@ -710,6 +718,8 @@ impl Body {
                 },
                 Body::BipedSmall(body) => match body.species {
                     biped_small::Species::Husk => 3.0,
+                    biped_small::Species::Clockwork => 2.0,
+                    biped_small::Species::Flamekeeper => 4.0,
                     _ => 2.0,
                 },
                 _ => 2.0,
@@ -866,11 +876,14 @@ impl Body {
                 biped_small::Species::Myrmidon => 100,
                 biped_small::Species::Husk => 50,
                 biped_small::Species::Boreal => 100,
+                biped_small::Species::Clockwork => 250,
+                biped_small::Species::Flamekeeper => 10000,
                 _ => 60,
             },
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 1000,
                 object::Body::Crossbow => 80,
+                object::Body::Flamethrower => 80,
                 object::Body::BarrelOrgan => 500,
                 object::Body::HaniwaSentry => 60,
                 object::Body::SeaLantern => 100,
@@ -897,6 +910,7 @@ impl Body {
                 quadruped_low::Species::Crocodile => 80,
                 quadruped_low::Species::SeaCrocodile => 110,
                 quadruped_low::Species::Alligator => 90,
+                quadruped_low::Species::HermitAlligator => 2000,
                 quadruped_low::Species::Monitor => 60,
                 quadruped_low::Species::Asp => 75,
                 quadruped_low::Species::Tortoise => 90,
@@ -950,7 +964,9 @@ impl Body {
                 Body::Object(_) | Body::Golem(_) | Body::Ship(_) => true,
                 Body::BipedSmall(b) => matches!(
                     b.species,
-                    biped_small::Species::Husk | biped_small::Species::Boreal
+                    biped_small::Species::Husk
+                        | biped_small::Species::Boreal
+                        | biped_small::Species::Clockwork
                 ),
                 Body::BipedLarge(b) => matches!(
                     b.species,
@@ -967,8 +983,16 @@ impl Body {
             },
             BuffKind::Burning => match self {
                 Body::Golem(g) => matches!(g.species, golem::Species::ClayGolem),
-                Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Haniwa),
-                Body::Object(object::Body::HaniwaSentry) => true,
+                Body::BipedSmall(b) => matches!(
+                    b.species,
+                    biped_small::Species::Haniwa
+                        | biped_small::Species::Flamekeeper
+                        | biped_small::Species::Clockwork
+                ),
+                Body::Object(object) => matches!(
+                    object,
+                    object::Body::HaniwaSentry | object::Body::Flamethrower
+                ),
                 Body::QuadrupedLow(q) => matches!(q.species, quadruped_low::Species::Lavadrake),
                 Body::BirdLarge(b) => matches!(
                     b.species,
@@ -981,7 +1005,10 @@ impl Body {
                         | bird_large::Species::WealdWyvern
                 ),
                 Body::Arthropod(b) => matches!(b.species, arthropod::Species::Moltencrawler),
-                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Cyclops),
+                Body::BipedLarge(b) => matches!(
+                    b.species,
+                    biped_large::Species::Cyclops | biped_large::Species::Minotaur
+                ),
                 _ => false,
             },
             BuffKind::Ensnared => match self {
@@ -1038,8 +1065,17 @@ impl Body {
                 biped_large::Species::Harvester => 2.1,
                 _ => 1.0,
             },
+            Body::BipedSmall(b) => match b.species {
+                biped_small::Species::Clockwork => 2.0,
+                biped_small::Species::Flamekeeper => 4.0,
+                _ => 1.0,
+            },
             Body::Golem(g) => match g.species {
                 golem::Species::ClayGolem => 2.45,
+                _ => 1.0,
+            },
+            Body::QuadrupedLow(b) => match b.species {
+                quadruped_low::Species::HermitAlligator => 2.0,
                 _ => 1.0,
             },
             _ => 1.0,
@@ -1053,6 +1089,11 @@ impl Body {
                 biped_large::Species::Mindflayer => 320,
                 biped_large::Species::Minotaur => 280,
                 _ => 250,
+            },
+            Body::BipedSmall(b) => match b.species {
+                biped_small::Species::Clockwork => 250,
+                biped_small::Species::Flamekeeper => 250,
+                _ => 100,
             },
             Body::Golem(_) => 300,
             _ => 100,

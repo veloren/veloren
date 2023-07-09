@@ -92,6 +92,10 @@
             vox_spec: ("armor.hide.leather.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        "common.items.armor.miner.foot": (
+            vox_spec: ("armor.hide.leather.foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
         "common.items.armor.hide.scale.foot": (
             vox_spec: ("armor.hide.scale.foot", (-2.5, -3.5, -2.0)),
             color: None

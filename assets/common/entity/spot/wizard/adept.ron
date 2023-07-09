@@ -6,11 +6,11 @@
     loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.spots.wizard_tower.wizard_low"),            
+            inherit: Asset("common.loadout.spots.wizard_tower.wizard_low"),
             active_hands: InHands((Choice([
-                (2, ModularWeapon(tool: Axe, material: Orichalcum, hands: One)),                
+                (2, ModularWeapon(tool: Axe, material: Orichalcum, hands: One)),
                 (2, ModularWeapon(tool: Hammer, material: Orichalcum, hands: One)),
-                
+
             ]), None)),
         )),
     ),

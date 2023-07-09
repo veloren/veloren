@@ -4066,6 +4066,7 @@ impl FigureMgr {
                             anim::biped_small::BeamAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     active_tool_kind,
                                     rel_vel,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -4105,6 +4106,7 @@ impl FigureMgr {
                                 1 => anim::biped_small::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (
+                                        ability_id,
                                         active_tool_kind,
                                         rel_vel,
                                         ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -4122,6 +4124,7 @@ impl FigureMgr {
                                 _ => anim::biped_small::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (
+                                        ability_id,
                                         active_tool_kind,
                                         rel_vel,
                                         ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -4155,6 +4158,7 @@ impl FigureMgr {
                             anim::biped_small::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     active_tool_kind,
                                     rel_vel,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -4250,6 +4254,7 @@ impl FigureMgr {
                             anim::biped_small::SummonAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     active_tool_kind,
                                     rel_vel,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -5607,7 +5612,6 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-
                         CharacterState::ChargedRanged(s) => {
                             let stage_time = s.timer.as_secs_f32();
 

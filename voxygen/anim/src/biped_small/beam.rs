@@ -7,7 +7,8 @@ use std::f32::consts::PI;
 
 pub struct BeamAnimation;
 
-type BeamAnimationDependency = (
+type BeamAnimationDependency<'a> = (
+    Option<&'a str>,
     Option<ToolKind>,
     Vec3<f32>,
     Vec3<f32>,
@@ -20,7 +21,7 @@ type BeamAnimationDependency = (
 );
 
 impl Animation for BeamAnimation {
-    type Dependency<'a> = BeamAnimationDependency;
+    type Dependency<'a> = BeamAnimationDependency<'a>;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -31,6 +32,7 @@ impl Animation for BeamAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
+            ability_id,
             _active_tool_kind,
             velocity,
             _orientation,
@@ -86,31 +88,53 @@ impl Animation for BeamAnimation {
         };
         let pullback = 1.0 - move3;
         let move1abs = move1base * pullback;
+
         next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
         next.control_r.position = Vec3::new(
             7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
             -4.0 + move1abs * 0.0,
             3.0 + move1abs * 10.0,
         );
+        match ability_id {
+            Some("common.abilities.custom.dwarves.flamekeeper.flamethrower") => {
+                next.control.position = Vec3::new(
+                    -9.0,
+                    -1.0 + s_a.grip.2,
+                    -8.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
+                );
 
-        next.control.position = Vec3::new(
-            -5.0,
-            -1.0 + s_a.grip.2,
-            -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
-        );
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
+                    * Quaternion::rotation_y(-0.3)
+                    * Quaternion::rotation_z(-0.3);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                        * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                        * Quaternion::rotation_z(-0.0 + move1abs * 2.0 + move2base * 0.6);
 
-        next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
-            * Quaternion::rotation_y(-0.3)
-            * Quaternion::rotation_z(-0.3);
-        next.control_r.orientation =
-            Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
-                * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
-                * Quaternion::rotation_z(-0.0 + move1abs * 2.0 + move2base * 0.6);
+                next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
+                    * Quaternion::rotation_y(-0.2 * speednorm + move1abs * 0.8)
+                    * Quaternion::rotation_z(0.5 + move1abs * 0.6);
+            },
+            _ => {
+                next.control.position = Vec3::new(
+                    -5.0,
+                    -1.0 + s_a.grip.2,
+                    -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
+                );
 
-        next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
-            * Quaternion::rotation_y(-0.2 * speednorm + move1abs * 0.8)
-            * Quaternion::rotation_z(0.5 + move1abs * 0.6);
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
+                    * Quaternion::rotation_y(-0.3)
+                    * Quaternion::rotation_z(-0.3);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                        * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                        * Quaternion::rotation_z(-0.0 + move1abs * 2.0 + move2base * 0.6);
 
+                next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
+                    * Quaternion::rotation_y(-0.2 * speednorm + move1abs * 0.8)
+                    * Quaternion::rotation_z(0.5 + move1abs * 0.6);
+            },
+        }
         next
     }
 }

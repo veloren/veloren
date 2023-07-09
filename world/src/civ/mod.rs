@@ -327,6 +327,16 @@ impl Civs {
                         )?,
                         SiteKind::Adlet,
                     ),
+                    /*50..=55 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.mine_site_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::DwarvenMine,
+                        )?,
+                        SiteKind::DwarvenMine,
+                    ),*/
                     _ => (
                         find_site_loc(
                             &mut ctx,
@@ -371,6 +381,7 @@ impl Civs {
                 SiteKind::Citadel => (16i32, 0.0),
                 SiteKind::Bridge(_, _) => (0, 0.0),
                 SiteKind::Adlet => (16i32, 0.0),
+                //SiteKind::DwarvenMine => (8i32, 3.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -487,6 +498,11 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
+                    /*SiteKind::DwarvenMine => WorldSite::dwarven_mine(site2::Site::generate_mine(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),*/
                     SiteKind::ChapelSite => WorldSite::chapel_site(
                         site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
@@ -1371,6 +1387,13 @@ impl Civs {
         })
     }
 
+    fn mine_site_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
     fn dungeon_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Tree | SiteKind::GiantTree => None,
@@ -1740,6 +1763,7 @@ pub enum SiteKind {
     Citadel,
     Bridge(Vec2<i32>, Vec2<i32>),
     Adlet,
+    //DwarvenMine,
 }
 
 impl SiteKind {
@@ -1783,6 +1807,12 @@ impl SiteKind {
                         && chunk.tree_density > 0.75
                 },
                 SiteKind::Adlet => chunk.temp < -0.2 && chunk.cliff_height > 25.0,
+                /*SiteKind::DwarvenMine => {
+                    matches!(chunk.get_biome(), BiomeKind::Forest | BiomeKind::Desert)
+                        && !chunk.near_cliffs()
+                        && !chunk.river.near_water()
+                        && on_flat_terrain()
+                },*/
                 SiteKind::GiantTree | SiteKind::Tree => {
                     on_land()
                         && on_flat_terrain()

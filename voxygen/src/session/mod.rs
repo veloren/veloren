@@ -964,6 +964,24 @@ impl PlayState for SessionState {
                                                     },
                                                     BlockInteraction::Mine(_)
                                                     | BlockInteraction::Mount => {},
+                                                    BlockInteraction::Read(content) => match pos
+                                                        .kind
+                                                    {
+                                                        common::mounting::Volume::Terrain => {
+                                                            self.hud.show_content_bubble(
+                                                                pos.pos.as_()
+                                                                    + Vec3::new(
+                                                                        0.5,
+                                                                        0.5,
+                                                                        block.solid_height() * 0.75,
+                                                                    ),
+                                                                content.clone(),
+                                                            )
+                                                        },
+                                                        // Signs on volume entities are not
+                                                        // currently supported
+                                                        common::mounting::Volume::Entity(_) => {},
+                                                    },
                                                 }
                                             },
                                             Interactable::Entity(entity) => {

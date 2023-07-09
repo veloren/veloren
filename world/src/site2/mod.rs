@@ -106,6 +106,7 @@ impl Site {
                 PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
                 PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
                 PlotKind::Adlet(a) => Some(a.spawn_rules(wpos)),
+                //PlotKind::DwarvenMine(m) => Some(m.spawn_rules(wpos)),
                 _ => None,
             })
             .fold(base_spawn_rules, |a, b| a.combine(b))
@@ -414,6 +415,41 @@ impl Site {
 
         site
     }
+
+    /*pub fn generate_mine(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            ..Site::default()
+        };
+
+        let size = 60.0;
+
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size as i32),
+            max: Vec2::broadcast(size as i32),
+        };
+
+        let wpos: Vec2<i32> = [1, 2].into();
+
+        let dwarven_mine =
+            plot::DwarvenMine::generate(land, &mut reseed(&mut rng), &site, wpos, aabr);
+        site.name = dwarven_mine.name().to_string();
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::DwarvenMine(dwarven_mine),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::Empty,
+            plot: Some(plot),
+            hard_alt: Some(1_i32),
+        });
+
+        site
+    }  */
 
     pub fn generate_citadel(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
@@ -1471,6 +1507,8 @@ impl Site {
                 PlotKind::SavannahWorkshop(savannah_workshop) => {
                     savannah_workshop.render_collect(self, canvas)
                 },
+                //PlotKind::DwarvenMine(_dwarven_mine) => dwarven_mine.render_collect(self,
+                // canvas),
                 PlotKind::DesertCityMultiPlot(desert_city_multi_plot) => {
                     desert_city_multi_plot.render_collect(self, canvas)
                 },
@@ -1479,7 +1517,8 @@ impl Site {
                 },
                 PlotKind::Citadel(citadel) => citadel.render_collect(self, canvas),
                 PlotKind::Bridge(bridge) => bridge.render_collect(self, canvas),
-                _ => continue,
+                PlotKind::Plaza | PlotKind::Road(_) => continue,
+                // _ => continue, Avoid using a wildcard here!!
             };
 
             let mut spawn = |pos, last_block| {
@@ -1520,15 +1559,26 @@ impl Site {
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 
+                                let mut sprite_cfg = None;
                                 canvas.map(pos, |block| {
-                                    let current_block =
-                                        fill.sample_at(&prim_tree, prim, pos, &info, block, &col);
+                                    let current_block = fill.sample_at(
+                                        &prim_tree,
+                                        prim,
+                                        pos,
+                                        &info,
+                                        block,
+                                        &mut sprite_cfg,
+                                        &col,
+                                    );
                                     if let (Some(last_block), None) = (last_block, current_block) {
                                         spawn(pos, last_block);
                                     }
                                     last_block = current_block;
                                     current_block.unwrap_or(block)
                                 });
+                                if let Some(sprite_cfg) = sprite_cfg {
+                                    canvas.set_sprite_cfg(pos, sprite_cfg);
+                                }
                             }
                             if let Some(block) = last_block {
                                 spawn(Vec3::new(x, y, aabb.max.z), block);

@@ -2,6 +2,7 @@ use crate::{
     comp::{
         item::{ItemDefinitionId, ItemDefinitionIdOwned},
         tool::ToolKind,
+        Content,
     },
     lottery::LootSpec,
     make_case_elim,
@@ -254,6 +255,19 @@ make_case_elim!(
         OneWayWall = 0xE2,
         GlassKeyhole = 0xE3,
         TallCactus = 0xE4,
+        Sign = 0xE5,
+        DoorBars = 0xE6,
+        KeyholeBars = 0xE7,
+        WoodBarricades = 0xE8,
+        SewerMushroom = 0xE9,
+        DiamondLight = 0xEA,
+        Mine = 0xEB,
+        SmithingTable = 0xEC,
+        Forge0 = 0xED,
+        GearWheel0 = 0xEE,
+        Quench0 = 0xEF,
+        IronSpike = 0xF0,
+        HotSurface = 0xF1,
     }
 );
 
@@ -343,6 +357,7 @@ impl SpriteKind {
             | SpriteKind::DropGate
             | SpriteKind::WitchWindow
             | SpriteKind::SeaUrchin
+            | SpriteKind::IronSpike
             | SpriteKind::GlassBarrier
             | SpriteKind::GlassKeyhole
             | SpriteKind::Keyhole
@@ -350,7 +365,11 @@ impl SpriteKind {
             | SpriteKind::BoneKeyhole
             | SpriteKind::BoneKeyDoor
             | SpriteKind::Bomb
-            | SpriteKind::OneWayWall => 1.0,
+            | SpriteKind::OneWayWall
+            | SpriteKind::DoorBars
+            | SpriteKind::KeyholeBars
+            | SpriteKind::WoodBarricades
+            | SpriteKind::DiamondLight => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
@@ -393,6 +412,13 @@ impl SpriteKind {
             SpriteKind::MagicalBarrier => 3.0,
             SpriteKind::MagicalSeal => 1.0,
             SpriteKind::Helm => 1.7,
+            SpriteKind::Sign => 17.0 / 11.0,
+            SpriteKind::Mine => 2.0 / 11.0,
+            SpriteKind::SmithingTable => 13.0 / 11.0,
+            SpriteKind::Forge0 => 17.0 / 11.0,
+            SpriteKind::GearWheel0 => 3.0 / 11.0,
+            SpriteKind::Quench0 => 8.0 / 11.0,
+            SpriteKind::HotSurface => 0.01,
             _ => return None,
         })
     }
@@ -514,7 +540,10 @@ impl SpriteKind {
             SpriteKind::Frostwood => item("common.items.log.frostwood"),
             SpriteKind::Eldwood => item("common.items.log.eldwood"),
             SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
-            SpriteKind::Keyhole | SpriteKind::BoneKeyhole | SpriteKind::GlassKeyhole => {
+            SpriteKind::Keyhole
+            | SpriteKind::BoneKeyhole
+            | SpriteKind::GlassKeyhole
+            | SpriteKind::KeyholeBars => {
                 return Some(None);
             },
             _ => return None,
@@ -624,6 +653,11 @@ impl SpriteKind {
             })
     }
 
+    /// Get the [`Content`] that this sprite is labelled with.
+    pub fn content(&self, cfg: Option<SpriteCfg>) -> Option<Content> {
+        cfg.and_then(|cfg| cfg.content)
+    }
+
     #[inline]
     pub fn has_ori(&self) -> bool {
         matches!(
@@ -710,8 +744,14 @@ impl SpriteKind {
                 | SpriteKind::BoneKeyhole
                 | SpriteKind::BoneKeyDoor
                 | SpriteKind::IceCrystal
+                | SpriteKind::OneWayWall
                 | SpriteKind::GlowIceCrystal
-                | SpriteKind::OneWayWall,
+                | SpriteKind::Sign
+                | SpriteKind::WoodBarricades
+                | SpriteKind::SmithingTable
+                | SpriteKind::Forge0
+                | SpriteKind::GearWheel0
+                | SpriteKind::Quench0
         )
     }
 }
@@ -749,4 +789,5 @@ pub enum UnlockKind {
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct SpriteCfg {
     pub unlock: Option<UnlockKind>,
+    pub content: Option<Content>,
 }

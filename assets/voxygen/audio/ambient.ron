@@ -4,12 +4,12 @@
             path: "voxygen.audio.ambience.wind",
             length: 14.2,
             tag: Wind,
-        ),     
+        ),
         (
             path: "voxygen.audio.ambience.rain",
             length: 17.0,
             tag: Rain,
-        ), 
+        ),
         (
             path:"voxygen.audio.ambience.thunder",
             length: 32.0,

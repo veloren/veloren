@@ -12,8 +12,8 @@ use crate::{
 use common::{
     calendar::Calendar,
     comp::{
-        self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Presence,
-        Waypoint,
+        self, agent, biped_small, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate,
+        Pos, Presence, Waypoint,
     },
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::EntityInfo,
@@ -427,6 +427,7 @@ impl NpcData {
             alignment,
             no_flee,
             idle_wander_factor,
+            aggro_range_multiplier,
             // stats
             body,
             name,
@@ -493,6 +494,9 @@ impl NpcData {
         // Allow Humanoid, BirdMedium, and Parrot to speak
         let can_speak = match body {
             comp::Body::Humanoid(_) => true,
+            comp::Body::BipedSmall(biped_small) => {
+                matches!(biped_small.species, biped_small::Species::Flamekeeper)
+            },
             comp::Body::BirdMedium(bird_medium) => match bird_medium.species {
                 bird_medium::Species::Parrot => alignment == comp::Alignment::Npc,
                 _ => false,
@@ -522,6 +526,7 @@ impl NpcData {
             agent
                 .with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
                 .with_idle_wander_factor(idle_wander_factor)
+                .with_aggro_range_multiplier(aggro_range_multiplier)
         });
 
         let agent = if matches!(alignment, comp::Alignment::Enemy)

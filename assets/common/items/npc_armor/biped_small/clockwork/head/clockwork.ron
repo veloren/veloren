@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Clockwork Head",
+    description: "Clockwork Head",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(4.5)),
+            poise_resilience: Some(Normal(3.0)),
+            crit_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)
