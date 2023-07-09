@@ -16,6 +16,7 @@ hud-map-town = Town
 hud-map-castle = Castle
 hud-map-bridge = Bridge
 hud-map-dungeon = Dungeon
+hud-map-df_mine = Mine
 hud-map-difficulty_dungeon =
     Dungeon
     

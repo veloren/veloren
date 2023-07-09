@@ -1,0 +1,31 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.dwarven_quarry.prefab.flamekeeper_boss",
+        center: (58, 55, 0),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            50: RotatedSprite(OneWayWall, 6),
+            136: Sprite(Lantern),
+            137: Sprite(Anvil),
+            138: Sprite(ForgeTools),
+            139: Sprite(FireBowlGround),
+            140: Sprite(DoorBars),
+            141: KeyholeBars("common.items.utility.lockpick_0"),
+            142: Sprite(WoodBarricades),
+            169: Filled(GlowingRock, (r: 49, g: 49, b: 49)),
+            209: Filled(GlowingRock, (r: 83, g: 83, b: 83)),
+            209: Filled(GlowingRock, (r: 83, g: 83, b: 83)),
+            207: Filled(Water, (r: 75, g: 158, b: 191)),
+            212: Sprite(DoorBars),
+            213: Keyhole("common.items.keys.quarry_keys.flamekeeper_left"),
+            214: Sprite(SmokeDummy),
+            215: Filled(Lava, (r: 212, g: 91, b: 0)),
+            216: Sprite(KeyDoor),
+            225: Sprite(HotSurface),
+            226: Sprite(DiamondLight),
+
+         },
+    ),
+]

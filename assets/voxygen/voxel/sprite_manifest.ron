@@ -75,7 +75,7 @@ LargeCactus: Some((
             model: "voxygen.voxel.sprite.cacti.cactus_branch_large_2",
             offset: (-11.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
-			
+
         ),
 		(
             model: "voxygen.voxel.sprite.cacti.cactus_branch_large_1_flower",
@@ -598,6 +598,17 @@ Mushroom: Some((
         ),
     ],
     wind_sway: 0.1,
+)),
+// Sewer Mushrooms
+SewerMushroom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-0",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
 )),
 // Cave Mushrooms
 CaveMushroom: Some((
@@ -3537,8 +3548,8 @@ WildFlax: Some((
 Lantern: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.lantern.lantern-orange",
-            offset: (-3.0, -3.0, 0.0),
+            model: "voxygen.voxel.sprite.lantern.mine_lamp",
+            offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.5, 0.5, 0.2),
         ),
     ],
@@ -3854,6 +3865,17 @@ SeaUrchin: Some((
     ],
     wind_sway: 0.0,
 )),
+// Iron Spike
+IronSpike: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.object.iron_spike",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // WitchWindow
 WitchWindow: Some((
     variations: [
@@ -4155,7 +4177,7 @@ Bomb: Some((
             lod_axes: (0.5, 0.5, 0.5),
         ),
     ],
-    wind_sway: 0.6,
+    wind_sway: 0.0,
 )),
 EnsnaringWeb: Some((
     variations: [
@@ -4362,6 +4384,26 @@ Candle: Some((
     ],
     wind_sway: 0.0,
 )),
+DoorBars: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.bars.0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+KeyholeBars: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.bars.keyhole",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 IceCrystal: Some((
     variations: [
         (
@@ -4427,6 +4469,7 @@ IceCrystal: Some((
     ],
     wind_sway: 0.0,
 )),
+
 GlowIceCrystal: Some((
     variations: [
         (
@@ -4463,6 +4506,106 @@ GlowIceCrystal: Some((
     wind_sway: 0.0,
 )),
 OneWayWall: Some((
+    variations: [],
+    wind_sway: 0.0,
+)),
+Sign: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.sign.basic",
+            offset: (-8.0, -1.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+WoodBarricades: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+
+    ],
+    wind_sway: 0.0,
+)),
+DiamondLight: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.floating_diamond",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Mine: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.mine",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+SmithingTable: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.smith_table-0",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Forge0: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.forge-0",
+            offset: (-3.5, -7.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+GearWheel0: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.gear_wheel-0",
+            offset: (-8.5, -8.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Quench0: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.quench-0",
+            offset: (-2.5, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+HotSurface: Some((
     variations: [],
     wind_sway: 0.0,
 )),

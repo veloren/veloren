@@ -67,11 +67,11 @@ widget_ids! {
 
 #[derive(Clone, Copy)]
 pub struct Info<'a> {
-    pub name: &'a str,
+    pub name: Option<&'a str>,
     pub health: Option<&'a Health>,
-    pub buffs: &'a Buffs,
+    pub buffs: Option<&'a Buffs>,
     pub energy: Option<&'a Energy>,
-    pub combat_rating: f32,
+    pub combat_rating: Option<f32>,
     pub stance: Option<&'a Stance>,
 }
 
@@ -168,7 +168,11 @@ impl<'a> Ingameable for Overhead<'a> {
         self.info.map_or(0, |info| {
             2 + 1
                 + if self.bubble.is_none() {
-                    2 * BuffIcon::icons_vec(info.buffs, info.stance).len().min(11)
+                    2 * info
+                        .buffs
+                        .as_ref()
+                        .map_or(0, |buffs| BuffIcon::icons_vec(buffs, info.stance).len())
+                        .min(11)
                 } else {
                     0
                 }
@@ -237,7 +241,10 @@ impl<'a> Widget for Overhead<'a> {
             };
             // Buffs
             // Alignment
-            let buff_icons = BuffIcon::icons_vec(buffs, stance);
+            let buff_icons = buffs
+                .as_ref()
+                .map(|buffs| BuffIcon::icons_vec(buffs, stance))
+                .unwrap_or_default();
             let buff_count = buff_icons.len().min(11);
             Rectangle::fill_with([168.0, 100.0], color::TRANSPARENT)
                 .x_y(-1.0, name_y + 60.0)
@@ -307,7 +314,7 @@ impl<'a> Widget for Overhead<'a> {
                     });
             }
             // Name
-            Text::new(name)
+            Text::new(name.unwrap_or(""))
                 //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
@@ -315,7 +322,7 @@ impl<'a> Widget for Overhead<'a> {
                 .x_y(-1.0, name_y)
                 .parent(id)
                 .set(state.ids.name_bg, ui);
-            Text::new(name)
+            Text::new(name.unwrap_or(""))
                 //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
@@ -437,33 +444,35 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
 
-                    let indicator_col = cr_color(combat_rating);
-                    let artifact_diffculty = 122.0;
+                    if let Some(combat_rating) = combat_rating {
+                        let indicator_col = cr_color(combat_rating);
+                        let artifact_diffculty = 122.0;
 
-                    if combat_rating > artifact_diffculty && !self.in_group {
-                        let skull_ani =
-                            ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
-                        Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
-                            self.imgs.skull_2
+                        if combat_rating > artifact_diffculty && !self.in_group {
+                            let skull_ani =
+                                ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                            Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
+                                self.imgs.skull_2
+                            } else {
+                                self.imgs.skull
+                            })
+                            .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                            .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                            .parent(id)
+                            .set(state.ids.level_skull, ui);
                         } else {
-                            self.imgs.skull
-                        })
-                        .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                        .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
-                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                        .parent(id)
-                        .set(state.ids.level_skull, ui);
-                    } else {
-                        Image::new(if self.in_group {
-                            self.imgs.nothing
-                        } else {
-                            self.imgs.combat_rating_ico
-                        })
-                        .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
-                        .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
-                        .color(Some(indicator_col))
-                        .parent(id)
-                        .set(state.ids.level, ui);
+                            Image::new(if self.in_group {
+                                self.imgs.nothing
+                            } else {
+                                self.imgs.combat_rating_ico
+                            })
+                            .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
+                            .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
+                            .color(Some(indicator_col))
+                            .parent(id)
+                            .set(state.ids.level, ui);
+                        }
                     }
                 },
                 _ => {},

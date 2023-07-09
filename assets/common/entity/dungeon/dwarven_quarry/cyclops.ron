@@ -1,0 +1,15 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("cyclops"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.cyclops"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    agent: (
+        idle_wander_factor: 0.0,
+        aggro_range_multiplier: 0.1,
+    ),
+    meta: [],
+)

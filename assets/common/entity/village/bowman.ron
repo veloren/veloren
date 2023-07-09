@@ -6,13 +6,13 @@
     loot: LootTable("common.loot_tables.nothing"),
     inventory: (
         loadout: Inline((
-            inherit: Choice([                
-                (1, Asset("common.loadout.world.traveler1.leather")),  
-                (1, Asset("common.loadout.world.traveler2.carapace")),  
-                (1, Asset("common.loadout.world.traveler2.scale")),            
+            inherit: Choice([
+                (1, Asset("common.loadout.world.traveler1.leather")),
+                (1, Asset("common.loadout.world.traveler2.carapace")),
+                (1, Asset("common.loadout.world.traveler2.scale")),
             ]),
             active_hands: InHands((Choice([
-                (1, ModularWeapon(tool: Bow, material: Ironwood, hands: None)),                
+                (1, ModularWeapon(tool: Bow, material: Ironwood, hands: None)),
 
             ]), None)),
         )),

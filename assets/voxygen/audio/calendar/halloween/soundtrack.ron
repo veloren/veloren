@@ -11,12 +11,12 @@
 
 #![enable(implicit_some)]
 (
-    tracks: 
+    tracks:
         [
 
         // Overworld exploration tracks
 
-        Individual((   
+        Individual((
             title: "Down The Rabbit Hole",
             path: "voxygen.audio.soundtrack.cave.down_the_rabbit_hole",
             length: 244.0,
@@ -48,7 +48,7 @@
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
-        )),  
+        )),
         Individual((
             title: "Moonlit Canopy",
             path: "voxygen.audio.soundtrack.overworld.moonlit_canopy",
@@ -59,7 +59,7 @@
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
             artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
-        )), 
+        )),
         Individual((
             title: "Ethereal Bonds",
             path: "voxygen.audio.soundtrack.overworld.ethereal_bonds",
@@ -70,7 +70,7 @@
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
-        )),    
+        )),
         Individual((
             title: "Raising Below Like Thunder",
             path: "voxygen.audio.soundtrack.overworld.raising_below_like_thunder",
@@ -81,7 +81,7 @@
             sites: [Void, Settlement(Default), Settlement(CliffTown), Settlement(DesertCity)],
             music_state: Activity(Explore),
             artist: ("Rarnage", "https://soundcloud.com/rarnage44"),
-        )), 
+        )),
         Individual((
             title: "Into The Dark Forest",
             path: "voxygen.audio.soundtrack.overworld.into_the_dark_forest",
@@ -104,7 +104,7 @@
             music_state: Activity(Explore),
             artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
         )),
-        
+
         // Cave music
 
         Individual((
@@ -151,7 +151,7 @@
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
         )),
-        Individual((   
+        Individual((
             title: "Down The Rabbit Hole",
             path: "voxygen.audio.soundtrack.cave.down_the_rabbit_hole",
             length: 244.0,
@@ -164,7 +164,7 @@
         )),
 
         // Dungeon music
-        
+
         Individual((
             title: "Mysty Temple",
             path: "voxygen.audio.soundtrack.dungeon.mysty_temple",
@@ -291,7 +291,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old), 
+                Dungeon(Old),
             ],
             segments: [
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 56.0, Transition(Explore, Combat(High)), Some(Combat(High))),

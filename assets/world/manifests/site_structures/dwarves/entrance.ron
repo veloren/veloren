@@ -1,0 +1,15 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.dwarven_quarry.prefab.dwarven_quarry-7-entrance",
+        center: (39, 27, 19),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            220: Sign(Localized(key: "common-signs-keep_out"), 0),
+            136: Sprite(Lantern),
+            222: KeyholeBars("common.items.utility.lockpick_0"),
+            221: Sprite(DoorBars),
+         },
+    ),
+]

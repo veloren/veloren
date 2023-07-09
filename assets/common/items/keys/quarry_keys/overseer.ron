@@ -1,0 +1,11 @@
+ItemDef(
+    name: "Overseer Key",
+    description: "If you are lucky it works one more time before breaking.",
+    kind: Utility(
+        kind: Key,
+    ),
+    amount: 1,
+    quality: High,
+    tags: [],
+)
+

@@ -311,7 +311,9 @@ impl Block {
                 | SpriteKind::FireBowlGround
                 | SpriteKind::ChristmasOrnament
                 | SpriteKind::CliffDecorBlock
-                | SpriteKind::Orb => Some(16),
+                | SpriteKind::Orb
+                | SpriteKind::Candle => Some(16),
+                SpriteKind::DiamondLight => Some(30),
                 SpriteKind::Velorite
                 | SpriteKind::VeloriteFrag
                 | SpriteKind::CavernGrassBlueShort
@@ -324,6 +326,7 @@ impl Block {
                 | SpriteKind::CookingPot
                 | SpriteKind::CrystalHigh
                 | SpriteKind::CrystalLow => Some(10),
+                SpriteKind::SewerMushroom => Some(16),
                 SpriteKind::Amethyst
                 | SpriteKind::Ruby
                 | SpriteKind::Sapphire
@@ -340,6 +343,7 @@ impl Block {
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => Some(16),
                 SpriteKind::SeaDecorEmblem => Some(12),
                 SpriteKind::SeaDecorBlock => Some(10),
+                SpriteKind::Mine => Some(2),
                 _ => None,
             },
         }
@@ -399,7 +403,9 @@ impl Block {
                 | SpriteKind::KeyDoor
                 | SpriteKind::BoneKeyhole
                 | SpriteKind::BoneKeyDoor
-                | SpriteKind::OneWayWall => None,
+                | SpriteKind::OneWayWall
+                | SpriteKind::KeyholeBars
+                | SpriteKind::DoorBars => None,
                 SpriteKind::Anvil
                 | SpriteKind::Cauldron
                 | SpriteKind::CookingPot
@@ -423,12 +429,15 @@ impl Block {
                 | SpriteKind::SeaDecorWindowHor
                 | SpriteKind::SeaDecorWindowVer
                 | SpriteKind::Rope
+                | SpriteKind::IronSpike
+                | SpriteKind::HotSurface
                 | SpriteKind::FireBlock => None,
                 SpriteKind::GlassBarrier | SpriteKind::GlassKeyhole => None,
                 SpriteKind::EnsnaringVines
                 | SpriteKind::EnsnaringWeb
                 | SpriteKind::SeaUrchin
-                | SpriteKind::IceSpike => Some(0.1),
+                | SpriteKind::IceSpike
+                | SpriteKind::DiamondLight => Some(0.1),
                 _ => Some(0.25),
             }),
         }
@@ -463,7 +472,11 @@ impl Block {
     pub fn is_bonkable(&self) -> bool {
         match self.get_sprite() {
             Some(
-                SpriteKind::Apple | SpriteKind::Beehive | SpriteKind::Coconut | SpriteKind::Bomb,
+                SpriteKind::Apple
+                | SpriteKind::Beehive
+                | SpriteKind::Coconut
+                | SpriteKind::Bomb
+                | SpriteKind::Mine,
             ) => self.is_solid(),
             _ => false,
         }
@@ -482,7 +495,18 @@ impl Block {
     }
 
     #[inline]
-    pub fn is_opaque(&self) -> bool { self.kind().is_filled() }
+    pub fn is_opaque(&self) -> bool {
+        match self.get_sprite() {
+            Some(
+                SpriteKind::Keyhole
+                | SpriteKind::KeyDoor
+                | SpriteKind::KeyholeBars
+                | SpriteKind::DoorBars,
+            ) => true,
+            Some(_) => false,
+            None => self.kind().is_filled(),
+        }
+    }
 
     #[inline]
     pub fn solid_height(&self) -> f32 {

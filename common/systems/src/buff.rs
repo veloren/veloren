@@ -171,6 +171,42 @@ impl<'a> System<'a> for Sys {
                 }
                 if matches!(
                     physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::IronSpike)
+                ) {
+                    // If touching Iron Spike apply Bleeding buff
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Bleeding,
+                            BuffData::new(5.0, Some(Secs(3.0)), None),
+                            Vec::new(),
+                            BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
+                            Some(health),
+                        )),
+                    });
+                }
+                if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::HotSurface)
+                ) {
+                    // If touching a hot surface apply Burning buff
+                    server_emitter.emit(ServerEvent::Buff {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Burning,
+                            BuffData::new(10.0, None, None),
+                            Vec::new(),
+                            BuffSource::World,
+                            *read_data.time,
+                            Some(&stat),
+                            Some(health),
+                        )),
+                    });
+                }
+                if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
                     Some(SpriteKind::IceSpike)
                 ) {
                     // When standing on IceSpike, apply bleeding
@@ -391,6 +427,7 @@ impl<'a> System<'a> for Sys {
                                 dt,
                                 *read_data.time,
                                 expired_buffs.contains(&buff_id),
+                                buff_comp,
                             );
                         }
                     }
@@ -447,6 +484,7 @@ fn execute_effect(
     dt: f32,
     time: Time,
     buff_will_expire: bool,
+    buffs_comp: &Buffs,
 ) {
     let num_ticks = |tick_dur: Secs| {
         let time_passed = time.0 - buff_start_time.0;
@@ -459,26 +497,25 @@ fn execute_effect(
         // Second part checks if delta time has just passed the threshold for a tick
         // ending/starting (and accounts for if that delta time was longer than the tick
         // duration)
+        // 0.000001 is to account for floating imprecision so this is not applied on the
+        // first tick
         //
         // Third part returns the fraction of the current time passed since the last
         // time a tick duration would have happened, this is ignored (by flooring) when
         // the buff is not ending, but is used if the buff is ending this tick
-        let num_ticks = (dt / tick_dur.0).floor()
-            + if (dt % tick_dur.0) > (time_passed % tick_dur.0) {
-                1.0
-            } else {
-                0.0
-            }
-            + (time_passed % tick_dur.0) / tick_dur.0;
+        let curr_tick = (time_passed / tick_dur.0).floor();
+        let prev_tick = ((time_passed - dt).max(0.0) / tick_dur.0).floor();
+        let whole_ticks = curr_tick - prev_tick;
+
         if buff_will_expire {
-            Some(num_ticks as f32)
+            // If the buff is ending, include the fraction of progress towards the next
+            // tick.
+            let fractional_tick = (time_passed % tick_dur.0) / tick_dur.0;
+            Some((whole_ticks + fractional_tick) as f32)
+        } else if whole_ticks >= 1.0 {
+            Some(whole_ticks as f32)
         } else {
-            let floored = num_ticks.floor();
-            if floored >= 1.0 {
-                Some(floored as f32)
-            } else {
-                None
-            }
+            None
         }
     };
     match effect {
@@ -642,5 +679,16 @@ fn execute_effect(
             }
         },
         BuffEffect::BuffOnHit(effect) => stat.buffs_on_hit.push(effect.clone()),
+        BuffEffect::BuffImmunity(buff_kind) => {
+            if buffs_comp.contains(*buff_kind) {
+                server_emitter.emit(ServerEvent::Buff {
+                    entity,
+                    buff_change: BuffChange::RemoveByKind(*buff_kind),
+                });
+            }
+        },
+        BuffEffect::SwimSpeed(speed) => {
+            stat.swim_speed_modifier *= speed;
+        },
     };
 }

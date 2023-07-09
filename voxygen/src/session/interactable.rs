@@ -9,7 +9,7 @@ use super::{
 use client::Client;
 use common::{
     comp,
-    comp::{ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Collider},
+    comp::{ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Collider, Content},
     consts::{MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE},
     link::Is,
     mounting::{Mount, Rider, VolumePos, VolumeRider},
@@ -35,6 +35,7 @@ pub enum BlockInteraction {
     // to have them here, will see how things turn out
     Mine(ToolKind),
     Mount,
+    Read(Content),
 }
 
 #[derive(Clone, Debug)]
@@ -64,7 +65,7 @@ impl Interactable {
                 // Check if this is an unlockable sprite
                 let unlock = match volume_pos.kind {
                     common::mounting::Volume::Terrain => block.get_sprite().and_then(|sprite| {
-                        let Some(chunk) = terrain.pos_chunk(volume_pos.pos) else { return None };
+                        let chunk = terrain.pos_chunk(volume_pos.pos)?;
                         let sprite_chunk_pos = TerrainGrid::chunk_offs(volume_pos.pos);
                         let sprite_cfg = chunk.meta().sprite_cfg_at(sprite_chunk_pos);
                         let unlock_condition = sprite.unlock_condition(sprite_cfg.cloned());
@@ -89,6 +90,18 @@ impl Interactable {
                 } else {
                     BlockInteraction::Collect
                 }
+            },
+            Interaction::Read => match volume_pos.kind {
+                common::mounting::Volume::Terrain => block.get_sprite().and_then(|sprite| {
+                    let chunk = terrain.pos_chunk(volume_pos.pos)?;
+                    let sprite_chunk_pos = TerrainGrid::chunk_offs(volume_pos.pos);
+                    let sprite_cfg = chunk.meta().sprite_cfg_at(sprite_chunk_pos);
+                    sprite
+                        .content(sprite_cfg.cloned())
+                        .map(BlockInteraction::Read)
+                })?,
+                // Signs on volume entities are not currently supported
+                common::mounting::Volume::Entity(_) => return None,
             },
             Interaction::Craft(tab) => BlockInteraction::Craft(tab),
             Interaction::Mount => BlockInteraction::Mount,

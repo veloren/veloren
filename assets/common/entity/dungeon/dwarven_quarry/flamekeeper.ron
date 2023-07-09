@@ -1,0 +1,18 @@
+#![enable(implicit_some)]
+(
+    name: Name("Flamekeeper"),
+    body: RandomWith("flamekeeper"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.flamekeeper"),
+    inventory: (
+        loadout: Inline((
+            active_hands: InHands((Item("common.items.npc_weapons.unique.flamekeeper_staff"), None)),
+            inherit: Asset("common.loadout.dungeon.dwarven_quarry.flamekeeper"),
+
+        )),    ),
+        agent: (
+        idle_wander_factor: 0.0,
+        aggro_range_multiplier: 2.0,
+    ),
+    meta: [],
+)

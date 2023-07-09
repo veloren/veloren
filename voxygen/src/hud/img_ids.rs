@@ -541,6 +541,9 @@ image_ids! {
         mmap_site_mindflayer: "voxygen.element.ui.map.buttons.mindflayer",
         mmap_site_mindflayer_hover: "voxygen.element.ui.map.buttons.mindflayer_hover",
         mmap_site_mindflayer_bg: "voxygen.element.ui.map.buttons.mindflayer_bg",
+        mmap_site_mine: "voxygen.element.ui.map.buttons.mine",
+        mmap_site_mine_hover: "voxygen.element.ui.map.buttons.mine_hover",
+        mmap_site_mine_bg: "voxygen.element.ui.map.buttons.mine_bg",
 
         // Window Parts
         window_3: "voxygen.element.ui.generic.frames.window_3",

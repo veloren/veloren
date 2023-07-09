@@ -200,6 +200,16 @@
                 color: None
             )
         ),
+        "common.items.armor.miner.hand": (
+            left: (
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.0, -3.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.0, -3.0)),
+                color: None
+            )
+        ),
         "common.items.armor.hide.scale.hand": (
             left: (
                 vox_spec: ("armor.hide.scale.hand", (-3.5, -1.5, -2.5)),

@@ -520,6 +520,28 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_custom_from_parts(&start, &middle, &vowel, &end)
     }
 
+    pub fn generate_mine(&mut self) -> String {
+        let start = [
+            "d", "f", "h", "l", "m", "n", "r", "s", "t", "w", "v", "z", "st", "th", "thr", "str",
+            "vr", "wr", "an", "and", "ald", "ath", "as", "all", "amm", "an", "az", "en", "end",
+            "eld", "eldr", "es", "ell", "aldr", "astr", "estr", "on", "ond",
+        ];
+        let middle = [
+            "th", "d", "dr", "sl", "sm", "rw", "rv", "l", "ll", "m", "mm", "n", "nn", "nd", "ndr",
+            "thr", "nth", "ln", "lm", "lz", "nz", "nr", "str", "sth", "ld", "rm", "sd", "rn", "ss",
+            "sn", "lw", "lv", "th", "rw", "nw", "r", "rth", "rz",
+        ];
+        let vowel = ["o", "e", "a", "u", "ae"];
+        let end = [
+            "anir", "enir", "elen", "alen", "ezen", "azen", "yn", "andir", "endir", "ond", "alar",
+            "ales", "eles", "arain", "alain", "anuin", "athuin", "aruin", "yr", "ethuin", "eruin",
+            "athul", "edor", "edes", "edus", "inyr", "eden", "azar", "atiel", "etiel", "etien",
+            "eties", "aties", "aduil", "eduil", "eduin", "aduin", "assil", "iryl", "aryl", "anor",
+            "anes", "en", "es", "ys",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
+    }
+
     // themes & sites
     fn generate_theme_from_parts(
         &mut self,

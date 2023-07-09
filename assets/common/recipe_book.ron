@@ -2192,7 +2192,7 @@
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
-    ),    
+    ),
     "lyre": (
         output: ("common.items.tool.instruments.lyre", 1),
         inputs: [
@@ -2272,7 +2272,7 @@
     "lockpick": (
         output: ("common.items.utility.lockpick_0", 2),
         inputs: [
-            (Item("common.items.mineral.ingot.copper"), 3, false),            
+            (Item("common.items.mineral.ingot.copper"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
     ),

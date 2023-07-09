@@ -155,6 +155,58 @@
             central: ("npc.alligator.male.tail_front"),
         ),
     ),
+    (HermitAlligator, Male): (
+        upper: (
+            offset: (-4.0, -0.0, -2.5),
+            central: ("npc.hermit_alligator.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.0, -4.0, -3.5),
+            central: ("npc.hermit_alligator.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -2.5),
+            central: ("npc.hermit_alligator.male.jaw"),
+        ),
+        chest: (
+            offset: (-6.0, -7.5, -3.5),
+            central: ("npc.hermit_alligator.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-2.0, -9.0, -1.5),
+            central: ("npc.hermit_alligator.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-4.0, -13.0, -2.5),
+            central: ("npc.hermit_alligator.male.tail_front"),
+        ),
+    ),
+    (HermitAlligator, Female): (
+        upper: (
+            offset: (-4.0, -0.0, -2.5),
+            central: ("npc.hermit_alligator.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.0, -4.0, -3.5),
+            central: ("npc.hermit_alligator.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -2.5),
+            central: ("npc.hermit_alligator.male.jaw"),
+        ),
+        chest: (
+            offset: (-6.0, -7.5, -3.5),
+            central: ("npc.hermit_alligator.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-2.0, -9.0, -1.5),
+            central: ("npc.hermit_alligator.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-4.0, -13.0, -2.5),
+            central: ("npc.hermit_alligator.male.tail_front"),
+        ),
+    ),
     (Salamander, Male): (
         upper: (
             offset: (-6.5, 0.0, -2.0),

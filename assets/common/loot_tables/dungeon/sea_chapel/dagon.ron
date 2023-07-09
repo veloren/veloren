@@ -1,4 +1,4 @@
-[    
+[
     (1.0, Item("common.items.crafting_ing.abyssal_heart")),
     (1.0, MultiDrop(Item("common.items.crafting_ing.pearl"), 3, 5)),
 ]

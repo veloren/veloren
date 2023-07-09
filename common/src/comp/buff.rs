@@ -71,6 +71,9 @@ pub enum BuffKind {
     /// Damage reduction decreases linearly with strength, 1.0 is a 100%
     /// decrease.
     Reckless,
+    /// Provides immunity to burning and increases movement speed in lava.
+    /// Movement speed increases linearly with strength, 1.0 is a 100% increase.
+    // SalamanderAspect, TODO: Readd in second dwarven mine MR
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -138,7 +141,9 @@ impl BuffKind {
             | BuffKind::Reckless
             | BuffKind::Flame
             | BuffKind::Frigid
-            | BuffKind::Lifesteal => true,
+            | BuffKind::Lifesteal
+            //| BuffKind::SalamanderAspect
+            => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -158,7 +163,12 @@ impl BuffKind {
 
     /// Checks if the buff can affect other buff effects applied in the same
     /// tick.
-    pub fn affects_subsequent_buffs(self) -> bool { matches!(self, BuffKind::PotionSickness) }
+    pub fn affects_subsequent_buffs(self) -> bool {
+        matches!(
+            self,
+            BuffKind::PotionSickness /* | BuffKind::SalamanderAspect */
+        )
+    }
 
     /// Checks if multiple instances of the buff should be processed, instead of
     /// only the strongest.
@@ -315,6 +325,10 @@ impl BuffKind {
                 None,
                 CombatEffect::Lifesteal(0.2),
             ))],
+            /*BuffKind::SalamanderAspect => vec![
+                BuffEffect::BuffImmunity(BuffKind::Burning),
+                BuffEffect::SwimSpeed(1.0 + data.strength),
+            ],*/
         }
     }
 }
@@ -373,9 +387,15 @@ pub enum BuffEffect {
         tick_dur: Secs,
     },
     /// Changes maximum health by a certain amount
-    MaxHealthModifier { value: f32, kind: ModifierKind },
+    MaxHealthModifier {
+        value: f32,
+        kind: ModifierKind,
+    },
     /// Changes maximum energy by a certain amount
-    MaxEnergyModifier { value: f32, kind: ModifierKind },
+    MaxEnergyModifier {
+        value: f32,
+        kind: ModifierKind,
+    },
     /// Reduces damage after armor is accounted for by this fraction
     DamageReduction(f32),
     /// Gradually changes an entities max health over time
@@ -395,7 +415,10 @@ pub enum BuffEffect {
     /// Reduces amount healed by consumables
     HealReduction(f32),
     /// Increases poise damage dealt when health is lost
-    PoiseDamageFromLostHealth { initial_health: f32, strength: f32 },
+    PoiseDamageFromLostHealth {
+        initial_health: f32,
+        strength: f32,
+    },
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
     /// Multiplies crit chance of attacks
@@ -404,6 +427,8 @@ pub enum BuffEffect {
     BodyChange(Body),
     /// Inflict buff to target
     BuffOnHit(AttackEffect),
+    BuffImmunity(BuffKind),
+    SwimSpeed(f32),
 }
 
 /// Actual de/buff.

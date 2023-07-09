@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Miner's pantaloons.",
+    description: "",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Miner"),
+    )),
+    quality: High,
+    tags: [],
+)

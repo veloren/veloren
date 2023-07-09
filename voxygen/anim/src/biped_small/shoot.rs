@@ -254,39 +254,78 @@ impl Animation for ShootAnimation {
                     -2.2 + move1abs * 0.7 + move2abs * -0.2 + 0.5 * speednorm,
                 );
             },
-            Some(ToolKind::Staff) => {
-                let (move1base, _move2base, move3) = match stage_section {
-                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
-                    _ => (0.0, 0.0, 0.0),
-                };
-                let pullback = 1.0 - move3;
-                let move1abs = move1base * pullback;
-                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
-                next.control_r.position = Vec3::new(
-                    7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
-                    -4.0 + move1abs * 4.0,
-                    3.0,
-                );
+            Some(ToolKind::Staff) => match ability_id {
+                Some(
+                    "common.abilities.custom.dwarves.flamekeeper.mines"
+                    | "common.abilities.custom.dwarves.flamekeeper.lava_mortar",
+                ) => {
+                    let (move1base, _move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                    next.control_r.position = Vec3::new(
+                        7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
+                        -4.0 + move1abs * 4.0,
+                        3.0,
+                    );
 
-                next.control.position = Vec3::new(
-                    -5.0,
-                    -1.0 + s_a.grip.2,
-                    -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
-                );
+                    next.control.position = Vec3::new(
+                        -5.0,
+                        -1.0 + s_a.grip.2,
+                        -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
+                    );
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
-                    * Quaternion::rotation_y(-0.3)
-                    * Quaternion::rotation_z(-0.3);
-                next.control_r.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
-                        * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
-                        * Quaternion::rotation_z(-0.0);
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
+                        * Quaternion::rotation_y(-0.3)
+                        * Quaternion::rotation_z(-0.3);
+                    next.control_r.orientation =
+                        Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                            * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                            * Quaternion::rotation_z(-0.0);
 
-                next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
-                    * Quaternion::rotation_y(-0.2 * speednorm)
-                    * Quaternion::rotation_z(0.5 + move1abs * 0.6);
+                    next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.3)
+                        * Quaternion::rotation_y(-0.2 * speednorm + move1abs * 0.3)
+                        * Quaternion::rotation_z(0.5 + move1abs * 0.6);
+                },
+                _ => {
+                    let (move1base, _move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                    next.control_r.position = Vec3::new(
+                        7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
+                        -4.0 + move1abs * 4.0,
+                        3.0,
+                    );
+
+                    next.control.position = Vec3::new(
+                        -5.0,
+                        -1.0 + s_a.grip.2,
+                        -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
+                    );
+
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
+                        * Quaternion::rotation_y(-0.3)
+                        * Quaternion::rotation_z(-0.3);
+                    next.control_r.orientation =
+                        Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                            * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                            * Quaternion::rotation_z(-0.0);
+
+                    next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
+                        * Quaternion::rotation_y(-0.2 * speednorm)
+                        * Quaternion::rotation_z(0.5 + move1abs * 0.6);
+                },
             },
             Some(ToolKind::Spear) => {
                 let (move1base, move2base, move3) = match stage_section {

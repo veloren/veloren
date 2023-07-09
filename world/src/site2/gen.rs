@@ -14,7 +14,7 @@ use common::{
     store::{Id, Store},
     terrain::{
         structure::{Structure as PrefabStructure, StructureBlock},
-        Block, BlockKind,
+        Block, BlockKind, SpriteCfg,
     },
     vol::ReadVol,
 };
@@ -215,6 +215,7 @@ impl Primitive {
 pub enum Fill {
     Sprite(SpriteKind),
     RotatedSprite(SpriteKind, u8),
+    RotatedSpriteWithCfg(SpriteKind, u8, SpriteCfg),
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
     Gradient(util::gradient::Gradient, BlockKind),
@@ -453,6 +454,7 @@ impl Fill {
         pos: Vec3<i32>,
         canvas_info: &CanvasInfo,
         old_block: Block,
+        sprite_cfg: &mut Option<SpriteCfg>,
         col: &ColInfo,
     ) -> Option<Block> {
         if Self::contains_at(tree, prim, pos, col) {
@@ -472,6 +474,19 @@ impl Fill {
                         .with_sprite(*sprite)
                         .with_ori(*ori)
                         .unwrap_or_else(|| old_block.with_sprite(*sprite))
+                }),
+                Fill::RotatedSpriteWithCfg(sprite, ori, cfg) => Some({
+                    *sprite_cfg = Some(cfg.clone());
+                    if old_block.is_filled() {
+                        Block::air(*sprite)
+                            .with_ori(*ori)
+                            .unwrap_or_else(|| Block::air(*sprite))
+                    } else {
+                        old_block
+                            .with_sprite(*sprite)
+                            .with_ori(*ori)
+                            .unwrap_or_else(|| old_block.with_sprite(*sprite))
+                    }
                 }),
                 Fill::Brick(bk, col, range) => Some(Block::new(
                     *bk,
@@ -493,11 +508,8 @@ impl Fill {
                         canvas_info.calendar(),
                         &Vec2::new(Vec2::new(1, 0), Vec2::new(0, 1)),
                     )
-                    .map(|(block, sprite_cfg)| {
-                        assert!(
-                            sprite_cfg.is_none(),
-                            "SpriteCfg is not currently implemented for site2 prefabs"
-                        );
+                    .map(|(block, cfg)| {
+                        *sprite_cfg = cfg;
                         block
                     })
                 }),
@@ -1055,6 +1067,22 @@ impl Painter {
             max: pos + 1,
         })
         .fill(Fill::RotatedSprite(sprite, ori))
+    }
+
+    /// Places a sprite at the provided location with the provided orientation
+    /// and the provided [`SpriteCfg`].
+    pub fn rotated_sprite_with_cfg(
+        &self,
+        pos: Vec3<i32>,
+        sprite: SpriteKind,
+        ori: u8,
+        cfg: SpriteCfg,
+    ) {
+        self.aabb(Aabb {
+            min: pos,
+            max: pos + 1,
+        })
+        .fill(Fill::RotatedSpriteWithCfg(sprite, ori, cfg))
     }
 
     /// Returns a `PrimitiveRef` of the largest pyramid with a slope of 1 that

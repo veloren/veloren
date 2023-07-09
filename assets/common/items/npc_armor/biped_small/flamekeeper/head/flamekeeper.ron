@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Flamekeeper Head",
+    description: "Flamekeeper Head",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(9.0)),
+            poise_resilience: Some(Normal(3.0)),
+            crit_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

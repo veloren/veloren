@@ -149,6 +149,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => (-0.5, 13.0),
                 (Bushly, _) => (-1.0, 9.0),
                 (Irrwurz, _) => (-1.0, 9.0),
+                (Clockwork, _) => (3.0, 3.5),
+                (Flamekeeper, _) => (3.0, 3.5),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -165,6 +167,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => (0.0, 12.0),
                 (Bushly, _) => (0.0, 4.0),
                 (Irrwurz, _) => (0.0, 6.0),
+                (Clockwork, _) => (0.0, 14.0),
+                (Flamekeeper, _) => (0.0, 14.0),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -181,6 +185,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => (1.5, -5.0),
                 (Bushly, _) => (0.0, 1.0),
                 (Irrwurz, _) => (-5.5, -0.5),
+                (Clockwork, _) => (-1.0, -8.0),
+                (Flamekeeper, _) => (-1.0, -8.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -197,6 +203,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => (0.0, 0.0),
                 (Bushly, _) => (0.0, -1.0),
                 (Irrwurz, _) => (0.0, -1.0),
+                (Clockwork, _) => (0.0, 0.0),
+                (Flamekeeper, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -213,6 +221,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => (5.0, 0.5, 5.0),
                 (Bushly, _) => (5.0, 2.0, 8.0),
                 (Irrwurz, _) => (3.5, 2.0, 3.0),
+                (Clockwork, _) => (4.0, 1.5, -3.5),
+                (Flamekeeper, _) => (4.0, 1.5, -3.5),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -229,6 +239,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => (3.0, 0.0, 9.0),
                 (Bushly, _) => (2.5, 0.0, 7.0),
                 (Irrwurz, _) => (4.0, 0.0, 6.0),
+                (Clockwork, _) => (3.5, 3.0, 7.0),
+                (Flamekeeper, _) => (3.5, 3.0, 7.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -245,6 +257,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => (1.0, 0.0, 5.0),
                 (Bushly, _) => (0.0, 0.0, 7.0),
                 (Irrwurz, _) => (0.0, 0.0, 7.0),
+                (Clockwork, _) => (0.0, 0.0, 8.0),
+                (Flamekeeper, _) => (0.0, 0.0, 8.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -261,6 +275,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Boreal, _) => 1.0,
                 (Bushly, _) => 1.0,
                 (Irrwurz, _) => 1.0,
+                (Clockwork, _) => 1.5,
+                (Flamekeeper, _) => 4.0,
             },
         }
     }

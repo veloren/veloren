@@ -740,11 +740,9 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 Some(val) => val.fraction(),
                 None => 1.0,
             };
-
-            let in_aggro_range = agent
-                .psyche
-                .aggro_dist
-                .map_or(true, |ad| dist_sqrd < ad.powi(2));
+            let in_aggro_range = agent.psyche.aggro_dist.map_or(true, |ad| {
+                dist_sqrd < (ad * agent.psyche.aggro_range_multiplier).powi(2)
+            });
 
             if in_aggro_range {
                 *aggro_on = true;

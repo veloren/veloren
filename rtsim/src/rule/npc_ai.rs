@@ -83,8 +83,9 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             | TileKind::Tower(_)
             | TileKind::Keep(_)
             | TileKind::Gate
-            | TileKind::GnarlingFortification
-            | TileKind::AdletStronghold => 5.0,
+            | TileKind::AdletStronghold
+            | TileKind::DwarvenMine
+            | TileKind::GnarlingFortification => 5.0,
         };
         let is_door_tile = |plot: Id<site2::Plot>, tile: Vec2<i32>| match site.plot(plot).kind() {
             site2::PlotKind::House(house) => house.door_tile == tile,

@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Clockwork Pants",
+    description: "Clockwork Pants",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(4.5)),
+            poise_resilience: Some(Normal(3.0)),
+            crit_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

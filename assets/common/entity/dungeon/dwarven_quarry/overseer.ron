@@ -1,0 +1,22 @@
+#![enable(implicit_some)]
+(
+    name: Name("Overseer"),
+    body: RandomWith("dwarf"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.overseer"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.dwarven_quarry.overseer"),
+            active_hands: InHands((
+                ModularWeapon(tool: Hammer, material: Orichalcum, hands: Two),
+                None
+            )),
+        )),
+    ),
+    agent: (
+        idle_wander_factor: 0.0,
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
+)

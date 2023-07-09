@@ -12,7 +12,7 @@ ItemDef(
                     ),
                 cat_ids: [Natural],
             )),
-           
+
         ])
     ),
     quality: Legendary,

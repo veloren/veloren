@@ -65,6 +65,7 @@ pub struct Stats {
     pub attack_damage_modifier: f32,
     pub crit_chance_modifier: f32,
     pub buffs_on_hit: Vec<AttackEffect>,
+    pub swim_speed_modifier: f32,
 }
 
 impl Stats {
@@ -84,6 +85,7 @@ impl Stats {
             attack_damage_modifier: 1.0,
             crit_chance_modifier: 1.0,
             buffs_on_hit: Vec::new(),
+            swim_speed_modifier: 1.0,
         }
     }
 

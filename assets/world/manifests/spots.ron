@@ -1,15 +1,18 @@
-[
-    // example entry, increase freq to activate
-    (
-        // ron file pointing to voxel model and defining special colors
+/* ron file pointing to voxel model and defining special colors
         base_structures: "spots_general.mage_tower",
-        // maximum occurance per each 1000km^2 world area
+        maximum occurance per each 1000km^2 world area
         freq: 1.0,
-        // placement requirements
+        placement requirements
         condition: All([Typical, MaxGradient(0.2), Biome([Forest, Taiga, Snowland, Grassland])]),
-        // Available Conditions: Typical (Not near river, way, cliffs or underwater), NearRiver,IsWay, IsUnderwater, NearCliffs
-        // Available Biomes: Void, Lake, Grassland, Ocean, Mountain, Snowland, Desert, Swamp, Jungle, Forest, Savannah, Taiga        
-        // whether to prevent trees etc. around this spot
+        Available Conditions: Typical (Not near river, way, cliffs or underwater), NearRiver,IsWay, IsUnderwater, NearCliffs
+        Available Biomes: Void, Lake, Grassland, Ocean, Mountain, Snowland, Desert, Swamp, Jungle, Forest, Savannah, Taiga
+        whether to prevent trees etc. around this spot
+        spawn: true, */
+[
+    (
+        base_structures: "spots_general.mage_tower",
+        freq: 1.0,
+        condition: All([Typical, MaxGradient(0.2), Biome([Forest, Taiga, Snowland, Grassland])]),
         spawn: true,
     ),
 ]

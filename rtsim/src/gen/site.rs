@@ -31,6 +31,7 @@ impl Site {
             | SiteKind::ChapelSite(_)
             | SiteKind::Gnarling(_)
             | SiteKind::Adlet(_) => Some(false),
+            SiteKind::DwarvenMine(_) => Some(false),
             // Neutral
             SiteKind::Settlement(_)
             | SiteKind::Castle(_)

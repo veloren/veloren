@@ -335,6 +335,7 @@ fn mesh_worker(
         chunk.meta().river_velocity().magnitude_squared(),
         chunk.meta().temp(),
         chunk.meta().humidity(),
+        &*chunk,
     );
 
     let mesh;

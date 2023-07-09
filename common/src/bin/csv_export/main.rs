@@ -296,6 +296,11 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                     // TODO: Write amount gotten somewhere?
                     write_loot_spec(wtr, loot, chance)?;
                 },
+                LootSpec::All(loot_specs) => {
+                    for spec in loot_specs {
+                        write_loot_spec(wtr, spec, chance)?;
+                    }
+                },
             }
             Ok(())
         }
@@ -473,6 +478,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                 },
                 LootSpec::LootTable(_) => unreachable!(),
                 LootSpec::MultiDrop(_, _, _) => todo!(),
+                LootSpec::All(_) => todo!(),
             }
         }
 

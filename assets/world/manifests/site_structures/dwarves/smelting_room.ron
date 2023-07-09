@@ -1,0 +1,18 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.dwarven_quarry.prefab.dwarven_quarry-3-smelting_room",
+        center: (14, 20, 0),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            136: Sprite(Lantern),
+            215: Filled(Lava, (r: 212, g: 91, b: 0)),
+            216: Sprite(KeyDoor),
+            135: Sprite(DoorBars),
+            212: Sprite(DoorBars), // half open Gate
+            213: KeyholeBars("common.items.utility.lockpick_0"),
+            225: Sprite(HotSurface),
+         },
+    ),
+]

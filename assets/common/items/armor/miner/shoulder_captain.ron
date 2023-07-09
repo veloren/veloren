@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Captain's Pauldrons.",
+    description: "",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Miner"),
+    )),
+    quality: High,
+    tags: [],
+)

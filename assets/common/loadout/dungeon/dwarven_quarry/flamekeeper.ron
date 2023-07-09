@@ -1,0 +1,8 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.flamekeeper.head.flamekeeper"),
+    chest: Item("common.items.npc_armor.biped_small.flamekeeper.chest.flamekeeper"),
+    gloves: Item("common.items.npc_armor.biped_small.flamekeeper.hand.flamekeeper"),
+    legs: Item("common.items.npc_armor.biped_small.flamekeeper.pants.flamekeeper"),
+    feet: Item("common.items.npc_armor.biped_small.flamekeeper.foot.flamekeeper"),
+)

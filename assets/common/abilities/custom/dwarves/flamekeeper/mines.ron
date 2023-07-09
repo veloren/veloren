@@ -1,0 +1,16 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 1.75,
+    recover_duration: 1.75,
+    projectile: Mine(
+        damage: 25.0,
+        radius: 2.0,
+        min_falloff: 0.3,
+    ),
+    projectile_body: Object(Mine),
+    projectile_light: None,
+    projectile_speed: 30.0,
+    num_projectiles: 12,
+    projectile_spread: 0.6,
+    move_efficiency: 0.8,
+)

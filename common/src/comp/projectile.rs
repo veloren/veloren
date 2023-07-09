@@ -133,6 +133,11 @@ pub enum ProjectileConstructor {
     Trap {
         damage: f32,
     },
+    Mine {
+        damage: f32,
+        radius: f32,
+        min_falloff: f32,
+    },
 }
 
 impl ProjectileConstructor {
@@ -869,6 +874,39 @@ impl ProjectileConstructor {
                     is_point: false,
                 }
             },
+            Mine {
+                damage,
+                radius,
+                min_falloff,
+            } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult);
+                let explosion = Explosion {
+                    effects: vec![RadiusEffect::Attack(attack)],
+                    radius,
+                    reagent: Some(Reagent::Yellow),
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(120),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: false,
+                    is_point: false,
+                }
+            },
         }
     }
 
@@ -1003,6 +1041,14 @@ impl ProjectileConstructor {
             Trap { ref mut damage, .. } => {
                 *damage *= power;
             },
+            Mine {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *radius *= range;
+            },
         }
         self
     }
@@ -1027,6 +1073,7 @@ impl ProjectileConstructor {
             IceBomb { .. } => true,
             LaserBeam { .. } => true,
             Trap { .. } => false,
+            Mine { .. } => true,
         }
     }
 }

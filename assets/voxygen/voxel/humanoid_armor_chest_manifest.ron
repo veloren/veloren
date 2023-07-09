@@ -162,6 +162,10 @@
             vox_spec: ("armor.hide.leather.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
+        "common.items.armor.miner.chest": (
+            vox_spec: ("armor.miner.chest", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
         "common.items.armor.hide.scale.chest": (
             vox_spec: ("armor.hide.scale.chest", (-7.0, -3.5, 2.0)),
             color: None

@@ -5,8 +5,8 @@
         specifier: "world.structure.spots.gnome_spring",
         center: (10, 10, 4),
         custom_indices: {
-            136: Filled(GlowingRock, (r: 0, g: 255, b: 255)),       
-            17: Sprite(PinkFlower),   
+            136: Filled(GlowingRock, (r: 0, g: 255, b: 255)),
+            17: Sprite(PinkFlower),
          },
     ),
 ]

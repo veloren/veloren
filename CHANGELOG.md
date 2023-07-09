@@ -72,6 +72,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Durability free areas (`/area_add <area_name> no_durability ...`)
 - Added Brazilian Portuguese translation.
 - Added additional confirmation when trading for nothing.
+- Dwarven-Mine themed dungeon 
+- Multiple item types can be dropped from enemies and chests now
+- Readable signs
 
 ### Changed
 
@@ -91,6 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collision damage can now be applied in horizontal axes, in addition to the vertical axis
 - Items will vanish after 5 minutes to minimise performance problems
 - The language identifiers used by the i18n translation system have been converted to IETF BCP 47 (RFC 5646) language tags.
+- Improved particle performance for lava and leaves
+- The wander-radius of entities can be defined in their .ron config now
 
 ### Removed
 

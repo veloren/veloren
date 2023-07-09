@@ -331,5 +331,12 @@
             energy_reward: Some(0.63),
             crit_power: Some(-0.21),
         ),
+        "Miner": (
+            protection: Some(Normal(120.0)),
+            poise_resilience: Some(Normal(5.0)),
+            energy_max: Some(100.0),
+            energy_reward: Some(0.4),
+            crit_power: Some(0.5),
+        )
     },
 )

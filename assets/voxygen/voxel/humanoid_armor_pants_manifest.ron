@@ -120,6 +120,10 @@
             vox_spec: ("armor.hide.leather.pants", (-5.0, -3.5, 1.0)),
             color: None
         ),
+        "common.items.armor.miner.pants": (
+            vox_spec: ("armor.miner.pants", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
         "common.items.armor.hide.scale.pants": (
             vox_spec: ("armor.hide.scale.pants", (-5.0, -4.0, 0.0)),
             color: None

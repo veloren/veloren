@@ -6,9 +6,9 @@
     loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.spots.wizard_tower.wizard_low"), 
-            active_hands: InHands((Choice([                                
-                (2, Item("common.items.weapons.staff.cultist_staff")),                
+            inherit: Asset("common.loadout.spots.wizard_tower.wizard_low"),
+            active_hands: InHands((Choice([
+                (2, Item("common.items.weapons.staff.cultist_staff")),
                 (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),
             ]), None)),
         )),

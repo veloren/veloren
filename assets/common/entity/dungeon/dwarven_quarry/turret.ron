@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Name("Mechanical Turret"),
+    body: Exact(Object(Crossbow)),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.crafting_ing.twigs"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    agent: (
+        aggro_range_multiplier: 4.0,
+    ),
+    meta: [],
+)

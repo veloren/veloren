@@ -1,0 +1,15 @@
+#![enable(implicit_some)]
+(
+    name: Name("Minotaur"),
+    body: RandomWith("minotaur"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.minotaur"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    agent: (
+        idle_wander_factor: 0.0,
+        aggro_range_multiplier: 0.1,
+    ),
+    meta: [],
+)

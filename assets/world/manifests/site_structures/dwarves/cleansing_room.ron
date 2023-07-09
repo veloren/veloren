@@ -1,0 +1,27 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.dwarven_quarry.prefab.dwarven_quarry-4-cleansing_room",
+        center: (25, 20, 10),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            136: Sprite(Lantern),
+            213: Keyhole("common.items.keys.quarry_keys.ancient"),
+            214: Keyhole("common.items.keys.quarry_keys.cyclops_eye"),
+            215: Sprite(KeyDoor),
+            216: Sprite(KeyDoor),
+            217: KeyholeBars("common.items.utility.lockpick_0"),
+            218: Keyhole("common.items.keys.quarry_keys.smelting"),
+            207: Filled(Water, (r: 75, g: 158, b: 191)),
+            179: Filled(GlowingRock, (r: 76, g: 72, b: 178)),
+            187: Filled(GlowingRock, (r: 62, g: 59, b: 146)),
+            189: Filled(GlowingRock, (r: 5, g: 22, b: 5)), // Green Walls
+            128: Sprite(Candle),
+            140: Sprite(DoorBars),
+            141: Sprite(Bones),
+            142: Sprite(SewerMushroom),
+            143: Sprite(MediumGrass),
+         },
+    ),
+]

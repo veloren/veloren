@@ -8,8 +8,8 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.wizard_tower.wizard_boss"),
-            active_hands: InHands((Choice([                
-                (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),                        
+            active_hands: InHands((Choice([
+                (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),
             ]), None)),
         )),
     ),

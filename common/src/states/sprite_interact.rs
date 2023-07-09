@@ -188,9 +188,10 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::PotionMinor
             | SpriteKind::Seashells
             | SpriteKind::Bomb => Some(SpriteInteractKind::Collectible),
-            SpriteKind::Keyhole | SpriteKind::BoneKeyhole | SpriteKind::GlassKeyhole => {
-                Some(SpriteInteractKind::Unlock)
-            },
+            SpriteKind::Keyhole
+            | SpriteKind::BoneKeyhole
+            | SpriteKind::GlassKeyhole
+            | SpriteKind::KeyholeBars => Some(SpriteInteractKind::Unlock),
             // Collectible checked in addition to container for case that sprite requires a tool to
             // collect and cannot be collected by hand, yet still meets the container check
             _ if sprite_kind.is_container() && sprite_kind.is_collectible() => {
@@ -228,7 +229,7 @@ impl SpriteInteractKind {
             ),
             Self::Unlock => (
                 Duration::from_secs_f32(0.8),
-                Duration::from_secs_f32(0.5),
+                Duration::from_secs_f32(1.0),
                 Duration::from_secs_f32(0.3),
             ),
         }

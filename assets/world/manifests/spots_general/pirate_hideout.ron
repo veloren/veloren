@@ -1,10 +1,10 @@
 #![enable(unwrap_newtypes)]
 
-[   
+[
     (
         specifier: "world.structure.spots.pirate_hideout",
         center: (32, 27, 5),
-        custom_indices: { 
+        custom_indices: {
             12: Sprite(Cauldron),
             10: Sprite(WitchWindow),
             44: Filled(GlowingRock, (r: 54, g: 180, b: 64)),

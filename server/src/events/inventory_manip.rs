@@ -319,14 +319,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
                     // If the block was a keyhole, remove nearby door blocks
                     // TODO: Abstract this code into a generalised way to do block updates?
-                    if matches!(
-                        block.get_sprite(),
-                        Some(
-                            SpriteKind::Keyhole
-                                | SpriteKind::BoneKeyhole
-                                | SpriteKind::GlassKeyhole
-                        )
-                    ) {
+                    if let Some(kind_to_destroy) = match block.get_sprite() {
+                        Some(SpriteKind::Keyhole) => Some(SpriteKind::KeyDoor),
+                        Some(SpriteKind::BoneKeyhole) => Some(SpriteKind::BoneKeyDoor),
+                        Some(SpriteKind::GlassKeyhole) => Some(SpriteKind::GlassBarrier),
+                        Some(SpriteKind::KeyholeBars) => Some(SpriteKind::DoorBars),
+                        _ => None,
+                    } {
                         let dirs = [
                             Vec3::unit_x(),
                             -Vec3::unit_x(),
@@ -335,61 +334,24 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             Vec3::unit_z(),
                             -Vec3::unit_z(),
                         ];
-
                         let mut destroyed = HashSet::<Vec3<i32>>::default();
                         let mut pending = dirs
                             .into_iter()
                             .map(|dir| sprite_pos + dir)
                             .collect::<HashSet<_>>();
-
-                        // Limit the number of blocks we destroy
-                        for _ in 0..250 {
-                            // TODO: Replace with `entry` eventually
-                            let next_pending = pending.iter().next().copied();
-                            if let Some(pos) = next_pending {
+                        // TODO: Replace with `entry` eventually
+                        while destroyed.len() < 450 {
+                            if let Some(pos) = pending.iter().next().copied() {
                                 pending.remove(&pos);
-                                match block.get_sprite() {
-                                    Some(SpriteKind::Keyhole) => {
-                                        if !destroyed.contains(&pos)
-                                            && matches!(
-                                                terrain.get(pos).ok().and_then(|b| b.get_sprite()),
-                                                Some(SpriteKind::KeyDoor)
-                                            )
-                                        {
-                                            block_change.try_set(pos, Block::empty());
-                                            destroyed.insert(pos);
 
-                                            pending.extend(dirs.into_iter().map(|dir| pos + dir));
-                                        }
-                                    },
-                                    Some(SpriteKind::BoneKeyhole) => {
-                                        if !destroyed.contains(&pos)
-                                            && matches!(
-                                                terrain.get(pos).ok().and_then(|b| b.get_sprite()),
-                                                Some(SpriteKind::BoneKeyDoor)
-                                            )
-                                        {
-                                            block_change.try_set(pos, Block::empty());
-                                            destroyed.insert(pos);
-
-                                            pending.extend(dirs.into_iter().map(|dir| pos + dir));
-                                        }
-                                    },
-                                    Some(SpriteKind::GlassKeyhole) => {
-                                        if !destroyed.contains(&pos)
-                                            && matches!(
-                                                terrain.get(pos).ok().and_then(|b| b.get_sprite()),
-                                                Some(SpriteKind::GlassBarrier)
-                                            )
-                                        {
-                                            block_change.try_set(pos, Block::empty());
-                                            destroyed.insert(pos);
-
-                                            pending.extend(dirs.into_iter().map(|dir| pos + dir));
-                                        }
-                                    },
-                                    _ => {},
-                                };
+                                if !destroyed.contains(&pos)
+                                    && terrain.get(pos).ok().and_then(|b| b.get_sprite())
+                                        == Some(kind_to_destroy)
+                                {
+                                    block_change.try_set(pos, Block::empty());
+                                    destroyed.insert(pos);
+                                    pending.extend(dirs.into_iter().map(|dir| pos + dir));
+                                }
                             } else {
                                 break;
                             }
@@ -1019,6 +981,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         let mut new_entity = state
             .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match kind {
                 item::Throwable::Bomb => comp::object::Body::Bomb,
+                item::Throwable::Mine => comp::object::Body::Mine,
                 item::Throwable::Firework(reagent) => comp::object::Body::for_firework(reagent),
                 item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
             })
@@ -1040,6 +1003,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         strength: 2.0,
                         col: Rgb::new(1.0, 1.0, 0.0),
                     });
+            },
+            item::Throwable::Mine => {
+                new_entity = new_entity.with(comp::Object::Bomb { owner: uid });
             },
             item::Throwable::TrainingDummy => {
                 new_entity = new_entity.with(comp::Stats::new(

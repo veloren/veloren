@@ -13,6 +13,6 @@
     (1.0, MultiDrop(Item("common.items.log.bamboo"), 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.poor")),
-    // Food 
+    // Food
     (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 3)),
 ]

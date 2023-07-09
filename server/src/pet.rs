@@ -61,6 +61,7 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
         agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
         // Pets shouldn't wander too far from their owner
         agent.psyche.idle_wander_factor = 0.25;
+        agent.psyche.aggro_range_multiplier = 0.25;
         agent.patrol_origin = None;
         let _ = ecs.write_storage().insert(pet_entity, agent);
     }

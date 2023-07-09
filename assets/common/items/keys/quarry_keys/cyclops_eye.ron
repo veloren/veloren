@@ -1,0 +1,11 @@
+ItemDef(
+    name: "Cyclops Eye",
+    description: "Looks like it could open an ancient mechanism.",
+    kind: Utility(
+        kind: Key,
+    ),
+    amount: 1,
+    quality: High,
+    tags: [],
+)
+

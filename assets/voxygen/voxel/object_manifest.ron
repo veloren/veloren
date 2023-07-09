@@ -19,6 +19,16 @@
             central: ("armor.empty"),
         )
     ),
+    Mine: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("sprite.misc.mine"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     DagonBomb: (
         bone0: (
             offset: (-5.5, -5.5, 0.0),
@@ -677,6 +687,16 @@
         bone1: (
             offset: (-9.0, -7.0, -5.0),
             central: ("object.crossbow.bone1"),
+        )
+    ),
+    Flamethrower: (
+        bone0: (
+            offset: (-18.0, -15.5, -8.0),
+            central: ("object.flamethrower.bone0"),
+        ),
+        bone1: (
+            offset: (-9.0, -7.0, -5.0),
+            central: ("object.flamethrower.bone1"),
         )
     ),
     ArrowTurret: (

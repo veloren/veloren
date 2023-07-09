@@ -1,0 +1,19 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.dwarven_quarry.prefab.dwarven_quarry-8-hallway1",
+        center: (27, 15, 3),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            212: Filled(Air, (r: 255, g: 255, b: 255)), // half open Gate
+            216: Sprite(KeyDoor),
+            213: Keyhole("common.items.keys.quarry_keys.backdoor"),
+            136: Sprite(Lantern),
+            140: Sprite(Crate),
+            137: Sprite(Anvil),
+            138: Sprite(ForgeTools),
+            139: Sprite(FireBowlGround),
+         },
+    ),
+]

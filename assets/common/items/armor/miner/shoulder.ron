@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Miner's Pauldrons.",
+    description: "Protects Cave-in and out.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Miner"),
+    )),
+    quality: High,
+    tags: [],
+)

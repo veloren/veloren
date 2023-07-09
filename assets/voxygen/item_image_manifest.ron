@@ -2972,6 +2972,10 @@
         "voxel.armor.misc.head.helmet",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
+    Simple("common.items.armor.miner.helmet_orange"): VoxTrans(
+        "voxel.armor.miner.helmet",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
+    ),
     // Rings
     Simple("common.items.armor.misc.ring.scratched"): VoxTrans(
         "voxel.armor.misc.ring.scratched",
@@ -4916,6 +4920,34 @@
     ),
     Simple("common.items.keys.glass_key"): VoxTrans(
         "voxel.object.key_glass",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.quarry_keys.ancient"): VoxTrans(
+        "voxel.object.key_rusty-0",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.quarry_keys.backdoor"): VoxTrans(
+        "voxel.object.key_rusty-0",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.quarry_keys.cyclops_eye"): VoxTrans(
+       "voxel.sprite.crafting_ing.animal_misc.grim_eyeball",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.keys.quarry_keys.flamekeeper_left"): VoxTrans(
+        "element.items.keeper_goggle",
+        (0.0, 0.0, 0.0), (-100.0, 230.0, 12.0), 0.8,
+    ),
+    Simple("common.items.keys.quarry_keys.flamekeeper_right"): VoxTrans(
+        "element.items.keeper_goggle",
+        (0.0, 0.0, 0.0), (-100.0, 230.0, 12.0), 0.8,
+    ),
+    Simple("common.items.keys.quarry_keys.overseer"): VoxTrans(
+        "voxel.object.key_rusty-0",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.quarry_keys.smelting"): VoxTrans(
+        "voxel.object.key_rusty-0",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
     // Lockpicks

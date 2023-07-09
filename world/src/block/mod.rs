@@ -345,6 +345,18 @@ pub fn block_from_structure(
                     unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                         consumes.clone(),
                     ))),
+                    ..SpriteCfg::default()
+                }),
+            ));
+        },
+        StructureBlock::Sign(content, ori) => {
+            return Some((
+                Block::air(SpriteKind::Sign)
+                    .with_ori(rotate_for_units(*ori, units))
+                    .expect("signs can always be rotated"),
+                Some(SpriteCfg {
+                    content: Some(content.clone()),
+                    ..SpriteCfg::default()
                 }),
             ));
         },
@@ -355,6 +367,18 @@ pub fn block_from_structure(
                     unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                         consumes.clone(),
                     ))),
+                    ..SpriteCfg::default()
+                }),
+            ));
+        },
+        StructureBlock::KeyholeBars(consumes) => {
+            return Some((
+                Block::air(SpriteKind::KeyholeBars),
+                Some(SpriteCfg {
+                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                        consumes.clone(),
+                    ))),
+                    ..SpriteCfg::default()
                 }),
             ));
         },
@@ -365,6 +389,7 @@ pub fn block_from_structure(
                     unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                         consumes.clone(),
                     ))),
+                    ..SpriteCfg::default()
                 }),
             ));
         },

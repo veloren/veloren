@@ -44,6 +44,7 @@ pub struct AgentConfig {
     pub has_agency: Option<bool>,
     pub no_flee: Option<bool>,
     pub idle_wander_factor: Option<f32>,
+    pub aggro_range_multiplier: Option<f32>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -172,6 +173,7 @@ pub struct EntityInfo {
     pub agent_mark: Option<agent::Mark>,
     pub no_flee: bool,
     pub idle_wander_factor: f32,
+    pub aggro_range_multiplier: f32,
     // Stats
     pub body: Body,
     pub name: Option<String>,
@@ -205,6 +207,7 @@ impl EntityInfo {
             agent_mark: None,
             no_flee: false,
             idle_wander_factor: 1.0,
+            aggro_range_multiplier: 1.0,
 
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
@@ -292,10 +295,12 @@ impl EntityInfo {
             has_agency,
             no_flee,
             idle_wander_factor,
+            aggro_range_multiplier,
         } = agent;
         self.has_agency = has_agency.unwrap_or(self.has_agency);
         self.no_flee = no_flee.unwrap_or(self.no_flee);
         self.idle_wander_factor = idle_wander_factor.unwrap_or(self.idle_wander_factor);
+        self.aggro_range_multiplier = aggro_range_multiplier.unwrap_or(self.aggro_range_multiplier);
 
         for field in meta {
             match field {

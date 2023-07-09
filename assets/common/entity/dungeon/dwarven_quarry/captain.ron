@@ -1,0 +1,22 @@
+#![enable(implicit_some)]
+(
+    name: Name("Captain"),
+    body: RandomWith("dwarf"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.captain"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.dwarven_quarry.overseer"),
+            active_hands: InHands((
+                ModularWeapon(tool: Sword, material: Orichalcum, hands: Two),
+                None
+            )),
+        )),
+    ),
+    agent: (
+        idle_wander_factor: 0.1,
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
+)

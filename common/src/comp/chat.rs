@@ -186,7 +186,7 @@ impl<G> ChatType<G> {
 // TODO: We probably want to have this type be able to represent similar things to
 // `fluent::FluentValue`, such as numeric values, so that they can be properly localised in whatever
 // manner is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Content {
     /// The content is a plaintext string that should be shown to the user
     /// verbatim.
@@ -197,8 +197,10 @@ pub enum Content {
         key: String,
         /// Pseudorandom seed value that allows frontends to select a
         /// deterministic (but pseudorandom) localised output
+        #[serde(default = "random_seed")]
         seed: u16,
         /// i18n arguments
+        #[serde(default)]
         args: HashMap<String, LocalizationArg>,
     },
 }
@@ -214,7 +216,7 @@ impl<'a> From<&'a str> for Content {
 }
 
 /// A localisation argument for localised content (see [`Content::Localized`]).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum LocalizationArg {
     /// The localisation argument is itself a section of content.
     ///
@@ -253,11 +255,13 @@ impl From<u64> for LocalizationArg {
     fn from(n: u64) -> Self { Self::Nat(n) }
 }
 
+fn random_seed() -> u16 { rand::random() }
+
 impl Content {
     pub fn localized(key: impl ToString) -> Self {
         Self::Localized {
             key: key.to_string(),
-            seed: rand::random(),
+            seed: random_seed(),
             args: HashMap::default(),
         }
     }

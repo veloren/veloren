@@ -451,7 +451,8 @@ impl<'a> AgentData<'a> {
 
             let diff = Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5);
             agent.bearing += (diff * 0.1 - agent.bearing * 0.01)
-                * agent.psyche.idle_wander_factor.max(0.0).sqrt();
+                * agent.psyche.idle_wander_factor.max(0.0).sqrt()
+                * agent.psyche.aggro_range_multiplier.max(0.0).sqrt();
             if let Some(patrol_origin) = agent.patrol_origin
                 // Use owner as patrol origin otherwise
                 .or_else(|| if let Some(Alignment::Owned(owner_uid)) = self.alignment
@@ -1006,7 +1007,8 @@ impl<'a> AgentData<'a> {
                                 radius: 6,
                                 circle_time: 1,
                             },
-                            "Turret" => Tactic::Turret,
+                            "Turret" => Tactic::RadialTurret,
+                            "Flamethrower" => Tactic::RadialTurret,
                             "Haniwa Sentry" => Tactic::RotatingTurret,
                             "Bird Large Breathe" => Tactic::BirdLargeBreathe,
                             "Bird Large Fire" => Tactic::BirdLargeFire,
@@ -1018,6 +1020,7 @@ impl<'a> AgentData<'a> {
                                 Tactic::SimpleDouble
                             },
                             "Mindflayer" => Tactic::Mindflayer,
+                            "Flamekeeper" => Tactic::Flamekeeper,
                             "Minotaur" => Tactic::Minotaur,
                             "Cyclops" => Tactic::Cyclops,
                             "Dullahan" => Tactic::Dullahan,
@@ -1033,6 +1036,7 @@ impl<'a> AgentData<'a> {
                             "Cardinal" => Tactic::Cardinal,
                             "Sea Bishop" => Tactic::SeaBishop,
                             "Dagon" => Tactic::Dagon,
+                            "HermitAlligator" => Tactic::HermitAlligator,
                             "Dagonite" => Tactic::ArthropodAmbush,
                             "Gnarling Dagger" => Tactic::SimpleBackstab,
                             "Gnarling Blowgun" => Tactic::ElevatedRanged,
@@ -1392,6 +1396,9 @@ impl<'a> AgentData<'a> {
                 read_data,
                 rng,
             ),
+            Tactic::Flamekeeper => {
+                self.handle_flamekeeper_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::BirdLargeFire => self.handle_birdlarge_fire_attack(
                 agent,
                 controller,
@@ -1473,6 +1480,9 @@ impl<'a> AgentData<'a> {
             ),
             Tactic::Dagon => {
                 self.handle_dagon_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::HermitAlligator => {
+                self.handle_hermit_alligator_attack(agent, controller, &attack_data, read_data)
             },
             Tactic::SimpleBackstab => {
                 self.handle_simple_backstab(agent, controller, &attack_data, tgt_data, read_data)

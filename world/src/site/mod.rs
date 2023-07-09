@@ -71,6 +71,7 @@ pub enum SiteKind {
     Tree(Tree),
     DesertCity(site2::Site),
     ChapelSite(site2::Site),
+    DwarvenMine(site2::Site),
     GiantTree(site2::Site),
     Gnarling(site2::Site),
     Bridge(site2::Site),
@@ -148,6 +149,13 @@ impl Site {
         }
     }
 
+    pub fn dwarven_mine(p: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::DwarvenMine(p),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn tree(t: Tree) -> Self {
         Self {
             kind: SiteKind::Tree(t),
@@ -179,6 +187,7 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.radius(),
             SiteKind::DesertCity(dc) => dc.radius(),
             SiteKind::ChapelSite(p) => p.radius(),
+            SiteKind::DwarvenMine(p) => p.radius(),
             SiteKind::Tree(t) => t.radius(),
             SiteKind::GiantTree(gt) => gt.radius(),
             SiteKind::Gnarling(g) => g.radius(),
@@ -197,6 +206,7 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.origin,
             SiteKind::DesertCity(dc) => dc.origin,
             SiteKind::ChapelSite(p) => p.origin,
+            SiteKind::DwarvenMine(p) => p.origin,
             SiteKind::Tree(t) => t.origin,
             SiteKind::GiantTree(gt) => gt.origin,
             SiteKind::Gnarling(g) => g.origin,
@@ -215,6 +225,7 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.spawn_rules(wpos),
             SiteKind::DesertCity(dc) => dc.spawn_rules(wpos),
             SiteKind::ChapelSite(p) => p.spawn_rules(wpos),
+            SiteKind::DwarvenMine(p) => p.spawn_rules(wpos),
             SiteKind::Tree(t) => t.spawn_rules(wpos),
             SiteKind::GiantTree(gt) => gt.spawn_rules(wpos),
             SiteKind::Gnarling(g) => g.spawn_rules(wpos),
@@ -233,6 +244,7 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.name(),
             SiteKind::DesertCity(dc) => dc.name(),
             SiteKind::ChapelSite(p) => p.name(),
+            SiteKind::DwarvenMine(p) => p.name(),
             SiteKind::Tree(_) => "Giant Tree",
             SiteKind::GiantTree(gt) => gt.name(),
             SiteKind::Gnarling(g) => g.name(),
@@ -270,6 +282,7 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.render(canvas, dynamic_rng),
             SiteKind::DesertCity(dc) => dc.render(canvas, dynamic_rng),
             SiteKind::ChapelSite(p) => p.render(canvas, dynamic_rng),
+            SiteKind::DwarvenMine(p) => p.render(canvas, dynamic_rng),
             SiteKind::Tree(t) => t.render(canvas, dynamic_rng),
             SiteKind::GiantTree(gt) => gt.render(canvas, dynamic_rng),
             SiteKind::Gnarling(g) => g.render(canvas, dynamic_rng),
@@ -301,6 +314,7 @@ impl Site {
             SiteKind::SavannahPit(_) => {},
             SiteKind::DesertCity(_) => {},
             SiteKind::ChapelSite(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::DwarvenMine(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Tree(_) => {},
             SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
@@ -333,6 +347,7 @@ impl Site {
             SiteKind::Tree(_) => None,
             SiteKind::DesertCity(site2) => Some(site2),
             SiteKind::ChapelSite(site2) => Some(site2),
+            SiteKind::DwarvenMine(site2) => Some(site2),
             SiteKind::GiantTree(site2) => Some(site2),
             SiteKind::Gnarling(site2) => Some(site2),
             SiteKind::Bridge(site2) => Some(site2),
