@@ -904,7 +904,7 @@ pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
 pub fn attempt_swap_equipped_weapons(
     data: &JoinData<'_>,
     update: &mut StateUpdate,
-    _output_events: &mut OutputEvents,
+    output_events: &mut OutputEvents,
 ) {
     if data
         .inventory
@@ -916,6 +916,7 @@ pub fn attempt_swap_equipped_weapons(
             .is_some()
     {
         update.swap_equipped_weapons = true;
+        loadout_change_hook(data, output_events, false);
     }
 }
 
@@ -1000,7 +1001,7 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
-    loadout_change_hook(data, output_events);
+    loadout_change_hook(data, output_events, true);
     match inv_action {
         InventoryAction::Use(slot @ Slot::Inventory(inv_slot)) => {
             // If inventory action is using a slot, and slot is in the inventory
@@ -1632,12 +1633,14 @@ impl Default for ComboConsumption {
     fn default() -> Self { Self::All }
 }
 
-fn loadout_change_hook(data: &JoinData<'_>, output_events: &mut OutputEvents) {
-    // Reset combo to 0
-    output_events.emit_server(ServerEvent::ComboChange {
-        entity: data.entity,
-        change: -data.combo.map_or(0, |c| c.counter() as i32),
-    });
+fn loadout_change_hook(data: &JoinData<'_>, output_events: &mut OutputEvents, clear_combo: bool) {
+    if clear_combo {
+        // Reset combo to 0
+        output_events.emit_server(ServerEvent::ComboChange {
+            entity: data.entity,
+            change: -data.combo.map_or(0, |c| c.counter() as i32),
+        });
+    }
     // Clear any buffs from equipped weapons
     output_events.emit_server(ServerEvent::Buff {
         entity: data.entity,
