@@ -45,6 +45,11 @@ pub struct Inventory {
     /// The "built-in" slots belonging to the inventory itself, all other slots
     /// are provided by equipped items
     slots: Vec<InvSlot>,
+    /// For when slot amounts are rebalanced or the inventory otherwise does not
+    /// have enough space to hold all the items after loading from database.
+    /// These slots are "remove-only" meaning that during normal gameplay items
+    /// can only be removed from these slots and never entered.
+    overflow_items: Vec<Item>,
 }
 
 /// Errors which the methods on `Inventory` produce
@@ -53,6 +58,14 @@ pub enum Error {
     /// The inventory is full and items could not be added. The extra items have
     /// been returned.
     Full(Vec<Item>),
+}
+
+impl Error {
+    pub fn returned_items(self) -> impl Iterator<Item = Item> {
+        match self {
+            Error::Full(items) => items.into_iter(),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -115,6 +128,7 @@ impl Inventory {
             next_sort_order: InventorySortOrder::Name,
             loadout,
             slots: vec![None; DEFAULT_INVENTORY_SLOTS],
+            overflow_items: Vec::new(),
         }
     }
 
@@ -123,10 +137,11 @@ impl Inventory {
             next_sort_order: InventorySortOrder::Name,
             loadout,
             slots: vec![None; 1],
+            overflow_items: Vec::new(),
         }
     }
 
-    /// Total number of slots in in the inventory.
+    /// Total number of slots in the inventory.
     pub fn capacity(&self) -> usize { self.slots().count() }
 
     /// An iterator of all inventory slots
@@ -135,6 +150,9 @@ impl Inventory {
             .iter()
             .chain(self.loadout.inv_slots_with_id().map(|(_, slot)| slot))
     }
+
+    /// An iterator of all overflow slots in the inventory
+    pub fn overflow_items(&self) -> impl Iterator<Item = &Item> { self.overflow_items.iter() }
 
     /// A mutable iterator of all inventory slots
     fn slots_mut(&mut self) -> impl Iterator<Item = &mut InvSlot> {
@@ -910,6 +928,9 @@ impl Inventory {
                 item.update_item_state(ability_map, msm);
             }
         });
+        self.overflow_items
+            .iter_mut()
+            .for_each(|item| item.update_item_state(ability_map, msm));
     }
 
     /// Increments durability lost for all valid items equipped in loadout and
@@ -956,6 +977,13 @@ impl Inventory {
                     .repair_item_at_slot(equip_slot, ability_map, msm);
             },
         }
+    }
+
+    /// When loading a character from the persistence system, pushes any items
+    /// to overflow_items that were not able to be loaded into or pushed to the
+    /// inventory
+    pub fn persistence_push_overflow_items<I: Iterator<Item = Item>>(&mut self, overflow_items: I) {
+        self.overflow_items.extend(overflow_items);
     }
 }
 

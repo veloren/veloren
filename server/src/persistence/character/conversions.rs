@@ -63,13 +63,22 @@ pub fn convert_items_to_database_items(
         .map(|(slot, item)| (slot.to_string(), item, loadout_container_id));
 
     // Inventory slots.
-    let inventory = inventory.slots_with_id().map(|(pos, item)| {
-        (
-            serde_json::to_string(&pos).expect("failed to serialize InventorySlotPos"),
-            item.as_ref(),
-            inventory_container_id,
-        )
-    });
+    let inventory = inventory
+        .slots_with_id()
+        .map(|(pos, item)| {
+            (
+                serde_json::to_string(&pos).expect("failed to serialize InventorySlotPos"),
+                item.as_ref(),
+                inventory_container_id,
+            )
+        })
+        .chain(inventory.overflow_items().enumerate().map(|(index, item)| {
+            (
+                format!("overflow_item {index}"),
+                Some(item),
+                inventory_container_id,
+            )
+        }));
 
     // Use Breadth-first search to recurse into containers/modular weapons to store
     // their parts
@@ -363,6 +372,24 @@ pub fn convert_inventory_from_database_items(
     let mut inventory = Inventory::with_loadout_humanoid(loadout);
     let mut item_indices = HashMap::new();
 
+    struct FailedInserts {
+        items: Vec<VelorenItem>,
+        map: HashMap<String, usize>,
+    }
+
+    impl FailedInserts {
+        fn insert(&mut self, db_pos: String, item: VelorenItem) {
+            let i = self.items.len();
+            self.items.push(item);
+            self.map.insert(db_pos, i);
+        }
+    }
+
+    let mut failed_inserts = FailedInserts {
+        items: Vec::new(),
+        map: HashMap::new(),
+    };
+
     // In order to items with components to properly load, it is important that this
     // item iteration occurs in order so that any modular items are loaded before
     // its components.
@@ -412,36 +439,55 @@ pub fn convert_inventory_from_database_items(
         };
 
         if db_item.parent_container_item_id == inventory_container_id {
-            let slot = slot(&db_item.position)?;
-            let insert_res = inventory.insert_at(slot, item).map_err(|_| {
-                // If this happens there were too many items in the database for the current
-                // inventory size
-                //
-                // FIXME: On failure, collect the set of items that don't fit and return them
-                // (to be dropped next to the player) as this could be the
-                // result of a change in the slot capacity for an equipped bag
-                // (or a change in the inventory size).
-                PersistenceError::ConversionError(format!(
-                    "Error inserting item into inventory, position: {:?}",
-                    slot
-                ))
-            })?;
+            if let Ok(slot) = slot(&db_item.position) {
+                let insert_res = inventory.insert_at(slot, item);
 
-            if insert_res.is_some() {
-                // If inventory.insert returns an item, it means it was swapped for an item that
-                // already occupied the slot. Multiple items being stored in the database for
-                // the same slot is an error.
-                return Err(PersistenceError::ConversionError(
-                    "Inserted an item into the same slot twice".to_string(),
-                ));
+                match insert_res {
+                    Ok(None) => {
+                        // Insert successful
+                    },
+                    Ok(Some(_item)) => {
+                        // If inventory.insert returns an item, it means it was swapped for an item
+                        // that already occupied the slot. Multiple items
+                        // being stored in the database for the same slot is
+                        // an error.
+                        return Err(PersistenceError::ConversionError(
+                            "Inserted an item into the same slot twice".to_string(),
+                        ));
+                    },
+                    Err(item) => {
+                        // If this happens there were too many items in the database for the current
+                        // inventory size
+                        failed_inserts.insert(db_item.position.clone(), item);
+                    },
+                }
+            } else {
+                failed_inserts.insert(db_item.position.clone(), item);
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             get_mutable_item(
                 j,
                 inventory_items,
                 &item_indices,
-                &mut inventory,
-                &|inv, s| inv.slot_mut(slot(s).ok()?).and_then(|a| a.as_mut()),
+                &mut (&mut inventory, &mut failed_inserts),
+                &|(inv, f_i): &mut (&mut Inventory, &mut FailedInserts), s| {
+                    // Attempts first to access inventory if that slot exists there. If it does not
+                    // it instead attempts to access failed inserts list.
+                    // Question for Sharp/XVar: Should this attempt to look in failed inserts list
+                    // first?
+                    slot(s)
+                        .ok()
+                        .and_then(|slot| inv.slot_mut(slot))
+                        .and_then(|a| a.as_mut())
+                        .or(f_i.map.get(s).and_then(|i| f_i.items.get_mut(*i)))
+                    // if let Ok(slot) = slot(s) {
+                    //     dbg!(0);
+                    //     inv.slot_mut(slot).and_then(|a| a.as_mut())
+                    // } else {
+                    //     dbg!(1);
+                    //     f_i.map.get(s).and_then(|i| f_i.items.get_mut(*i))
+                    // }
+                },
             )?
             .persistence_access_add_component(item);
         } else {
@@ -450,6 +496,12 @@ pub fn convert_inventory_from_database_items(
                 db_item.parent_container_item_id, db_item.item_id
             )));
         }
+    }
+
+    // For failed inserts, attempt to push to inventory. If push fails, move to
+    // overflow slots.
+    if let Err(inv_error) = inventory.push_all(failed_inserts.items.into_iter()) {
+        inventory.persistence_push_overflow_items(inv_error.returned_items());
     }
 
     // Some items may have had components added, so update the item config of each
