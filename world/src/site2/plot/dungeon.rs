@@ -1157,161 +1157,173 @@ impl Floor {
 
             let mut chests = None;
 
-            if let Some(room) = room.map(|i| self.rooms.get(*i)) {
-                height = height.min(room.height);
-                if let Tile::UpStair(_, kind) = tile {
-                    // Construct the staircase that connects this tile to the matching DownStair
-                    // tile on the floor above (or to the surface if this is the top floor), and a
-                    // hollow bounding box to place air in
-                    let center = tile_center.with_z(floor_z);
-                    let radius = TILE_SIZE as f32 / 2.0;
-                    let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
-                    let outer_aabb = aabr_with_z(
-                        outer_tile_aabr(2),
-                        floor_z + tunnel_height as i32..floor_z + self.total_depth() - 1,
-                    );
-                    let bb = painter.prim(match kind {
-                        StairsKind::Spiral => Primitive::Cylinder(aabb),
-                        StairsKind::WallSpiral => Primitive::Aabb(aabb),
-                    });
-                    let outer_bb = painter.prim(match kind {
-                        StairsKind::WallSpiral => Primitive::Aabb(outer_aabb),
-                        StairsKind::Spiral => Primitive::Cylinder(outer_aabb),
-                    });
-                    let stair = painter.prim(Primitive::sampling(bb, match kind {
-                        StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
-                        StairsKind::WallSpiral => wall_staircase(center, radius, 27.0),
-                    }));
-                    // Construct the lights that go inside the staircase, starting above the
-                    // ceiling to avoid placing them floating in mid-air
-                    let mut lights = painter.prim(Primitive::Empty);
-                    for i in height..self.total_depth() {
-                        if i % 9 == 0 {
-                            let mut light = painter.prim(Primitive::Aabb(Aabb {
-                                min: aabb.min.with_z(floor_z + i),
-                                max: aabb.max.with_z(floor_z + i + 1),
-                            }));
-                            let inner = painter.prim(Primitive::Aabb(Aabb {
-                                min: (aabb.min + Vec3::new(1, 1, 0)).with_z(floor_z + i),
-                                max: (aabb.max - Vec3::new(1, 1, 0)).with_z(floor_z + i + 1),
-                            }));
-
-                            light = painter.prim(Primitive::without(light, inner));
-                            lights = painter.prim(Primitive::union(light, lights));
+            'room: {
+                if let Some(room) = room.map(|i| self.rooms.get(*i)) {
+                    height = height.min(room.height);
+                    if let Tile::UpStair(_, kind) = tile {
+                        if self.final_level {
+                            break 'room;
                         }
-                    }
-                    lights = painter.prim(Primitive::intersect(lights, lighting_mask));
-                    stairs_bb.push(bb);
-                    stair_walls.push(outer_bb);
-                    stairs.push((stair, lights));
-                }
-                if matches!(tile, Tile::Room(_) | Tile::DownStair(_)) {
-                    let seed = room.seed;
-                    let loot_density = room.loot_density;
-                    let difficulty = room.difficulty;
-                    // Place chests with a random distribution based on the
-                    // room's loot density in valid sprite locations,
-                    // filled based on the room's difficulty
-                    let chest_sprite = painter.prim(Primitive::sampling(
-                        sprite_layer,
-                        Box::new(move |pos| RandomField::new(seed).chance(pos, loot_density * 0.5)),
-                    ));
-                    let chest_sprite_fill = Fill::Block(Block::air(match difficulty {
-                        2 => SpriteKind::DungeonChest2,
-                        3 => SpriteKind::DungeonChest3,
-                        4 => SpriteKind::DungeonChest4,
-                        5 => SpriteKind::DungeonChest5,
-                        _ => SpriteKind::Chest,
-                    }));
-                    chests = Some((chest_sprite, chest_sprite_fill));
-
-                    // If a room has pits, place them
-                    if room.pits.is_some() {
-                        // Make an air pit
-                        let tile_pit = painter.prim(Primitive::Aabb(aabr_with_z(
-                            tile_aabr,
-                            floor_z - 7..floor_z,
-                        )));
-                        let tile_pit = painter.prim(Primitive::without(tile_pit, wall_contours));
-                        painter.fill(tile_pit, Fill::Block(vacant));
-
-                        // Fill with lava
-                        let tile_lava = painter.prim(Primitive::Aabb(aabr_with_z(
-                            tile_aabr,
-                            floor_z - 7..floor_z - 5,
-                        )));
-                        let tile_lava = painter.prim(Primitive::without(tile_lava, wall_contours));
-                        //pits.push(tile_pit);
-                        //pits.push(tile_lava);
-                        painter.fill(tile_lava, Fill::Block(lava));
-                    }
-                    if room
-                        .pits
-                        .map(|pit_space| {
-                            tile_pos.map(|e| e.rem_euclid(pit_space) == 0).reduce_and()
-                        })
-                        .unwrap_or(false)
-                    {
-                        let platform = painter.prim(Primitive::Aabb(Aabb {
-                            min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
-                                .with_z(floor_z - 7),
-                            max: (tile_center + Vec2::broadcast(pillar_thickness)).with_z(floor_z),
+                        // Construct the staircase that connects this tile to the matching DownStair
+                        // tile on the floor above (or to the surface if this is the top floor), and
+                        // a hollow bounding box to place air in
+                        let center = tile_center.with_z(floor_z);
+                        let radius = TILE_SIZE as f32 / 2.0;
+                        let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
+                        let outer_aabb = aabr_with_z(
+                            outer_tile_aabr(2),
+                            floor_z + tunnel_height as i32..floor_z + self.total_depth() - 1,
+                        );
+                        let bb = painter.prim(match kind {
+                            StairsKind::Spiral => Primitive::Cylinder(aabb),
+                            StairsKind::WallSpiral => Primitive::Aabb(aabb),
+                        });
+                        let outer_bb = painter.prim(match kind {
+                            StairsKind::WallSpiral => Primitive::Aabb(outer_aabb),
+                            StairsKind::Spiral => Primitive::Cylinder(outer_aabb),
+                        });
+                        let stair = painter.prim(Primitive::sampling(bb, match kind {
+                            StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
+                            StairsKind::WallSpiral => wall_staircase(center, radius, 27.0),
                         }));
-                        painter.fill(platform, Fill::Block(stone));
-                    }
+                        // Construct the lights that go inside the staircase, starting above the
+                        // ceiling to avoid placing them floating in mid-air
+                        let mut lights = painter.prim(Primitive::Empty);
+                        for i in height..self.total_depth() {
+                            if i % 9 == 0 {
+                                let mut light = painter.prim(Primitive::Aabb(Aabb {
+                                    min: aabb.min.with_z(floor_z + i),
+                                    max: aabb.max.with_z(floor_z + i + 1),
+                                }));
+                                let inner = painter.prim(Primitive::Aabb(Aabb {
+                                    min: (aabb.min + Vec3::new(1, 1, 0)).with_z(floor_z + i),
+                                    max: (aabb.max - Vec3::new(1, 1, 0)).with_z(floor_z + i + 1),
+                                }));
 
-                    // If a room has pillars, the current tile aligns with the pillar spacing, and
-                    // we're not too close to a wall (i.e. the adjacent tiles are rooms and not
-                    // hallways/solid), place a pillar
-                    if room
-                        .pillars
-                        .map(|pillar_space| {
-                            tile_pos
-                                .map(|e| e.rem_euclid(pillar_space) == 0)
-                                .reduce_and()
-                        })
-                        .unwrap_or(false)
-                        && DIRS
-                            .iter()
-                            .map(|dir| tile_pos + *dir)
-                            .all(|other_tile_pos| {
-                                matches!(self.tiles.get(other_tile_pos), Some(Tile::Room(_)))
+                                light = painter.prim(Primitive::without(light, inner));
+                                lights = painter.prim(Primitive::union(light, lights));
+                            }
+                        }
+                        lights = painter.prim(Primitive::intersect(lights, lighting_mask));
+                        stairs_bb.push(bb);
+                        stair_walls.push(outer_bb);
+                        stairs.push((stair, lights));
+                    }
+                    if matches!(tile, Tile::Room(_) | Tile::DownStair(_)) {
+                        let seed = room.seed;
+                        let loot_density = room.loot_density;
+                        let difficulty = room.difficulty;
+                        // Place chests with a random distribution based on the
+                        // room's loot density in valid sprite locations,
+                        // filled based on the room's difficulty
+                        let chest_sprite = painter.prim(Primitive::sampling(
+                            sprite_layer,
+                            Box::new(move |pos| {
+                                RandomField::new(seed).chance(pos, loot_density * 0.5)
+                            }),
+                        ));
+                        let chest_sprite_fill = Fill::Block(Block::air(match difficulty {
+                            2 => SpriteKind::DungeonChest2,
+                            3 => SpriteKind::DungeonChest3,
+                            4 => SpriteKind::DungeonChest4,
+                            5 => SpriteKind::DungeonChest5,
+                            _ => SpriteKind::Chest,
+                        }));
+                        chests = Some((chest_sprite, chest_sprite_fill));
+
+                        // If a room has pits, place them
+                        if room.pits.is_some() {
+                            // Make an air pit
+                            let tile_pit = painter.prim(Primitive::Aabb(aabr_with_z(
+                                tile_aabr,
+                                floor_z - 7..floor_z,
+                            )));
+                            let tile_pit =
+                                painter.prim(Primitive::without(tile_pit, wall_contours));
+                            painter.fill(tile_pit, Fill::Block(vacant));
+
+                            // Fill with lava
+                            let tile_lava = painter.prim(Primitive::Aabb(aabr_with_z(
+                                tile_aabr,
+                                floor_z - 7..floor_z - 5,
+                            )));
+                            let tile_lava =
+                                painter.prim(Primitive::without(tile_lava, wall_contours));
+                            //pits.push(tile_pit);
+                            //pits.push(tile_lava);
+                            painter.fill(tile_lava, Fill::Block(lava));
+                        }
+                        if room
+                            .pits
+                            .map(|pit_space| {
+                                tile_pos.map(|e| e.rem_euclid(pit_space) == 0).reduce_and()
                             })
-                    {
-                        let mut pillar = painter.prim(Primitive::Cylinder(Aabb {
-                            min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
-                                .with_z(floor_z),
-                            max: (tile_center + Vec2::broadcast(pillar_thickness))
-                                .with_z(floor_z + height),
-                        }));
-                        let base = painter.prim(Primitive::Cylinder(Aabb {
-                            min: (tile_center - Vec2::broadcast(1 + pillar_thickness - 1))
-                                .with_z(floor_z),
-                            max: (tile_center + Vec2::broadcast(1 + pillar_thickness))
-                                .with_z(floor_z + 1),
-                        }));
-
-                        let scale = (pillar_thickness + 2) as f32 / pillar_thickness as f32;
-                        let mut lights = painter
-                            .prim(Primitive::scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
-                        lights = painter.prim(Primitive::intersect(lighting_plane, lights));
-                        // Only add the base (and shift the lights up)
-                        // for boss-rooms pillars
-                        if room.kind == RoomKind::Boss {
-                            lights = painter.prim(Primitive::translate(lights, 3 * Vec3::unit_z()));
-                            pillar = painter.prim(Primitive::union(pillar, base));
+                            .unwrap_or(false)
+                        {
+                            let platform = painter.prim(Primitive::Aabb(Aabb {
+                                min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
+                                    .with_z(floor_z - 7),
+                                max: (tile_center + Vec2::broadcast(pillar_thickness))
+                                    .with_z(floor_z),
+                            }));
+                            painter.fill(platform, Fill::Block(stone));
                         }
-                        // Specifically don't include pillars in Minotaur arena
-                        if !(room.kind == RoomKind::Boss && self.difficulty == 4) {
-                            pillars.push((tile_center, pillar, lights));
+
+                        // If a room has pillars, the current tile aligns with the pillar spacing,
+                        // and we're not too close to a wall (i.e. the
+                        // adjacent tiles are rooms and not hallways/solid),
+                        // place a pillar
+                        if room
+                            .pillars
+                            .map(|pillar_space| {
+                                tile_pos
+                                    .map(|e| e.rem_euclid(pillar_space) == 0)
+                                    .reduce_and()
+                            })
+                            .unwrap_or(false)
+                            && DIRS
+                                .iter()
+                                .map(|dir| tile_pos + *dir)
+                                .all(|other_tile_pos| {
+                                    matches!(self.tiles.get(other_tile_pos), Some(Tile::Room(_)))
+                                })
+                        {
+                            let mut pillar = painter.prim(Primitive::Cylinder(Aabb {
+                                min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
+                                    .with_z(floor_z),
+                                max: (tile_center + Vec2::broadcast(pillar_thickness))
+                                    .with_z(floor_z + height),
+                            }));
+                            let base = painter.prim(Primitive::Cylinder(Aabb {
+                                min: (tile_center - Vec2::broadcast(1 + pillar_thickness - 1))
+                                    .with_z(floor_z),
+                                max: (tile_center + Vec2::broadcast(1 + pillar_thickness))
+                                    .with_z(floor_z + 1),
+                            }));
+
+                            let scale = (pillar_thickness + 2) as f32 / pillar_thickness as f32;
+                            let mut lights = painter
+                                .prim(Primitive::scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
+                            lights = painter.prim(Primitive::intersect(lighting_plane, lights));
+                            // Only add the base (and shift the lights up)
+                            // for boss-rooms pillars
+                            if room.kind == RoomKind::Boss {
+                                lights =
+                                    painter.prim(Primitive::translate(lights, 3 * Vec3::unit_z()));
+                                pillar = painter.prim(Primitive::union(pillar, base));
+                            }
+                            // Specifically don't include pillars in Minotaur arena
+                            if !(room.kind == RoomKind::Boss && self.difficulty == 4) {
+                                pillars.push((tile_center, pillar, lights));
+                            }
                         }
                     }
-                }
 
-                // Keep track of the boss room to be able to add decorations later
-                if room.kind == RoomKind::Boss {
-                    boss_room_center =
-                        Some(floor_corner + TILE_SIZE * room.area.center() + TILE_SIZE / 2);
+                    // Keep track of the boss room to be able to add decorations later
+                    if room.kind == RoomKind::Boss {
+                        boss_room_center =
+                            Some(floor_corner + TILE_SIZE * room.area.center() + TILE_SIZE / 2);
+                    }
                 }
             }
 
