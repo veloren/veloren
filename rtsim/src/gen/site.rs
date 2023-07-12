@@ -25,7 +25,8 @@ impl Site {
             SiteKind::Refactor(_)
             | SiteKind::CliffTown(_)
             | SiteKind::DesertCity(_)
-            | SiteKind::SavannahPit(_) => Some(true),
+            | SiteKind::SavannahPit(_)
+            | SiteKind::CoastalTown(_) => Some(true),
             // Evil
             SiteKind::Dungeon(_)
             | SiteKind::ChapelSite(_)

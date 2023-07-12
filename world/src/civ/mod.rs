@@ -373,6 +373,7 @@ impl Civs {
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::CliffTown => (64i32, 25.0),
                 SiteKind::SavannahPit => (48i32, 25.0),
+                SiteKind::CoastalTown => (64i32, 35.0),
                 SiteKind::DesertCity => (64i32, 25.0),
                 SiteKind::ChapelSite => (36i32, 10.0),
                 SiteKind::Tree => (12i32, 8.0),
@@ -477,6 +478,13 @@ impl Civs {
                     )),
                     SiteKind::SavannahPit => {
                         WorldSite::savannah_pit(site2::Site::generate_savannah_pit(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                        ))
+                    },
+                    SiteKind::CoastalTown => {
+                        WorldSite::coastal_town(site2::Site::generate_coastal_town(
                             &Land::from_sim(ctx.sim),
                             &mut rng,
                             wpos,
@@ -809,6 +817,7 @@ impl Civs {
             0..=10 => SiteKind::CliffTown,
             11..=12 => SiteKind::DesertCity,
             13..=18 => SiteKind::SavannahPit,
+            19..=36 => SiteKind::CoastalTown,
             _ => SiteKind::Refactor,
         };
         let world_dims = ctx.sim.get_aabr();
@@ -1256,6 +1265,7 @@ impl Civs {
                         | SiteKind::Settlement
                         | SiteKind::CliffTown
                         | SiteKind::SavannahPit
+                        | SiteKind::CoastalTown
                         | SiteKind::DesertCity
                         | SiteKind::Castle
                 )
@@ -1269,6 +1279,7 @@ impl Civs {
         | SiteKind::Settlement
         | SiteKind::CliffTown
         | SiteKind::SavannahPit
+        | SiteKind::CoastalTown
         | SiteKind::DesertCity
         | SiteKind::Castle = self.sites[site].kind
         {
@@ -1755,6 +1766,7 @@ pub enum SiteKind {
     Refactor,
     CliffTown,
     SavannahPit,
+    CoastalTown,
     DesertCity,
     ChapelSite,
     Tree,
@@ -1827,6 +1839,10 @@ impl SiteKind {
                     matches!(chunk.get_biome(), BiomeKind::Savannah)
                         && !chunk.near_cliffs()
                         && !chunk.river.near_water()
+                        && suitable_for_town()
+                },
+                SiteKind::CoastalTown => {
+                    (2.0..3.5).contains(&(chunk.water_alt - CONFIG.sea_level))
                         && suitable_for_town()
                 },
                 SiteKind::DesertCity => {
@@ -1903,6 +1919,7 @@ impl Site {
                 | SiteKind::CliffTown
                 | SiteKind::DesertCity
                 | SiteKind::SavannahPit
+                | SiteKind::CoastalTown
         )
     }
 

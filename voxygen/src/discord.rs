@@ -119,6 +119,9 @@ impl ActivityUpdate {
                     Settlement(CliffTown) => format!("Climbing the towers of {chunk_name}"),
                     Settlement(DesertCity) => format!("Hiding from the sun in {chunk_name}"),
                     Settlement(SavannahPit) => format!("Shop at the market down in {chunk_name}"),
+                    Settlement(CoastalTown) => {
+                        format!("Dip your feet in the water in {chunk_name}")
+                    },
                     _ => format!("In {chunk_name}"),
                 };
 

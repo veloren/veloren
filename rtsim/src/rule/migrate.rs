@@ -74,6 +74,7 @@ impl Rule for Migrate {
                             site.world_site.map_or(false, |ws| matches!(&ctx.index.sites.get(ws).kind, SiteKind::Refactor(_)
                                 | SiteKind::CliffTown(_)
                                 | SiteKind::SavannahPit(_)
+                                | SiteKind::CoastalTown(_)
                                 | SiteKind::DesertCity(_)))
                         })
                         .min_by_key(|(_, site)| site.wpos.as_().distance_squared(npc.wpos.xy()) as i32)

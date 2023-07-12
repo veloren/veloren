@@ -85,6 +85,7 @@ impl Data {
                 SiteKind::Refactor(site2)
                 | SiteKind::CliffTown(site2)
                 | SiteKind::SavannahPit(site2)
+                | SiteKind::CoastalTown(site2)
                 | SiteKind::DesertCity(site2) => Some(site2),
                 _ => None,
             })?)))
@@ -122,6 +123,8 @@ impl Data {
                         | PlotKind::CliffTower(_)
                         | PlotKind::DesertCityMultiPlot(_)
                         | PlotKind::DesertCityTemple(_)
+                        | PlotKind::CoastalHouse(_)
+                        | PlotKind::CoastalWorkshop(_)
                 )
             }) as _;
             let matches_plazas = (|kind: &PlotKind| matches!(kind, PlotKind::Plaza)) as _;
