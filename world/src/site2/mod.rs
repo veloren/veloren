@@ -1039,6 +1039,98 @@ impl Site {
         site
     }
 
+    pub fn generate_coastal_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: NameGen::location(&mut rng).generate_danari(),
+            ..Site::default()
+        };
+        site.demarcate_obstacles(land);
+
+        site.make_plaza(land, &mut rng);
+        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2)]);
+
+        for _ in 0..45 {
+            match *build_chance.choose_seeded(rng.gen()) {
+                1 => {
+                    // CoastalHouse
+
+                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            7..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let coastal_house = plot::CoastalHouse::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let coastal_house_alt = coastal_house.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::CoastalHouse(coastal_house),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(coastal_house_alt),
+                        })
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                2 => {
+                    // CoastalWorkshop
+
+                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            7..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let coastal_workshop = plot::CoastalWorkshop::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let coastal_workshop_alt = coastal_workshop.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::CoastalWorkshop(coastal_workshop),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(coastal_workshop_alt),
+                        })
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                _ => {},
+            }
+        }
+        site
+    }
+
     pub fn generate_desert_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
 
@@ -1494,6 +1586,10 @@ impl Site {
         for plot in plots_to_render {
             let (prim_tree, fills, mut entities) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self, canvas),
+                PlotKind::CoastalHouse(coastal_house) => coastal_house.render_collect(self, canvas),
+                PlotKind::CoastalWorkshop(coastal_workshop) => {
+                    coastal_workshop.render_collect(self, canvas)
+                },
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
                 PlotKind::SeaChapel(sea_chapel) => sea_chapel.render_collect(self, canvas),

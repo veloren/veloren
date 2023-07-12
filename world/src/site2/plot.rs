@@ -3,6 +3,8 @@ mod bridge;
 mod castle;
 mod citadel;
 mod cliff_tower;
+mod coastal_house;
+mod coastal_workshop;
 mod desert_city_multiplot;
 mod desert_city_temple;
 pub mod dungeon;
@@ -18,11 +20,12 @@ mod workshop;
 
 pub use self::{
     adlet::AdletStronghold, bridge::Bridge, castle::Castle, citadel::Citadel,
-    cliff_tower::CliffTower, desert_city_multiplot::DesertCityMultiPlot,
-    desert_city_temple::DesertCityTemple, dungeon::Dungeon, dwarven_mine::DwarvenMine,
-    giant_tree::GiantTree, gnarling::GnarlingFortification, house::House,
-    savannah_hut::SavannahHut, savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop,
-    sea_chapel::SeaChapel, workshop::Workshop,
+    cliff_tower::CliffTower, coastal_house::CoastalHouse, coastal_workshop::CoastalWorkshop,
+    desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
+    dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
+    gnarling::GnarlingFortification, house::House, savannah_hut::SavannahHut,
+    savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
+    workshop::Workshop,
 };
 
 use super::*;
@@ -64,6 +67,8 @@ impl Plot {
 
 pub enum PlotKind {
     House(House),
+    CoastalHouse(CoastalHouse),
+    CoastalWorkshop(CoastalWorkshop),
     Workshop(Workshop),
     DesertCityMultiPlot(DesertCityMultiPlot),
     DesertCityTemple(DesertCityTemple),

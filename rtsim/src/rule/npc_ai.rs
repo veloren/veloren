@@ -673,6 +673,7 @@ fn adventure() -> impl Action<DefaultState> {
                         SiteKind::Refactor(_)
                             | SiteKind::CliffTown(_)
                             | SiteKind::SavannahPit(_)
+                            | SiteKind::CoastalTown(_)
                             | SiteKind::DesertCity(_)
                     ),
                 ) && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
@@ -776,6 +777,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                         Some(SiteKind::Refactor(site2)
                             | SiteKind::CliffTown(site2)
                             | SiteKind::SavannahPit(site2)
+                            | SiteKind::CoastalTown(site2)
                             | SiteKind::DesertCity(site2)) => site2,
                         _ => return None,
                     };

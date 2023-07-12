@@ -22,4 +22,5 @@ pub enum SettlementKindMeta {
     CliffTown,
     DesertCity,
     SavannahPit,
+    CoastalTown,
 }

@@ -72,6 +72,7 @@ pub enum SiteKind {
     DesertCity(site2::Site),
     ChapelSite(site2::Site),
     DwarvenMine(site2::Site),
+    CoastalTown(site2::Site),
     GiantTree(site2::Site),
     Gnarling(site2::Site),
     Bridge(site2::Site),
@@ -135,6 +136,13 @@ impl Site {
         }
     }
 
+    pub fn coastal_town(ct: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::CoastalTown(ct),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn desert_city(dc: site2::Site) -> Self {
         Self {
             kind: SiteKind::DesertCity(dc),
@@ -185,6 +193,7 @@ impl Site {
             SiteKind::Refactor(s) => s.radius(),
             SiteKind::CliffTown(ct) => ct.radius(),
             SiteKind::SavannahPit(sp) => sp.radius(),
+            SiteKind::CoastalTown(ct) => ct.radius(),
             SiteKind::DesertCity(dc) => dc.radius(),
             SiteKind::ChapelSite(p) => p.radius(),
             SiteKind::DwarvenMine(p) => p.radius(),
@@ -204,6 +213,7 @@ impl Site {
             SiteKind::Refactor(s) => s.origin,
             SiteKind::CliffTown(ct) => ct.origin,
             SiteKind::SavannahPit(sp) => sp.origin,
+            SiteKind::CoastalTown(ct) => ct.origin,
             SiteKind::DesertCity(dc) => dc.origin,
             SiteKind::ChapelSite(p) => p.origin,
             SiteKind::DwarvenMine(p) => p.origin,
@@ -223,6 +233,7 @@ impl Site {
             SiteKind::Refactor(s) => s.spawn_rules(wpos),
             SiteKind::CliffTown(ct) => ct.spawn_rules(wpos),
             SiteKind::SavannahPit(sp) => sp.spawn_rules(wpos),
+            SiteKind::CoastalTown(ct) => ct.spawn_rules(wpos),
             SiteKind::DesertCity(dc) => dc.spawn_rules(wpos),
             SiteKind::ChapelSite(p) => p.spawn_rules(wpos),
             SiteKind::DwarvenMine(p) => p.spawn_rules(wpos),
@@ -242,6 +253,7 @@ impl Site {
             SiteKind::Refactor(s) => s.name(),
             SiteKind::CliffTown(ct) => ct.name(),
             SiteKind::SavannahPit(sp) => sp.name(),
+            SiteKind::CoastalTown(ct) => ct.name(),
             SiteKind::DesertCity(dc) => dc.name(),
             SiteKind::ChapelSite(p) => p.name(),
             SiteKind::DwarvenMine(p) => p.name(),
@@ -262,6 +274,7 @@ impl Site {
             | SiteKind::Refactor(_)
             | SiteKind::CliffTown(_)
             | SiteKind::SavannahPit(_)
+            | SiteKind::CoastalTown(_)
             | SiteKind::DesertCity(_) => Some(common::trade::SiteInformation {
                 id: site_id,
                 unconsumed_stock: self.economy.get_available_stock(),
@@ -280,6 +293,7 @@ impl Site {
             SiteKind::Refactor(s) => s.render(canvas, dynamic_rng),
             SiteKind::CliffTown(ct) => ct.render(canvas, dynamic_rng),
             SiteKind::SavannahPit(sp) => sp.render(canvas, dynamic_rng),
+            SiteKind::CoastalTown(ct) => ct.render(canvas, dynamic_rng),
             SiteKind::DesertCity(dc) => dc.render(canvas, dynamic_rng),
             SiteKind::ChapelSite(p) => p.render(canvas, dynamic_rng),
             SiteKind::DwarvenMine(p) => p.render(canvas, dynamic_rng),
@@ -312,6 +326,7 @@ impl Site {
             SiteKind::Refactor(_) => {},
             SiteKind::CliffTown(_) => {},
             SiteKind::SavannahPit(_) => {},
+            SiteKind::CoastalTown(_) => {},
             SiteKind::DesertCity(_) => {},
             SiteKind::ChapelSite(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::DwarvenMine(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
@@ -329,6 +344,7 @@ impl Site {
             SiteKind::Refactor(_)
                 | SiteKind::CliffTown(_)
                 | SiteKind::SavannahPit(_)
+                | SiteKind::CoastalTown(_)
                 | SiteKind::DesertCity(_)
                 | SiteKind::Settlement(_)
         )
@@ -344,6 +360,7 @@ impl Site {
             SiteKind::Refactor(site2) => Some(site2),
             SiteKind::CliffTown(site2) => Some(site2),
             SiteKind::SavannahPit(site2) => Some(site2),
+            SiteKind::CoastalTown(site2) => Some(site2),
             SiteKind::Tree(_) => None,
             SiteKind::DesertCity(site2) => Some(site2),
             SiteKind::ChapelSite(site2) => Some(site2),
@@ -365,6 +382,9 @@ impl SiteKind {
             SiteKind::CliffTown(_) => Some(SiteKindMeta::Settlement(SettlementKindMeta::CliffTown)),
             SiteKind::SavannahPit(_) => {
                 Some(SiteKindMeta::Settlement(SettlementKindMeta::SavannahPit))
+            },
+            SiteKind::CoastalTown(_) => {
+                Some(SiteKindMeta::Settlement(SettlementKindMeta::CoastalTown))
             },
             SiteKind::DesertCity(_) => {
                 Some(SiteKindMeta::Settlement(SettlementKindMeta::DesertCity))

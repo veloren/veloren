@@ -79,6 +79,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                                         SiteKind::Refactor(_)
                                             | SiteKind::CliffTown(_)
                                             | SiteKind::SavannahPit(_)
+                                            | SiteKind::CoastalTown(_)
                                             | SiteKind::DesertCity(_)
                                     )
                                 })
