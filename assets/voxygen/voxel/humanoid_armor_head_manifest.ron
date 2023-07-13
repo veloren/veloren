@@ -295,7 +295,7 @@
             color: None
         ),
         (Dwarf, Female, "common.items.armor.misc.head.wanderers_hat"): (
-            vox_spec: ("armor.misc.head.wanderers_hat", (-4, -5.0, 4.0)),
+            vox_spec: ("armor.misc.head.wanderers_hat", (-5, -5.0, 4.0)),
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.wanderers_hat"): (
