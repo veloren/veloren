@@ -88,6 +88,9 @@ buff-desc-frigid = Frys dina fiender.
 ## Lifesteal
 buff-title-lifesteal = Hälsostöld
 buff-desc-lifesteal = Sug livet ur dina fiender.
+## Polymorped
+buff-title-salamanderaspect = Salamanders Egenskap
+buff-desc-salamanderaspect = Du kan inte brännas och rör dig fort genom lava.
 ## Util
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder

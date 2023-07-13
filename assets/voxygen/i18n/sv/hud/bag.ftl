@@ -40,3 +40,4 @@ hud-bag-sort_by_name = Sortera efter Namn
 hud-bag-sort_by_quality = Sortera efter Kvalitet
 hud-bag-sort_by_category = Sortera efter Kategori
 hud-bag-sort_by_tag = Sort efter Tagg
+hud-bag-sort_by_quantity = Sortera efter Kvantitet

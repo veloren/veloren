@@ -43,6 +43,7 @@ hud-collect = Samla in
 hud-pick_up = Plocka upp
 hud-open = Öppna
 hud-use = Använd
+hud-read = Läs
 hud-unlock-requires = Öppna med { $item }
 hud-unlock-consumes = Använd { $item } för att öppna
 hud-mine = Hacka
