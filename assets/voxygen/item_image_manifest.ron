@@ -2976,6 +2976,14 @@
         "voxel.armor.miner.helmet",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
+    Simple("common.items.armor.miner.helmet_red"): VoxTrans(
+        "voxel.armor.miner.helmet",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
+    ),
+    Simple("common.items.armor.miner.helmet_blue"): VoxTrans(
+        "voxel.armor.miner.helmet",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
+    ),
     // Rings
     Simple("common.items.armor.misc.ring.scratched"): VoxTrans(
         "voxel.armor.misc.ring.scratched",

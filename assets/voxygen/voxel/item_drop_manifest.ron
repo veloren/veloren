@@ -749,6 +749,9 @@
     Simple("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): "voxel.armor.misc.head.woolly_wintercap",
     Simple("common.items.armor.misc.head.helmet"): "voxel.armor.misc.head.helmet",
     Simple("common.items.armor.misc.head.gnarling_mask"): "voxel.armor.misc.head.gnarling_mask_drop",
+    Simple("common.items.armor.miner.helmet_orange"): "voxel.armor.miner.helmet",
+    Simple("common.items.armor.miner.helmet_red"): "voxel.armor.miner.helmet",
+    Simple("common.items.armor.miner.helmet_blue"): "voxel.armor.miner.helmet",
     // Rings
     Simple("common.items.armor.misc.ring.scratched"): "voxel.armor.misc.ring.scratched",
     Simple("common.items.armor.misc.ring.gold"): "voxel.armor.misc.ring.gold",
