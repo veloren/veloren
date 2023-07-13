@@ -1455,19 +1455,6 @@
             vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
             color: Some((212, 91, 0)),
         ),
-        (Human, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Elf, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Elf, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        //
         (Dwarf, Male, "common.items.armor.miner.helmet_orange"): (
             vox_spec: ("armor.miner.helmet", (-5.0, -5.0, -1.0)),
             color: Some((212, 91, 0)),
@@ -1492,31 +1479,6 @@
         (Dwarf, Female, "common.items.armor.miner.helmet_blue"): (
             vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
             color: Some((83, 176, 210)),
-        ),
-        //
-        (Danari, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Danari, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Draugr, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Draugr, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Orc, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Orc, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
         ),
     }
 ))
