@@ -2972,15 +2972,7 @@
         "voxel.armor.misc.head.helmet",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Simple("common.items.armor.miner.helmet_orange"): VoxTrans(
-        "voxel.armor.miner.helmet",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Simple("common.items.armor.miner.helmet_red"): VoxTrans(
-        "voxel.armor.miner.helmet",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Simple("common.items.armor.miner.helmet_blue"): VoxTrans(
+    Simple("common.items.armor.miner.helmet"): VoxTrans(
         "voxel.armor.miner.helmet",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    head: Item("common.items.armor.miner.helmet_orange"),
+    head: Item("common.items.armor.miner.helmet"),
     chest: Item("common.items.armor.miner.chest"),
     gloves: Item("common.items.armor.miner.hand"),
     belt: Item("common.items.armor.miner.belt"),
