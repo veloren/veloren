@@ -13,7 +13,7 @@ ChatGPT: Improving Code Quality, Speeding up finding Syntax Errors
 
 use super::*;
 use crate::{site2::gen::PrimitiveTransform, Land};
-use common::terrain::Structure as PrefabStructure;
+use common::{generation::SpecialEntity, terrain::Structure as PrefabStructure};
 use rand::prelude::*;
 use vek::*;
 
@@ -166,7 +166,8 @@ impl Structure for DwarvenMine {
         let entrance_offset: Vec3<f32> = (20.0, -20.0, 45.0).into();
         // Spawn waypoint
         let waypoint_pos = (entrance_pos + Vec3::new(1, -1, 4)).map(|x| x as f32) + entrance_offset;
-        painter.spawn(EntityInfo::at(waypoint_pos.map(|e| e)).into_waypoint());
+        painter
+            .spawn(EntityInfo::at(waypoint_pos.map(|e| e)).into_special(SpecialEntity::Waypoint));
 
         let miner_pos: Vec<(Vec3<f32>, &str)> = vec![
             // Entrance

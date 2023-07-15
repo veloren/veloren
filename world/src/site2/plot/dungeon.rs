@@ -9,7 +9,8 @@ use crate::{
 use common::{
     assets::{self, AssetExt, AssetHandle},
     astar::Astar,
-    generation::{ChunkSupplement, EntityInfo},
+    comp::Teleporter,
+    generation::{ChunkSupplement, EntityInfo, SpecialEntity},
     store::{Id, Store},
     terrain::{
         BiomeKind, Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize,
@@ -146,7 +147,7 @@ impl Dungeon {
         if area.contains_point(pos - self.origin) {
             supplement.add_entity(
                 EntityInfo::at(Vec3::new(pos.x as f32, pos.y as f32, self.alt as f32) + 5.0)
-                    .into_waypoint(),
+                    .into_special(SpecialEntity::Waypoint),
             );
         }
 
@@ -615,6 +616,14 @@ impl Floor {
             for y in area.min.y..area.max.y {
                 let tile_pos = Vec2::new(x, y).map(|e| e.div_euclid(TILE_SIZE)) - self.tile_offset;
                 let wpos2d = origin.xy() + Vec2::new(x, y);
+                let is_boss_tile = self.tiles.get(tile_pos).filter(|_| self.final_level);
+
+                let tile_wcenter = origin
+                    + Vec3::from(
+                        Vec2::new(x, y)
+                            .map(|e| e.div_euclid(TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2),
+                    );
+
                 if let Some(Tile::Room(room)) = self.tiles.get(tile_pos) {
                     let room = &self.rooms[*room];
 
@@ -648,6 +657,25 @@ impl Floor {
                         ),
                         RoomKind::Peaceful | RoomKind::LavaPlatforming => {},
                     }
+                } else if let Some(Tile::UpStair(_, _)) = is_boss_tile && tile_wcenter.xy() == wpos2d {
+                    // Create one teleporter at the top of the "stairs" and one at the botton
+                    let bottom_pos = tile_wcenter.map(|v| v as f32) ;
+                    let top_pos =
+                        (tile_wcenter + Vec3::unit_z() * self.total_depth()).map(|v| v as f32);
+
+                    // Move both a bit to the side to prevent teleportation loop, ideally we'd have the portals at another location
+                    supplement.add_entity(EntityInfo::at(top_pos).into_special(
+                        SpecialEntity::Teleporter(Teleporter {
+                            target: bottom_pos+ Vec3::unit_x() * 5.,
+                            requires_no_aggro: false,
+                        }),
+                    ));
+                    supplement.add_entity(EntityInfo::at(bottom_pos).into_special(
+                        SpecialEntity::Teleporter(Teleporter {
+                            target: top_pos+ Vec3::unit_x() * 5.,
+                            requires_no_aggro: true,
+                        }),
+                    ));
                 }
             }
         }

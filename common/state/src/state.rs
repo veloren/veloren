@@ -219,6 +219,7 @@ impl State {
         ecs.register::<comp::LootOwner>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Stance>();
+        ecs.register::<comp::Teleporter>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

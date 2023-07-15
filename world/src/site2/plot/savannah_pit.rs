@@ -4,7 +4,7 @@ use crate::{
     Land,
 };
 use common::{
-    generation::EntityInfo,
+    generation::{EntityInfo, SpecialEntity},
     terrain::{BlockKind, SpriteKind},
 };
 use rand::prelude::*;
@@ -942,7 +942,9 @@ impl Structure for SavannahPit {
         // campfire
         let campfire_pos = (center - 10).with_z(base);
 
-        painter.spawn(EntityInfo::at(campfire_pos.map(|e| e as f32)).into_waypoint());
+        painter.spawn(
+            EntityInfo::at(campfire_pos.map(|e| e as f32)).into_special(SpecialEntity::Waypoint),
+        );
 
         // underground market hall
         let stairs_pos = Vec2::new(center.x, center.y - (2 * length) + 1);

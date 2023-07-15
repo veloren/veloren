@@ -11,7 +11,7 @@ use common::{
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
         shockwave, Alignment, BehaviorCapability, Body, ItemDrops, LightEmitter, Object, Ori, Pos,
-        Projectile, TradingBehavior, Vel, WaypointArea,
+        Projectile, Teleporter, TradingBehavior, Vel, WaypointArea,
     },
     event::{EventBus, NpcBuilder, UpdateCharacterMetadata},
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -416,5 +416,12 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
                 Time(time),
             ),
         ]))
+        .build();
+}
+
+pub fn handle_create_teleporter(server: &mut Server, pos: Vec3<f32>, teleporter: Teleporter) {
+    server
+        .state
+        .create_teleporter(comp::Pos(pos), teleporter)
         .build();
 }

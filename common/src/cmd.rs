@@ -310,6 +310,7 @@ pub enum ServerChatCommand {
     Object,
     PermitBuild,
     Players,
+    Portal,
     Region,
     ReloadChunks,
     RemoveLights,
@@ -618,6 +619,16 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Players => cmd(vec![], "Lists players currently online", None),
+            ServerChatCommand::Portal => cmd(
+                vec![
+                    Float("x", 0., Required),
+                    Float("y", 0., Required),
+                    Float("z", 0., Required),
+                    Boolean("requires_no_aggro", "true".to_string(), Optional),
+                ],
+                "Spawns a portal",
+                Some(Moderator),
+            ),
             ServerChatCommand::ReloadChunks => cmd(
                 vec![],
                 "Reloads all chunks loaded on the server",
@@ -890,6 +901,7 @@ impl ServerChatCommand {
             ServerChatCommand::Object => "object",
             ServerChatCommand::PermitBuild => "permit_build",
             ServerChatCommand::Players => "players",
+            ServerChatCommand::Portal => "portal",
             ServerChatCommand::Region => "region",
             ServerChatCommand::ReloadChunks => "reload_chunks",
             ServerChatCommand::RemoveLights => "remove_lights",

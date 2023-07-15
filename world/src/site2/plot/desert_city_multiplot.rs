@@ -6,7 +6,7 @@ use crate::{
     Land,
 };
 use common::{
-    generation::EntityInfo,
+    generation::{EntityInfo, SpecialEntity},
     terrain::{Block, BlockKind, SpriteKind, Structure as PrefabStructure, StructuresGroup},
 };
 use lazy_static::lazy_static;
@@ -2432,7 +2432,10 @@ impl Structure for DesertCityMultiPlot {
                 // spawn campfire in some multiplots that are not markethall
                 let campfire_pos = (center).with_z(base + 1);
                 if self.campfire {
-                    painter.spawn(EntityInfo::at(campfire_pos.map(|e| e as f32)).into_waypoint())
+                    painter.spawn(
+                        EntityInfo::at(campfire_pos.map(|e| e as f32))
+                            .into_special(SpecialEntity::Waypoint),
+                    )
                 }
             },
         }

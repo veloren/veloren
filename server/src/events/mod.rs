@@ -1,5 +1,8 @@
 use crate::{
-    events::interaction::{handle_mount_volume, handle_tame_pet},
+    events::{
+        entity_creation::handle_create_teleporter,
+        interaction::{handle_mount_volume, handle_tame_pet},
+    },
     persistence::PersistedComponents,
     state_ext::StateExt,
     Server,
@@ -209,6 +212,9 @@ impl Server {
                     driver,
                 } => handle_create_ship(self, pos, ori, ship, rtsim_entity, driver, Vec::new()),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
+                ServerEvent::CreateTeleporter(pos, teleporter) => {
+                    handle_create_teleporter(self, pos, teleporter)
+                },
                 ServerEvent::ClientDisconnect(entity, reason) => {
                     frontend_events.push(handle_client_disconnect(self, entity, reason, false))
                 },

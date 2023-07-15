@@ -3,7 +3,7 @@ use crate::{
     comp::{
         self, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
-        Alignment, Body, Item,
+        Alignment, Body, Item, Teleporter,
     },
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
@@ -164,9 +164,14 @@ pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
 }
 
 #[derive(Clone)]
+pub enum SpecialEntity {
+    Waypoint,
+    Teleporter(Teleporter),
+}
+
+#[derive(Clone)]
 pub struct EntityInfo {
     pub pos: Vec3<f32>,
-    pub is_waypoint: bool, // Edge case, overrides everything else
     pub alignment: Alignment,
     /// Parameterises agent behaviour
     pub has_agency: bool,
@@ -194,13 +199,15 @@ pub struct EntityInfo {
     // we can't use DHashMap, do we want to move that into common?
     pub trading_information: Option<SiteInformation>,
     //Option<hashbrown::HashMap<crate::trade::Good, (f32, f32)>>, /* price and available amount */
+
+    // Edge cases, override everything else
+    pub special_entity: Option<SpecialEntity>, // Campfire
 }
 
 impl EntityInfo {
     pub fn at(pos: Vec3<f32>) -> Self {
         Self {
             pos,
-            is_waypoint: false,
             alignment: Alignment::Wild,
 
             has_agency: true,
@@ -219,6 +226,7 @@ impl EntityInfo {
             skillset_asset: None,
             pet: None,
             trading_information: None,
+            special_entity: None,
         }
     }
 
@@ -377,8 +385,8 @@ impl EntityInfo {
     }
 
     #[must_use]
-    pub fn into_waypoint(mut self) -> Self {
-        self.is_waypoint = true;
+    pub fn into_special(mut self, special: SpecialEntity) -> Self {
+        self.special_entity = Some(special);
         self
     }
 

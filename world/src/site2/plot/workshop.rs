@@ -4,7 +4,7 @@ use crate::{
     Land,
 };
 use common::{
-    generation::EntityInfo,
+    generation::{EntityInfo, SpecialEntity},
     terrain::{Block, BlockKind, SpriteKind},
 };
 use rand::prelude::*;
@@ -145,7 +145,7 @@ impl Structure for Workshop {
 
         painter.spawn(
             EntityInfo::at(self.bounds.center().with_z(base).map(|e| e as f32 + 0.5))
-                .into_waypoint(),
+                .into_special(SpecialEntity::Waypoint),
         );
     }
 }

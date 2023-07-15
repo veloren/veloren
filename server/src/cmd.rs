@@ -167,6 +167,7 @@ fn do_command(
         ServerChatCommand::Object => handle_object,
         ServerChatCommand::PermitBuild => handle_permit_build,
         ServerChatCommand::Players => handle_players,
+        ServerChatCommand::Portal => handle_spawn_portal,
         ServerChatCommand::Region => handle_region,
         ServerChatCommand::ReloadChunks => handle_reload_chunks,
         ServerChatCommand::RemoveLights => handle_remove_lights,
@@ -693,6 +694,9 @@ fn handle_make_npc(
         match NpcData::from_entity_info(entity_info) {
             NpcData::Waypoint(_) => {
                 return Err("Waypoint spawning is not implemented".to_owned());
+            },
+            NpcData::Teleporter(_, _) => {
+                return Err("Teleporter spawning is not implemented".to_owned());
             },
             NpcData::Data {
                 inventory,
@@ -2036,6 +2040,37 @@ fn handle_players(
         ),
     );
     Ok(())
+}
+
+fn handle_spawn_portal(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let pos = position(server, target, "target")?;
+
+    if let (Some(x), Some(y), Some(z), requires_no_aggro) =
+        parse_cmd_args!(args, f32, f32, f32, bool)
+    {
+        let requires_no_aggro = requires_no_aggro.unwrap_or(false);
+        server
+            .state
+            .create_teleporter(pos, comp::Teleporter {
+                target: Vec3::new(x, y, z),
+                requires_no_aggro,
+            })
+            .build();
+
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned portal"),
+        );
+        Ok(())
+    } else {
+        Err("Invalid arguments".to_string())
+    }
 }
 
 fn handle_build(

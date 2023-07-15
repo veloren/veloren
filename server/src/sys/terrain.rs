@@ -13,10 +13,10 @@ use common::{
     calendar::Calendar,
     comp::{
         self, agent, biped_small, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate,
-        Pos, Presence, Waypoint,
+        Pos, Presence, Teleporter, Waypoint,
     },
     event::{EventBus, NpcBuilder, ServerEvent},
-    generation::EntityInfo,
+    generation::{EntityInfo, SpecialEntity},
     lottery::LootSpec,
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
@@ -222,6 +222,9 @@ impl<'a> System<'a> for Sys {
                                 .with_loot(loot),
                         });
                     },
+                    NpcData::Teleporter(pos, teleporter) => {
+                        server_emitter.emit(ServerEvent::CreateTeleporter(pos, teleporter));
+                    },
                 }
             }
         }
@@ -415,13 +418,14 @@ pub enum NpcData {
         loot: LootSpec<String>,
     },
     Waypoint(Vec3<f32>),
+    Teleporter(Vec3<f32>, Teleporter),
 }
 
 impl NpcData {
     pub fn from_entity_info(entity: EntityInfo) -> Self {
         let EntityInfo {
             // flags
-            is_waypoint,
+            special_entity,
             has_agency,
             agent_mark,
             alignment,
@@ -444,8 +448,11 @@ impl NpcData {
             pet: _, // TODO: I had no idea we have this.
         } = entity;
 
-        if is_waypoint {
-            return Self::Waypoint(pos);
+        if let Some(special) = special_entity {
+            return match special {
+                SpecialEntity::Waypoint => Self::Waypoint(pos),
+                SpecialEntity::Teleporter(teleporter) => Self::Teleporter(pos, teleporter),
+            };
         }
 
         let name = name.unwrap_or_else(|| "Unnamed".to_string());

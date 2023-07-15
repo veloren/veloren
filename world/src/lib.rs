@@ -46,7 +46,7 @@ use crate::{
 use common::{
     assets,
     calendar::Calendar,
-    generation::{ChunkSupplement, EntityInfo},
+    generation::{ChunkSupplement, EntityInfo, SpecialEntity},
     lod,
     resources::TimeOfDay,
     rtsim::ChunkResource,
@@ -487,7 +487,8 @@ impl World {
                 .fold(SpawnRules::default(), |a, b| a.combine(b))
                 .waypoints
             {
-                supplement.add_entity(EntityInfo::at(waypoint_pos).into_waypoint());
+                supplement
+                    .add_entity(EntityInfo::at(waypoint_pos).into_special(SpecialEntity::Waypoint));
             }
         }
 

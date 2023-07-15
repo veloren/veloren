@@ -18,6 +18,7 @@ use common::{
     comp::{
         self,
         item::{ItemKind, MaterialStatManifest},
+        object,
         skills::{GeneralSkill, Skill},
         ChatType, Group, Inventory, Item, LootOwner, Object, Player, Poise, Presence, PresenceKind,
     },
@@ -113,6 +114,14 @@ pub trait StateExt {
         view_distance: u32,
         world: &std::sync::Arc<world::World>,
         index: &world::IndexOwned,
+    ) -> EcsEntityBuilder;
+    /// Creates a teleporter entity, which allows players to teleport to the
+    /// `target` position. You might want to require the teleporting entity
+    /// to not have agro for teleporting.
+    fn create_teleporter(
+        &mut self,
+        pos: comp::Pos,
+        teleporter: comp::Teleporter,
     ) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
     fn initialize_character_data(
@@ -605,6 +614,16 @@ impl StateExt for State {
                 },
                 PresenceKind::Spectator,
             ))
+    }
+
+    fn create_teleporter(
+        &mut self,
+        pos: comp::Pos,
+        teleporter: comp::Teleporter,
+    ) -> EcsEntityBuilder {
+        self.create_object(pos, object::Body::Portal)
+            .with(comp::Immovable)
+            .with(teleporter)
     }
 
     fn initialize_character_data(

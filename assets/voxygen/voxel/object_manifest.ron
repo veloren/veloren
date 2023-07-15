@@ -979,4 +979,14 @@
             central: ("armor.empty"),
         )
     ),
+    Portal: (
+        bone0: (
+            offset: (-11.0, -1.5, 0.0),
+            central: ("object.portal"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    )
 })

@@ -338,6 +338,7 @@ impl<'a> System<'a> for Sys {
                             // as of now, and if someone will try to spawn
                             // rtsim waypoint it is definitely error.
                             NpcData::Waypoint(_) => unimplemented!(),
+                            NpcData::Teleporter(_, _) => unimplemented!(),
                         })
                     } else {
                         error!("Npc is loaded but vehicle is unloaded");
@@ -401,6 +402,7 @@ impl<'a> System<'a> for Sys {
                     // as of now, and if someone will try to spawn
                     // rtsim waypoint it is definitely error.
                     NpcData::Waypoint(_) => unimplemented!(),
+                    NpcData::Teleporter(_, _) => unimplemented!(),
                 });
             }
         }

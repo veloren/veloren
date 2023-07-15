@@ -102,6 +102,8 @@ synced_components!(reexport_comps);
 // === NetSync implementations ===
 // ===============================
 
+use common::comp::Teleporter;
+
 use crate::sync::{NetSync, SyncFrom};
 
 impl NetSync for Body {
@@ -231,6 +233,10 @@ impl NetSync for SkillSet {
 }
 
 impl NetSync for Stance {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for Teleporter {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

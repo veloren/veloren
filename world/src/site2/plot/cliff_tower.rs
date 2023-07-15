@@ -4,7 +4,7 @@ use crate::{
     Land,
 };
 use common::{
-    generation::EntityInfo,
+    generation::{EntityInfo, SpecialEntity},
     terrain::{BlockKind, SpriteKind},
 };
 use rand::prelude::*;
@@ -752,7 +752,10 @@ impl Structure for CliffTower {
         // spawn campfire next to some clifftowers
         if self.campfire {
             let campfire_pos = (plot_center - 20).with_z(self.alt + 18);
-            painter.spawn(EntityInfo::at(campfire_pos.map(|e| e as f32)).into_waypoint());
+            painter.spawn(
+                EntityInfo::at(campfire_pos.map(|e| e as f32))
+                    .into_special(SpecialEntity::Waypoint),
+            );
         }
     }
 }
