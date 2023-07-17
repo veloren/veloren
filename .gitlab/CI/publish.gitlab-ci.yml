@@ -35,8 +35,7 @@ gittag:
   extends: .publish
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
-  # TODO: could use lighter image, since we don't need the cache or rust toolchain here
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  image: registry.gitlab.com/veloren/veloren-docker-ci/base/common:${CACHE_IMAGE_TAG}
   dependencies: []
   tags: ["veloren/veloren", "publish", "trusted"]
   script:
