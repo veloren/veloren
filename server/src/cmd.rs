@@ -2051,15 +2051,17 @@ fn handle_spawn_portal(
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
 
-    if let (Some(x), Some(y), Some(z), requires_no_aggro) =
-        parse_cmd_args!(args, f32, f32, f32, bool)
+    if let (Some(x), Some(y), Some(z), requires_no_aggro, buildup_time) =
+        parse_cmd_args!(args, f32, f32, f32, bool, f64)
     {
         let requires_no_aggro = requires_no_aggro.unwrap_or(false);
+        let buildup_time = Secs(buildup_time.unwrap_or(0.));
         server
             .state
             .create_teleporter(pos, comp::Teleporter {
                 target: Vec3::new(x, y, z),
                 requires_no_aggro,
+                buildup_time,
             })
             .build();
 

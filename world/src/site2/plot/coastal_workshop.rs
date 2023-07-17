@@ -3,7 +3,10 @@ use crate::{
     util::{RandomField, Sampler, CARDINALS},
     Land,
 };
-use common::{terrain::{BlockKind, SpriteKind}, generation::SpecialEntity};
+use common::{
+    generation::SpecialEntity,
+    terrain::{BlockKind, SpriteKind},
+};
 use rand::prelude::*;
 use std::sync::Arc;
 use vek::*;
@@ -326,7 +329,8 @@ impl Structure for CoastalWorkshop {
         }
 
         painter.spawn(
-            EntityInfo::at((center - 2).with_z(base - 2).map(|e| e as f32 + 0.5)).into_special(SpecialEntity::Waypoint),
+            EntityInfo::at((center - 2).with_z(base - 2).map(|e| e as f32 + 0.5))
+                .into_special(SpecialEntity::Waypoint),
         );
     }
 }

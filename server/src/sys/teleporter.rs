@@ -1,15 +1,21 @@
 use common::{
-    comp::{Agent, ForceUpdate, Player, Pos, Teleporter},
+    comp::{object, Agent, Body, ForceUpdate, Player, Pos, Teleporter, Teleporting},
+    resources::Time,
     CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use vek::Vec3;
 
-const TELEPORT_RADIUS: f32 = 1.;
+const TELEPORT_RADIUS: f32 = 3.;
 const MAX_AGGRO_DIST: f32 = 200.; // If an entity further than this is aggroed at a player, the portal will still work
 
 #[derive(Default)]
 pub struct Sys;
+
+fn in_portal_range(player_pos: Vec3<f32>, portal_pos: Vec3<f32>) -> bool {
+    player_pos.distance_squared(portal_pos) <= (TELEPORT_RADIUS).powi(2)
+}
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -19,7 +25,10 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Teleporter>,
         ReadStorage<'a, Agent>,
         WriteStorage<'a, ForceUpdate>,
+        WriteStorage<'a, Teleporting>,
+        WriteStorage<'a, Body>,
         Read<'a, CachedSpatialGrid>,
+        Read<'a, Time>,
     );
 
     const NAME: &'static str = "teleporter";
@@ -35,47 +44,101 @@ impl<'a> System<'a> for Sys {
             teleporters,
             agent,
             mut forced_update,
+            mut teleporting,
+            mut bodies,
             spatial_grid,
+            time,
         ): Self::SystemData,
     ) {
         let mut attempt_teleport = vec![];
-        let mut player_data = (&entities, &positions, &players).join();
+        let mut cancel_teleport = vec![];
+        let mut start_teleporting = vec![];
 
-        for (_entity, teleporter_pos, teleporter) in (&entities, &positions, &teleporters).join() {
+        let mut player_data = (&entities, &positions, &players, teleporting.maybe()).join();
+
+        let check_aggro = |entity, pos: Vec3<f32>| {
+            spatial_grid
+                .0
+                .in_circle_aabr(pos.xy(), MAX_AGGRO_DIST)
+                .any(|agent_entity| {
+                    agent.get(agent_entity).map_or(false, |agent| {
+                        agent.target.map_or(false, |agent_target| {
+                            agent_target.target == entity && agent_target.aggro_on
+                        })
+                    })
+                })
+        };
+
+        for (portal_entity, teleporter_pos, mut body, teleporter) in
+            (&entities, &positions, &mut bodies, &teleporters).join()
+        {
             let nearby_entities = spatial_grid
                 .0
                 .in_circle_aabr(teleporter_pos.0.xy(), TELEPORT_RADIUS);
 
-            for (entity, position, _) in nearby_entities.filter_map(|entity| {
+            let mut is_active = false;
+
+            for (entity, pos, _, teleporting) in nearby_entities.filter_map(|entity| {
                 player_data
                     .get(entity, &entities)
-                    .filter(|(_, player_pos, _)| {
-                        player_pos.0.distance_squared(teleporter_pos.0) <= (TELEPORT_RADIUS).powi(2)
-                    })
+                    .filter(|(_, player_pos, _, _)| in_portal_range(player_pos.0, teleporter_pos.0))
             }) {
-                // TODO: Check for aggro
-                attempt_teleport.push((entity, position.0, teleporter))
+                if teleporter.requires_no_aggro && check_aggro(entity, pos.0) {
+                    if teleporting.is_some() {
+                        cancel_teleport.push(entity)
+                    };
+
+                    continue;
+                }
+
+                if teleporting.is_none() {
+                    start_teleporting.push((entity, Teleporting {
+                        teleport_start: *time,
+                        portal: portal_entity,
+                        end_time: Time(time.0 + teleporter.buildup_time.0),
+                    }));
+                }
+
+                is_active = true;
+            }
+
+            if (*body == Body::Object(object::Body::PortalActive)) != is_active {
+                *body = Body::Object(if is_active {
+                    object::Body::PortalActive
+                } else {
+                    object::Body::Portal
+                });
             }
         }
 
-        for (entity, origin_pos, teleporter) in attempt_teleport {
-            if teleporter.requires_no_aggro {
-                // FIXME: How does this go with performance?
-                let is_aggroed = spatial_grid
-                    .0
-                    .in_circle_aabr(origin_pos.xy(), MAX_AGGRO_DIST)
-                    .any(|agent_entity| {
-                        agent.get(agent_entity).map_or(false, |agent| {
-                            agent.target.map_or(false, |agent_target| {
-                                agent_target.target == entity && agent_target.aggro_on
-                            })
-                        })
-                    });
+        for (entity, teleporting_data) in start_teleporting {
+            let _ = teleporting.insert(entity, teleporting_data);
+        }
 
-                if is_aggroed {
-                    continue;
-                }
+        for (entity, position, _, teleporting) in
+            (&entities, &positions, &players, &teleporting).join()
+        {
+            let portal_pos = positions.get(teleporting.portal);
+            let Some(teleporter) = teleporters.get(teleporting.portal) else {
+                cancel_teleport.push(entity);
+                continue
+            };
+
+            if portal_pos.map_or(true, |portal_pos| {
+                !in_portal_range(position.0, portal_pos.0)
+            }) {
+                cancel_teleport.push(entity);
+            } else if teleporting.end_time.0 <= time.0 {
+                attempt_teleport.push((entity, *teleporter));
+                cancel_teleport.push(entity);
             }
+        }
+
+        for entity in cancel_teleport {
+            teleporting.remove(entity);
+        }
+
+        for (entity, teleporter) in attempt_teleport {
             positions
                 .get_mut(entity)
                 .map(|position| position.0 = teleporter.target);

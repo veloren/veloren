@@ -981,12 +981,22 @@
     ),
     Portal: (
         bone0: (
-            offset: (-11.0, -1.5, 0.0),
+            offset: (-33.0, -33.0, 0.0),
             central: ("object.portal"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
-    )
+    ),
+    PortalActive: (
+        bone0: (
+            offset: (-33.0, -33.0, 0.0),
+            central: ("object.portal_active"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

@@ -111,6 +111,7 @@ make_case_elim!(
         LightningBolt = 96,
         SpearIcicle = 97,
         Portal = 98,
+        PortalActive = 99,
     }
 );
 
@@ -121,7 +122,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 99] = [
+pub const ALL_OBJECTS: [Body; 100] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -221,6 +222,7 @@ pub const ALL_OBJECTS: [Body; 99] = [
     Body::LightningBolt,
     Body::SpearIcicle,
     Body::Portal,
+    Body::PortalActive,
 ];
 
 impl From<Body> for super::Body {
@@ -329,6 +331,7 @@ impl Body {
             Body::LightningBolt => "lightning_bolt",
             Body::SpearIcicle => "spear_icicle",
             Body::Portal => "portal",
+            Self::PortalActive => "portal_active",
         }
     }
 
@@ -453,7 +456,7 @@ impl Body {
             Body::AdletTrap => 10.0,
             Body::Mine => 100.0,
             Body::LightningBolt | Body::SpearIcicle => 20000.0,
-            Body::Portal => 10., // I dont know really
+            Body::Portal | Body::PortalActive => 10., // I dont know really
         };
 
         Mass(m)

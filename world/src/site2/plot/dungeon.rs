@@ -11,6 +11,7 @@ use common::{
     astar::Astar,
     comp::Teleporter,
     generation::{ChunkSupplement, EntityInfo, SpecialEntity},
+    resources::Secs,
     store::{Id, Store},
     terrain::{
         BiomeKind, Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize,
@@ -668,12 +669,14 @@ impl Floor {
                         SpecialEntity::Teleporter(Teleporter {
                             target: bottom_pos+ Vec3::unit_x() * 5.,
                             requires_no_aggro: false,
+                            buildup_time: Secs(1.),
                         }),
                     ));
                     supplement.add_entity(EntityInfo::at(bottom_pos).into_special(
                         SpecialEntity::Teleporter(Teleporter {
                             target: top_pos+ Vec3::unit_x() * 5.,
                             requires_no_aggro: true,
+                            buildup_time: Secs(3.),
                         }),
                     ));
                 }

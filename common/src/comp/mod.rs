@@ -34,6 +34,7 @@ pub mod projectile;
 pub mod shockwave;
 pub mod skillset;
 mod stats;
+mod teleport;
 pub mod visual;
 
 // Reexports
@@ -86,7 +87,7 @@ pub use self::{
     location::{MapMarker, MapMarkerChange, MapMarkerUpdate, Waypoint, WaypointArea},
     loot_owner::LootOwner,
     melee::{Melee, MeleeConstructor, MeleeConstructorKind},
-    misc::{Object, Teleporter},
+    misc::Object,
     ori::Ori,
     pet::Pet,
     phys::{
@@ -103,6 +104,7 @@ pub use self::{
         SkillGroup, SkillGroupKind, SkillSet,
     },
     stats::{Stats, StatsModifier},
+    teleport::{Teleporter, Teleporting},
     visual::{LightAnimation, LightEmitter},
 };
 

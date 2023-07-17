@@ -625,6 +625,7 @@ impl ServerChatCommand {
                     Float("y", 0., Required),
                     Float("z", 0., Required),
                     Boolean("requires_no_aggro", "true".to_string(), Optional),
+                    Float("buildup_time", 5., Optional),
                 ],
                 "Spawns a portal",
                 Some(Moderator),
