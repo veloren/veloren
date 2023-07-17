@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Plugins can no longer prevent users from logging in
+- Removed fallback support for old save folder pre 0.8.0
 
 ### Fixed
 
