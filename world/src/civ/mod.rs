@@ -1884,14 +1884,23 @@ impl SiteKind {
                     on_land() && {
                         let land = Land::from_sim(sim);
                         let loc = loc.map(|v| TerrainChunkSize::RECT_SIZE.y as i32 * v);
+                        let dungeon_aabr = Aabr {
+                            min: loc - Vec2::broadcast(200),
+                            max: loc + Vec2::broadcast(200),
+                        };
 
                         // Get shallow caves under the dungeon
-                        let mut tunnels =
-                            cave::tunnels_at(loc /* very surely wrong */, 1, &land)
-                                .chain(cave::tunnels_at(loc, 2, &land));
+                        let mut tunnels = cave::tunnels_at(loc, 1, &land)
+                            .chain(cave::tunnels_at(loc, 2, &land))
+                            .filter(|tunnel| {
+                                dungeon_aabr.collides_with_aabr(Aabr {
+                                    min: tunnel.a.wpos,
+                                    max: tunnel.b.wpos,
+                                })
+                            });
 
                         // Make sure there are no shallow caves near the dungeon
-                        tunnels.next().is_none() || true
+                        tunnels.next().is_none()
                     }
                 },
                 SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(),

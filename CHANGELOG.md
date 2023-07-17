@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recipe for a new leather pack
 - Keybinds for zooming the camera (Defaults: ']' for zooming in and '[' for zooming out)
 - Added the ability to make pets sit, they wont follow nor defend you in this state
+- Portals that spawn in place of the last staircase at old style dungeons to prevent stair cheesing
 
 ### Changed
 
@@ -53,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed wild roaming cyclop loot table to not drop the quarry key
+- Dungeons now have an outer wall, preventing them from intersecting with caves or leaving holes in sides of mountains.
 
 ## [0.15.0] - 2023-07-01
 

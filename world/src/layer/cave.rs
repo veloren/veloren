@@ -76,8 +76,8 @@ pub fn surface_entrances<'a>(land: &'a Land) -> impl Iterator<Item = Vec2<i32>> 
 }
 
 pub struct Tunnel {
-    a: Node,
-    b: Node,
+    pub a: Node,
+    pub b: Node,
     curve: f32,
 }
 
