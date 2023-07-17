@@ -105,7 +105,6 @@ bincode = { workspace = true }
 chrono = { workspace = true }
 chumsky = "0.9"
 cpal = "0.14"
-copy_dir = "0.1.2"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 # TODO: remove
@@ -149,7 +148,7 @@ mimalloc = "0.1.29"
 
 # Mumble
 [target.'cfg(not(target_os="macos"))'.dependencies]
-mumble-link = "0.1.0"
+mumble-link = "0.2.0"
 
 [dev-dependencies]
 criterion = "0.3"
