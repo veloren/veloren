@@ -120,7 +120,7 @@ impl<'a> System<'a> for Sys {
                         end_time: Time(time.0 + teleporter.buildup_time.0),
                     }));
                 } else if let Some(remaining) = teleporting.and_then(|teleporting| {
-                    ((time.0 - teleporting.teleport_start.0) >= teleporter.buildup_time.0 / 2.
+                    ((time.0 - teleporting.teleport_start.0) >= teleporter.buildup_time.0 / 3.
                         && !matches!(*character_state, CharacterState::Blink(_)))
                     .then_some(teleporter.buildup_time.0 - (time.0 - teleporting.teleport_start.0))
                 }) {
@@ -181,6 +181,11 @@ impl<'a> System<'a> for Sys {
 
         for entity in cancel_teleport {
             teleporting.remove(entity);
+            character_states.get_mut(entity).map(|mut state| {
+                if let CharacterState::Blink(data) = &mut *state {
+                    data.stage_section = StageSection::Recover;
+                }
+            });
         }
 
         for (entity, teleporter) in attempt_teleport {
