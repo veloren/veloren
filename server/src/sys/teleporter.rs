@@ -1,6 +1,15 @@
+use std::time::Duration;
+
 use common::{
-    comp::{object, Agent, Body, ForceUpdate, Player, Pos, Teleporter, Teleporting},
+    comp::{
+        ability::AbilityMeta, object, Agent, Body, CharacterState, ForceUpdate, Player, Pos,
+        Teleporter, Teleporting,
+    },
     resources::Time,
+    states::{
+        blink,
+        utils::{AbilityInfo, StageSection},
+    },
     CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
@@ -27,6 +36,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, Teleporting>,
         WriteStorage<'a, Body>,
+        WriteStorage<'a, CharacterState>,
         Read<'a, CachedSpatialGrid>,
         Read<'a, Time>,
     );
@@ -46,6 +56,7 @@ impl<'a> System<'a> for Sys {
             mut forced_update,
             mut teleporting,
             mut bodies,
+            mut character_states,
             spatial_grid,
             time,
         ): Self::SystemData,
@@ -54,7 +65,14 @@ impl<'a> System<'a> for Sys {
         let mut cancel_teleport = vec![];
         let mut start_teleporting = vec![];
 
-        let mut player_data = (&entities, &positions, &players, teleporting.maybe()).join();
+        let mut player_data = (
+            &entities,
+            &positions,
+            &players,
+            &mut character_states,
+            teleporting.maybe(),
+        )
+            .join();
 
         let check_aggro = |entity, pos: Vec3<f32>| {
             spatial_grid
@@ -78,11 +96,15 @@ impl<'a> System<'a> for Sys {
 
             let mut is_active = false;
 
-            for (entity, pos, _, teleporting) in nearby_entities.filter_map(|entity| {
-                player_data
-                    .get(entity, &entities)
-                    .filter(|(_, player_pos, _, _)| in_portal_range(player_pos.0, teleporter_pos.0))
-            }) {
+            for (entity, pos, _, mut character_state, teleporting) in
+                nearby_entities.filter_map(|entity| {
+                    player_data
+                        .get(entity, &entities)
+                        .filter(|(_, player_pos, _, _, _)| {
+                            in_portal_range(player_pos.0, teleporter_pos.0)
+                        })
+                })
+            {
                 if teleporter.requires_no_aggro && check_aggro(entity, pos.0) {
                     if teleporting.is_some() {
                         cancel_teleport.push(entity)
@@ -97,6 +119,29 @@ impl<'a> System<'a> for Sys {
                         portal: portal_entity,
                         end_time: Time(time.0 + teleporter.buildup_time.0),
                     }));
+                } else if let Some(remaining) = teleporting.and_then(|teleporting| {
+                    ((time.0 - teleporting.teleport_start.0) >= teleporter.buildup_time.0 / 2.
+                        && !matches!(*character_state, CharacterState::Blink(_)))
+                    .then_some(teleporter.buildup_time.0 - (time.0 - teleporting.teleport_start.0))
+                }) {
+                    // Move into blink character state at half buildup time
+                    *character_state = CharacterState::Blink(blink::Data {
+                        timer: Duration::default(),
+                        stage_section: StageSection::Buildup,
+                        static_data: blink::StaticData {
+                            buildup_duration: Duration::from_millis((remaining * 1000.) as u64),
+                            recover_duration: Duration::default(),
+                            max_range: 0.,
+                            ability_info: AbilityInfo {
+                                tool: None,
+                                hand: None,
+                                input: common::comp::InputKind::Primary,
+                                ability_meta: AbilityMeta::default(),
+                                ability: None,
+                                input_attr: None,
+                            },
+                        },
+                    });
                 }
 
                 is_active = true;
