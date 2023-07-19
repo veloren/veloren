@@ -8,6 +8,5 @@ ItemDef(
     quality: Moderate,
     tags: [
         Material(Leather),
-        SalvageInto(Leather),
     ],
 )

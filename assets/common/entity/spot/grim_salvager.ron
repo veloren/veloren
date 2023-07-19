@@ -3,7 +3,7 @@
     name: Name("Grim Salvager"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.spots.bandit"),
+    loot: LootTable("common.loot_tables.humanoids.grim_salvager"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.dwarf_graverobber"),

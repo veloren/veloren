@@ -3,7 +3,7 @@
     name: Name("Gnarling Logger"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-0.logger"),
+    loot: LootTable("common.loot_tables.dungeon.gnarling.logger"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.gnarling.logger"),

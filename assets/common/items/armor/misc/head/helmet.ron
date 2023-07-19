@@ -9,5 +9,7 @@ ItemDef(
         )),
     )),
     quality: Moderate,
-    tags: [],
+    tags: [
+        SalvageInto(Steel, 1),
+    ],
 )

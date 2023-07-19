@@ -94,6 +94,7 @@ pub trait TagExampleInfo {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr)]
 pub enum MaterialKind {
     Metal,
+    Gem,
     Wood,
     Stone,
     Cloth,
@@ -110,7 +111,17 @@ pub enum Material {
     Steel,
     Cobalt,
     Bloodsteel,
+    Silver,
+    Gold,
     Orichalcum,
+    Topaz,
+    Emerald,
+    Sapphire,
+    Amethyst,
+    Ruby,
+    Diamond,
+    Twig,
+    PlantFiber,
     Wood,
     Bamboo,
     Hardwood,
@@ -124,6 +135,7 @@ pub enum Material {
     Obsidian,
     Velorite,
     Linen,
+    RedLinen,
     Wool,
     Silk,
     Lifecloth,
@@ -131,6 +143,7 @@ pub enum Material {
     Sunsilk,
     Rawhide,
     Leather,
+    RigidLeather,
     Scale,
     Carapace,
     Plate,
@@ -145,8 +158,18 @@ impl Material {
             | Material::Steel
             | Material::Cobalt
             | Material::Bloodsteel
+            | Material::Silver
+            | Material::Gold
             | Material::Orichalcum => MaterialKind::Metal,
+            Material::Topaz
+            | Material::Emerald
+            | Material::Sapphire
+            | Material::Amethyst
+            | Material::Ruby
+            | Material::Diamond => MaterialKind::Gem,
             Material::Wood
+            | Material::Twig
+            | Material::PlantFiber
             | Material::Bamboo
             | Material::Hardwood
             | Material::Ironwood
@@ -159,6 +182,7 @@ impl Material {
             | Material::Obsidian
             | Material::Velorite => MaterialKind::Stone,
             Material::Linen
+            | Material::RedLinen
             | Material::Wool
             | Material::Silk
             | Material::Lifecloth
@@ -166,6 +190,7 @@ impl Material {
             | Material::Sunsilk => MaterialKind::Cloth,
             Material::Rawhide
             | Material::Leather
+            | Material::RigidLeather
             | Material::Scale
             | Material::Carapace
             | Material::Plate
@@ -180,7 +205,17 @@ impl Material {
             Material::Steel => Some("common.items.mineral.ingot.steel"),
             Material::Cobalt => Some("common.items.mineral.ingot.cobalt"),
             Material::Bloodsteel => Some("common.items.mineral.ingot.bloodsteel"),
+            Material::Silver => Some("common.items.mineral.ingot.silver"),
+            Material::Gold => Some("common.items.mineral.ingot.gold"),
             Material::Orichalcum => Some("common.items.mineral.ingot.orichalcum"),
+            Material::Topaz => Some("common.items.mineral.gem.topaz"),
+            Material::Emerald => Some("common.items.mineral.gem.emerald"),
+            Material::Sapphire => Some("common.items.mineral.gem.sapphire"),
+            Material::Amethyst => Some("common.items.mineral.gem.amethyst"),
+            Material::Ruby => Some("common.items.mineral.gem.ruby"),
+            Material::Diamond => Some("common.items.mineral.gem.diamond"),
+            Material::Twig => Some("common.items.crafting_ing.twigs"),
+            Material::PlantFiber => Some("common.items.flowers.plant_fiber"),
             Material::Wood => Some("common.items.log.wood"),
             Material::Bamboo => Some("common.items.log.bamboo"),
             Material::Hardwood => Some("common.items.log.hardwood"),
@@ -194,6 +229,7 @@ impl Material {
             | Material::Obsidian
             | Material::Velorite => None,
             Material::Linen => Some("common.items.crafting_ing.cloth.linen"),
+            Material::RedLinen => Some("common.items.crafting_ing.cloth.linen_red"),
             Material::Wool => Some("common.items.crafting_ing.cloth.wool"),
             Material::Silk => Some("common.items.crafting_ing.cloth.silk"),
             Material::Lifecloth => Some("common.items.crafting_ing.cloth.lifecloth"),
@@ -201,6 +237,7 @@ impl Material {
             Material::Sunsilk => Some("common.items.crafting_ing.cloth.sunsilk"),
             Material::Rawhide => Some("common.items.crafting_ing.leather.simple_leather"),
             Material::Leather => Some("common.items.crafting_ing.leather.thick_leather"),
+            Material::RigidLeather => Some("common.items.crafting_ing.leather.rigid_leather"),
             Material::Scale => Some("common.items.crafting_ing.hide.scales"),
             Material::Carapace => Some("common.items.crafting_ing.hide.carapace"),
             Material::Plate => Some("common.items.crafting_ing.hide.plate"),
@@ -229,7 +266,7 @@ pub enum ItemTag {
     CraftingTool, // Pickaxe, Craftsman-Hammer, Sewing-Set
     Utility,
     Bag,
-    SalvageInto(Material),
+    SalvageInto(Material, u32),
 }
 
 impl TagExampleInfo for ItemTag {
@@ -245,7 +282,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::CraftingTool => "tool",
             ItemTag::Utility => "utility",
             ItemTag::Bag => "bag",
-            ItemTag::SalvageInto(_) => "salvage",
+            ItemTag::SalvageInto(_, _) => "salvage",
         }
     }
 
@@ -262,7 +299,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::CraftingTool => None,
             ItemTag::Utility => None,
             ItemTag::Bag => None,
-            ItemTag::SalvageInto(_) => None,
+            ItemTag::SalvageInto(_, _) => None,
         }
     }
 }
@@ -1094,13 +1131,15 @@ impl Item {
     pub fn is_salvageable(&self) -> bool {
         self.tags()
             .iter()
-            .any(|tag| matches!(tag, ItemTag::SalvageInto(_)))
+            .any(|tag| matches!(tag, ItemTag::SalvageInto(_, _)))
     }
 
-    pub fn salvage_output(&self) -> impl Iterator<Item = &str> {
+    pub fn salvage_output(&self) -> impl Iterator<Item = (&str, u32)> {
         self.tags().into_iter().filter_map(|tag| {
-            if let ItemTag::SalvageInto(material) = tag {
-                material.asset_identifier()
+            if let ItemTag::SalvageInto(material, quantity) = tag {
+                material
+                    .asset_identifier()
+                    .map(|material_id| (material_id, quantity))
             } else {
                 None
             }

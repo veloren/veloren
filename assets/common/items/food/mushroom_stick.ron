@@ -8,7 +8,7 @@ ItemDef(
                 kind: Saturation,
                 data: (
                     strength: 4.0,
-                    duration: Some(5),
+                    duration: Some(6),
                     ),
                 cat_ids: [Natural],
             )),

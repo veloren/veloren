@@ -1,7 +1,8 @@
 [
     // Gear
-    (1.0, LootTable("common.loot_tables.weapons.components.tier-3")),
-    (1.0, LootTable("common.loot_tables.armor.tier-3")),
+    (0.5, LootTable("common.loot_tables.weapons.components.tier-3")),
+    (0.5, LootTable("common.loot_tables.weapons.tier-3")),
+    (0.5, LootTable("common.loot_tables.armor.tier-3")),
     // Currency
     (3.0, MultiDrop(Item("common.items.utility.coins"), 250, 500)),
     // Materials

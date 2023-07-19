@@ -10,5 +10,7 @@ ItemDef(
         )),
     )),
     quality: High,
-    tags: [],
+    tags: [
+        SalvageInto(Cobalt, 1),
+    ],
 )

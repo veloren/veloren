@@ -10,5 +10,7 @@ ItemDef(
         )),
     )),
     quality: Epic,
-    tags: [],
+    tags: [
+        SalvageInto(Diamond, 1),
+    ],
 )

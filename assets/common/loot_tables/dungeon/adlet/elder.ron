@@ -1,0 +1,7 @@
+[
+    (1, All([
+            Item("common.items.keys.bone_key"),
+            LootTable("common.loot_tables.dungeon.adlet.elder_extra"),
+        ],
+    )),
+]

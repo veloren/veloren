@@ -8,6 +8,6 @@ ItemDef(
     quality: High,
     tags: [
         Material(Lifecloth),
-        SalvageInto(Lifecloth),
+        SalvageInto(Lifecloth, 1),
     ],
 )

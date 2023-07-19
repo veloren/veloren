@@ -3,7 +3,7 @@
     name: Name("Grave Robber"),
     body: RandomWith("dwarf"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.spots.bandit"),
+    loot: LootTable("common.loot_tables.humanoids.dwarf_graverobber"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.dwarf_graverobber"),

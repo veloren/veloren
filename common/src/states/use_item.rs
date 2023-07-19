@@ -179,12 +179,12 @@ impl ItemUseKind {
             ),
             Self::Consumable(ConsumableKind::Food) => (
                 Duration::from_secs_f32(1.0),
-                Duration::from_secs_f32(5.0),
+                Duration::from_secs_f32(4.0),
                 Duration::from_secs_f32(0.5),
             ),
             Self::Consumable(ConsumableKind::ComplexFood) => (
                 Duration::from_secs_f32(1.0),
-                Duration::from_secs_f32(5.0),
+                Duration::from_secs_f32(4.5),
                 Duration::from_secs_f32(0.5),
             ),
         }

@@ -7,8 +7,8 @@ ItemDef(
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 2.0,
-                    duration: Some(10),
+                    strength: 4.2,
+                    duration: Some(8.5),
                     ),
                 cat_ids: [Natural],
             )),

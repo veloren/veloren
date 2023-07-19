@@ -10,6 +10,6 @@ ItemDef(
     quality: Common,
     tags: [
         Material(Leather),
-        SalvageInto(Leather),
+        SalvageInto(Leather, 1),
     ],
 )

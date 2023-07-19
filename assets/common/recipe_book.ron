@@ -61,7 +61,6 @@
         inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 5, false),
             (Item("common.items.mineral.ingot.iron"), 1, false),
-            (Item("common.items.mineral.gem.ruby"), 1, false),
         ],
         craft_sprite: None,
     ),
@@ -145,6 +144,13 @@
             (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
             (Item("common.items.crafting_tools.mortar_pestle"), 0, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "twig": (
+        output: ("common.items.crafting_ing.twigs", 4),
+        inputs: [
+            (Item("common.items.log.wood"), 1, false),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -489,7 +495,7 @@
     "horizon_glider": (
         output: ("common.items.glider.sunset", 1),
         inputs: [
-            (Item("common.items.crafting_ing.cloth.sunsilk"), 20, false),
+            (Item("common.items.crafting_ing.cloth.linen_red"), 20, false),
             (Item("common.items.crafting_ing.twigs"), 5, false),
             (Item("common.items.crafting_ing.cactus"), 8, false),
             (Item("common.items.mineral.gem.topaz"), 6, false),

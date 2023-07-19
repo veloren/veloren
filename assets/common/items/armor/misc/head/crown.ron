@@ -11,5 +11,7 @@ ItemDef(
         )),
     )),
     quality: Epic,
-    tags: [],
+    tags: [
+        SalvageInto(Gold, 1), // TODO Multi-salvage
+    ],
 )

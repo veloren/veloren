@@ -1,8 +1,9 @@
 [
     // Gear
-    (1.0, LootTable("common.loot_tables.weapons.components.tier-4")),
-    (1.0, LootTable("common.loot_tables.armor.tier-4")),
-    (1.0, Item("common.items.armor.misc.head.spikeguard")),
+    (0.5, LootTable("common.loot_tables.weapons.components.tier-4")),
+    (0.5, LootTable("common.loot_tables.weapons.tier-4")),
+    (0.5, LootTable("common.loot_tables.armor.tier-4")),
+    (0.5, Item("common.items.armor.misc.head.spikeguard")),
     // Currency
     (3.0, MultiDrop(Item("common.items.utility.coins"), 500, 1000)),
     // Materials

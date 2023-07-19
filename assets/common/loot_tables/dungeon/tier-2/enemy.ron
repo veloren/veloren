@@ -1,8 +1,11 @@
 [
-    // Currency
-    (1.0, MultiDrop(Item("common.items.utility.coins"), 10, 20)),
+    // Consumables
+    (1.0, LootTable("common.loot_tables.consumable.moderate")),
     // Food
-    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 2)),
+    (1.0, MultiDrop(LootTable("common.loot_tables.food.wild_ingredients"), 1, 2)),
+    // Materials
+    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.scales"), 1, 3)),
     // Nothing
-    (2.0, Nothing),
+    (0.75, Nothing),
 ]

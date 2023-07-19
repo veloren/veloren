@@ -3,5 +3,7 @@ ItemDef(
     description: "Simple, but classy.",
     kind: Glider,
     quality: Moderate,
-    tags: [],
+    tags: [
+        SalvageInto(Linen, 5)
+    ],
 )

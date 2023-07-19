@@ -3,5 +3,7 @@ ItemDef(
     description: "Love is in the air.",
     kind: Glider,
     quality: Epic,
-    tags: [],
+    tags: [
+        SalvageInto(Moonweave, 5)
+    ],
 )

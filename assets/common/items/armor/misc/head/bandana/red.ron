@@ -9,5 +9,7 @@ ItemDef(
         )),
     )),
     quality: Common,
-    tags: [],
+    tags: [
+        SalvageInto(RedLinen, 3)
+    ],
 )

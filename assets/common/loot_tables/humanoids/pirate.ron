@@ -3,10 +3,12 @@
     (3.0, LootTable("common.loot_tables.materials.common")),
     // Consumables
     (0.2, Item("common.items.consumable.potion_minor")),
+    // Gold
+    (2.0, MultiDrop(Item("common.items.utility.coins"), 50, 75)),
     // Ring
-    (0.02, Item("common.items.armor.misc.ring.gold")),
+    (0.05, Item("common.items.armor.misc.ring.gold")),
     // Necklace
-    (0.02, Item("common.items.armor.misc.neck.gold")),
+    (0.05, Item("common.items.armor.misc.neck.gold")),
     // Utility
     (0.05, Item("common.items.utility.collar")),
     // Armor

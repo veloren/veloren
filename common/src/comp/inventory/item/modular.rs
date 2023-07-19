@@ -218,7 +218,10 @@ impl ModularBase {
                                 _ => None,
                             })
                     {
-                        vec![ItemTag::Material(material), ItemTag::SalvageInto(material)]
+                        vec![
+                            ItemTag::Material(material),
+                            ItemTag::SalvageInto(material, 1),
+                        ]
                     } else {
                         Vec::new()
                     }

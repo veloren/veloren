@@ -11,6 +11,6 @@ ItemDef(
     quality: Moderate,
     tags: [
         Material(Wood),
-//        SalvageInto(Twigs),
+        SalvageInto(Twig, 1),
     ],
 )

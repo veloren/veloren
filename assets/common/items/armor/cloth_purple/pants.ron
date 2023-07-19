@@ -8,6 +8,6 @@ ItemDef(
     quality: Common,
     tags: [
         Material(Linen),
-        SalvageInto(Linen),
+        SalvageInto(Linen, 2),
     ],
 )

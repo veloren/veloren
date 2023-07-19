@@ -1,8 +1,9 @@
 [
     // Gear
-    (0.5, LootTable("common.loot_tables.weapons.tier-1")),
+    (0.5, LootTable("common.loot_tables.weapons.components.tier-1")),
     (0.5, LootTable("common.loot_tables.armor.tier-1")),
-    (0.5, Item("common.items.armor.misc.head.hog_hood")),
+    (0.25, LootTable("common.loot_tables.weapons.tier-1")),
+    (0.25, Item("common.items.armor.misc.head.hog_hood")),
     // Currency
     (3.0, MultiDrop(Item("common.items.utility.coins"), 50, 100)),
     // Materials

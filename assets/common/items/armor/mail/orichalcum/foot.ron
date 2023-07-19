@@ -8,6 +8,6 @@ ItemDef(
     quality: Legendary,
     tags: [
         Material(Orichalcum),
-        SalvageInto(Orichalcum),
+        SalvageInto(Orichalcum, 1),
     ],
 )

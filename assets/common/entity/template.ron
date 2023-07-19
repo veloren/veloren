@@ -5,7 +5,7 @@
     name: Name("Paddy"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.humanoid"),
+    loot: LootTable("common.loot_tables.humanoids.humanoid"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.village.merchant"),

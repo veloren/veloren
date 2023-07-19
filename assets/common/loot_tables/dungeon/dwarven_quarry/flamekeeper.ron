@@ -2,8 +2,7 @@
   (1, All([
         Item("common.items.keys.quarry_keys.flamekeeper_left"),
         Item("common.items.keys.quarry_keys.flamekeeper_right"),
-        MultiDrop(Item("common.items.crafting_ing.hide.plate"), 1, 1),
-        LootTable("common.loot_tables.weapons.components.tier-4"),
+        MultiDrop(Item("common.items.crafting_ing.hide.plate"), 1, 2),
         ],
    )),
 ]
