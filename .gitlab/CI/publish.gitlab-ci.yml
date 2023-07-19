@@ -9,8 +9,6 @@
 
 docker:
   extends: .publish
-  variables:
-    GIT_STRATEGY: none
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
