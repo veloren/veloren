@@ -8,6 +8,6 @@ ItemDef(
     quality: Epic,
     tags: [
         Material(Bloodsteel),
-        SalvageInto(Bloodsteel),
+        SalvageInto(Bloodsteel, 2),
     ],
 )

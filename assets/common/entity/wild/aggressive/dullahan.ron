@@ -3,7 +3,7 @@
     name: Name("Dullahan"),
     body: RandomWith("dullahan"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.biped_large.default"),
+    loot: LootTable("common.loot_tables.creature.biped_large.dullahan"),
     inventory: (
         loadout: FromBody,
     ),

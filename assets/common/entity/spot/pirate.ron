@@ -3,7 +3,7 @@
     name: Name("Pirate"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.spots.pirate"),
+    loot: LootTable("common.loot_tables.humanoids.pirate"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.pirate"),

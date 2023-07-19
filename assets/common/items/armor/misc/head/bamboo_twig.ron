@@ -8,5 +8,7 @@ ItemDef(
         )),
     )),
     quality: Common,
-    tags: [],
+    tags: [
+        SalvageInto(Bamboo, 1)
+    ],
 )

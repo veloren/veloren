@@ -9,5 +9,7 @@ ItemDef(
         )),
     )),
     quality: Moderate,
-    tags: [],
+    tags: [
+        SalvageInto(Bamboo, 1),
+    ],
 )

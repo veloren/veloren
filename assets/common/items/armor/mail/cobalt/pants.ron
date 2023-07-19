@@ -8,6 +8,6 @@ ItemDef(
     quality: High,
     tags: [
         Material(Cobalt),
-        SalvageInto(Cobalt),
+        SalvageInto(Cobalt, 2),
     ],
 )

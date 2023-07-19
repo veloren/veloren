@@ -3,7 +3,7 @@
     name: Name("Adlet Tracker"),
     body: RandomWith("adlet"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-1.tracker"),
+    loot: LootTable("common.loot_tables.dungeon.adlet.tracker"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.adlet.tracker"),

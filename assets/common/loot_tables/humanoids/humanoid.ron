@@ -6,15 +6,12 @@
     // Armor
     (1.0, LootTable("common.loot_tables.armor.cloth")),
     // Ring
-    (0.02, Item("common.items.armor.misc.ring.gold")),
+    (0.05, Item("common.items.armor.misc.ring.gold")),
     // Necklace
-    (0.02, Item("common.items.armor.misc.neck.gold")),
+    (0.05, Item("common.items.armor.misc.neck.gold")),
     // Utility
     (0.05, Item("common.items.utility.collar")),
-    // Food
-    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
-    (0.25, LootTable("common.loot_tables.food.prepared")),
     // Weapons
     (1.0, LootTable("common.loot_tables.weapons.starter")),
-    (1.0, LootTable("common.loot_tables.weapons.components.tier-0")),
+    (1.0, LootTable("common.loot_tables.weapons.tier-0")),
 ]

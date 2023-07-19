@@ -4,11 +4,6 @@
     (0.05, Item("common.items.armor.misc.neck.gold")),
     // Materials
     (4.0, LootTable("common.loot_tables.materials.underground")),
-    // Gliders
-    (0.1, Item("common.items.glider.blue")),
-    (0.05, Item("common.items.glider.morpho")),
-    (0.05, Item("common.items.glider.monarch")),
-    (0.05, Item("common.items.glider.moth")),
     // Ring
     (0.05, Item("common.items.armor.misc.ring.gold")),
     // Lantern

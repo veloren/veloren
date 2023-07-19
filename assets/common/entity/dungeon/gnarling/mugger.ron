@@ -3,7 +3,7 @@
     name: Name("Gnarling Mugger"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-0.mugger"),
+    loot: LootTable("common.loot_tables.dungeon.gnarling.mugger"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.gnarling.mugger"),

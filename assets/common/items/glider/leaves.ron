@@ -3,5 +3,7 @@ ItemDef(
     description: "Soar among the trees",
     kind: Glider,
     quality: Moderate,
-    tags: [],
+    tags: [
+        SalvageInto(Linen, 1)
+    ],
 )

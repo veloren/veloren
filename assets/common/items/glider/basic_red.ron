@@ -3,5 +3,7 @@ ItemDef(
     description: "A simple glider, but with a striking red color.",
     kind: Glider,
     quality: Moderate,
-    tags: [],
+    tags: [
+        SalvageInto(RedLinen, 5)
+    ],
 )

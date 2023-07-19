@@ -8,6 +8,6 @@ ItemDef(
     quality: Legendary,
     tags: [
         Material(Sunsilk),
-        SalvageInto(Sunsilk),
+        SalvageInto(Sunsilk, 2),
     ],
 )

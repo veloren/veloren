@@ -3,5 +3,7 @@ ItemDef(
     description: "Take flight with the wings of a thirsty predator",
     kind: Glider,
     quality: High,
-    tags: [],
+    tags: [
+        SalvageInto(Leather, 1)
+    ],
 )

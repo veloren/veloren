@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("adlet_elder"),
     alignment: Alignment(Enemy),
-    loot: MultiDrop(LootTable("common.loot_tables.dungeon.tier-1.elder"), 2, 2),
+    loot: MultiDrop(LootTable("common.loot_tables.dungeon.adlet.elder"), 2, 2),
     inventory: (
         loadout: FromBody,
     ),

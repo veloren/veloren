@@ -8,6 +8,6 @@ ItemDef(
     quality: Common,
     tags: [
         Material(Iron),
-        SalvageInto(Iron),
+        SalvageInto(Iron, 1),
     ],
 )

@@ -3,9 +3,9 @@
     // Consumables
     (0.5, Item("common.items.consumable.potion_minor")),
     // Ring
-    (0.2, Item("common.items.armor.misc.ring.gold")),
+    (0.05, Item("common.items.armor.misc.ring.gold")),
     // Necklace
-    (0.2, Item("common.items.armor.misc.neck.gold")),
+    (0.05, Item("common.items.armor.misc.neck.gold")),
     // Utility
     (0.1, Item("common.items.utility.collar")),
     // Bag

@@ -10,6 +10,6 @@ ItemDef(
     quality: Moderate,
     tags: [
         Material(Iron),
-        SalvageInto(Iron),
+        SalvageInto(Iron, 1),
     ],
 )

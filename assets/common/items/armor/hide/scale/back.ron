@@ -8,6 +8,6 @@ ItemDef(
     quality: Moderate,
     tags: [
         Material(Scale),
-        SalvageInto(Scale),
+        SalvageInto(Scale, 1),
     ],
 )

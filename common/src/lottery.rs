@@ -409,11 +409,6 @@ pub mod tests {
             },
             LootSpec::MultiDrop(loot_spec, lower, upper) => {
                 assert!(
-                    *lower > 0,
-                    "Lower quantity must be more than 0. It is {}.",
-                    lower
-                );
-                assert!(
                     upper >= lower,
                     "Upper quantity must be at least the value of lower quantity. Upper value: \
                      {}, low value: {}.",

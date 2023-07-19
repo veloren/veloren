@@ -9,6 +9,6 @@ ItemDef(
     quality: Low,
     tags: [
         Material(Linen),
-        SalvageInto(Linen),
+        SalvageInto(Linen, 1),
     ],
 )

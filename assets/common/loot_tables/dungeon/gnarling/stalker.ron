@@ -1,0 +1,8 @@
+[
+    // Food
+    (1.25, LootTable("common.loot_tables.food.wild_ingredients")),
+    // Materials
+    (0.75, MultiDrop(Item("common.items.mineral.ore.veloritefrag"), 1, 2)),
+    // Nothing
+    (0.75, Nothing),
+]

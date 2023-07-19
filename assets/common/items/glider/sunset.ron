@@ -3,5 +3,7 @@ ItemDef(
     description: "It isn't high noon.",
     kind: Glider,
     quality: Epic,
-    tags: [],
+    tags: [
+        SalvageInto(RedLinen, 5),
+    ],
 )

@@ -93,6 +93,7 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
 pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> Cow<'a, str> {
     match kind {
         MaterialKind::Metal { .. } => i18n.get_msg("common-material-metal"),
+        MaterialKind::Gem { .. } => i18n.get_msg("common-material-gem"),
         MaterialKind::Wood { .. } => i18n.get_msg("common-material-wood"),
         MaterialKind::Stone { .. } => i18n.get_msg("common-material-stone"),
         MaterialKind::Cloth { .. } => i18n.get_msg("common-material-cloth"),

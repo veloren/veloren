@@ -12,5 +12,6 @@ ItemDef(
     quality: High,
     tags: [
         Gnarling,
-        ],
+        SalvageInto(Lifecloth, 1),
+    ],
 )

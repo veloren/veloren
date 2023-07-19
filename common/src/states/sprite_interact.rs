@@ -214,12 +214,12 @@ impl SpriteInteractKind {
             ),
             Self::Collectible => (
                 Duration::from_secs_f32(0.1),
-                Duration::from_secs_f32(0.3),
+                Duration::from_secs_f32(0.2),
                 Duration::from_secs_f32(0.1),
             ),
             Self::Harvestable => (
                 Duration::from_secs_f32(0.3),
-                Duration::from_secs_f32(0.5),
+                Duration::from_secs_f32(0.3),
                 Duration::from_secs_f32(0.2),
             ),
             Self::Fallback => (

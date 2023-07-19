@@ -11,5 +11,7 @@ ItemDef(
         )),
     )),
     quality: High,
-    tags: [],
+    tags: [
+        SalvageInto(Silver, 1),
+    ],
 )
