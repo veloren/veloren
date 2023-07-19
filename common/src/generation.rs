@@ -201,7 +201,7 @@ pub struct EntityInfo {
     //Option<hashbrown::HashMap<crate::trade::Good, (f32, f32)>>, /* price and available amount */
 
     // Edge cases, override everything else
-    pub special_entity: Option<SpecialEntity>, // Campfire
+    pub special_entity: Option<SpecialEntity>,
 }
 
 impl EntityInfo {

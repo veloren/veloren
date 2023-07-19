@@ -129,7 +129,7 @@ impl<'a> System<'a> for Sys {
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
                         static_data: blink::StaticData {
-                            buildup_duration: Duration::from_millis((remaining * 1000.) as u64),
+                            buildup_duration: Duration::from_secs_f64(remaining),
                             recover_duration: Duration::default(),
                             max_range: 0.,
                             ability_info: AbilityInfo {
