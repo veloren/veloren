@@ -2055,7 +2055,7 @@ fn handle_spawn_portal(
         parse_cmd_args!(args, f32, f32, f32, bool, f64)
     {
         let requires_no_aggro = requires_no_aggro.unwrap_or(false);
-        let buildup_time = Secs(buildup_time.unwrap_or(0.));
+        let buildup_time = Secs(buildup_time.unwrap_or(7.));
         server
             .state
             .create_teleporter(pos, comp::Teleporter {

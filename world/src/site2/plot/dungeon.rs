@@ -1155,8 +1155,6 @@ impl Floor {
                 Tile::Solid => continue,
             };
 
-            // TODO: Get outer tile aabb
-
             let outer_tile_aabb = painter.prim(Primitive::Aabb(aabr_with_z(
                 outer_tile_aabr(0),
                 floor_z - 2..(floor_z + tunnel_height as i32) + 2,
@@ -1192,8 +1190,8 @@ impl Floor {
                 height = height.min(room.height);
                 if let Tile::UpStair(_, kind) = tile && !self.final_level {
                     // Construct the staircase that connects this tile to the matching DownStair
-                    // tile on the floor above (or to the surface if this is the top floor), and
-                    // a hollow bounding box to place air in
+                    // tile on the floor above (or to the surface if this is the top floor), and a
+                    // hollow bounding box to place air in
                     let center = tile_center.with_z(floor_z);
                     let radius = TILE_SIZE as f32 / 2.0;
                     let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
@@ -1292,10 +1290,9 @@ impl Floor {
                         painter.fill(platform, Fill::Block(stone));
                     }
 
-                    // If a room has pillars, the current tile aligns with the pillar spacing,
-                    // and we're not too close to a wall (i.e. the
-                    // adjacent tiles are rooms and not hallways/solid),
-                    // place a pillar
+                    // If a room has pillars, the current tile aligns with the pillar spacing, and
+                    // we're not too close to a wall (i.e. the adjacent tiles are rooms and not
+                    // hallways/solid), place a pillar
                     if room
                         .pillars
                         .map(|pillar_space| {

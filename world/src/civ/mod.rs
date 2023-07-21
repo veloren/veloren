@@ -1894,8 +1894,8 @@ impl SiteKind {
                             .chain(cave::tunnels_at(loc, 2, &land))
                             .filter(|tunnel| {
                                 dungeon_aabr.collides_with_aabr(Aabr {
-                                    min: tunnel.a.wpos,
-                                    max: tunnel.b.wpos,
+                                    min: tunnel.nodes().0.wpos,
+                                    max: tunnel.nodes().1.wpos,
                                 })
                             });
 

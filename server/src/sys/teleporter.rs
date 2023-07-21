@@ -13,7 +13,7 @@ use common::{
     CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use specs::{storage::StorageEntry, Entities, Join, Read, ReadStorage, WriteStorage};
 use vek::Vec3;
 
 const TELEPORT_RADIUS: f32 = 3.;
@@ -63,14 +63,13 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut attempt_teleport = vec![];
         let mut cancel_teleport = vec![];
-        let mut start_teleporting = vec![];
 
         let mut player_data = (
             &entities,
             &positions,
             &players,
             &mut character_states,
-            teleporting.maybe(),
+            teleporting.entries(),
         )
             .join();
 
@@ -106,24 +105,27 @@ impl<'a> System<'a> for Sys {
                 })
             {
                 if teleporter.requires_no_aggro && check_aggro(entity, pos.0) {
-                    if teleporting.is_some() {
-                        cancel_teleport.push(entity)
+                    if let StorageEntry::Occupied(entry) = teleporting {
+                        entry.remove();
                     };
 
                     continue;
                 }
 
-                if teleporting.is_none() {
-                    start_teleporting.push((entity, Teleporting {
+                if let StorageEntry::Vacant(entry) = teleporting {
+                    entry.insert(Teleporting {
                         teleport_start: *time,
                         portal: portal_entity,
                         end_time: Time(time.0 + teleporter.buildup_time.0),
-                    }));
-                } else if let Some(remaining) = teleporting.and_then(|teleporting| {
+                    });
+                } else if let Some(remaining) = if let StorageEntry::Occupied(entry) = teleporting {
+                    let teleporting = entry.get();
                     ((time.0 - teleporting.teleport_start.0) >= teleporter.buildup_time.0 / 3.
                         && !matches!(*character_state, CharacterState::Blink(_)))
                     .then_some(teleporter.buildup_time.0 - (time.0 - teleporting.teleport_start.0))
-                }) {
+                } else {
+                    None
+                } {
                     // Move into blink character state at half buildup time
                     *character_state = CharacterState::Blink(blink::Data {
                         timer: Duration::default(),
@@ -154,10 +156,6 @@ impl<'a> System<'a> for Sys {
                     object::Body::Portal
                 });
             }
-        }
-
-        for (entity, teleporting_data) in start_teleporting {
-            let _ = teleporting.insert(entity, teleporting_data);
         }
 
         for (entity, position, _, teleporting) in
