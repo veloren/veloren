@@ -1124,6 +1124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Remove heaptrack as it is now deprecated
+- Remove coin counter at the bottom of inventories.
 
 ## [0.4.0] - 2019-10-10
 

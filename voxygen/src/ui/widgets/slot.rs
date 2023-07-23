@@ -698,7 +698,12 @@ where
 
         // Draw amount
         if let Some(amount) = amount {
-            let amount = format!("{}", &amount);
+            let amount = match amount {
+                amount if amount > 1_000_000_000 => format!("{}G", amount / 1_000_000_000),
+                amount if amount > 1_000_000 => format!("{}M", amount / 1_000_000),
+                amount if amount > 1_000 => format!("{}K", amount / 1_000),
+                amount => format!("{}", amount),
+            };
             // Text shadow
             Text::new(&amount)
                 .font_id(amount_font)
