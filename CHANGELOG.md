@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Fixed wild roaming cyclop loot table to not drop the quarry key
 
 ## [0.15.0] - 2023-07-01
 

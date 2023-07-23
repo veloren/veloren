@@ -1,6 +1,6 @@
 [
   (1, All([
-        Item("common.items.keys.quarry_keys.cyclops_eye"),
+        Item("common.items.crafting_ing.animal_misc.grim_eyeball"),
         MultiDrop(Item("common.items.mineral.ingot.iron"), 5, 10),
         MultiDrop(Item("common.items.utility.coins"), 200, 500),
         LootTable("common.loot_tables.dungeon.tier-4.miniboss"),
