@@ -64,7 +64,7 @@ pub enum Spot {
     FruitTree,
     Shipwreck,
     Shipwreck2,
-    GnarlingTree,
+    FallenTree,
     TrollCave,
     TrollCaveMountain,
     TrollCaveSwamp,
@@ -232,9 +232,9 @@ impl Spot {
             false,
         );
         Self::generate_spots(
-            Spot::GnarlingTree,
+            Spot::FallenTree,
             world,
-            1.0,
+            2.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -645,14 +645,13 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (1..2, "common.entity.dungeon.gnarling.woodgolem"),
                 ],
             },
-            Spot::GnarlingTree => SpotConfig {
-                base_structures: Some("spots_grasslands.gnarling_tree"),
+            Spot::FallenTree => SpotConfig {
+                base_structures: Some("spots_grasslands.fallen_tree"),
                 entity_radius: 64.0,
                 entities: &[
-                    (1..5, "common.entity.dungeon.gnarling.mugger"),
-                    (2..4, "common.entity.dungeon.gnarling.stalker"),
-                    (1..2, "common.entity.dungeon.gnarling.logger"),
-                    (1..4, "common.entity.wild.aggressive.deadwood"),
+                    (1..2, "common.entity.dungeon.gnarling.mandragora"),
+                    (2..6, "common.entity.wild.aggressive.deadwood"),
+                    (0..1, "common.entity.wild.aggressive.mossdrake"),
                 ],
             },
             Spot::TrollCave => SpotConfig {
