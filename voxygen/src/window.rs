@@ -608,30 +608,25 @@ impl Window {
                         }
                     }
 
-                    let l_entry: LayerEntry;
-                    if modifiers.len() == 2 {
-                        // this uses the known modifiers from ControllerSettings so RB+LB
-                        // represents the same layer as LB+RB
-                        l_entry = LayerEntry {
-                            button: *button,
-                            mod1: settings.modifier_buttons[0],
-                            mod2: settings.modifier_buttons[1],
-                        };
-                    } else if modifiers.len() == 1 {
-                        l_entry = LayerEntry {
-                            button: *button,
-                            mod1: modifiers[0],
-                            mod2: Button::default(),
-                        };
-                    } else {
-                        l_entry = LayerEntry {
-                            button: *button,
-                            mod1: Button::default(),
-                            mod2: Button::default(),
-                        };
-                    }
+                    // have to make two LayerEntries so LB+RB can be treated equivalent to RB+LB
+                    let l_entry1 = LayerEntry {
+                        button: *button,
+                        mod1: modifiers.get(0).copied().unwrap_or_default(),
+                        mod2: modifiers.get(1).copied().unwrap_or_default(),
+                    };
+                    let l_entry2 = LayerEntry {
+                        button: *button,
+                        mod1: modifiers.get(1).copied().unwrap_or_default(),
+                        mod2: modifiers.get(0).copied().unwrap_or_default(),
+                    };
 
-                    if let Some(evs) = settings.layer_button_map.get(&l_entry) {
+                    // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
+                    // to RB+LB
+                    if let Some(evs) = settings.layer_button_map.get(&l_entry1) {
+                        for ev in evs {
+                            events.push(Event::InputUpdate(*ev, is_pressed));
+                        }
+                    } else if let Some(evs) = settings.layer_button_map.get(&l_entry2) {
                         for ev in evs {
                             events.push(Event::InputUpdate(*ev, is_pressed));
                         }
