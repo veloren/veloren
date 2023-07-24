@@ -44,6 +44,8 @@ pub mod con_settings {
     use gilrs::{Axis as GilAxis, Button as GilButton};
     use serde::{Deserialize, Serialize};
 
+    // represents a controller button to fire a GameInput on
+    // includes two modifier buttons to determine what layer is active
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
     #[serde(default)]
     pub struct LayerEntry {
@@ -63,6 +65,10 @@ pub mod con_settings {
         }
     }
 
+    // struct to associate each available GameInput with a LayerEntry
+    // similar in function to the GameButtons struct
+    // nothing prevents mapping a GameInput in both GameLayerEntries and GameButtons
+    // it's likely not desirable to double map a GameInput
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[serde(default)]
     pub struct GameLayerEntries {
