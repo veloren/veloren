@@ -1,6 +1,7 @@
 use crate::{
     events::{
         entity_creation::handle_create_teleporter,
+        entity_manipulation::handle_portal_event,
         interaction::{handle_mount_volume, handle_tame_pet},
     },
     persistence::PersistedComponents,
@@ -299,6 +300,7 @@ impl Server {
                 ServerEvent::RemoveLightEmitter { entity } => {
                     handle_remove_light_emitter(self, entity)
                 },
+                ServerEvent::PortalEvent(event) => handle_portal_event(self, event),
             }
         }
 

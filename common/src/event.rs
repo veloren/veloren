@@ -332,6 +332,7 @@ pub enum ServerEvent {
     RemoveLightEmitter {
         entity: EcsEntity,
     },
+    PortalEvent(comp::teleport::TeleporterEvent),
 }
 
 pub struct EventBus<E> {

@@ -4,6 +4,11 @@ use vek::Vec3;
 
 use crate::resources::{Secs, Time};
 
+pub enum TeleporterEvent {
+    PortalTeleport { entity: Entity, target: Vec3<f32> },
+    SetPortalActive { portal: Entity, active: bool },
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Teleporter {
     pub target: Vec3<f32>,

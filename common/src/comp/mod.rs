@@ -34,7 +34,7 @@ pub mod projectile;
 pub mod shockwave;
 pub mod skillset;
 mod stats;
-mod teleport;
+pub mod teleport;
 pub mod visual;
 
 // Reexports
