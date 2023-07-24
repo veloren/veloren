@@ -1197,7 +1197,7 @@ fn handle_ability(
     output_events: &mut OutputEvents,
     input: InputKind,
 ) -> bool {
-    let contexts = AbilityContext::from(data.stance, data.inventory, data.combo);
+    let context = AbilityContext::from(data.stance, data.inventory, data.combo);
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand, spec_ability)) = data
             .active_abilities
@@ -1208,7 +1208,7 @@ fn handle_ability(
                     data.skill_set,
                     Some(data.body),
                     Some(data.character),
-                    &contexts,
+                    &context,
                 )
             })
             .filter(|(ability, _, _)| ability.requirements_paid(data, update))
@@ -1609,8 +1609,9 @@ impl ScalingKind {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ComboConsumption {
+    #[default]
     All,
     Half,
 }
@@ -1627,10 +1628,6 @@ impl ComboConsumption {
             change: -(to_consume as i32),
         });
     }
-}
-
-impl Default for ComboConsumption {
-    fn default() -> Self { Self::All }
 }
 
 fn loadout_change_hook(data: &JoinData<'_>, output_events: &mut OutputEvents, clear_combo: bool) {

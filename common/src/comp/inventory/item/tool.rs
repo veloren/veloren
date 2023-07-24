@@ -305,10 +305,13 @@ pub enum AbilityKind<T> {
     Simple(Option<Skill>, T),
     Contextualized {
         pseudo_id: String,
-        abilities: Vec<(Vec<AbilityContext>, (Option<Skill>, T))>,
+        abilities: Vec<(AbilityContext, (Option<Skill>, T))>,
     },
 }
 
+/// The contextual index indicates which entry in a contextual ability was used.
+/// This should only be necessary for the frontend to distinguish between the
+/// options when a contextual ability is used.
 #[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq)]
 pub struct ContextualIndex(pub usize);
 
@@ -339,7 +342,7 @@ impl<T> AbilityKind<T> {
                 pseudo_id: pseudo_id.clone(),
                 abilities: abilities
                     .iter()
-                    .map(|(c, (s, x))| (c.clone(), (*s, f(x))))
+                    .map(|(c, (s, x))| (*c, (*s, f(x))))
                     .collect(),
             },
         }
@@ -348,7 +351,7 @@ impl<T> AbilityKind<T> {
     pub fn ability(
         &self,
         skillset: Option<&SkillSet>,
-        contexts: &[AbilityContext],
+        context: &AbilityContext,
     ) -> Option<(&T, Option<ContextualIndex>)> {
         let unlocked = |s: Option<Skill>, a| {
             // If there is a skill requirement and the skillset does not contain the
@@ -368,40 +371,34 @@ impl<T> AbilityKind<T> {
                 .filter_map(|(i, (req_contexts, (s, a)))| {
                     unlocked(*s, a).map(|a| (i, (req_contexts, a)))
                 })
-                .find_map(|(i, (req_contexts, a))| {
-                    req_contexts
-                        .iter()
-                        .all(|req| req.fulfilled_by(contexts))
+                .find_map(|(i, (req_context, a))| {
+                    req_context
+                        .fulfilled_by(context)
                         .then_some((a, Some(ContextualIndex(i))))
                 }),
         }
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
-pub enum AbilityContext {
-    /// Note, in this context `Stance::None` isn't intended to be used. e.g.
-    /// `AbilityContext::None` should always be used instead of
-    /// `AbilityContext::Stance(Stance::None)` in the ability map config
-    /// files(s).
-    Stance(Stance),
-    DualWieldingSameKind,
-    Combo(u32),
+#[derive(Clone, Debug, Serialize, Deserialize, Copy, Eq, PartialEq, Hash, Default)]
+pub struct AbilityContext {
+    /// Note, in this context `Stance::None` isn't intended to be used. e.g. the
+    /// stance field should be `None` instead of `Some(Stance::None)` in the
+    /// ability map config files(s).
+    pub stance: Option<Stance>,
+    #[serde(default)]
+    pub dual_wielding_same_kind: bool,
+    pub combo: Option<u32>,
 }
 
 impl AbilityContext {
-    pub fn from(
-        stance: Option<&Stance>,
-        inv: Option<&Inventory>,
-        combo: Option<&Combo>,
-    ) -> Vec<Self> {
-        let mut contexts = Vec::new();
-        match stance {
-            Some(Stance::None) => {},
-            Some(stance) => contexts.push(AbilityContext::Stance(*stance)),
-            None => {},
-        }
-        if let Some(inv) = inv {
+    pub fn from(stance: Option<&Stance>, inv: Option<&Inventory>, combo: Option<&Combo>) -> Self {
+        let stance = match stance {
+            Some(Stance::None) => None,
+            Some(stance) => Some(*stance),
+            None => None,
+        };
+        let dual_wielding_same_kind = if let Some(inv) = inv {
             let tool_kind = |slot| {
                 inv.equipped(slot).and_then(|i| {
                     if let ItemKind::Tool(tool) = &*i.kind() {
@@ -411,30 +408,33 @@ impl AbilityContext {
                     }
                 })
             };
-            if tool_kind(EquipSlot::ActiveMainhand) == tool_kind(EquipSlot::ActiveOffhand) {
-                contexts.push(AbilityContext::DualWieldingSameKind)
-            }
+            tool_kind(EquipSlot::ActiveMainhand) == tool_kind(EquipSlot::ActiveOffhand)
+        } else {
+            false
+        };
+        let combo = combo.map(|c| c.counter());
+
+        AbilityContext {
+            stance,
+            dual_wielding_same_kind,
+            combo,
         }
-        if let Some(combo) = combo {
-            contexts.push(AbilityContext::Combo(combo.counter()));
-        }
-        contexts
     }
 
-    fn fulfilled_by(&self, contexts: &[AbilityContext]) -> bool {
-        match self {
-            Self::Stance(_) | Self::DualWieldingSameKind => contexts.contains(self),
-            Self::Combo(required) => contexts
-                .iter()
-                .filter_map(|context| {
-                    if let Self::Combo(combo) = context {
-                        Some(combo)
-                    } else {
-                        None
-                    }
-                })
-                .any(|combo| combo >= required),
-        }
+    fn fulfilled_by(&self, context: &AbilityContext) -> bool {
+        let AbilityContext {
+            stance,
+            dual_wielding_same_kind,
+            combo,
+        } = self;
+        // Either stance not required or context is in the same stance
+        let stance_check = stance.map_or(true, |s| context.stance.map_or(false, |c_s| c_s == s));
+        // Either dual wield not required or context is dual wielding
+        let dual_wield_check = !dual_wielding_same_kind || context.dual_wielding_same_kind;
+        // Either no minimum combo needed or context has sufficient combo
+        let combo_check = combo.map_or(true, |c| context.combo.map_or(false, |c_c| c_c >= c));
+
+        stance_check && dual_wield_check && combo_check
     }
 }
 
@@ -486,28 +486,28 @@ impl<T> AbilitySet<T> {
     pub fn primary(
         &self,
         skillset: Option<&SkillSet>,
-        contexts: &[AbilityContext],
+        context: &AbilityContext,
     ) -> Option<(&T, Option<ContextualIndex>)> {
-        self.primary.ability(skillset, contexts)
+        self.primary.ability(skillset, context)
     }
 
     pub fn secondary(
         &self,
         skillset: Option<&SkillSet>,
-        contexts: &[AbilityContext],
+        context: &AbilityContext,
     ) -> Option<(&T, Option<ContextualIndex>)> {
-        self.secondary.ability(skillset, contexts)
+        self.secondary.ability(skillset, context)
     }
 
     pub fn auxiliary(
         &self,
         index: usize,
         skillset: Option<&SkillSet>,
-        contexts: &[AbilityContext],
+        context: &AbilityContext,
     ) -> Option<(&T, Option<ContextualIndex>)> {
         self.abilities
             .get(index)
-            .and_then(|a| a.ability(skillset, contexts))
+            .and_then(|a| a.ability(skillset, context))
     }
 }
 

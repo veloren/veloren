@@ -129,7 +129,7 @@ type HotbarSource<'a> = (
     &'a SkillSet,
     Option<&'a ActiveAbilities>,
     &'a Body,
-    &'a [AbilityContext],
+    &'a AbilityContext,
     Option<&'a Combo>,
     Option<&'a CharacterState>,
     Option<&'a Stance>,
@@ -240,7 +240,7 @@ type AbilitiesSource<'a> = (
     &'a ActiveAbilities,
     &'a Inventory,
     &'a SkillSet,
-    &'a [AbilityContext],
+    &'a AbilityContext,
 );
 
 impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {

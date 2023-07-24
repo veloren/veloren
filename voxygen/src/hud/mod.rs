@@ -3074,7 +3074,7 @@ impl Hud {
             bodies.get(entity),
         ) {
             let stance = stances.get(entity);
-            let contexts = AbilityContext::from(stance, Some(inventory), combo);
+            let context = AbilityContext::from(stance, Some(inventory), combo);
             match Skillbar::new(
                 client,
                 &info,
@@ -3100,7 +3100,7 @@ impl Hud {
                 i18n,
                 &msm,
                 self.floaters.combo_floater,
-                &contexts,
+                &context,
                 combo,
                 char_states.get(entity),
                 stance,
@@ -3582,7 +3582,7 @@ impl Hud {
                 bodies.get(entity),
                 poises.get(entity),
             ) {
-                let contexts = AbilityContext::from(stances.get(entity), Some(inventory), combo);
+                let context = AbilityContext::from(stances.get(entity), Some(inventory), combo);
                 for event in Diary::new(
                     &self.show,
                     client,
@@ -3603,7 +3603,7 @@ impl Hud {
                     tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
-                    &contexts,
+                    &context,
                 )
                 .set(self.ids.diary, ui_widgets)
                 {
@@ -5195,7 +5195,6 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Fortitude => localized_strings.get_msg("buff-desc-fortitude"),
         BuffKind::Reckless => localized_strings.get_msg("buff-desc-reckless"),
         // BuffKind::SalamanderAspect => localized_strings.get_msg("buff-desc-salamanderaspect"),
-        BuffKind::Polymorphed(_) => localized_strings.get_msg("buff-desc-polymorphed"),
         BuffKind::Flame => localized_strings.get_msg("buff-desc-flame"),
         BuffKind::Frigid => localized_strings.get_msg("buff-desc-frigid"),
         BuffKind::Lifesteal => localized_strings.get_msg("buff-desc-lifesteal"),
@@ -5216,6 +5215,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Poisoned => localized_strings.get_msg("buff-desc-poisoned"),
         BuffKind::Parried => localized_strings.get_msg("buff-desc-parried"),
         BuffKind::PotionSickness => localized_strings.get_msg("buff-desc-potionsickness"),
+        BuffKind::Polymorphed(_) => localized_strings.get_msg("buff-desc-polymorphed"),
     }
 }
 
