@@ -6,7 +6,7 @@
     // Back
     (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
     // Ring
-    (0.5, Item("common.items.armor.cultist.ring")),
+    (0.5, Item("common.loot_tables.armor.cultist")),
     // Glider
     (1.0, Item("common.items.glider.blue")),
 ]

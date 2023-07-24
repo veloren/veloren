@@ -8,4 +8,5 @@
     (1.0, Item("common.items.armor.cultist.bandana")),
     (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
     (1.0, Item("common.items.armor.cultist.necklace")),
+    (1.0, Item("common.items.armor.cultist.ring")),
 ]

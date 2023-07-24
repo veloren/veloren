@@ -11,7 +11,7 @@
     // Legendary weapons
     (1.0, LootTable("common.loot_tables.weapons.legendary_ranged")),
     // Crafting material
-    // Allow for DS and Eldwood to drop till entity droppers are implemented
+    // Allow for Eldwood to drop till entity droppers are implemented
     (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
     (1.0, MultiDrop(Item("common.items.log.eldwood"), 2, 6)),
 ]

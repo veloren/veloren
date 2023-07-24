@@ -11,7 +11,6 @@
     // Gear
     (2.0, Item("common.items.armor.misc.head.mitre")),
     // Crafting material
-    // Allow for DS and Eldwood to drop till entity droppers are implemented
-    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.dragon_scale"), 2, 4)),
+    // Allow for Eldwood to drop till entity droppers are implemented
     (1.0, MultiDrop(Item("common.items.log.eldwood"), 2, 4)),
 ]

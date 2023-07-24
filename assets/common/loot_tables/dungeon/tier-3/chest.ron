@@ -1,17 +1,10 @@
 [
     // Gear
     (0.5, LootTable("common.loot_tables.weapons.components.tier-3")),
-    (0.5, LootTable("common.loot_tables.weapons.tier-3")),
-    (0.5, LootTable("common.loot_tables.armor.tier-3")),
+    (0.25, LootTable("common.loot_tables.weapons.tier-3")),
+    (0.25, LootTable("common.loot_tables.armor.tier-3")),
     // Currency
     (3.0, MultiDrop(Item("common.items.utility.coins"), 250, 500)),
-    // Materials
-    // Allow ironwood to have higher drops till entity droppers are implemented
-    (1.0, MultiDrop(Item("common.items.crafting_ing.cloth.lifecloth"), 2, 6)),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.carapace"), 2, 6)),
-    (1.0, MultiDrop(Item("common.items.mineral.ingot.cobalt"), 2, 6)),
-    (1.0, MultiDrop(Item("common.items.log.ironwood"), 3, 7)),
-    (2.0, MultiDrop(Item("common.items.mineral.ore.velorite"), 3, 10)),
     // Consumables
     (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
     // Food
