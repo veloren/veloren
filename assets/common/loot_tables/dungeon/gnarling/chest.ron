@@ -15,7 +15,7 @@
     (0.1, Item("common.items.mineral.gem.emerald")),
     (0.1, Item("common.items.mineral.gem.ruby")),
     // Consumables
-    (2.0, LootTable("common.loot_tables.consumable.poor")),
+    (2.0, LootTable("common.loot_tables.consumable")),
     // Food
     (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 2)),
 ]
