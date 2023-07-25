@@ -7,8 +7,8 @@
     (0.1, Item("common.items.utility.firework_white")),
     (0.1, Item("common.items.utility.firework_yellow")),
     // Potions
-    (3.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
+    (10.0, MultiDrop(Item("common.items.consumable.potion_med"), 2, 5)),
     // Misc
-    (0.2, Item("common.items.utility.collar")),
-    (0.2, Item("common.items.utility.bomb")),
+    (2.0, MultiDrop(Item("common.items.utility.collar"), 1, 2)),
+    (2.0, MultiDrop(Item("common.items.utility.bomb"), 3, 5)),
 ]

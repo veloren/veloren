@@ -92,7 +92,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.charge_end_timer
                     && (input_is_pressed(data, self.static_data.ability_info.input)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
-                    && update.energy.current() >= 0.0
+                    && update.energy.current() > 0.0
                 {
                     // Forward movement
                     let charge_frac = (self.timer.as_secs_f32()

@@ -1,8 +1,9 @@
 [
     // Consumables
-    (0.5, LootTable("common.loot_tables.consumable")),
+    (1.0, LootTable("common.loot_tables.consumable.moderate")),
     // Food
-    (1.5, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 4)),
+    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 4)),
+    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 4)),
     // Nothing
-    (2.0, Nothing),
+    (0.75, Nothing),
 ]
