@@ -1,8 +1,5 @@
 use common::{
-    comp::{
-        object, teleport::TeleporterEvent, Agent, Body, CharacterState, Player, Pos, Teleporter,
-        Teleporting,
-    },
+    comp::{object, Agent, Body, CharacterState, Player, Pos, Teleporter, Teleporting},
     event::{EventBus, ServerEvent},
     resources::Time,
     CachedSpatialGrid,
@@ -56,15 +53,6 @@ impl<'a> System<'a> for Sys {
             event_bus,
         ): Self::SystemData,
     ) {
-        let mut player_data = (
-            &entities,
-            &positions,
-            &players,
-            &character_states,
-            teleporting.entries(),
-        )
-            .join();
-
         let check_aggro = |entity, pos: Vec3<f32>| {
             spatial_grid
                 .0
@@ -86,6 +74,15 @@ impl<'a> System<'a> for Sys {
                 .in_circle_aabr(teleporter_pos.0.xy(), TELEPORT_RADIUS);
 
             let mut is_active = false;
+
+            let mut player_data = (
+                &entities,
+                &positions,
+                &players,
+                &character_states,
+                teleporting.entries(),
+            )
+                .join();
 
             for (entity, pos, _, character_state, teleporting) in
                 nearby_entities.filter_map(|entity| {
@@ -120,10 +117,14 @@ impl<'a> System<'a> for Sys {
             }
 
             if (*body == Body::Object(object::Body::PortalActive)) != is_active {
-                event_bus.emit_now(ServerEvent::PortalEvent(TeleporterEvent::SetPortalActive {
-                    portal: portal_entity,
-                    active: is_active,
-                }));
+                event_bus.emit_now(ServerEvent::ChangeBody {
+                    entity: portal_entity,
+                    new_body: Body::Object(if is_active {
+                        object::Body::PortalActive
+                    } else {
+                        object::Body::Portal
+                    }),
+                });
             }
         }
 
@@ -143,10 +144,10 @@ impl<'a> System<'a> for Sys {
                 teleporting.remove();
             } else if teleporting.get().end_time.0 <= time.0 {
                 teleporting.remove();
-                event_bus.emit_now(ServerEvent::PortalEvent(TeleporterEvent::PortalTeleport {
+                event_bus.emit_now(ServerEvent::TeleportToPosition {
                     entity,
-                    target: teleporter.target,
-                }));
+                    position: teleporter.target,
+                });
             }
         }
     }

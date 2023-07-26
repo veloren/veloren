@@ -21,8 +21,6 @@ use common::{
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        object,
-        teleport::TeleporterEvent,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange, Inventory,
         Player, Poise, Pos, SkillSet, Stats,
     },
@@ -1659,30 +1657,19 @@ pub fn handle_remove_light_emitter(server: &mut Server, entity: EcsEntity) {
         .remove(entity);
 }
 
-pub fn handle_portal_event(server: &mut Server, event: TeleporterEvent) {
+pub fn handle_teleport_to_position_event(
+    server: &mut Server,
+    entity: EcsEntity,
+    position: Vec3<f32>,
+) {
     let ecs = server.state.ecs();
 
-    match event {
-        TeleporterEvent::PortalTeleport { entity, target } => {
-            ecs.write_storage::<comp::Pos>()
-                .get_mut(entity)
-                .map(|old_position| {
-                    old_position.0 = target;
-                });
-            ecs.write_storage::<comp::ForceUpdate>()
-                .get_mut(entity)
-                .map(|forced_update| forced_update.update());
-        },
-        TeleporterEvent::SetPortalActive { portal, active } => {
-            ecs.write_storage::<comp::Body>()
-                .get_mut(portal)
-                .map(|mut body| {
-                    *body = comp::body::Body::Object(if active {
-                        object::Body::PortalActive
-                    } else {
-                        object::Body::Portal
-                    });
-                });
-        },
-    }
+    ecs.write_storage::<comp::Pos>()
+        .get_mut(entity)
+        .map(|old_position| {
+            old_position.0 = position;
+        });
+    ecs.write_storage::<comp::ForceUpdate>()
+        .get_mut(entity)
+        .map(|forced_update| forced_update.update());
 }
