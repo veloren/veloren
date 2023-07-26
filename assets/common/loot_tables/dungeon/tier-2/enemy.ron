@@ -4,7 +4,7 @@
     // Food
     (1.0, MultiDrop(LootTable("common.loot_tables.food.wild_ingredients"), 1, 2)),
     // Materials
-    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.scales"), 0, 2)),
+    (0.5, MultiDrop(Item("common.items.crafting_ing.hide.scales"), 1, 2)),
     // Nothing
-    (1.0, Nothing),
+    (1.5, Nothing),
 ]
