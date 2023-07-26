@@ -13,7 +13,7 @@
     (1.0, MultiDrop(Item("common.items.mineral.ingot.bloodsteel"), 1, 5)),
     (1.0, MultiDrop(Item("common.items.log.frostwood"), 3, 6)),
     // Consumables
-    (2.0, LootTable("common.loot_tables.consumable.good")),
+    (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8)),
     // Food
     (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 5)),
 ]
