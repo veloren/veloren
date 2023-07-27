@@ -19,7 +19,6 @@ use rtsim::{
 };
 use specs::DispatcherBuilder;
 use std::{
-    error::Error,
     fs::{self, File},
     io,
     path::PathBuf,
@@ -267,30 +266,16 @@ impl RtSim {
 }
 
 fn save_thread(file_path: PathBuf, rx: Receiver<Data>) {
+    if let Some(dir) = file_path.parent() {
+        let _ = fs::create_dir_all(dir);
+    }
+
+    let atomic_file = AtomicFile::new(file_path, OverwriteBehavior::AllowOverwrite);
     while let Ok(data) = rx.recv() {
-        if let Err(e) = file_path
-            .parent()
-            .map(|dir| {
-                fs::create_dir_all(dir)?;
-                // We write to a temporary file and then rename to avoid corruption.
-                Ok(dir.join(&file_path))
-            })
-            .unwrap_or_else(|| Ok(file_path.clone()))
-            .map(|file_path| AtomicFile::new(file_path, OverwriteBehavior::AllowOverwrite))
-            .map_err(|e: io::Error| Box::new(e) as Box<dyn Error>)
-            .and_then(|file| {
-                debug!("Writing rtsim data to file...");
-                file.write(move |file| -> Result<(), rtsim::data::WriteError> {
-                    data.write_to(io::BufWriter::new(file))?;
-                    // file.flush()?;
-                    Ok(())
-                })?;
-                drop(file);
-                debug!("Rtsim data saved.");
-                Ok(())
-            })
-        {
-            error!("Saving rtsim data failed: {}", e);
+        debug!("Writing rtsim data to file...");
+        match atomic_file.write(move |file| data.write_to(io::BufWriter::new(file))) {
+            Ok(_) => debug!("Rtsim data saved."),
+            Err(e) => error!("Saving rtsim data failed: {}", e),
         }
     }
 }
