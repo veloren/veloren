@@ -43,6 +43,7 @@ gittag:
     - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8}
     - |
       if [[ ! "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
+        git fetch;
         git tag -a "${SCHEDULE_CADENCE}" -m '' -f;
         git push origin "${SCHEDULE_CADENCE}" -f;
       fi
