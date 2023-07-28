@@ -4138,6 +4138,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-derive"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e6a0fd4f737c707bd9086cc16c925f294943eb62eb71499e9fd4cf71f8b9f4e"
+dependencies = [
+ "proc-macro2 1.0.56",
+ "quote 1.0.26",
+ "syn 2.0.15",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4280,7 +4291,7 @@ dependencies = [
  "jni 0.19.0",
  "ndk 0.6.0",
  "ndk-context",
- "num-derive",
+ "num-derive 0.3.3",
  "num-traits",
  "oboe-sys",
 ]
@@ -7054,7 +7065,7 @@ dependencies = [
  "itertools",
  "kiddo",
  "lazy_static",
- "num-derive",
+ "num-derive 0.4.0",
  "num-traits",
  "ordered-float 3.7.0",
  "petgraph 0.6.3",

@@ -43,7 +43,7 @@ crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 bitflags = { workspace = true, features = ["serde"] }
 lazy_static = { workspace = true }
-num-derive = "0.3"
+num-derive = "0.4.0"
 num-traits = { workspace = true }
 ordered-float = { workspace = true }
 rayon = { workspace = true }
