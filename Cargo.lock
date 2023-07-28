@@ -7036,7 +7036,7 @@ dependencies = [
 name = "veloren-common"
 version = "0.10.0"
 dependencies = [
- "approx 0.4.0",
+ "approx 0.5.1",
  "bitflags 2.2.1",
  "cfg-if 1.0.0",
  "chrono",

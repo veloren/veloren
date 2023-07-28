@@ -38,7 +38,7 @@ sha2 = "0.10"
 # Strum
 strum = { workspace = true }
 
-approx = "0.4.0"
+approx = "0.5.1"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 bitflags = { workspace = true, features = ["serde"] }
