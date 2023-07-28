@@ -1,6 +1,6 @@
 RiposteMelee(
     energy_cost: 5,
-    buildup_duration: 0.3,
+    buildup_duration: 0.4,
     swing_duration: 0.1,
     recover_duration: 0.2,
     melee_constructor: (

@@ -1,0 +1,21 @@
+BasicBlock(
+    buildup_duration: 0.25,
+    recover_duration: 0.2,
+    max_angle: 60.0,
+    block_strength: 0.5,
+    parry_window: (
+        buildup: true,
+        recover: false,
+    ),
+    energy_cost: 5,
+    energy_regen: 2.5,
+    can_hold: true,
+    blocked_attacks: (
+        melee: true,
+        projectiles: false,
+        beams: false,
+        ground_shockwaves: false,
+        air_shockwaves: false,
+        explosions: false,
+    ),
+)

@@ -215,11 +215,12 @@ impl From<InputKind> for Option<ability::AbilityInput> {
     fn from(input: InputKind) -> Option<ability::AbilityInput> {
         use ability::AbilityInput;
         match input {
+            InputKind::Block => Some(AbilityInput::Guard),
             InputKind::Primary => Some(AbilityInput::Primary),
             InputKind::Secondary => Some(AbilityInput::Secondary),
             InputKind::Roll => Some(AbilityInput::Movement),
             InputKind::Ability(index) => Some(AbilityInput::Auxiliary(index)),
-            InputKind::Jump | InputKind::Fly | InputKind::Block => None,
+            InputKind::Jump | InputKind::Fly => None,
         }
     }
 }

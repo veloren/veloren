@@ -237,9 +237,11 @@ impl Server {
                 ServerEvent::ComboChange { entity, change } => {
                     handle_combo_change(self, entity, change)
                 },
-                ServerEvent::ParryHook { defender, attacker } => {
-                    handle_parry_hook(self, defender, attacker)
-                },
+                ServerEvent::ParryHook {
+                    defender,
+                    attacker,
+                    source,
+                } => handle_parry_hook(self, defender, attacker, source),
                 ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(self, entity, id),
                 ServerEvent::MineBlock { entity, pos, tool } => {
                     handle_mine_block(self, entity, pos, tool)

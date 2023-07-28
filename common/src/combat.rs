@@ -148,6 +148,7 @@ impl Attack {
                             emit(ServerEvent::ParryHook {
                                 defender: target.entity,
                                 attacker: attacker.map(|a| a.entity),
+                                source,
                             });
                             1.0
                         } else if let Some(block_strength) = char_state.block_strength(source) {

@@ -294,6 +294,7 @@ impl Tool {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilitySet<T> {
+    pub guard: Option<AbilityKind<T>>,
     pub primary: AbilityKind<T>,
     pub secondary: AbilityKind<T>,
     pub abilities: Vec<AbilityKind<T>>,
@@ -422,6 +423,7 @@ impl AbilitySet<AbilityItem> {
 impl<T> AbilitySet<T> {
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilitySet<U> {
         AbilitySet {
+            guard: self.guard.map(|g| g.map(&mut f)),
             primary: self.primary.map(&mut f),
             secondary: self.secondary.map(&mut f),
             abilities: self.abilities.into_iter().map(|x| x.map(&mut f)).collect(),
@@ -430,10 +432,17 @@ impl<T> AbilitySet<T> {
 
     pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AbilitySet<U> {
         AbilitySet {
+            guard: self.guard.as_ref().map(|g| g.map_ref(&mut f)),
             primary: self.primary.map_ref(&mut f),
             secondary: self.secondary.map_ref(&mut f),
             abilities: self.abilities.iter().map(|x| x.map_ref(&mut f)).collect(),
         }
+    }
+
+    pub fn guard(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
+        self.guard
+            .as_ref()
+            .and_then(|g| g.ability(skillset, contexts))
     }
 
     pub fn primary(&self, skillset: Option<&SkillSet>, contexts: &[AbilityContext]) -> Option<&T> {
@@ -463,6 +472,7 @@ impl<T> AbilitySet<T> {
 impl Default for AbilitySet<AbilityItem> {
     fn default() -> Self {
         AbilitySet {
+            guard: None,
             primary: AbilityKind::Simple(None, AbilityItem {
                 id: String::new(),
                 ability: CharacterAbility::default(),

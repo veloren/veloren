@@ -289,8 +289,11 @@ impl CharacterState {
                 .map(|a| a.ability_meta)
                 .map(|m| m.capabilities)
             {
-                (capabilities.contains(Capability::BUILDUP_BLOCKS)
-                    && matches!(self.stage_section(), Some(StageSection::Buildup)))
+                (capabilities.contains(Capability::BLOCKS)
+                    && matches!(
+                        self.stage_section(),
+                        Some(StageSection::Buildup | StageSection::Action)
+                    ))
                 .then_some(0.5)
             } else {
                 None
@@ -320,13 +323,20 @@ impl CharacterState {
                 .ability_info()
                 .map(|a| a.ability_meta.capabilities)
                 .map_or(false, |c| {
-                    c.contains(Capability::BUILDUP_PARRIES)
-                        && matches!(self.stage_section(), Some(StageSection::Buildup))
+                    c.contains(Capability::PARRIES)
+                        && matches!(
+                            self.stage_section(),
+                            Some(StageSection::Buildup | StageSection::Action)
+                        )
                 });
         let from_state = match self {
             CharacterState::BasicBlock(c) => c.is_parry(attack_source),
             CharacterState::RiposteMelee(c) => {
-                melee && matches!(c.stage_section, StageSection::Buildup)
+                melee
+                    && matches!(
+                        c.stage_section,
+                        StageSection::Buildup | StageSection::Action
+                    )
             },
             _ => false,
         };

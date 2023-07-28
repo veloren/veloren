@@ -33,6 +33,8 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Energy consumed to initiate the block
     pub energy_cost: f32,
+    /// Energy recovered upon successful parry
+    pub energy_regen: f32,
     /// Whether block can be held
     pub can_hold: bool,
     /// What kinds of attacks the block applies to

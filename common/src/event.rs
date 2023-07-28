@@ -1,5 +1,6 @@
 use crate::{
     character::CharacterId,
+    combat::AttackSource,
     comp::{
         self,
         agent::Sound,
@@ -261,6 +262,7 @@ pub enum ServerEvent {
     ParryHook {
         defender: EcsEntity,
         attacker: Option<EcsEntity>,
+        source: AttackSource,
     },
     RequestSiteInfo {
         entity: EcsEntity,

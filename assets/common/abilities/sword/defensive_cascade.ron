@@ -10,7 +10,7 @@ ComboMelee2(
                 ),
                 range: 4.0,
                 angle: 15.0,
-                damage_effect: Some(BuffsVulnerable(0.5, Parried)),
+                damage_effect: Some(BuffsVulnerable(0.6, Parried)),
             ),
             buildup_duration: 0.4,
             swing_duration: 0.1,
@@ -21,7 +21,7 @@ ComboMelee2(
     ],
     energy_cost_per_strike: 5,
     meta: (
-        // The ability will parry melee attacks in the buildup portion
-        capabilities: ("BUILDUP_PARRIES"),
+        // The ability will parry melee attacks in the buildup & swing portion
+        capabilities: ("PARRIES"),
     ),
 )

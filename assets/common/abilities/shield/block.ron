@@ -8,6 +8,7 @@ BasicBlock(
         recover: false,
     ),
     energy_cost: 0.0,
+    energy_regen: 0.0,
     can_hold: true,
     blocked_attacks: (
         melee: true,
