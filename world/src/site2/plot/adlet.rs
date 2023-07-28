@@ -15,7 +15,7 @@ use std::{
     f32::consts::{PI, TAU},
     sync::Arc,
 };
-use vek::{num_integer::Roots, *};
+use vek::*;
 
 pub struct AdletStronghold {
     name: String,
@@ -1517,8 +1517,7 @@ impl Structure for AdletStronghold {
                         .fill(snow_ice_fill.clone());
                     // tunnel
                     let door_dist = self.cavern_center - yetipit_entrance_pos;
-                    let door_dir = door_dist
-                        / Vec2::new((door_dist.x).pow(2).sqrt(), (door_dist.y).pow(2).sqrt());
+                    let door_dir = door_dist.map(|e| e.checked_div(e.abs()).unwrap_or(0));
                     painter
                         .cubic_bezier(
                             (yetipit_entrance_pos + door_dir * 10).with_z(alt as i32 + 2),
