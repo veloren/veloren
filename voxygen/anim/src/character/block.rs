@@ -51,7 +51,11 @@ impl Animation for BlockAnimation {
         next.second.orientation = Quaternion::rotation_z(0.0);
 
         match ability_id {
-            None => {
+            None
+            | Some("common.abilities.sword.basic_guard")
+            | Some("common.abilities.axe.basic_guard")
+            | Some("common.abilities.hammer.basic_guard")
+            | Some("common.abilities.sword.defensive_guard") => {
                 let speed = Vec2::<f32>::from(velocity).magnitude();
 
                 let (movement1base, move2, movement3) = match stage_section {

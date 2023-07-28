@@ -14,7 +14,7 @@ use crate::{
 use authc::Uuid;
 use common::{
     combat,
-    combat::DamageContributor,
+    combat::{AttackSource, DamageContributor},
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
@@ -1361,7 +1361,12 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
     }
 }
 
-pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<EcsEntity>) {
+pub fn handle_parry_hook(
+    server: &Server,
+    defender: EcsEntity,
+    attacker: Option<EcsEntity>,
+    source: AttackSource,
+) {
     let ecs = &server.state.ecs();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
     // Reset character state of defender
@@ -1379,7 +1384,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
                 // Refund half the energy of entering the block for a successful parry
                 server_eventbus.emit_now(ServerEvent::EnergyChange {
                     entity: defender,
-                    change: c.static_data.energy_cost / 2.0,
+                    change: c.static_data.energy_regen,
                 });
                 true
             },
@@ -1391,7 +1396,7 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, attacker: Option<
         }
     };
 
-    if let Some(attacker) = attacker {
+    if let Some(attacker) = attacker && matches!(source, AttackSource::Melee){
         // When attacker is parried, add the parried debuff for 2 seconds, which slows
         // them
         let data = buff::BuffData::new(1.0, Some(Secs(2.0)), None);

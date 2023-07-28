@@ -8,10 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+- Esperanto translation
+- Item quantity sort in player inventory.
+- Using Block('Alt' by default) in Defensive Stance now feels stronger
 - Recipe for twigs from wooden logs
 - First version of multisalvage that allows to obtain more than one piece of material from salvage
-
 ### Changed
+
+- Plugins now target wasm32-unknown-wasi and all wasm cfgs are gone
+- Slightly reduced quantities of ingredients needed to craft cooked foods
+- Improved and cleaned loot tables for T1 and T2 dungeons as well as large cave monsters (Good bye, Bowls and Stones!)
+- Defensive Fell Strike's dmg raised
+- Defensive Cascade's more effective against parried foes
+- Defensive Riposte's buildup duration raised a bit
+- Capabilities of strikes to parry & block now more reliable
+- Defensive Disengage now more responsive and can block melee
+- Deflect no longer parry melee hits
+
 - Made helmets, necklaces, rings, twig armors and some gliders salvageable
 - Tweaked stats on some foods so they generally increase a tiny bit more HP
 - Reduced idle time after consumption from 5 to 4 seconds

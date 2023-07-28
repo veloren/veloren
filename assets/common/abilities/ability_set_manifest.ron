@@ -3,6 +3,13 @@
 // A set of abilities is a primary, a secondary, and a vec of all extra abilities
 ({
     Tool(Sword): (
+        guard: Some(Contextualized(
+            pseudo_id: "veloren.core.pseudo_abilities.sword.guard",
+            abilities: [
+                ([Stance(Sword(Defensive))], (None, "common.abilities.sword.defensive_guard")),
+                ([], (None, "common.abilities.sword.basic_guard")),
+            ],
+        )),
         primary: Contextualized(
             pseudo_id: "veloren.core.pseudo_abilities.sword.double_slash",
             abilities: [
@@ -136,6 +143,7 @@
         ],
     ),
     Tool(Axe): (
+        guard: Some(Simple(None, "common.abilities.axe.basic_guard")),
         primary: Simple(None, "common.abilities.axe.doublestrike"),
         secondary: Simple(None, "common.abilities.axe.spin"),
         abilities: [
@@ -143,6 +151,7 @@
         ],
     ),
     Tool(Hammer): (
+        guard: Some(Simple(None, "common.abilities.hammer.basic_guard")),
         primary: Simple(None, "common.abilities.hammer.singlestrike"),
         secondary: Simple(None, "common.abilities.hammer.charged"),
         abilities: [

@@ -42,6 +42,7 @@ pub type AuxiliaryKey = (Option<ToolKind>, Option<ToolKind>);
 // considerations.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ActiveAbilities {
+    pub guard: GuardAbility,
     pub primary: PrimaryAbility,
     pub secondary: SecondaryAbility,
     pub movement: MovementAbility,
@@ -55,6 +56,7 @@ impl Component for ActiveAbilities {
 impl Default for ActiveAbilities {
     fn default() -> Self {
         Self {
+            guard: GuardAbility::Tool,
             primary: PrimaryAbility::Tool,
             secondary: SecondaryAbility::Tool,
             movement: MovementAbility::Species,
@@ -123,6 +125,7 @@ impl ActiveAbilities {
         skill_set: Option<&SkillSet>,
     ) -> Ability {
         match input {
+            AbilityInput::Guard => self.guard.into(),
             AbilityInput::Primary => self.primary.into(),
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
@@ -165,6 +168,22 @@ impl ActiveAbilities {
         };
 
         match ability {
+            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
+                .and_then(|abilities| {
+                    abilities
+                        .guard(Some(skill_set), contexts)
+                        .map(|a| a.ability.clone())
+                })
+                .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), true))
+                .or_else(|| {
+                    ability_set(EquipSlot::ActiveOffhand)
+                        .and_then(|abilities| {
+                            abilities
+                                .secondary(Some(skill_set), contexts)
+                                .map(|a| a.ability.clone())
+                        })
+                        .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), false))
+                }),
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
@@ -250,6 +269,7 @@ impl ActiveAbilities {
 }
 
 pub enum AbilityInput {
+    Guard,
     Primary,
     Secondary,
     Movement,
@@ -258,6 +278,7 @@ pub enum AbilityInput {
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Ability {
+    ToolGuard,
     ToolPrimary,
     ToolSecondary,
     SpeciesMovement,
@@ -293,6 +314,31 @@ impl Ability {
         };
 
         match self {
+            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
+                .and_then(|abilities| {
+                    abilities
+                        .guard(skillset, contexts)
+                        .map(|a| a.id.as_str())
+                        .or_else(|| {
+                            abilities
+                                .guard
+                                .as_ref()
+                                .and_then(|g| contextual_id(Some(g)))
+                        })
+                })
+                .or_else(|| {
+                    ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
+                        abilities
+                            .guard(skillset, contexts)
+                            .map(|a| a.id.as_str())
+                            .or_else(|| {
+                                abilities
+                                    .guard
+                                    .as_ref()
+                                    .and_then(|g| contextual_id(Some(g)))
+                            })
+                    })
+                }),
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                 abilities
                     .primary(skillset, contexts)
@@ -332,6 +378,20 @@ impl Ability {
                 })
             },
             Ability::Empty => None,
+        }
+    }
+}
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+pub enum GuardAbility {
+    Tool,
+    Empty,
+}
+
+impl From<GuardAbility> for Ability {
+    fn from(guard: GuardAbility) -> Self {
+        match guard {
+            GuardAbility::Tool => Ability::ToolGuard,
+            GuardAbility::Empty => Ability::Empty,
         }
     }
 }
@@ -550,6 +610,7 @@ pub enum CharacterAbility {
         block_strength: f32,
         parry_window: basic_block::ParryWindow,
         energy_cost: f32,
+        energy_regen: f32,
         can_hold: bool,
         blocked_attacks: AttackFilters,
         #[serde(default)]
@@ -967,30 +1028,6 @@ impl CharacterAbility {
         }
     }
 
-    pub fn default_block() -> CharacterAbility {
-        CharacterAbility::BasicBlock {
-            buildup_duration: 0.25,
-            recover_duration: 0.2,
-            max_angle: 60.0,
-            block_strength: 0.5,
-            parry_window: basic_block::ParryWindow {
-                buildup: true,
-                recover: false,
-            },
-            energy_cost: 2.5,
-            can_hold: true,
-            blocked_attacks: AttackFilters {
-                melee: true,
-                projectiles: false,
-                ground_shockwaves: false,
-                air_shockwaves: false,
-                beams: false,
-                explosions: false,
-            },
-            meta: Default::default(),
-        }
-    }
-
     #[must_use]
     pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         use CharacterAbility::*;
@@ -1090,6 +1127,7 @@ impl CharacterAbility {
                 block_strength: _,
                 parry_window: _,
                 ref mut energy_cost,
+                energy_regen: _,
                 can_hold: _,
                 blocked_attacks: _,
                 meta: _,
@@ -2247,6 +2285,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 block_strength,
                 parry_window,
                 energy_cost,
+                energy_regen,
                 can_hold,
                 blocked_attacks,
                 meta: _,
@@ -2258,6 +2297,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     block_strength: *block_strength,
                     parry_window: *parry_window,
                     energy_cost: *energy_cost,
+                    energy_regen: *energy_regen,
                     can_hold: *can_hold,
                     blocked_attacks: *blocked_attacks,
                     ability_info,
@@ -2910,13 +2950,13 @@ bitflags::bitflags! {
         // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT     = 0b00000010;
         // When the ability is in the buildup section, it counts as a block with 50% DR
-        const BUILDUP_BLOCKS      = 0b00000100;
+        const BLOCKS              = 0b00000100;
         // When in the ability, an entity only receives half as much poise damage
         const POISE_RESISTANT     = 0b00001000;
         // WHen in the ability, an entity only receives half as much knockback
         const KNOCKBACK_RESISTANT = 0b00010000;
         // The ability will parry melee attacks in the buildup portion
-        const BUILDUP_PARRIES     = 0b00100000;
+        const PARRIES             = 0b00100000;
     }
 }
 

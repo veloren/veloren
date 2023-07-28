@@ -14,8 +14,8 @@ use crate::{
         },
         quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
-        theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
-        InventoryAction, Melee, StateUpdate,
+        theropod, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction, Melee,
+        StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
@@ -1247,14 +1247,15 @@ pub fn handle_input(
     input: InputKind,
 ) {
     match input {
-        InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) | InputKind::Roll => {
+        InputKind::Primary
+        | InputKind::Secondary
+        | InputKind::Ability(_)
+        | InputKind::Block
+        | InputKind::Roll => {
             handle_ability(data, update, output_events, input);
         },
         InputKind::Jump => {
             handle_jump(data, output_events, update, 1.0);
-        },
-        InputKind::Block => {
-            handle_block_input(data, update);
         },
         InputKind::Fly => {},
     }
@@ -1268,30 +1269,6 @@ pub fn attempt_input(
     // TODO: look into using first() when it becomes stable
     if let Some(input) = data.controller.queued_inputs.keys().next() {
         handle_input(data, output_events, update, *input);
-    }
-}
-
-/// Checks that player can block, then attempts to block
-pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
-    let can_block = |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some((kind, _)) if kind.can_block());
-    let hands = get_hands(data);
-    if input_is_pressed(data, InputKind::Block)
-        && (can_block(EquipSlot::ActiveMainhand)
-            || (hands.0.is_none() && can_block(EquipSlot::ActiveOffhand)))
-    {
-        let ability = CharacterAbility::default_block();
-        if ability.requirements_paid(data, update) {
-            update.character = CharacterState::from((
-                &ability,
-                AbilityInfo::from_input(data, false, InputKind::Block, Default::default()),
-                data,
-            ));
-            true
-        } else {
-            false
-        }
-    } else {
-        false
     }
 }
 
@@ -1314,8 +1291,8 @@ pub fn handle_interrupts(
         });
     if can_dodge && input_is_pressed(data, InputKind::Roll) {
         handle_ability(data, update, output_events, InputKind::Roll)
-    } else if can_block {
-        handle_block_input(data, update)
+    } else if can_block && input_is_pressed(data, InputKind::Block) {
+        handle_ability(data, update, output_events, InputKind::Block)
     } else {
         false
     }
