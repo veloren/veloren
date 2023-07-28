@@ -572,18 +572,20 @@ impl<'a> Widget for ItemTooltip<'a> {
             .set(state.ids.title, ui);
 
         // Amount
-        let mut subtitle_relative_id = state.ids.title;
-        if self.item.amount().get() > 1 {
-            subtitle_relative_id = state.ids.quantity;
+        let (subtitle_relative_id, spacing) = if self.item.amount().get() > 1 {
             widget::Text::new(&format!("Amount: {}", self.item.amount().get()))
                 .w(title_w)
                 .graphics_for(id)
                 .parent(id)
                 .with_style(self.style.desc)
                 .color(conrod_core::color::GREY)
-                .down_from(state.ids.title, V_PAD)
+                .down_from(state.ids.title, 2.0)
                 .set(state.ids.quantity, ui);
-        }
+
+            (state.ids.quantity, 2.0)
+        } else {
+            (state.ids.title, V_PAD)
+        };
 
         // Subtitle
         widget::Text::new(&subtitle)
@@ -592,7 +594,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             .parent(id)
             .with_style(self.style.desc)
             .color(conrod_core::color::GREY)
-            .down_from(subtitle_relative_id, V_PAD)
+            .down_from(subtitle_relative_id, spacing)
             .set(state.ids.subtitle, ui);
 
         // Stats
