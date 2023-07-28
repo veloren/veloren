@@ -1397,6 +1397,7 @@ pub trait ItemDesc {
     fn description(&self) -> &str;
     fn name(&self) -> Cow<str>;
     fn kind(&self) -> Cow<ItemKind>;
+    fn amount(&self) -> NonZeroU32;
     fn quality(&self) -> Quality;
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> ItemDefinitionId<'_>;
@@ -1422,6 +1423,8 @@ impl ItemDesc for Item {
     fn name(&self) -> Cow<str> { self.name() }
 
     fn kind(&self) -> Cow<ItemKind> { self.kind() }
+
+    fn amount(&self) -> NonZeroU32 { self.amount }
 
     fn quality(&self) -> Quality { self.quality() }
 
@@ -1450,6 +1453,8 @@ impl ItemDesc for ItemDef {
     fn name(&self) -> Cow<str> { Cow::Borrowed(&self.name) }
 
     fn kind(&self) -> Cow<ItemKind> { Cow::Borrowed(&self.kind) }
+
+    fn amount(&self) -> NonZeroU32 { NonZeroU32::new(1).unwrap() }
 
     fn quality(&self) -> Quality { self.quality }
 
@@ -1494,6 +1499,8 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn name(&self) -> Cow<str> { (*self).name() }
 
     fn kind(&self) -> Cow<ItemKind> { (*self).kind() }
+
+    fn amount(&self) -> NonZeroU32 { (*self).amount() }
 
     fn quality(&self) -> Quality { (*self).quality() }
 

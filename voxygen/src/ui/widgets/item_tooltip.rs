@@ -310,6 +310,7 @@ pub struct Style {
 widget_ids! {
     struct Ids {
         title,
+        quantity,
         subtitle,
         desc,
         prices_buy,
@@ -570,6 +571,22 @@ impl<'a> Widget for ItemTooltip<'a> {
             .color(quality)
             .set(state.ids.title, ui);
 
+        // Amount
+        let (subtitle_relative_id, spacing) = if self.item.amount().get() > 1 {
+            widget::Text::new(&format!("Amount: {}", self.item.amount().get()))
+                .w(title_w)
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(conrod_core::color::GREY)
+                .down_from(state.ids.title, 2.0)
+                .set(state.ids.quantity, ui);
+
+            (state.ids.quantity, 2.0)
+        } else {
+            (state.ids.title, V_PAD)
+        };
+
         // Subtitle
         widget::Text::new(&subtitle)
             .w(title_w)
@@ -577,7 +594,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             .parent(id)
             .with_style(self.style.desc)
             .color(conrod_core::color::GREY)
-            .down_from(state.ids.title, V_PAD)
+            .down_from(subtitle_relative_id, spacing)
             .set(state.ids.subtitle, ui);
 
         // Stats
