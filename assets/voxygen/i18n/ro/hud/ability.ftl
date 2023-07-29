@@ -1,9 +1,5 @@
 common-abilities-debug-possess = Săgeată Manipulatoare
     .desc = Trage o săgeată otrăvitoare care te lasă să controlezi inamicul.
-common-abilities-sword-spin = Vârtej de vânt
-    .desc = Mișcă-te înainte în timp ce te rotești cu sabia.
-common-abilities-axe-leap = Saltul Toporului
-    .desc = Un salt cu mișcare tăioasă la poziția cursorului.
 common-abilities-hammer-leap = Lovitura Morții
     .desc = Un atac „Zonă de Efect” cu aruncare. Salt la poziția cursorului.
 common-abilities-bow-shotgun = Burst

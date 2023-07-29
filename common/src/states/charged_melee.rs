@@ -37,6 +37,8 @@ pub struct StaticData {
     pub specifier: Option<FrontendSpecifier>,
     /// Adds an effect onto the main damage of the attack
     pub damage_effect: Option<CombatEffect>,
+    /// The actual additional combo is modified by duration of charge
+    pub additional_combo: i32,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -153,11 +155,15 @@ impl CharacterBehavior for Data {
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
+                    let additional_combo =
+                        (self.charge_amount * self.static_data.additional_combo as f32 + 0.5)
+                            .floor() as i32;
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
+                            .with_combo(1 + additional_combo)
                             .handle_scaling(self.charge_amount)
                             .create_melee(crit_data, tool_stats),
                     );

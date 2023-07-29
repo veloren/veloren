@@ -6,7 +6,10 @@ use common::{
         character_state::AttackFilters,
         group,
         inventory::{
-            item::{tool::ToolKind, ItemKind, MaterialStatManifest},
+            item::{
+                tool::{AbilityMap, ToolKind},
+                ItemKind, MaterialStatManifest,
+            },
             slot::EquipSlot,
         },
         ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
@@ -246,7 +249,7 @@ pub enum Tactic {
     AdletElder,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum SwordTactics {
     Unskilled = 0,
     Basic = 1,
@@ -278,6 +281,39 @@ impl SwordTactics {
             9 => DefensiveAdvanced,
             10 => CripplingAdvanced,
             11 => CleavingAdvanced,
+            _ => Unskilled,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum AxeTactics {
+    Unskilled = 0,
+    SavageSimple = 1,
+    MercilessSimple = 2,
+    RivingSimple = 3,
+    SavageIntermediate = 4,
+    MercilessIntermediate = 5,
+    RivingIntermediate = 6,
+    SavageAdvanced = 7,
+    MercilessAdvanced = 8,
+    RivingAdvanced = 9,
+}
+
+impl AxeTactics {
+    pub fn from_u8(x: u8) -> Self {
+        use AxeTactics::*;
+        match x {
+            0 => Unskilled,
+            1 => SavageSimple,
+            2 => MercilessSimple,
+            3 => RivingSimple,
+            4 => SavageIntermediate,
+            5 => MercilessIntermediate,
+            6 => RivingIntermediate,
+            7 => SavageAdvanced,
+            8 => MercilessAdvanced,
+            9 => RivingAdvanced,
             _ => Unskilled,
         }
     }
@@ -323,6 +359,7 @@ pub struct ReadData<'a> {
     pub poises: ReadStorage<'a, Poise>,
     pub stances: ReadStorage<'a, Stance>,
     pub presences: ReadStorage<'a, Presence>,
+    pub ability_map: ReadExpect<'a, AbilityMap>,
 }
 
 impl<'a> ReadData<'a> {
@@ -353,10 +390,13 @@ pub enum AbilityData {
         angle: f32,
         energy: f32,
         combo: u32,
+        combo_scales: bool,
     },
     SelfBuff {
         buff: BuffKind,
         energy: f32,
+        combo: u32,
+        combo_scales: bool,
     },
     DiveMelee {
         range: f32,
@@ -420,6 +460,12 @@ pub enum AbilityData {
     },
 }
 
+#[derive(Copy, Clone, Debug, Default)]
+pub struct AbilityPreferences {
+    pub desired_energy: f32,
+    pub combo_scaling_buildup: u32,
+}
+
 impl AbilityData {
     pub fn from_ability(ability: &CharacterAbility) -> Option<Self> {
         use CharacterAbility::*;
@@ -456,20 +502,26 @@ impl AbilityData {
                 energy_cost,
                 melee_constructor,
                 minimum_combo,
+                scaling,
                 ..
             } => Self::FinisherMelee {
                 energy: *energy_cost,
                 range: melee_constructor.range,
                 angle: melee_constructor.angle,
                 combo: *minimum_combo,
+                combo_scales: scaling.is_some(),
             },
             SelfBuff {
                 buff_kind,
                 energy_cost,
+                combo_cost,
+                combo_scaling,
                 ..
             } => Self::SelfBuff {
                 buff: *buff_kind,
                 energy: *energy_cost,
+                combo: *combo_cost,
+                combo_scales: combo_scaling.is_some(),
             },
             DiveMelee {
                 energy_cost,
@@ -595,7 +647,7 @@ impl AbilityData {
         agent_data: &AgentData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        desired_energy: f32,
+        ability_preferences: AbilityPreferences,
     ) -> bool {
         let melee_check = |range: f32, angle, forced_movement: Option<ForcedMovement>| {
             let (range_inc, min_mult) = forced_movement.map_or((0.0, 0.0), |fm| match fm {
@@ -621,9 +673,19 @@ impl AbilityData {
         };
         let energy_check = |energy: f32| {
             agent_data.energy.current() >= energy
-                && (energy < f32::EPSILON || agent_data.energy.current() >= desired_energy)
+                && (energy < f32::EPSILON
+                    || agent_data.energy.current() >= ability_preferences.desired_energy)
         };
-        let combo_check = |combo| agent_data.combo.map_or(false, |c| c.counter() >= combo);
+        let combo_check = |combo, scales| {
+            let additional_combo = if scales {
+                ability_preferences.combo_scaling_buildup
+            } else {
+                0
+            };
+            agent_data
+                .combo
+                .map_or(false, |c| c.counter() >= combo + additional_combo)
+        };
         let attack_kind_check = |attacks: AttackFilters| {
             tgt_data
                 .char_state
@@ -673,9 +735,20 @@ impl AbilityData {
                 angle,
                 energy,
                 combo,
-            } => melee_check(*range, *angle, None) && energy_check(*energy) && combo_check(*combo),
-            SelfBuff { buff, energy } => {
+                combo_scales,
+            } => {
+                melee_check(*range, *angle, None)
+                    && energy_check(*energy)
+                    && combo_check(*combo, *combo_scales)
+            },
+            SelfBuff {
+                buff,
+                energy,
+                combo,
+                combo_scales,
+            } => {
                 energy_check(*energy)
+                    && combo_check(*combo, *combo_scales)
                     && agent_data
                         .buffs
                         .map_or(false, |buffs| !buffs.contains(*buff))
@@ -716,7 +789,7 @@ impl AbilityData {
             } => {
                 melee_check(*range, *angle, None)
                     && energy_check(*energy_per_strike * *strikes as f32)
-                    && combo_check(*combo)
+                    && combo_check(*combo, false)
             },
             ChargedMelee {
                 range,

@@ -1,0 +1,27 @@
+FinisherMelee(
+    energy_cost: 0,
+    buildup_duration: 0.2,
+    swing_duration: 0.1,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Hook(
+            damage: 0,
+            poise: 0,
+            pull: 0,
+        ),
+        scaled: Some(Hook(
+            damage: 2,
+            poise: 3,
+            pull: 1,
+        )),
+        range: 6.0,
+        angle: 30.0,
+    ),
+    minimum_combo: 1,
+    scaling: Some((
+        target: Attack,
+        kind: Linear,
+        max_factor: 20,
+    )),
+    combo_consumption: Half,
+)

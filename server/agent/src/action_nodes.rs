@@ -659,7 +659,7 @@ impl<'a> AgentData<'a> {
                                 comp::BuffEffect::HealthChangeOverTime { rate, kind, .. } => {
                                     let amount = match kind {
                                         comp::ModifierKind::Additive => rate * duration.0 as f32,
-                                        comp::ModifierKind::Fractional => {
+                                        comp::ModifierKind::Multiplicative => {
                                             (1.0 + rate).powf(duration.0 as f32)
                                         },
                                     };

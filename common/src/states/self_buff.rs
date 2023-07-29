@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffCategory, BuffChange, BuffData, BuffKind, BuffSource},
         character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
@@ -29,6 +29,13 @@ pub struct StaticData {
     pub buff_strength: f32,
     /// How long buff lasts
     pub buff_duration: Option<Secs>,
+    /// This is the minimum amount of combo required to enter this character
+    /// state
+    pub combo_cost: u32,
+    pub combo_scaling: Option<ScalingKind>,
+    /// This is the amount of combo held by the entity when this character state
+    /// was entered
+    pub combo_on_use: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -60,15 +67,40 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else {
+                    // Consume combo
+                    let combo_consumption = if self.static_data.combo_scaling.is_some() {
+                        self.static_data.combo_on_use
+                    } else {
+                        self.static_data.combo_cost
+                    };
+                    output_events.emit_server(ServerEvent::ComboChange {
+                        entity: data.entity,
+                        change: -(combo_consumption as i32),
+                    });
+                    let scaling_factor = self.static_data.combo_scaling.map_or(1.0, |cs| {
+                        cs.factor(
+                            self.static_data.combo_on_use as f32,
+                            self.static_data.combo_cost as f32,
+                        )
+                    });
+                    let buff_cat_ids = if self
+                        .static_data
+                        .ability_info
+                        .ability
+                        .map_or(false, |a| a.ability.is_from_tool())
+                    {
+                        vec![BuffCategory::RemoveOnLoadoutChange]
+                    } else {
+                        Vec::new()
+                    };
                     // Creates buff
                     let buff = Buff::new(
                         self.static_data.buff_kind,
-                        BuffData {
-                            strength: self.static_data.buff_strength,
-                            duration: self.static_data.buff_duration,
-                            delay: None,
-                        },
-                        Vec::new(),
+                        BuffData::new(
+                            self.static_data.buff_strength * scaling_factor,
+                            self.static_data.buff_duration,
+                        ),
+                        buff_cat_ids,
                         BuffSource::Character { by: *data.uid },
                         *data.time,
                         Some(data.stats),

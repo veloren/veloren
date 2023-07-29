@@ -51,9 +51,13 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn swap_equipped_weapons(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn swap_equipped_weapons(
+        &self,
+        data: &JoinData,
+        output_events: &mut OutputEvents,
+    ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_swap_equipped_weapons(data, &mut update);
+        attempt_swap_equipped_weapons(data, &mut update, output_events);
         update
     }
 

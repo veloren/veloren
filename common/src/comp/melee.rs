@@ -51,6 +51,7 @@ impl Component for Melee {
 }
 
 fn default_simultaneous_hits() -> u32 { 1 }
+fn default_combo_gain() -> i32 { 1 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -66,6 +67,8 @@ pub struct MeleeConstructor {
     pub damage_effect: Option<CombatEffect>,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
+    #[serde(default = "default_combo_gain")]
+    pub combo_gain: i32,
 }
 
 impl MeleeConstructor {
@@ -128,7 +131,7 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
             Stab {
                 damage,
@@ -179,7 +182,7 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
             Bash {
                 damage,
@@ -222,7 +225,54 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
+            },
+            Hook {
+                damage,
+                poise,
+                pull,
+            } => {
+                let buff = CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Bleeding,
+                    dur_secs: 5.0,
+                    strength: CombatBuffStrength::DamageFraction(0.2),
+                    chance: 0.1,
+                })
+                .adjusted_by_stats(tool_stats);
+                let mut damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Melee,
+                        kind: DamageKind::Piercing,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                )
+                .with_effect(buff);
+
+                if let Some(damage_effect) = self.damage_effect {
+                    damage = damage.with_effect(damage_effect);
+                }
+
+                let poise =
+                    AttackEffect::new(Some(GroupTarget::OutOfGroup), CombatEffect::Poise(poise))
+                        .with_requirement(CombatRequirement::AnyDamage);
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: pull,
+                        direction: KnockbackDir::Towards,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+
+                Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(poise)
+                    .with_effect(knockback)
+                    .with_combo(self.combo_gain)
             },
             NecroticVortex {
                 damage,
@@ -260,7 +310,7 @@ impl MeleeConstructor {
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
             SonicWave {
                 damage,
@@ -299,7 +349,7 @@ impl MeleeConstructor {
                     .with_crit(crit_chance, crit_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo_increment()
+                    .with_combo(self.combo_gain)
             },
         };
 
@@ -396,6 +446,22 @@ impl MeleeConstructor {
                     lifesteal: scale_values(a_lifesteal, b_lifesteal),
                 },
                 (
+                    Hook {
+                        damage: a_damage,
+                        poise: a_poise,
+                        pull: a_pull,
+                    },
+                    Hook {
+                        damage: b_damage,
+                        poise: b_poise,
+                        pull: b_pull,
+                    },
+                ) => Hook {
+                    damage: scale_values(a_damage, b_damage),
+                    poise: scale_values(a_poise, b_poise),
+                    pull: scale_values(a_pull, b_pull),
+                },
+                (
                     SonicWave {
                         damage: a_damage,
                         poise: a_poise,
@@ -437,6 +503,12 @@ impl MeleeConstructor {
         self.damage_effect = self.damage_effect.map(|de| de.adjusted_by_stats(stats));
         self
     }
+
+    #[must_use]
+    pub fn with_combo(mut self, combo: i32) -> Self {
+        self.combo_gain = combo;
+        self
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -459,6 +531,11 @@ pub enum MeleeConstructorKind {
         poise: f32,
         knockback: f32,
         energy_regen: f32,
+    },
+    Hook {
+        damage: f32,
+        poise: f32,
+        pull: f32,
     },
     NecroticVortex {
         damage: f32,
@@ -500,6 +577,14 @@ impl MeleeConstructorKind {
                 ref mut poise,
                 knockback: _,
                 energy_regen: _,
+            } => {
+                *damage *= stats.power;
+                *poise *= stats.effect_power;
+            },
+            Hook {
+                ref mut damage,
+                ref mut poise,
+                pull: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;

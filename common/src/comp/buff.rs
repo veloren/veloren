@@ -1,6 +1,9 @@
 #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{
-    combat::{AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect},
+    combat::{
+        AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
+        DamagedEffect,
+    },
     comp::{aura::AuraKey, Health, Stats},
     resources::{Secs, Time},
     uid::Uid,
@@ -74,6 +77,47 @@ pub enum BuffKind {
     /// Provides immunity to burning and increases movement speed in lava.
     /// Movement speed increases linearly with strength, 1.0 is a 100% increase.
     // SalamanderAspect, TODO: Readd in second dwarven mine MR
+    /// Your attacks cause targets to receive the burning debuff
+    /// Strength of burning debuff is a fraction of the damage, fraction
+    /// increases linearly with strength
+    Flame,
+    /// Your attacks cause targets to receive the frozen debuff
+    /// Strength of frozen debuff is equal to the strength of this buff
+    Frigid,
+    /// Your attacks have lifesteal
+    /// Strength increases the fraction of damage restored as life
+    Lifesteal,
+    /// Your attacks against bleeding targets have lifesteal
+    /// Strength increases the fraction of damage restored as life
+    Bloodfeast,
+    /// Guarantees that the next attack is a critical hit. Does this kind of
+    /// hackily by adding 100% to the crit, will need to be adjusted if we ever
+    /// allow double crits instead of treating 100 as a ceiling.
+    ImminentCritical,
+    /// Increases combo gain, every 1 strength increases combo per strike by 1,
+    /// rounds to nearest integer
+    Fury,
+    /// Allows attacks to ignore DR and increases energy reward
+    /// DR penetration is non-linear, 0.5 is 50% penetration and 1.0 is a 67%
+    /// penetration. Energy reward is increased linearly to strength, 1.0 is a
+    /// 200 % increase.
+    Sunderer,
+    /// Increases damage resistance and poise resistance, causes combo to be
+    /// generated when damaged, and decreases movement speed.
+    /// Damage resistance increases non-linearly with strength, 0.5 is 50% and
+    /// 1.0 is 67%. Poise resistance increases non-linearly with strength, 0.5
+    /// is 50% and 1.0 is 67%. Movement speed decreases linearly with strength,
+    /// 0.5 is 50% and 1.0 is 33%. Combo generation is linear with strength, 1.0
+    /// is 5 combo generated on being hit.
+    Defiance,
+    /// Increases both attack damage, vulnerability to damage, attack speed, and
+    /// movement speed Damage increases linearly with strength, 1.0 is a
+    /// 100% increase. Damage reduction decreases linearly with strength,
+    /// 1.0 is a 100% Attack speed increases non-linearly with strength, 0.5
+    /// is a 25% increase, 1.0 is a 33% increase Movement speed increases
+    /// non-linearly with strength, 0.5 is a 12.5% increase, 1.0 is a 16.7%
+    /// increase decrease.
+    Berserk,
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -114,12 +158,6 @@ pub enum BuffKind {
     PotionSickness,
     // Changed into another body.
     Polymorphed(Body),
-    // Inflict burning on your attack
-    Flame,
-    // Inflict frost on your attack
-    Frigid,
-    // Gain Lifesteal on your attack
-    Lifesteal,
 }
 
 impl BuffKind {
@@ -143,7 +181,12 @@ impl BuffKind {
             | BuffKind::Frigid
             | BuffKind::Lifesteal
             //| BuffKind::SalamanderAspect
-            => true,
+            | BuffKind::ImminentCritical
+            | BuffKind::Fury
+            | BuffKind::Sunderer
+            | BuffKind::Defiance
+            | BuffKind::Bloodfeast
+            | BuffKind::Berserk => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -212,7 +255,7 @@ impl BuffKind {
             },
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
-                kind: ModifierKind::Fractional,
+                kind: ModifierKind::Multiplicative,
                 instance,
                 tick_dur: Secs(2.0),
             }],
@@ -232,7 +275,7 @@ impl BuffKind {
             BuffKind::EnergyRegen => vec![BuffEffect::EnergyChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Additive,
-                tick_dur: Secs(1.0),
+                tick_dur: Secs(0.25),
             }],
             BuffKind::IncreaseMaxEnergy => vec![BuffEffect::MaxEnergyModifier {
                 value: data.strength,
@@ -287,7 +330,10 @@ impl BuffKind {
             BuffKind::Hastened => vec![
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + data.strength),
-                BuffEffect::CriticalChance(0.0),
+                BuffEffect::CriticalChance {
+                    kind: ModifierKind::Multiplicative,
+                    val: 0.0,
+                },
             ],
             BuffKind::Fortitude => vec![
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
@@ -303,51 +349,107 @@ impl BuffKind {
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
             BuffKind::Polymorphed(body) => vec![BuffEffect::BodyChange(*body)],
-            BuffKind::Flame => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+            BuffKind::Flame => vec![BuffEffect::AttackEffect(AttackEffect::new(
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Burning,
-                    dur_secs: 5.0,
-                    strength: CombatBuffStrength::DamageFraction(0.2),
+                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                    strength: CombatBuffStrength::DamageFraction(data.strength),
                     chance: 1.0,
                 }),
             ))],
-            BuffKind::Frigid => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+            BuffKind::Frigid => vec![BuffEffect::AttackEffect(AttackEffect::new(
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Frozen,
-                    dur_secs: 5.0,
-                    strength: CombatBuffStrength::DamageFraction(0.2),
+                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                    strength: CombatBuffStrength::Value(data.strength),
                     chance: 1.0,
                 }),
             ))],
-            BuffKind::Lifesteal => vec![BuffEffect::BuffOnHit(AttackEffect::new(
+            BuffKind::Lifesteal => vec![BuffEffect::AttackEffect(AttackEffect::new(
                 None,
-                CombatEffect::Lifesteal(0.2),
+                CombatEffect::Lifesteal(data.strength),
             ))],
             /*BuffKind::SalamanderAspect => vec![
                 BuffEffect::BuffImmunity(BuffKind::Burning),
                 BuffEffect::SwimSpeed(1.0 + data.strength),
             ],*/
+            BuffKind::Bloodfeast => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(None, CombatEffect::Lifesteal(data.strength))
+                    .with_requirement(CombatRequirement::TargetHasBuff(BuffKind::Bleeding)),
+            )],
+            BuffKind::ImminentCritical => vec![BuffEffect::CriticalChance {
+                kind: ModifierKind::Additive,
+                val: 1.0,
+            }],
+            BuffKind::Fury => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(None, CombatEffect::Combo(data.strength.round() as i32))
+                    .with_requirement(CombatRequirement::AnyDamage),
+            )],
+            BuffKind::Sunderer => vec![
+                BuffEffect::MitigationsPenetration(nn_scaling(data.strength)),
+                BuffEffect::EnergyReward(1.0 + 2.0 * data.strength),
+            ],
+            BuffKind::Defiance => vec![
+                BuffEffect::DamageReduction(nn_scaling(data.strength)),
+                BuffEffect::PoiseReduction(nn_scaling(data.strength)),
+                BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
+                BuffEffect::DamagedEffect(DamagedEffect::Combo(
+                    (data.strength * 5.0).round() as i32
+                )),
+            ],
+            BuffKind::Berserk => vec![
+                BuffEffect::DamageReduction(-data.strength),
+                BuffEffect::AttackDamage(1.0 + data.strength),
+                BuffEffect::AttackSpeed(1.0 + nn_scaling(data.strength) / 2.0),
+                BuffEffect::MovementSpeed(1.0 + nn_scaling(data.strength) / 4.0),
+            ],
         }
+    }
+
+    fn extend_cat_ids(&self, mut cat_ids: Vec<BuffCategory>) -> Vec<BuffCategory> {
+        // TODO: Remove clippy allow after another buff needs this
+        #[allow(clippy::single_match)]
+        match self {
+            BuffKind::ImminentCritical => {
+                cat_ids.push(BuffCategory::RemoveOnAttack);
+            },
+            _ => {},
+        }
+        cat_ids
     }
 }
 
 // Struct used to store data relevant to a buff
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Secs>,
     pub delay: Option<Secs>,
+    // Used for buffs that have rider buffs (e.g. Flame, Frigid)
+    pub secondary_duration: Option<Secs>,
 }
 
 impl BuffData {
-    pub fn new(strength: f32, duration: Option<Secs>, delay: Option<Secs>) -> Self {
+    pub fn new(strength: f32, duration: Option<Secs>) -> Self {
         Self {
             strength,
             duration,
-            delay,
+            delay: None,
+            secondary_duration: None,
         }
+    }
+
+    pub fn with_delay(mut self, delay: Secs) -> Self {
+        self.delay = Some(delay);
+        self
+    }
+
+    pub fn with_secondary_duration(mut self, sec_dur: Secs) -> Self {
+        self.secondary_duration = Some(sec_dur);
+        self
     }
 }
 
@@ -362,12 +464,14 @@ pub enum BuffCategory {
     Divine,
     PersistOnDeath,
     FromActiveAura(Uid, AuraKey),
+    RemoveOnAttack,
+    RemoveOnLoadoutChange,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ModifierKind {
     Additive,
-    Fractional,
+    Multiplicative,
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
@@ -422,13 +526,24 @@ pub enum BuffEffect {
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
     /// Multiplies crit chance of attacks
-    CriticalChance(f32),
+    CriticalChance {
+        kind: ModifierKind,
+        val: f32,
+    },
     /// Changes body.
     BodyChange(Body),
-    /// Inflict buff to target
-    BuffOnHit(AttackEffect),
     BuffImmunity(BuffKind),
     SwimSpeed(f32),
+    /// Add an attack effect to attacks made while buff is active
+    AttackEffect(AttackEffect),
+    /// Increases poise damage dealt by attacks
+    AttackPoise(f32),
+    /// Ignores some damage reduction on target
+    MitigationsPenetration(f32),
+    /// Modifies energy rewarded on successful strikes
+    EnergyReward(f32),
+    /// Add an effect to the entity when damaged by an attack
+    DamagedEffect(DamagedEffect),
 }
 
 /// Actual de/buff.
@@ -489,6 +604,7 @@ impl Buff {
         health: Option<&Health>,
     ) -> Self {
         let effects = kind.effects(&data, stats, health);
+        let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids
             .iter()
@@ -730,7 +846,7 @@ pub mod tests {
     /// queue has correct total duration
     fn test_queueable_buffs_three() {
         let mut buff_comp: Buffs = Default::default();
-        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)));
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(buff_data, time_a), time_a);
         let time_b = Time(6.0);
@@ -761,8 +877,8 @@ pub mod tests {
     /// queueable buff is added, delayed buff has correct start time
     fn test_queueable_buff_delay_start() {
         let mut buff_comp: Buffs = Default::default();
-        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0)), Some(Secs(10.0)));
-        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
+        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0))).with_delay(Secs(10.0));
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)));
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
         let time_b = Time(6.0);
@@ -793,8 +909,8 @@ pub mod tests {
     /// does not move delayed buff start or end times
     fn test_queueable_buff_long_delay() {
         let mut buff_comp: Buffs = Default::default();
-        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0)), Some(Secs(50.0)));
-        let buff_data = BuffData::new(1.0, Some(Secs(10.0)), None);
+        let queued_buff_data = BuffData::new(1.0, Some(Secs(10.0))).with_delay(Secs(50.0));
+        let buff_data = BuffData::new(1.0, Some(Secs(10.0)));
         let time_a = Time(0.0);
         buff_comp.insert(create_test_queueable_buff(queued_buff_data, time_a), time_a);
         let time_b = Time(10.0);

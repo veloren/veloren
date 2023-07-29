@@ -6,7 +6,9 @@ use crate::{
         character_state::AttackFilters,
         inventory::{
             item::{
-                tool::{AbilityContext, AbilityKind, Stats, ToolKind},
+                tool::{
+                    AbilityContext, AbilityItem, AbilityKind, ContextualIndex, Stats, ToolKind,
+                },
                 ItemKind,
             },
             slot::EquipSlot,
@@ -23,7 +25,7 @@ use crate::{
     resources::Secs,
     states::{
         behavior::JoinData,
-        utils::{AbilityInfo, StageSection},
+        utils::{AbilityInfo, ComboConsumption, ScalingKind, StageSection},
         *,
     },
     terrain::SpriteKind,
@@ -147,9 +149,9 @@ impl ActiveAbilities {
         skill_set: &SkillSet,
         body: Option<&Body>,
         char_state: Option<&CharacterState>,
-        contexts: &[AbilityContext],
+        context: &AbilityContext,
         // bool is from_offhand
-    ) -> Option<(CharacterAbility, bool)> {
+    ) -> Option<(CharacterAbility, bool, SpecifiedAbility)> {
         let ability = self.get_ability(input, inv, Some(skill_set));
 
         let ability_set = |equip_slot| {
@@ -167,63 +169,116 @@ impl ActiveAbilities {
             ability.adjusted_by_skills(skill_set, tool_kind)
         };
 
+        let spec_ability = |context_index| SpecifiedAbility {
+            ability,
+            context_index,
+        };
+
         match ability {
             Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .guard(Some(skill_set), contexts)
-                        .map(|a| a.ability.clone())
+                        .guard(Some(skill_set), context)
+                        .map(|(a, i)| (a.ability.clone(), i))
                 })
-                .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), true))
+                .map(|(ability, i)| {
+                    (
+                        scale_ability(ability, EquipSlot::ActiveMainhand),
+                        true,
+                        spec_ability(i),
+                    )
+                })
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveOffhand)
                         .and_then(|abilities| {
                             abilities
-                                .secondary(Some(skill_set), contexts)
-                                .map(|a| a.ability.clone())
+                                .guard(Some(skill_set), context)
+                                .map(|(a, i)| (a.ability.clone(), i))
                         })
-                        .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), false))
+                        .map(|(ability, i)| {
+                            (
+                                scale_ability(ability, EquipSlot::ActiveOffhand),
+                                false,
+                                spec_ability(i),
+                            )
+                        })
                 }),
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .primary(Some(skill_set), contexts)
-                        .map(|a| a.ability.clone())
+                        .primary(Some(skill_set), context)
+                        .map(|(a, i)| (a.ability.clone(), i))
                 })
-                .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
+                .map(|(ability, i)| {
+                    (
+                        scale_ability(ability, EquipSlot::ActiveMainhand),
+                        false,
+                        spec_ability(i),
+                    )
+                }),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| {
                     abilities
-                        .secondary(Some(skill_set), contexts)
-                        .map(|a| a.ability.clone())
+                        .secondary(Some(skill_set), context)
+                        .map(|(a, i)| (a.ability.clone(), i))
                 })
-                .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true))
+                .map(|(ability, i)| {
+                    (
+                        scale_ability(ability, EquipSlot::ActiveOffhand),
+                        true,
+                        spec_ability(i),
+                    )
+                })
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand)
                         .and_then(|abilities| {
                             abilities
-                                .secondary(Some(skill_set), contexts)
-                                .map(|a| a.ability.clone())
+                                .secondary(Some(skill_set), context)
+                                .map(|(a, i)| (a.ability.clone(), i))
                         })
-                        .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false))
+                        .map(|(ability, i)| {
+                            (
+                                scale_ability(ability, EquipSlot::ActiveMainhand),
+                                false,
+                                spec_ability(i),
+                            )
+                        })
                 }),
             Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
                 .then(|| CharacterAbility::default_roll(char_state))
-                .map(|ability| (ability.adjusted_by_skills(skill_set, None), false)),
+                .map(|ability| {
+                    (
+                        ability.adjusted_by_skills(skill_set, None),
+                        false,
+                        spec_ability(None),
+                    )
+                }),
             Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .auxiliary(index, Some(skill_set), contexts)
-                        .map(|a| a.ability.clone())
+                        .auxiliary(index, Some(skill_set), context)
+                        .map(|(a, i)| (a.ability.clone(), i))
                 })
-                .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
+                .map(|(ability, i)| {
+                    (
+                        scale_ability(ability, EquipSlot::ActiveMainhand),
+                        false,
+                        spec_ability(i),
+                    )
+                }),
             Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| {
                     abilities
-                        .auxiliary(index, Some(skill_set), contexts)
-                        .map(|a| a.ability.clone())
+                        .auxiliary(index, Some(skill_set), context)
+                        .map(|(a, i)| (a.ability.clone(), i))
                 })
-                .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true)),
+                .map(|(ability, i)| {
+                    (
+                        scale_ability(ability, EquipSlot::ActiveOffhand),
+                        true,
+                        spec_ability(i),
+                    )
+                }),
             Ability::Empty => None,
         }
     }
@@ -294,7 +349,7 @@ impl Ability {
         self,
         inv: Option<&'a Inventory>,
         skillset: Option<&'a SkillSet>,
-        contexts: &[AbilityContext],
+        context: &AbilityContext,
     ) -> Option<&'a str> {
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
@@ -317,8 +372,8 @@ impl Ability {
             Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .guard(skillset, contexts)
-                        .map(|a| a.id.as_str())
+                        .guard(skillset, context)
+                        .map(|a| a.0.id.as_str())
                         .or_else(|| {
                             abilities
                                 .guard
@@ -329,8 +384,8 @@ impl Ability {
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
                         abilities
-                            .guard(skillset, contexts)
-                            .map(|a| a.id.as_str())
+                            .guard(skillset, context)
+                            .map(|a| a.0.id.as_str())
                             .or_else(|| {
                                 abilities
                                     .guard
@@ -341,22 +396,22 @@ impl Ability {
                 }),
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                 abilities
-                    .primary(skillset, contexts)
-                    .map(|a| a.id.as_str())
+                    .primary(skillset, context)
+                    .map(|a| a.0.id.as_str())
                     .or_else(|| contextual_id(Some(&abilities.primary)))
             }),
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| {
                     abilities
-                        .secondary(skillset, contexts)
-                        .map(|a| a.id.as_str())
+                        .secondary(skillset, context)
+                        .map(|a| a.0.id.as_str())
                         .or_else(|| contextual_id(Some(&abilities.secondary)))
                 })
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                         abilities
-                            .secondary(skillset, contexts)
-                            .map(|a| a.id.as_str())
+                            .secondary(skillset, context)
+                            .map(|a| a.0.id.as_str())
                             .or_else(|| contextual_id(Some(&abilities.secondary)))
                     })
                 }),
@@ -364,20 +419,31 @@ impl Ability {
             Ability::MainWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                     abilities
-                        .auxiliary(index, skillset, contexts)
-                        .map(|a| a.id.as_str())
+                        .auxiliary(index, skillset, context)
+                        .map(|a| a.0.id.as_str())
                         .or_else(|| contextual_id(abilities.abilities.get(index)))
                 })
             },
             Ability::OffWeaponAux(index) => {
                 ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
                     abilities
-                        .auxiliary(index, skillset, contexts)
-                        .map(|a| a.id.as_str())
+                        .auxiliary(index, skillset, context)
+                        .map(|a| a.0.id.as_str())
                         .or_else(|| contextual_id(abilities.abilities.get(index)))
                 })
             },
             Ability::Empty => None,
+        }
+    }
+
+    pub fn is_from_tool(&self) -> bool {
+        match self {
+            Ability::ToolPrimary
+            | Ability::ToolSecondary
+            | Ability::MainWeaponAux(_)
+            | Ability::OffWeaponAux(_)
+            | Ability::ToolGuard => true,
+            Ability::SpeciesMovement | Ability::Empty => false,
         }
     }
 }
@@ -392,6 +458,57 @@ impl From<GuardAbility> for Ability {
         match guard {
             GuardAbility::Tool => Ability::ToolGuard,
             GuardAbility::Empty => Ability::Empty,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct SpecifiedAbility {
+    pub ability: Ability,
+    pub context_index: Option<ContextualIndex>,
+}
+
+impl SpecifiedAbility {
+    pub fn ability_id(self, inv: Option<&Inventory>) -> Option<&str> {
+        let ability_set = |equip_slot| {
+            inv.and_then(|inv| inv.equipped(equip_slot))
+                .map(|i| &i.item_config_expect().abilities)
+        };
+
+        fn ability_id(spec_ability: SpecifiedAbility, ability: &AbilityKind<AbilityItem>) -> &str {
+            match ability {
+                AbilityKind::Simple(_, a) => a.id.as_str(),
+                AbilityKind::Contextualized {
+                    pseudo_id,
+                    abilities,
+                } => spec_ability
+                    .context_index
+                    .and_then(|i| abilities.get(i.0))
+                    .map_or(pseudo_id.as_str(), |(_, (_, a))| a.id.as_str()),
+            }
+        }
+
+        match self.ability {
+            Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
+                .map(|abilities| ability_id(self, &abilities.primary)),
+            Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
+                .map(|abilities| ability_id(self, &abilities.secondary))
+                .or_else(|| {
+                    ability_set(EquipSlot::ActiveMainhand)
+                        .map(|abilities| ability_id(self, &abilities.secondary))
+                }),
+            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
+                .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
+                .or_else(|| {
+                    ability_set(EquipSlot::ActiveOffhand)
+                        .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
+                }),
+            Ability::SpeciesMovement => None, // TODO: Make not None
+            Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
+                .and_then(|abilities| abilities.abilities.get(index).map(|a| ability_id(self, a))),
+            Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
+                .and_then(|abilities| abilities.abilities.get(index).map(|a| ability_id(self, a))),
+            Ability::Empty => None,
         }
     }
 }
@@ -709,6 +826,8 @@ pub enum CharacterAbility {
         specifier: Option<charged_melee::FrontendSpecifier>,
         damage_effect: Option<CombatEffect>,
         #[serde(default)]
+        additional_combo: i32,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     ChargedRanged {
@@ -810,6 +929,9 @@ pub enum CharacterAbility {
         buff_duration: Option<Secs>,
         energy_cost: f32,
         #[serde(default)]
+        combo_cost: u32,
+        combo_scaling: Option<ScalingKind>,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     SpriteSummon {
@@ -838,6 +960,8 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         minimum_combo: u32,
         scaling: Option<finisher_melee::Scaling>,
+        #[serde(default)]
+        combo_consumption: ComboConsumption,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -898,6 +1022,7 @@ impl Default for CharacterAbility {
                 multi_target: None,
                 damage_effect: None,
                 simultaneous_hits: 1,
+                combo_gain: 1,
             },
             ori_modifier: 1.0,
             meta: Default::default(),
@@ -934,7 +1059,6 @@ impl CharacterAbility {
                 | CharacterAbility::ChargedMelee { energy_cost, .. }
                 | CharacterAbility::Shockwave { energy_cost, .. }
                 | CharacterAbility::BasicBlock { energy_cost, .. }
-                | CharacterAbility::SelfBuff { energy_cost, .. }
                 | CharacterAbility::RiposteMelee { energy_cost, .. }
                 | CharacterAbility::ComboMelee2 {
                     energy_cost_per_strike: energy_cost,
@@ -965,6 +1089,11 @@ impl CharacterAbility {
                 | CharacterAbility::RapidMelee {
                     energy_cost,
                     minimum_combo,
+                    ..
+                }
+                | CharacterAbility::SelfBuff {
+                    energy_cost,
+                    combo_cost: minimum_combo,
                     ..
                 } => {
                     data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
@@ -1276,6 +1405,7 @@ impl CharacterAbility {
                 specifier: _,
                 ref mut damage_effect,
                 meta: _,
+                additional_combo: _,
             } => {
                 *swing_duration /= stats.speed;
                 *buildup_strike = buildup_strike
@@ -1443,6 +1573,8 @@ impl CharacterAbility {
                 ref mut buff_strength,
                 buff_duration: _,
                 ref mut energy_cost,
+                combo_cost: _,
+                combo_scaling: _,
                 meta: _,
             } => {
                 *buff_strength *= stats.diminished_buff_strength();
@@ -1484,6 +1616,7 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 minimum_combo: _,
                 scaling: _,
+                combo_consumption: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1599,9 +1732,17 @@ impl CharacterAbility {
                     0
                 }
             },
-            FinisherMelee { minimum_combo, .. } | RapidMelee { minimum_combo, .. } => {
-                *minimum_combo
-            },
+            FinisherMelee {
+                minimum_combo: combo,
+                ..
+            }
+            | RapidMelee {
+                minimum_combo: combo,
+                ..
+            }
+            | SelfBuff {
+                combo_cost: combo, ..
+            } => *combo,
             BasicMelee { .. }
             | BasicRanged { .. }
             | RepeaterRanged { .. }
@@ -1614,7 +1755,6 @@ impl CharacterAbility {
             | ChargedRanged { .. }
             | Shockwave { .. }
             | BasicBlock { .. }
-            | SelfBuff { .. }
             | ComboMelee2 { .. }
             | DiveMelee { .. }
             | RiposteMelee { .. }
@@ -1664,7 +1804,6 @@ impl CharacterAbility {
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Axe) => self.adjusted_by_axe_skills(skillset),
             Some(ToolKind::Hammer) => self.adjusted_by_hammer_skills(skillset),
             Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
@@ -1718,99 +1857,6 @@ impl CharacterAbility {
             if let Ok(level) = skillset.skill_level(Skill::Roll(Duration)) {
                 *movement_duration *= modifiers.duration.powi(level.into());
             }
-        }
-    }
-
-    fn adjusted_by_axe_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
-        use skills::{AxeSkill::*, Skill::Axe};
-
-        match self {
-            CharacterAbility::ComboMelee {
-                ref mut speed_increase,
-                ref mut max_speed_increase,
-                ref mut stage_data,
-                ref mut max_energy_gain,
-                ref mut scales_from_combo,
-                ..
-            } => {
-                if !skillset.has_skill(Axe(DsCombo)) {
-                    stage_data.pop();
-                }
-                let speed_segments = f32::from(Axe(DsSpeed).max_level());
-                let speed_level = f32::from(skillset.skill_level(Axe(DsSpeed)).unwrap_or(0));
-                *speed_increase *= speed_level / speed_segments;
-                *max_speed_increase *= speed_level / speed_segments;
-
-                let energy_level = skillset.skill_level(Axe(DsRegen)).unwrap_or(0);
-
-                let stages = u16::try_from(stage_data.len())
-                    .expect("number of stages can't be more than u16");
-
-                *max_energy_gain *= f32::from((energy_level + 1) * stages - 1).max(1.0)
-                    * f32::from(stages - 1).max(1.0)
-                    / f32::from(Axe(DsRegen).max_level() + 1);
-                *scales_from_combo = skillset.skill_level(Axe(DsDamage)).unwrap_or(0).into();
-            },
-            CharacterAbility::SpinMelee {
-                ref mut swing_duration,
-                ref mut energy_cost,
-                ref mut is_infinite,
-                ref mut movement_behavior,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.axe_tree.spin;
-
-                *is_infinite = skillset.has_skill(Axe(SInfinite));
-                *movement_behavior = if skillset.has_skill(Axe(SHelicopter)) {
-                    spin_melee::MovementBehavior::AxeHover
-                } else {
-                    spin_melee::MovementBehavior::Walking
-                };
-                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
-                    if let Ok(level) = skillset.skill_level(Axe(SDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Axe(SSpeed)) {
-                    *swing_duration *= modifiers.swing_duration.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Axe(SCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-            },
-            CharacterAbility::LeapMelee {
-                ref mut melee_constructor,
-                ref mut energy_cost,
-                ref mut forward_leap_strength,
-                ref mut vertical_leap_strength,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.axe_tree.leap;
-                if let MeleeConstructorKind::Slash {
-                    ref mut damage,
-                    ref mut knockback,
-                    ..
-                } = melee_constructor.kind
-                {
-                    if let Ok(level) = skillset.skill_level(Axe(LDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                    if let Ok(level) = skillset.skill_level(Axe(LKnockback)) {
-                        *knockback *= modifiers.knockback.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Axe(LCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Axe(LDistance)) {
-                    let strength = modifiers.leap_strength;
-                    *forward_leap_strength *= strength.powi(level.into());
-                    *vertical_leap_strength *= strength.powi(level.into());
-                }
-            },
-            _ => {},
         }
     }
 
@@ -2492,6 +2538,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 specifier,
                 damage_effect,
+                additional_combo,
                 meta: _,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
@@ -2507,6 +2554,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                     specifier: *specifier,
                     damage_effect: *damage_effect,
+                    additional_combo: *additional_combo,
                 },
                 stage_section: if buildup_strike.is_some() {
                     StageSection::Buildup
@@ -2745,6 +2793,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buff_strength,
                 buff_duration,
                 energy_cost: _,
+                combo_cost,
+                combo_scaling,
                 meta: _,
             } => CharacterState::SelfBuff(self_buff::Data {
                 static_data: self_buff::StaticData {
@@ -2754,6 +2804,9 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     buff_kind: *buff_kind,
                     buff_strength: *buff_strength,
                     buff_duration: *buff_duration,
+                    combo_cost: *combo_cost,
+                    combo_scaling: *combo_scaling,
+                    combo_on_use: data.combo.map_or(0, |c| c.counter()),
                     ability_info,
                 },
                 timer: Duration::default(),
@@ -2807,6 +2860,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 minimum_combo,
                 scaling,
+                combo_consumption,
                 meta: _,
             } => CharacterState::FinisherMelee(finisher_melee::Data {
                 static_data: finisher_melee::StaticData {
@@ -2817,6 +2871,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     scaling: *scaling,
                     minimum_combo: *minimum_combo,
                     combo_on_use: data.combo.map_or(0, |c| c.counter()),
+                    combo_consumption: *combo_consumption,
                     ability_info,
                 },
                 timer: Duration::default(),

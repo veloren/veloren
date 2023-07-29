@@ -1,9 +1,5 @@
 common-abilities-debug-possess = Gezi kontrolatzailea
     .desc = Gezi pozoitsua jaurtitzen du. Zure helburua kontrolatzea ahalbidetzen dizu.
-common-abilities-sword-spin = Zurrunbiloa
-    .desc = Aurrerantz egiten duzu ezpatarekin biratzen duzun bitartean.
-common-abilities-axe-leap = Aizkora saltoa
-    .desc = Salto eginez aizkora kolpeak kurtsorearen posizioan jotzen du.
 common-abilities-hammer-leap = Galbidearen kolpea
     .desc = Etsaiak bultzatzen dituen eremu erasoa. Kurtsorearen posiziora salto egiten du.
 common-abilities-bow-shotgun = Tiro sorta

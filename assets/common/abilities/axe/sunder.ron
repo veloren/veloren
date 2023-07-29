@@ -1,0 +1,10 @@
+SelfBuff(
+    buildup_duration: 0.2,
+    cast_duration: 0.2,
+    recover_duration: 0.1,
+    buff_kind: Sunderer,
+    buff_strength: 0.25,
+    buff_duration: Some(15.0),
+    combo_cost: 10,
+    energy_cost: 0,
+)

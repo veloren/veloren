@@ -172,6 +172,12 @@ lazy_static! {
             BuffKind::Frigid => "frigid",
             BuffKind::Lifesteal => "lifesteal",
             // BuffKind::SalamanderAspect => "salamander_aspect",
+            BuffKind::ImminentCritical => "imminent_critical",
+            BuffKind::Fury => "fury",
+            BuffKind::Sunderer => "sunderer",
+            BuffKind::Defiance => "defiance",
+            BuffKind::Bloodfeast => "bloodfeast",
+            BuffKind::Berserk => "berserk",
         };
         let mut buff_parser = HashMap::new();
         for kind in BuffKind::iter() {

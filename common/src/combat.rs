@@ -114,12 +114,15 @@ impl Attack {
     }
 
     #[must_use]
-    pub fn with_combo_increment(self) -> Self {
+    pub fn with_combo(self, combo: i32) -> Self {
         self.with_effect(
-            AttackEffect::new(None, CombatEffect::Combo(1))
+            AttackEffect::new(None, CombatEffect::Combo(combo))
                 .with_requirement(CombatRequirement::AnyDamage),
         )
     }
+
+    #[must_use]
+    pub fn with_combo_increment(self) -> Self { self.with_combo(1) }
 
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
@@ -134,8 +137,13 @@ impl Attack {
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
         if damage.value > 0.0 {
-            let damage_reduction =
+            let attacker_penetration = attacker
+                .and_then(|a| a.stats)
+                .map_or(0.0, |s| s.mitigations_penetration)
+                .clamp(0.0, 1.0);
+            let raw_damage_reduction =
                 Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
+            let damage_reduction = (1.0 - attacker_penetration) * raw_damage_reduction;
             let block_reduction =
                 if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
                     if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {
@@ -211,11 +219,14 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let is_crit = rng.gen::<f32>()
-            < self.crit_chance
-                * attacker
-                    .and_then(|a| a.stats)
-                    .map_or(1.0, |s| s.crit_chance_modifier);
+        let crit_chance = attacker
+            .and_then(|a| a.stats)
+            .map(|s| s.crit_chance_modifier)
+            .map_or(self.crit_chance, |cc_mod| {
+                self.crit_chance * cc_mod.mult_mod + cc_mod.add_mod
+            })
+            .clamp(0.0, 1.0);
+        let is_crit = rng.gen::<f32>() < crit_chance;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
@@ -359,7 +370,8 @@ impl Attack {
                                     entity: attacker.entity,
                                     change: *ec
                                         * compute_energy_reward_mod(attacker.inventory, msm)
-                                        * strength_modifier,
+                                        * strength_modifier
+                                        * attacker.stats.map_or(1.0, |s| s.energy_reward_modifier),
                                 });
                             }
                         },
@@ -508,7 +520,7 @@ impl Attack {
                 attacker
                     .and_then(|attacker| attacker.stats)
                     .iter()
-                    .flat_map(|stats| stats.buffs_on_hit.iter()),
+                    .flat_map(|stats| stats.effects_on_attack.iter()),
             )
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !avoid_effect(e))
@@ -555,6 +567,9 @@ impl Attack {
                         false
                     }
                 },
+                CombatRequirement::TargetHasBuff(buff) => {
+                    target.buffs.map_or(false, |buffs| buffs.contains(*buff))
+                },
             });
             if requirements_met {
                 is_applied = true;
@@ -575,7 +590,8 @@ impl Attack {
                                 entity: attacker.entity,
                                 change: ec
                                     * compute_energy_reward_mod(attacker.inventory, msm)
-                                    * strength_modifier,
+                                    * strength_modifier
+                                    * attacker.stats.map_or(1.0, |s| s.energy_reward_modifier),
                             });
                         }
                     },
@@ -684,6 +700,7 @@ impl Attack {
         if is_applied {
             emit(ServerEvent::EntityAttackedHook {
                 entity: target.entity,
+                attacker: attacker.map(|a| a.entity),
             });
         }
         is_applied
@@ -845,7 +862,7 @@ impl CombatEffect {
                 strength,
             }) => CombatEffect::Knockback(Knockback {
                 direction,
-                strength: strength * stats.buff_strength,
+                strength: strength * stats.effect_power,
             }),
             CombatEffect::EnergyReward(e) => CombatEffect::EnergyReward(e),
             CombatEffect::Lifesteal(l) => CombatEffect::Lifesteal(l * stats.effect_power),
@@ -870,6 +887,12 @@ pub enum CombatRequirement {
     AnyDamage,
     Energy(f32),
     Combo(u32),
+    TargetHasBuff(BuffKind),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum DamagedEffect {
+    Combo(i32),
 }
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
@@ -1165,7 +1188,6 @@ impl CombatBuff {
             BuffData::new(
                 self.strength.to_strength(damage, strength_modifier),
                 Some(Secs(self.dur_secs as f64)),
-                None,
             ),
             Vec::new(),
             source,

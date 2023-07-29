@@ -2,8 +2,9 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        ability::{Ability, AbilityInitEvent, AbilityInput, AbilityMeta, Capability, Stance},
+        ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
+        buff::{BuffCategory, BuffChange},
         character_state::OutputEvents,
         controller::InventoryManip,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
@@ -900,7 +901,11 @@ pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
     }
 }
 /// Checks that player can Swap Weapons and updates `Loadout` if so
-pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpdate) {
+pub fn attempt_swap_equipped_weapons(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    output_events: &mut OutputEvents,
+) {
     if data
         .inventory
         .and_then(|inv| inv.equipped(EquipSlot::InactiveMainhand))
@@ -911,6 +916,7 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpda
             .is_some()
     {
         update.swap_equipped_weapons = true;
+        loadout_change_hook(data, output_events, false);
     }
 }
 
@@ -995,6 +1001,7 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
+    loadout_change_hook(data, output_events, true);
     match inv_action {
         InventoryAction::Use(slot @ Slot::Inventory(inv_slot)) => {
             // If inventory action is using a slot, and slot is in the inventory
@@ -1190,9 +1197,9 @@ fn handle_ability(
     output_events: &mut OutputEvents,
     input: InputKind,
 ) -> bool {
-    let contexts = AbilityContext::from(data.stance, data.inventory);
+    let context = AbilityContext::from(data.stance, data.inventory, data.combo);
     if let Some(ability_input) = input.into() {
-        if let Some((ability, from_offhand)) = data
+        if let Some((ability, from_offhand, spec_ability)) = data
             .active_abilities
             .and_then(|a| {
                 a.activate_ability(
@@ -1201,14 +1208,20 @@ fn handle_ability(
                     data.skill_set,
                     Some(data.body),
                     Some(data.character),
-                    &contexts,
+                    &context,
                 )
             })
-            .filter(|(ability, _)| ability.requirements_paid(data, update))
+            .filter(|(ability, _, _)| ability.requirements_paid(data, update))
         {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, from_offhand, input, ability.ability_meta()),
+                AbilityInfo::new(
+                    data,
+                    from_offhand,
+                    input,
+                    Some(spec_ability),
+                    ability.ability_meta(),
+                ),
                 data,
             ));
             if let Some(init_event) = ability.ability_meta().init_event {
@@ -1494,14 +1507,15 @@ pub struct AbilityInfo {
     pub input: InputKind,
     pub input_attr: Option<InputAttr>,
     pub ability_meta: AbilityMeta,
-    pub ability: Option<Ability>,
+    pub ability: Option<SpecifiedAbility>,
 }
 
 impl AbilityInfo {
-    pub fn from_input(
+    pub fn new(
         data: &JoinData<'_>,
         from_offhand: bool,
         input: InputKind,
+        ability: Option<SpecifiedAbility>,
         ability_meta: AbilityMeta,
     ) -> Self {
         let tool_data = if from_offhand {
@@ -1515,9 +1529,6 @@ impl AbilityInfo {
                 Some(HandInfo::from_main_tool(hands, from_offhand)),
             )
         });
-        let ability = Option::<AbilityInput>::from(input)
-            .zip(data.active_abilities)
-            .map(|(i, a)| a.get_ability(i, data.inventory, Some(data.skill_set)));
 
         Self {
             tool,
@@ -1578,4 +1589,62 @@ pub fn leave_stance(data: &JoinData<'_>, output_events: &mut OutputEvents) {
             stance: Stance::None,
         });
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ScalingKind {
+    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at double minimum
+    // combo
+    Linear,
+    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at 4x minimum combo
+    Sqrt,
+}
+
+impl ScalingKind {
+    pub fn factor(&self, val: f32, norm: f32) -> f32 {
+        match self {
+            Self::Linear => val / norm,
+            Self::Sqrt => (val / norm).sqrt(),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum ComboConsumption {
+    #[default]
+    All,
+    Half,
+}
+
+impl ComboConsumption {
+    pub fn consume(&self, data: &JoinData, output_events: &mut OutputEvents) {
+        let combo = data.combo.map_or(0, |c| c.counter());
+        let to_consume = match self {
+            Self::All => combo,
+            Self::Half => (combo + 1) / 2,
+        };
+        output_events.emit_server(ServerEvent::ComboChange {
+            entity: data.entity,
+            change: -(to_consume as i32),
+        });
+    }
+}
+
+fn loadout_change_hook(data: &JoinData<'_>, output_events: &mut OutputEvents, clear_combo: bool) {
+    if clear_combo {
+        // Reset combo to 0
+        output_events.emit_server(ServerEvent::ComboChange {
+            entity: data.entity,
+            change: -data.combo.map_or(0, |c| c.counter() as i32),
+        });
+    }
+    // Clear any buffs from equipped weapons
+    output_events.emit_server(ServerEvent::Buff {
+        entity: data.entity,
+        buff_change: BuffChange::RemoveByCategory {
+            all_required: vec![BuffCategory::RemoveOnLoadoutChange],
+            any_required: vec![],
+            none_required: vec![],
+        },
+    });
 }

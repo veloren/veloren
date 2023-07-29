@@ -1,0 +1,17 @@
+FinisherMelee(
+    energy_cost: 0,
+    buildup_duration: 0.5,
+    swing_duration: 0.2,
+    recover_duration: 0.4,
+    melee_constructor: (
+        kind: Slash(
+            damage: 60,
+            poise: 20,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        range: 3.0,
+        angle: 15.0,
+    ),
+    minimum_combo: 30,
+)

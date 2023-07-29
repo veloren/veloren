@@ -142,7 +142,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(1.0, Some(Secs(1.0)), None),
+                            BuffData::new(1.0, Some(Secs(1.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -160,7 +160,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(1.0, Some(Secs(6.0)), None),
+                            BuffData::new(1.0, Some(Secs(6.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -178,7 +178,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(5.0, Some(Secs(3.0)), None),
+                            BuffData::new(5.0, Some(Secs(3.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -196,7 +196,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(10.0, None, None),
+                            BuffData::new(10.0, None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -214,7 +214,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(15.0, Some(Secs(0.1)), None),
+                            BuffData::new(15.0, Some(Secs(0.1))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -227,7 +227,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Frozen,
-                            BuffData::new(0.2, Some(Secs(1.0)), None),
+                            BuffData::new(0.2, Some(Secs(1.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -245,7 +245,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(20.0, None, None),
+                            BuffData::new(20.0, None),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -266,7 +266,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(20.0, None, None),
+                            BuffData::new(20.0, None),
                             vec![BuffCategory::Natural],
                             BuffSource::World,
                             *read_data.time,
@@ -535,7 +535,7 @@ fn execute_effect(
                 };
                 let amount = match *kind {
                     ModifierKind::Additive => amount,
-                    ModifierKind::Fractional => health.maximum() * amount,
+                    ModifierKind::Multiplicative => health.maximum() * amount,
                 };
                 let damage_contributor = by.and_then(|uid| {
                     read_data.id_maps.uid_entity(uid).map(|entity| {
@@ -565,7 +565,7 @@ fn execute_effect(
 
                 let amount = match *kind {
                     ModifierKind::Additive => amount,
-                    ModifierKind::Fractional => energy.maximum() * amount,
+                    ModifierKind::Multiplicative => energy.maximum() * amount,
                 };
                 server_emitter.emit(ServerEvent::EnergyChange {
                     entity,
@@ -577,7 +577,7 @@ fn execute_effect(
             ModifierKind::Additive => {
                 stat.max_health_modifiers.add_mod += *value;
             },
-            ModifierKind::Fractional => {
+            ModifierKind::Multiplicative => {
                 stat.max_health_modifiers.mult_mod *= *value;
             },
         },
@@ -585,13 +585,12 @@ fn execute_effect(
             ModifierKind::Additive => {
                 stat.max_energy_modifiers.add_mod += *value;
             },
-            ModifierKind::Fractional => {
+            ModifierKind::Multiplicative => {
                 stat.max_energy_modifiers.mult_mod *= *value;
             },
         },
-        #[allow(clippy::manual_clamp)]
         BuffEffect::DamageReduction(dr) => {
-            stat.damage_reduction = stat.damage_reduction.max(*dr).min(1.0);
+            stat.damage_reduction = 1.0 - ((1.0 - stat.damage_reduction) * (1.0 - *dr));
         },
         BuffEffect::MaxHealthChangeOverTime {
             rate,
@@ -608,7 +607,7 @@ fn execute_effect(
                         // creates fraction
                         potential_amount / health.base_max()
                     },
-                    ModifierKind::Fractional => {
+                    ModifierKind::Multiplicative => {
                         // `rate * dt` is the fraction
                         potential_amount
                     },
@@ -664,8 +663,9 @@ fn execute_effect(
         BuffEffect::AttackDamage(dam) => {
             stat.attack_damage_modifier *= *dam;
         },
-        BuffEffect::CriticalChance(cc) => {
-            stat.crit_chance_modifier *= *cc;
+        BuffEffect::CriticalChance { kind, val } => match kind {
+            ModifierKind::Additive => stat.crit_chance_modifier.add_mod += val,
+            ModifierKind::Multiplicative => stat.crit_chance_modifier.mult_mod *= val,
         },
         BuffEffect::BodyChange(b) => {
             // For when an entity is under the effects of multiple de/buffs that change the
@@ -678,7 +678,6 @@ fn execute_effect(
                 *body_override = Some(*b)
             }
         },
-        BuffEffect::BuffOnHit(effect) => stat.buffs_on_hit.push(effect.clone()),
         BuffEffect::BuffImmunity(buff_kind) => {
             if buffs_comp.contains(*buff_kind) {
                 server_emitter.emit(ServerEvent::Buff {
@@ -690,5 +689,17 @@ fn execute_effect(
         BuffEffect::SwimSpeed(speed) => {
             stat.swim_speed_modifier *= speed;
         },
+        BuffEffect::AttackEffect(effect) => stat.effects_on_attack.push(effect.clone()),
+        BuffEffect::AttackPoise(p) => {
+            stat.poise_damage_modifier *= p;
+        },
+        BuffEffect::MitigationsPenetration(mp) => {
+            stat.mitigations_penetration =
+                1.0 - ((1.0 - stat.mitigations_penetration) * (1.0 - *mp));
+        },
+        BuffEffect::EnergyReward(er) => {
+            stat.energy_reward_modifier *= er;
+        },
+        BuffEffect::DamagedEffect(effect) => stat.effects_on_damaged.push(effect.clone()),
     };
 }

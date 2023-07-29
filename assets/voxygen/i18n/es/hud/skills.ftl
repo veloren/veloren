@@ -8,7 +8,7 @@ hud-skill-sp_available =
     }
 hud-skill-not_unlocked = Bloqueado
 hud-skill-req_sp ={"\u000A"}
-    
+
     Requiere { $number ->
         [one] { $number } punto de habilidad
         *[other] { $number } puntos de habilidad
@@ -17,7 +17,7 @@ hud-skill-req_sp ={"\u000A"}
 hud-skill-set_as_exp_bar = Fijar en barra de experiencia
 
 # Combate general - Árbol de habilidades
-## Salud 
+## Salud
 hud-skill-inc_health_title = Aumentar salud
 hud-skill-inc_health = Aumenta la salud máxima en { $boost } puntos{ $SP }
 
@@ -102,46 +102,6 @@ hud-skill-hmr_leap_cost_title = Coste de {{ -hud-skill-hmr_leap_title }}
 hud-skill-hmr_leap_cost = Reduce el coste del salto en un { $boost } %{ $SP }
 hud-skill-hmr_leap_radius_title = Radio de {{ -hud-skill-hmr_leap_title }}
 hud-skill-hmr_leap_radius = Aumenta el radio del golpe al suelo en { $boost } metros{ $SP }
-
-# Hacha - Árbol de habilidades
-## Golpe doble
-hud-skill-axe_double_strike_title = Golpe doble
-hud-skill-axe_double_strike = Haz picadillo a esos villanos
-hud-skill-axe_double_strike_combo_title = Golpe triple
-hud-skill-axe_double_strike_combo = Desbloquea un golpe adicional{ $SP }
-hud-skill-axe_double_strike_regen_title = Regeneración de {{ hud-skill-axe_double_strike_title }} 
-hud-skill-axe_double_strike_regen = Aumenta la ganancia de aguante con cada golpe sucesivo{ $SP }
-hud-skill-axe_double_strike_damage_title = Daño de {{ hud-skill-axe_double_strike_title }}
-hud-skill-axe_double_strike_damage = Aumenta el daño infligido con cada golpe sucesivo{ $SP }
-hud-skill-axe_double_strike_speed_title = Velocidad de {{ hud-skill-axe_double_strike_title }}
-hud-skill-axe_double_strike_speed = Aumenta la velocidad de ataque con cada golpe sucesivo{ $SP }
-
-## Giro de hacha
-hud-skill-axe_spin_title = Giro de hacha
-hud-skill-axe_spin = Haces girar el hacha...
-hud-skill-axe_infinite_axe_spin_title = {{ hud-skill-axe_spin_title }} infinito
-hud-skill-axe_infinite_axe_spin = Gira durante tanto tiempo como aguante tengas{ $SP }
-hud-skill-axe_spin_speed_title = Velocidad de {{ hud-skill-axe_spin_title }}
-hud-skill-axe_spin_speed = Aumenta tu velocidad de giro en un { $boost } %{ $SP }
-hud-skill-axe_spin_damage_title = Daño de {{ hud-skill-axe_spin_title }}
-hud-skill-axe_spin_damage = Aumenta el daño que hace cada giro en un { $boost } %{ $SP }
-hud-skill-axe_spin_helicopter_title = Helicóptero
-hud-skill-axe_spin_helicopter = Caes un poco más lento mientras giras{ $SP }
-hud-skill-axe_spin_cost_title = Coste de {{ hud-skill-axe_spin_helicopter_title }}
-hud-skill-axe_spin_cost = Reduce el coste de aguante de los giros en un { $boost } %{ $SP }
-
-## Salto con hacha
--hud-skill-axe_unlock_title = Salto con hacha
-hud-skill-axe_unlock_leap_title = Desbloquear {{ -hud-skill-axe_unlock_title }}
-hud-skill-axe_unlock_leap = Desbloquea el salto giratorio{ $SP }
-hud-skill-axe_leap_damage_title = Daño de {{ -hud-skill-axe_unlock_title }}
-hud-skill-axe_leap_damage = Aumenta el daño del salto en un { $boost } %{ $SP }
-hud-skill-axe_leap_distance_title = Distancia de {{ -hud-skill-axe_unlock_title }}
-hud-skill-axe_leap_distance = Aumenta la distancia del salto en un { $boost } %{ $SP }
-hud-skill-axe_leap_knockback_title = Retroceso de {{ -hud-skill-axe_unlock_title }}
-hud-skill-axe_leap_knockback = Aumenta el retroceso del salto en un { $boost } %{ $SP }
-hud-skill-axe_leap_cost_title = Coste de {{ -hud-skill-axe_unlock_title }}
-hud-skill-axe_leap_cost = Reduce el coste del salto en un { $boost } %{ $SP }
 
 # Cetro - Árbol de habilidades
 ## Drenar vida

@@ -1,0 +1,24 @@
+FinisherMelee(
+    energy_cost: 0,
+    buildup_duration: 0.2,
+    swing_duration: 0.4,
+    recover_duration: 0.5,
+    melee_constructor: (
+        kind: Slash(
+            damage: 10,
+            poise: 5,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        range: 3.0,
+        angle: 360.0,
+        multi_target: Some(Normal),
+        damage_effect: Some(Buff((
+            kind: Bleeding,
+            dur_secs: 5.0,
+            strength: DamageFraction(1.0),
+            chance: 1.0,
+        ))),
+    ),
+    minimum_combo: 50,
+)

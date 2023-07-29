@@ -138,7 +138,7 @@ impl SkillGroupKind {
     pub fn skill_point_cost(self, level: u16) -> u32 {
         use std::f32::consts::E;
         match self {
-            Self::Weapon(ToolKind::Sword) => {
+            Self::Weapon(ToolKind::Sword | ToolKind::Axe) => {
                 let level = level as f32;
                 ((400.0 * (level / (level + 20.0)).powi(2) + 5.0 * E.powf(0.025 * level))
                     .min(u32::MAX as f32) as u32)

@@ -158,11 +158,7 @@ impl AuraBuffConstructor {
     ) -> Aura {
         let aura_kind = AuraKind::Buff {
             kind: self.kind,
-            data: BuffData {
-                strength: self.strength,
-                duration: self.duration,
-                delay: None,
-            },
+            data: BuffData::new(self.strength, self.duration),
             category: self.category,
             source: BuffSource::Character { by: *uid },
         };

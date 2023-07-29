@@ -9,8 +9,8 @@ ItemDef(
                 data: (
                     strength: 0.4,
                     duration: Some(20),
-                    ),
-                cat_ids: [Natural],
+                ),
+                cat_ids: [RemoveOnAttack],
             )),
 
         ])

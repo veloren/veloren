@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Овладевающая стрела
     .desc = Стреляет ядовитой стрелой. Позволяет управлять вашей целью.
-common-abilities-axe-leap = Прыжок с топором
-    .desc = Прыжок с рассекающим ударом на позицию курсора.
 common-abilities-hammer-leap = Удар смерти
     .desc = Атака по некоторой области с отбрасыванием. Совершает прыжок на позицию курсора.
 common-abilities-bow-shotgun = Мультивыстрел

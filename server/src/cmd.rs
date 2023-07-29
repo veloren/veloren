@@ -1856,7 +1856,7 @@ fn handle_spawn_campfire(
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(Secs(1.0)), None),
+                    data: BuffData::new(0.02, Some(Secs(1.0))),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
@@ -1868,7 +1868,7 @@ fn handle_spawn_campfire(
             Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(Secs(10.0)), None),
+                    data: BuffData::new(2.0, Some(Secs(10.0))),
                     category: BuffCategory::Natural,
                     source: BuffSource::World,
                 },
@@ -3960,7 +3960,7 @@ fn handle_buff(
     if let (Some(buff), strength, duration) = parse_cmd_args!(args, String, f32, f64) {
         let strength = strength.unwrap_or(0.01);
         let duration = duration.unwrap_or(1.0);
-        let buffdata = BuffData::new(strength, Some(Secs(duration)), None);
+        let buffdata = BuffData::new(strength, Some(Secs(duration)));
         if buff != "all" {
             cast_buff(&buff, buffdata, server, target)
         } else {

@@ -208,7 +208,7 @@ impl<'a> AgentData<'a> {
     }
 
     pub fn extract_ability(&self, input: AbilityInput) -> Option<AbilityData> {
-        let context = AbilityContext::from(self.stance, Some(self.inventory));
+        let context = AbilityContext::from(self.stance, Some(self.inventory), self.combo);
         AbilityData::from_ability(
             &self
                 .active_abilities
@@ -220,8 +220,7 @@ impl<'a> AgentData<'a> {
                     Some(self.char_state),
                     &context,
                 )
-                .unwrap_or_default()
-                .0,
+                .map_or(Default::default(), |a| a.0),
         )
     }
 }

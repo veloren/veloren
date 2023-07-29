@@ -1399,7 +1399,7 @@ pub fn handle_parry_hook(
     if let Some(attacker) = attacker && matches!(source, AttackSource::Melee){
         // When attacker is parried, add the parried debuff for 2 seconds, which slows
         // them
-        let data = buff::BuffData::new(1.0, Some(Secs(2.0)), None);
+        let data = buff::BuffData::new(1.0, Some(Secs(2.0)));
         let source = if let Some(uid) = ecs.read_storage::<Uid>().get(defender) {
             BuffSource::Character { by: *uid }
         } else {
@@ -1445,11 +1445,25 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
 
 /// Intended to handle things that should happen for any successful attack,
 /// regardless of the damages and effects specific to that attack
-pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
+pub fn handle_entity_attacked_hook(
+    server: &Server,
+    entity: EcsEntity,
+    attacker: Option<EcsEntity>,
+) {
     let ecs = &server.state.ecs();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
 
     let time = ecs.read_resource::<Time>();
+    if let Some(attacker) = attacker {
+        server_eventbus.emit_now(ServerEvent::Buff {
+            entity: attacker,
+            buff_change: buff::BuffChange::RemoveByCategory {
+                all_required: vec![buff::BuffCategory::RemoveOnAttack],
+                any_required: vec![],
+                none_required: vec![],
+            },
+        });
+    }
 
     if let (Some(mut char_state), Some(mut poise), Some(pos)) = (
         ecs.write_storage::<CharacterState>().get_mut(entity),
@@ -1523,6 +1537,18 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
                     notify_trade_party(entity);
                     notify_trade_party(entity_b);
                 });
+        }
+    }
+
+    let stats = ecs.read_storage::<Stats>();
+    if let Some(stats) = stats.get(entity) {
+        for effect in &stats.effects_on_damaged {
+            use combat::DamagedEffect;
+            match effect {
+                DamagedEffect::Combo(c) => {
+                    server_eventbus.emit_now(ServerEvent::ComboChange { entity, change: *c });
+                },
+            }
         }
     }
 }

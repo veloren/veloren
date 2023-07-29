@@ -88,9 +88,27 @@ buff-desc-frigid = Freeze your foes.
 ## Lifesteal
 buff-title-lifesteal = Lifesteal
 buff-desc-lifesteal = Siphon your enemies life away.
-## Polymorped
+## Salamander's Aspect
 buff-title-salamanderaspect = Salamander's Aspect
 buff-desc-salamanderaspect = You cannot burn and move fast through lava.
+## Imminent Critical
+buff-title-imminentcritical = Imminent Critical
+buff-desc-imminentcritical = Your next attack will critically hit the enemy.
+## Fury
+buff-title-fury = Fury
+buff-desc-fury = With your fury, your strikes generate more combo
+## Sunderer
+buff-title-sunderer = Sunderer
+buff-desc-sunderer = Your attacks can break through your foes' defences and refresh you with more energy.
+## Sunderer
+buff-title-defiance = Defiance
+buff-desc-defiance = You can withstand mightier and more staggering blows and generate combo by being hit, however you are slower.
+## Bloodfeast
+buff-title-bloodfeast = Bloodfeast
+buff-desc-bloodfeast = You restore life on attacks against bleeding enemies
+## Berserk
+buff-title-berserk = Berserk
+buff-desc-berserk = You are in a berserking rage, causing your attacks to be more powerful and swift, and increasing your speed. However, as a result your defensive capability is less.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

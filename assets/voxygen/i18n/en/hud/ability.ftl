@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Possessing Arrow
     .desc = Shoots a poisonous arrow. Lets you control your target.
-common-abilities-axe-leap = Axe Jump
-    .desc = A jump with the slashing leap to position of cursor.
 common-abilities-hammer-leap = Smash of Doom
     .desc = An AOE attack with knockback. Leaps to position of cursor.
 common-abilities-bow-shotgun = Burst
@@ -266,3 +264,89 @@ common-abilities-sword-cleaving_sky_splitter = Sky Splitter
     .desc =
         A powerful strike that purportedly can even split the sky, but will split through enemies
         Requires cleaving stance
+
+# Axe abilities
+common-abilities-axe-triple_chop = Triple Chop
+    .desc =
+        Three quick strikes
+common-abilities-axe-cleave = Cleave
+    .desc =
+        A downwards chop that can build multiple combo
+common-abilities-axe-brutal_swing = Brutal Swing
+    .desc =
+        A spinning cleave around you
+common-abilities-axe-berserk = Berserk
+    .desc =
+        Increases your strength at the cost of leaving you vulnerable
+common-abilities-axe-rising_tide = Rising Tide
+    .desc =
+        An upwards strike that greatly increases combo
+common-abilities-axe-savage_sense = Savage Sense
+    .desc =
+        Identify a vital point on your target, ensuring your next strike critically damages them
+common-abilities-axe-adrenaline_rush = Adrenaline Rush
+    .desc =
+        Consume all your combo to replenish your stamina
+        Scales with combo on activation, consumes all combo
+common-abilities-axe-execute = Execute
+    .desc =
+        A devastating strike often known to be fatal
+        Requires 30 combo to use
+        Automatically upgrades to maelstrom at 50 combo if unlocked
+common-abilities-axe-maelstrom = Maelstrom
+    .desc =
+        Strike everything in your vicinity with a devastating, spinning strike
+        Automatically upgrades from execute at 50 combo
+common-abilities-axe-rake = Rake
+    .desc =
+        Drag your axe across your foe, inducing bleeding
+common-abilities-axe-bloodfeast = Bloodfeast
+    .desc =
+        Your axe thirsts for the blood of your enemies, replenishing you with each strike against a bleeding enemy
+common-abilities-axe-fierce_raze = Fierce Raze
+    .desc =
+        A rapid flurry of strikes on your foe
+common-abilities-axe-dual_fierce_raze = Fierce Raze
+    .desc =
+        A rapid flurry of strikes on your foe using both of your axes
+common-abilities-axe-furor = Furor
+    .desc =
+        As your fury rises, your strikes generate more combo
+common-abilities-axe-fracture = Fracture
+    .desc =
+        A crippling blow that hampers your foe's movement
+        Scales with combo on activation, consumes half of combo
+common-abilities-axe-lacerate = Lacerate
+    .desc =
+        Flay your target, causing their lifeblood to flow out
+        Requires 30 combo to use
+        Automatically upgrades to riptide at 50 combo if unlocked
+common-abilities-axe-riptide = Riptide
+    .desc =
+        Flay everything nearby, parting them from their blood
+        Automatically upgrades from lacerate at 50 combo
+common-abilities-axe-skull_bash = Skullbash
+    .desc =
+        A strike with the flat of your axe that can stagger
+common-abilities-axe-sunder = Sunder
+    .desc =
+        By changing your grip, you become able to bypass your enemy's armor while restoring your energy more effectively
+common-abilities-axe-plunder = Plunder
+    .desc =
+        Quickly step towards your foe, robbing them of their balance with a strike
+common-abilities-axe-defiance = Defiance
+    .desc =
+        Stare death in the eye longer as you make yourself resistant to both staggers and death
+common-abilities-axe-keelhaul = Keelhaul
+    .desc =
+        Hook your opponent to pull them closer towards you
+        Scales with combo on activation, consumes half of combo
+common-abilities-axe-bulkhead = Bulkhead
+    .desc =
+        A heavy swing that some say can even stagger titans
+        Requires 30 combo to use
+        Automatically upgrades to capsize at 50 combo if unlocked
+common-abilities-axe-capsize = Capsize
+    .desc =
+        Stagger everything nearby with a heavy spinning strike
+        Automatically upgrades from bulkhead at 50 combo

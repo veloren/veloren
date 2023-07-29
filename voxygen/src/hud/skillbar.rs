@@ -313,7 +313,7 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
     combo_floater: Option<ComboFloater>,
-    contexts: &'a [AbilityContext],
+    context: &'a AbilityContext,
     combo: Option<&'a Combo>,
     char_state: Option<&'a CharacterState>,
     stance: Option<&'a Stance>,
@@ -346,7 +346,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
         combo_floater: Option<ComboFloater>,
-        contexts: &'a [AbilityContext],
+        context: &'a AbilityContext,
         combo: Option<&'a Combo>,
         char_state: Option<&'a CharacterState>,
         stance: Option<&'a Stance>,
@@ -377,7 +377,7 @@ impl<'a> Skillbar<'a> {
             localized_strings,
             msm,
             combo_floater,
-            contexts,
+            context,
             combo,
             char_state,
             stance,
@@ -940,7 +940,7 @@ impl<'a> Skillbar<'a> {
             self.skillset,
             self.active_abilities,
             self.body,
-            self.contexts,
+            self.context,
             self.combo,
             self.char_state,
             self.stance,
@@ -1114,7 +1114,7 @@ impl<'a> Skillbar<'a> {
             Ability::from(a.primary).ability_id(
                 Some(self.inventory),
                 Some(self.skillset),
-                self.contexts,
+                self.context,
             )
         });
 
@@ -1144,7 +1144,7 @@ impl<'a> Skillbar<'a> {
             Ability::from(a.secondary).ability_id(
                 Some(self.inventory),
                 Some(self.skillset),
-                self.contexts,
+                self.context,
             )
         });
 
@@ -1166,10 +1166,10 @@ impl<'a> Skillbar<'a> {
                         self.skillset,
                         Some(self.body),
                         self.char_state,
-                        self.contexts,
+                        self.context,
                     )
                 })
-                .map_or(false, |(a, _)| {
+                .map_or(false, |(a, _, _)| {
                     self.energy.current() >= a.energy_cost()
                         && self.combo.map_or(false, |c| c.counter() >= a.combo_cost())
                         && a.ability_meta().requirements.requirements_met(self.stance)

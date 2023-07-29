@@ -255,7 +255,7 @@ common-abilities-sword-heavy_sweep = Golpe potente
 
 common-abilities-sword-heavy_pommel_strike = Golpe de empuñadura
     .desc = Golpea al enemigo en la cabeza con la empuñadura de la espada para tratar de aturdirlo.
-    Requiere estar en la posición intensa. 
+    Requiere estar en la posición intensa.
 
 common-abilities-sword-heavy_cross_cut = Tajo cruzado potente
     .desc = Un tajo doble de izquierda a derecha que puede aturdir.
@@ -323,9 +323,6 @@ common-abilities-sword-defensive_disengage = Retirada defensiva
 # Habilidades de arco
 common-abilities-debug-possess = Flecha de posesión
     .desc = Dispara una flecha que te permite controlar a tu objetivo.
-
-common-abilities-axe-leap = Salto con hacha
-    .desc = Salta y ataca con el hacha hacia la posición del cursor.
 
 common-abilities-hammer-leap = Golpe de la perdición
     .desc = Salta hacia la posición del cursor para atacar a un enemigo con retroceso.
