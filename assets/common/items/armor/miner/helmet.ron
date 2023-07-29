@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Flamekeeper Miner Helmet.",
+    name: "Miner Helmet",
     description: "Someone carved 'Mine!' into the inside.",
     kind: Armor((
         kind: Head,

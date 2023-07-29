@@ -295,7 +295,7 @@
             color: None
         ),
         (Dwarf, Female, "common.items.armor.misc.head.wanderers_hat"): (
-            vox_spec: ("armor.misc.head.wanderers_hat", (-4, -5.0, 4.0)),
+            vox_spec: ("armor.misc.head.wanderers_hat", (-5, -5.0, 4.0)),
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.wanderers_hat"): (
@@ -1451,72 +1451,53 @@
             color: None
         ),
         // Miner
-        (Human, Male, "common.items.armor.miner.helmet_orange"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Human, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Elf, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Elf, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
-        ),
-        //
-        (Dwarf, Male, "common.items.armor.miner.helmet_orange"): (
-            vox_spec: ("armor.miner.helmet", (-5.0, -5.0, -1.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Dwarf, Male, "common.items.armor.miner.helmet_red"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
+        (Human, Male, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-4.0, -6.0, -1.0)),
             color: Some((146, 32, 32)),
         ),
-        (Dwarf, Male, "common.items.armor.miner.helmet_blue"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((83, 176, 210)),
-        ),
-        //
-        (Dwarf, Female, "common.items.armor.miner.helmet_orange"): (
-            vox_spec: ("armor.miner.helmet", (-5.0, -5.0, -1.0)),
-            color: Some((212, 91, 0)),
-        ),
-        (Dwarf, Female, "common.items.armor.miner.helmet_red"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
+        (Human, Female, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-4.0, -6.0, -1.0)),
             color: Some((146, 32, 32)),
         ),
-        (Dwarf, Female, "common.items.armor.miner.helmet_blue"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((83, 176, 210)),
+        (Elf, Male, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-3.0, -6.0, -1.0)),
+            color: Some((146, 32, 32)),
         ),
-        //
-        (Danari, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
+        (Elf, Female, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-3.0, -6.0, -1.0)),
+            color: Some((146, 32, 32)),
         ),
-        (Danari, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
+        (Dwarf, Male, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-5.0, -5.0, -1.0)),
+            color: Some((146, 32, 32)),
         ),
-        (Draugr, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
+        (Dwarf, Female, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-5.0, -5.0, -1.0)),
+            color: Some((146, 32, 32)),
         ),
-        (Draugr, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
+        (Danari, Male, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-2.0, -6.0, 1.0)),
+            color: Some((146, 32, 32)),
         ),
-        (Orc, Male, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
+        (Danari, Female, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-2.0, -6.0, 1.0)),
+            color: Some((146, 32, 32)),
         ),
-        (Orc, Female, "common.items.armor.misc.head.gnarling_mask"): (
-            vox_spec: ("armor.miner.helmet", (-4.0, -3.0, 5.0)),
-            color: Some((212, 91, 0)),
+        (Draugr, Male, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-6.0, -6.0, 0.0)),
+            color: Some((146, 32, 32)),
+        ),
+        (Draugr, Female, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-6.0, -6.0, -1.0)),
+            color: Some((146, 32, 32)),
+        ),
+        (Orc, Male, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-3.0, -5.0, 1.0)),
+            color: Some((146, 32, 32)),
+        ),
+        (Orc, Female, "common.items.armor.miner.helmet"): (
+            vox_spec: ("armor.miner.helmet", (-3.0, -7.0, -1.0)),
+            color: Some((146, 32, 32)),
         ),
     }
 ))
