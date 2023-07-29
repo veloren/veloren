@@ -6,7 +6,7 @@
         guard: Some(Contextualized(
             pseudo_id: "veloren.core.pseudo_abilities.sword.guard",
             abilities: [
-                ([Stance(Sword(Defensive))], (None, "common.abilities.sword.defensive_guard")),
+                ((stance: Sword(Defensive)), (None, "common.abilities.sword.defensive_guard")),
                 ([], (None, "common.abilities.sword.basic_guard")),
             ],
         )),
