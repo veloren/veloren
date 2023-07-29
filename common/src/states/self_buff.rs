@@ -29,10 +29,12 @@ pub struct StaticData {
     pub buff_strength: f32,
     /// How long buff lasts
     pub buff_duration: Option<Secs>,
-    /// This is the minimum amount of combo required to enter this character state
+    /// This is the minimum amount of combo required to enter this character
+    /// state
     pub combo_cost: u32,
     pub combo_scaling: Option<ScalingKind>,
-    /// This is the amount of combo held by the entity when this character state was entered
+    /// This is the amount of combo held by the entity when this character state
+    /// was entered
     pub combo_on_use: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,

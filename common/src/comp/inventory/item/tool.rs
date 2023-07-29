@@ -476,11 +476,11 @@ impl<T> AbilitySet<T> {
     pub fn guard(
         &self,
         skillset: Option<&SkillSet>,
-        contexts: &[AbilityContext],
-    ) -> Option<(&T, Option<usize>)> {
+        context: &AbilityContext,
+    ) -> Option<(&T, Option<ContextualIndex>)> {
         self.guard
             .as_ref()
-            .and_then(|g| g.ability(skillset, contexts))
+            .and_then(|g| g.ability(skillset, context))
     }
 
     pub fn primary(

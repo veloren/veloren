@@ -7,7 +7,7 @@
             pseudo_id: "veloren.core.pseudo_abilities.sword.guard",
             abilities: [
                 ((stance: Sword(Defensive)), (None, "common.abilities.sword.defensive_guard")),
-                ([], (None, "common.abilities.sword.basic_guard")),
+                ((), (None, "common.abilities.sword.basic_guard")),
             ],
         )),
         primary: Contextualized(

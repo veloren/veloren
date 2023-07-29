@@ -67,7 +67,8 @@ pub struct Stats {
     pub swim_speed_modifier: f32,
     /// This adds effects to any attacks that the entity makes
     pub effects_on_attack: Vec<AttackEffect>,
-    /// This is the fraction of damage reduction (from armor and other buffs) that gets ignored by attacks from this entity
+    /// This is the fraction of damage reduction (from armor and other buffs)
+    /// that gets ignored by attacks from this entity
     pub mitigations_penetration: f32,
     pub energy_reward_modifier: f32,
     /// This creates effects when the entity is damaged

@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using Block('Alt' by default) in Defensive Stance now feels stronger
 - Recipe for twigs from wooden logs
 - First version of multisalvage that allows to obtain more than one piece of material from salvage
+- Axe
+
 ### Changed
 
 - Plugins now target wasm32-unknown-wasi and all wasm cfgs are gone
@@ -34,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tweaked Archaeos, Basilisk, Dreadhorn, Dullahan, Mammoth, Ngoubou, Ntouka and Roshwalr loot tables to be a bit more rewarding
 - Removed weapon and armor drops from standard NPCs
 - Tweaked dungeons mobs and chests loot tables to be more balanced and rewarding
-- Changed iron ore to iron ingots in the instruments' recipes   
+- Changed iron ore to iron ingots in the instruments' recipes
 
 ### Removed
 - Medium and large potions from all loot tables
@@ -113,7 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The language identifiers used by the i18n translation system have been converted to IETF BCP 47 (RFC 5646) language tags.
 - Improved particle performance for lava and leaves
 - The wander-radius of entities can be defined in their .ron config now
-- Dwarven-Mine themed dungeon 
+- Dwarven-Mine themed dungeon
 - Multiple item types can be dropped from enemies and chests now
 - Readable signs
 - Plugins now target wasm32-unknown-wasi and all wasm cfgs are gone

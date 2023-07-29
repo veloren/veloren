@@ -178,7 +178,7 @@ impl ActiveAbilities {
             Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .guard(Some(skill_set), contexts)
+                        .guard(Some(skill_set), context)
                         .map(|(a, i)| (a.ability.clone(), i))
                 })
                 .map(|(ability, i)| {
@@ -192,7 +192,7 @@ impl ActiveAbilities {
                     ability_set(EquipSlot::ActiveOffhand)
                         .and_then(|abilities| {
                             abilities
-                                .guard(Some(skill_set), contexts)
+                                .guard(Some(skill_set), context)
                                 .map(|(a, i)| (a.ability.clone(), i))
                         })
                         .map(|(ability, i)| {
@@ -372,7 +372,7 @@ impl Ability {
             Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
-                        .guard(skillset, contexts)
+                        .guard(skillset, context)
                         .map(|a| a.0.id.as_str())
                         .or_else(|| {
                             abilities
@@ -384,7 +384,7 @@ impl Ability {
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
                         abilities
-                            .guard(skillset, contexts)
+                            .guard(skillset, context)
                             .map(|a| a.0.id.as_str())
                             .or_else(|| {
                                 abilities
@@ -441,7 +441,8 @@ impl Ability {
             Ability::ToolPrimary
             | Ability::ToolSecondary
             | Ability::MainWeaponAux(_)
-            | Ability::OffWeaponAux(_) => true,
+            | Ability::OffWeaponAux(_)
+            | Ability::ToolGuard => true,
             Ability::SpeciesMovement | Ability::Empty => false,
         }
     }
