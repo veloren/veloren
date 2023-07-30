@@ -48,6 +48,7 @@ pub struct AudioSettings {
     pub num_ui_channels: usize,
     pub music_spacing: f32,
     pub subtitles: bool,
+    pub combat_music_enabled: bool,
 
     /// Audio Device that Voxygen will use to play audio.
     pub output: AudioOutput,
@@ -66,6 +67,7 @@ impl Default for AudioSettings {
             music_spacing: 1.0,
             subtitles: false,
             output: AudioOutput::Automatic,
+            combat_music_enabled: true,
         }
     }
 }

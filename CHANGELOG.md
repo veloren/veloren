@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recipe for twigs from wooden logs
 - First version of multisalvage that allows to obtain more than one piece of material from salvage
 - Axe
+- Combat music toggle
 
 ### Changed
 
