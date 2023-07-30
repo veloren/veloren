@@ -140,6 +140,7 @@ fn main() {
             settings.audio.num_sfx_channels,
             settings.audio.num_ui_channels,
             settings.audio.subtitles,
+            settings.audio.combat_music_enabled,
         ),
         //    AudioOutput::Device(ref dev) => Some(dev.clone()),
     };

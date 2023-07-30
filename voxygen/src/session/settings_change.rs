@@ -30,6 +30,7 @@ pub enum Audio {
     AdjustAmbienceVolume(f32),
     MuteAmbienceVolume(bool),
     AdjustMusicSpacing(f32),
+    ToggleCombatMusic(bool),
     //ChangeAudioDevice(String),
     ResetAudioSettings,
 }
@@ -285,6 +286,9 @@ impl SettingsChange {
                         global_state.audio.set_music_spacing(multiplier);
 
                         settings.audio.music_spacing = multiplier;
+                    },
+                    Audio::ToggleCombatMusic(combat_music_enabled) => {
+                        global_state.audio.combat_music_enabled = combat_music_enabled
                     },
                     //Audio::ChangeAudioDevice(name) => {
                     //    global_state.audio.set_device(name.clone());

@@ -45,6 +45,8 @@ widget_ids! {
         //audio_device_list,
         //audio_device_text,
         reset_sound_button,
+        combat_music_toggle_label,
+        combat_music_toggle_button,
     }
 }
 
@@ -431,6 +433,30 @@ impl<'a> Widget for Sound<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.music_spacing_number, ui);
 
+        // Combat music toggle
+        let audio = &self.global_state.audio;
+
+        Text::new(&self.localized_strings.get_msg("hud-settings-combat_music"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.music_spacing_slider, 10.0)
+            .x_align_to(state.ids.music_spacing_text, Align::Start)
+            .color(TEXT_COLOR)
+            .set(state.ids.combat_music_toggle_label, ui);
+
+        let combat_music_enabled = ToggleButton::new(
+            audio.combat_music_enabled,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.combat_music_toggle_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.combat_music_toggle_button, ui);
+
+        events.push(ToggleCombatMusic(combat_music_enabled));
+
         // Audio Device Selector
         // --------------------------------------------
         // let device = &self.global_state.audio.device;
@@ -463,7 +489,7 @@ impl<'a> Widget for Sound<'a> {
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.music_spacing_slider, 12.0)
+            .down_from(state.ids.combat_music_toggle_button, 12.0)
             .x_align_to(state.ids.ambience_volume_text, Align::Start)
             .label(&self.localized_strings.get_msg("hud-settings-reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))

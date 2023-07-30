@@ -58,6 +58,8 @@ pub struct AudioFrontend {
     pub subtitles_enabled: bool,
     pub subtitles: VecDeque<Subtitle>,
 
+    pub combat_music_enabled: bool,
+
     mtm: AssetHandle<MusicTransitionManifest>,
 }
 
@@ -68,6 +70,7 @@ impl AudioFrontend {
         num_sfx_channels: usize,
         num_ui_channels: usize,
         subtitles: bool,
+        combat_music_enabled: bool,
     ) -> Self {
         // Commented out until audio device switcher works
         //let audio_device = get_device_raw(&dev);
@@ -118,6 +121,7 @@ impl AudioFrontend {
             mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
             subtitles: VecDeque::new(),
             subtitles_enabled: subtitles,
+            combat_music_enabled,
         }
     }
 
@@ -143,6 +147,7 @@ impl AudioFrontend {
             mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
             subtitles: VecDeque::new(),
             subtitles_enabled: false,
+            combat_music_enabled: false,
         }
     }
 

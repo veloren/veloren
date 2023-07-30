@@ -255,29 +255,31 @@ impl MusicMgr {
         let groups = ecs.read_component::<Group>();
         let mtm = audio.mtm.read();
 
-        if let Some(player_pos) = positions.get(player) {
-            // TODO: `group::ENEMY` will eventually be moved server-side with an
-            // alignment/faction rework, so this will need an alternative way to measure
-            // "in-combat-ness"
-            let num_nearby_entities: u32 = (&entities, &positions, &healths, &groups)
-                .join()
-                .map(|(entity, pos, health, group)| {
-                    if entity != player
-                        && group == &ENEMY
-                        && (player_pos.0 - pos.0).magnitude_squared()
-                            < mtm.combat_nearby_radius.powf(2.0)
-                    {
-                        (health.maximum() / mtm.combat_health_factor).ceil() as u32
-                    } else {
-                        0
-                    }
-                })
-                .sum();
+        if audio.combat_music_enabled {
+            if let Some(player_pos) = positions.get(player) {
+                // TODO: `group::ENEMY` will eventually be moved server-side with an
+                // alignment/faction rework, so this will need an alternative way to measure
+                // "in-combat-ness"
+                let num_nearby_entities: u32 = (&entities, &positions, &healths, &groups)
+                    .join()
+                    .map(|(entity, pos, health, group)| {
+                        if entity != player
+                            && group == &ENEMY
+                            && (player_pos.0 - pos.0).magnitude_squared()
+                                < mtm.combat_nearby_radius.powf(2.0)
+                        {
+                            (health.maximum() / mtm.combat_health_factor).ceil() as u32
+                        } else {
+                            0
+                        }
+                    })
+                    .sum();
 
-            if num_nearby_entities >= mtm.combat_nearby_high_thresh {
-                activity_state = MusicActivity::Combat(CombatIntensity::High);
-            } else if num_nearby_entities >= mtm.combat_nearby_low_thresh {
-                activity_state = MusicActivity::Combat(CombatIntensity::Low);
+                if num_nearby_entities >= mtm.combat_nearby_high_thresh {
+                    activity_state = MusicActivity::Combat(CombatIntensity::High);
+                } else if num_nearby_entities >= mtm.combat_nearby_low_thresh {
+                    activity_state = MusicActivity::Combat(CombatIntensity::Low);
+                }
             }
         }
 
