@@ -3,10 +3,10 @@
     name: Name("Myrmidon Strategian"),
     body: RandomWith("myrmidon"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-4.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.myrmidon.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-4.strategian"),
+            inherit: Asset("common.loadout.dungeon.myrmidon.strategian"),
             active_hands: InHands((Item("common.items.npc_weapons.biped_small.myrmidon.strategian"), None)),
         )),
     ),

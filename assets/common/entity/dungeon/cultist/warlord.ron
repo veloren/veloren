@@ -3,10 +3,10 @@
     name: Name("Cultist Warlord"),
     body: RandomWith("cultist_warlord"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-5.warlord"),
+            inherit: Asset("common.loadout.dungeon.cultist.warlord"),
             active_hands: InHands((Choice([
                 (1, Item("common.items.npc_weapons.sword.bipedlarge-cultist")),
                 (1, Item("common.items.npc_weapons.hammer.bipedlarge-cultist")),

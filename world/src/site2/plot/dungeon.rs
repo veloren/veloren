@@ -673,9 +673,9 @@ fn enemy_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-2.sniper", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-2.sorcerer", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spearman", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.sahagin.sniper", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.sahagin.sorcerer", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.sahagin.spearman", dynamic_rng),
         }
     });
 
@@ -689,9 +689,9 @@ fn enemy_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-3.archer", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-3.soldier", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-3.guard", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.haniwa.archer", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.haniwa.soldier", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.haniwa.guard", dynamic_rng),
         }
     });
 
@@ -705,9 +705,9 @@ fn enemy_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-4.marksman", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-4.strategian", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-4.hoplite", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.myrmidon.marksman", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.myrmidon.strategian", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.myrmidon.hoplite", dynamic_rng),
         }
     });
 
@@ -721,9 +721,9 @@ fn enemy_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-5.cultist", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.cultist.warlock", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.cultist.warlord", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.cultist.cultist", dynamic_rng),
         }
     });
 
@@ -742,24 +742,24 @@ fn enemy_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<En
 }
 
 fn turret_3(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
-    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-3.sentry", dynamic_rng)
+    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.haniwa.sentry", dynamic_rng)
 }
 
 fn turret_5(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
-    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-5.turret", dynamic_rng)
+    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.cultist.turret", dynamic_rng)
 }
 
 fn boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-2.boss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.sahagin.boss", dynamic_rng),
     ]
 }
 fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(2, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-3.boss", dynamic_rng)
+            .with_asset_expect("common.entity.dungeon.haniwa.boss", dynamic_rng)
     });
 
     entities
@@ -768,14 +768,14 @@ fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo
 fn boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-4.boss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.myrmidon.boss", dynamic_rng),
     ]
 }
 
 fn boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-5.boss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.cultist.boss", dynamic_rng),
     ]
 }
 
@@ -790,7 +790,7 @@ fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
     let mut entities = Vec::new();
     entities.resize_with(6, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-2.hakulaq", dynamic_rng)
+            .with_asset_expect("common.entity.dungeon.sahagin.hakulaq", dynamic_rng)
     });
     entities
 }
@@ -799,7 +799,7 @@ fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
     let mut entities = Vec::new();
     entities.resize_with(3, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-3.bonerattler", dynamic_rng)
+            .with_asset_expect("common.entity.dungeon.haniwa.bonerattler", dynamic_rng)
     });
     entities
 }
@@ -807,7 +807,7 @@ fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 fn mini_boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-4.miniboss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.myrmidon.miniboss", dynamic_rng),
     ]
 }
 
@@ -817,23 +817,23 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
         0 => {
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster", dynamic_rng),
+                    .with_asset_expect("common.entity.dungeon.cultist.beastmaster", dynamic_rng),
             );
             entities.resize_with(entities.len() + 4, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.hound", dynamic_rng)
+                    .with_asset_expect("common.entity.dungeon.cultist.hound", dynamic_rng)
             });
         },
         1 => {
             entities.resize_with(2, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.husk_brute", dynamic_rng)
+                    .with_asset_expect("common.entity.dungeon.cultist.husk_brute", dynamic_rng)
             });
         },
         _ => {
             entities.resize_with(10, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.husk", dynamic_rng)
+                    .with_asset_expect("common.entity.dungeon.cultist.husk", dynamic_rng)
             });
         },
     }

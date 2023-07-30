@@ -220,7 +220,7 @@ impl Spot {
         Self::generate_spots(
             Spot::GnarlingTotem,
             world,
-            2.0,
+            1.5,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -234,7 +234,7 @@ impl Spot {
         Self::generate_spots(
             Spot::FallenTree,
             world,
-            2.0,
+            1.5,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -601,9 +601,9 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots.myrmidon-temple"),
                 entity_radius: 10.0,
                 entities: &[
-                    (3..5, "common.entity.dungeon.tier-4.hoplite"),
-                    (3..5, "common.entity.dungeon.tier-4.strategian"),
-                    (2..3, "common.entity.dungeon.tier-4.marksman"),
+                    (3..5, "common.entity.dungeon.myrmidon.hoplite"),
+                    (3..5, "common.entity.dungeon.myrmidon.strategian"),
+                    (2..3, "common.entity.dungeon.myrmidon.marksman"),
                 ],
             },
             Spot::WitchHouse => SpotConfig {

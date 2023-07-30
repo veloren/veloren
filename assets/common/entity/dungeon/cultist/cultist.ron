@@ -3,10 +3,10 @@
     name: Name("Cultist"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-5.cultist"),
+            inherit: Asset("common.loadout.dungeon.cultist.cultist"),
             active_hands: InHands((Choice([
                 (2, ModularWeapon(tool: Axe, material: Orichalcum, hands: One)),
                 (4, Item("common.items.weapons.sword.cultist")),

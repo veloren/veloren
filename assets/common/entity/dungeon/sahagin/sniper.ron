@@ -3,10 +3,10 @@
     name: Name("Sahagin Sniper"),
     body: RandomWith("sahagin"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-2.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.sahagin.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-2.sniper"),
+            inherit: Asset("common.loadout.dungeon.sahagin.sniper"),
             active_hands: InHands((Item("common.items.npc_weapons.biped_small.sahagin.sniper"), None)),
         )),
     ),

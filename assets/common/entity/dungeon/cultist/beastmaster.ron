@@ -3,10 +3,10 @@
     name: Name("Beastmaster"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-5.miniboss"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.miniboss"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-5.beastmaster"),
+            inherit: Asset("common.loadout.dungeon.cultist.beastmaster"),
             active_hands: InHands((Choice([
                 (1, Item("common.items.weapons.axe.malachite_axe-0")),
                 (1, ModularWeapon(tool: Sword, material: Bloodsteel, hands: Two)),
