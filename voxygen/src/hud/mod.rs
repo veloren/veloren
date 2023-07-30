@@ -2208,13 +2208,13 @@ impl Hud {
                     .set(overitem_id, ui_widgets);
                 }
             } else if let Some(Interactable::Entity(entity)) = interactable {
-                // show hud for campfire
-                if client
+                // show hud for campfires and portals
+                if let Some(body) = client
                     .state()
                     .ecs()
                     .read_storage::<comp::Body>()
                     .get(*entity)
-                    .map_or(false, |b| b.is_campfire())
+                    .filter(|b| b.is_campfire() || b.is_portal())
                 {
                     let overitem_id = overitem_walker.next(
                         &mut self.ids.overitems,
@@ -2234,7 +2234,11 @@ impl Hud {
                     let over_pos = pos + Vec3::unit_z() * 1.5;
 
                     overitem::Overitem::new(
-                        i18n.get_msg("hud-crafting-campfire"),
+                        i18n.get_msg(if body.is_campfire() {
+                            "hud-crafting-campfire"
+                        } else {
+                            "hud-portal"
+                        }),
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,

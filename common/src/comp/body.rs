@@ -261,6 +261,13 @@ impl Body {
 
     pub fn is_campfire(&self) -> bool { matches!(self, Body::Object(object::Body::CampfireLit)) }
 
+    pub fn is_portal(&self) -> bool {
+        matches!(
+            self,
+            Body::Object(object::Body::Portal | object::Body::PortalActive)
+        )
+    }
+
     pub fn bleeds(&self) -> bool {
         !matches!(
             self,

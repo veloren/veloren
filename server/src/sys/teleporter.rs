@@ -1,11 +1,11 @@
 use common::{
-    comp::{object, Agent, Body, CharacterState, Player, Pos, Teleporter, Teleporting},
+    comp::{object, Agent, Body, CharacterState, Pos, Teleporter, Teleporting},
     event::{EventBus, ServerEvent},
     resources::Time,
     CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
-use specs::{storage::StorageEntry, Entities, Join, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Entity, Join, Read, ReadStorage, WriteStorage};
 use vek::Vec3;
 
 const TELEPORT_RADIUS: f32 = 3.;
@@ -22,7 +22,6 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Pos>,
-        ReadStorage<'a, Player>,
         ReadStorage<'a, Teleporter>,
         ReadStorage<'a, Agent>,
         WriteStorage<'a, Teleporting>,
@@ -42,7 +41,6 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             positions,
-            players,
             teleporters,
             agent,
             mut teleporting,
@@ -66,6 +64,8 @@ impl<'a> System<'a> for Sys {
                 })
         };
 
+        let mut teleporting_updates = Vec::new();
+
         for (portal_entity, teleporter_pos, body, teleporter) in
             (&entities, &positions, &bodies, &teleporters).join()
         {
@@ -75,42 +75,38 @@ impl<'a> System<'a> for Sys {
 
             let mut is_active = false;
 
-            let mut player_data = (
-                &entities,
-                &positions,
-                &players,
-                &character_states,
-                teleporting.entries(),
-            )
-                .join();
-
-            for (entity, pos, _, character_state, teleporting) in
+            for (entity, pos, character_state, teleporting) in
                 nearby_entities.filter_map(|entity| {
-                    player_data
+                    (
+                        &entities,
+                        &positions,
+                        &character_states,
+                        teleporting.maybe(),
+                    )
+                        .join()
                         .get(entity, &entities)
-                        .filter(|(_, player_pos, _, _, _)| {
-                            in_portal_range(player_pos.0, teleporter_pos.0)
-                        })
+                        .filter(|(_, pos, _, _)| in_portal_range(pos.0, teleporter_pos.0))
                 })
             {
-                if !matches!(
-                    character_state,
-                    CharacterState::Idle(_) | CharacterState::Wielding(_)
-                ) || (teleporter.requires_no_aggro && check_aggro(entity, pos.0))
+                if !matches!(character_state, CharacterState::Sit)
+                    || (teleporter.requires_no_aggro && check_aggro(entity, pos.0))
                 {
-                    if let StorageEntry::Occupied(entry) = teleporting {
-                        entry.remove();
+                    if teleporting.is_some() {
+                        teleporting_updates.push((entity, None));
                     };
 
                     continue;
                 }
 
-                if let StorageEntry::Vacant(entry) = teleporting {
-                    entry.insert(Teleporting {
-                        teleport_start: *time,
-                        portal: portal_entity,
-                        end_time: Time(time.0 + teleporter.buildup_time.0),
-                    });
+                if teleporting.is_none() {
+                    teleporting_updates.push((
+                        entity,
+                        Some(Teleporting {
+                            teleport_start: *time,
+                            portal: portal_entity,
+                            end_time: Time(time.0 + teleporter.buildup_time.0),
+                        }),
+                    ));
                 }
 
                 is_active = true;
@@ -128,27 +124,42 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        for (entity, position, _, teleporting_entry) in
-            (&entities, &positions, &players, teleporting.entries()).join()
-        {
-            let StorageEntry::Occupied(teleporting) = teleporting_entry else { continue };
-            let portal_pos = positions.get(teleporting.get().portal);
-            let Some(teleporter) = teleporters.get(teleporting.get().portal) else {
-                teleporting.remove();
+        update_teleporting(&mut teleporting_updates, &mut teleporting);
+
+        for (entity, position, teleporting) in (&entities, &positions, &teleporting).join() {
+            let mut remove = || teleporting_updates.push((entity, None));
+            let portal_pos = positions.get(teleporting.portal);
+            let Some(teleporter) = teleporters.get(teleporting.portal) else {
+                remove();
                 continue
             };
 
             if portal_pos.map_or(true, |portal_pos| {
                 !in_portal_range(position.0, portal_pos.0)
             }) {
-                teleporting.remove();
-            } else if teleporting.get().end_time.0 <= time.0 {
-                teleporting.remove();
+                remove();
+            } else if teleporting.end_time.0 <= time.0 {
+                remove();
                 event_bus.emit_now(ServerEvent::TeleportToPosition {
                     entity,
                     position: teleporter.target,
                 });
             }
+        }
+
+        update_teleporting(&mut teleporting_updates, &mut teleporting);
+    }
+}
+
+fn update_teleporting(
+    updates: &mut Vec<(Entity, Option<Teleporting>)>,
+    teleporting: &mut WriteStorage<'_, Teleporting>,
+) {
+    for (entity, update) in updates.drain(..) {
+        if let Some(add) = update {
+            let _ = teleporting.insert(entity, add);
+        } else {
+            let _ = teleporting.remove(entity);
         }
     }
 }

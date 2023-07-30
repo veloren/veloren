@@ -58,3 +58,4 @@ hud-follow = Follow
 hud-stay= Stay
 hud-sit = Sit
 hud-steer = Steer
+hud-portal = Portal

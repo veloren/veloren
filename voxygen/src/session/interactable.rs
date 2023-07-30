@@ -247,7 +247,7 @@ pub(super) fn select_interactable(
                 // * Are not riding the player
                 let not_riding_player = is_rider
                     .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(viewpoint_entity));
-                let is_interactable = (b.is_campfire() || has_stats_or_item.is_some()) && not_riding_player;
+                let is_interactable = (b.is_campfire() || (b.is_portal() && (p.0.distance_squared(player_pos) <= 3f32.powi(2))) || has_stats_or_item.is_some()) && not_riding_player;
                 if !is_interactable {
                     return None;
                 };
