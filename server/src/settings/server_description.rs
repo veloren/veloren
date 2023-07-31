@@ -1,6 +1,6 @@
 //! Versioned server description settings files.
 
-// NOTE: Needed to allow the second-to-last migration to call try_into().
+// NOTE: Needed to allow the second-to-last migration to call `try_into()`.
 
 use super::{MIGRATION_UPGRADE_GUARANTEE, SERVER_DESCRIPTION_FILENAME as FILENAME};
 use crate::settings::editable::{EditableSetting, Version};
@@ -8,8 +8,8 @@ use core::convert::{Infallible, TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
 /// NOTE: Always replace this with the latest server description version. Then
-/// update the ServerDescriptionRaw, the `TryFrom<ServerDescriptionRaw>` for
-/// ServerDescription, the previously most recent module, and add a new module
+/// update the `ServerDescriptionRaw`, the `TryFrom<ServerDescriptionRaw>` for
+/// `ServerDescription`, the previously most recent module, and add a new module
 /// for the latest version!  Please respect the migration upgrade guarantee
 /// found in the parent module with any upgrade.
 pub use self::v2::*;
@@ -73,7 +73,7 @@ mod legacy {
         /// `next::ServerDescription`.
         ///
         /// Note that legacy files are always valid, which is why we implement
-        /// From rather than TryFrom.
+        /// `From` rather than `TryFrom`.
         fn from(value: ServerDescription) -> Self {
             next::ServerDescription::migrate(value)
                 .try_into()
@@ -113,7 +113,7 @@ mod v0 {
         }
     }
 
-    /// Pretty much every TryFrom implementation except that of the very last
+    /// Pretty much every `TryFrom` implementation except that of the very last
     /// version should look exactly like this.
     impl TryFrom<ServerDescription> for Final {
         type Error = <Final as EditableSetting>::Error;

@@ -1,6 +1,6 @@
 //! Versioned whitelist settings files.
 
-// NOTE: Needed to allow the second-to-last migration to call try_into().
+// NOTE: Needed to allow the second-to-last migration to call `try_into()`.
 
 use super::{MIGRATION_UPGRADE_GUARANTEE, WHITELIST_FILENAME as FILENAME};
 use crate::settings::editable::{EditableSetting, Version};
@@ -8,9 +8,10 @@ use core::convert::{Infallible, TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
 /// NOTE: Always replace this with the latest whitelist version. Then update the
-/// WhitelistRaw, the `TryFrom<WhitelistRaw>` for Whitelist, the previously most
-/// recent module, and add a new module for the latest version!  Please respect
-/// the migration upgrade guarantee found in the parent module with any upgrade.
+/// `WhitelistRaw`, the `TryFrom<WhitelistRaw>` for `Whitelist`, the previously
+/// most recent module, and add a new module for the latest version!  Please
+/// respect the migration upgrade guarantee found in the parent module with any
+/// upgrade.
 pub use self::v1::*;
 
 /// Versioned settings files, one per version (v0 is only here as an example; we
@@ -70,7 +71,7 @@ mod legacy {
         /// `next::Whitelist`.
         ///
         /// Note that legacy files are always valid, which is why we implement
-        /// From rather than TryFrom.
+        /// `From` rather than `TryFrom`.
         fn from(value: Whitelist) -> Self {
             next::Whitelist::migrate(value)
                 .try_into()
@@ -112,7 +113,7 @@ mod v0 {
         }
     }
 
-    /// Pretty much every TryFrom implementation except that of the very last
+    /// Pretty much every `TryFrom` implementation except that of the very last
     /// version should look exactly like this.
     impl TryFrom<Whitelist> for Final {
         type Error = <Final as EditableSetting>::Error;
@@ -235,7 +236,7 @@ mod v1 {
                     .map(|uid| {
                         (uid, WhitelistRecord {
                             date,
-                            // We have none of the information needed for WhitelistInfo for old
+                            // We have none of the information needed for `WhitelistInfo` for old
                             // whitelist records.
                             info: None,
                         })

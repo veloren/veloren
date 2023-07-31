@@ -8,9 +8,9 @@ use core::convert::{Infallible, TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
 /// NOTE: Always replace this with the latest admins version. Then update the
-/// AdminsRaw, the `TryFrom<AdminsRaw>` for Admins, the previously most recent
-/// module, and add a new module for the latest version!  Please respect the
-/// migration upgrade guarantee found in the parent module with any upgrade.
+/// `AdminsRaw`, the `TryFrom<AdminsRaw>` for `Admins`, the previously most
+/// recent module, and add a new module for the latest version!  Please respect
+/// the migration upgrade guarantee found in the parent module with any upgrade.
 pub use self::v1::*;
 
 /// Versioned settings files, one per version (v0 is only here as an example; we
@@ -70,7 +70,7 @@ mod legacy {
         /// `next::Admins`.
         ///
         /// Note that legacy files are always valid, which is why we implement
-        /// From rather than TryFrom.
+        /// `From` rather than `TryFrom`.
         fn from(value: Admins) -> Self {
             next::Admins::migrate(value)
                 .try_into()

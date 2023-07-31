@@ -9,7 +9,7 @@ use core::convert::{TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
 /// NOTE: Always replace this with the latest banlist version. Then update the
-/// BanlistRaw, the `TryFrom<BanlistRaw>` for Banlist, the previously most
+/// `BanlistRaw`, the `TryFrom<BanlistRaw>` for `Banlist`, the previously most
 /// recent module, and add a new module for the latest version!  Please respect
 /// the migration upgrade guarantee found in the parent module with any upgrade.
 pub use self::v2::*;
@@ -181,7 +181,7 @@ mod legacy {
         /// `next::Banlist`.
         ///
         /// Note that legacy files are always valid, which is why we implement
-        /// From rather than TryFrom.
+        /// `From` rather than `TryFrom`.
         fn from(value: Banlist) -> Self {
             next::Banlist::migrate(value)
                 .try_into()
