@@ -405,7 +405,7 @@ impl CharacterUpdater {
             );
     }
 
-    /// Returns a non-blocking iterator over CharacterLoaderResponse messages
+    /// Returns a non-blocking iterator over CharacterUpdaterMessage messages
     pub fn messages(&self) -> TryIter<CharacterUpdaterMessage> { self.response_rx.try_iter() }
 }
 
