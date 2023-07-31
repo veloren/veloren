@@ -17,8 +17,8 @@ pub struct Site {
     pub wpos: Vec2<i32>,
     pub faction: Option<FactionId>,
 
-    /// The [`crate::data::Report`]s that the site tracks (you
-    /// can imagine them being on a noticeboard or something).
+    /// The [`crate::data::Report`]s that the site tracks (you can imagine them
+    /// being on a noticeboard or something).
     pub known_reports: HashSet<ReportId>,
 
     /// How many chunks this site is loaded in.
