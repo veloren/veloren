@@ -88,7 +88,7 @@ impl<'a> System<'a> for Sys {
                         .filter(|(_, pos, _, _)| in_portal_range(pos.0, teleporter_pos.0))
                 })
             {
-                if !matches!(character_state, CharacterState::Sit)
+                if !matches!(character_state, CharacterState::Dance)
                     || (teleporter.requires_no_aggro && check_aggro(entity, pos.0))
                 {
                     if teleporting.is_some() {

@@ -2233,8 +2233,9 @@ impl Hud {
                         .map_or(Vec3::zero(), |e| e.0);
                     let over_pos = pos + Vec3::unit_z() * 1.5;
 
+                    let is_campfire = body.is_campfire();
                     overitem::Overitem::new(
-                        i18n.get_msg(if body.is_campfire() {
+                        i18n.get_msg(if is_campfire {
                             "hud-crafting-campfire"
                         } else {
                             "hud-portal"
@@ -2249,7 +2250,7 @@ impl Hud {
                         &global_state.window.key_layout,
                         vec![(
                             Some(GameInput::Interact),
-                            i18n.get_msg("hud-sit").to_string(),
+                            i18n.get_msg(if is_campfire { "hud-sit" } else { "gameinput-dance" }).to_string(),
                         )],
                     )
                     .x_y(0.0, 100.0)

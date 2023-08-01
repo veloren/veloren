@@ -1035,15 +1035,25 @@ impl PlayState for SessionState {
                                                     .is_some()
                                                 {
                                                     client.pick_up(*entity);
-                                                } else if client
-                                                    .state()
-                                                    .ecs()
-                                                    .read_storage::<comp::Body>()
-                                                    .get(*entity)
-                                                    .map_or(false, |b| b.is_campfire())
-                                                {
-                                                    // TODO: maybe start crafting instead?
-                                                    client.toggle_sit();
+                                                } else if let Some(is_campfire) = {
+                                                    let bodies = client
+                                                        .state()
+                                                        .ecs()
+                                                        .read_storage::<comp::Body>();
+
+                                                    bodies
+                                                        .get(*entity)
+                                                        .filter(|body| {
+                                                            body.is_campfire() || body.is_portal()
+                                                        })
+                                                        .map(|body| body.is_campfire())
+                                                } {
+                                                    if is_campfire {
+                                                        // TODO: maybe start crafting instead?
+                                                        client.toggle_sit();
+                                                    } else {
+                                                        client.toggle_dance();
+                                                    }
                                                 } else {
                                                     client.npc_interact(*entity, Subject::Regular);
                                                 }
