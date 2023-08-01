@@ -628,7 +628,7 @@ impl ServerChatCommand {
                     Float("buildup_time", 5., Optional),
                 ],
                 "Spawns a portal",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::ReloadChunks => cmd(
                 vec![],
