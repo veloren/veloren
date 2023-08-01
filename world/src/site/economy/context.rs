@@ -516,7 +516,7 @@ mod tests {
                 Good::Terrain(BiomeKind::Forest),
                 100.0_f32,
             )]);
-            add_settlement(&mut env, "Grass", 880.0, &[(
+            add_settlement(&mut env, "Grass", 700.0, &[(
                 Good::Terrain(BiomeKind::Grassland),
                 100.0_f32,
             )]);
