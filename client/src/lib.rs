@@ -1625,6 +1625,12 @@ impl Client {
         }
     }
 
+    pub fn activate_portal(&mut self, portal: Uid) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::ActivatePortal(
+            portal,
+        )));
+    }
+
     fn control_action(&mut self, control_action: ControlAction) {
         if let Some(controller) = self
             .state

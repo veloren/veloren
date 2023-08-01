@@ -336,6 +336,10 @@ pub enum ServerEvent {
         entity: EcsEntity,
         position: Vec3<f32>,
     },
+    StartTeleporting {
+        entity: EcsEntity,
+        portal: EcsEntity,
+    }
 }
 
 pub struct EventBus<E> {

@@ -8,7 +8,7 @@ use common_ecs::{Origin, Phase, System};
 use specs::{Entities, Entity, Join, Read, ReadStorage, WriteStorage};
 use vek::Vec3;
 
-const TELEPORT_RADIUS: f32 = 3.;
+pub const TELEPORT_RADIUS: f32 = 3.;
 const MAX_AGGRO_DIST: f32 = 200.; // If an entity further than this is aggroed at a player, the portal will still work
 
 #[derive(Default)]
@@ -88,8 +88,10 @@ impl<'a> System<'a> for Sys {
                         .filter(|(_, pos, _, _)| in_portal_range(pos.0, teleporter_pos.0))
                 })
             {
-                if !matches!(character_state, CharacterState::Dance)
-                    || (teleporter.requires_no_aggro && check_aggro(entity, pos.0))
+                if !matches!(
+                    character_state,
+                    CharacterState::Idle(_) | CharacterState::Wielding(_)
+                ) || (teleporter.requires_no_aggro && check_aggro(entity, pos.0))
                 {
                     if teleporting.is_some() {
                         teleporting_updates.push((entity, None));
@@ -98,18 +100,7 @@ impl<'a> System<'a> for Sys {
                     continue;
                 }
 
-                if teleporting.is_none() {
-                    teleporting_updates.push((
-                        entity,
-                        Some(Teleporting {
-                            teleport_start: *time,
-                            portal: portal_entity,
-                            end_time: Time(time.0 + teleporter.buildup_time.0),
-                        }),
-                    ));
-                }
-
-                is_active = true;
+                is_active |= teleporting.is_some();
             }
 
             if (*body == Body::Object(object::Body::PortalActive)) != is_active {

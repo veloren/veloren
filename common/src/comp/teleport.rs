@@ -17,7 +17,6 @@ impl Component for Teleporter {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Teleporting {
-    pub teleport_start: Time,
     pub portal: Entity,
     pub end_time: Time,
 }

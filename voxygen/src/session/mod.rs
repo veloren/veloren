@@ -1027,6 +1027,13 @@ impl PlayState for SessionState {
                                                 }
                                             },
                                             Interactable::Entity(entity) => {
+                                                let body = client
+                                                    .state()
+                                                    .ecs()
+                                                    .read_storage::<comp::Body>()
+                                                    .get(*entity)
+                                                    .map(ToOwned::to_owned);
+
                                                 if client
                                                     .state()
                                                     .ecs()
@@ -1035,25 +1042,21 @@ impl PlayState for SessionState {
                                                     .is_some()
                                                 {
                                                     client.pick_up(*entity);
-                                                } else if let Some(is_campfire) = {
-                                                    let bodies = client
-                                                        .state()
-                                                        .ecs()
-                                                        .read_storage::<comp::Body>();
-
-                                                    bodies
-                                                        .get(*entity)
-                                                        .filter(|body| {
-                                                            body.is_campfire() || body.is_portal()
-                                                        })
-                                                        .map(|body| body.is_campfire())
-                                                } {
-                                                    if is_campfire {
-                                                        // TODO: maybe start crafting instead?
-                                                        client.toggle_sit();
-                                                    } else {
-                                                        client.toggle_dance();
-                                                    }
+                                                } else if body
+                                                    .map_or(false, |body| body.is_campfire())
+                                                {
+                                                    client.toggle_sit();
+                                                } else if let Some(portal_uid) = body
+                                                    .map_or(false, |body| body.is_portal())
+                                                    .then(|| {
+                                                        client
+                                                            .state()
+                                                            .ecs()
+                                                            .uid_from_entity(*entity)
+                                                    })
+                                                    .flatten()
+                                                {
+                                                    client.activate_portal(portal_uid);
                                                 } else {
                                                     client.npc_interact(*entity, Subject::Regular);
                                                 }

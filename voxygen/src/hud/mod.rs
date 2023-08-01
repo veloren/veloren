@@ -2250,7 +2250,7 @@ impl Hud {
                         &global_state.window.key_layout,
                         vec![(
                             Some(GameInput::Interact),
-                            i18n.get_msg(if is_campfire { "hud-sit" } else { "gameinput-dance" }).to_string(),
+                            i18n.get_msg(if is_campfire { "hud-sit" } else { "hud-activate" }).to_string(),
                         )],
                     )
                     .x_y(0.0, 100.0)

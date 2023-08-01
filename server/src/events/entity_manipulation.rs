@@ -8,7 +8,7 @@ use crate::{
         BuffKind, BuffSource, PhysicsState,
     },
     rtsim,
-    sys::terrain::SAFE_ZONE_RADIUS,
+    sys::{teleporter::TELEPORT_RADIUS, terrain::SAFE_ZONE_RADIUS},
     Server, SpawnPoint, StateExt,
 };
 use authc::Uuid;
@@ -1657,11 +1657,7 @@ pub fn handle_remove_light_emitter(server: &mut Server, entity: EcsEntity) {
         .remove(entity);
 }
 
-pub fn handle_teleport_to_position_event(
-    server: &mut Server,
-    entity: EcsEntity,
-    position: Vec3<f32>,
-) {
+pub fn handle_teleport_to_position(server: &mut Server, entity: EcsEntity, position: Vec3<f32>) {
     let ecs = server.state.ecs();
 
     ecs.write_storage::<comp::Pos>()
@@ -1672,4 +1668,35 @@ pub fn handle_teleport_to_position_event(
     ecs.write_storage::<comp::ForceUpdate>()
         .get_mut(entity)
         .map(|forced_update| forced_update.update());
+}
+
+pub fn handle_start_teleporting(server: &mut Server, entity: EcsEntity, portal: EcsEntity) {
+    let ecs = server.state.ecs();
+    let positions = ecs.read_storage::<comp::Pos>();
+    let mut teleportings = ecs.write_storage::<comp::Teleporting>();
+    let now = ecs.read_resource::<Time>().0;
+
+    if let Some(end_time) = (!teleportings.contains(entity))
+        .then(|| positions.get(entity))
+        .flatten()
+        .zip(positions.get(portal))
+        .filter(|(entity_pos, portal_pos)| {
+            entity_pos.0.distance_squared(portal_pos.0) <= TELEPORT_RADIUS.powi(2)
+        })
+        .and_then(|(_, _)| {
+            Some(
+                now + ecs
+                    .read_storage::<comp::Teleporter>()
+                    .get(portal)?
+                    .buildup_time
+                    .0,
+            )
+        })
+    {
+        let _ = teleportings
+            .insert(entity, comp::Teleporting {
+                portal,
+                end_time: Time(end_time),
+            });
+    }
 }
