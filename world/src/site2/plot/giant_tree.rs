@@ -92,6 +92,7 @@ impl Structure for GiantTree {
             light,
             fast_noise.get((self.wpos.map(|e| e as f64) * 0.05) * 0.5 + 0.5),
         );
+        let mut rng = rand::thread_rng();
         self.tree.walk(|branch, parent| {
             let aabr = Aabr {
                 min: self.wpos.xy() + branch.get_aabb().min.xy().as_(),
@@ -130,8 +131,9 @@ impl Structure for GiantTree {
                     let displacement =
                         (branch_direction * branch.get_leaf_radius()).map(|e| e.round() as i32);
                     let pos = self.wpos + branch_end.as_() + displacement;
-                    if rand::thread_rng().gen_range(0..100) < 7 {
-                        painter.sprite(pos.map(|e| e), SpriteKind::Ironwood);
+                    if rng.gen_bool(0.07) {
+                        let ori = rng.gen_range(0..=3) * 2;
+                        painter.resource_sprite(pos, SpriteKind::Ironwood, ori);
                     }
                 }
                 true
