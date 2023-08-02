@@ -93,7 +93,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam, biped_large, biped_small, humanoid,
+        beam, biped_large, biped_small, bird_large, humanoid,
         item::{AbilitySpec, ItemDefinitionId, ItemKind, ToolKind},
         object,
         poise::PoiseState,
@@ -178,9 +178,10 @@ pub enum SfxEvent {
     Yeet,
     Klonk,
     SmashKlonk,
-    Woosh,
     FireShockwave,
     DeepLaugh,
+    Whoosh,
+    Swoosh,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -213,6 +214,7 @@ pub enum VoiceKind {
     Fungome,
     Truffler,
     Wolf,
+    Wyvern,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -261,7 +263,15 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             quadruped_medium::Species::Antelope => VoiceKind::Antelope,
             _ => return None,
         },
-        Body::BirdMedium(_) | Body::BirdLarge(_) => VoiceKind::Bird,
+        Body::BirdMedium(_) => VoiceKind::Bird,
+        Body::BirdLarge(body) => match body.species {
+            bird_large::Species::CloudWyvern
+            | bird_large::Species::FlameWyvern
+            | bird_large::Species::FrostWyvern
+            | bird_large::Species::SeaWyvern
+            | bird_large::Species::WealdWyvern => VoiceKind::Wyvern,
+            _ => VoiceKind::Bird,
+        },
         Body::BipedSmall(body) => match body.species {
             biped_small::Species::Adlet => VoiceKind::Adlet,
             biped_small::Species::Mandragora => VoiceKind::Mandragora,
@@ -510,12 +520,16 @@ impl SfxMgr {
                     Body::Object(
                         object::Body::BoltFire
                         | object::Body::BoltFireBig
-                        | object::Body::BoltNature,
+                        | object::Body::BoltNature
+                        | object::Body::BoltIcicle
+                        | object::Body::SpearIcicle
+                        | object::Body::SpitPoison,
                     ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FireShot);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
-                    Body::Object(object::Body::LaserBeam) => {
+                    Body::Object(object::Body::LaserBeam)
+                    | Body::Object(object::Body::LightningBolt) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::LaserBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
@@ -589,6 +603,10 @@ impl SfxMgr {
             Outcome::Beam { pos, specifier } => match specifier {
                 beam::FrontendSpecifier::LifestealBeam
                 | beam::FrontendSpecifier::Steam
+                | beam::FrontendSpecifier::Poison
+                | beam::FrontendSpecifier::Ink
+                | beam::FrontendSpecifier::Lightning
+                | beam::FrontendSpecifier::Frost
                 | beam::FrontendSpecifier::Bubbles => {
                     if thread_rng().gen_bool(0.5) {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SceptreBeam);
@@ -601,9 +619,7 @@ impl SfxMgr {
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     }
                 },
-                beam::FrontendSpecifier::ClayGolem
-                | beam::FrontendSpecifier::Frost
-                | beam::FrontendSpecifier::WebStrand => {},
+                beam::FrontendSpecifier::ClayGolem | beam::FrontendSpecifier::WebStrand => {},
             },
             Outcome::SpriteUnlocked { pos } => {
                 // TODO: Dedicated sound effect!
@@ -719,8 +735,17 @@ impl SfxMgr {
                     _ => {},
                 };
             },
-            Outcome::Woosh { pos, .. } => {
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Woosh);
+            Outcome::Whoosh { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Whoosh);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e + 0.5),
+                    Some(3.0),
+                    underwater,
+                );
+            },
+            Outcome::Swoosh { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Swoosh);
                 audio.emit_sfx(
                     sfx_trigger_item,
                     pos.map(|e| e + 0.5),

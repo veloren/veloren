@@ -82,6 +82,7 @@ const int POTION_SICKNESS = 41;
 const int GIGA_SNOW = 42;
 const int CYCLOPS_CHARGE = 43;
 const int PORTAL_FIZZ = 45;
+const int INK = 46;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -689,6 +690,17 @@ void main() {
                 vec4(mix(vec3(0.4, 0.2, 0.8), vec3(5, 2, 10), pow(percent(), 2)), 1),
                 /* vec4(vec3(1.8 - percent() * 2, 0.4 + percent() * 2, 5.0 + rand6), 1), */
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+            );
+            break;
+        case INK:
+            f_reflect = 0.0; // Magic water doesn't reflect light, it emits it
+            float black_color = 0.3 + 0.2 * rand3 + 0.3 * max(floor(rand4 + 0.3), 0.0);
+            float ink_size = 8.0 * (1 - slow_start(0.1)) * slow_end(0.15);
+            attr = Attr(
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3(ink_size),
+                vec4(0.5 * black_color, 0.75 * black_color, black_color, 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
         default:

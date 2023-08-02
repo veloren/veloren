@@ -1,5 +1,6 @@
 pub mod alpha;
 pub mod breathe;
+pub mod combomelee;
 pub mod dash;
 pub mod feed;
 pub mod fly;
@@ -13,9 +14,10 @@ pub mod swim;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, breathe::BreatheAnimation, dash::DashAnimation, feed::FeedAnimation,
-    fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
-    shoot::ShootAnimation, stunned::StunnedAnimation, summon::SummonAnimation, swim::SwimAnimation,
+    alpha::AlphaAnimation, breathe::BreatheAnimation, combomelee::ComboAnimation,
+    dash::DashAnimation, feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation,
+    run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
+    stunned::StunnedAnimation, summon::SummonAnimation, swim::SwimAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

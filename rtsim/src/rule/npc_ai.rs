@@ -1147,45 +1147,74 @@ fn humanoid() -> impl Action<DefaultState> {
 }
 
 fn bird_large() -> impl Action<DefaultState> {
-    choose(|ctx, _| {
-        let data = ctx.state.data();
-        if let Some(home) = ctx.npc.home {
-            let is_home = ctx.npc.current_site.map_or(false, |site| home == site);
-            let goto = |wpos| {
-                casual(goto_2d_flying(
-                    wpos,
-                    1.0,
-                    20.0,
-                    32.0,
-                    22.0,
-                    ctx.npc.body.flying_height(),
-                ))
-            };
-            if is_home {
-                if let Some((_, site)) = data
-                    .sites
-                    .iter()
-                    .filter(|(id, site)| {
-                        *id != home
-                            && site.world_site.map_or(false, |site| {
-                                matches!(ctx.index.sites.get(site).kind, SiteKind::Dungeon(_))
-                            })
-                    })
-                    .choose(&mut ctx.rng)
-                {
-                    goto(site.wpos.as_::<f32>())
-                } else {
-                    casual(idle())
-                }
-            } else if let Some(site) = data.sites.get(home) {
-                goto(site.wpos.as_::<f32>())
-            } else {
-                casual(idle())
-            }
+    now(|ctx, bearing: &mut Vec2<f32>| {
+        *bearing = bearing
+            .map(|e| e + ctx.rng.gen_range(-0.1..0.1))
+            .try_normalized()
+            .unwrap_or_default();
+        let bearing_dist = 24.0;
+        let mut pos = ctx.npc.wpos.xy() + *bearing * bearing_dist;
+        let is_deep_water = ctx
+            .world
+            .sim()
+            .get_interpolated(pos.as_(), |c| c.alt - c.water_alt)
+            .unwrap_or(f32::NEG_INFINITY)
+            < -120.0
+            && ctx
+                .world
+                .sim()
+                .get(pos.as_().wpos_to_cpos())
+                .map_or(false, |c| c.river.is_ocean() || c.river.is_lake());
+        // when high tree_density fly high, otherwise fly low-mid
+        let npc_pos = ctx.npc.wpos.xy();
+        let tree_density = ctx
+            .world
+            .sim()
+            .get_interpolated(npc_pos.as_(), |c| c.tree_density)
+            .unwrap_or(1.0);
+        let height_factor = if tree_density > 0.1 {
+            2.0
         } else {
-            casual(idle())
+            ctx.rng.gen_range(0.1..0.5)
+        };
+        if !is_deep_water {
+            goto_2d_flying(
+                pos,
+                0.2,
+                bearing_dist,
+                8.0,
+                8.0,
+                ctx.npc.body.flying_height() * height_factor,
+            )
+
+        } else {
+            *bearing *= -1.0;
+
+            pos = ctx.npc.wpos.xy() + *bearing * 24.0;
+
+            goto_2d_flying(
+                pos,
+                0.2,
+                bearing_dist,
+                8.0,
+                8.0,
+                ctx.npc.body.flying_height() * height_factor,
+            )
         }
+            // If we are too far away from our goal position we can stop since we aren't going to a specific place.
+            .stop_if(move |ctx: &mut NpcCtx| {
+                ctx.npc.wpos.xy().distance_squared(pos) > (bearing_dist + 5.0).powi(2)
+            })
+            // If goal position wasn't reached within 20 seconds we're probably stuck and need to find a new goal position.
+            .stop_if(timeout(10.0))
+            .debug({
+                let bearing = *bearing;
+                move || format!("Moving with a bearing of {:?}", bearing)
+            })
     })
+    .repeat()
+    .with_state(Vec2::<f32>::zero())
+    .map(|_, _| ())
 }
 
 fn monster() -> impl Action<DefaultState> {

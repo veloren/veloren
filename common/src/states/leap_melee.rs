@@ -75,7 +75,7 @@ impl CharacterBehavior for Data {
                     });
                     if let Some(FrontendSpecifier::ElderLeap) = self.static_data.specifier {
                         // Send local event used for frontend shenanigans
-                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Woosh {
+                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Whoosh {
                             pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
                         }));
                     }

@@ -108,6 +108,8 @@ make_case_elim!(
         AdletTrap = 93,
         Flamethrower = 94,
         Mine = 95,
+        LightningBolt = 96,
+        SpearIcicle = 97,
     }
 );
 
@@ -118,7 +120,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 96] = [
+pub const ALL_OBJECTS: [Body; 98] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -215,6 +217,8 @@ pub const ALL_OBJECTS: [Body; 96] = [
     Body::AdletTrap,
     Body::Flamethrower,
     Body::Mine,
+    Body::LightningBolt,
+    Body::SpearIcicle,
 ];
 
 impl From<Body> for super::Body {
@@ -320,6 +324,8 @@ impl Body {
             Body::AdletTrap => "adlet_trap",
             Body::Flamethrower => "flamethrower",
             Body::Mine => "mine",
+            Body::LightningBolt => "lightning_bolt",
+            Body::SpearIcicle => "spear_icicle",
         }
     }
 
@@ -372,11 +378,8 @@ impl Body {
             Body::BedBlue => 50.0,
             Body::Bedroll => 3.0,
             Body::Bench => 100.0,
-            Body::BoltFire
-            | Body::BoltFireBig
-            | Body::BoltNature
-            | Body::BoltIcicle
-            | Body::SpitPoison => 1.0,
+            Body::BoltFire | Body::BoltFireBig | Body::BoltNature | Body::BoltIcicle => 1.0,
+            Body::SpitPoison => 100.0,
             Body::Bomb | Body::DagonBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },
@@ -446,6 +449,7 @@ impl Body {
             Body::AdletSpear => 1.5,
             Body::AdletTrap => 10.0,
             Body::Mine => 100.0,
+            Body::LightningBolt | Body::SpearIcicle => 20000.0,
         };
 
         Mass(m)
@@ -477,6 +481,7 @@ impl Body {
             Body::IceBomb => Vec3::broadcast(2.5),
             Body::LaserBeam => Vec3::new(8.0, 8.0, 8.0),
             Body::Mine => Vec3::new(0.8, 0.8, 0.5),
+            Body::LightningBolt | Body::SpearIcicle => Vec3::new(1.0, 1.0, 1.0),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

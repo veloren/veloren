@@ -939,6 +939,26 @@
             central: ("armor.empty"),
         )
     ),
+    LightningBolt: (
+        bone0: (
+            offset: (-4.5, -80.0, -3.0),
+            central: ("weapon.projectile.lightning_bolt"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    SpearIcicle: (
+        bone0: (
+            offset: (-2.5, -30.0, -2.5),
+            central: ("weapon.projectile.icicle-spear"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     AdletSpear: (
         bone0: (
             offset: (5.0, -22.0, -2.0),

@@ -724,42 +724,42 @@
     ),
     Custom("Flame Wyvern"): (
         primary: Simple(None, "common.abilities.custom.flamewyvern.firebomb"),
-        secondary: Simple(None, "common.abilities.custom.flamewyvern.fireshockwave"),
+        secondary: Simple(None, "common.abilities.custom.flamewyvern.triplestrike"),
         abilities: [
-            Simple(None, "common.abilities.custom.flamewyvern.triplestrike"),
+            Simple(None, "common.abilities.custom.flamewyvern.fireshockwave"),
             Simple(None, "common.abilities.custom.flamewyvern.flamethrower"),
         ],
     ),
     Custom("Frost Wyvern"): (
         primary: Simple(None, "common.abilities.custom.frostwyvern.frostbomb"),
-        secondary: Simple(None, "common.abilities.custom.frostwyvern.iceshockwave"),
+        secondary: Simple(None, "common.abilities.custom.frostwyvern.triplestrike"),
         abilities: [
-            Simple(None, "common.abilities.custom.frostwyvern.triplestrike"),
+            Simple(None, "common.abilities.custom.frostwyvern.iceshockwave"),
             Simple(None, "common.abilities.custom.frostwyvern.frostthrower"),
         ],
     ),
     Custom("Cloud Wyvern"): (
-        primary: Simple(None, "common.abilities.custom.cloudwyvern.windbomb"),
-        secondary: Simple(None, "common.abilities.custom.cloudwyvern.windshockwave"),
+        primary: Simple(None, "common.abilities.custom.cloudwyvern.lightningbomb"),
+        secondary: Simple(None, "common.abilities.custom.cloudwyvern.triplestrike"),
         abilities: [
-            Simple(None, "common.abilities.custom.cloudwyvern.triplestrike"),
-            Simple(None, "common.abilities.custom.cloudwyvern.windthrower"),
+            Simple(None, "common.abilities.custom.cloudwyvern.lightningshockwave"),
+            Simple(None, "common.abilities.custom.cloudwyvern.lightningthrower"),
         ],
     ),
     Custom("Sea Wyvern"): (
-        primary: Simple(None, "common.abilities.custom.seawyvern.seabomb"),
-        secondary: Simple(None, "common.abilities.custom.seawyvern.seashockwave"),
+        primary: Simple(None, "common.abilities.custom.seawyvern.inkbomb"),
+        secondary: Simple(None, "common.abilities.custom.seawyvern.triplestrike"),
         abilities: [
-            Simple(None, "common.abilities.custom.seawyvern.triplestrike"),
-            Simple(None, "common.abilities.custom.seawyvern.bubblethrower"),
+            Simple(None, "common.abilities.custom.seawyvern.inkshockwave"),
+            Simple(None, "common.abilities.custom.seawyvern.inkthrower"),
         ],
     ),
     Custom("Weald Wyvern"): (
-        primary: Simple(None, "common.abilities.custom.wealdwyvern.firebomb"),
-        secondary: Simple(None, "common.abilities.custom.wealdwyvern.fireshockwave"),
+        primary: Simple(None, "common.abilities.custom.wealdwyvern.poisonbomb"),
+        secondary: Simple(None, "common.abilities.custom.wealdwyvern.triplestrike"),
         abilities: [
-            Simple(None, "common.abilities.custom.wealdwyvern.triplestrike"),
-            Simple(None, "common.abilities.custom.wealdwyvern.flamethrower"),
+            Simple(None, "common.abilities.custom.wealdwyvern.poisonshockwave"),
+            Simple(None, "common.abilities.custom.wealdwyvern.poisonthrower"),
         ],
     ),
     Custom("Bird Large Basic"): (

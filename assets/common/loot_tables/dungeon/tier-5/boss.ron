@@ -13,6 +13,5 @@
     // Crafting material
     // Allow for DS and Eldwood to drop till entity droppers are implemented
     (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.dragon_scale"), 3, 8)),
     (1.0, MultiDrop(Item("common.items.log.eldwood"), 2, 6)),
 ]

@@ -218,6 +218,11 @@ impl Data {
                 comp::body::bird_large::Species::Phoenix,
                 comp::body::bird_large::Species::Cockatrice,
                 comp::body::bird_large::Species::Roc,
+                comp::body::bird_large::Species::FlameWyvern,
+                comp::body::bird_large::Species::CloudWyvern,
+                comp::body::bird_large::Species::FrostWyvern,
+                comp::body::bird_large::Species::SeaWyvern,
+                comp::body::bird_large::Species::WealdWyvern,
             ]
             .choose(&mut rng)
             .unwrap();
