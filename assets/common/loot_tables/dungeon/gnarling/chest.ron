@@ -3,17 +3,11 @@
     (0.5, LootTable("common.loot_tables.weapons.components.tier-0")),
     (0.25, LootTable("common.loot_tables.weapons.tier-0")),
     (0.25, LootTable("common.loot_tables.armor.tier-0")),
+    (0.25, Item("common.items.armor.misc.head.bamboo_twig")),
     // Currency
-    (2.0, MultiDrop(Item("common.items.utility.coins"), 25, 50)),
+    (3.0, MultiDrop(Item("common.items.utility.coins"), 25, 50)),
     // Materials
-    (1.0, MultiDrop(Item("common.items.crafting_ing.cloth.linen"), 3, 10)),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.leather.simple_leather"), 3, 10)),
-    (1.0, MultiDrop(Item("common.items.mineral.ingot.bronze"), 3, 10)),
-    (1.0, MultiDrop(Item("common.items.log.wood"), 3, 10)),
-    // Gems
-    (0.1, Item("common.items.mineral.gem.sapphire")),
-    (0.1, Item("common.items.mineral.gem.emerald")),
-    (0.1, Item("common.items.mineral.gem.ruby")),
+    (0.5, MultiDrop(Item("common.items.mineral.ore.veloritefrag"), 5, 10)),
     // Consumables
     (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
     // Food

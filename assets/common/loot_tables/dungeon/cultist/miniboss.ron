@@ -1,0 +1,12 @@
+[
+    // Currency
+    (10.0, MultiDrop(Item("common.items.utility.coins"), 500, 1000)),
+    // Consumables
+    (5.0, MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8)),
+    // Back
+    (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
+    // Ring
+    (0.5, LootTable("common.loot_tables.armor.cultist")),
+    // Glider
+    (1.0, Item("common.items.glider.blue")),
+]

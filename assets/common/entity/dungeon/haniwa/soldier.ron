@@ -1,0 +1,16 @@
+#![enable(implicit_some)]
+(
+    name: Name("Haniwa Soldier"),
+    body: RandomWith("haniwa"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.haniwa.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.haniwa.soldier"),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.haniwa.soldier"), None)),
+        )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank3.fullskill"),
+    ],
+)

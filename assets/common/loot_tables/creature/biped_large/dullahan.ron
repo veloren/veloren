@@ -1,7 +1,7 @@
 [
   (1, All([
         MultiDrop(Item("common.items.utility.coins"), 200, 500),
-        LootTable("common.loot_tables.dungeon.tier-4.miniboss"),
+        LootTable("common.loot_tables.dungeon.myrmidon.miniboss"),
         MultiDrop(LootTable("common.loot_tables.gliders"), 0, 1),
         ],
    )),

@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Husk Brute"),
+    body: RandomWith("husk_brute"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.cultist.miniboss"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

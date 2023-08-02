@@ -49,7 +49,7 @@ fn humanoid_config(profession: &Profession) -> &'static str {
         Profession::Chef => "common.entity.village.chef",
         Profession::Alchemist => "common.entity.village.alchemist",
         Profession::Pirate => "common.entity.spot.pirate",
-        Profession::Cultist => "common.entity.dungeon.tier-5.cultist",
+        Profession::Cultist => "common.entity.dungeon.cultist.cultist",
     }
 }
 

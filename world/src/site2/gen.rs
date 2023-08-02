@@ -216,6 +216,7 @@ pub enum Fill {
     Sprite(SpriteKind),
     RotatedSprite(SpriteKind, u8),
     RotatedSpriteWithCfg(SpriteKind, u8, SpriteCfg),
+    ResourceSprite(SpriteKind, u8),
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
     Gradient(util::gradient::Gradient, BlockKind),
@@ -465,16 +466,18 @@ impl Fill {
                 } else {
                     old_block.with_sprite(*sprite)
                 }),
-                Fill::RotatedSprite(sprite, ori) => Some(if old_block.is_filled() {
-                    Block::air(*sprite)
-                        .with_ori(*ori)
-                        .unwrap_or_else(|| Block::air(*sprite))
-                } else {
-                    old_block
-                        .with_sprite(*sprite)
-                        .with_ori(*ori)
-                        .unwrap_or_else(|| old_block.with_sprite(*sprite))
-                }),
+                Fill::RotatedSprite(sprite, ori) | Fill::ResourceSprite(sprite, ori) => {
+                    Some(if old_block.is_filled() {
+                        Block::air(*sprite)
+                            .with_ori(*ori)
+                            .unwrap_or_else(|| Block::air(*sprite))
+                    } else {
+                        old_block
+                            .with_sprite(*sprite)
+                            .with_ori(*ori)
+                            .unwrap_or_else(|| old_block.with_sprite(*sprite))
+                    })
+                },
                 Fill::RotatedSpriteWithCfg(sprite, ori, cfg) => Some({
                     *sprite_cfg = Some(cfg.clone());
                     if old_block.is_filled() {
@@ -1083,6 +1086,17 @@ impl Painter {
             max: pos + 1,
         })
         .fill(Fill::RotatedSpriteWithCfg(sprite, ori, cfg))
+    }
+
+    /// Places a sprite at the provided location with the provided orientation
+    /// which will be tracked by rtsim nature if the sprite has an associated
+    /// [`ChunkResource`].
+    pub fn resource_sprite(&self, pos: Vec3<i32>, sprite: SpriteKind, ori: u8) {
+        self.aabb(Aabb {
+            min: pos,
+            max: pos + 1,
+        })
+        .fill(Fill::ResourceSprite(sprite, ori))
     }
 
     /// Returns a `PrimitiveRef` of the largest pyramid with a slope of 1 that

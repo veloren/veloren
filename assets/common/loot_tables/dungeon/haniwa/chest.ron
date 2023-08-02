@@ -1,0 +1,12 @@
+[
+    // Gear
+    (0.5, LootTable("common.loot_tables.weapons.components.tier-3")),
+    (0.25, LootTable("common.loot_tables.weapons.tier-3")),
+    (0.25, LootTable("common.loot_tables.armor.tier-3")),
+    // Currency
+    (3.0, MultiDrop(Item("common.items.utility.coins"), 250, 500)),
+    // Consumables
+    (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
+    // Food
+    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 4)),
+]

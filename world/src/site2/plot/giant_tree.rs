@@ -3,7 +3,7 @@ use crate::{
     site::namegen::NameGen,
     site2::{Fill, Painter, Site, Structure},
     util::FastNoise,
-    Land, Sampler,
+    Land, Sampler, SpriteKind,
 };
 use common::{
     generation::EntityInfo,
@@ -92,6 +92,7 @@ impl Structure for GiantTree {
             light,
             fast_noise.get((self.wpos.map(|e| e as f64) * 0.05) * 0.5 + 0.5),
         );
+        let mut rng = rand::thread_rng();
         self.tree.walk(|branch, parent| {
             let aabr = Aabr {
                 min: self.wpos.xy() + branch.get_aabb().min.xy().as_(),
@@ -120,7 +121,20 @@ impl Structure for GiantTree {
                         .fill(Fill::Block(Block::new(
                             BlockKind::Leaves,
                             leaf_col.map(|e| e as u8),
-                        )))
+                        )));
+                    // Calculate direction of the branch
+                    let branch_start = branch.get_line().start;
+                    let branch_end = branch.get_line().end;
+                    let branch_direction = (branch_end - branch_start).normalized();
+
+                    // Generate a sprite at the surface of the leafy part of the branch
+                    let displacement =
+                        (branch_direction * branch.get_leaf_radius()).map(|e| e.round() as i32);
+                    let pos = self.wpos + branch_end.as_() + displacement;
+                    if rng.gen_bool(0.07) {
+                        let ori = rng.gen_range(0..=3) * 2;
+                        painter.resource_sprite(pos, SpriteKind::Ironwood, ori);
+                    }
                 }
                 true
             } else {

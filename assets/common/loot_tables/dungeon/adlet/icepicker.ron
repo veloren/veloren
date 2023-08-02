@@ -6,7 +6,7 @@
     (0.25, MultiDrop(Item("common.items.crafting_ing.animal_misc.fur"), 1, 2)),
     (0.25, MultiDrop(Item("common.items.crafting_ing.leather.thick_leather"), 1, 2)),
     // Utilities
-    (0.1, Item("common.items.lantern.blue_0")),
+    (0.05, Item("common.items.lantern.blue_0")),
     (0.05, Item("common.items.tool.pickaxe_steel")),
     // Nothing
     (0.75, Nothing),

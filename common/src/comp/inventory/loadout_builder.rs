@@ -1049,7 +1049,7 @@ impl LoadoutBuilder {
         let rng = &mut rand::thread_rng();
         match preset {
             Preset::HuskSummon => {
-                self = self.with_asset_expect("common.loadout.dungeon.tier-5.husk", rng);
+                self = self.with_asset_expect("common.loadout.dungeon.cultist.husk", rng);
             },
             Preset::BorealSummon => {
                 self = self.with_asset_expect("common.loadout.world.boreal.boreal_warrior", rng);

@@ -1656,7 +1656,8 @@ impl Site {
                                 let pos = Vec3::new(x, y, z);
 
                                 let mut sprite_cfg = None;
-                                canvas.map(pos, |block| {
+
+                                let map = |block| {
                                     let current_block = fill.sample_at(
                                         &prim_tree,
                                         prim,
@@ -1671,7 +1672,13 @@ impl Site {
                                     }
                                     last_block = current_block;
                                     current_block.unwrap_or(block)
-                                });
+                                };
+
+                                match fill {
+                                    Fill::ResourceSprite { .. } => canvas.map_resource(pos, map),
+                                    _ => canvas.map(pos, map),
+                                };
+
                                 if let Some(sprite_cfg) = sprite_cfg {
                                     canvas.set_sprite_cfg(pos, sprite_cfg);
                                 }

@@ -3,10 +3,10 @@
     name: Name("Myrmidon Sniper"),
     body: RandomWith("myrmidon"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-4.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.myrmidon.enemy"),
     inventory: (
         loadout: Inline((
-            inherit: Asset("common.loadout.dungeon.tier-4.marksman"),
+            inherit: Asset("common.loadout.dungeon.myrmidon.marksman"),
             active_hands: InHands((Item("common.items.npc_weapons.biped_small.myrmidon.marksman"), None)),
         )),
     ),

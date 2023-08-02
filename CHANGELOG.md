@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Axe
 - Combat music toggle
 - Spawn rtsim wyverns that travel the world, providing dragon scale loot drops 
+- Hardwood in tropical forests, frostwood in cold forests, and iron wood on the top of giant trees
 
 ### Changed
 

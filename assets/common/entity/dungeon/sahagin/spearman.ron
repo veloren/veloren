@@ -1,0 +1,16 @@
+#![enable(implicit_some)]
+(
+    name: Name("Sahagin Spearman"),
+    body: RandomWith("sahagin"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.sahagin.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.sahagin.spearman"),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.sahagin.spearman"), None)),
+        )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank2.fullskill"),
+    ],
+)

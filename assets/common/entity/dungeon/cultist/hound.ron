@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Tamed Darkhound"),
+    body: RandomWith("darkhound"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.cultist.minion"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

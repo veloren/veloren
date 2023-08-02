@@ -1,0 +1,16 @@
+#![enable(implicit_some)]
+(
+    name: Name("Myrmidon Hoplite"),
+    body: RandomWith("myrmidon"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.myrmidon.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.myrmidon.hoplite"),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.myrmidon.hoplite"), None)),
+        )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank4.fullskill"),
+    ],
+)
