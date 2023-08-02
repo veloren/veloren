@@ -354,7 +354,7 @@ impl<'a> From<&'a Body> for Psyche {
                     bird_medium::Species::Puffin => 0.8,
                     bird_medium::Species::Toucan => 0.4,
                 },
-                Body::BirdLarge(_) => 0.1,
+                Body::BirdLarge(_) => 0.0,
                 Body::FishSmall(_) => 1.0,
                 Body::FishMedium(_) => 0.75,
                 Body::BipedLarge(_) => 0.0,
@@ -380,7 +380,10 @@ impl<'a> From<&'a Body> for Psyche {
                     arthropod::Species::Emberfly => 0.1,
                 },
             },
-            sight_dist: 40.0,
+            sight_dist: match body {
+                Body::BirdLarge(_) => 80.0,
+                _ => 40.0,
+            },
             listen_dist: 30.0,
             aggro_dist: match body {
                 Body::Humanoid(_) => Some(20.0),

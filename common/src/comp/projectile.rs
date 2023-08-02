@@ -91,12 +91,7 @@ pub enum ProjectileConstructor {
         knockback: f32,
         min_falloff: f32,
     },
-    SeaBomb {
-        damage: f32,
-        radius: f32,
-        min_falloff: f32,
-    },
-    WindBomb {
+    InkBomb {
         damage: f32,
         radius: f32,
         min_falloff: f32,
@@ -527,7 +522,7 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            SeaBomb {
+            InkBomb {
                 damage,
                 radius,
                 min_falloff,
@@ -541,48 +536,29 @@ impl ProjectileConstructor {
                     Some(GroupTarget::OutOfGroup),
                     instance,
                 );
+                let buff = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Buff(CombatBuff {
+                        kind: BuffKind::Wet,
+                        dur_secs: 8.0,
+                        strength: CombatBuffStrength::Value(0.5),
+                        chance: 1.0,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
+                    .with_effect(buff)
                     .with_combo_increment();
                 let explosion = Explosion {
-                    effects: vec![RadiusEffect::Attack(attack)],
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(18.0, Rgb::new(4.0, 7.0, 32.0)),
+                    ],
                     radius,
                     reagent: Some(Reagent::Blue),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            WindBomb {
-                damage,
-                radius,
-                min_falloff,
-            } => {
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
-                    .with_combo_increment();
-                let explosion = Explosion {
-                    effects: vec![RadiusEffect::Attack(attack)],
-                    radius,
-                    reagent: Some(Reagent::White),
                     min_falloff,
                 };
                 Projectile {
@@ -982,15 +958,7 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
-            SeaBomb {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            WindBomb {
+            InkBomb {
                 ref mut damage,
                 ref mut radius,
                 ..
@@ -1068,8 +1036,7 @@ impl ProjectileConstructor {
             Snowball { .. } => true,
             ExplodingPumpkin { .. } => true,
             DagonBomb { .. } => true,
-            SeaBomb { .. } => true,
-            WindBomb { .. } => true,
+            InkBomb { .. } => true,
             IceBomb { .. } => true,
             LaserBeam { .. } => true,
             Trap { .. } => false,

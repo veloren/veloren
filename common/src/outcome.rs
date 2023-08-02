@@ -128,7 +128,10 @@ pub enum Outcome {
     FailedSpriteUnlock {
         pos: Vec3<i32>,
     },
-    Woosh {
+    Whoosh {
+        pos: Vec3<f32>,
+    },
+    Swoosh {
         pos: Vec3<f32>,
     },
     FireShockwave {
@@ -152,7 +155,8 @@ impl Outcome {
             | Outcome::PoiseChange { pos, .. }
             | Outcome::GroundSlam { pos }
             | Outcome::FlashFreeze { pos }
-            | Outcome::Woosh { pos }
+            | Outcome::Whoosh { pos }
+            | Outcome::Swoosh { pos }
             | Outcome::IceSpikes { pos }
             | Outcome::Steam { pos }
             | Outcome::FireShockwave { pos }

@@ -13,10 +13,10 @@ Shockwave(
     requires_ground: true,
     move_efficiency: 0.0,
     damage_kind: Crushing,
-    specifier: Ice,
+    specifier: Lightning,
     ori_rate: 1.0,
     damage_effect: Some(Buff((
-        kind: Frozen,
+        kind: Crippled,
         dur_secs: 2.0,
         strength: Value(0.3),
         chance: 1.0,

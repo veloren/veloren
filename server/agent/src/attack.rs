@@ -106,68 +106,6 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    pub fn handle_wyvern_attack(
-        &self,
-        _agent: &mut Agent,
-        controller: &mut Controller,
-        attack_data: &AttackData,
-        tgt_data: &TargetData,
-        read_data: &ReadData,
-        _rng: &mut impl Rng,
-    ) {
-        // Fly to target
-        let dir_to_target = ((tgt_data.pos.0 + Vec3::unit_z() * 1.5) - self.pos.0)
-            .try_normalized()
-            .unwrap_or_else(Vec3::zero);
-        let speed = 1.0;
-        controller.inputs.move_dir = dir_to_target.xy() * speed;
-
-        // Always fly! If the floor can't touch you, it can't hurt you...
-        controller.push_basic_input(InputKind::Fly);
-        // Flee from the ground! The internet told me it was lava!
-        // If on the ground, jump with every last ounce of energy, holding onto all that
-        // is dear in life and straining for the wide open skies.
-        if self.physics_state.on_ground.is_some() {
-            controller.push_basic_input(InputKind::Jump);
-        } else {
-            // Only fly down if close enough to target in the xy plane
-            // Otherwise fly towards the target bouncing around a 5 block altitude
-            let mut maintain_altitude = |altitude| {
-                if read_data
-                    .terrain
-                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * altitude))
-                    .until(Block::is_solid)
-                    .cast()
-                    .1
-                    .map_or(true, |b| b.is_some())
-                {
-                    // Fly up
-                    controller.inputs.move_z = 1.0;
-                } else {
-                    // Fly down
-                    controller.inputs.move_z = -1.0;
-                }
-            };
-            if (tgt_data.pos.0 - self.pos.0).xy().magnitude_squared() > (30.0_f32).powi(2) {
-                // If above 30 blocks, fly down and attack
-                maintain_altitude(30.0);
-                // Shoot bombs
-                controller.push_basic_input(InputKind::Primary);
-            } else {
-                maintain_altitude(2.0);
-
-                // Attack if in range
-                if attack_data.dist_sqrd < 6.0_f32.powi(2) && attack_data.angle < 150.0 {
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else if attack_data.dist_sqrd < 8.0_f32.powi(2) && attack_data.angle < 150.0 {
-                    controller.push_basic_input(InputKind::Ability(1));
-                } else if attack_data.dist_sqrd < 12.0_f32.powi(2) && attack_data.angle < 150.0 {
-                    controller.push_basic_input(InputKind::Secondary);
-                }
-            }
-        }
-    }
-
     // Intended for any agent that has one attack, that attack is a melee attack,
     // the agent is able to freely walk around, and the agent is trying to attack
     // from behind its target
@@ -3034,27 +2972,26 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        _rng: &mut impl Rng,
     ) {
+        enum ActionStateTimers {
+            AttackTimer = 0,
+        }
+        // Set fly to false
+        controller.push_cancel_input(InputKind::Fly);
         if attack_data.dist_sqrd > 30.0_f32.powi(2) {
-            let small_chance = rng.gen_bool(0.05);
-
-            if small_chance
-                && entities_have_line_of_sight(
-                    self.pos,
-                    self.body,
-                    self.scale,
-                    tgt_data.pos,
-                    tgt_data.body,
-                    tgt_data.scale,
-                    read_data,
-                )
-                && attack_data.angle < 15.0
+            if entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            ) && attack_data.angle < 15.0
             {
-                // Fireball
                 controller.push_basic_input(InputKind::Primary);
             }
-            // If some target
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
@@ -3065,23 +3002,14 @@ impl<'a> AgentData<'a> {
                     ..self.traversal_config
                 },
             ) {
-                // Walk to target
                 controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                // If less than 20 blocks higher than target
                 if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
-                    // Fly upward
                     controller.push_basic_input(InputKind::Fly);
                     controller.inputs.move_z = 1.0;
-                } else {
-                    // Jump
-                    self.jump_if(bearing.z > 1.5, controller);
-                    controller.inputs.move_z = bearing.z;
                 }
             }
-        }
-        // If higher than 2 blocks
-        else if !read_data
+        } else if !read_data
             .terrain
             .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
             .until(Block::is_solid)
@@ -3092,41 +3020,52 @@ impl<'a> AgentData<'a> {
             // Do not increment the timer during this movement
             // The next stage shouldn't trigger until the entity
             // is on the ground
-            // Fly to target
             controller.push_basic_input(InputKind::Fly);
             let move_dir = tgt_data.pos.0 - self.pos.0;
             controller.inputs.move_dir =
                 move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
             controller.inputs.move_z = move_dir.z - 0.5;
-            // If further than 4 blocks and random chance
-            if rng.gen_bool(0.05)
-                && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+            if attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
                 && attack_data.angle < 15.0
             {
-                // Fireball
                 controller.push_basic_input(InputKind::Primary);
             }
-        }
-        // If further than 4 blocks and random chance
-        else if rng.gen_bool(0.05)
-            && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+        } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        } else if self.energy.current() > 60.0
+            && agent.action_state.timers[ActionStateTimers::AttackTimer as usize] < 3.0
             && attack_data.angle < 15.0
         {
-            // Fireball
-            controller.push_basic_input(InputKind::Primary);
-        }
-        // If random chance and less than 20 blocks higher than target and further than 4
-        // blocks
-        else if rng.gen_bool(0.5)
-            && (self.pos.0.z - tgt_data.pos.0.z) < 15.0
-            && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+            // Shockwave
+            controller.push_basic_input(InputKind::Ability(0));
+            // Move towards the target slowly
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                Some(0.5),
+            );
+            agent.action_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
+        } else if agent.action_state.timers[ActionStateTimers::AttackTimer as usize] < 6.0
+            && attack_data.angle < 90.0
+            && attack_data.in_min_range()
         {
-            controller.push_basic_input(InputKind::Fly);
-            controller.inputs.move_z = 1.0;
-        }
-        // If further than 2.5 blocks and random chance
-        else if attack_data.dist_sqrd > (2.5 * attack_data.min_attack_dist).powi(2) {
-            // Walk to target
+            // Triple strike
+            controller.push_basic_input(InputKind::Secondary);
+            agent.action_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
+        } else {
+            // Reset timer
+            agent.action_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
+            // Target is behind us or the timer needs to be reset. Chase target
             self.path_toward_target(
                 agent,
                 controller,
@@ -3136,15 +3075,113 @@ impl<'a> AgentData<'a> {
                 None,
             );
         }
-        // If energy higher than 600 and random chance
-        else if self.energy.current() > 60.0 && rng.gen_bool(0.4) {
-            // Shockwave
-            controller.push_basic_input(InputKind::Ability(0));
-        } else if attack_data.angle < 90.0 {
+    }
+
+    pub fn handle_wyvern_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        _rng: &mut impl Rng,
+    ) {
+        enum ActionStateTimers {
+            AttackTimer = 0,
+        }
+        // Set fly to false
+        controller.push_cancel_input(InputKind::Fly);
+        if attack_data.dist_sqrd > 30.0_f32.powi(2) {
+            if entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            ) && attack_data.angle < 15.0
+            {
+                controller.push_basic_input(InputKind::Primary);
+            }
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                if (self.pos.0.z - tgt_data.pos.0.z) < 35.0 {
+                    controller.push_basic_input(InputKind::Fly);
+                    controller.inputs.move_z = 1.0;
+                }
+            }
+        } else if !read_data
+            .terrain
+            .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
+            .until(Block::is_solid)
+            .cast()
+            .1
+            .map_or(true, |b| b.is_some())
+        {
+            // Do not increment the timer during this movement
+            // The next stage shouldn't trigger until the entity
+            // is on the ground
+            controller.push_basic_input(InputKind::Fly);
+            let move_dir = tgt_data.pos.0 - self.pos.0;
+            controller.inputs.move_dir =
+                move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
+            controller.inputs.move_z = move_dir.z - 0.5;
+            if attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
+                && attack_data.angle < 15.0
+            {
+                controller.push_basic_input(InputKind::Primary);
+            }
+        } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        } else if attack_data.angle < 15.0 {
+            if agent.action_state.timers[ActionStateTimers::AttackTimer as usize] < 5.0 {
+                // beam
+                controller.push_basic_input(InputKind::Ability(1));
+            } else if agent.action_state.timers[ActionStateTimers::AttackTimer as usize] < 9.0 {
+                // shockwave
+                controller.push_basic_input(InputKind::Ability(0));
+            } else {
+                agent.action_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
+            }
+            // Move towards the target slowly
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                Some(0.5),
+            );
+            agent.action_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
+        } else if agent.action_state.timers[ActionStateTimers::AttackTimer as usize] < 9.0
+            && attack_data.angle < 90.0
+            && attack_data.in_min_range()
+        {
             // Triple strike
             controller.push_basic_input(InputKind::Secondary);
+            agent.action_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
         } else {
-            // Target is behind us. Turn around and chase target
+            // Reset timer
+            agent.action_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
+            // Target is behind us or the timer needs to be reset. Chase target
             self.path_toward_target(
                 agent,
                 controller,
@@ -3201,9 +3238,6 @@ impl<'a> AgentData<'a> {
                 if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
                     controller.push_basic_input(InputKind::Fly);
                     controller.inputs.move_z = 1.0;
-                } else {
-                    self.jump_if(bearing.z > 1.5, controller);
-                    controller.inputs.move_z = bearing.z;
                 }
             }
         } else if !read_data
@@ -3311,22 +3345,7 @@ impl<'a> AgentData<'a> {
         // Increase action timer
         agent.action_state.timers[ActionStateTimers::TimerBirdLargeBasic as usize] +=
             read_data.dt.0;
-        // If higher than 2 blocks
-        if !read_data
-            .terrain
-            .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
-            .until(Block::is_solid)
-            .cast()
-            .1
-            .map_or(true, |b| b.is_some())
-        {
-            // Fly to target and land
-            controller.push_basic_input(InputKind::Fly);
-            let move_dir = tgt_data.pos.0 - self.pos.0;
-            controller.inputs.move_dir =
-                move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
-            controller.inputs.move_z = move_dir.z - 0.5;
-        } else if agent.action_state.timers[ActionStateTimers::TimerBirdLargeBasic as usize] > 8.0 {
+        if agent.action_state.timers[ActionStateTimers::TimerBirdLargeBasic as usize] > 8.0 {
             // If action timer higher than 8, make bird summon tornadoes
             controller.push_basic_input(InputKind::Secondary);
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))

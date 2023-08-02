@@ -55,4 +55,7 @@ pub enum FrontendSpecifier {
     Steam,
     Frost,
     WebStrand,
+    Poison,
+    Ink,
+    Lightning,
 }

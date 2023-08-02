@@ -165,9 +165,19 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
                 comp::bird_large::Species::Phoenix => "common.entity.wild.peaceful.phoenix",
                 comp::bird_large::Species::Cockatrice => "common.entity.wild.aggressive.cockatrice",
                 comp::bird_large::Species::Roc => "common.entity.wild.aggressive.roc",
-                // Wildcard match used here as there is an array above
-                // which limits what species are used
-                _ => unimplemented!(),
+                comp::bird_large::Species::CloudWyvern => {
+                    "common.entity.wild.aggressive.cloudwyvern"
+                },
+                comp::bird_large::Species::FlameWyvern => {
+                    "common.entity.wild.aggressive.flamewyvern"
+                },
+                comp::bird_large::Species::FrostWyvern => {
+                    "common.entity.wild.aggressive.frostwyvern"
+                },
+                comp::bird_large::Species::SeaWyvern => "common.entity.wild.aggressive.seawyvern",
+                comp::bird_large::Species::WealdWyvern => {
+                    "common.entity.wild.aggressive.wealdwyvern"
+                },
             },
             Body::BipedLarge(body) => match body.species {
                 comp::biped_large::Species::Ogre => "common.entity.wild.aggressive.ogre",

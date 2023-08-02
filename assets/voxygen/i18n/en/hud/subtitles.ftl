@@ -149,3 +149,5 @@ subtitle-utterance-wendigo-angry = Wendigo screaming
 subtitle-utterance-wendigo-calm = Wendigo mumbling
 subtitle-utterance-wolf-angry = Wolf growling
 subtitle-utterance-wolf-hurt = Wolf whining
+subtitle-utterance-wyvern-angry = Wyvern roaring
+subtitle-utterance-wyvern-hurt = Wyvern hurting

@@ -173,7 +173,11 @@ impl CharacterBehavior for Data {
                                 },
                             ));
                         },
-                        _ => {},
+                        _ => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Swoosh {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            }));
+                        },
                     }
                 } else {
                     // Transitions to recover

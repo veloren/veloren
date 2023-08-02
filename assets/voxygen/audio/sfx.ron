@@ -1430,11 +1430,17 @@
             threshold: 1.25,
             subtitle: "subtitle-attack-laser_beam",
         ),
-        Woosh: (
+        Whoosh: (
             files: [
-                    "voxygen.audio.sfx.abilities.woosh",
+                    "voxygen.audio.sfx.abilities.whoosh",
                 ],
             threshold: 0.4,
+        ),
+        Swoosh: (
+            files: [
+                    "voxygen.audio.sfx.abilities.swoosh",
+            ],
+            threshold: 1.3,
         ),
         CyclopsCharge: (
             files: [
@@ -1517,6 +1523,13 @@
             ],
             threshold: 1.0,
             subtitle: "subtitle-utterance-bird-angry",
+        ),
+        Utterance(Angry, Wyvern): (
+            files: [
+                "voxygen.audio.sfx.utterance.wyvern_angry",
+            ],
+            threshold: 1.3,
+            subtitle: "subtitle-utterance-wyvern-angry",
         ),
         Utterance(Angry, Adlet): (
             files: [
@@ -1718,6 +1731,13 @@
             ],
             threshold: 1.0,
             subtitle: "subtitle-utterance-asp-hurt",
+        ),
+        Utterance(Hurt, Wyvern): (
+            files: [
+                "voxygen.audio.sfx.utterance.wyvern_hurt",
+            ],
+            threshold: 1.2,
+            subtitle: "subtitle-utterance-wyvern-hurt",
         ),
         Utterance(Angry, Wendigo): (
             files: [

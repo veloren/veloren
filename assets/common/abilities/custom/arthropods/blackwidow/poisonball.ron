@@ -13,7 +13,7 @@ BasicRanged(
         col: (1.0, 0.75, 0.11).into(),
         ..Default::default()
     }),*/
-    projectile_speed: 260.0,
+    projectile_speed: 25.0,
     num_projectiles: 1,
     projectile_spread: 0.3,
     move_efficiency: 0.3,
