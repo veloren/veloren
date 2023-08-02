@@ -65,7 +65,7 @@ pub const CONFIG: Config = Config {
     tropical_temp: 0.4,
     desert_temp: 0.8,
     // humidity
-    desert_hum: 0.15,
+    desert_hum: 0.0,
     forest_hum: 0.5,
     jungle_hum: 0.75,
     // water
