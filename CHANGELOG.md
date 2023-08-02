@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed weapon and armor drops from standard NPCs
 - Tweaked dungeons mobs and chests loot tables to be more balanced and rewarding
 - Changed iron ore to iron ingots in the instruments' recipes
+- Changed gold ore to gold ingots in the Brinstone armor set recipes
 
 ### Removed
 - Medium and large potions from all loot tables
