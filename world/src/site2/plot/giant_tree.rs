@@ -131,7 +131,7 @@ impl Structure for GiantTree {
                         (branch_direction * branch.get_leaf_radius()).map(|e| e.round() as i32);
                     let pos = self.wpos + branch_end.as_() + displacement;
                     if rand::thread_rng().gen_range(0..100) < 7 {
-                        painter.sprite(pos.map(|e| e as i32), SpriteKind::Ironwood);
+                        painter.sprite(pos.map(|e| e), SpriteKind::Ironwood);
                     }
                 }
                 true
