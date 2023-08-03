@@ -2065,11 +2065,11 @@ impl Hud {
                 let pos = mat.mul_point(Vec3::broadcast(0.5));
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
-                let interaction_text = || match interaction {
+                let interaction_text = |collect| match interaction {
                     BlockInteraction::Collect => {
                         vec![(
                             Some(GameInput::Interact),
-                            i18n.get_msg("hud-collect").to_string(),
+                            i18n.get_msg(collect).to_string(),
                         )]
                     },
                     BlockInteraction::Craft(_) => {
@@ -2167,11 +2167,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        interaction_text(),
-                        // vec![(
-                        //     Some(GameInput::Interact),
-                        //     i18n.get_msg("hud-open").to_string(),
-                        // )],
+                        interaction_text("hud-open"),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -2189,7 +2185,7 @@ impl Hud {
                         pos.distance_squared(player_pos),
                         overitem_properties,
                         &self.fonts,
-                        interaction_text(),
+                        interaction_text("hud-collect"),
                     )
                     .set(overitem_id, ui_widgets);
                 } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
@@ -2204,7 +2200,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        interaction_text(),
+                        interaction_text("hud-collect"),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
