@@ -118,6 +118,7 @@ impl<'a> TargetData<'a> {
                 | ToolKind::Spear
                 | ToolKind::Farming
                 | ToolKind::Pick
+                | ToolKind::Shovel
                 | ToolKind::Natural
                 | ToolKind::Empty,
             )

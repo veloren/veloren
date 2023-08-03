@@ -36,6 +36,7 @@ pub enum ToolKind {
     Debug,
     Farming,
     Pick,
+    Shovel,
     // npcs
     /// Intended for invisible weapons (e.g. a creature using its claws or
     /// biting)
@@ -64,6 +65,7 @@ impl ToolKind {
             ToolKind::Debug => "debug",
             ToolKind::Farming => "farming",
             ToolKind::Pick => "pickaxe",
+            ToolKind::Shovel => "shovel",
             ToolKind::Instrument => "instrument",
             ToolKind::Empty => "empty",
         }

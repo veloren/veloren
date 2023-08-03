@@ -92,6 +92,7 @@ image_ids! {
         bow: "voxygen.element.weapons.bow",
         staff: "voxygen.element.weapons.staff",
         mining: "voxygen.element.weapons.mining",
+        dig: "voxygen.element.weapons.dig",
         pickaxe: "voxygen.element.skills.pickaxe",
         pickaxe_ico: "voxygen.element.weapons.pickaxe",
         skilltree_ico: "voxygen.element.ui.diary.buttons.skilltree",

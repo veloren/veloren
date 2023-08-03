@@ -65,7 +65,7 @@ impl Animation for AlphaAnimation {
                 next.head.orientation = Quaternion::rotation_z(move1 * -0.9 + move2 * 1.8);
             },
 
-            Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
+            Some(ToolKind::Hammer) | Some(ToolKind::Pick) | Some(ToolKind::Shovel) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
@@ -96,7 +96,7 @@ impl Animation for AlphaAnimation {
         match hands {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
+                    Some(ToolKind::Hammer) | Some(ToolKind::Pick) | Some(ToolKind::Shovel) => {
                         let (move1, move2, move3) = match stage_section {
                             Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                             Some(StageSection::Action) => (1.0, anim_time, 0.0),
@@ -144,7 +144,7 @@ impl Animation for AlphaAnimation {
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                     next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
                 },
-                Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
+                Some(ToolKind::Hammer) | Some(ToolKind::Pick) | Some(ToolKind::Shovel) => {
                     next.control_l.position = Vec3::new(
                         -7.0,
                         8.0 + move1 * -4.0 + move2 * 4.0,
@@ -173,7 +173,7 @@ impl Animation for AlphaAnimation {
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
                         next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
                     },
-                    Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
+                    Some(ToolKind::Hammer) | Some(ToolKind::Pick) | Some(ToolKind::Shovel) => {
                         next.control_r.position = Vec3::new(
                             7.0,
                             8.0 + move1 * -4.0 + move2h * 4.0,

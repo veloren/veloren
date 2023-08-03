@@ -2282,4 +2282,13 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+    "shovel": (
+        output: ("common.items.weapons.tool.shovel-0", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 5, false),
+            (Item("common.items.mineral.ingot.iron"), 2, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
 }

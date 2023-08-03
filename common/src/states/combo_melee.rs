@@ -282,7 +282,9 @@ impl CharacterBehavior for Data {
                                     self.static_data.ability_info.tool,
                                 )
                             })
-                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
+                            .filter(|(_, tool)| {
+                                matches!(tool, Some(ToolKind::Pick | ToolKind::Shovel))
+                            }),
                     });
                 } else if self.timer < self.static_data.stage_data[stage_index].base_swing_duration
                 {
