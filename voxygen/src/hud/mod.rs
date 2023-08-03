@@ -2100,7 +2100,7 @@ impl Hud {
                     BlockInteraction::Mine(mine_tool) => {
                         if info.is_mining {
                             match mine_tool {
-                                ToolKind::Pick => {                            
+                                ToolKind::Pick => {
                                     vec![(
                                         Some(GameInput::Primary),
                                         i18n.get_msg("hud-mine").to_string(),
