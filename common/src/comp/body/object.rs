@@ -331,7 +331,7 @@ impl Body {
             Body::LightningBolt => "lightning_bolt",
             Body::SpearIcicle => "spear_icicle",
             Body::Portal => "portal",
-            Self::PortalActive => "portal_active",
+            Body::PortalActive => "portal_active",
         }
     }
 

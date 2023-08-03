@@ -140,12 +140,9 @@ impl<'a> System<'a> for Sys {
                     },
                     ControlEvent::ActivatePortal(portal_uid) => {
                         if let Some(portal) = read_data.id_maps.uid_entity(portal_uid) {
-                            server_emitter.emit(ServerEvent::StartTeleporting {
-                                entity,
-                                portal,
-                            });
+                            server_emitter.emit(ServerEvent::StartTeleporting { entity, portal });
                         }
-                    }
+                    },
                 }
             }
         }

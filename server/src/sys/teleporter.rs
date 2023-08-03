@@ -1,15 +1,17 @@
 use common::{
-    comp::{object, Agent, Body, CharacterState, Pos, Teleporter, Teleporting},
+    comp::{object, Agent, Alignment, Body, CharacterState, Pos, Teleporter, Teleporting},
     event::{EventBus, ServerEvent},
     resources::Time,
+    uid::Uid,
     CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
-use specs::{Entities, Entity, Join, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 use vek::Vec3;
 
 pub const TELEPORT_RADIUS: f32 = 3.;
 const MAX_AGGRO_DIST: f32 = 200.; // If an entity further than this is aggroed at a player, the portal will still work
+const PET_TELEPORT_RADIUS: f32 = 20.;
 
 #[derive(Default)]
 pub struct Sys;
@@ -22,7 +24,9 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Pos>,
+        ReadStorage<'a, Uid>,
         ReadStorage<'a, Teleporter>,
+        ReadStorage<'a, Alignment>,
         ReadStorage<'a, Agent>,
         WriteStorage<'a, Teleporting>,
         ReadStorage<'a, Body>,
@@ -41,7 +45,9 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             positions,
+            uids,
             teleporters,
+            alignments,
             agent,
             mut teleporting,
             bodies,
@@ -64,44 +70,20 @@ impl<'a> System<'a> for Sys {
                 })
         };
 
-        let mut teleporting_updates = Vec::new();
+        let mut cancel_teleporting = Vec::new();
 
-        for (portal_entity, teleporter_pos, body, teleporter) in
+        for (portal_entity, teleporter_pos, body, _) in
             (&entities, &positions, &bodies, &teleporters).join()
         {
-            let nearby_entities = spatial_grid
+            let is_active = spatial_grid
                 .0
-                .in_circle_aabr(teleporter_pos.0.xy(), TELEPORT_RADIUS);
-
-            let mut is_active = false;
-
-            for (entity, pos, character_state, teleporting) in
-                nearby_entities.filter_map(|entity| {
-                    (
-                        &entities,
-                        &positions,
-                        &character_states,
-                        teleporting.maybe(),
-                    )
+                .in_circle_aabr(teleporter_pos.0.xy(), TELEPORT_RADIUS)
+                .any(|entity| {
+                    (&positions, &teleporting)
                         .join()
                         .get(entity, &entities)
-                        .filter(|(_, pos, _, _)| in_portal_range(pos.0, teleporter_pos.0))
-                })
-            {
-                if !matches!(
-                    character_state,
-                    CharacterState::Idle(_) | CharacterState::Wielding(_)
-                ) || (teleporter.requires_no_aggro && check_aggro(entity, pos.0))
-                {
-                    if teleporting.is_some() {
-                        teleporting_updates.push((entity, None));
-                    };
-
-                    continue;
-                }
-
-                is_active |= teleporting.is_some();
-            }
+                        .map_or(false, |(pos, _)| in_portal_range(pos.0, teleporter_pos.0))
+                });
 
             if (*body == Body::Object(object::Body::PortalActive)) != is_active {
                 event_bus.emit_now(ServerEvent::ChangeBody {
@@ -115,41 +97,58 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        update_teleporting(&mut teleporting_updates, &mut teleporting);
-
-        for (entity, position, teleporting) in (&entities, &positions, &teleporting).join() {
-            let mut remove = || teleporting_updates.push((entity, None));
+        for (entity, uid, position, teleporting, character_state) in (
+            &entities,
+            &uids,
+            &positions,
+            &teleporting,
+            &character_states,
+        )
+            .join()
+        {
             let portal_pos = positions.get(teleporting.portal);
             let Some(teleporter) = teleporters.get(teleporting.portal) else {
-                remove();
+                cancel_teleporting.push(entity);
                 continue
             };
 
             if portal_pos.map_or(true, |portal_pos| {
                 !in_portal_range(position.0, portal_pos.0)
-            }) {
-                remove();
+            }) || (teleporter.requires_no_aggro && check_aggro(entity, position.0))
+                || !matches!(
+                    character_state,
+                    CharacterState::Idle(_) | CharacterState::Wielding(_)
+                )
+            {
+                cancel_teleporting.push(entity);
             } else if teleporting.end_time.0 <= time.0 {
-                remove();
-                event_bus.emit_now(ServerEvent::TeleportToPosition {
-                    entity,
-                    position: teleporter.target,
-                });
+                // Send teleport events for all nearby pets and the owner
+                let nearby = spatial_grid
+                    .0
+                    .in_circle_aabr(position.0.xy(), PET_TELEPORT_RADIUS)
+                    .filter_map(|entity| {
+                        (&entities, &positions, &alignments)
+                            .join()
+                            .get(entity, &entities)
+                    })
+                    .filter_map(|(entity, entity_position, alignment)| {
+                        (matches!(alignment, Alignment::Owned(entity_uid) if entity_uid == uid)
+                            && entity_position.0.distance_squared(position.0)
+                                <= PET_TELEPORT_RADIUS.powi(2))
+                        .then_some(entity)
+                    });
+
+                for entity in nearby {
+                    cancel_teleporting.push(entity);
+                    event_bus.emit_now(ServerEvent::TeleportToPosition {
+                        entity,
+                        position: teleporter.target,
+                    });
+                }
             }
         }
 
-        update_teleporting(&mut teleporting_updates, &mut teleporting);
-    }
-}
-
-fn update_teleporting(
-    updates: &mut Vec<(Entity, Option<Teleporting>)>,
-    teleporting: &mut WriteStorage<'_, Teleporting>,
-) {
-    for (entity, update) in updates.drain(..) {
-        if let Some(add) = update {
-            let _ = teleporting.insert(entity, add);
-        } else {
+        for entity in cancel_teleporting {
             let _ = teleporting.remove(entity);
         }
     }

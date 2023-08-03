@@ -1693,10 +1693,9 @@ pub fn handle_start_teleporting(server: &mut Server, entity: EcsEntity, portal: 
             )
         })
     {
-        let _ = teleportings
-            .insert(entity, comp::Teleporting {
-                portal,
-                end_time: Time(end_time),
-            });
+        let _ = teleportings.insert(entity, comp::Teleporting {
+            portal,
+            end_time: Time(end_time),
+        });
     }
 }

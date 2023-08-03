@@ -1029,10 +1029,7 @@ impl PlayState for SessionState {
                                             Interactable::Entity(entity) => {
                                                 let body = client
                                                     .state()
-                                                    .ecs()
-                                                    .read_storage::<comp::Body>()
-                                                    .get(*entity)
-                                                    .map(ToOwned::to_owned);
+                                                    .read_component_cloned::<comp::Body>(*entity);
 
                                                 if client
                                                     .state()

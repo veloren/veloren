@@ -339,7 +339,7 @@ pub enum ServerEvent {
     StartTeleporting {
         entity: EcsEntity,
         portal: EcsEntity,
-    }
+    },
 }
 
 pub struct EventBus<E> {
