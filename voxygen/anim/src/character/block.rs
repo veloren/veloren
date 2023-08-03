@@ -139,7 +139,7 @@ impl Animation for BlockAnimation {
                                         * Quaternion::rotation_y(s_a.ac.4 + move1 * -1.8)
                                         * Quaternion::rotation_z(s_a.ac.5 + move1 * 4.0);
                             },
-                            Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
+                            Some(ToolKind::Hammer | ToolKind::Pick | ToolKind::Shovel) => {
                                 next.hand_l.position = Vec3::new(
                                     s_a.hhl.0,
                                     s_a.hhl.1 + move1 * 6.0,
