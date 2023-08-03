@@ -6,6 +6,8 @@ use crate::{
         tool::{Stats, ToolKind},
         CharacterState, Melee, StateUpdate,
     },
+    event::LocalEvent,
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -318,6 +320,12 @@ impl CharacterBehavior for Data {
                         stage_section: StageSection::Recover,
                         ..*self
                     });
+                }
+                // Send local event used for frontend shenanigans
+                if self.static_data.ability_info.tool == Some(ToolKind::Shovel) {
+                    output_events.emit_local(LocalEvent::CreateOutcome(Outcome::GroundDig {
+                        pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                    }));
                 }
             },
             StageSection::Recover => {

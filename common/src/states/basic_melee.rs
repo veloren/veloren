@@ -3,6 +3,8 @@ use crate::{
         character_state::OutputEvents, tool::ToolKind, CharacterState, MeleeConstructor,
         StateUpdate,
     },
+    event::LocalEvent,
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -96,6 +98,12 @@ impl CharacterBehavior for Data {
                                     }),
                             ),
                     );
+                    // Send local event used for frontend shenanigans
+                    if self.static_data.ability_info.tool == Some(ToolKind::Shovel) {
+                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::GroundDig {
+                            pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                        }));
+                    }
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::BasicMelee(Data {

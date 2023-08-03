@@ -386,6 +386,16 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::GroundDig { pos, .. } => {
+                self.particles.resize_with(self.particles.len() + 12, || {
+                    Particle::new(
+                        Duration::from_millis(200),
+                        time,
+                        ParticleMode::BigShrapnel,
+                        *pos,
+                    )
+                });
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
