@@ -2065,11 +2065,11 @@ impl Hud {
                 let pos = mat.mul_point(Vec3::broadcast(0.5));
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
-                let interaction_text = |collect| match interaction {
+                let interaction_text = |collect_default| match interaction {
                     BlockInteraction::Collect => {
                         vec![(
                             Some(GameInput::Interact),
-                            i18n.get_msg(collect).to_string(),
+                            i18n.get_msg(collect_default).to_string(),
                         )]
                     },
                     BlockInteraction::Craft(_) => {

@@ -223,7 +223,7 @@ impl Animation for WieldAnimation {
                         * Quaternion::rotation_y(s_a.ac.4)
                         * Quaternion::rotation_z(s_a.ac.5);
                 },
-                Some(ToolKind::Hammer | ToolKind::Pick | ToolKind::Shovel) => {
+                Some(ToolKind::Hammer | ToolKind::Pick) => {
                     next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
                     next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3)
                         * Quaternion::rotation_y(s_a.hhl.4)
@@ -304,6 +304,19 @@ impl Animation for WieldAnimation {
                     next.control.orientation = Quaternion::rotation_x(u_slow * 0.1)
                         * Quaternion::rotation_y(0.6 + u_slow * 0.1)
                         * Quaternion::rotation_z(u_slowalt * 0.1);
+                },
+                Some(ToolKind::Shovel) => {
+                    next.hand_l.position = Vec3::new(8.0, 6.0, 3.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                    next.hand_r.position = Vec3::new(8.0, 6.0, 15.0);
+                    next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                    next.main.position = Vec3::new(7.5, 7.5, 13.2);
+                    next.main.orientation = Quaternion::rotation_y(PI);
+
+                    next.control.position = Vec3::new(-11.0 + slow * 0.02, 1.8, 4.0);
+                    next.control.orientation = Quaternion::rotation_x(u_slow * 0.01)
+                        * Quaternion::rotation_y(0.8 + u_slow * 0.01)
+                        * Quaternion::rotation_z(u_slowalt * 0.01);
                 },
                 Some(ToolKind::Instrument) => {
                     if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
