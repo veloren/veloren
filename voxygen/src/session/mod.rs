@@ -1439,6 +1439,8 @@ impl PlayState for SessionState {
                 ));
             }
 
+            let mut has_repaired = false;
+            let sfx_triggers = self.scene.sfx_mgr.triggers.read();
             // Maintain the UI.
             for event in hud_events {
                 match event {
@@ -1835,6 +1837,12 @@ impl PlayState for SessionState {
                                 }
                             })();
                             slots.unwrap_or_default()
+                        };
+                        if !has_repaired {
+                            let sfx_trigger_item = sfx_triggers
+                                .get_key_value(&SfxEvent::from(&InventoryUpdateEvent::Craft));
+                            global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
+                            has_repaired = true
                         };
                         self.client
                             .borrow_mut()
