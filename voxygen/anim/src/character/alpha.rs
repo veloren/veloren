@@ -96,7 +96,7 @@ impl Animation for AlphaAnimation {
         match hands {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Hammer | ToolKind::Pick | ToolKind::Shovel) => {
+                    Some(ToolKind::Hammer | ToolKind::Pick) => {
                         let (move1, move2, move3) = match stage_section {
                             Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                             Some(StageSection::Action) => (1.0, anim_time, 0.0),
@@ -127,6 +127,30 @@ impl Animation for AlphaAnimation {
                                     s_a.hc.4 + moveret1 * PI / 2.0 + moveret2 * 0.5,
                                 )
                                 * Quaternion::rotation_z(s_a.hc.5 + (moveret2 * -0.5));
+                    },
+                    Some(ToolKind::Shovel) => {
+                        let (move1, move2, move3) = match stage_section {
+                            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                            Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                            _ => (0.0, 0.0, 0.0),
+                        };
+                        let pullback = 1.0 - move3;
+                        let moveret1 = move1 * pullback;
+                        let moveret2 = move2 * pullback;
+
+                        next.hand_l.position = Vec3::new(8.0, 6.0, 3.0);
+                        next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                        next.hand_r.position = Vec3::new(8.0, 6.0, 15.0);
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                        next.main.position = Vec3::new(7.5, 7.5, 13.2);
+                        next.main.orientation = Quaternion::rotation_y(PI);
+
+                        next.control.position = Vec3::new(-11.0 + moveret1 * 8.0, 1.8, 4.0);
+                        next.control.orientation =
+                            Quaternion::rotation_x(moveret1 * 0.3 + moveret2 * 0.2)
+                                * Quaternion::rotation_y(0.8 - moveret1 * 0.7 + moveret2 * 0.7)
+                                * Quaternion::rotation_z(moveret2 * 0.1 - moveret1 * 0.4);
                     },
                     _ => {},
                 }
