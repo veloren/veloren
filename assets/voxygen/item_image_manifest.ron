@@ -1616,11 +1616,11 @@
     ),
     Simple("common.items.weapons.tool.shovel-0"): VoxTrans(
         "voxel.weapon.tool.shovel_green",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (-45.0, -90.0, 0.0), 1.2,
     ),
     Simple("common.items.weapons.tool.shovel-1"): VoxTrans(
         "voxel.weapon.tool.shovel_gold",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (-45.0, -90.0, 0.0), 1.2,
     ),
     Simple("common.items.tool.instruments.lyre"): VoxTrans(
         "voxel.weapon.tool.wooden_lyre",
