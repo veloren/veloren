@@ -2065,11 +2065,11 @@ impl Hud {
                 let pos = mat.mul_point(Vec3::broadcast(0.5));
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
-                let interaction_text = || match interaction {
+                let interaction_text = |collect_default| match interaction {
                     BlockInteraction::Collect => {
                         vec![(
                             Some(GameInput::Interact),
-                            i18n.get_msg("hud-collect").to_string(),
+                            i18n.get_msg(collect_default).to_string(),
                         )]
                     },
                     BlockInteraction::Craft(_) => {
@@ -2099,15 +2099,34 @@ impl Hud {
                     },
                     BlockInteraction::Mine(mine_tool) => {
                         if info.is_mining {
-                            vec![(
-                                Some(GameInput::Primary),
-                                i18n.get_msg("hud-mine").to_string(),
-                            )]
+                            match mine_tool {
+                                ToolKind::Pick => {
+                                    vec![(
+                                        Some(GameInput::Primary),
+                                        i18n.get_msg("hud-mine").to_string(),
+                                    )]
+                                },
+                                ToolKind::Shovel => {
+                                    vec![(
+                                        Some(GameInput::Primary),
+                                        i18n.get_msg("hud-dig").to_string(),
+                                    )]
+                                },
+                                _ => {
+                                    vec![(
+                                        None,
+                                        i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
+                                    )]
+                                },
+                            }
                         } else {
                             match mine_tool {
                                 ToolKind::Pick => {
                                     vec![(None, i18n.get_msg("hud-mine-needs_pickaxe").to_string())]
                                 },
+                                ToolKind::Shovel => {
+                                    vec![(None, i18n.get_msg("hud-mine-needs_shovel").to_string())]
+                                }
                                 // TODO: The required tool for mining something may not always be a
                                 // pickaxe!
                                 _ => {
@@ -2148,10 +2167,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        vec![(
-                            Some(GameInput::Interact),
-                            i18n.get_msg("hud-open").to_string(),
-                        )],
+                        interaction_text("hud-open"),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -2160,11 +2176,7 @@ impl Hud {
                 // TODO: Handle this better. The items returned from `try_reclaim_from_block`
                 // are based on rng. We probably want some function to get only gauranteed items
                 // from `LootSpec`.
-                else if let Some((amount, mut item)) = Item::try_reclaim_from_block(*block)
-                    .into_iter()
-                    .flatten()
-                    .next()
-                {
+                else if let Some((amount, mut item)) = Item::try_reclaim_from_block(*block).into_iter().flatten().next() {
                     item.set_amount(amount.clamp(1, item.max_amount()))
                         .expect("amount >= 1 and <= max_amount is always a valid amount");
                     make_overitem(
@@ -2173,7 +2185,7 @@ impl Hud {
                         pos.distance_squared(player_pos),
                         overitem_properties,
                         &self.fonts,
-                        interaction_text(),
+                        interaction_text("hud-collect"),
                     )
                     .set(overitem_id, ui_widgets);
                 } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
@@ -2188,7 +2200,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        interaction_text(),
+                        interaction_text("hud-collect"),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -5242,6 +5254,8 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::DungeonChest3
         | SpriteKind::DungeonChest4
         | SpriteKind::DungeonChest5 => "common-sprite-chest",
+        SpriteKind::Mud => "common-sprite-mud",
+        SpriteKind::Grave => "common-sprite-grave",
         SpriteKind::ChairSingle | SpriteKind::ChairDouble => "common-sprite-chair",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };

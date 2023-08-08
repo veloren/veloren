@@ -182,6 +182,7 @@ pub enum SfxEvent {
     DeepLaugh,
     Whoosh,
     Swoosh,
+    GroundDig,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -487,6 +488,10 @@ impl SfxMgr {
                     _ => { // not mapped to sfx file
                     },
                 }
+            },
+            Outcome::GroundDig { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundDig);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
             Outcome::IceSpikes { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::IceSpikes);

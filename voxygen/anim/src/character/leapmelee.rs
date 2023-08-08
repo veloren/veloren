@@ -121,7 +121,7 @@ impl Animation for LeapAnimation {
 
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
+                Some(ToolKind::Hammer | ToolKind::Pick) => {
                     next.control_l.position = Vec3::new(
                         -7.0,
                         8.0 + move2 * -5.0 + move3 * 9.0,
@@ -140,7 +140,7 @@ impl Animation for LeapAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {
+                    Some(ToolKind::Hammer | ToolKind::Pick) => {
                         next.control_r.position = Vec3::new(
                             7.0 + move2 * 3.0 + move3 * -3.0,
                             8.0 + move2 * -9.0 + move3 * 15.0,

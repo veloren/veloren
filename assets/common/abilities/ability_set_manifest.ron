@@ -891,6 +891,11 @@
         secondary: Simple(None, "common.abilities.pick.swing"),
         abilities: [],
     ),
+    Tool(Shovel): (
+        primary: Simple(None, "common.abilities.shovel.dig"),
+        secondary: Simple(None, "common.abilities.shovel.dig"),
+        abilities: [],
+    ),
     Tool(Empty): (
         primary: Simple(None, "common.abilities.empty.basic"),
         secondary: Simple(None, "common.abilities.empty.basic"),

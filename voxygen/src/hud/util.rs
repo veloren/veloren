@@ -320,6 +320,7 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
         ToolKind::Farming => i18n.get_msg("common-tool-farming"),
         ToolKind::Instrument => i18n.get_msg("common-tool-instrument"),
         ToolKind::Pick => i18n.get_msg("common-tool-pick"),
+        ToolKind::Shovel => i18n.get_msg("common-tool-shovel"),
         ToolKind::Empty => i18n.get_msg("common-empty"),
     };
     kind
@@ -533,6 +534,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.dagger.tempbasic" => imgs.onehdagger_m1,
         // Pickaxe
         "common.abilities.pick.swing" => imgs.mining,
+        // Shovel
+        "common.abilities.shovel.dig" => imgs.dig,
         // Instruments
         "common.abilities.music.bass" => imgs.instrument,
         "common.abilities.music.flute" => imgs.instrument,

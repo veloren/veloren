@@ -627,6 +627,7 @@ impl SpriteKind {
             | SpriteKind::Silver
             | SpriteKind::Gold
             | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
+            SpriteKind::Grave | SpriteKind::Mud => Some(ToolKind::Shovel),
             _ => None,
         }
     }

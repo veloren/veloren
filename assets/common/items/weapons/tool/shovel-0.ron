@@ -2,7 +2,7 @@ ItemDef(
     name: "Shovel",
     description: "It's covered in manure.",
     kind: Tool((
-        kind: Farming,
+        kind: Shovel,
         hands: Two,
         stats: (
             equip_time_secs: 0.4,
@@ -15,7 +15,9 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: Common,
-    tags: [],
+    quality: Moderate,
+    tags: [
+        CraftingTool,
+    ],
     ability_spec: None,
 )

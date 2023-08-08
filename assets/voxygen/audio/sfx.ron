@@ -1491,6 +1491,13 @@
             threshold: 0.9,
             subtitle: "subtitle-attack-steam",
         ),
+        GroundDig: (
+            files: [
+                "voxygen.audio.sfx.abilities.shovel",
+            ],
+            threshold: 0.8,
+            subtitle: "subtitle-attack-shovel",
+        ),
 
         // Utterances (NPCs)
 

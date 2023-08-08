@@ -137,6 +137,9 @@ pub enum Outcome {
     FireShockwave {
         pos: Vec3<f32>,
     },
+    GroundDig {
+        pos: Vec3<f32>,
+    },
 }
 
 impl Outcome {
@@ -166,6 +169,7 @@ impl Outcome {
             | Outcome::CyclopsCharge { pos }
             | Outcome::FlamethrowerCharge { pos }
             | Outcome::LaserBeam { pos }
+            | Outcome::GroundDig { pos }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }
