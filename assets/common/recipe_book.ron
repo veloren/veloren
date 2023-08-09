@@ -1760,6 +1760,16 @@
         ],
         craft_sprite: None,
     ),
+    "reliable_leather_pack": (
+        output: ("common.items.armor.misc.bag.reliable_leather_pack", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 3, false),
+            (Item("common.items.armor.misc.bag.tiny_leather_pouch"), 2, false),
+            (Item("common.items.mineral.ingot.iron"), 1, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: None,
+    ),
     "woven_red_bag": (
         output: ("common.items.armor.misc.bag.woven_red_bag", 1),
         inputs: [
@@ -1772,11 +1782,11 @@
     "traveler_backpack": (
         output: ("common.items.armor.misc.back.backpack", 1),
         inputs: [
-            (Item("common.items.mineral.gem.diamond"), 2, false),
-            (Item("common.items.crafting_ing.twigs"), 2, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 4, false),
-            (Item("common.items.crafting_ing.leather.simple_leather"), 3, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 4, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
             (Item("common.items.armor.misc.bag.tiny_leather_pouch"), 2, false),
+            (Item("common.items.mineral.gem.diamond"), 2, false),
+            (Item("common.items.mineral.ingot.iron"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(CraftingBench),
@@ -1786,7 +1796,7 @@
         inputs: [
             (Item("common.items.mineral.gem.amethyst"), 2, false),
             (Item("common.items.crafting_ing.cloth.linen_red"), 3, false),
-            (Item("common.items.crafting_ing.leather.thick_leather"), 6, false),
+            (Item("common.items.crafting_ing.cloth.silk"), 6, false),
             (Item("common.items.armor.misc.bag.woven_red_bag"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1795,8 +1805,8 @@
     "troll_hide_pack": (
         output: ("common.items.armor.misc.bag.troll_hide_pack", 1),
         inputs: [
-            (Item("common.items.crafting_ing.hide.leather_troll"), 10, false),
-            (Item("common.items.crafting_ing.leather.simple_leather"), 3, false),
+            (Item("common.items.crafting_ing.hide.leather_troll"), 6, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2, false),
             (Item("common.items.mineral.gem.diamond"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1808,7 +1818,7 @@
             (Item("common.items.crafting_ing.mindflayer_bag_damaged"), 1, false),
             (Item("common.items.crafting_ing.leather.rigid_leather"), 8, false),
             (Item("common.items.mineral.gem.diamond"), 4, false),
-            (Item("common.items.mineral.ore.veloritefrag"), 10, false),
+            (Item("common.items.crafting_ing.cloth.moonweave"), 10, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: None,

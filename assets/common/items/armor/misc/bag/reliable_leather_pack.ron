@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Liana Kit",
-    description: "Woven from dried lianas.",
+    name: "Reliable Leather Pack",
+    description: "It will never give you up.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

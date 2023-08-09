@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spawn rtsim wyverns that travel the world, providing dragon scale loot drops 
 - Hardwood in tropical forests, frostwood in cold forests, and iron wood on the top of giant trees
 - Recipe for shovel, which is used to dig in mud and graves
+- Recipe for a new leather pack
 
 ### Changed
 
@@ -31,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Capabilities of strikes to parry & block now more reliable
 - Defensive Disengage now more responsive and can block melee
 - Deflect no longer parry melee hits
+- Changed recipes for some bags to make them more horizontal
+- Increase invetory slots on some bags to improve early game experience
 
 - Made helmets, necklaces, rings, twig armors and some gliders salvageable
 - Tweaked stats on some foods so they generally increase a tiny bit more HP
