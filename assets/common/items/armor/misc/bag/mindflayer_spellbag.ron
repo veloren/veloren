@@ -5,7 +5,7 @@ ItemDef(
         kind: Bag,
         stats: Direct(()),
     )),
-    quality: Epic,
+    quality: Legendary,
     tags: [Bag],
     slots: 27,
 )

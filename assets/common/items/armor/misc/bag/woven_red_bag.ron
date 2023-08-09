@@ -5,7 +5,7 @@ ItemDef(
         kind: Bag,
         stats: Direct(()),
     )),
-    quality: Moderate,
+    quality: High,
     tags: [Bag],
     slots: 15,
 )

@@ -7,5 +7,5 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [Bag],
-    slots: 9,
+    slots: 10,
 )

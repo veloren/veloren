@@ -6,7 +6,7 @@ ItemDef(
         stats: Direct((
         )),
     )),
-    quality: High,
+    quality: Epic,
     tags: [Bag],
-    slots: 18,
+    slots: 20,
 )

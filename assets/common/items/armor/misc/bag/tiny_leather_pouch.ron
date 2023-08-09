@@ -6,6 +6,9 @@ ItemDef(
         stats: Direct(()),
     )),
     quality: Common,
-    tags: [Bag],
+    tags: [
+        Bag,
+        SalvageInto(Leather, 1),
+    ],
     slots: 6,
 )

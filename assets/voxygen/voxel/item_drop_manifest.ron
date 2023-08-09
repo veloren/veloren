@@ -793,6 +793,7 @@
     Simple("common.items.armor.misc.bag.mindflayer_spellbag"): "voxel.armor.misc.bag.mindflayer_spellbag",
     Simple("common.items.armor.misc.bag.troll_hide_pack"): "voxel.armor.misc.bag.troll_hide_pack",
     Simple("common.items.armor.misc.bag.reliable_backpack"): "voxel.armor.misc.bag.reliable_backpack",
+    Simple("common.items.armor.misc.bag.reliable_leather_pack"): "voxel.armor.misc.bag.reliable_leather_pack",
     Simple("common.items.armor.misc.bag.liana_kit"): "voxel.armor.misc.bag.liana_kit",
     Simple("common.items.armor.misc.bag.tiny_leather_pouch"): "voxel.armor.misc.bag.tiny_leather_pouch",
     Simple("common.items.armor.misc.bag.sturdy_red_backpack"): "voxel.armor.misc.bag.sturdy_red_backpack",

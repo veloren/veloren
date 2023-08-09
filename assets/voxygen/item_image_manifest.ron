@@ -3134,6 +3134,10 @@
         "voxel.armor.misc.bag.reliable_backpack",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
+    Simple("common.items.armor.misc.bag.reliable_leather_pack"): VoxTrans(
+        "voxel.armor.misc.bag.reliable_leather_pack",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
+    ),
     Simple("common.items.armor.misc.bag.liana_kit"): VoxTrans(
         "voxel.armor.misc.bag.liana_kit",
         (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
