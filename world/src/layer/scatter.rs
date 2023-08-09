@@ -597,11 +597,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 0.1,
                     None,
                 )
@@ -613,11 +610,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 1.5,
                     None,
                 )
@@ -629,11 +623,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 2.0,
                     None,
                 )
@@ -645,11 +636,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 1.5,
                     None,
                 )
@@ -661,11 +649,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 2.0,
                     None,
                 )
@@ -677,11 +662,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 2.0,
                     None,
                 )
@@ -693,11 +675,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 2.0,
                     None,
                 )
@@ -709,11 +688,8 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(
-                        col.humidity,
-                        CONFIG.desert_hum,
-                        0.1,
-                    )) * MUSH_FACT
+                    close(col.temp, CONFIG.desert_temp, 0.25).min(close(col.humidity, 0.0, 0.2))
+                        * MUSH_FACT
                         * 2.0,
                     None,
                 )

@@ -447,7 +447,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // Rainforest area animals
         ("world.wildlife.spawn.tropical.rainforest", |c, _col| {
             close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
-                * close(c.humidity, CONFIG.desert_hum, 0.4)
+                * close(c.humidity, CONFIG.jungle_hum, 0.4)
                 * BASE_DENSITY
                 * 2.0
         }),
@@ -456,7 +456,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             "world.wildlife.spawn.calendar.halloween.tropical.rainforest",
             |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
-                    * close(c.humidity, CONFIG.desert_hum, 0.4)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.4)
                     * BASE_DENSITY
                     * 2.0
             },
@@ -465,7 +465,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             "world.wildlife.spawn.calendar.april_fools.tropical.rainforest",
             |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
-                    * close(c.humidity, CONFIG.desert_hum, 0.4)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.4)
                     * BASE_DENSITY
                     * 2.0
             },
