@@ -201,7 +201,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (FlameWyvern, _) => (10.0, -1.5),
                 (CloudWyvern, _) => (10.0, -1.5),
                 (FrostWyvern, _) => (10.0, -1.5),
-                (SeaWyvern, _) => (10.0, -1.5),
+                (SeaWyvern, _) => (10.0, 2.5),
                 (WealdWyvern, _) => (10.0, -1.5),
             },
             beak: match (body.species, body.body_type) {
