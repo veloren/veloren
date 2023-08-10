@@ -170,6 +170,8 @@ impl ControlSettings {
             GameInput::ToggleWield => Some(KeyMouse::Key(VirtualKeyCode::R)),
             GameInput::FreeLook => Some(KeyMouse::Key(VirtualKeyCode::L)),
             GameInput::AutoWalk => Some(KeyMouse::Key(VirtualKeyCode::Period)),
+            GameInput::ZoomIn => Some(KeyMouse::Key(VirtualKeyCode::RBracket)),
+            GameInput::ZoomOut => Some(KeyMouse::Key(VirtualKeyCode::LBracket)),
             GameInput::ZoomLock => None,
             GameInput::CameraClamp => Some(KeyMouse::Key(VirtualKeyCode::Apostrophe)),
             GameInput::CycleCamera => Some(KeyMouse::Key(VirtualKeyCode::Key0)),

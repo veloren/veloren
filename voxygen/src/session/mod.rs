@@ -1067,6 +1067,30 @@ impl PlayState for SessionState {
                                 self.key_state.auto_walk =
                                     self.auto_walk && !self.client.borrow().is_gliding();
                             },
+                            GameInput::ZoomIn => {
+                                if state {
+                                    if self.zoom_lock {
+                                        self.hud.zoom_lock_reminder();
+                                    } else {
+                                        self.scene.handle_input_event(
+                                            Event::Zoom(-30.0),
+                                            &self.client.borrow(),
+                                        );
+                                    }
+                                }
+                            },
+                            GameInput::ZoomOut => {
+                                if state {
+                                    if self.zoom_lock {
+                                        self.hud.zoom_lock_reminder();
+                                    } else {
+                                        self.scene.handle_input_event(
+                                            Event::Zoom(30.0),
+                                            &self.client.borrow(),
+                                        );
+                                    }
+                                }
+                            },
                             GameInput::ZoomLock => {
                                 if state {
                                     global_state.settings.gameplay.zoom_lock ^= true;
