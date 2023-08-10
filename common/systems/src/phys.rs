@@ -15,7 +15,6 @@ use common::{
     resources::{DeltaTime, GameMode, TimeOfDay},
     states,
     terrain::{Block, BlockKind, CoordinateConversions, SiteKindMeta, TerrainGrid, NEIGHBOR_DELTA},
-    time::DayPeriod,
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
@@ -29,11 +28,8 @@ use specs::{
     shred, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
     Write, WriteExpect, WriteStorage,
 };
-use std::{f32::consts::PI, ops::Range};
-use vek::{
-    num_traits::{Pow, Signed},
-    *,
-};
+use std::ops::Range;
+use vek::*;
 
 /// The density of the fluid as a function of submersion ratio in given fluid
 /// where it is assumed that any unsubmersed part is is air.
@@ -612,9 +608,6 @@ impl<'a> PhysicsData<'a> {
         if let Some(weather) = &read.weather {
             // 0.0..1.0, 0.25 morning, 0.45 midday, 0.66 evening, 0.79 night, 0.0/1.0
             // midnight
-            const SECONDS_PER_DAY: f64 = 60.0 * 60.0 * 24.0;
-            let fraction_of_day: f32 =
-                (read.time_of_day.0.rem_euclid(SECONDS_PER_DAY) / SECONDS_PER_DAY) as f32;
             for (_, state, pos, phys) in (
                 &read.entities,
                 &read.character_states,
@@ -684,6 +677,7 @@ impl<'a> PhysicsData<'a> {
                 let sun_dir = read.time_of_day.get_sun_dir().normalized();
                 let mut lift = ((sun_dir - normal.normalized()).magnitude() - 0.5).max(0.2) * 3.;
 
+                // TODO: potential source of harsh edges in wind speed.
                 let temperatures = surrounding_chunks_metas.iter().map(|m| m.temp()).minmax();
 
                 // more thermals if hot chunks border cold chunks
@@ -694,6 +688,7 @@ impl<'a> PhysicsData<'a> {
                 }
                 .min(2.0);
 
+                // TODO: potential source of harsh edges in wind speed.
                 // way more thermals in strong rain as its often caused by strong thermals.
                 // less in weak rain or cloudy..
                 lift *= if interp_weather.rain.is_between(0.5, 1.0)
@@ -711,6 +706,8 @@ impl<'a> PhysicsData<'a> {
                 lift *= (above_ground / 15.).min(1.);
                 lift *= (220. - above_ground / 20.).clamp(0.0, 1.0);
 
+                // smooth this, and increase height some more (500 isnt that much higher than
+                // the spires)
                 if interp_alt > 500.0 {
                     lift *= 0.8;
                 }
@@ -744,7 +741,7 @@ impl<'a> PhysicsData<'a> {
                 };
 
                 // Cliffs mean more lift
-                ridge_lift *= (0.9 + (meta.cliff_height() / 44.0) * 1.2); // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs
+                ridge_lift *= 0.9 + (meta.cliff_height() / 44.0) * 1.2; // 44 seems to be max, according to a lerp in WorldSim::generate_cliffs
 
                 // height based fall-off https://www.desmos.com/calculator/jijqfunchg
                 ridge_lift *= 1. / (1. + (1.3f32.powf(0.1 * above_ground - 15.)));

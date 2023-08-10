@@ -54,8 +54,7 @@ use common::{
     resources::TimeOfDay,
     rtsim::ChunkResource,
     terrain::{
-        Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunk, TerrainChunkMeta,
-        TerrainChunkSize, TerrainGrid,
+        Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };

@@ -39,8 +39,8 @@ use common::{
         tool::ToolKind,
     },
     outcome::Outcome,
-    resources::{DeltaTime, TimeScale, TimeOfDay},
-    terrain::{BlockKind, CoordinateConversions, TerrainChunk, TerrainGrid, NEIGHBOR_DELTA},
+    resources::{DeltaTime, TimeOfDay, TimeScale},
+    terrain::{BlockKind, TerrainChunk, TerrainGrid, CoordinateConversion, NEIGHBOR_DELTA},
     vol::ReadVol,
     weather::WeatherGrid,
 };
