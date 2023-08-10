@@ -1505,6 +1505,7 @@ impl Hud {
             let is_mounts = ecs.read_storage::<Is<Mount>>();
             let is_riders = ecs.read_storage::<Is<Rider>>();
             let stances = ecs.read_storage::<comp::Stance>();
+            let char_activities = ecs.read_storage::<comp::CharacterActivity>();
             let time = ecs.read_resource::<Time>();
 
             // Check if there was a persistence load error of the skillset, and if so
@@ -2271,6 +2272,7 @@ impl Hud {
                 dist_sqr,
                 alignment,
                 is_mount,
+                character_activity,
             ) in (
                 &entities,
                 &pos,
@@ -2285,6 +2287,7 @@ impl Hud {
                 &mut hp_floater_lists,
                 &uids,
                 &inventories,
+                char_activities.maybe(),
                 poises.maybe(),
                 (
                     alignments.maybe(),
@@ -2313,6 +2316,7 @@ impl Hud {
                         hpfl,
                         uid,
                         inventory,
+                        character_activity,
                         poise,
                         (alignment, is_mount, is_rider, stance),
                     )| {
@@ -2375,8 +2379,22 @@ impl Hud {
                         };
                         (info.is_some() || bubble.is_some()).then_some({
                             (
-                                entity, pos, info, bubble, stats, skill_set, health, buffs, scale,
-                                body, hpfl, in_group, dist_sqr, alignment, is_mount,
+                                entity,
+                                pos,
+                                info,
+                                bubble,
+                                stats,
+                                skill_set,
+                                health,
+                                buffs,
+                                scale,
+                                body,
+                                hpfl,
+                                in_group,
+                                dist_sqr,
+                                alignment,
+                                is_mount,
+                                character_activity,
                             )
                         })
                     },
@@ -2431,9 +2449,18 @@ impl Hud {
                                         i18n.get_msg("hud-mount").to_string(),
                                     ));
                                 }
+
+                                let is_staying = character_activity
+                                    .map_or(false, |activity| activity.is_pet_staying);
+
                                 options.push((
                                     GameInput::StayFollow,
-                                    i18n.get_msg("hud-stay-follow").to_string(),
+                                    i18n.get_msg(if is_staying {
+                                        "hud-stay"
+                                    } else {
+                                        "hud-follow"
+                                    })
+                                    .to_string(),
                                 ));
                             }
                             options

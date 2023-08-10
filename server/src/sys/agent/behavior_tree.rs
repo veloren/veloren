@@ -406,9 +406,7 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
-            let stay = bdata.agent.stay_pos.is_some();
-            if stay {
-                let stay_pos = bdata.agent.stay_pos.map_or(Pos(Vec3::zero()), |v| v);
+            if let Some(stay_pos) = bdata.agent.stay_pos {
                 let distance_from_stay = stay_pos.0.distance_squared(bdata.agent_data.pos.0);
                 bdata.controller.push_action(ControlAction::Sit);
                 if distance_from_stay > (MAX_STAY_DISTANCE).powi(2) {

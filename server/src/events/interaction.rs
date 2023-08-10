@@ -212,30 +212,38 @@ pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
 
 pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: EcsEntity) {
     let state = server.state_mut();
-    let mut is_owner = false;
     let positions = state.ecs().read_storage::<Pos>();
-    if let Some(owner_uid) = state.ecs().uid_from_entity(command_giver) {
-        is_owner = matches!(
-            state
-                .ecs()
-                .read_storage::<comp::Alignment>()
-                .get(pet),
-            Some(comp::Alignment::Owned(pet_owner)) if *pet_owner == owner_uid,
-        );
-    }
-    let prev_pet_pos = state
+    let is_owner = state
+        .ecs()
+        .uid_from_entity(command_giver)
+        .map_or(false, |owner_uid| {
+            matches!(
+                state
+                    .ecs()
+                    .read_storage::<comp::Alignment>()
+                    .get(pet),
+                Some(comp::Alignment::Owned(pet_owner)) if *pet_owner == owner_uid,
+            )
+        });
+
+    let previous_pet_pos = state
         .ecs()
         .read_storage::<comp::Agent>()
         .get(pet)
         .and_then(|s| s.stay_pos);
-    let mut new_pet_pos = None;
-    if prev_pet_pos.is_none() {
-        new_pet_pos = state.ecs().read_storage::<Pos>().get(pet).copied();
-    }
+    let new_pet_pos = previous_pet_pos
+        .is_none()
+        .then_some(positions.get(pet).copied())
+        .flatten();
     if is_owner
         && within_mounting_range(positions.get(command_giver), positions.get(pet))
         && state.ecs().read_storage::<Is<Mount>>().get(pet).is_none()
     {
+        state
+            .ecs()
+            .write_storage::<comp::CharacterActivity>()
+            .get_mut(pet)
+            .map(|mut activity| activity.is_pet_staying = new_pet_pos.is_some());
         state
             .ecs()
             .write_storage::<comp::Agent>()

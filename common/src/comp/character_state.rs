@@ -1004,6 +1004,9 @@ pub struct CharacterActivity {
     /// `None` means that the look direction should be derived from the
     /// orientation
     pub look_dir: Option<Dir>,
+    /// If true, the owner has set this pet to stay at a fixed location and
+    /// to not engage in combat
+    pub is_pet_staying: bool,
 }
 
 impl Component for CharacterActivity {
