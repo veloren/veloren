@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hardwood in tropical forests, frostwood in cold forests, and iron wood on the top of giant trees
 - Recipe for shovel, which is used to dig in mud and graves
 - Recipe for a new leather pack
+- Keybinds for zooming the camera (Defaults: ']' for zooming in and '[' for zooming out)
 
 ### Changed
 

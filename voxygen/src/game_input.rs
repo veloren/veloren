@@ -132,6 +132,10 @@ pub enum GameInput {
     FreeLook,
     #[strum(serialize = "gameinput-autowalk")]
     AutoWalk,
+    #[strum(serialize = "gameinput-zoomin")]
+    ZoomIn,
+    #[strum(serialize = "gameinput-zoomout")]
+    ZoomOut,
     #[strum(serialize = "gameinput-zoomlock")]
     ZoomLock,
     #[strum(serialize = "gameinput-cameraclamp")]
