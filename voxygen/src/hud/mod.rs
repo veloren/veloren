@@ -2456,9 +2456,9 @@ impl Hud {
                                 options.push((
                                     GameInput::StayFollow,
                                     i18n.get_msg(if is_staying {
-                                        "hud-stay"
-                                    } else {
                                         "hud-follow"
+                                    } else {
+                                        "hud-stay"
                                     })
                                     .to_string(),
                                 ));
