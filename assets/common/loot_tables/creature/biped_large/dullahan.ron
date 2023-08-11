@@ -1,11 +1,9 @@
 [
-  (1.8, All([
+  (1.9, All([
         MultiDrop(Item("common.items.utility.coins"), 200, 500),
         MultiDrop(Item("common.items.mineral.ingot.bloodsteel"), 2, 4),
-        MultiDrop(Item("common.items.mineral.ingot.orichalcum"), 0, 2),
-        MultiDrop(Item("common.items.mineral.ingot.gold"), 0, 2),
+        MultiDrop(Item("common.items.mineral.ingot.silver"), 0, 2),
       ],
    )),
   (0.1, Item("common.items.weapons.sword.caladbolg")),
-  (0.1, Item("common.items.glider.moonrise")),
 ]
