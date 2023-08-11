@@ -1,6 +1,8 @@
 [
     (1, All([
             Item("common.items.keys.bone_key"),
+            MultiDrop(Item("common.items.crafting_ing.animal_misc.fur"), 1, 2),
+            MultiDrop(Item("common.items.crafting_ing.leather.thick_leather"), 1, 2),
             LootTable("common.loot_tables.dungeon.adlet.elder_extra"),
         ],
     )),
