@@ -3,7 +3,7 @@
     name: Name("Minotaur"),
     body: RandomWith("minotaur"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.myrmidon.boss"),
+    loot: LootTable("common.loot_tables.dungeon.myrmidon.minotaur"),
     inventory: (
         loadout: FromBody,
     ),

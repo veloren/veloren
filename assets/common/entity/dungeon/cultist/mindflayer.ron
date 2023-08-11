@@ -3,7 +3,7 @@
     name: Name("Mindflayer"),
     body: RandomWith("mindflayer"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.cultist.boss"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.mindflayer"),
     inventory: (
         loadout: FromBody,
     ),

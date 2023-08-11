@@ -1,4 +1,9 @@
 [
-    (0.1, Item("common.items.food.meat.bird_large_raw")),
-    (1.0, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),
+  (1.8, All([
+            MultiDrop(Item("common.items.food.meat.bird_large_raw"), 3, 4),
+            MultiDrop(Item("common.items.crafting_ing.animal_misc.phoenix_feather"), 1, 3),
+        ],
+   )),
+  (0.1, Item("common.items.weapons.bow.sagitta")),
+  (0.1, Item("common.items.glider.monarch")),
 ]

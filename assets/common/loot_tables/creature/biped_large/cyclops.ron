@@ -1,9 +1,9 @@
 [
-  (1, All([
+  (1.9, All([
         Item("common.items.crafting_ing.animal_misc.grim_eyeball"),
-        MultiDrop(Item("common.items.mineral.ingot.iron"), 5, 10),
         MultiDrop(Item("common.items.utility.coins"), 200, 500),
-        LootTable("common.loot_tables.dungeon.myrmidon.miniboss"),
+        MultiDrop(Item("common.items.mineral.ingot.iron"), 5, 10),
         ],
    )),
+  (0.1, Item("common.items.weapons.hammer.mjolnir")),
 ]

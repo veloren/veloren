@@ -1172,7 +1172,7 @@ mod tests {
         assert!((lootsum3 - 1.0).abs() < 1e-5);
 
         // includes tier-5 modular weapons
-        let loot4 = expand_loot_table("common.loot_tables.dungeon.myrmidon.boss");
+        let loot4 = expand_loot_table("common.loot_tables.dungeon.myrmidon.minotaur");
         let lootsum4 = loot4.iter().fold(0.0, |s, i| s + i.0);
         //tracing::trace!("{:?} {}", loot4, lootsum4);
         assert!((lootsum4 - 1.0).abs() < 1e-5);

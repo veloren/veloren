@@ -3,7 +3,7 @@
     name: Name("Tidal Warrior"),
     body: RandomWith("tidalwarrior"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.sahagin.boss"),
+    loot: LootTable("common.loot_tables.dungeon.sahagin.tidalwarrior"),
     inventory: (
         loadout: FromBody,
     ),
