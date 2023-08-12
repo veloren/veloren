@@ -130,7 +130,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
     let (maybe_character, sync_me) = state
         .read_storage::<Presence>()
         .get(entity)
-        .map(|p| (p.kind.character_id(), p.sync_me))
+        .map(|p| (p.kind.character_id(), p.kind.sync_me()))
         .unzip();
     let maybe_rtsim = state.read_component_copied::<common::rtsim::RtSimEntity>(entity);
     state.mut_resource::<IdMaps>().remove_entity(
@@ -421,7 +421,6 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                     // from overwriting original character info with stuff from the new character.
                     kind: PresenceKind::Possessor,
                     lossy_terrain_compression: presence.lossy_terrain_compression,
-                    sync_me: presence.sync_me,
                 })
             } else {
                 None

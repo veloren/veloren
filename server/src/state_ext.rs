@@ -604,7 +604,6 @@ impl StateExt for State {
                     entity: view_distance,
                 },
                 PresenceKind::Spectator,
-                false,
             ))
     }
 
@@ -645,11 +644,7 @@ impl StateExt for State {
 
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(
-                    view_distances,
-                    PresenceKind::LoadingCharacter(character_id),
-                    false,
-                ),
+                Presence::new(view_distances, PresenceKind::LoadingCharacter(character_id)),
             );
 
             // Tell the client its request was successful.
@@ -674,7 +669,7 @@ impl StateExt for State {
 
             self.write_component_ignore_entity_dead(
                 entity,
-                Presence::new(view_distances, PresenceKind::Spectator, false),
+                Presence::new(view_distances, PresenceKind::Spectator),
             );
 
             // Tell the client its request was successful.
@@ -709,7 +704,6 @@ impl StateExt for State {
                         self.ecs()
                             .write_resource::<IdMaps>()
                             .add_character(id, entity);
-                        presence.sync_me = true;
                         Ok(())
                     } else {
                         Err("PresenceKind is not LoadingCharacter")
@@ -1199,7 +1193,7 @@ impl StateExt for State {
         let (maybe_character, sync_me) = self
             .read_storage::<Presence>()
             .get(entity)
-            .map(|p| (p.kind.character_id(), p.sync_me))
+            .map(|p| (p.kind.character_id(), p.kind.sync_me()))
             .unzip();
         let maybe_rtsim = self.read_component_copied::<RtSimEntity>(entity);
 

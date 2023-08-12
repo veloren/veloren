@@ -114,7 +114,7 @@ impl RegionMap {
         // Add any untracked entities
         for (pos, id) in (&pos, &entities, presence.maybe(), !&self.tracked_entities)
             .join()
-            .filter(|(_, _, presence, _)| presence.map_or(true, |p| p.sync_me))
+            .filter(|(_, _, presence, _)| presence.map_or(true, |p| p.kind.sync_me()))
             .map(|(pos, e, _, _)| (pos, e.id()))
             .collect::<Vec<_>>()
         {
@@ -143,7 +143,7 @@ impl RegionMap {
                 )
                     .join()
                 {
-                    let should_sync = maybe_presence.map_or(true, |p| p.sync_me);
+                    let should_sync = maybe_presence.map_or(true, |p| p.kind.sync_me());
                     match maybe_pos {
                         // Switch regions for entities which need switching
                         // TODO don't check every tick (use velocity) (and use id to stagger)

@@ -13,23 +13,16 @@ pub struct Presence {
     /// updated!
     pub kind: PresenceKind,
     pub lossy_terrain_compression: bool,
-    /// Controls whether this entity is synced to other clients.
-    ///
-    /// Note, if it ends up being useful this could be generalized to an
-    /// independent component that is required for any entity to be synced
-    /// (as an independent component it could use NullStorage).
-    pub sync_me: bool,
 }
 
 impl Presence {
-    pub fn new(view_distances: ViewDistances, kind: PresenceKind, sync_me: bool) -> Self {
+    pub fn new(view_distances: ViewDistances, kind: PresenceKind) -> Self {
         let now = Instant::now();
         Self {
             terrain_view_distance: ViewDistance::new(view_distances.terrain, now),
             entity_view_distance: ViewDistance::new(view_distances.entity, now),
             kind,
             lossy_terrain_compression: false,
-            sync_me,
         }
     }
 }
@@ -60,6 +53,18 @@ impl PresenceKind {
             Some(*character_id)
         } else {
             None
+        }
+    }
+
+    /// Controls whether this entity is synced to other clients.
+    ///
+    /// Note, if it ends up being useful this could be generalized to an
+    /// independent component that is required for any entity to be synced
+    /// (as an independent component it could use NullStorage).
+    pub fn sync_me(&self) -> bool {
+        match self {
+            Self::Spectator | Self::LoadingCharacter(_) => false,
+            Self::Character(_) | Self::Possessor => true,
         }
     }
 }
