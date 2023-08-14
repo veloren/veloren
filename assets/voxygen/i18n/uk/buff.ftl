@@ -1,25 +1,25 @@
 ## Regeneration
 buff-title-heal = Зцілення
-buff-desc-heal = Поступово відновлює Здоров'я.
+buff-desc-heal = Поступово відновлює здоров’я.
 buff-stat-health = Відновлює { $str_total } ОЗ
 ## Potion
 buff-title-potion = Зілля
 buff-desc-potion = Пиття...
 ## Saturation
 buff-title-saturation = Насичення
-buff-desc-saturation = Поступово відновлює Здоров'я з їжі.
+buff-desc-saturation = Поступово відновлює здоров’я з їжі.
 ## Campfire
 buff-title-campfire_heal = Відновлення біля вогнища
 buff-desc-campfire_heal = Відпочинок біля вогнища лікує на { $rate }% за секунду.
 ## Energy Regen
 buff-title-energy_regen = Відновлення Енергії
 buff-desc-energy_regen = Пришвидшене відновлення Енергії
-buff-stat-energy-regen = Відновлює { $str_total } енергії
+buff-stat-energy_regen = Відновлює { $str_total } енергії
 ## Health Increase
-buff-title-increase_max_health = Підвищення Максимального Здоров'я
-buff-desc-increase_max_health = Піднімає ліміт вашого здоров'я
+buff-title-increase_max_health = Підвищення Максимального Здоров’я
+buff-desc-increase_max_health = Піднімає ліміт вашого здоров’я
 buff-stat-increase_max_health =
-    Підвищує максимальне здоров'я
+    Підвищує максимальне здоров’я
     на { $strength }
 ## Energy Increase
 buff-title-increase_max_energy = Підвищення Максимальної Енергії
@@ -64,4 +64,51 @@ buff-desc-ensnared = Ліани опутують ваші ноги, перешк
 ## Util
 buff-text-for_seconds = протягом { $dur_secs } сек.
 buff-text-over_seconds = впродовж { $dur_secs } сек.
-buff-remove = Клікніть, щоб видалити
+## Parried
+buff-title-parried = Парирування
+buff-desc-parried = Вас парирували, і ви тепер повільно  відбиваєтесь.
+## Potion sickness
+buff-title-potionsickness = Відраза Зіллю
+buff-desc-potionsickness = Зілля менше зцілюють вас після нещодавнього вживання.
+buff-stat-potionsickness =
+    Зменшує ефективність зцілення 
+    наступними зіллями на { $strength }%.
+## Reckless
+buff-title-reckless = Безрозсудніть
+buff-desc-reckless = Ваші атаки сильніші, однак ви залишаєте свій захист відкритим.
+## Polymorped
+buff-title-polymorphed = Поліморф
+buff-desc-polymorphed = Ваше тіло змінює форму.
+## Flame
+buff-title-flame = Полум’я
+buff-desc-flame = Полум’я - ваш союзник.
+## Frigid
+buff-title-frigid = Холод
+buff-desc-frigid = Заморозьте своїх ворогів.
+## Lifesteal
+buff-title-lifesteal = Кража Життя
+buff-desc-lifesteal = Висмоктуйте життя своїх ворогів.
+## Salamander's Aspect
+buff-title-salamanderaspect = Аспект Саламандри
+buff-desc-salamanderaspect = Ви не можете загорітись і швидко рухаєтесь в лаві.
+## Imminent Critical
+buff-title-imminentcritical = Неминучий Критичний Удар
+buff-desc-imminentcritical = Ваша наступна атака завдасть критичного удару по ворогу.
+## Fury
+buff-title-fury = Лють
+buff-desc-fury = З вашою люттю, ваші удари генерують більше комбо.
+## Sunderer
+buff-title-sunderer = Розкол
+buff-desc-sunderer = Ваші атаки можуть пробити захист ворогів і відновити вам більше енергії.
+## Sunderer
+buff-title-defiance = Виклик
+buff-desc-defiance = Ви можете витримати сильніші і хитаючі удари і створювати комбо, отримавши удар, однак ви повільніші.
+## Bloodfeast
+buff-title-bloodfeast = Кривавий Бенкет
+buff-desc-bloodfeast = Атаки по ворогам, які кровоточать, зцілюють вас.
+## Berserk
+buff-title-berserk = Берсерк
+buff-desc-berserk = Ви перебуваєте в шаленій люті, через що ваші атаки стають сильнішими та стрімкішими, а ваша швидкість збільшується. Однак у результаті ваші захисні можливості зменшуються
+## Util
+buff-mysterious = Таємничий ефект
+buff-remove = Натисніть, щоб видалити
