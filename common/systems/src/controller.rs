@@ -63,9 +63,9 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                     },
-                    ControlEvent::ToggleStay(pet_uid) => {
+                    ControlEvent::SetPetStay(pet_uid, stay) => {
                         if let Some(pet_entity) = read_data.id_maps.uid_entity(pet_uid) {
-                            server_emitter.emit(ServerEvent::ToggleStay(entity, pet_entity));
+                            server_emitter.emit(ServerEvent::SetPetStay(entity, pet_entity, stay));
                         }
                     },
                     ControlEvent::RemoveBuff(buff_id) => {

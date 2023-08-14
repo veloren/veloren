@@ -200,7 +200,7 @@ pub enum ServerEvent {
     Mount(EcsEntity, EcsEntity),
     MountVolume(EcsEntity, VolumePos),
     Unmount(EcsEntity),
-    ToggleStay(EcsEntity, EcsEntity),
+    SetPetStay(EcsEntity, EcsEntity, bool),
     Possess(Uid, Uid),
     /// Inserts default components for a character when loading into the game
     InitCharacterData {

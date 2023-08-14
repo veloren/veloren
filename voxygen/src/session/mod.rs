@@ -13,14 +13,14 @@ use vek::*;
 
 use client::{self, Client};
 use common::{
-    comp,
     comp::{
+        self,
         dialogue::Subject,
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDesc},
-        ChatType, Content, InputKind, InventoryUpdateEvent, Pos, PresenceKind, Stats,
-        UtteranceKind, Vel,
+        CharacterActivity, ChatType, Content, InputKind, InventoryUpdateEvent, Pos, PresenceKind,
+        Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
@@ -949,6 +949,7 @@ impl PlayState for SessionState {
 
                                 let mut close_pet = None;
                                 if let Some(player_pos) = player_pos {
+                                    let positions = client.state().read_storage::<Pos>();
                                     close_pet = client.state().ecs().read_resource::<CachedSpatialGrid>().0
                                         .in_circle_aabr(player_pos.0.xy(), MAX_MOUNT_RANGE)
                                         .filter(|e|
@@ -962,9 +963,7 @@ impl PlayState for SessionState {
                                             client.state().ecs().read_storage::<Is<Mount>>().get(*e).is_none()
                                         )
                                         .min_by_key(|e| {
-                                            OrderedFloat(client
-                                                .state()
-                                                .read_storage::<Pos>()
+                                            OrderedFloat(positions
                                                 .get(*e)
                                                 .map_or(MAX_MOUNT_RANGE * MAX_MOUNT_RANGE, |x| {
                                                     player_pos.0.distance_squared(x.0)
@@ -972,8 +971,11 @@ impl PlayState for SessionState {
                                             ))
                                         });
                                 }
-                                if let Some(pet_entity)= close_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
-                                    client.toggle_stay(pet_entity);
+                                if let Some(pet_entity) = close_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
+                                    let is_staying = client.state()
+                                        .read_component_copied::<CharacterActivity>(pet_entity)
+                                        .map_or(false, |activity| activity.is_pet_staying);
+                                    client.set_pet_stay(pet_entity, !is_staying);
                                 }
                             },
                             GameInput::Interact => {

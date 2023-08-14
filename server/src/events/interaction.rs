@@ -210,7 +210,12 @@ pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);
 }
 
-pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: EcsEntity) {
+pub fn handle_set_pet_stay(
+    server: &mut Server,
+    command_giver: EcsEntity,
+    pet: EcsEntity,
+    stay: bool,
+) {
     let state = server.state_mut();
     let positions = state.ecs().read_storage::<Pos>();
     let is_owner = state
@@ -226,15 +231,8 @@ pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: Ec
             )
         });
 
-    let previous_pet_pos = state
-        .ecs()
-        .read_storage::<comp::Agent>()
-        .get(pet)
-        .and_then(|s| s.stay_pos);
-    let new_pet_pos = previous_pet_pos
-        .is_none()
-        .then_some(positions.get(pet).copied())
-        .flatten();
+    let current_pet_position = positions.get(pet).copied();
+    let stay = stay && current_pet_position.is_some();
     if is_owner
         && within_mounting_range(positions.get(command_giver), positions.get(pet))
         && state.ecs().read_storage::<Is<Mount>>().get(pet).is_none()
@@ -243,12 +241,12 @@ pub fn handle_toggle_stay(server: &mut Server, command_giver: EcsEntity, pet: Ec
             .ecs()
             .write_storage::<comp::CharacterActivity>()
             .get_mut(pet)
-            .map(|mut activity| activity.is_pet_staying = new_pet_pos.is_some());
+            .map(|mut activity| activity.is_pet_staying = stay);
         state
             .ecs()
             .write_storage::<comp::Agent>()
             .get_mut(pet)
-            .map(|s| s.stay_pos = new_pet_pos);
+            .map(|s| s.stay_pos = current_pet_position);
     }
 }
 

@@ -23,7 +23,7 @@ use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
     handle_create_sprite, handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction,
-    handle_sound, handle_toggle_stay, handle_unmount,
+    handle_set_pet_stay, handle_sound, handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
@@ -144,8 +144,8 @@ impl Server {
                     handle_mount_volume(self, mounter, volume)
                 },
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
-                ServerEvent::ToggleStay(command_giver, pet) => {
-                    handle_toggle_stay(self, command_giver, pet)
+                ServerEvent::SetPetStay(command_giver, pet, stay) => {
+                    handle_set_pet_stay(self, command_giver, pet, stay)
                 },
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
                     handle_possess(self, possessor_uid, possesse_uid)
