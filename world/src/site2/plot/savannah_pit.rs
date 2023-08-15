@@ -82,14 +82,8 @@ impl Structure for SavannahPit {
         // outside cylinder and decor
         painter
             .cylinder(Aabb {
-                min: (center - (3 * length) - 3).with_z(base - 1),
-                max: (center + (3 * length) + 3).with_z(base),
-            })
-            .fill(wood_light.clone());
-        painter
-            .cylinder(Aabb {
                 min: (center - (3 * length) - 2).with_z(base - (1 * length)),
-                max: (center + (3 * length) + 2).with_z(base + 1),
+                max: (center + (3 * length) + 2).with_z(base),
             })
             .fill(clay.clone());
         painter
@@ -223,8 +217,8 @@ impl Structure for SavannahPit {
         // top ring
         painter
             .cylinder(Aabb {
-                min: (center - (3 * length) - 1).with_z(base),
-                max: (center + (3 * length) + 1).with_z(base + 1),
+                min: (center - (3 * length) - 1).with_z(base - 1),
+                max: (center + (3 * length) + 1).with_z(base),
             })
             .fill(wood_light.clone());
         // floor 0 ring
