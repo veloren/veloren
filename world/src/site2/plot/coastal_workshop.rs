@@ -70,8 +70,8 @@ impl Structure for CoastalWorkshop {
         // fence, blue gates
         painter
             .aabb(Aabb {
-                min: Vec2::new(center.x - length - 6, center.y - width - 6).with_z(base - 1),
-                max: Vec2::new(center.x + length + 7, center.y + width + 7).with_z(base),
+                min: Vec2::new(center.x - length - 6, center.y - width - 6).with_z(base - 2),
+                max: Vec2::new(center.x + length + 7, center.y + width + 7).with_z(base - 1),
             })
             .fill(blue_broken.clone());
 
@@ -88,7 +88,7 @@ impl Structure for CoastalWorkshop {
         painter
             .aabb(Aabb {
                 min: Vec2::new(center.x - length - 6, center.y - width - 6).with_z(base - height),
-                max: Vec2::new(center.x + length + 7, center.y + width + 7).with_z(base - 1),
+                max: Vec2::new(center.x + length + 7, center.y + width + 7).with_z(base - 2),
             })
             .fill(white.clone());
         for f in 0..8 {
