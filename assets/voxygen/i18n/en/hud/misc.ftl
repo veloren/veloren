@@ -54,5 +54,7 @@ hud-mine-needs_unhandled_case = Needs ???
 hud-talk = Talk
 hud-trade = Trade
 hud-mount = Mount
+hud-follow = Follow
+hud-stay= Stay
 hud-sit = Sit
 hud-steer = Steer

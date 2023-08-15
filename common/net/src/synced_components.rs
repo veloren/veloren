@@ -75,7 +75,6 @@ macro_rules! reexport_comps {
             pub use common::comp::*;
             use common::link::Is;
             use common::mounting::{Mount, Rider, VolumeRider};
-
             // We alias these because the identifier used for the
             // component's type is reused as an enum variant name
             // in the macro's that we pass to `synced_components!`.
@@ -104,8 +103,6 @@ synced_components!(reexport_comps);
 // ===============================
 
 use crate::sync::{NetSync, SyncFrom};
-
-// These are synced from any entity within range.
 
 impl NetSync for Body {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;

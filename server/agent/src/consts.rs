@@ -3,6 +3,9 @@ pub const FLEE_DURATION: f32 = 3.0;
 pub const NPC_PICKUP_RANGE: f32 = 2.5;
 pub const MAX_PATROL_DIST: f32 = 50.0;
 pub const MAX_PATH_DIST: f32 = 170.0;
+/// If the pet is any further than this value from its stay position, it will
+/// start walking back there
+pub const MAX_STAY_DISTANCE: f32 = 10.0;
 pub const PARTIAL_PATH_DIST: f32 = 50.0;
 pub const SEPARATION_DIST: f32 = 10.0;
 pub const SEPARATION_BIAS: f32 = 0.8;

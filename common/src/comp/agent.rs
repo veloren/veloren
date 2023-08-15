@@ -595,6 +595,7 @@ pub struct Agent {
     /// required and reset each time the flee timer is reset.
     pub flee_from_pos: Option<Pos>,
     pub awareness: Awareness,
+    pub stay_pos: Option<Pos>,
     /// Inputs sent up to rtsim
     pub rtsim_outbox: Option<VecDeque<NpcInput>>,
 }
@@ -700,6 +701,7 @@ impl Agent {
             sounds_heard: Vec::new(),
             position_pid_controller: None,
             flee_from_pos: None,
+            stay_pos: None,
             awareness: Awareness::new(0.0),
             rtsim_outbox: None,
         }

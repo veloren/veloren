@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recipe for shovel, which is used to dig in mud and graves
 - Recipe for a new leather pack
 - Keybinds for zooming the camera (Defaults: ']' for zooming in and '[' for zooming out)
+- Added the ability to make pets sit, they wont follow nor defend you in this state
 
 ### Changed
 

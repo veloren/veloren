@@ -17,7 +17,7 @@ use common::{
     consts::{MAX_MOUNT_RANGE, MAX_SPRITE_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     event::EventBus,
     link::Is,
-    mounting::{Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
+    mounting::{Mount, Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
     outcome::Outcome,
     rtsim::RtSimVehicle,
     terrain::{Block, SpriteKind},
@@ -132,7 +132,15 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
                     is_mountable(mount_body, state.ecs().read_storage().get(rider))
                 });
 
-            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride {
+            let is_stay = state
+                .ecs()
+                .read_storage::<comp::Agent>()
+                .get(mount)
+                .and_then(|x| x.stay_pos)
+                .is_some();
+
+            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride && !is_stay
+            {
                 drop(uids);
                 let _ = state.link(Mounting {
                     mount: mount_uid,
@@ -200,6 +208,46 @@ pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
     state.ecs().write_storage::<Is<Rider>>().remove(rider);
     state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);
+}
+
+pub fn handle_set_pet_stay(
+    server: &mut Server,
+    command_giver: EcsEntity,
+    pet: EcsEntity,
+    stay: bool,
+) {
+    let state = server.state_mut();
+    let positions = state.ecs().read_storage::<Pos>();
+    let is_owner = state
+        .ecs()
+        .uid_from_entity(command_giver)
+        .map_or(false, |owner_uid| {
+            matches!(
+                state
+                    .ecs()
+                    .read_storage::<comp::Alignment>()
+                    .get(pet),
+                Some(comp::Alignment::Owned(pet_owner)) if *pet_owner == owner_uid,
+            )
+        });
+
+    let current_pet_position = positions.get(pet).copied();
+    let stay = stay && current_pet_position.is_some();
+    if is_owner
+        && within_mounting_range(positions.get(command_giver), positions.get(pet))
+        && state.ecs().read_storage::<Is<Mount>>().get(pet).is_none()
+    {
+        state
+            .ecs()
+            .write_storage::<comp::CharacterActivity>()
+            .get_mut(pet)
+            .map(|mut activity| activity.is_pet_staying = stay);
+        state
+            .ecs()
+            .write_storage::<comp::Agent>()
+            .get_mut(pet)
+            .map(|s| s.stay_pos = current_pet_position);
+    }
 }
 
 fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&Pos>) -> bool {
