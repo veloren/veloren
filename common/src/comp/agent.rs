@@ -281,12 +281,10 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_small::Species::Fox => 0.7,
                     quadruped_small::Species::Sheep => 0.6,
                     quadruped_small::Species::Boar => 0.1,
-                    quadruped_small::Species::Jackalope => 0.0,
                     quadruped_small::Species::Skunk => 0.4,
                     quadruped_small::Species::Cat => 0.9,
                     quadruped_small::Species::Batfox => 0.1,
                     quadruped_small::Species::Raccoon => 0.6,
-                    quadruped_small::Species::Holladon => 0.0,
                     quadruped_small::Species::Hyena => 0.2,
                     quadruped_small::Species::Dog => 0.8,
                     quadruped_small::Species::Rabbit => 0.7,
@@ -295,10 +293,13 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_small::Species::Goat => 0.5,
                     quadruped_small::Species::Porcupine => 0.7,
                     quadruped_small::Species::Turtle => 0.7,
+                    quadruped_small::Species::Beaver => 0.7,
                     // FIXME: This is to balance for enemy rats in dungeons
                     // Normal rats should probably always flee.
-                    quadruped_small::Species::Rat => 0.0,
-                    quadruped_small::Species::Beaver => 0.7,
+                    quadruped_small::Species::Rat
+                    | quadruped_small::Species::TreantSapling
+                    | quadruped_small::Species::Holladon
+                    | quadruped_small::Species::Jackalope => 0.0,
                     _ => 1.0,
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
