@@ -1293,6 +1293,37 @@ impl Site {
         site
     }
 
+    pub fn generate_jungle_ruin(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: "".to_string(),
+            ..Site::default()
+        };
+        let size = 8.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let jungle_ruin = plot::JungleRuin::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let jungle_ruin_alt = jungle_ruin.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::JungleRuin(jungle_ruin),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(jungle_ruin_alt),
+            });
+        }
+        site
+    }
+
     pub fn generate_bridge(
         land: &Land,
         index: IndexRef,
@@ -1622,6 +1653,7 @@ impl Site {
                 PlotKind::CoastalWorkshop(coastal_workshop) => {
                     coastal_workshop.render_collect(self, canvas)
                 },
+                PlotKind::JungleRuin(jungle_ruin) => jungle_ruin.render_collect(self, canvas),
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
                 PlotKind::SeaChapel(sea_chapel) => sea_chapel.render_collect(self, canvas),

@@ -78,6 +78,7 @@ pub enum SiteKind {
     Bridge(site2::Site),
     Adlet(site2::Site),
     PirateHideout(site2::Site),
+    JungleRuin(site2::Site),
 }
 
 impl Site {
@@ -102,9 +103,9 @@ impl Site {
         }
     }
 
-    pub fn adlet(g: site2::Site) -> Self {
+    pub fn adlet(ad: site2::Site) -> Self {
         Self {
-            kind: SiteKind::Adlet(g),
+            kind: SiteKind::Adlet(ad),
             economy: Economy::default(),
         }
     }
@@ -151,6 +152,13 @@ impl Site {
         }
     }
 
+    pub fn jungle_ruin(jr: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::JungleRuin(jr),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn desert_city(dc: site2::Site) -> Self {
         Self {
             kind: SiteKind::DesertCity(dc),
@@ -165,9 +173,9 @@ impl Site {
         }
     }
 
-    pub fn dwarven_mine(p: site2::Site) -> Self {
+    pub fn dwarven_mine(dm: site2::Site) -> Self {
         Self {
-            kind: SiteKind::DwarvenMine(p),
+            kind: SiteKind::DwarvenMine(dm),
             economy: Economy::default(),
         }
     }
@@ -203,14 +211,15 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.radius(),
             SiteKind::CoastalTown(ct) => ct.radius(),
             SiteKind::PirateHideout(ph) => ph.radius(),
+            SiteKind::JungleRuin(jr) => jr.radius(),
             SiteKind::DesertCity(dc) => dc.radius(),
             SiteKind::ChapelSite(p) => p.radius(),
-            SiteKind::DwarvenMine(p) => p.radius(),
+            SiteKind::DwarvenMine(dm) => dm.radius(),
             SiteKind::Tree(t) => t.radius(),
             SiteKind::GiantTree(gt) => gt.radius(),
             SiteKind::Gnarling(g) => g.radius(),
             SiteKind::Bridge(b) => b.radius(),
-            SiteKind::Adlet(g) => g.radius(),
+            SiteKind::Adlet(ad) => ad.radius(),
         }
     }
 
@@ -224,14 +233,15 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.origin,
             SiteKind::CoastalTown(ct) => ct.origin,
             SiteKind::PirateHideout(ph) => ph.origin,
+            SiteKind::JungleRuin(jr) => jr.origin,
             SiteKind::DesertCity(dc) => dc.origin,
             SiteKind::ChapelSite(p) => p.origin,
-            SiteKind::DwarvenMine(p) => p.origin,
+            SiteKind::DwarvenMine(dm) => dm.origin,
             SiteKind::Tree(t) => t.origin,
             SiteKind::GiantTree(gt) => gt.origin,
             SiteKind::Gnarling(g) => g.origin,
             SiteKind::Bridge(b) => b.origin,
-            SiteKind::Adlet(g) => g.origin,
+            SiteKind::Adlet(ad) => ad.origin,
         }
     }
 
@@ -245,14 +255,15 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.spawn_rules(wpos),
             SiteKind::CoastalTown(ct) => ct.spawn_rules(wpos),
             SiteKind::PirateHideout(ph) => ph.spawn_rules(wpos),
+            SiteKind::JungleRuin(jr) => jr.spawn_rules(wpos),
             SiteKind::DesertCity(dc) => dc.spawn_rules(wpos),
             SiteKind::ChapelSite(p) => p.spawn_rules(wpos),
-            SiteKind::DwarvenMine(p) => p.spawn_rules(wpos),
+            SiteKind::DwarvenMine(dm) => dm.spawn_rules(wpos),
             SiteKind::Tree(t) => t.spawn_rules(wpos),
             SiteKind::GiantTree(gt) => gt.spawn_rules(wpos),
             SiteKind::Gnarling(g) => g.spawn_rules(wpos),
             SiteKind::Bridge(b) => b.spawn_rules(wpos),
-            SiteKind::Adlet(g) => g.spawn_rules(wpos),
+            SiteKind::Adlet(ad) => ad.spawn_rules(wpos),
         }
     }
 
@@ -266,14 +277,15 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.name(),
             SiteKind::CoastalTown(ct) => ct.name(),
             SiteKind::PirateHideout(ph) => ph.name(),
+            SiteKind::JungleRuin(jr) => jr.name(),
             SiteKind::DesertCity(dc) => dc.name(),
             SiteKind::ChapelSite(p) => p.name(),
-            SiteKind::DwarvenMine(p) => p.name(),
+            SiteKind::DwarvenMine(dm) => dm.name(),
             SiteKind::Tree(_) => "Giant Tree",
             SiteKind::GiantTree(gt) => gt.name(),
             SiteKind::Gnarling(g) => g.name(),
             SiteKind::Bridge(b) => b.name(),
-            SiteKind::Adlet(g) => g.name(),
+            SiteKind::Adlet(ad) => ad.name(),
         }
     }
 
@@ -287,7 +299,6 @@ impl Site {
             | SiteKind::CliffTown(_)
             | SiteKind::SavannahPit(_)
             | SiteKind::CoastalTown(_)
-            | SiteKind::PirateHideout(_)
             | SiteKind::DesertCity(_) => Some(common::trade::SiteInformation {
                 id: site_id,
                 unconsumed_stock: self.economy.get_available_stock(),
@@ -308,14 +319,15 @@ impl Site {
             SiteKind::SavannahPit(sp) => sp.render(canvas, dynamic_rng),
             SiteKind::CoastalTown(ct) => ct.render(canvas, dynamic_rng),
             SiteKind::PirateHideout(ph) => ph.render(canvas, dynamic_rng),
+            SiteKind::JungleRuin(jr) => jr.render(canvas, dynamic_rng),
             SiteKind::DesertCity(dc) => dc.render(canvas, dynamic_rng),
             SiteKind::ChapelSite(p) => p.render(canvas, dynamic_rng),
-            SiteKind::DwarvenMine(p) => p.render(canvas, dynamic_rng),
+            SiteKind::DwarvenMine(dm) => dm.render(canvas, dynamic_rng),
             SiteKind::Tree(t) => t.render(canvas, dynamic_rng),
             SiteKind::GiantTree(gt) => gt.render(canvas, dynamic_rng),
             SiteKind::Gnarling(g) => g.render(canvas, dynamic_rng),
             SiteKind::Bridge(b) => b.render(canvas, dynamic_rng),
-            SiteKind::Adlet(g) => g.render(canvas, dynamic_rng),
+            SiteKind::Adlet(ad) => ad.render(canvas, dynamic_rng),
         }
     }
 
@@ -342,14 +354,15 @@ impl Site {
             SiteKind::SavannahPit(_) => {},
             SiteKind::CoastalTown(_) => {},
             SiteKind::PirateHideout(_) => {},
+            SiteKind::JungleRuin(_) => {},
             SiteKind::DesertCity(_) => {},
             SiteKind::ChapelSite(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
-            SiteKind::DwarvenMine(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::DwarvenMine(dm) => dm.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Tree(_) => {},
             SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Bridge(b) => b.apply_supplement(dynamic_rng, wpos2d, supplement),
-            SiteKind::Adlet(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::Adlet(ad) => ad.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 
@@ -378,6 +391,7 @@ impl Site {
             SiteKind::SavannahPit(site2) => Some(site2),
             SiteKind::CoastalTown(site2) => Some(site2),
             SiteKind::PirateHideout(site2) => Some(site2),
+            SiteKind::JungleRuin(site2) => Some(site2),
             SiteKind::Tree(_) => None,
             SiteKind::DesertCity(site2) => Some(site2),
             SiteKind::ChapelSite(site2) => Some(site2),
