@@ -42,7 +42,6 @@ pub enum Spot {
     MyrmidonTemple,
     GnarlingTotem,
     WitchHouse,
-    PirateHideout,
     GnomeSpring,
     WolfBurrow,
     Igloo,
@@ -117,20 +116,6 @@ impl Spot {
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), Snowland)
-            },
-            false,
-        );
-        Self::generate_spots(
-            Spot::PirateHideout,
-            world,
-            1.3,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Forest | Jungle)
             },
             false,
         );
@@ -622,15 +607,6 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (3..5, "common.entity.dungeon.adlet.hunter"),
                     (3..5, "common.entity.dungeon.adlet.icepicker"),
                     (2..3, "common.entity.dungeon.adlet.tracker"),
-                ],
-            },
-            Spot::PirateHideout => SpotConfig {
-                base_structures: Some("spots_general.pirate_hideout"),
-                entity_radius: 70.0,
-                entities: &[
-                    (12..16, "common.entity.spot.pirate"),
-                    (2..4, "common.entity.wild.peaceful.parrot"),
-                    (4..6, "common.entity.wild.peaceful.rat"),
                 ],
             },
             Spot::GnarlingTotem => SpotConfig {

@@ -23,4 +23,5 @@ pub enum SettlementKindMeta {
     DesertCity,
     SavannahPit,
     CoastalTown,
+    PirateHideout,
 }

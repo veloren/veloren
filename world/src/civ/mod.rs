@@ -259,7 +259,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..64) {
+                let (loc, kind) = match ctx.rng.gen_range(0..78) {
                     0..=5 => (
                         find_site_loc(
                             &mut ctx,
@@ -337,6 +337,16 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),*/
+                    56..=68 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.pirate_hideout_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::PirateHideout,
+                        )?,
+                        SiteKind::PirateHideout,
+                    ),
                     _ => (
                         find_site_loc(
                             &mut ctx,
@@ -382,6 +392,7 @@ impl Civs {
                 SiteKind::Citadel => (16i32, 0.0),
                 SiteKind::Bridge(_, _) => (0, 0.0),
                 SiteKind::Adlet => (16i32, 0.0),
+                SiteKind::PirateHideout => (8i32, 3.0),
                 //SiteKind::DwarvenMine => (8i32, 3.0),
             };
 
@@ -485,6 +496,13 @@ impl Civs {
                     },
                     SiteKind::CoastalTown => {
                         WorldSite::coastal_town(site2::Site::generate_coastal_town(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                        ))
+                    },
+                    SiteKind::PirateHideout => {
+                        WorldSite::pirate_hideout(site2::Site::generate_pirate_hideout(
                             &Land::from_sim(ctx.sim),
                             &mut rng,
                             wpos,
@@ -1446,6 +1464,13 @@ impl Civs {
             }
         })
     }
+
+    fn pirate_hideout_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
 }
 
 /// Attempt to find a path between two locations
@@ -1775,6 +1800,7 @@ pub enum SiteKind {
     Citadel,
     Bridge(Vec2<i32>, Vec2<i32>),
     Adlet,
+    PirateHideout,
     //DwarvenMine,
 }
 
@@ -1844,6 +1870,9 @@ impl SiteKind {
                 SiteKind::CoastalTown => {
                     (2.0..3.5).contains(&(chunk.water_alt - CONFIG.sea_level))
                         && suitable_for_town()
+                },
+                SiteKind::PirateHideout => {
+                    (0.5..3.5).contains(&(chunk.water_alt - CONFIG.sea_level))
                 },
                 SiteKind::DesertCity => {
                     (0.9..1.0).contains(&chunk.temp) && !chunk.near_cliffs() && suitable_for_town()

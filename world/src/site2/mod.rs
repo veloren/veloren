@@ -1261,6 +1261,38 @@ impl Site {
         site
     }
 
+    pub fn generate_pirate_hideout(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: "".to_string(),
+            ..Site::default()
+        };
+        let size = 8.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let pirate_hideout =
+                plot::PirateHideout::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let pirate_hideout_alt = pirate_hideout.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::PirateHideout(pirate_hideout),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(pirate_hideout_alt),
+            });
+        }
+        site
+    }
+
     pub fn generate_bridge(
         land: &Land,
         index: IndexRef,
@@ -1613,6 +1645,9 @@ impl Site {
                 },
                 PlotKind::Citadel(citadel) => citadel.render_collect(self, canvas),
                 PlotKind::Bridge(bridge) => bridge.render_collect(self, canvas),
+                PlotKind::PirateHideout(pirate_hideout) => {
+                    pirate_hideout.render_collect(self, canvas)
+                },
                 PlotKind::Plaza | PlotKind::Road(_) => continue,
                 // _ => continue, Avoid using a wildcard here!!
             };

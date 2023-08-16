@@ -1,0 +1,9 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.spots.pirate_hideout",
+        center: (32, 27, 5),
+
+    ),
+]
