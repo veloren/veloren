@@ -414,8 +414,8 @@ fn goto_2d_flying<S: State>(
     height_offset: f32,
 ) -> impl Action<S> {
     now(move |ctx, _| {
-        let wpos = wpos2d
-            .with_z(ctx.world.sim().get_alt_approx(wpos2d.as_()).unwrap_or(0.0) + height_offset);
+        let wpos =
+            wpos2d.with_z(ctx.world.sim().get_surface_alt_approx(wpos2d.as_()) + height_offset);
         goto_flying(
             wpos,
             speed_factor,
@@ -1157,25 +1157,21 @@ fn bird_large() -> impl Action<DefaultState> {
         let is_deep_water = ctx
             .world
             .sim()
-            .get_interpolated(pos.as_(), |c| c.alt - c.water_alt)
-            .unwrap_or(f32::NEG_INFINITY)
-            < -120.0
-            && ctx
-                .world
-                .sim()
-                .get(pos.as_().wpos_to_cpos())
-                .map_or(false, |c| c.river.is_ocean() || c.river.is_lake());
+            .get(pos.as_().wpos_to_cpos())
+            .map_or(true, |c| {
+                c.alt - c.water_alt < -120.0 && (c.river.is_ocean() || c.river.is_lake())
+            });
         // when high tree_density fly high, otherwise fly low-mid
         let npc_pos = ctx.npc.wpos.xy();
-        let tree_density = ctx
+        let trees = ctx
             .world
             .sim()
-            .get_interpolated(npc_pos.as_(), |c| c.tree_density)
-            .unwrap_or(1.0);
-        let height_factor = if tree_density > 0.1 {
+            .get(npc_pos.as_().wpos_to_cpos())
+            .map_or(false, |c| c.tree_density > 0.1);
+        let height_factor = if trees {
             2.0
         } else {
-            ctx.rng.gen_range(0.1..0.5)
+            ctx.rng.gen_range(0.4..0.9)
         };
         if !is_deep_water {
             goto_2d_flying(
@@ -1228,14 +1224,10 @@ fn monster() -> impl Action<DefaultState> {
         let is_deep_water = ctx
             .world
             .sim()
-            .get_interpolated(pos.as_(), |c| c.alt - c.water_alt)
-            .unwrap_or(f32::NEG_INFINITY)
-            < -10.0
-            && ctx
-                .world
-                .sim()
-                .get(pos.as_().wpos_to_cpos())
-                .map_or(false, |c| c.river.is_ocean() || c.river.is_lake());
+            .get(pos.as_().wpos_to_cpos())
+            .map_or(true, |c| {
+                c.alt - c.water_alt < -10.0 && (c.river.is_ocean() || c.river.is_lake())
+            });
         if !is_deep_water {
             goto_2d(pos, 0.7, 8.0)
         } else {

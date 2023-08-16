@@ -382,7 +382,7 @@ impl<'a> From<&'a Body> for Psyche {
                 },
             },
             sight_dist: match body {
-                Body::BirdLarge(_) => 80.0,
+                Body::BirdLarge(_) => 100.0,
                 _ => 40.0,
             },
             listen_dist: 30.0,
