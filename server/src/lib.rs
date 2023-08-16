@@ -76,6 +76,7 @@ use common::{
     cmd::ServerChatCommand,
     comp,
     event::{EventBus, ServerEvent},
+    region::RegionMap,
     resources::{BattleMode, GameMode, Time, TimeOfDay},
     rtsim::{RtSimEntity, RtSimVehicle},
     shared_server_config::ServerConstants,
@@ -376,6 +377,9 @@ impl Server {
         state
             .ecs_mut()
             .insert(sys::PersistenceScheduler::every(Duration::from_secs(10)));
+
+        // Region map (spatial structure for entity synchronization)
+        state.ecs_mut().insert(RegionMap::new());
 
         // Server-only components
         state.ecs_mut().register::<RegionSubscription>();
@@ -754,7 +758,7 @@ impl Server {
         // events so that changes made by server events will be immediately
         // visible to client synchronization systems, minimizing the latency of
         // `ServerEvent` mediated effects
-        self.state.update_region_map();
+        self.update_region_map();
         // NOTE: apply_terrain_changes sends the *new* value since it is not being
         // synchronized during the tick.
         self.state.apply_terrain_changes(on_block_update);
@@ -1090,6 +1094,18 @@ impl Server {
             .ecs()
             .try_fetch_mut::<TerrainPersistence>()
             .map(|mut t| t.maintain());
+    }
+
+    // Run RegionMap tick to update entity region occupancy
+    fn update_region_map(&mut self) {
+        prof_span!("Server::update_region_map");
+        let ecs = self.state().ecs();
+        ecs.write_resource::<RegionMap>().tick(
+            ecs.read_storage::<comp::Pos>(),
+            ecs.read_storage::<comp::Vel>(),
+            ecs.read_storage::<comp::Presence>(),
+            ecs.entities(),
+        );
     }
 
     fn initialize_client(&mut self, client: connection_handler::IncomingClient) -> Entity {

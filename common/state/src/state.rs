@@ -12,7 +12,6 @@ use common::{
     link::Is,
     mounting::{Mount, Rider, VolumeRider, VolumeRiders},
     outcome::Outcome,
-    region::RegionMap,
     resources::{
         DeltaTime, EntitiesDiedLastTick, GameMode, PlayerEntity, PlayerPhysicsSettings, Time,
         TimeOfDay, TimeScale,
@@ -294,7 +293,6 @@ impl State {
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(comp::group::GroupManager::default());
-        ecs.insert(RegionMap::new());
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());
         ecs.insert(Trades::default());
@@ -528,16 +526,6 @@ impl State {
         }
     }
 
-    // Run RegionMap tick to update entity region occupancy
-    pub fn update_region_map(&self) {
-        span!(_guard, "update_region_map", "State::update_region_map");
-        self.ecs.write_resource::<RegionMap>().tick(
-            self.ecs.read_storage::<comp::Pos>(),
-            self.ecs.read_storage::<comp::Vel>(),
-            self.ecs.entities(),
-        );
-    }
-
     // Apply terrain changes
     pub fn apply_terrain_changes(&self, block_update: impl FnMut(&specs::World, Vec<BlockDiff>)) {
         self.apply_terrain_changes_internal(false, block_update);
@@ -547,10 +535,9 @@ impl State {
     /// [State::tick].
     ///
     /// This only happens if [State::tick] is asked to update terrain itself
-    /// (using `update_terrain_and_regions: true`).  [State::tick] is called
-    /// from within both the client and the server ticks, right after
-    /// handling terrain messages; currently, client sets it to true and
-    /// server to false.
+    /// (using `update_terrain: true`).  [State::tick] is called from within
+    /// both the client and the server ticks, right after handling terrain
+    /// messages; currently, client sets it to true and server to false.
     fn apply_terrain_changes_internal(
         &self,
         during_tick: bool,
@@ -628,7 +615,7 @@ impl State {
         &mut self,
         dt: Duration,
         add_systems: impl Fn(&mut DispatcherBuilder),
-        update_terrain_and_regions: bool,
+        update_terrain: bool,
         mut metrics: Option<&mut StateTickMetrics>,
         server_constants: &ServerConstants,
         block_update: impl FnMut(&specs::World, Vec<BlockDiff>),
@@ -656,10 +643,6 @@ impl State {
         self.ecs.write_resource::<DeltaTime>().0 =
             (dt.as_secs_f32() * time_scale as f32).min(MAX_DELTA_TIME);
 
-        if update_terrain_and_regions {
-            self.update_region_map();
-        }
-
         section_span!(guard, "create dispatcher");
         // Run systems to update the world.
         // Create and run a dispatcher for ecs systems.
@@ -679,7 +662,7 @@ impl State {
         self.ecs.maintain();
         drop(guard);
 
-        if update_terrain_and_regions {
+        if update_terrain {
             self.apply_terrain_changes_internal(true, block_update);
         }
 

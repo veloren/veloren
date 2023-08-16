@@ -55,6 +55,18 @@ impl PresenceKind {
             None
         }
     }
+
+    /// Controls whether this entity is synced to other clients.
+    ///
+    /// Note, if it ends up being useful this could be generalized to an
+    /// independent component that is required for any entity to be synced
+    /// (as an independent component it could use NullStorage).
+    pub fn sync_me(&self) -> bool {
+        match self {
+            Self::Spectator | Self::LoadingCharacter(_) => false,
+            Self::Character(_) | Self::Possessor => true,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

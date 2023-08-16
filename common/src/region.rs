@@ -1,4 +1,4 @@
-use crate::comp::{Pos, Vel};
+use crate::comp::{Pos, Presence, Vel};
 use common_base::span;
 use hashbrown::{hash_map::DefaultHashBuilder, HashSet};
 use indexmap::IndexMap;
@@ -69,7 +69,12 @@ const NEIGHBOR_OFFSETS: [Vec2<i32>; 8] = [
 #[derive(Default)]
 // TODO generic region size (16x16 for now)
 // TODO compare to sweep and prune approach
-/// A region system that tracks where entities are
+/// A region system that tracks where entities are.
+///
+/// Note, this structure is primarily intended for tracking which entities need
+/// to be synchronized to which clients (and as part of that what entities are
+/// already synchronized). If an entity is marked to not be synchronized to
+/// other clients it may not appear here.
 pub struct RegionMap {
     // Tree?
     // Sorted Vec? (binary search lookup)
@@ -92,7 +97,13 @@ impl RegionMap {
 
     // TODO maintain within a system?
     // TODO special case large entities
-    pub fn tick(&mut self, pos: ReadStorage<Pos>, vel: ReadStorage<Vel>, entities: Entities) {
+    pub fn tick(
+        &mut self,
+        pos: ReadStorage<Pos>,
+        vel: ReadStorage<Vel>,
+        presence: ReadStorage<Presence>,
+        entities: Entities,
+    ) {
         span!(_guard, "tick", "Region::tick");
         self.tick += 1;
         // Clear events within each region
@@ -101,9 +112,10 @@ impl RegionMap {
         });
 
         // Add any untracked entities
-        for (pos, id) in (&pos, &entities, !&self.tracked_entities)
+        for (pos, id) in (&pos, &entities, presence.maybe(), !&self.tracked_entities)
             .join()
-            .map(|(pos, e, _)| (pos, e.id()))
+            .filter(|(_, _, presence, _)| presence.map_or(true, |p| p.kind.sync_me()))
+            .map(|(pos, e, _, _)| (pos, e.id()))
             .collect::<Vec<_>>()
         {
             // Add entity
@@ -123,15 +135,21 @@ impl RegionMap {
             .iter()
             .enumerate()
             .for_each(|(i, (&current_region, region_data))| {
-                for (maybe_pos, _maybe_vel, id) in
-                    (pos.maybe(), vel.maybe(), &region_data.bitset).join()
+                for (maybe_pos, _maybe_vel, maybe_presence, id) in (
+                    pos.maybe(),
+                    vel.maybe(),
+                    presence.maybe(),
+                    &region_data.bitset,
+                )
+                    .join()
                 {
+                    let should_sync = maybe_presence.map_or(true, |p| p.kind.sync_me());
                     match maybe_pos {
                         // Switch regions for entities which need switching
                         // TODO don't check every tick (use velocity) (and use id to stagger)
                         // Starting parameters at v = 0 check every 100 ticks
                         // tether_length^2 / vel^2  (with a max of every tick)
-                        Some(pos) => {
+                        Some(pos) if should_sync => {
                             let pos = pos.0.map(|e| e as i32);
                             let key = Self::pos_key(pos);
                             // Consider switching
@@ -148,7 +166,7 @@ impl RegionMap {
                         },
                         // Remove any non-existant entities (or just ones that lost their position
                         // component) TODO: distribute this between ticks
-                        None => {
+                        None | Some(_) => {
                             // TODO: shouldn't there be a way to extract the bitset of entities with
                             // positions directly from specs? Yes, with `.mask()` on the component
                             // storage.
@@ -191,6 +209,13 @@ impl RegionMap {
         }
     }
 
+    /// Must be called immediately after succesfully deleting an entity from the
+    /// ecs (i.e. when deleting the entity did not generate a WrongGeneration
+    /// error).
+    pub fn entity_deleted(&mut self, entity: specs::Entity) {
+        self.tracked_entities.remove(entity.id());
+    }
+
     fn add_entity(&mut self, id: u32, pos: Vec3<i32>, from: Option<Vec2<i32>>) {
         let key = Self::pos_key(pos);
         if let Some(region) = self.regions.get_mut(&key) {
@@ -229,6 +254,8 @@ impl RegionMap {
                     }
                 }
             }
+        } else if !self.tracked_entities.contains(id) {
+            return None;
         } else {
             // Check neighbors
             for o in &NEIGHBOR_OFFSETS {
@@ -249,6 +276,11 @@ impl RegionMap {
         }
 
         None
+    }
+
+    /// Checks if this entity is located in the `RegionMap`.
+    pub fn in_region_map(&self, entity: specs::Entity) -> bool {
+        self.tracked_entities.contains(entity.id())
     }
 
     fn key_index(&self, key: Vec2<i32>) -> Option<usize> {

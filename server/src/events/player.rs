@@ -127,15 +127,16 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         error!("handle_exit_ingame called with entity that is missing expected components");
     }
 
-    let maybe_character = state
+    let (maybe_character, sync_me) = state
         .read_storage::<Presence>()
         .get(entity)
-        .and_then(|p| p.kind.character_id());
+        .map(|p| (p.kind.character_id(), p.kind.sync_me()))
+        .unzip();
     let maybe_rtsim = state.read_component_copied::<common::rtsim::RtSimEntity>(entity);
     state.mut_resource::<IdMaps>().remove_entity(
         Some(entity),
         None, // Uid re-mapped, we don't want to remove the mapping
-        maybe_character,
+        maybe_character.flatten(),
         maybe_rtsim,
     );
 
@@ -143,7 +144,9 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
     // Uid to a new entity (and e.g. don't want it to be unmapped).
     //
     // Delete old entity
-    if let Err(e) = crate::state_ext::delete_entity_common(state, entity, maybe_uid) {
+    if let Err(e) =
+        crate::state_ext::delete_entity_common(state, entity, maybe_uid, sync_me.unwrap_or(true))
+    {
         error!(
             ?e,
             ?entity,
