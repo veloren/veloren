@@ -283,7 +283,7 @@ impl SpriteKind {
             SpriteKind::Tomato => 1.65,
             SpriteKind::BarrelCactus => 1.0,
             SpriteKind::LargeCactus => 3.0,
-            SpriteKind::TallCactus => 2.5,
+            SpriteKind::TallCactus => 2.63,
             SpriteKind::Scarecrow => 3.0,
             SpriteKind::Turnip => 0.36,
             SpriteKind::Pumpkin => 0.81,
@@ -339,12 +339,12 @@ impl SpriteKind {
             SpriteKind::DismantlingBench => 1.18,
             SpriteKind::IceSpike => 1.0,
             SpriteKind::RepairBench => 1.2,
+            SpriteKind::RoundCactus => 0.72,
+            SpriteKind::ShortCactus => 1.36,
+            SpriteKind::MedFlatCactus => 1.36,
+            SpriteKind::ShortFlatCactus => 0.91,
             // TODO: Find suitable heights.
-            SpriteKind::RoundCactus
-            | SpriteKind::ShortCactus
-            | SpriteKind::MedFlatCactus
-            | SpriteKind::ShortFlatCactus
-            | SpriteKind::Apple
+            SpriteKind::Apple
             | SpriteKind::Beehive
             | SpriteKind::Velorite
             | SpriteKind::VeloriteFrag
