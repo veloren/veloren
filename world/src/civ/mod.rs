@@ -259,7 +259,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..78) {
+                let (loc, kind) = match ctx.rng.gen_range(0..84) {
                     0..=5 => (
                         find_site_loc(
                             &mut ctx,
@@ -347,6 +347,16 @@ impl Civs {
                         )?,
                         SiteKind::PirateHideout,
                     ),
+                    69..=75 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.jungle_ruin_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::JungleRuin,
+                        )?,
+                        SiteKind::JungleRuin,
+                    ),
                     _ => (
                         find_site_loc(
                             &mut ctx,
@@ -384,6 +394,7 @@ impl Civs {
                 SiteKind::CliffTown => (64i32, 25.0),
                 SiteKind::SavannahPit => (48i32, 25.0),
                 SiteKind::CoastalTown => (64i32, 35.0),
+                SiteKind::JungleRuin => (8i32, 3.0),
                 SiteKind::DesertCity => (64i32, 25.0),
                 SiteKind::ChapelSite => (36i32, 10.0),
                 SiteKind::Tree => (12i32, 8.0),
@@ -508,6 +519,9 @@ impl Civs {
                             wpos,
                         ))
                     },
+                    SiteKind::JungleRuin => WorldSite::jungle_ruin(
+                        site2::Site::generate_jungle_ruin(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
                     SiteKind::DesertCity => WorldSite::desert_city(
                         site2::Site::generate_desert_city(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
@@ -1448,6 +1462,13 @@ impl Civs {
         })
     }
 
+    fn jungle_ruin_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
     fn town_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Castle | SiteKind::Citadel => None,
@@ -1802,6 +1823,7 @@ pub enum SiteKind {
     Adlet,
     PirateHideout,
     //DwarvenMine,
+    JungleRuin,
 }
 
 impl SiteKind {
@@ -1859,7 +1881,10 @@ impl SiteKind {
                 },
                 SiteKind::Citadel => true,
                 SiteKind::CliffTown => {
-                    (-0.6..0.4).contains(&chunk.temp) && chunk.near_cliffs() && suitable_for_town()
+                    (-0.6..0.4).contains(&chunk.temp)
+                        && chunk.near_cliffs()
+                        && !chunk.river.near_water()
+                        && suitable_for_town()
                 },
                 SiteKind::SavannahPit => {
                     matches!(chunk.get_biome(), BiomeKind::Savannah)
@@ -1873,6 +1898,9 @@ impl SiteKind {
                 },
                 SiteKind::PirateHideout => {
                     (0.5..3.5).contains(&(chunk.water_alt - CONFIG.sea_level))
+                },
+                SiteKind::JungleRuin => {
+                    matches!(chunk.get_biome(), BiomeKind::Jungle)
                 },
                 SiteKind::DesertCity => {
                     (0.9..1.0).contains(&chunk.temp) && !chunk.near_cliffs() && suitable_for_town()

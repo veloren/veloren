@@ -12,6 +12,7 @@ mod dwarven_mine;
 mod giant_tree;
 mod gnarling;
 mod house;
+mod jungle_ruin;
 mod pirate_hideout;
 mod savannah_hut;
 mod savannah_pit;
@@ -24,9 +25,9 @@ pub use self::{
     cliff_tower::CliffTower, coastal_house::CoastalHouse, coastal_workshop::CoastalWorkshop,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
-    gnarling::GnarlingFortification, house::House, pirate_hideout::PirateHideout,
-    savannah_hut::SavannahHut, savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop,
-    sea_chapel::SeaChapel, workshop::Workshop,
+    gnarling::GnarlingFortification, house::House, jungle_ruin::JungleRuin,
+    pirate_hideout::PirateHideout, savannah_hut::SavannahHut, savannah_pit::SavannahPit,
+    savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel, workshop::Workshop,
 };
 
 use super::*;
@@ -74,6 +75,7 @@ pub enum PlotKind {
     DesertCityMultiPlot(DesertCityMultiPlot),
     DesertCityTemple(DesertCityTemple),
     SeaChapel(SeaChapel),
+    JungleRuin(JungleRuin),
     Plaza,
     Castle(Castle),
     Road(Path<Vec2<i32>>),

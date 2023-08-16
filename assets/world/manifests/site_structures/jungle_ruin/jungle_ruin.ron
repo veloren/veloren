@@ -1,0 +1,292 @@
+#![enable(unwrap_newtypes)]
+[
+    (
+        specifier: "world.structure.jungle_ruin.0",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.1",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.3",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.4",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.5",
+        center: (10, 10, 2)
+    ),    
+    (
+        specifier: "world.structure.jungle_ruin.6",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.6",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.8",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.9",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.10",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.11",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.12",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.13",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.14",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.15",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.16",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.17",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.18",
+        center: (10, 10, 2)
+    ),   
+    (
+        specifier: "world.structure.jungle_ruin.19",
+        center: (10, 10, 2)
+    ), 
+    (
+        specifier: "world.structure.jungle_ruin.20",
+        center: (10, 10, 2)
+    ),          
+    (
+        specifier: "world.structure.jungle_ruin.21",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.22",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.23",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.24",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.25",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.26",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.27",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.28",
+        center: (10, 10, 2)
+    ),   
+    (
+        specifier: "world.structure.jungle_ruin.29",
+        center: (10, 10, 2)
+    ), 
+    (
+        specifier: "world.structure.jungle_ruin.30",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.31",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.32",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.33",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.34",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.35",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.36",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.37",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.38",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.39",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.40",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.41",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.42",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.43",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.44",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.45",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.46",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.47",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.48",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.49",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.50",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.51",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.52",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.53",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.54",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.55",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.56",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.57",
+        center: (10, 10, 2)
+    ),
+
+    (
+        specifier: "world.structure.jungle_ruin.58",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.59",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.60",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.61",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.62",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.63",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.64",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.65",
+        center: (10, 10, 2)
+    ),
+    (
+        specifier: "world.structure.jungle_ruin.66",
+        center: (10, 10, 2)
+    ),        
+]
