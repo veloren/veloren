@@ -31,6 +31,7 @@ impl Site {
             SiteKind::Dungeon(_)
             | SiteKind::ChapelSite(_)
             | SiteKind::Gnarling(_)
+            | SiteKind::PirateHideout(_)
             | SiteKind::Adlet(_) => Some(false),
             SiteKind::DwarvenMine(_) => Some(false),
             // Neutral

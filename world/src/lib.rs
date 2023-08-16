@@ -157,13 +157,14 @@ impl World {
                     .civs()
                     .sites
                     .iter()
+                    .filter(|(_, site)| !matches!(&site.kind, civ::SiteKind::PirateHideout))
                     .map(|(_, site)| {
                         world_msg::SiteInfo {
                             id: site.site_tmp.map(|i| i.id()).unwrap_or_default(),
                             name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
                             // TODO: Probably unify these, at some point
                             kind: match &site.kind {
-                                civ::SiteKind::Settlement | civ::SiteKind::Refactor | civ::SiteKind::CliffTown | civ::SiteKind::SavannahPit | civ::SiteKind::CoastalTown | civ::SiteKind::DesertCity => world_msg::SiteKind::Town,
+                                civ::SiteKind::Settlement | civ::SiteKind::Refactor | civ::SiteKind::CliffTown | civ::SiteKind::SavannahPit | civ::SiteKind::CoastalTown | civ::SiteKind::DesertCity | civ::SiteKind::PirateHideout => world_msg::SiteKind::Town,
                                 civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
                                     difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
                                         Some(SiteKind::Dungeon(d)) => d.dungeon_difficulty().unwrap_or(0),
