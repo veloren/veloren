@@ -141,6 +141,9 @@ pub struct SlotManager<S: SumSlot> {
     // Note: could potentially be specialized for each slot if needed
     drag_img_size: Vec2<f32>,
     pub mouse_over_slot: Option<S>,
+    // Si prefixes settings
+    use_prefixes: bool,
+    prefix_switch_point: u32,
     /* TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in
      * hand".
      *
@@ -170,6 +173,8 @@ where
     pub fn new(
         mut gen: widget::id::Generator,
         drag_img_size: Vec2<f32>,
+        use_prefixes: bool,
+        prefix_switch_point: u32,
         /* TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in
          * hand". amount_font: font::Id,
          * amount_margins: Vec2<f32>,
@@ -183,6 +188,8 @@ where
             events: Vec::new(),
             drag_id: gen.next(),
             mouse_over_slot: None,
+            use_prefixes,
+            prefix_switch_point,
             // TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in
             // hand". drag_amount_id: gen.next(),
             // drag_amount_shadow_id: gen.next(),
@@ -303,6 +310,12 @@ where
         }
 
         core::mem::take(&mut self.events)
+    }
+
+    pub fn set_use_prefixes(&mut self, use_prefixes: bool) { self.use_prefixes = use_prefixes; }
+
+    pub fn set_prefix_switch_point(&mut self, prefix_switch_point: u32) {
+        self.prefix_switch_point = prefix_switch_point;
     }
 
     fn update(
@@ -580,7 +593,7 @@ where
     fn style(&self) -> Self::Style {}
 
     /// Update the state of the Slot.
-    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+    fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
             id,
             state,
@@ -622,7 +635,7 @@ where
         // Get image ids
         let content_images = state.cached_images.as_ref().map(|c| c.1.clone());
         // Get whether this slot is selected
-        let interaction = self.slot_manager.map_or(Interaction::None, |m| {
+        let interaction = self.slot_manager.as_mut().map_or(Interaction::None, |m| {
             m.update(
                 id,
                 slot_key.into(),
@@ -698,11 +711,29 @@ where
 
         // Draw amount
         if let Some(amount) = amount {
-            let amount = match amount {
-                amount if amount > 1_000_000_000 => format!("{}G", amount / 1_000_000_000),
-                amount if amount > 1_000_000 => format!("{}M", amount / 1_000_000),
-                amount if amount > 1_000 => format!("{}K", amount / 1_000),
-                amount => format!("{}", amount),
+            let amount = match self
+                .slot_manager
+                .as_ref()
+                .map_or(true, |sm| sm.use_prefixes)
+            {
+                true => {
+                    let threshold = amount
+                        / (u32::pow(
+                            10,
+                            self.slot_manager
+                                .map_or(4, |sm| sm.prefix_switch_point)
+                                .saturating_sub(4),
+                        ));
+                    match amount {
+                        amount if threshold >= 1_000_000_000 => {
+                            format!("{}G", amount / 1_000_000_000)
+                        },
+                        amount if threshold >= 1_000_000 => format!("{}M", amount / 1_000_000),
+                        amount if threshold >= 1_000 => format!("{}K", amount / 1_000),
+                        amount => format!("{}", amount),
+                    }
+                },
+                false => format!("{}", amount),
             };
             // Text shadow
             Text::new(&amount)

@@ -78,6 +78,13 @@ widget_ids! {
         buff_pos_map_button,
         buff_pos_map_text,
         //
+        slots_title,
+        slots_use_prefixes_text,
+        slots_use_prefixes_radio,
+        slots_prefix_switch_point_slider,
+        slots_prefix_switch_point_text,
+        slots_prefix_switch_point_value,
+        //
         sct_title,
         sct_show_text,
         sct_show_radio,
@@ -755,6 +762,78 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.show_shortcuts_button)
             .color(TEXT_COLOR)
             .set(state.ids.buff_pos_map_text, ui);
+        // Slots text
+        Text::new(&self.localized_strings.get_msg("hud-settings-slots"))
+            .down_from(state.ids.buff_pos_map_button, 20.0)
+            .font_size(self.fonts.cyri.scale(18))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.slots_title, ui);
+        // Prefix switch checkbox
+        let slots_use_prefixes = ToggleButton::new(
+            self.global_state.settings.interface.slots_use_prefixes,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.slots_title, 20.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.slots_use_prefixes_radio, ui);
+        if self.global_state.settings.interface.slots_use_prefixes != slots_use_prefixes {
+            events.push(SlotsUsePrefixes(
+                !self.global_state.settings.interface.slots_use_prefixes,
+            ));
+        }
+        Text::new(&self.localized_strings.get_msg("hud-settings-use_prefixes"))
+            .right_from(state.ids.slots_use_prefixes_radio, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.slots_use_prefixes_radio)
+            .color(TEXT_COLOR)
+            .set(state.ids.slots_use_prefixes_text, ui);
+        if self.global_state.settings.interface.slots_use_prefixes {
+            let prefix_switch_point = self
+                .global_state
+                .settings
+                .interface
+                .slots_prefix_switch_point;
+
+            Text::new(
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-prefix_switch_point"),
+            )
+            .down_from(state.ids.slots_use_prefixes_radio, 8.0)
+            .right_from(state.ids.slots_use_prefixes_radio, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.slots_prefix_switch_point_text, ui);
+            if let Some(new_val) = ImageSlider::discrete(
+                prefix_switch_point,
+                4,
+                7,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(208.0, 22.0)
+            .down_from(state.ids.slots_prefix_switch_point_text, 8.0)
+            .track_breadth(30.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.slots_prefix_switch_point_slider, ui)
+            {
+                events.push(SlotsPrefixSwitchPoint(new_val));
+            }
+            Text::new(&format!("{prefix_switch_point}"))
+                .right_from(state.ids.slots_prefix_switch_point_slider, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .graphics_for(state.ids.slots_prefix_switch_point_slider)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.slots_prefix_switch_point_value, ui);
+        }
 
         // Content Right Side
 
@@ -1253,7 +1332,15 @@ impl<'a> Widget for Interface<'a> {
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.buff_pos_map_button, 12.0)
+            .down_from(
+                if self.global_state.settings.interface.slots_use_prefixes {
+                    state.ids.slots_prefix_switch_point_slider
+                } else {
+                    state.ids.slots_use_prefixes_radio
+                },
+                12.0,
+            )
+            .x_align_to(state.ids.slots_use_prefixes_radio, Align::Start)
             .label(
                 &self
                     .localized_strings
