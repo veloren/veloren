@@ -3,7 +3,8 @@ use crate::{
     comp::{
         self, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
-        Alignment, Body, Item, Teleporter,
+        misc::PortalData,
+        Alignment, Body, Item,
     },
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
@@ -166,7 +167,7 @@ pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
 #[derive(Clone)]
 pub enum SpecialEntity {
     Waypoint,
-    Teleporter(Teleporter),
+    Teleporter(PortalData),
 }
 
 #[derive(Clone)]

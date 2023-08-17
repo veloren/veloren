@@ -46,7 +46,6 @@ macro_rules! synced_components {
             beam_segment: BeamSegment,
             alignment: Alignment,
             stance: Stance,
-            teleporter: Teleporter,
             // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
             // from other entities (e.g. just keys needed to show appearance
             // based on their loadout). Also, it looks like this actually has
@@ -232,10 +231,6 @@ impl NetSync for SkillSet {
 }
 
 impl NetSync for Stance {
-    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
-}
-
-impl NetSync for Teleporter {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

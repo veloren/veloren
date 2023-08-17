@@ -9,7 +9,7 @@ use crate::{
 use common::{
     assets::{self, AssetExt, AssetHandle},
     astar::Astar,
-    comp::Teleporter,
+    comp::misc::PortalData,
     generation::{ChunkSupplement, EntityInfo, SpecialEntity},
     resources::Secs,
     store::{Id, Store},
@@ -666,14 +666,14 @@ impl Floor {
 
                     // Move both a bit to the side to prevent teleportation loop, ideally we'd have the portals at another location
                     supplement.add_entity(EntityInfo::at(top_pos).into_special(
-                        SpecialEntity::Teleporter(Teleporter {
+                        SpecialEntity::Teleporter(PortalData {
                             target: bottom_pos + Vec3::unit_x() * 5.,
                             requires_no_aggro: true,
                             buildup_time: Secs(5.),
                         }),
                     ));
                     supplement.add_entity(EntityInfo::at(bottom_pos).into_special(
-                        SpecialEntity::Teleporter(Teleporter {
+                        SpecialEntity::Teleporter(PortalData {
                             target: top_pos + Vec3::unit_x() * 5.,
                             requires_no_aggro: true,
                             buildup_time: Secs(5.),

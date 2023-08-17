@@ -33,21 +33,20 @@ use common::{
             slot::Slot,
         },
         invite::InviteKind,
-        AdminRole, ChatType, Inventory, Item, LightEmitter, Presence, PresenceKind, WaypointArea,
+        misc::PortalData,
+        AdminRole, ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
     depot,
     effect::Effect,
     event::{EventBus, ServerEvent},
     generation::{EntityConfig, EntityInfo},
-    link::Is,
-    mounting::{Rider, VolumeRider},
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
-    uid::{IdMaps, Uid},
+    uid::Uid,
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
@@ -221,89 +220,6 @@ fn position(server: &Server, entity: EcsEntity, descriptor: &str) -> CmdResult<c
         .get(entity)
         .copied()
         .ok_or_else(|| format!("Cannot get position for {:?}!", descriptor))
-}
-
-fn position_mut<T>(
-    server: &mut Server,
-    entity: EcsEntity,
-    descriptor: &str,
-    dismount_volume: Option<bool>,
-    f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
-) -> CmdResult<T> {
-    if dismount_volume.unwrap_or(true) {
-        server
-            .state
-            .ecs()
-            .write_storage::<Is<VolumeRider>>()
-            .remove(entity);
-    }
-
-    let entity = server
-        .state
-        .read_storage::<Is<Rider>>()
-        .get(entity)
-        .and_then(|is_rider| {
-            server
-                .state
-                .ecs()
-                .read_resource::<IdMaps>()
-                .uid_entity(is_rider.mount)
-        })
-        .map(Ok)
-        .or_else(|| {
-            server
-                .state
-                .read_storage::<Is<VolumeRider>>()
-                .get(entity)
-                .and_then(|volume_rider| {
-                    Some(match volume_rider.pos.kind {
-                        common::mounting::Volume::Terrain => {
-                            Err("Tried to move the world.".to_string())
-                        },
-                        common::mounting::Volume::Entity(uid) => Ok(server
-                            .state
-                            .ecs()
-                            .read_resource::<IdMaps>()
-                            .uid_entity(uid)?),
-                    })
-                })
-        })
-        .unwrap_or(Ok(entity))?;
-
-    let mut maybe_pos = None;
-
-    let res = server
-        .state
-        .ecs()
-        .write_storage::<comp::Pos>()
-        .get_mut(entity)
-        .map(|pos| {
-            let res = f(pos);
-            maybe_pos = Some(pos.0);
-            res
-        })
-        .ok_or_else(|| format!("Cannot get position for {:?}!", descriptor));
-
-    if let Some(pos) = maybe_pos {
-        if server
-            .state
-            .ecs()
-            .read_storage::<Presence>()
-            .get(entity)
-            .map(|presence| presence.kind == PresenceKind::Spectator)
-            .unwrap_or(false)
-        {
-            server.notify_client(entity, ServerGeneral::SpectatePosition(pos));
-        } else {
-            server
-                .state
-                .ecs()
-                .write_storage::<comp::ForceUpdate>()
-                .get_mut(entity)
-                .map(|force_update| force_update.update());
-        }
-    }
-    res
 }
 
 fn insert_or_replace_component<C: specs::Component>(
@@ -859,9 +775,11 @@ fn handle_jump(
 ) -> CmdResult<()> {
     if let (Some(x), Some(y), Some(z), dismount_volume) = parse_cmd_args!(args, f32, f32, f32, bool)
     {
-        position_mut(server, target, "target", dismount_volume, |current_pos| {
-            current_pos.0 += Vec3::new(x, y, z)
-        })
+        server
+            .state
+            .position_mut(target, dismount_volume, |current_pos| {
+                current_pos.0 += Vec3::new(x, y, z)
+            })
     } else {
         Err(action.help_string())
     }
@@ -876,9 +794,11 @@ fn handle_goto(
 ) -> CmdResult<()> {
     if let (Some(x), Some(y), Some(z), dismount_volume) = parse_cmd_args!(args, f32, f32, f32, bool)
     {
-        position_mut(server, target, "target", dismount_volume, |current_pos| {
-            current_pos.0 = Vec3::new(x, y, z)
-        })
+        server
+            .state
+            .position_mut(target, dismount_volume, |current_pos| {
+                current_pos.0 = Vec3::new(x, y, z)
+            })
     } else {
         Err(action.help_string())
     }
@@ -911,9 +831,11 @@ fn handle_site(
             false,
         );
 
-        position_mut(server, target, "target", dismount_volume, |current_pos| {
-            current_pos.0 = site_pos
-        })
+        server
+            .state
+            .position_mut(target, dismount_volume, |current_pos| {
+                current_pos.0 = site_pos
+            })
     } else {
         Err(action.help_string())
     }
@@ -936,9 +858,11 @@ fn handle_respawn(
         .ok_or("No waypoint set")?
         .get_pos();
 
-    position_mut(server, target, "target", Some(true), |current_pos| {
-        current_pos.0 = waypoint;
-    })
+    server
+        .state
+        .position_mut(target, Some(true), |current_pos| {
+            current_pos.0 = waypoint;
+        })
 }
 
 fn handle_kill(
@@ -1308,9 +1232,11 @@ fn handle_tp(
         return Err(action.help_string());
     };
     let player_pos = position(server, player, "player")?;
-    position_mut(server, target, "target", dismount_volume, |target_pos| {
-        *target_pos = player_pos
-    })
+    server
+        .state
+        .position_mut(target, dismount_volume, |target_pos| {
+            *target_pos = player_pos
+        })
 }
 
 fn handle_rtsim_tp(
@@ -1338,9 +1264,11 @@ fn handle_rtsim_tp(
     } else {
         return Err(action.help_string());
     };
-    position_mut(server, target, "target", dismount_volume, |target_pos| {
-        target_pos.0 = pos;
-    })
+    server
+        .state
+        .position_mut(target, dismount_volume, |target_pos| {
+            target_pos.0 = pos;
+        })
 }
 
 fn handle_rtsim_info(
@@ -2058,10 +1986,10 @@ fn handle_spawn_portal(
         let buildup_time = Secs(buildup_time.unwrap_or(7.));
         server
             .state
-            .create_teleporter(pos, comp::Teleporter {
+            .create_teleporter(pos, PortalData {
                 target: Vec3::new(x, y, z),
-                requires_no_aggro,
                 buildup_time,
+                requires_no_aggro,
             })
             .build();
 
@@ -4112,7 +4040,7 @@ fn handle_location(
     if let Some(name) = parse_cmd_args!(args, String) {
         let loc = server.state.ecs().read_resource::<Locations>().get(&name);
         match loc {
-            Ok(loc) => position_mut(server, target, "target", Some(true), |target_pos| {
+            Ok(loc) => server.state.position_mut(target, Some(true), |target_pos| {
                 target_pos.0 = loc;
             }),
             Err(e) => Err(e.to_string()),

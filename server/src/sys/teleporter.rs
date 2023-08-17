@@ -1,5 +1,6 @@
 use common::{
-    comp::{object, Agent, Alignment, Body, CharacterState, Pos, Teleporter, Teleporting},
+    comp::{Agent, Alignment, CharacterState, Object, Pos, Teleporting},
+    consts::TELEPORTER_RADIUS,
     event::{EventBus, ServerEvent},
     resources::Time,
     uid::Uid,
@@ -9,7 +10,6 @@ use common_ecs::{Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 use vek::Vec3;
 
-pub const TELEPORT_RADIUS: f32 = 3.;
 const MAX_AGGRO_DIST: f32 = 200.; // If an entity further than this is aggroed at a player, the portal will still work
 const PET_TELEPORT_RADIUS: f32 = 20.;
 
@@ -17,7 +17,7 @@ const PET_TELEPORT_RADIUS: f32 = 20.;
 pub struct Sys;
 
 fn in_portal_range(player_pos: Vec3<f32>, portal_pos: Vec3<f32>) -> bool {
-    player_pos.distance_squared(portal_pos) <= (TELEPORT_RADIUS).powi(2)
+    player_pos.distance_squared(portal_pos) <= TELEPORTER_RADIUS.powi(2)
 }
 
 impl<'a> System<'a> for Sys {
@@ -25,11 +25,10 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Uid>,
-        ReadStorage<'a, Teleporter>,
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Agent>,
+        ReadStorage<'a, Object>,
         WriteStorage<'a, Teleporting>,
-        ReadStorage<'a, Body>,
         ReadStorage<'a, CharacterState>,
         Read<'a, CachedSpatialGrid>,
         Read<'a, Time>,
@@ -46,11 +45,10 @@ impl<'a> System<'a> for Sys {
             entities,
             positions,
             uids,
-            teleporters,
             alignments,
             agent,
+            objects,
             mut teleporting,
-            bodies,
             character_states,
             spatial_grid,
             time,
@@ -72,31 +70,6 @@ impl<'a> System<'a> for Sys {
 
         let mut cancel_teleporting = Vec::new();
 
-        for (portal_entity, teleporter_pos, body, _) in
-            (&entities, &positions, &bodies, &teleporters).join()
-        {
-            let is_active = spatial_grid
-                .0
-                .in_circle_aabr(teleporter_pos.0.xy(), TELEPORT_RADIUS)
-                .any(|entity| {
-                    (&positions, &teleporting)
-                        .join()
-                        .get(entity, &entities)
-                        .map_or(false, |(pos, _)| in_portal_range(pos.0, teleporter_pos.0))
-                });
-
-            if (*body == Body::Object(object::Body::PortalActive)) != is_active {
-                event_bus.emit_now(ServerEvent::ChangeBody {
-                    entity: portal_entity,
-                    new_body: Body::Object(if is_active {
-                        object::Body::PortalActive
-                    } else {
-                        object::Body::Portal
-                    }),
-                });
-            }
-        }
-
         for (entity, uid, position, teleporting, character_state) in (
             &entities,
             &uids,
@@ -107,14 +80,16 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             let portal_pos = positions.get(teleporting.portal);
-            let Some(teleporter) = teleporters.get(teleporting.portal) else {
+            let Some(Object::Portal { target, requires_no_aggro, .. }) = objects
+                .get(teleporting.portal)
+            else {
                 cancel_teleporting.push(entity);
                 continue
             };
 
             if portal_pos.map_or(true, |portal_pos| {
                 !in_portal_range(position.0, portal_pos.0)
-            }) || (teleporter.requires_no_aggro && check_aggro(entity, position.0))
+            }) || (*requires_no_aggro && check_aggro(entity, position.0))
                 || !matches!(
                     character_state,
                     CharacterState::Idle(_) | CharacterState::Wielding(_)
@@ -142,7 +117,7 @@ impl<'a> System<'a> for Sys {
                     cancel_teleporting.push(entity);
                     event_bus.emit_now(ServerEvent::TeleportToPosition {
                         entity,
-                        position: teleporter.target,
+                        position: *target,
                     });
                 }
             }

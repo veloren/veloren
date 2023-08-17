@@ -18,13 +18,14 @@ use common::{
     comp::{
         self,
         item::{ItemKind, MaterialStatManifest},
+        misc::PortalData,
         object,
         skills::{GeneralSkill, Skill},
         ChatType, Group, Inventory, Item, LootOwner, Object, Player, Poise, Presence, PresenceKind,
     },
     effect::Effect,
-    link::{Link, LinkHandle},
-    mounting::{Mounting, VolumeMounting},
+    link::{Is, Link, LinkHandle},
+    mounting::{Mounting, Rider, VolumeMounting, VolumeRider},
     resources::{Secs, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
@@ -118,11 +119,7 @@ pub trait StateExt {
     /// Creates a teleporter entity, which allows players to teleport to the
     /// `target` position. You might want to require the teleporting entity
     /// to not have agro for teleporting.
-    fn create_teleporter(
-        &mut self,
-        pos: comp::Pos,
-        teleporter: comp::Teleporter,
-    ) -> EcsEntityBuilder;
+    fn create_teleporter(&mut self, pos: comp::Pos, portal: PortalData) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
     fn initialize_character_data(
         &mut self,
@@ -161,6 +158,12 @@ pub trait StateExt {
     ) -> Result<(), specs::error::WrongGeneration>;
     /// Get the given entity as an [`Actor`], if it is one.
     fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor>;
+    fn position_mut<T>(
+        &mut self,
+        entity: EcsEntity,
+        dismount_volume: Option<bool>,
+        f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
+    ) -> Result<T, String>;
 }
 
 impl StateExt for State {
@@ -616,14 +619,10 @@ impl StateExt for State {
             ))
     }
 
-    fn create_teleporter(
-        &mut self,
-        pos: comp::Pos,
-        teleporter: comp::Teleporter,
-    ) -> EcsEntityBuilder {
+    fn create_teleporter(&mut self, pos: comp::Pos, portal: PortalData) -> EcsEntityBuilder {
         self.create_object(pos, object::Body::Portal)
             .with(comp::Immovable)
-            .with(teleporter)
+            .with(comp::Object::from(portal))
     }
 
     fn initialize_character_data(
@@ -1243,6 +1242,76 @@ impl StateExt for State {
         } else {
             None
         }
+    }
+
+    fn position_mut<T>(
+        &mut self,
+        entity: EcsEntity,
+        dismount_volume: Option<bool>,
+        f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
+    ) -> Result<T, String> {
+        if dismount_volume.unwrap_or(true) {
+            self.ecs().write_storage::<Is<VolumeRider>>().remove(entity);
+        }
+
+        let entity = self
+            .read_storage::<Is<Rider>>()
+            .get(entity)
+            .and_then(|is_rider| {
+                self.ecs()
+                    .read_resource::<IdMaps>()
+                    .uid_entity(is_rider.mount)
+            })
+            .map(Ok)
+            .or_else(|| {
+                self.read_storage::<Is<VolumeRider>>()
+                    .get(entity)
+                    .and_then(|volume_rider| {
+                        Some(match volume_rider.pos.kind {
+                            common::mounting::Volume::Terrain => {
+                                Err("Tried to move the world.".to_string())
+                            },
+                            common::mounting::Volume::Entity(uid) => {
+                                Ok(self.ecs().read_resource::<IdMaps>().uid_entity(uid)?)
+                            },
+                        })
+                    })
+            })
+            .unwrap_or(Ok(entity))?;
+
+        let mut maybe_pos = None;
+
+        let res = self
+            .ecs()
+            .write_storage::<comp::Pos>()
+            .get_mut(entity)
+            .map(|pos| {
+                let res = f(pos);
+                maybe_pos = Some(pos.0);
+                res
+            })
+            .ok_or_else(|| "Cannot get position for entity!".to_string());
+
+        if let Some(pos) = maybe_pos {
+            if self
+                .ecs()
+                .read_storage::<Presence>()
+                .get(entity)
+                .map(|presence| presence.kind == PresenceKind::Spectator)
+                .unwrap_or(false)
+            {
+                self.read_storage::<Client>().get(entity).map(|client| {
+                    client.send_fallible(ServerGeneral::SpectatePosition(pos));
+                });
+            } else {
+                self.ecs()
+                    .write_storage::<comp::ForceUpdate>()
+                    .get_mut(entity)
+                    .map(|force_update| force_update.update());
+            }
+        }
+
+        res
     }
 }
 

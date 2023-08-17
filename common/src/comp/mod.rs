@@ -23,7 +23,7 @@ mod last;
 mod location;
 pub mod loot_owner;
 pub mod melee;
-mod misc;
+pub mod misc;
 pub mod ori;
 pub mod pet;
 mod phys;
@@ -104,7 +104,7 @@ pub use self::{
         SkillGroup, SkillGroupKind, SkillSet,
     },
     stats::{Stats, StatsModifier},
-    teleport::{Teleporter, Teleporting},
+    teleport::Teleporting,
     visual::{LightAnimation, LightEmitter},
 };
 

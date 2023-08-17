@@ -12,8 +12,8 @@ use crate::{
 use common::{
     calendar::Calendar,
     comp::{
-        self, agent, biped_small, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate,
-        Pos, Presence, Teleporter, Waypoint,
+        self, agent, biped_small, bird_medium, misc::PortalData, skillset::skills,
+        BehaviorCapability, ForceUpdate, Pos, Presence, Waypoint,
     },
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{EntityInfo, SpecialEntity},
@@ -418,7 +418,7 @@ pub enum NpcData {
         loot: LootSpec<String>,
     },
     Waypoint(Vec3<f32>),
-    Teleporter(Vec3<f32>, Teleporter),
+    Teleporter(Vec3<f32>, PortalData),
 }
 
 impl NpcData {

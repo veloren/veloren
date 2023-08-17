@@ -8,7 +8,7 @@ use crate::{
         BuffKind, BuffSource, PhysicsState,
     },
     rtsim,
-    sys::{teleporter::TELEPORT_RADIUS, terrain::SAFE_ZONE_RADIUS},
+    sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
 use authc::Uuid;
@@ -22,8 +22,9 @@ use common::{
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange, Inventory,
-        Player, Poise, Pos, SkillSet, Stats,
+        Object, Player, Poise, Pos, SkillSet, Stats,
     },
+    consts::TELEPORTER_RADIUS,
     event::{EventBus, ServerEvent},
     lottery::distribute_many,
     outcome::{HealthChangeInfo, Outcome},
@@ -43,7 +44,7 @@ use hashbrown::HashSet;
 use rand::Rng;
 use specs::{join::Join, Builder, Entity as EcsEntity, Entity, WorldExt};
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 use vek::{Vec2, Vec3};
 
 #[derive(Hash, Eq, PartialEq)]
@@ -1658,16 +1659,12 @@ pub fn handle_remove_light_emitter(server: &mut Server, entity: EcsEntity) {
 }
 
 pub fn handle_teleport_to_position(server: &mut Server, entity: EcsEntity, position: Vec3<f32>) {
-    let ecs = server.state.ecs();
-
-    ecs.write_storage::<comp::Pos>()
-        .get_mut(entity)
-        .map(|old_position| {
-            old_position.0 = position;
-        });
-    ecs.write_storage::<comp::ForceUpdate>()
-        .get_mut(entity)
-        .map(|forced_update| forced_update.update());
+    if let Err(error) = server
+        .state
+        .position_mut(entity, Some(true), |pos| pos.0 = position)
+    {
+        warn!("Failed to teleport entity: {error}");
+    }
 }
 
 pub fn handle_start_teleporting(server: &mut Server, entity: EcsEntity, portal: EcsEntity) {
@@ -1681,15 +1678,20 @@ pub fn handle_start_teleporting(server: &mut Server, entity: EcsEntity, portal: 
         .flatten()
         .zip(positions.get(portal))
         .filter(|(entity_pos, portal_pos)| {
-            entity_pos.0.distance_squared(portal_pos.0) <= TELEPORT_RADIUS.powi(2)
+            entity_pos.0.distance_squared(portal_pos.0) <= TELEPORTER_RADIUS.powi(2)
         })
         .and_then(|(_, _)| {
             Some(
                 now + ecs
-                    .read_storage::<comp::Teleporter>()
-                    .get(portal)?
-                    .buildup_time
-                    .0,
+                    .read_storage::<comp::Object>()
+                    .get(portal)
+                    .and_then(|object| {
+                        if let Object::Portal { buildup_time, .. } = object {
+                            Some(buildup_time.0)
+                        } else {
+                            None
+                        }
+                    })?,
             )
         })
     {

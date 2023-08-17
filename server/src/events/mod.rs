@@ -213,8 +213,8 @@ impl Server {
                     driver,
                 } => handle_create_ship(self, pos, ori, ship, rtsim_entity, driver, Vec::new()),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
-                ServerEvent::CreateTeleporter(pos, teleporter) => {
-                    handle_create_teleporter(self, pos, teleporter)
+                ServerEvent::CreateTeleporter(pos, portal) => {
+                    handle_create_teleporter(self, pos, portal)
                 },
                 ServerEvent::ClientDisconnect(entity, reason) => {
                     frontend_events.push(handle_client_disconnect(self, entity, reason, false))

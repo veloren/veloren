@@ -2233,12 +2233,13 @@ impl Hud {
                         .map_or(Vec3::zero(), |e| e.0);
                     let over_pos = pos + Vec3::unit_z() * 1.5;
 
-                    let is_campfire = body.is_campfire();
                     overitem::Overitem::new(
-                        i18n.get_msg(if is_campfire {
+                        i18n.get_msg(if body.is_campfire() {
                             "hud-crafting-campfire"
-                        } else {
+                        } else if body.is_portal() {
                             "hud-portal"
+                        } else {
+                            "hud-use"
                         }),
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
@@ -2250,7 +2251,13 @@ impl Hud {
                         &global_state.window.key_layout,
                         vec![(
                             Some(GameInput::Interact),
-                            i18n.get_msg(if is_campfire { "hud-sit" } else { "hud-activate" }).to_string(),
+                            i18n.get_msg(if body.is_campfire() {
+                                "hud-sit"
+                            } else if body.is_portal() {
+                                "hud-activate"
+                            } else {
+                                "hud-use"
+                            }).to_string(),
                         )],
                     )
                     .x_y(0.0, 100.0)

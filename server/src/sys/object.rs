@@ -1,9 +1,10 @@
 use common::{
-    comp::{Object, PhysicsState, Pos, Vel},
+    comp::{object, Body, Object, PhysicsState, Pos, Teleporting, Vel},
+    consts::TELEPORTER_RADIUS,
     effect::Effect,
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
-    Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
+    CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage};
@@ -18,10 +19,13 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, Time>,
         Read<'a, EventBus<ServerEvent>>,
+        Read<'a, CachedSpatialGrid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Object>,
+        ReadStorage<'a, Body>,
+        ReadStorage<'a, Teleporting>,
     );
 
     const NAME: &'static str = "object";
@@ -30,17 +34,30 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, _dt, time, server_bus, positions, velocities, physics_states, objects): Self::SystemData,
+        (
+            entities,
+            _dt,
+            time,
+            server_bus,
+            spatial_grid,
+            positions,
+            velocities,
+            physics_states,
+            objects,
+            bodies,
+            teleporting,
+        ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
 
         // Objects
-        for (entity, pos, vel, physics, object) in (
+        for (entity, pos, vel, physics, object, body) in (
             &entities,
             &positions,
             &velocities,
             &physics_states,
             &objects,
+            &bodies,
         )
             .join()
         {
@@ -73,7 +90,7 @@ impl<'a> System<'a> for Sys {
                         const ENABLE_RECURSIVE_FIREWORKS: bool = true;
                         if ENABLE_RECURSIVE_FIREWORKS {
                             use common::{
-                                comp::{object, Body, LightEmitter, Projectile},
+                                comp::{LightEmitter, Projectile},
                                 util::Dir,
                             };
                             use rand::Rng;
@@ -167,6 +184,31 @@ impl<'a> System<'a> for Sys {
                 } => {
                     if (time.0 - spawned_at.0).max(0.0) > timeout.as_secs_f64() {
                         server_emitter.emit(ServerEvent::Delete(entity));
+                    }
+                },
+                Object::Portal { .. } => {
+                    let is_active = spatial_grid
+                        .0
+                        .in_circle_aabr(pos.0.xy(), TELEPORTER_RADIUS)
+                        .any(|entity| {
+                            (&positions, &teleporting)
+                                .join()
+                                .get(entity, &entities)
+                                .map_or(false, |(teleporter_pos, _)| {
+                                    pos.0.distance_squared(teleporter_pos.0)
+                                        <= TELEPORTER_RADIUS.powi(2)
+                                })
+                        });
+
+                    if (*body == Body::Object(object::Body::PortalActive)) != is_active {
+                        server_bus.emit_now(ServerEvent::ChangeBody {
+                            entity,
+                            new_body: Body::Object(if is_active {
+                                object::Body::PortalActive
+                            } else {
+                                object::Body::Portal
+                            }),
+                        });
                     }
                 },
             }
