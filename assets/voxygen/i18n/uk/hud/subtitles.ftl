@@ -1,6 +1,6 @@
 subtitle-campfire = Потріскування багаття
 subtitle-bird_call = Спів птахів
-subtitle-bees = Джизчання бджіл
+subtitle-bees = Дзижчання бджіл
 subtitle-owl = Укання сови
 subtitle-running_water = Булькання води
 subtitle-lightning = Грім
@@ -23,46 +23,46 @@ subtitle-death = Смерть
 
 subtitle-wield_bow = Лук екіпіровано
 subtitle-unwield_bow = Лук прибрано
-subtitle-pickup_bow = Лук піднято
+subtitle-pickup_bow = Лук підібрано
 
 subtitle-wield_sword = Меч екіпіровано
 subtitle-unwield_sword = Меч прибрано
 subtitle-sword_attack = Замах мечем
-subtitle-pickup_sword = Меч піднято
+subtitle-pickup_sword = Меч підібрано
 
 subtitle-wield_axe = Сокиру екіпіровано
 subtitle-unwield_axe = Сокиру прибрано
 subtitle-axe_attack = Замах сокирою
-subtitle-pickup_axe = Сокиру піднято
+subtitle-pickup_axe = Сокиру підібрано
 
 subtitle-wield_hammer = Молот екіпіровано
 subtitle-unwield_hammer = Молот прибрано
 subtitle-hammer_attack = Замах молотом
-subtitle-pickup_hammer = Молот піднято
+subtitle-pickup_hammer = Молот підібрано
 
 subtitle-wield_staff = Посох екіпіровано
 subtitle-unwield_staff = Посох прибрано
 subtitle-fire_shot = Вогняна куля Посоха
 subtitle-staff_attack = Вогняна куля Посоха
-subtitle-pickup_staff = Посох піднято
+subtitle-pickup_staff = Посох підібрано
 
 subtitle-wield_sceptre = Скіпетр екіпіровано
 subtitle-unwield_sceptre = Скіпетр прибрано
 subtitle-sceptre_heal = Зцілююча аура скіпетра
-subtitle-pickup_sceptre = Скіпетр піднято
+subtitle-pickup_sceptre = Скіпетр підібрано
 
 subtitle-wield_dagger = Кинджал екіпіровано
 subtitle-uwield_dagger = Кинджал прибрано
 subtitle-dagger_attack = Замах кинджалом
-subtitle-pickup_dagger = Кинджал піднято
+subtitle-pickup_dagger = Кинджал підібрано
 
 subtitle-wield_shield = Щит екіпіровано
 subtitle-unwield_shield = Щит прибрано
 subtitle-shield_attack = Поштовх щитом
-subtitle-pickup_shield = Щит піднято
+subtitle-pickup_shield = Щит підібрано
 
-subtitle-pickup_pick = Кирку піднято
-subtitle-pickup_gemstone = Самоцвіт піднято
+subtitle-pickup_pick = Кирку підібрано
+subtitle-pickup_gemstone = Самоцвіт підібрано
 
 subtitle-instrument_organ = Гра на органі
 
@@ -81,7 +81,7 @@ subtitle-instrument_guitar = Гра на Гітарі
 subtitle-instrument_dark_guitar = Гра на Темній Гітарі
 subtitle-instrument_washboard = Гра на Пральній Дошці
 subtitle-instrument_wildskin_drum = Гра Барабана з Дикої Шкіри
-subtitle-pickup_instrument = Інструмент піднято
+subtitle-pickup_instrument = Інструмент підібрано
 
 subtitle-explosion = Вибух
 
@@ -94,7 +94,7 @@ subtitle-flame_thrower = Вогнемет
 subtitle-break_block = Блок знищено
 subtitle-attack_blocked = Атаку заблоковано 
 subtitle-parry = Парирування
-subtitle-interrupted = Скасовано
+subtitle-interrupted = Прервано
 subtitle-stunned = Приголомшений
 subtitle-dazed = Ошелешений
 subtitle-knocked_down = Збитий
@@ -113,7 +113,7 @@ subtitle-attack-shovel = Копання Лопатою
 subtitle-consume_potion = Пиття зілля
 subtitle-consume_apple = Споживання яблука
 subtitle-consume_cheese = Споживання сиру
-subtitle-consume_food = Прийом їжі
+subtitle-consume_food = Приймання їжі
 subtitle-consume_liquid = Пиття
 
 subtitle-utterance-alligator-angry = Алігатор шипить
