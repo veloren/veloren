@@ -246,7 +246,7 @@ pub fn handle_set_pet_stay(
             .ecs()
             .write_storage::<comp::Agent>()
             .get_mut(pet)
-            .map(|s| s.stay_pos = current_pet_position);
+            .map(|s| s.stay_pos = current_pet_position.filter(|_| stay));
     }
 }
 
