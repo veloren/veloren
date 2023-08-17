@@ -61,7 +61,7 @@ subtitle-unwield_shield = Щит прибрано
 subtitle-shield_attack = Поштовх щитом
 subtitle-pickup_shield = Щит підібрано
 
-subtitle-pickup_pick = Кирку підібрано
+subtitle-pickup_pick = Кайло підібрано
 subtitle-pickup_gemstone = Самоцвіт підібрано
 
 subtitle-instrument_organ = Гра на органі
