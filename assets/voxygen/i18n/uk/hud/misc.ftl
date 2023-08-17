@@ -53,5 +53,7 @@ hud-mine-needs_unhandled_case = Потрібно ???
 hud-talk = Потеревенити
 hud-trade = Поторгувати
 hud-mount = Осідлати
+hud-follow = Слідувати
+hud-stay = Чекати
 hud-sit = Сидіти
 hud-steer = Керувати

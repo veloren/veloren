@@ -33,6 +33,7 @@ gameinput-climbdown = Лізти вниз
 gameinput-wallleap = Стрибок від стіни
 gameinput-togglelantern = Ліхтар
 gameinput-mount = Осідлати
+gameinput-stayfollow = Чекати/Слідувати
 gameinput-chat = Чат
 gameinput-command = Команда
 gameinput-escape = Вихід
