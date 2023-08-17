@@ -1363,6 +1363,8 @@ impl Hud {
         let slot_manager = slots::SlotManager::new(
             ui.id_generator(),
             Vec2::broadcast(40.0),
+            global_state.settings.interface.slots_use_prefixes,
+            global_state.settings.interface.slots_prefix_switch_point,
             // TODO(heyzoos) Will be useful for whoever works on rendering the number of items
             // "in hand".
             // fonts.cyri.conrod_id,
@@ -1452,6 +1454,15 @@ impl Hud {
 
     pub fn update_fonts(&mut self, i18n: &Localization) {
         self.fonts = Fonts::load(i18n.fonts(), &mut self.ui).expect("Impossible to load fonts!");
+    }
+
+    pub fn set_slots_use_prefixes(&mut self, use_prefixes: bool) {
+        self.slot_manager.set_use_prefixes(use_prefixes);
+    }
+
+    pub fn set_slots_prefix_switch_point(&mut self, prefix_switch_point: u32) {
+        self.slot_manager
+            .set_prefix_switch_point(prefix_switch_point);
     }
 
     #[allow(clippy::single_match)] // TODO: Pending review in #587

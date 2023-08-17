@@ -150,6 +150,9 @@ pub enum Interface {
     MapShowBiomes(bool),
     MapShowVoxelMap(bool),
     AccumExperience(bool),
+    //Slots
+    SlotsUsePrefixes(bool),
+    SlotsPrefixSwitchPoint(u32),
 
     ResetInterfaceSettings,
 }
@@ -667,6 +670,16 @@ impl SettingsChange {
                     },
                     Interface::AccumExperience(accum_experience) => {
                         settings.interface.accum_experience = accum_experience;
+                    },
+                    Interface::SlotsUsePrefixes(slots_use_prefixes) => {
+                        settings.interface.slots_use_prefixes = slots_use_prefixes;
+                        session_state.hud.set_slots_use_prefixes(slots_use_prefixes);
+                    },
+                    Interface::SlotsPrefixSwitchPoint(slots_prefix_switch_point) => {
+                        settings.interface.slots_prefix_switch_point = slots_prefix_switch_point;
+                        session_state
+                            .hud
+                            .set_slots_prefix_switch_point(slots_prefix_switch_point);
                     },
                     Interface::ResetInterfaceSettings => {
                         // Reset Interface Settings
