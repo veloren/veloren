@@ -3,6 +3,7 @@ use common::{
     consts::TELEPORTER_RADIUS,
     effect::Effect,
     event::{EventBus, ServerEvent},
+    outcome::Outcome,
     resources::{DeltaTime, Time},
     CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
 };
@@ -19,6 +20,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, Time>,
         Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<Outcome>>,
         Read<'a, CachedSpatialGrid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
@@ -39,6 +41,7 @@ impl<'a> System<'a> for Sys {
             _dt,
             time,
             server_bus,
+            outcome_bus,
             spatial_grid,
             positions,
             velocities,
@@ -204,6 +207,7 @@ impl<'a> System<'a> for Sys {
                         server_bus.emit_now(ServerEvent::ChangeBody {
                             entity,
                             new_body: Body::Object(if is_active {
+                                outcome_bus.emit_now(Outcome::PortalActivated { pos: pos.0 });
                                 object::Body::PortalActive
                             } else {
                                 object::Body::Portal

@@ -140,6 +140,9 @@ pub enum Outcome {
     GroundDig {
         pos: Vec3<f32>,
     },
+    PortalActivated {
+        pos: Vec3<f32>,
+    },
 }
 
 impl Outcome {
@@ -170,6 +173,7 @@ impl Outcome {
             | Outcome::FlamethrowerCharge { pos }
             | Outcome::LaserBeam { pos }
             | Outcome::GroundDig { pos }
+            | Outcome::PortalActivated { pos }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }

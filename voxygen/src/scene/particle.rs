@@ -411,6 +411,7 @@ impl ParticleMgr {
             | Outcome::Swoosh { .. }
             | Outcome::Steam { .. }
             | Outcome::FireShockwave { .. }
+            | Outcome::PortalActivated { .. }
             | Outcome::LaserBeam { .. } => {},
         }
     }
