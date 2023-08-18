@@ -469,6 +469,20 @@ impl Inventory {
         self.slot(inv_slot_id).and_then(Option::as_ref)
     }
 
+    /// Get content of an overflow slot
+    pub fn get_overflow(&self, overflow: usize) -> Option<&Item> {
+        self.overflow_items.get(overflow)
+    }
+
+    /// Get content of any kind of slot
+    pub fn get_slot(&self, slot: Slot) -> Option<&Item> {
+        match slot {
+            Slot::Inventory(inv_slot) => self.get(inv_slot),
+            Slot::Equip(equip) => self.equipped(equip),
+            Slot::Overflow(overflow) => self.get_overflow(overflow),
+        }
+    }
+
     /// Get item from inventory
     pub fn get_by_hash(&self, item_hash: u64) -> Option<&Item> {
         self.slots().flatten().find(|i| i.item_hash() == item_hash)

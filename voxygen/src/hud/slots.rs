@@ -36,7 +36,7 @@ pub type SlotManager = slot::SlotManager<SlotKind>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct InventorySlot {
-    pub slot: InvSlotId,
+    pub slot: Slot,
     pub entity: EcsEntity,
     pub ours: bool,
 }
@@ -45,12 +45,12 @@ impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     type ImageKey = ItemKey;
 
     fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
-        source.get(self.slot).map(|i| (i.into(), None))
+        source.get_slot(self.slot).map(|i| (i.into(), None))
     }
 
     fn amount(&self, source: &Inventory) -> Option<u32> {
         source
-            .get(self.slot)
+            .get_slot(self.slot)
             .map(|item| item.amount())
             .filter(|amount| *amount > 1)
     }
@@ -90,7 +90,7 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
     fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
         self.invslot.and_then(|inv_id| {
             InventorySlot {
-                slot: inv_id,
+                slot: Slot::Inventory(inv_id),
                 ours: self.ours,
                 entity: self.entity,
             }
@@ -102,7 +102,7 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
         self.invslot
             .and_then(|inv_id| {
                 InventorySlot {
-                    slot: inv_id,
+                    slot: Slot::Inventory(inv_id),
                     ours: self.ours,
                     entity: self.entity,
                 }
