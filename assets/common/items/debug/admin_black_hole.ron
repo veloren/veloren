@@ -9,5 +9,5 @@ ItemDef(
     ),
     quality: Debug,
     tags: [],
-    slots: 900,
+    slots: 1,
 )

@@ -1030,6 +1030,8 @@ impl RepairRecipeBook {
         if let Some(item) = match item {
             Slot::Equip(slot) => inv.equipped(slot),
             Slot::Inventory(slot) => inv.get(slot),
+            // Items in overflow slots cannot be repaired until item is moved to a real slot
+            Slot::Overflow(_) => None,
         } {
             if let Some(repair_recipe) = self.repair_recipe(item) {
                 repair_recipe

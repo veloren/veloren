@@ -1576,6 +1576,7 @@ impl<'a> Widget for Crafting<'a> {
                                 modifier: craft_slot_2.and_then(|slot| match slot {
                                     Slot::Inventory(slot) => Some(slot),
                                     Slot::Equip(_) => None,
+                                    Slot::Overflow(_) => None,
                                 }),
                             });
                         }
@@ -1736,6 +1737,7 @@ impl<'a> Widget for Crafting<'a> {
                         .and_then(|slot| match slot {
                             Slot::Inventory(slot) => self.inventory.get(slot),
                             Slot::Equip(_) => None,
+                            Slot::Overflow(_) => None,
                         })
                         .and_then(|item| item.item_definition_id().itemdef_id().map(String::from))
                     {
@@ -1746,6 +1748,7 @@ impl<'a> Widget for Crafting<'a> {
                                 .and_then(|slot| match slot {
                                     Slot::Inventory(slot) => self.inventory.get(slot),
                                     Slot::Equip(_) => None,
+                                    Slot::Overflow(_) => None,
                                 })
                                 .and_then(|item| {
                                     item.item_definition_id().itemdef_id().map(String::from)
@@ -1769,6 +1772,7 @@ impl<'a> Widget for Crafting<'a> {
                     if let Some(item) = match craft_slot_1 {
                         Some(Slot::Inventory(slot)) => self.inventory.get(slot),
                         Some(Slot::Equip(slot)) => self.inventory.equipped(slot),
+                        Some(Slot::Overflow(_)) => None,
                         None => None,
                     } {
                         if let Some(recipe) = self.client.repair_recipe_book().repair_recipe(item) {

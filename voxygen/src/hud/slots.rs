@@ -286,6 +286,7 @@ impl CraftSlot {
         match self.slot {
             Some(Slot::Inventory(slot)) => inv.get(slot),
             Some(Slot::Equip(slot)) => inv.equipped(slot),
+            Some(Slot::Overflow(_)) => None,
             None => None,
         }
     }

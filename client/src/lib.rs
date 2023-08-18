@@ -1119,6 +1119,13 @@ impl Client {
 
     pub fn swap_slots(&mut self, a: Slot, b: Slot) {
         match (a, b) {
+            (Slot::Overflow(o), Slot::Inventory(inv))
+            | (Slot::Inventory(inv), Slot::Overflow(o)) => {
+                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                    InventoryEvent::OverflowMove(o, inv),
+                )));
+            },
+            (Slot::Overflow(_), _) | (_, Slot::Overflow(_)) => {},
             (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => self.control_action(
                 ControlAction::InventoryAction(InventoryAction::Swap(equip, slot)),
             ),
@@ -1137,6 +1144,9 @@ impl Client {
             },
             Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
                 ControlEvent::InventoryEvent(InventoryEvent::Drop(inv)),
+            )),
+            Slot::Overflow(o) => self.send_msg(ClientGeneral::ControlEvent(
+                ControlEvent::InventoryEvent(InventoryEvent::OverflowDrop(o)),
             )),
         }
     }
@@ -1173,6 +1183,7 @@ impl Client {
                     InventoryEvent::SplitSwap(inv1, inv2),
                 )))
             },
+            (Slot::Overflow(_), _) | (_, Slot::Overflow(_)) => {},
         }
     }
 
@@ -1183,6 +1194,9 @@ impl Client {
             },
             Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
                 ControlEvent::InventoryEvent(InventoryEvent::SplitDrop(inv)),
+            )),
+            Slot::Overflow(o) => self.send_msg(ClientGeneral::ControlEvent(
+                ControlEvent::InventoryEvent(InventoryEvent::OverflowSplitDrop(o)),
             )),
         }
     }
@@ -1393,6 +1407,7 @@ impl Client {
                 if let Some(item) = match item {
                     Slot::Equip(equip_slot) => inv.equipped(equip_slot),
                     Slot::Inventory(invslot) => inv.get(invslot),
+                    Slot::Overflow(_) => None,
                 } {
                     item.has_durability()
                 } else {

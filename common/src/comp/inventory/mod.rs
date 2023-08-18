@@ -524,9 +524,36 @@ impl Inventory {
         *self.slot_mut(b).unwrap() = slot_a;
     }
 
+    /// Moves an item from an overflow slot to an inventory slot
+    pub fn move_overflow_item(&mut self, overflow: usize, inv_slot: InvSlotId) {
+        match self.slot(inv_slot) {
+            Some(Some(_)) => {
+                warn!("Attempted to move from overflow slot to a filled inventory slot");
+                return;
+            },
+            None => {
+                warn!("Attempted to move from overflow slot to a non-existent inventory slot");
+                return;
+            },
+            Some(None) => {},
+        };
+
+        let item = self.overflow_items.remove(overflow);
+        *self.slot_mut(inv_slot).unwrap() = Some(item);
+    }
+
     /// Remove an item from the slot
     pub fn remove(&mut self, inv_slot_id: InvSlotId) -> Option<Item> {
         self.slot_mut(inv_slot_id).and_then(|item| item.take())
+    }
+
+    /// Remove an item from an overflow slot
+    pub fn overflow_remove(&mut self, overflow_slot: usize) -> Option<Item> {
+        if overflow_slot < self.overflow_items.len() {
+            Some(self.overflow_items.remove(overflow_slot))
+        } else {
+            None
+        }
     }
 
     /// Remove just one item from the slot
@@ -573,6 +600,34 @@ impl Inventory {
                 Some(return_item)
             } else {
                 self.remove(inv_slot_id)
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Takes half of the items from an overflow slot
+    pub fn overflow_take_half(
+        &mut self,
+        overflow_slot: usize,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Option<Item> {
+        if let Some(item) = self.overflow_items.get_mut(overflow_slot) {
+            if item.is_stackable() && item.amount() > 1 {
+                let mut return_item = item.duplicate(ability_map, msm);
+                let returning_amount = item.amount() / 2;
+                item.decrease_amount(returning_amount).ok()?;
+                return_item.set_amount(returning_amount).expect(
+                    "return_item.amount() = item.amount() / 2 < item.amount() (since \
+                     item.amount() ≥ 1) ≤ item.max_amount() = return_item.max_amount(), since \
+                     return_item is a duplicate of item",
+                );
+                Some(return_item)
+            } else if overflow_slot < self.overflow_items.len() {
+                Some(self.overflow_items.remove(overflow_slot))
+            } else {
+                None
             }
         } else {
             None
@@ -781,6 +836,15 @@ impl Inventory {
                 self.loadout.swap_slots(slot_a, slot_b, time);
                 Vec::new()
             },
+            (Slot::Overflow(overflow_slot), Slot::Inventory(inv_slot))
+            | (Slot::Inventory(inv_slot), Slot::Overflow(overflow_slot)) => {
+                self.move_overflow_item(overflow_slot, inv_slot);
+                Vec::new()
+            },
+            // Items from overflow slots cannot be equipped until moved into a real inventory slot
+            (Slot::Overflow(_), Slot::Equip(_)) | (Slot::Equip(_), Slot::Overflow(_)) => Vec::new(),
+            // Items cannot be moved between overflow slots
+            (Slot::Overflow(_), Slot::Overflow(_)) => Vec::new(),
         }
     }
 
@@ -976,6 +1040,8 @@ impl Inventory {
                 self.loadout
                     .repair_item_at_slot(equip_slot, ability_map, msm);
             },
+            // Items in overflow slots cannot be repaired until they are moved to a real slot
+            Slot::Overflow(_) => {},
         }
     }
 

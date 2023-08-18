@@ -1141,6 +1141,9 @@ pub fn handle_manipulate_loadout(
             let inv_manip = InventoryManip::Use(slot);
             output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
         },
+        InventoryAction::Use(Slot::Overflow(_)) => {
+            // Items in overflow slots cannot be used until moved to a real slot
+        },
         InventoryAction::ToggleSpriteLight(pos, enable) => {
             if matches!(pos.kind, Volume::Terrain) {
                 let sprite_interact = sprite_interact::SpriteInteractKind::ToggleLight(enable);

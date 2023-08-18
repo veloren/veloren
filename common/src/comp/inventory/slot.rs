@@ -15,6 +15,7 @@ pub enum SlotError {
 pub enum Slot {
     Inventory(InvSlotId),
     Equip(EquipSlot),
+    Overflow(usize),
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -111,6 +112,7 @@ impl Slot {
         match (self, item_kind) {
             (Self::Inventory(_), _) => true,
             (Self::Equip(slot), item_kind) => slot.can_hold(item_kind),
+            (Self::Overflow(_), _) => true,
         }
     }
 }
