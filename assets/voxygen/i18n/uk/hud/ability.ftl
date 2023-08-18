@@ -9,7 +9,7 @@ common-abilities-staff-fireshockwave = Кільце Вогню
 common-abilities-sceptre-wardingaura = Захисна Аура
     .desc = Укріплює тебе і твоїх союзників силами природи на деякий час.
 
-#Sword abilities
+# Sword abilities
 veloren-core-pseudo_abilities-sword-heavy_stance = Важка Стійка
     .desc = Атаки в цій стійці можуть похитнути ворогів та завдати більше пошкоджень ворогам, що похитнулися, але вони повільніші.
 veloren-core-pseudo_abilities-sword-agile_stance = Спритна Стійка
@@ -265,7 +265,7 @@ common-abilities-sword-cleaving_sky_splitter = Розсікач Небес
         Потужний удар, який нібито може розколоти небо, але розколює ворогів
         Для використання потрібна розсікаюча стійка
 
-#Axe abilities
+# Axe abilities
 common-abilities-axe-triple_chop = Потрійна Рубка
     .desc =
         Три швидких удари

@@ -1,6 +1,6 @@
 ## Player events
-hud-chat-online_msg = Гравець [{ $name }] зайшов на сервер
-hud-chat-offline_msg = Гравець [{ $name }] вийшов з серверу
+hud-chat-online_msg = [{ $name }] зайшов/-ла на сервер
+hud-chat-offline_msg = [{ $name }] вийшов/-ла з серверу
 ## Buff outcomes
 hud-outcome-burning = згорів/-ла живцем
 hud-outcome-curse = помер/-ла від прокльону
