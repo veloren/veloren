@@ -158,12 +158,18 @@ pub trait StateExt {
     ) -> Result<(), specs::error::WrongGeneration>;
     /// Get the given entity as an [`Actor`], if it is one.
     fn entity_as_actor(&self, entity: EcsEntity) -> Option<Actor>;
+    /// Mutate the position of an entity or, if the entity is mounted, the
+    /// mount.
+    ///
+    /// If `dismount_volume` is `true`, an entity mounted on a volume entity
+    /// (such as an airship) will be dismounted to avoid teleporting the volume
+    /// entity.
     fn position_mut<T>(
         &mut self,
         entity: EcsEntity,
-        dismount_volume: Option<bool>,
+        dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
-    ) -> Result<T, String>;
+    ) -> Result<T, &'static str>;
 }
 
 impl StateExt for State {
@@ -1247,10 +1253,10 @@ impl StateExt for State {
     fn position_mut<T>(
         &mut self,
         entity: EcsEntity,
-        dismount_volume: Option<bool>,
+        dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
-    ) -> Result<T, String> {
-        if dismount_volume.unwrap_or(true) {
+    ) -> Result<T, &'static str> {
+        if dismount_volume {
             self.ecs().write_storage::<Is<VolumeRider>>().remove(entity);
         }
 
@@ -1268,9 +1274,7 @@ impl StateExt for State {
                     .get(entity)
                     .and_then(|volume_rider| {
                         Some(match volume_rider.pos.kind {
-                            common::mounting::Volume::Terrain => {
-                                Err("Tried to move the world.".to_string())
-                            },
+                            common::mounting::Volume::Terrain => Err("Tried to move the world."),
                             common::mounting::Volume::Entity(uid) => {
                                 Ok(self.ecs().read_resource::<IdMaps>().uid_entity(uid)?)
                             },
@@ -1290,7 +1294,7 @@ impl StateExt for State {
                 maybe_pos = Some(pos.0);
                 res
             })
-            .ok_or_else(|| "Cannot get position for entity!".to_string());
+            .ok_or("Cannot get position for entity!");
 
         if let Some(pos) = maybe_pos {
             if self

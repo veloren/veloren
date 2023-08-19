@@ -1661,7 +1661,7 @@ pub fn handle_remove_light_emitter(server: &mut Server, entity: EcsEntity) {
 pub fn handle_teleport_to_position(server: &mut Server, entity: EcsEntity, position: Vec3<f32>) {
     if let Err(error) = server
         .state
-        .position_mut(entity, Some(true), |pos| pos.0 = position)
+        .position_mut(entity, true, |pos| pos.0 = position)
     {
         warn!("Failed to teleport entity: {error}");
     }

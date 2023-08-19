@@ -777,9 +777,10 @@ fn handle_jump(
     {
         server
             .state
-            .position_mut(target, dismount_volume, |current_pos| {
+            .position_mut(target, dismount_volume.unwrap_or(true), |current_pos| {
                 current_pos.0 += Vec3::new(x, y, z)
             })
+            .map_err(ToString::to_string)
     } else {
         Err(action.help_string())
     }
@@ -796,9 +797,10 @@ fn handle_goto(
     {
         server
             .state
-            .position_mut(target, dismount_volume, |current_pos| {
+            .position_mut(target, dismount_volume.unwrap_or(true), |current_pos| {
                 current_pos.0 = Vec3::new(x, y, z)
             })
+            .map_err(ToString::to_string)
     } else {
         Err(action.help_string())
     }
@@ -833,9 +835,10 @@ fn handle_site(
 
         server
             .state
-            .position_mut(target, dismount_volume, |current_pos| {
+            .position_mut(target, dismount_volume.unwrap_or(true), |current_pos| {
                 current_pos.0 = site_pos
             })
+            .map_err(ToString::to_string)
     } else {
         Err(action.help_string())
     }
@@ -860,9 +863,10 @@ fn handle_respawn(
 
     server
         .state
-        .position_mut(target, Some(true), |current_pos| {
+        .position_mut(target, true, |current_pos| {
             current_pos.0 = waypoint;
         })
+        .map_err(ToString::to_string)
 }
 
 fn handle_kill(
@@ -1234,9 +1238,10 @@ fn handle_tp(
     let player_pos = position(server, player, "player")?;
     server
         .state
-        .position_mut(target, dismount_volume, |target_pos| {
+        .position_mut(target, dismount_volume.unwrap_or(true), |target_pos| {
             *target_pos = player_pos
         })
+        .map_err(ToString::to_string)
 }
 
 fn handle_rtsim_tp(
@@ -1266,9 +1271,10 @@ fn handle_rtsim_tp(
     };
     server
         .state
-        .position_mut(target, dismount_volume, |target_pos| {
+        .position_mut(target, dismount_volume.unwrap_or(true), |target_pos| {
             target_pos.0 = pos;
         })
+        .map_err(ToString::to_string)
 }
 
 fn handle_rtsim_info(
@@ -4040,9 +4046,12 @@ fn handle_location(
     if let Some(name) = parse_cmd_args!(args, String) {
         let loc = server.state.ecs().read_resource::<Locations>().get(&name);
         match loc {
-            Ok(loc) => server.state.position_mut(target, Some(true), |target_pos| {
-                target_pos.0 = loc;
-            }),
+            Ok(loc) => server
+                .state
+                .position_mut(target, true, |target_pos| {
+                    target_pos.0 = loc;
+                })
+                .map_err(ToString::to_string),
             Err(e) => Err(e.to_string()),
         }
     } else {
