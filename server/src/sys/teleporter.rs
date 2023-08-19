@@ -109,11 +109,12 @@ impl<'a> System<'a> for Sys {
                             .join()
                             .get(entity, &entities)
                     })
-                    .filter_map(|(entity, entity_position, alignment)| {
+                    .filter_map(|(nearby_entity, entity_position, alignment)| {
                         (matches!(alignment, Alignment::Owned(entity_uid) if entity_uid == uid)
                             && entity_position.0.distance_squared(position.0)
-                                <= PET_TELEPORT_RADIUS.powi(2))
-                        .then_some(entity)
+                                <= PET_TELEPORT_RADIUS.powi(2)
+                            || entity == nearby_entity)
+                            .then_some(nearby_entity)
                     });
 
                 for entity in nearby {
