@@ -6,6 +6,7 @@ use crate::{
         agent::Sound,
         dialogue::Subject,
         invite::{InviteKind, InviteResponse},
+        misc::PortalData,
         DisconnectReason, Ori, Pos,
     },
     lottery::LootSpec,
@@ -239,6 +240,7 @@ pub enum ServerEvent {
         driver: Option<NpcBuilder>,
     },
     CreateWaypoint(Vec3<f32>),
+    CreateTeleporter(Vec3<f32>, PortalData),
     ClientDisconnect(EcsEntity, DisconnectReason),
     ClientDisconnectWithoutPersistence(EcsEntity),
     Command(EcsEntity, String, Vec<String>),
@@ -330,6 +332,14 @@ pub enum ServerEvent {
     },
     RemoveLightEmitter {
         entity: EcsEntity,
+    },
+    TeleportToPosition {
+        entity: EcsEntity,
+        position: Vec3<f32>,
+    },
+    StartTeleporting {
+        entity: EcsEntity,
+        portal: EcsEntity,
     },
 }
 

@@ -1,5 +1,9 @@
 use crate::{
-    events::interaction::{handle_mount_volume, handle_tame_pet},
+    events::{
+        entity_creation::handle_create_teleporter,
+        entity_manipulation::{handle_start_teleporting, handle_teleport_to_position},
+        interaction::{handle_mount_volume, handle_tame_pet},
+    },
     persistence::PersistedComponents,
     state_ext::StateExt,
     Server,
@@ -209,6 +213,9 @@ impl Server {
                     driver,
                 } => handle_create_ship(self, pos, ori, ship, rtsim_entity, driver, Vec::new()),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
+                ServerEvent::CreateTeleporter(pos, portal) => {
+                    handle_create_teleporter(self, pos, portal)
+                },
                 ServerEvent::ClientDisconnect(entity, reason) => {
                     frontend_events.push(handle_client_disconnect(self, entity, reason, false))
                 },
@@ -292,6 +299,12 @@ impl Server {
                 },
                 ServerEvent::RemoveLightEmitter { entity } => {
                     handle_remove_light_emitter(self, entity)
+                },
+                ServerEvent::TeleportToPosition { entity, position } => {
+                    handle_teleport_to_position(self, entity, position)
+                },
+                ServerEvent::StartTeleporting { entity, portal } => {
+                    handle_start_teleporting(self, entity, portal)
                 },
             }
         }

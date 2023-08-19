@@ -3,7 +3,10 @@ use crate::{
     util::{RandomField, Sampler, CARDINALS, DIAGONALS},
     Land,
 };
-use common::terrain::{BlockKind, SpriteKind};
+use common::{
+    generation::SpecialEntity,
+    terrain::{BlockKind, SpriteKind},
+};
 use rand::prelude::*;
 use std::{f32::consts::TAU, sync::Arc};
 use vek::*;
@@ -302,7 +305,8 @@ impl Structure for SavannahWorkshop {
         }
 
         painter.spawn(
-            EntityInfo::at((center).with_z(base - 2).map(|e| e as f32 + 0.5)).into_waypoint(),
+            EntityInfo::at((center).with_z(base - 2).map(|e| e as f32 + 0.5))
+                .into_special(SpecialEntity::Waypoint),
         );
     }
 }

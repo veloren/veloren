@@ -11,6 +11,7 @@ pub mod persistence;
 pub mod pets;
 pub mod sentinel;
 pub mod subscription;
+pub mod teleporter;
 pub mod terrain;
 pub mod terrain_sync;
 pub mod waypoint;
@@ -32,6 +33,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<agent::Sys>(dispatch_builder, &[]);
     dispatch::<terrain::Sys>(dispatch_builder, &[&msg::terrain::Sys::sys_name()]);
     dispatch::<waypoint::Sys>(dispatch_builder, &[]);
+    dispatch::<teleporter::Sys>(dispatch_builder, &[]);
     dispatch::<invite_timeout::Sys>(dispatch_builder, &[]);
     dispatch::<persistence::Sys>(dispatch_builder, &[]);
     dispatch::<object::Sys>(dispatch_builder, &[]);

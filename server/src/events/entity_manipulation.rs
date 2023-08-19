@@ -22,8 +22,9 @@ use common::{
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange, Inventory,
-        Player, Poise, Pos, SkillSet, Stats,
+        Object, Player, Poise, Pos, SkillSet, Stats,
     },
+    consts::TELEPORTER_RADIUS,
     event::{EventBus, ServerEvent},
     lottery::distribute_many,
     outcome::{HealthChangeInfo, Outcome},
@@ -43,7 +44,7 @@ use hashbrown::HashSet;
 use rand::Rng;
 use specs::{join::Join, Builder, Entity as EcsEntity, Entity, WorldExt};
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 use vek::{Vec2, Vec3};
 
 #[derive(Hash, Eq, PartialEq)]
@@ -1655,4 +1656,48 @@ pub fn handle_remove_light_emitter(server: &mut Server, entity: EcsEntity) {
         .ecs_mut()
         .write_storage::<comp::LightEmitter>()
         .remove(entity);
+}
+
+pub fn handle_teleport_to_position(server: &mut Server, entity: EcsEntity, position: Vec3<f32>) {
+    if let Err(error) = server
+        .state
+        .position_mut(entity, true, |pos| pos.0 = position)
+    {
+        warn!("Failed to teleport entity: {error}");
+    }
+}
+
+pub fn handle_start_teleporting(server: &mut Server, entity: EcsEntity, portal: EcsEntity) {
+    let ecs = server.state.ecs();
+    let positions = ecs.read_storage::<comp::Pos>();
+    let mut teleportings = ecs.write_storage::<comp::Teleporting>();
+    let now = ecs.read_resource::<Time>().0;
+
+    if let Some(end_time) = (!teleportings.contains(entity))
+        .then(|| positions.get(entity))
+        .flatten()
+        .zip(positions.get(portal))
+        .filter(|(entity_pos, portal_pos)| {
+            entity_pos.0.distance_squared(portal_pos.0) <= TELEPORTER_RADIUS.powi(2)
+        })
+        .and_then(|(_, _)| {
+            Some(
+                now + ecs
+                    .read_storage::<comp::Object>()
+                    .get(portal)
+                    .and_then(|object| {
+                        if let Object::Portal { buildup_time, .. } = object {
+                            Some(buildup_time.0)
+                        } else {
+                            None
+                        }
+                    })?,
+            )
+        })
+    {
+        let _ = teleportings.insert(entity, comp::Teleporting {
+            portal,
+            end_time: Time(end_time),
+        });
+    }
 }

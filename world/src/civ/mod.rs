@@ -4,6 +4,7 @@ mod econ;
 
 use crate::{
     config::CONFIG,
+    layer::cave,
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
@@ -1936,7 +1937,28 @@ impl SiteKind {
                     }
                     true
                 },
-                SiteKind::Dungeon => on_land(),
+                SiteKind::Dungeon => {
+                    on_land() && {
+                        let land = Land::from_sim(sim);
+                        let loc = loc.cpos_to_wpos();
+                        let dungeon_aabr = Aabr {
+                            min: loc - Vec2::broadcast(200),
+                            max: loc + Vec2::broadcast(200),
+                        };
+
+                        // Make sure there are no shallow caves near the dungeon
+                        let collides_with_cave = cave::tunnels_at(loc, 1, &land)
+                            .chain(cave::tunnels_at(loc, 2, &land))
+                            .all(|tunnel| {
+                                !dungeon_aabr.collides_with_aabr(Aabr {
+                                    min: tunnel.nodes().0.wpos,
+                                    max: tunnel.nodes().1.wpos,
+                                })
+                            });
+
+                        collides_with_cave
+                    }
+                },
                 SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(),
                 SiteKind::Bridge(_, _) => true,
             }

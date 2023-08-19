@@ -98,6 +98,7 @@ pub enum ParticleMode {
     SnowStorm = 44,
     PortalFizz = 45,
     Ink = 46,
+    UpwardPortalFizz = 47,
 }
 
 impl ParticleMode {

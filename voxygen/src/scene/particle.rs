@@ -396,6 +396,21 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::TeleportedByPortal { pos, .. } => {
+                self.particles.resize_with(self.particles.len() + 80, || {
+                    Particle::new_directed(
+                        Duration::from_millis(500),
+                        time,
+                        ParticleMode::CultistFlame,
+                        *pos,
+                        pos + Vec3::unit_z()
+                            + Vec3::zero()
+                                .map(|_: f32| rng.gen_range(-0.1..0.1))
+                                .normalized()
+                                * 2.0,
+                    )
+                });
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
@@ -411,6 +426,7 @@ impl ParticleMgr {
             | Outcome::Swoosh { .. }
             | Outcome::Steam { .. }
             | Outcome::FireShockwave { .. }
+            | Outcome::PortalActivated { .. }
             | Outcome::LaserBeam { .. } => {},
         }
     }
@@ -499,6 +515,12 @@ impl ParticleMgr {
                     | object::Body::FireworkWhite
                     | object::Body::FireworkYellow,
                 ) => self.maintain_bomb_particles(scene_data, interpolated.pos, vel),
+                Body::Object(object::Body::PortalActive) => {
+                    self.maintain_active_portal_particles(scene_data, interpolated.pos)
+                },
+                Body::Object(object::Body::Portal) => {
+                    self.maintain_portal_particles(scene_data, interpolated.pos)
+                },
                 _ => {},
             }
         }
@@ -719,6 +741,56 @@ impl ParticleMgr {
                 time,
                 ParticleMode::CampfireSmoke,
                 pos + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+            ));
+        }
+    }
+
+    fn maintain_active_portal_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
+        span!(
+            _guard,
+            "active_portal_particles",
+            "ParticleMgr::maintain_active_portal_particles"
+        );
+
+        let time = scene_data.state.get_time();
+        let mut rng = thread_rng();
+
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
+            let outer_pos =
+                pos + (Vec2::unit_x().rotated_z(rng.gen_range((0.)..PI * 2.)) * 2.7).with_z(0.);
+
+            self.particles.push(Particle::new_directed(
+                Duration::from_secs_f32(rng.gen_range(0.2..0.5)),
+                time,
+                ParticleMode::UpwardPortalFizz,
+                outer_pos,
+                outer_pos + Vec3::unit_z() * rng.gen_range(5.0..7.0),
+            ));
+        }
+    }
+
+    fn maintain_portal_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
+        span!(
+            _guard,
+            "portal_particles",
+            "ParticleMgr::maintain_portal_particles"
+        );
+
+        let time = scene_data.state.get_time();
+        let mut rng = thread_rng();
+
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(150)) {
+            let outer_pos = pos
+                + (Vec2::unit_x().rotated_z(rng.gen_range((0.)..PI * 2.))
+                    * rng.gen_range(1.0..2.9))
+                .with_z(0.);
+
+            self.particles.push(Particle::new_directed(
+                Duration::from_secs_f32(rng.gen_range(0.5..3.0)),
+                time,
+                ParticleMode::UpwardPortalFizz,
+                outer_pos,
+                outer_pos + Vec3::unit_z() * rng.gen_range(3.0..4.0),
             ));
         }
     }

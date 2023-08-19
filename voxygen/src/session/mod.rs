@@ -1027,6 +1027,10 @@ impl PlayState for SessionState {
                                                 }
                                             },
                                             Interactable::Entity(entity) => {
+                                                let body = client
+                                                    .state()
+                                                    .read_component_cloned::<comp::Body>(*entity);
+
                                                 if client
                                                     .state()
                                                     .ecs()
@@ -1035,15 +1039,21 @@ impl PlayState for SessionState {
                                                     .is_some()
                                                 {
                                                     client.pick_up(*entity);
-                                                } else if client
-                                                    .state()
-                                                    .ecs()
-                                                    .read_storage::<comp::Body>()
-                                                    .get(*entity)
-                                                    .map_or(false, |b| b.is_campfire())
+                                                } else if body
+                                                    .map_or(false, |body| body.is_campfire())
                                                 {
-                                                    // TODO: maybe start crafting instead?
                                                     client.toggle_sit();
+                                                } else if let Some(portal_uid) = body
+                                                    .map_or(false, |body| body.is_portal())
+                                                    .then(|| {
+                                                        client
+                                                            .state()
+                                                            .ecs()
+                                                            .uid_from_entity(*entity)
+                                                    })
+                                                    .flatten()
+                                                {
+                                                    client.activate_portal(portal_uid);
                                                 } else {
                                                     client.npc_interact(*entity, Subject::Regular);
                                                 }

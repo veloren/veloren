@@ -1498,6 +1498,20 @@
             threshold: 0.8,
             subtitle: "subtitle-attack-shovel",
         ),
+        PortalActivated: (
+            files: [
+                "voxygen.audio.sfx.ambient.portal_2",
+            ],
+            threshold: 0.8,
+            subtitle: "subtitle-portal-activated",
+        ),
+        TeleportedByPortal: (
+            files: [
+                "voxygen.audio.sfx.ambient.portal_1",
+            ],
+            threshold: 0.8,
+            subtitle: "subtitle-portal-teleported",
+        ),
 
         // Utterances (NPCs)
 

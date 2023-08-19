@@ -9,7 +9,9 @@ use crate::{
 use common::{
     assets::{self, AssetExt, AssetHandle},
     astar::Astar,
-    generation::{ChunkSupplement, EntityInfo},
+    comp::misc::PortalData,
+    generation::{ChunkSupplement, EntityInfo, SpecialEntity},
+    resources::Secs,
     store::{Id, Store},
     terrain::{
         BiomeKind, Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize,
@@ -146,7 +148,7 @@ impl Dungeon {
         if area.contains_point(pos - self.origin) {
             supplement.add_entity(
                 EntityInfo::at(Vec3::new(pos.x as f32, pos.y as f32, self.alt as f32) + 5.0)
-                    .into_waypoint(),
+                    .into_special(SpecialEntity::Waypoint),
             );
         }
 
@@ -615,6 +617,14 @@ impl Floor {
             for y in area.min.y..area.max.y {
                 let tile_pos = Vec2::new(x, y).map(|e| e.div_euclid(TILE_SIZE)) - self.tile_offset;
                 let wpos2d = origin.xy() + Vec2::new(x, y);
+                let is_boss_tile = self.tiles.get(tile_pos).filter(|_| self.final_level);
+
+                let tile_wcenter = origin
+                    + Vec3::from(
+                        Vec2::new(x, y)
+                            .map(|e| e.div_euclid(TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2),
+                    );
+
                 if let Some(Tile::Room(room)) = self.tiles.get(tile_pos) {
                     let room = &self.rooms[*room];
 
@@ -648,6 +658,27 @@ impl Floor {
                         ),
                         RoomKind::Peaceful | RoomKind::LavaPlatforming => {},
                     }
+                } else if let Some(Tile::UpStair(_, _)) = is_boss_tile && tile_wcenter.xy() == wpos2d {
+                    // Create one teleporter at the top of the "stairs" and one at the botton
+                    let bottom_pos = tile_wcenter.map(|v| v as f32) ;
+                    let top_pos =
+                        (tile_wcenter + Vec3::unit_z() * self.total_depth()).map(|v| v as f32);
+
+                    // Move both a bit to the side to prevent teleportation loop, ideally we'd have the portals at another location
+                    supplement.add_entity(EntityInfo::at(top_pos).into_special(
+                        SpecialEntity::Teleporter(PortalData {
+                            target: bottom_pos + Vec3::unit_x() * 5.,
+                            requires_no_aggro: true,
+                            buildup_time: Secs(5.),
+                        }),
+                    ));
+                    supplement.add_entity(EntityInfo::at(bottom_pos).into_special(
+                        SpecialEntity::Teleporter(PortalData {
+                            target: top_pos + Vec3::unit_x() * 5.,
+                            requires_no_aggro: true,
+                            buildup_time: Secs(5.),
+                        }),
+                    ));
                 }
             }
         }
@@ -976,6 +1007,7 @@ impl Floor {
         let lava = Block::new(BlockKind::Lava, noisy_color(Rgb::new(184, 39, 0), 8));
         let stone = Block::new(BlockKind::Rock, Rgb::new(150, 150, 175));
         let stone_purple = Block::new(BlockKind::GlowingRock, Rgb::new(96, 0, 128));
+        let stone_wall = Block::new(BlockKind::Rock, Rgb::new(120, 120, 135));
 
         // Sprites are randomly positioned and have random kinds, this primitive
         // produces a box of dots that will later get truncated to just the
@@ -1097,6 +1129,10 @@ impl Floor {
                 min: tile_corner,
                 max: tile_corner + Vec2::broadcast(TILE_SIZE),
             };
+            let outer_tile_aabr = |dist| Aabr {
+                min: tile_corner - Vec2::broadcast(dist),
+                max: tile_corner + Vec2::broadcast(TILE_SIZE + dist),
+            };
             let tile_center = tile_corner + Vec2::broadcast(TILE_SIZE / 2);
             let (mut height, room) = match tile {
                 Tile::UpStair(room, _) => (self.hollow_depth, Some(room)),
@@ -1105,6 +1141,20 @@ impl Floor {
                 Tile::Tunnel => (tunnel_height as i32, None),
                 Tile::Solid => continue,
             };
+
+            let outer_tile_aabb = painter.prim(Primitive::Aabb(aabr_with_z(
+                outer_tile_aabr(0),
+                floor_z - 2..(floor_z + tunnel_height as i32) + 2,
+            )));
+
+            // Fill Walls
+            painter.fill(outer_tile_aabb, Fill::Block(stone_wall));
+
+            let tile_floor_fill = painter.prim(Primitive::Aabb(aabr_with_z(
+                tile_aabr,
+                floor_z - 1..floor_z,
+            )));
+            painter.fill(tile_floor_fill, Fill::Block(stone_wall));
 
             // Sprites are contained to the level above the floor, and not within walls
             let sprite_layer = painter.prim(Primitive::Aabb(aabr_with_z(
@@ -1124,17 +1174,27 @@ impl Floor {
 
             if let Some(room) = room.map(|i| self.rooms.get(*i)) {
                 height = height.min(room.height);
-                if let Tile::UpStair(_, kind) = tile {
+                if let Tile::UpStair(_, kind) = tile && !self.final_level {
                     // Construct the staircase that connects this tile to the matching DownStair
                     // tile on the floor above (or to the surface if this is the top floor), and a
                     // hollow bounding box to place air in
                     let center = tile_center.with_z(floor_z);
                     let radius = TILE_SIZE as f32 / 2.0;
                     let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
+                    let outer_aabb = aabr_with_z(
+                        outer_tile_aabr(2),
+                        floor_z + tunnel_height as i32..floor_z + self.total_depth() - 1,
+                    );
                     let bb = painter.prim(match kind {
                         StairsKind::Spiral => Primitive::Cylinder(aabb),
                         StairsKind::WallSpiral => Primitive::Aabb(aabb),
                     });
+
+                    painter.fill(painter.prim(match kind {
+                        StairsKind::WallSpiral => Primitive::Aabb(outer_aabb),
+                        StairsKind::Spiral => Primitive::Cylinder(outer_aabb),
+                    }), Fill::Block(stone_wall));
+
                     let stair = painter.prim(Primitive::sampling(bb, match kind {
                         StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
                         StairsKind::WallSpiral => wall_staircase(center, radius, 27.0),
@@ -1161,6 +1221,7 @@ impl Floor {
                     stairs_bb.push(bb);
                     stairs.push((stair, lights));
                 }
+
                 if matches!(tile, Tile::Room(_) | Tile::DownStair(_)) {
                     let seed = room.seed;
                     let loot_density = room.loot_density;
@@ -1274,7 +1335,7 @@ impl Floor {
             // Carve out the room's air inside the walls
             let tile_air = painter.prim(Primitive::Aabb(aabr_with_z(
                 tile_aabr,
-                floor_z..floor_z + height,
+                floor_z..floor_z + tunnel_height as i32,
             )));
             let tile_air = painter.prim(Primitive::without(tile_air, wall_contours));
             painter.fill(tile_air, Fill::Block(vacant));
@@ -1319,11 +1380,12 @@ impl Floor {
             painter.fill(*lights, sconces_inward.clone());
             painter.fill(*pillar, Fill::Block(stone));
         }
+
         // Carve out space for the stairs
-        for stair_bb in stairs_bb.iter() {
-            painter.fill(*stair_bb, Fill::Block(vacant));
+        for stair_bb in stairs_bb {
+            painter.fill(stair_bb, Fill::Block(vacant));
             // Prevent sprites from floating above the stairs
-            let stair_bb_up = painter.prim(Primitive::translate(*stair_bb, Vec3::unit_z()));
+            let stair_bb_up = painter.prim(Primitive::translate(stair_bb, Vec3::unit_z()));
             for (sprite, _) in sprites.iter_mut() {
                 *sprite = painter.prim(Primitive::without(*sprite, stair_bb_up));
             }

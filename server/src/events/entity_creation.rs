@@ -9,6 +9,7 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        misc::PortalData,
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
         shockwave, Alignment, BehaviorCapability, Body, ItemDrops, LightEmitter, Object, Ori, Pos,
         Projectile, TradingBehavior, Vel, WaypointArea,
@@ -416,5 +417,12 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
                 Time(time),
             ),
         ]))
+        .build();
+}
+
+pub fn handle_create_teleporter(server: &mut Server, pos: Vec3<f32>, portal: PortalData) {
+    server
+        .state
+        .create_teleporter(comp::Pos(pos), portal)
         .build();
 }

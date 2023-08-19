@@ -158,6 +158,7 @@ pub enum ControlEvent {
         auxiliary_key: ability::AuxiliaryKey,
         new_ability: ability::AuxiliaryAbility,
     },
+    ActivatePortal(Uid),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

@@ -10,7 +10,7 @@ use client::Client;
 use common::{
     comp,
     comp::{ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Collider, Content},
-    consts::{MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE},
+    consts::{MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE, TELEPORTER_RADIUS},
     link::Is,
     mounting::{Mount, Rider, VolumePos, VolumeRider},
     terrain::{Block, TerrainGrid, UnlockKind},
@@ -247,7 +247,7 @@ pub(super) fn select_interactable(
                 // * Are not riding the player
                 let not_riding_player = is_rider
                     .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(viewpoint_entity));
-                let is_interactable = (b.is_campfire() || has_stats_or_item.is_some()) && not_riding_player;
+                let is_interactable = (b.is_campfire() || (b.is_portal() && (p.0.distance_squared(player_pos) <= TELEPORTER_RADIUS.powi(2))) || has_stats_or_item.is_some()) && not_riding_player;
                 if !is_interactable {
                     return None;
                 };
