@@ -2,6 +2,7 @@ use common::{
     comp::{Agent, Alignment, CharacterState, Object, Pos, Teleporting},
     consts::TELEPORTER_RADIUS,
     event::{EventBus, ServerEvent},
+    outcome::Outcome,
     resources::Time,
     uid::Uid,
     CachedSpatialGrid,
@@ -33,6 +34,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, CachedSpatialGrid>,
         Read<'a, Time>,
         Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<Outcome>>,
     );
 
     const NAME: &'static str = "teleporter";
@@ -52,7 +54,8 @@ impl<'a> System<'a> for Sys {
             character_states,
             spatial_grid,
             time,
-            event_bus,
+            server_bus,
+            outcome_bus,
         ): Self::SystemData,
     ) {
         let check_aggro = |entity, pos: Vec3<f32>| {
@@ -115,10 +118,11 @@ impl<'a> System<'a> for Sys {
 
                 for entity in nearby {
                     cancel_teleporting.push(entity);
-                    event_bus.emit_now(ServerEvent::TeleportToPosition {
+                    server_bus.emit_now(ServerEvent::TeleportToPosition {
                         entity,
                         position: *target,
                     });
+                    outcome_bus.emit_now(Outcome::TeleportedByPortal { pos: *target });
                 }
             }
         }

@@ -396,6 +396,21 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::TeleportedByPortal { pos, .. } => {
+                self.particles.resize_with(self.particles.len() + 80, || {
+                    Particle::new_directed(
+                        Duration::from_millis(500),
+                        time,
+                        ParticleMode::CultistFlame,
+                        *pos,
+                        pos + Vec3::unit_z()
+                            + Vec3::zero()
+                                .map(|_: f32| rng.gen_range(-0.1..0.1))
+                                .normalized()
+                                * 2.0,
+                    )
+                });
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }

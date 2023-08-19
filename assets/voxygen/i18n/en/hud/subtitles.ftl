@@ -5,6 +5,7 @@ subtitle-owl = Owl hooting
 subtitle-running_water = Water bubbling
 subtitle-lightning = Thunder
 subtitle-portal-activated = Portal Activated
+subtitle-portal-teleported = Teleported via portal
 
 subtitle-footsteps_grass = Walking on grass
 subtitle-footsteps_earth = Walking on dirt

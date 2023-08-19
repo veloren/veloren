@@ -184,6 +184,7 @@ pub enum SfxEvent {
     Swoosh,
     GroundDig,
     PortalActivated,
+    TeleportedByPortal,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -496,6 +497,10 @@ impl SfxMgr {
             },
             Outcome::PortalActivated { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::PortalActivated);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
+            Outcome::TeleportedByPortal { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::TeleportedByPortal);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
             Outcome::IceSpikes { pos, .. } => {
