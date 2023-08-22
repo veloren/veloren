@@ -331,22 +331,7 @@ impl World {
         };
 
         let meta = TerrainChunkMeta::new(
-            sim_chunk
-                .sites
-                .iter()
-                .filter(|id| {
-                    index.sites[**id]
-                        .get_origin()
-                        .distance_squared(chunk_center_wpos2d) as f32
-                        <= index.sites[**id].radius().powi(2)
-                })
-                .min_by_key(|id| {
-                    index.sites[**id]
-                        .get_origin()
-                        .distance_squared(chunk_center_wpos2d)
-                })
-                .map(|id| index.sites[*id].name().to_string())
-                .or_else(|| sim_chunk.poi.map(|poi| self.civs.pois[poi].name.clone())),
+            sim_chunk.get_location_name(&index.sites, &self.civs.pois, chunk_center_wpos2d),
             sim_chunk.get_biome(),
             sim_chunk.alt,
             sim_chunk.tree_density,
@@ -691,16 +676,6 @@ impl World {
     pub fn get_location_name(&self, index: IndexRef, wpos2d: Vec2<i32>) -> Option<String> {
         let chunk_pos = wpos2d.wpos_to_cpos();
         let sim_chunk = self.sim.get(chunk_pos)?;
-        // TODO: Move this into SimChunk for reuse with above?
-        sim_chunk
-            .sites
-            .iter()
-            .filter(|id| {
-                index.sites[**id].get_origin().distance_squared(wpos2d) as f32
-                    <= index.sites[**id].radius().powi(2)
-            })
-            .min_by_key(|id| index.sites[**id].get_origin().distance_squared(wpos2d))
-            .map(|id| index.sites[*id].name().to_string())
-            .or_else(|| sim_chunk.poi.map(|poi| self.civs.pois[poi].name.clone()))
+        sim_chunk.get_location_name(&index.sites, &self.civs.pois, wpos2d)
     }
 }
