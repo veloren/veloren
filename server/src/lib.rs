@@ -894,10 +894,29 @@ impl Server {
                 CharacterUpdaterMessage::CharacterScreenResponse(response) => {
                     match response.response_kind {
                         CharacterScreenResponseKind::CharacterList(result) => match result {
-                            Ok(character_list_data) => self.notify_client(
-                                response.target_entity,
-                                ServerGeneral::CharacterListUpdate(character_list_data),
-                            ),
+                            Ok(mut character_list_data) => {
+                                character_list_data.iter_mut().for_each(|c| {
+                                    let name = c
+                                        .location
+                                        .as_ref()
+                                        .and_then(|s| {
+                                            persistence::parse_waypoint(s).ok().and_then(
+                                                |(waypoint, _)| waypoint.map(|w| w.get_pos()),
+                                            )
+                                        })
+                                        .and_then(|wpos| {
+                                            self.world.get_location_name(
+                                                self.index.as_index_ref(),
+                                                wpos.xy().as_::<i32>(),
+                                            )
+                                        });
+                                    c.location = name;
+                                });
+                                self.notify_client(
+                                    response.target_entity,
+                                    ServerGeneral::CharacterListUpdate(character_list_data),
+                                )
+                            },
                             Err(error) => self.notify_client(
                                 response.target_entity,
                                 ServerGeneral::CharacterActionError(error.to_string()),

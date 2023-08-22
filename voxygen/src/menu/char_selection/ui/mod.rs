@@ -623,10 +623,15 @@ impl Controls {
                                                 Text::new(&character.character.alias)
                                                     .size(fonts.cyri.scale(26))
                                                     .into(),
-                                                Text::new(
-                                                    // TODO: Add actual location here
-                                                    i18n.get_msg("char_selection-uncanny_valley"),
-                                                )
+                                                Text::new(character.location.as_ref().map_or_else(
+                                                    || {
+                                                        i18n.get_msg(
+                                                            "char_selection-uncanny_valley",
+                                                        )
+                                                        .to_string()
+                                                    },
+                                                    |s| s.clone(),
+                                                ))
                                                 .into(),
                                             ]),
                                         )
