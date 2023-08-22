@@ -482,7 +482,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                         item,
                         if let Some(loot_owner) = loot_owner {
                             debug!("Assigned UID {loot_owner:?} as the winner for the loot drop");
-                            Some(LootOwner::new(loot_owner))
+                            Some(LootOwner::new(loot_owner, false))
                         } else {
                             None
                         },

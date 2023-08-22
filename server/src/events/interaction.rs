@@ -356,7 +356,9 @@ pub fn handle_mine_block(
                     }
                 }
                 for item in items {
-                    let loot_owner = maybe_uid.map(LootOwnerKind::Player).map(LootOwner::new);
+                    let loot_owner = maybe_uid
+                        .map(LootOwnerKind::Player)
+                        .map(|owner| LootOwner::new(owner, false));
                     state.create_item_drop(
                         Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
                         comp::Vel(Vec3::zero()),

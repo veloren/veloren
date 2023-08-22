@@ -822,10 +822,10 @@ impl<'a> AgentData<'a> {
         };
         let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
             Some(Body::ItemDrop(item)) => {
-                //If the agent is humanoid, it will pick up all kinds of item drops. If the
+                let is_humanoid = matches!(self.body, Some(Body::Humanoid(_)));
+                // If the agent is humanoid, it will pick up all kinds of item drops. If the
                 // agent isn't humanoid, it will pick up only consumable item drops.
-                let wants_pickup = matches!(self.body, Some(Body::Humanoid(_)))
-                    || matches!(item, item_drop::Body::Consumable);
+                let wants_pickup = is_humanoid || matches!(item, item_drop::Body::Consumable);
 
                 // The agent will attempt to pickup the item if it wants to pick it up and
                 // is allowed to
@@ -834,13 +834,20 @@ impl<'a> AgentData<'a> {
                         .loot_owners
                         .get(entity)
                         .map_or(true, |loot_owner| {
-                            loot_owner.can_pickup(
-                                *self.uid,
-                                read_data.groups.get(entity),
-                                self.alignment,
-                                self.body,
-                                None,
-                            )
+                            !(is_humanoid
+                                && loot_owner.is_soft()
+                                // If we are hostile towards the owner, ignore their wish to not pick up the loot
+                                && loot_owner
+                                    .uid()
+                                    .and_then(|uid| read_data.id_maps.uid_entity(uid))
+                                    .map_or(true, |entity| !is_enemy(self, entity, read_data)))
+                                && loot_owner.can_pickup(
+                                    *self.uid,
+                                    read_data.groups.get(entity),
+                                    self.alignment,
+                                    self.body,
+                                    None,
+                                )
                         });
 
                 if attempt_pickup {

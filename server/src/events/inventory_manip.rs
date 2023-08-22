@@ -9,8 +9,9 @@ use common::{
         self,
         group::members,
         item::{self, flatten_counted_items, tool::AbilityMap, MaterialStatManifest},
+        loot_owner::LootOwnerKind,
         slot::{self, Slot},
-        InventoryUpdate,
+        InventoryUpdate, LootOwner,
     },
     consts::MAX_PICKUP_RANGE,
     mounting::VolumePos,
@@ -387,7 +388,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     ),
                     comp::Vel(Vec3::zero()),
                     item,
-                    None,
+                    Some(LootOwner::new(LootOwnerKind::Player(uid), false)),
                 );
             }
         },
@@ -959,7 +960,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()),
             comp::Vel(Vec3::zero()),
             item,
-            None,
+            Some(LootOwner::new(LootOwnerKind::Player(uid), true)),
         );
     }
 

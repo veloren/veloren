@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Location names are displayed in character selection dialog
 - You can no longer write messages to old groups after being kicked and not having updated your chat mode.
 - Location names are now also correct after editing and creating characters
+- NPC's wont pick up recently dropped items (if not hostile towards you)
 
 ## [0.15.0] - 2023-07-01
 

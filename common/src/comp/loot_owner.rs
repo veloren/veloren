@@ -15,16 +15,21 @@ pub struct LootOwner {
     #[serde(skip, default = "Instant::now")]
     expiry: Instant,
     owner: LootOwnerKind,
+    /// This field stands as a wish for NPC's to not pick the loot up, they will
+    /// however be able to decide whether they want to follow your wishes or not
+    /// (players will be able to picke the item up)
+    soft: bool,
 }
 
 // Loot becomes free-for-all after the initial ownership period
 const OWNERSHIP_SECS: u64 = 45;
 
 impl LootOwner {
-    pub fn new(kind: LootOwnerKind) -> Self {
+    pub fn new(kind: LootOwnerKind, soft: bool) -> Self {
         Self {
             expiry: Instant::now().add(Duration::from_secs(OWNERSHIP_SECS)),
             owner: kind,
+            soft,
         }
     }
 
@@ -42,6 +47,8 @@ impl LootOwner {
     pub fn expired(&self) -> bool { self.expiry <= Instant::now() }
 
     pub fn default_instant() -> Instant { Instant::now() }
+
+    pub fn is_soft(&self) -> bool { self.soft }
 
     pub fn can_pickup(
         &self,
@@ -66,7 +73,7 @@ impl LootOwner {
         // Pet's can't pick up owned loot
         // Humanoids must own the loot
         // Non-humanoids ignore loot ownership
-        !is_pet && (owns_loot || !is_humanoid)
+        !is_pet && (self.soft || owns_loot || !is_humanoid)
     }
 }
 
