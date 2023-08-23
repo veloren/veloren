@@ -2964,7 +2964,7 @@ dependencies = [
  "rustls-native-certs 0.5.0",
  "tokio",
  "tokio-rustls",
- "webpki 0.21.4",
+ "webpki",
 ]
 
 [[package]]
@@ -4856,55 +4856,50 @@ dependencies = [
 
 [[package]]
 name = "quinn"
-version = "0.8.5"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b435e71d9bfa0d8889927231970c51fb89c58fa63bffcab117c9c7a41e5ef8f"
+checksum = "8cc2c5017e4b43d5995dcea317bc46c1e09404c0a9664d2908f7f02dfe943d75"
 dependencies = [
  "bytes",
- "futures-channel",
- "futures-util",
- "fxhash",
+ "pin-project-lite",
  "quinn-proto",
  "quinn-udp",
- "rustls 0.20.8",
+ "rustc-hash",
+ "rustls 0.21.6",
  "thiserror",
  "tokio",
  "tracing",
- "webpki 0.22.0",
 ]
 
 [[package]]
 name = "quinn-proto"
-version = "0.8.4"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fce546b9688f767a57530652488420d419a8b1f44a478b451c3d1ab6d992a55"
+checksum = "b83c2a964b8b68e6c9c616f09b735b436a78843704fa6979a076073e622f69dc"
 dependencies = [
  "bytes",
- "fxhash",
  "rand 0.8.5",
  "ring",
- "rustls 0.20.8",
+ "rustc-hash",
+ "rustls 0.21.6",
  "rustls-native-certs 0.6.2",
- "rustls-pemfile 0.2.1",
  "slab",
  "thiserror",
  "tinyvec",
  "tracing",
- "webpki 0.22.0",
 ]
 
 [[package]]
 name = "quinn-udp"
-version = "0.1.4"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b07946277141531aea269befd949ed16b2c85a780ba1043244eda0969e538e54"
+checksum = "055b4e778e8feb9f93c4e439f71dc2156ef13360b432b799e179a8c4cdf0b1d7"
 dependencies = [
- "futures-util",
+ "bytes",
  "libc",
- "quinn-proto",
- "socket2 0.4.9",
- "tokio",
+ "socket2 0.5.2",
  "tracing",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -5454,19 +5449,19 @@ dependencies = [
  "log",
  "ring",
  "sct 0.6.1",
- "webpki 0.21.4",
+ "webpki",
 ]
 
 [[package]]
 name = "rustls"
-version = "0.20.8"
+version = "0.21.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fff78fc74d175294f4e83b28343315ffcfb114b156f0185e9741cb5570f50e2f"
+checksum = "1d1feddffcfcc0b33f5c6ce9a29e341e4cd59c3f78e7ee45f4a40c038b1d6cbb"
 dependencies = [
  "log",
  "ring",
+ "rustls-webpki",
  "sct 0.7.0",
- "webpki 0.22.0",
 ]
 
 [[package]]
@@ -5488,18 +5483,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0167bac7a9f490495f3c33013e7722b53cb087ecbe082fb0c6387c96f634ea50"
 dependencies = [
  "openssl-probe",
- "rustls-pemfile 1.0.2",
+ "rustls-pemfile",
  "schannel",
  "security-framework",
-]
-
-[[package]]
-name = "rustls-pemfile"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eebeaeb360c87bfb72e84abdb3447159c0eaececf1bef2aecd65a8be949d1c9"
-dependencies = [
- "base64 0.13.1",
 ]
 
 [[package]]
@@ -5509,6 +5495,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d194b56d58803a43635bdc398cd17e383d6f71f9182b9a192c127ca42494a59b"
 dependencies = [
  "base64 0.21.0",
+]
+
+[[package]]
+name = "rustls-webpki"
+version = "0.101.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d93931baf2d282fff8d3a532bbfd7653f734643161b87e3e01e59a04439bf0d"
+dependencies = [
+ "ring",
+ "untrusted",
 ]
 
 [[package]]
@@ -6537,9 +6533,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.28.0"
+version = "1.28.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3c786bf8134e5a3a166db9b29ab8f48134739014a3eca7bc6bfa95d673b136f"
+checksum = "94d7b1cfd2aa4011f2de74c2c4c63665e27a71006b0a192dcd2710272e73dfa2"
 dependencies = [
  "autocfg",
  "bytes",
@@ -6572,7 +6568,7 @@ checksum = "bc6844de72e57df1980054b38be3a9f4702aba4858be64dd700181a8a6d0e1b6"
 dependencies = [
  "rustls 0.19.1",
  "tokio",
- "webpki 0.21.4",
+ "webpki",
 ]
 
 [[package]]
@@ -6656,6 +6652,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ce8c33a8d48bd45d624a6e523445fd21ec13d3653cd51f681abf67418f54eb8"
 dependencies = [
  "cfg-if 1.0.0",
+ "log",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",
@@ -7233,7 +7230,7 @@ dependencies = [
  "quinn",
  "rand 0.8.5",
  "rcgen",
- "rustls 0.20.8",
+ "rustls 0.21.6",
  "serde",
  "shellexpand",
  "socket2 0.5.2",
@@ -7343,8 +7340,8 @@ dependencies = [
  "refinery",
  "ron 0.8.0",
  "rusqlite",
- "rustls 0.20.8",
- "rustls-pemfile 1.0.2",
+ "rustls 0.21.6",
+ "rustls-pemfile",
  "schnellru",
  "serde",
  "serde_json",
@@ -8131,16 +8128,6 @@ name = "webpki"
 version = "0.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8e38c0608262c46d4a56202ebabdeb094cef7e560ca7a226c6bf055188aa4ea"
-dependencies = [
- "ring",
- "untrusted",
-]
-
-[[package]]
-name = "webpki"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f095d78192e208183081cc07bc5515ef55216397af48b873e5edcd72637fa1bd"
 dependencies = [
  "ring",
  "untrusted",

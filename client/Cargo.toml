@@ -23,7 +23,7 @@ network = { package = "veloren-network", path = "../network", features = ["compr
 
 byteorder = "1.3.2"
 tokio = { workspace = true, features = ["rt-multi-thread"] }
-quinn = "0.8"
+quinn = "0.10"
 image = { workspace = true }
 num = { workspace = true }
 tracing = { workspace = true }

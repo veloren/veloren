@@ -37,8 +37,8 @@ async-channel = "1.6" #use for .close() channels
 lazy_static = { workspace = true }
 rand = { workspace = true }
 #quic support
-quinn = { version = "0.8", optional = true }
-rustls = "0.20.1"
+quinn = { version = "0.10", optional = true }
+rustls = "0.21"
 #stream flags
 bitflags = { workspace = true }
 lz-fear = { version = "0.1.1", optional = true }

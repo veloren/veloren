@@ -2,8 +2,6 @@ use crate::api::{ConnectAddr, NetworkConnectError};
 use async_trait::async_trait;
 use bytes::BytesMut;
 use futures_util::FutureExt;
-#[cfg(feature = "quic")]
-use futures_util::StreamExt;
 use hashbrown::HashMap;
 use network_protocol::{
     Bandwidth, Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid,
@@ -313,15 +311,12 @@ impl Protocols {
         s2s_stop_listening_r: oneshot::Receiver<()>,
         c2s_protocol_s: mpsc::UnboundedSender<C2sProtocol>,
     ) -> io::Result<()> {
-        let (_endpoint, mut listener) = match quinn::Endpoint::server(server_config, addr) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let endpoint = quinn::Endpoint::server(server_config, addr)?;
         trace!(?addr, "Quic Listener bound");
         let mut end_receiver = s2s_stop_listening_r.fuse();
         tokio::spawn(async move {
             while let Some(Some(connecting)) = select! {
-                next = listener.next().fuse() => Some(next),
+                next = endpoint.accept().fuse() => Some(next),
                 _ = &mut end_receiver => None,
             } {
                 let remote_addr = anonymize_addr(&connecting.remote_address());
@@ -361,25 +356,24 @@ impl Protocols {
 
     #[cfg(feature = "quic")]
     pub(crate) async fn new_quic(
-        mut connection: quinn::NewConnection,
+        connection: quinn::Connection,
         listen: bool,
         metrics: ProtocolMetricCache,
     ) -> Result<Self, quinn::ConnectionError> {
         let (sendstream, recvstream) = if listen {
-            connection.connection.open_bi().await?
+            connection.open_bi().await?
         } else {
             connection
-                .bi_streams
-                .next()
+                .accept_bi()
                 .await
-                .ok_or(quinn::ConnectionError::LocallyClosed)??
+                .or(Err(quinn::ConnectionError::LocallyClosed))?
         };
         let (recvstreams_s, recvstreams_r) = mpsc::unbounded_channel();
         let streams_s_clone = recvstreams_s.clone();
         let (sendstreams_s, sendstreams_r) = mpsc::unbounded_channel();
         let sp = QuicSendProtocol::new(
             QuicDrain {
-                con: connection.connection.clone(),
+                con: connection.clone(),
                 main: sendstream,
                 reliables: HashMap::new(),
                 recvstreams_s: streams_s_clone,
@@ -390,8 +384,7 @@ impl Protocols {
         spawn_new(recvstream, None, &recvstreams_s);
         let rp = QuicRecvProtocol::new(
             QuicSink {
-                con: connection.connection,
-                bi: connection.bi_streams,
+                con: connection,
                 recvstreams_r,
                 recvstreams_s,
                 sendstreams_s,
@@ -615,7 +608,6 @@ pub struct QuicDrain {
 pub struct QuicSink {
     #[allow(dead_code)]
     con: quinn::Connection,
-    bi: quinn::IncomingBiStreams,
     recvstreams_r: mpsc::UnboundedReceiver<QuicStream>,
     recvstreams_s: mpsc::UnboundedSender<QuicStream>,
     sendstreams_s: mpsc::UnboundedSender<quinn::SendStream>,
@@ -697,7 +689,7 @@ impl UnreliableSink for QuicSink {
             // first handle all bi streams!
             let (a, b) = select! {
                 biased;
-                Some(n) = self.bi.next().fuse() => (Some(n), None),
+                n = self.con.accept_bi().fuse() => (Some(n), None),
                 Some(n) = self.recvstreams_r.recv().fuse() => (None, Some(n)),
             };
 
