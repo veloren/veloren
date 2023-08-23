@@ -104,11 +104,8 @@ backtrace = "0.3.40"
 bincode = { workspace = true }
 chrono = { workspace = true }
 chumsky = "0.9"
-# TODO: unused
-cpal = "0.14"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
-# TODO: remove
 directories-next = "2.0"
 dot_vox = "5.1"
 enum-iterator = "1.1.0"
