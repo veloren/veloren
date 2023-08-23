@@ -2910,12 +2910,12 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.4.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#a0f3dd51f2dc116bc3bc19f8421fb454436857f7"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 
 [[package]]
 name = "iced_futures"
 version = "0.3.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#a0f3dd51f2dc116bc3bc19f8421fb454436857f7"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "futures",
  "log",
@@ -2925,7 +2925,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.2.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#a0f3dd51f2dc116bc3bc19f8421fb454436857f7"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "bytemuck",
  "glam",
@@ -2938,7 +2938,7 @@ dependencies = [
 [[package]]
 name = "iced_native"
 version = "0.4.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#a0f3dd51f2dc116bc3bc19f8421fb454436857f7"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -2950,7 +2950,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.3.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#a0f3dd51f2dc116bc3bc19f8421fb454436857f7"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "iced_core",
 ]
@@ -2958,7 +2958,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.3.0"
-source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#a0f3dd51f2dc116bc3bc19f8421fb454436857f7"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "iced_futures",
  "iced_graphics",
@@ -6692,8 +6692,8 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
- "rand 0.8.5",
+ "cfg-if 0.1.10",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
