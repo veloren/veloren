@@ -1028,9 +1028,21 @@ impl Window {
     pub fn is_cursor_grabbed(&self) -> bool { self.cursor_grabbed }
 
     pub fn grab_cursor(&mut self, grab: bool) {
+        use winit::window::CursorGrabMode;
+
         self.cursor_grabbed = grab;
         self.window.set_cursor_visible(!grab);
-        let _ = self.window.set_cursor_grab(grab);
+        let res = if grab {
+            self.window
+                .set_cursor_grab(CursorGrabMode::Confined)
+                .or_else(|_e| self.window.set_cursor_grab(CursorGrabMode::Locked))
+        } else {
+            self.window.set_cursor_grab(CursorGrabMode::None)
+        };
+
+        if let Err(e) = res {
+            error!(?e, ?grab, "Failed to toggle cursor grab");
+        }
     }
 
     /// Moves mouse cursor to center of screen
@@ -1073,7 +1085,7 @@ impl Window {
         &self,
         resolution: [u16; 2],
         bit_depth: Option<u16>,
-        refresh_rate: Option<u16>,
+        refresh_rate_millihertz: Option<u32>,
         correct_res: Option<Vec<VideoMode>>,
         correct_depth: Option<Option<VideoMode>>,
         correct_rate: Option<Option<VideoMode>>,
@@ -1103,14 +1115,14 @@ impl Window {
                         .cloned()
                 });
 
-                match refresh_rate {
+                match refresh_rate_millihertz {
                     // A bit depth and a refresh rate is given
                     Some(rate) => {
                         // analogous to correct_res
                         let correct_rate = correct_rate.unwrap_or_else(|| {
                             correct_res
                                 .iter()
-                                .find(|mode| mode.refresh_rate() == rate)
+                                .find(|mode| mode.refresh_rate_millihertz() == rate)
                                 .cloned()
                         });
 
@@ -1121,7 +1133,7 @@ impl Window {
                         correct_res
                             .iter()
                             .filter(|mode| mode.bit_depth() == depth)
-                            .find(|mode| mode.refresh_rate() == rate)
+                            .find(|mode| mode.refresh_rate_millihertz() == rate)
                             .cloned()
                             .or_else(|| {
                                 if correct_depth.is_none() && correct_rate.is_none() {
@@ -1166,14 +1178,14 @@ impl Window {
                 }
             },
             // No bit depth is given
-            None => match refresh_rate {
+            None => match refresh_rate_millihertz {
                 // No bit depth and a refresh rate is given
                 Some(rate) => {
                     // analogous to correct_res
                     let correct_rate = correct_rate.unwrap_or_else(|| {
                         correct_res
                             .iter()
-                            .find(|mode| mode.refresh_rate() == rate)
+                            .find(|mode| mode.refresh_rate_millihertz() == rate)
                             .cloned()
                     });
 
@@ -1205,7 +1217,7 @@ impl Window {
                     .into_iter()
                     // Prefer bit depth over refresh rate
                     .sorted_by_key(|mode| mode.bit_depth())
-                    .max_by_key(|mode| mode.refresh_rate()),
+                    .max_by_key(|mode| mode.refresh_rate_millihertz()),
             },
         }
     }
@@ -1214,7 +1226,7 @@ impl Window {
         &self,
         resolution: [u16; 2],
         bit_depth: Option<u16>,
-        refresh_rate: Option<u16>,
+        refresh_rate_millihertz: Option<u32>,
     ) -> Option<VideoMode> {
         // (resolution, bit depth, refresh rate) represents a video mode
         // spec: as specified
@@ -1225,7 +1237,14 @@ impl Window {
         // (spec, spec, max), (spec, max, spec)
         // (spec, max, max)
         // (max, max, max)
-        match self.select_video_mode_rec(resolution, bit_depth, refresh_rate, None, None, None) {
+        match self.select_video_mode_rec(
+            resolution,
+            bit_depth,
+            refresh_rate_millihertz,
+            None,
+            None,
+            None,
+        ) {
             Some(mode) => Some(mode),
             // if there is no video mode with the specified resolution,
             // fall back to the video mode with max resolution, bit depth and refresh rate
@@ -1238,7 +1257,7 @@ impl Window {
                     let mode = monitor
                         .video_modes()
                         // Prefer bit depth over refresh rate
-                        .sorted_by_key(|mode| mode.refresh_rate())
+                        .sorted_by_key(|mode| mode.refresh_rate_millihertz())
                         .sorted_by_key(|mode| mode.bit_depth())
                         .max_by_key(|mode| mode.size().width);
 
@@ -1263,7 +1282,7 @@ impl Window {
                 if let Some(video_mode) = self.select_video_mode(
                     fullscreen.resolution,
                     fullscreen.bit_depth,
-                    fullscreen.refresh_rate,
+                    fullscreen.refresh_rate_millihertz,
                 ) {
                     winit::window::Fullscreen::Exclusive(video_mode)
                 } else {
@@ -1411,7 +1430,7 @@ pub struct FullScreenSettings {
     pub mode: FullscreenMode,
     pub resolution: [u16; 2],
     pub bit_depth: Option<u16>,
-    pub refresh_rate: Option<u16>,
+    pub refresh_rate_millihertz: Option<u32>,
 }
 
 impl Default for FullScreenSettings {
@@ -1421,7 +1440,7 @@ impl Default for FullScreenSettings {
             mode: FullscreenMode::Borderless,
             resolution: [1920, 1080],
             bit_depth: None,
-            refresh_rate: None,
+            refresh_rate_millihertz: None,
         }
     }
 }

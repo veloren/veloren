@@ -157,6 +157,8 @@ clap = { version = "4.2",  features = ["derive"]}
 
 [patch.crates-io]
 vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986c5477341bea4456be26" }
+# patch winit to support older raw-window-handle that works with old wgpu
+winit = { git = "https://github.com/Imberflur/winit.git", tag = "raw-window-handle-0.4-retro-support-v1" }
 # patch wgpu so we can use wgpu-profiler crate
 # wgpu = { git = "https://github.com/gfx-rs/wgpu.git", rev = "a92b8549a8e2cb9dac781bafc5ed32828f3caf46" }
 wgpu = { git = "https://github.com/pythonesque/wgpu.git", rev = "179ea209374a92837cde252f1d9ee01f628cae08" }
@@ -173,6 +175,9 @@ ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e2579673
 # gfx-backend-dx12 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
 # gfx-backend-dx11 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
 # gfx-backend-metal = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+
+# # Uncomment this to use a local fork of winit (for testing purposes)
+# winit = { path = "../winit" }
 
 # # Uncomment this to use a local fork of wgpu (for testing purposes)
 # [patch.'https://github.com/gfx-rs/wgpu']

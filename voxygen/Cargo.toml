@@ -56,7 +56,7 @@ i18n-helpers = {package = "veloren-voxygen-i18n-helpers", path = "i18n-helpers"}
 voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true }
 
 # Graphics
-winit = {version = "0.25.0", features = ["serde"]}
+winit = {version = "0.28.6", features = ["serde"]}
 wgpu = { version = "=0.8.0", features = ["trace", "cross"] }
 wgpu-profiler = { git = "https://github.com/Imberflur/wgpu-profiler", tag = "wgpu-0.8" }
 bytemuck = { version="1.4", features=["derive"] }
@@ -71,16 +71,16 @@ cmake = "=0.1.45"
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 euc = "0.5.0"
-iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "winit-0.25"}
-iced_winit = {git = "https://github.com/Imberflur/iced", tag = "winit-0.25"}
-window_clipboard = "0.2"
+iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
+iced_winit = {git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
+window_clipboard = "0.3"
 glyph_brush = "0.7.0"
-keyboard-keynames = "0.1.2"
-
+# https://gitlab.com/Frinksy/keyboard-keynames/-/merge_requests/8
+keyboard-keynames = { git = "https://gitlab.com/Imbris/keyboard-keynames.git", tag = "veloren-winit-0.28" }
 # EGUI
 egui = {version = "0.12", optional = true }
 egui_wgpu_backend = {git = "https://github.com/hasenbanck/egui_wgpu_backend.git", rev = "63a002c6a9b6c016e45806dd065864431caab621", optional = true }
-egui_winit_platform = {version = "0.8", optional = true }
+egui_winit_platform = { git = "https://github.com/Imberflur/egui_winit_platform.git", tag = "veloren-winit-0.28", optional = true }
 
 # ECS
 specs = { workspace = true, features = ["serde", "storage-event-control"] }
@@ -104,6 +104,7 @@ backtrace = "0.3.40"
 bincode = { workspace = true }
 chrono = { workspace = true }
 chumsky = "0.9"
+# TODO: unused
 cpal = "0.14"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
