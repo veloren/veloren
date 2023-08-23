@@ -40,8 +40,8 @@ vek = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
 prometheus-hyper = { workspace = true }
-quinn = "0.8"
-rustls = { version = "0.20", default-features = false }
+quinn = "0.10"
+rustls = { version = "0.21", default-features = false }
 rustls-pemfile = { version = "1", default-features = false }
 atomicwrites = "0.4"
 chrono = { workspace = true }
