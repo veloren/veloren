@@ -31,7 +31,7 @@ rayon = { workspace = true }
 specs = { workspace = true, features = ["serde", "storage-event-control", "derive"] }
 vek = { workspace = true }
 hashbrown = { workspace = true }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "42dddd666f28e1a94cdf4b542fcd61f67658e261" } # xMAC94x/current_master_till_refactored branch
 
 #TODO: put bot in a different crate
 #bot only
