@@ -44,7 +44,7 @@ use common::{
     grid::Grid,
     lottery::Lottery,
     spiral::Spiral2d,
-    store::Id,
+    store::{Id, Store},
     terrain::{
         map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, CoordinateConversions,
         MapSizeLg, TerrainChunk, TerrainChunkSize,
@@ -2661,5 +2661,22 @@ impl SimChunk {
                 0.0
             },
         }
+    }
+
+    pub fn get_location_name(
+        &self,
+        index_sites: &Store<crate::site::Site>,
+        civs_pois: &Store<PointOfInterest>,
+        wpos2d: Vec2<i32>,
+    ) -> Option<String> {
+        self.sites
+            .iter()
+            .filter(|id| {
+                index_sites[**id].get_origin().distance_squared(wpos2d) as f32
+                    <= index_sites[**id].radius().powi(2)
+            })
+            .min_by_key(|id| index_sites[**id].get_origin().distance_squared(wpos2d))
+            .map(|id| index_sites[*id].name().to_string())
+            .or_else(|| self.poi.map(|poi| civs_pois[poi].name.clone()))
     }
 }

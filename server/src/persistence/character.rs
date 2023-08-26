@@ -41,6 +41,8 @@ mod conversions;
 
 pub(crate) type EntityId = i64;
 
+pub(crate) use conversions::convert_waypoint_from_database_json as parse_waypoint;
+
 const CHARACTER_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.character";
 const INVENTORY_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.inventory";
 const LOADOUT_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.loadout";
@@ -297,7 +299,8 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
     let mut stmt = connection.prepare_cached(
         "
             SELECT  character_id,
-                    alias
+                    alias,
+                    waypoint
             FROM    character
             WHERE   player_uuid = ?1
             ORDER BY character_id",
@@ -309,7 +312,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
                 character_id: row.get(0)?,
                 alias: row.get(1)?,
                 player_uuid: player_uuid_.to_owned(),
-                waypoint: None, // Not used for character select
+                waypoint: row.get(2)?,
             })
         })?
         .map(|x| x.unwrap())
@@ -355,6 +358,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
                 character: char,
                 body: char_body,
                 inventory: Inventory::with_loadout(loadout, char_body),
+                location: character_data.waypoint.as_ref().cloned(),
             })
         })
         .collect()
