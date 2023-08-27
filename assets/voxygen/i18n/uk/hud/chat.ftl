@@ -1,17 +1,28 @@
 ## Player events
 hud-chat-online_msg = [{ $name }] зайшов/-ла на сервер
 hud-chat-offline_msg = [{ $name }] вийшов/-ла з серверу
-## Buff outcomes
-hud-outcome-burning = згорів/-ла живцем
-hud-outcome-curse = помер/-ла від прокльону
-hud-outcome-bleeding = помер/-ла від кровотечі
-hud-outcome-crippled = загинув/-ла від травм
-hud-outcome-frozen = замерз/-ла на смерть
-hud-outcome-mysterious = помер/-ла таємничою смертю
 ## Buff deaths
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] { $died_of_buff } через [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = [{ $victim }] { $died_of_buff } через { $attacker }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $victim }] згорів/-ла живцем через [{ $attacker }]
+ .bleeding = [{ $victim }] помер/-ла від кровотечі через [{ $attacker }]
+ .curse = [{ $victim }] помер/-ла від прокльону через [{ $attacker }]
+ .crippled = [{ $victim }] загинув/-ла від травм через [{ $attacker }]
+ .frozen = [{ $victim }] замерз/-ла на смерть через [{ $attacker }]
+ .mysterious = [{ $victim }] помер/-ла таємничою смертю через [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] згорів/-ла живцем
+ .bleeding = [{ $victim }] помер/-ла від кровотечі
+ .curse = [{ $victim }] помер/-ла від прокльону
+ .crippled = [{ $victim }] загинув/-ла від травм
+ .frozen = [{ $victim }] замерз/-ла на смерть
+ .mysterious = [{ $victim }] помер/-ла таємничою смертю
+hud-chat-died_of_npc_buff_msg =
+ .burning = [{ $victim }] згорів/-ла живцем через { $attacker }
+ .bleeding = [{ $victim }] помер/-ла від кровотечі через { $attacker }
+ .curse = [{ $victim }] помер/-ла від прокльону через { $attacker }
+ .crippled = [{ $victim }] загинув/-ла від травм через { $attacker }
+ .frozen = [{ $victim }] замерз/-ла на смерть через { $attacker }
+ .mysterious = [{ $victim }] помер/-ла таємничою смертю через { $attacker }
 ## PvP deaths
 hud-chat-pvp_melee_kill_msg = [{ $attacker }] переміг/-ла [{ $victim }]
 hud-chat-pvp_ranged_kill_msg = [{ $attacker }] застрелив/-ла [{ $victim }]

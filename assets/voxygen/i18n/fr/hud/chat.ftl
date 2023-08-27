@@ -3,20 +3,31 @@
 hud-chat-online_msg = [{ $name }] est maintenant en ligne.
 hud-chat-offline_msg = [{ $name }] s'est déconnecté.
 
-## Buff outcomes
 
-hud-outcome-burning = Mort: brûlé(e)
-hud-outcome-curse = Mort: malédiction
-hud-outcome-bleeding = Mort: saignement
-hud-outcome-crippled = Mort: estropié(e)
-hud-outcome-frozen = Mort: glacé(e)
-hud-outcome-mysterious = Mort: secrète
 
 ## Buff deaths
 
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] est mort de { $died_of_buff } causé par [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] est mort de { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = [{ $victim }] est mort de { $died_of_buff } causé par { $attacker }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $victim }] est mort de Mort: brûlé(e) causé par [{ $attacker }]
+ .bleeding = [{ $victim }] est mort de Mort: saignement causé par [{ $attacker }]
+ .curse = [{ $victim }] est mort de Mort: malédiction causé par [{ $attacker }]
+ .crippled = [{ $victim }] est mort de Mort: estropié(e) causé par [{ $attacker }]
+ .frozen = [{ $victim }] est mort de Mort: glacé(e) causé par [{ $attacker }]
+ .mysterious = [{ $victim }] est mort de Mort: secrète causé par [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] est mort de Mort: brûlé(e)
+ .bleeding = [{ $victim }] est mort de Mort: saignement
+ .curse = [{ $victim }] est mort de Mort: malédiction
+ .crippled = [{ $victim }] est mort de Mort: estropié(e)
+ .frozen = [{ $victim }] est mort de Mort: glacé(e)
+ .mysterious = [{ $victim }] est mort de Mort: secrète
+hud-chat-died_of_npc_buff_msg =
+ .burning = [{ $victim }] est mort de Mort: brûlé(e) causé par { $attacker }
+ .bleeding = [{ $victim }] est mort de Mort: saignement causé par { $attacker }
+ .curse = [{ $victim }] est mort de Mort: malédiction causé par { $attacker }
+ .crippled = [{ $victim }] est mort de Mort: estropié(e) causé par { $attacker }
+ .frozen = [{ $victim }] est mort de Mort: glacé(e) causé par { $attacker }
+ .mysterious = [{ $victim }] est mort de Mort: secrète causé par { $attacker }
 
 ## PvP deaths
 

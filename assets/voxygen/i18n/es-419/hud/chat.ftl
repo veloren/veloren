@@ -3,20 +3,31 @@
 hud-chat-online_msg = [{ $name }] esta en linea
 hud-chat-offline_msg = [{ $name }] se ha desconectado
 
-## Buff outcomes
 
-hud-outcome-burning = ha muerto por: quemadura
-hud-outcome-curse = ha muerto por: maldición
-hud-outcome-bleeding = ha muerto por: sangrado
-hud-outcome-crippled = ha muerto por: lesión
-hud-outcome-frozen = ha muerto por: congelamiento
-hud-outcome-mysterious = ha muerto por: secreto
 
 ## Buff deaths
 
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] { $died_of_buff } causado por [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = [{ $victim }] { $died_of_buff } causado por { $attacker }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $victim }] ha muerto por: quemadura causado por [{ $attacker }]
+ .bleeding = [{ $victim }] ha muerto por: sangrado causado por [{ $attacker }]
+ .curse = [{ $victim }] ha muerto por: maldición causado por [{ $attacker }]
+ .crippled = [{ $victim }] ha muerto por: lesión causado por [{ $attacker }]
+ .frozen = [{ $victim }] ha muerto por: congelamiento causado por [{ $attacker }]
+ .mysterious = [{ $victim }] ha muerto por: secreto causado por [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] ha muerto por: quemadura
+ .bleeding = [{ $victim }] ha muerto por: sangrado
+ .curse = [{ $victim }] ha muerto por: maldición
+ .crippled = [{ $victim }] ha muerto por: lesión
+ .frozen = [{ $victim }] ha muerto por: congelamiento
+ .mysterious = [{ $victim }] ha muerto por: secreto
+hud-chat-died_of_npc_buff_msg =
+ .burning = [{ $victim }] ha muerto por: quemadura causado por { $attacker }
+ .bleeding = [{ $victim }] ha muerto por: sangrado causado por { $attacker }
+ .curse = [{ $victim }] ha muerto por: maldición causado por { $attacker }
+ .crippled = [{ $victim }] ha muerto por: lesión causado por { $attacker }
+ .frozen = [{ $victim }] ha muerto por: congelamiento causado por { $attacker }
+ .mysterious = [{ $victim }] ha muerto por: secreto causado por { $attacker }
 
 ## PvP deaths
 

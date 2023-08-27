@@ -3,20 +3,31 @@
 hud-chat-online_msg = [{ $name }] зашёл на сервер
 hud-chat-offline_msg = [{ $name }] покинул сервер
 
-## Buff outcomes
 
-hud-outcome-burning = сгорел
-hud-outcome-curse = умер от проклятия
-hud-outcome-bleeding = умер от кровотечения
-hud-outcome-crippled = умер от множественных травм
-hud-outcome-frozen = замёрз насмерть
-hud-outcome-mysterious = загадочно умер
 
 ## Buff deaths
 
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] { $died_of_buff } вызванного [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = [{ $victim }] { $died_of_buff } вызванного { $attacker }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $victim }] сгорел вызванного [{ $attacker }]
+ .bleeding = [{ $victim }] умер от кровотечения вызванного [{ $attacker }]
+ .curse = [{ $victim }] умер от проклятия вызванного [{ $attacker }]
+ .crippled = [{ $victim }] умер от множественных травм вызванного [{ $attacker }]
+ .frozen = [{ $victim }] замёрз насмерть вызванного [{ $attacker }]
+ .mysterious = [{ $victim }] загадочно умер вызванного [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] сгорел
+ .bleeding = [{ $victim }] умер от кровотечения
+ .curse = [{ $victim }] умер от проклятия
+ .crippled = [{ $victim }] умер от множественных травм
+ .frozen = [{ $victim }] замёрз насмерть
+ .mysterious = [{ $victim }] загадочно умер
+hud-chat-died_of_npc_buff_msg =
+ .burning = [{ $victim }] сгорел вызванного { $attacker }
+ .bleeding = [{ $victim }] умер от кровотечения вызванного { $attacker }
+ .curse = [{ $victim }] умер от проклятия вызванного { $attacker }
+ .crippled = [{ $victim }] умер от множественных травм вызванного { $attacker }
+ .frozen = [{ $victim }] замёрз насмерть вызванного { $attacker }
+ .mysterious = [{ $victim }] загадочно умер вызванного { $attacker }
 
 ## PvP deaths
 
