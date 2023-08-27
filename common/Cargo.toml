@@ -80,7 +80,7 @@ specs = { workspace = true, features = ["serde", "storage-event-control"] }
 
 [dev-dependencies]
 #bench
-criterion = "0.3"
+criterion = { version = "0.5.1", default-features=false, features=["rayon", "cargo_bench_support"]}
 rand_chacha = { workspace = true }
 
 #test

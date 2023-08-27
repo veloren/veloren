@@ -29,7 +29,7 @@ hashbrown = { workspace = true }
 [dev-dependencies]
 async-channel = "1.6"
 tokio = { workspace = true, features = ["macros"] }
-criterion = { version = "0.3.4", features = ["default", "async_tokio"] }
+criterion = { version = "0.5.1", default-features=false, features=["rayon", "cargo_bench_support", "async_tokio"]}
 
 [[bench]]
 name = "protocols"
