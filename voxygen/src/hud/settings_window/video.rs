@@ -1548,11 +1548,12 @@ impl<'a> Widget for Video<'a> {
         let bit_depths: Vec<u16> = correct_res
             .iter()
             .filter(
-                |mode| match self.global_state.settings.graphics.fullscreen.refresh_rate {
-                    Some(refresh_rate) => mode.refresh_rate() == refresh_rate,
+                |mode| match self.global_state.settings.graphics.fullscreen.refresh_rate_millihertz {
+                    Some(rate) => mode.refresh_rate_millihertz() == rate,
                     None => true,
                 },
             )
+            // TODO: why do we sort by this and then map to it?
             .sorted_by_key(|mode| mode.bit_depth())
             .map(|mode| mode.bit_depth())
             .rev()
@@ -1601,7 +1602,7 @@ impl<'a> Widget for Video<'a> {
         }
 
         // Refresh Rate
-        let refresh_rates: Vec<u16> = correct_res
+        let refresh_rates: Vec<u32> = correct_res
             .into_iter()
             .filter(
                 |mode| match self.global_state.settings.graphics.fullscreen.bit_depth {
@@ -1609,8 +1610,9 @@ impl<'a> Widget for Video<'a> {
                     None => true,
                 },
             )
-            .sorted_by_key(|mode| mode.refresh_rate())
-            .map(|mode| mode.refresh_rate())
+            // TODO: why do we sort by this and then map to it?
+            .sorted_by_key(|mode| mode.refresh_rate_millihertz())
+            .map(|mode| mode.refresh_rate_millihertz())
             .rev()
             .dedup()
             .collect();
@@ -1627,10 +1629,20 @@ impl<'a> Widget for Video<'a> {
             once(String::from(
                 self.localized_strings.get_msg("common-automatic"),
             ))
-            .chain(refresh_rates.iter().map(|rate| format!("{}", rate)))
+            .chain(
+                refresh_rates
+                    .iter()
+                    .map(|&rate| format!("{:.1}", rate as f32 / 1000.0)),
+            )
             .collect::<Vec<String>>()
             .as_slice(),
-            match self.global_state.settings.graphics.fullscreen.refresh_rate {
+            match self
+                .global_state
+                .settings
+                .graphics
+                .fullscreen
+                .refresh_rate_millihertz
+            {
                 Some(refresh_rate) => refresh_rates
                     .iter()
                     .position(|rate| rate == &refresh_rate)
@@ -1647,7 +1659,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.refresh_rate, ui)
         {
             events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
-                refresh_rate: if clicked == 0 {
+                refresh_rate_millihertz: if clicked == 0 {
                     None
                 } else {
                     Some(refresh_rates[clicked - 1])
