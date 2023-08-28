@@ -91,7 +91,6 @@ common-stats-combat_rating = 战力
 common-stats-power = 威力
 common-stats-speed = 速度
 common-stats-effect-power = 效果威力
-common-stats-poise = 法力/耐力回复
 common-stats-range = 范围
 common-stats-energy_efficiency = 耐力消耗
 common-stats-buff_strength = 增幅

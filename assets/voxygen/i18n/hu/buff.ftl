@@ -1,6 +1,4 @@
 buff-remove = Kattints rá, hogy eltávolítsd
-buff-title-missing = Hiányzó név
-buff-desc-missing = Hiányzó leírás
 buff-title-heal = Gyógyulás
 buff-desc-heal = Életerő visszatöltődése bizonyos idő alatt.
 buff-title-potion = Főzet

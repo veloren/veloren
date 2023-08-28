@@ -24,7 +24,6 @@ hud-bag-swap_equipped_weapons_title = Замени оружје
 hud-bag-swap_equipped_weapons_desc = Стисни { $key }
 hud-bag-bag = Торба
 hud-bag-health = Здравље
-hud-bag-stamina = Снага
 hud-bag-combat_rating = Борбеност
 hud-bag-protection = Заштита
 hud-bag-stun_res = Отпорност на Омамљивање

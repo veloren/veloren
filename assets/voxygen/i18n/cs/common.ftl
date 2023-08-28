@@ -83,7 +83,6 @@ common-rand_name = Náhodné jméno
 common-stats-combat_rating = CR
 common-stats-power = Síla
 common-stats-speed = Rychlost
-common-stats-poise = Postoj
 common-stats-crit_chance = Kritická šance
 common-stats-crit_mult = Krit Násobek
 common-stats-armor = Zbroj

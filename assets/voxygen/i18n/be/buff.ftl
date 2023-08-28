@@ -1,6 +1,4 @@
 buff-remove = Націсніце, каб выдаліць
-buff-title-missing = Назва адсутнічае
-buff-desc-missing = Апісанне адсутнічае
 buff-title-heal = Вылечванне
 buff-desc-heal = Паступова аднаўляе здароўе.
 buff-title-potion = Зелле

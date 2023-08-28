@@ -90,7 +90,6 @@ common-rand_name = Случайное имя
 common-stats-combat_rating = БР
 common-stats-power = Сила
 common-stats-speed = Скорость
-common-stats-poise = Равновесие
 common-stats-range = Дистанция
 common-stats-energy_efficiency = Энергоэффективность
 common-stats-buff_strength = Увеличение силы

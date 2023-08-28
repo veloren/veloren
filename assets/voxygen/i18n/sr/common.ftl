@@ -83,7 +83,6 @@ common-rand_name = Насумично име
 common-stats-combat_rating = CR
 common-stats-power = Снага
 common-stats-speed = Брзина
-common-stats-poise = Прибраност
 common-stats-crit_chance = Крит Шанса
 common-stats-crit_mult = Мулти Крит
 common-stats-armor = Оклоп

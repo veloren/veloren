@@ -1,7 +1,8 @@
 hud-rank_up = Nový Bod Zkušenosti
 hud-skill-sp_available = { $number } bodů dostupných
 hud-skill-not_unlocked = Ještě neodemčeno
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Vyžaduje { $number } bodů
 hud-skill-inc_health_title = Zvýší Zdraví
@@ -108,8 +109,6 @@ hud-skill-bow_charged_knockback_title = Silný Ráz
 hud-skill-bow_charged_knockback = Odhoď nepřátele o { $boost }% dále{ $SP }
 hud-skill-bow_charged_speed_title = Rychlost napnutí
 hud-skill-bow_charged_speed = Zrychluje rychlost napnutí o { $boost }%{ $SP }
-hud-skill-bow_charged_move_speed_title = Rychlost při míření
-hud-skill-bow_charged_move_speed = Zvýší pohyb během napínání luku o { $boost }%{ $SP }
 hud-skill-bow_repeater_title = Opakovačka
 hud-skill-bow_repeater = Čím déle střílíš, tím rychleji střílíš
 hud-skill-bow_repeater_damage_title = Poškození

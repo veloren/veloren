@@ -90,7 +90,6 @@ common-rand_name = Zufälliger Name
 common-stats-combat_rating = Kampfrating
 common-stats-power = Stärke
 common-stats-speed = Schnelligkeit
-common-stats-poise = Haltung
 common-stats-range = Reichweite
 common-stats-energy_efficiency = Ausdauereffizienz
 common-stats-buff_strength = Buff/Debuff Stärke

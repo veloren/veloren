@@ -151,7 +151,3 @@ hud-settings-low_graphics = Bajo
 hud-settings-medium_graphics = Medio
 hud-settings-high_graphics = Alto
 hud-settings-ultra_graphics = Ultra
-hud-skill-bow_charged_energy_regen_title = Regeneración de aguante
-hud-skill-bow_charged_energy_regen = Aumenta la regeneración de aguante en un { $boost } %{ $SP }
-hud-skill-bow_charged_move_title = Velocidad de movimiento en tensión
-hud-skill-bow_charged_move = Aumenta la velocidad de movimiento un { $boost } % mientras estás tensando un arco{ $SP }

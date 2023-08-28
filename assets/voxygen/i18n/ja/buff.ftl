@@ -1,6 +1,4 @@
 buff-remove = クリックして削除
-buff-title-missing = 題名がありません
-buff-desc-missing = 説明がありません
 buff-title-heal = ヒール
 buff-desc-heal = 時間とともに体力を回復
 buff-title-potion = ポーション

@@ -11,27 +11,24 @@ main-notice =
     Antes de que te adentres en el juego, por favor ten en cuenta un par de cosas:
 
     - Esto es una alfa muy temprana. Espera errores, mecánicas de juego inacabadas, mecánicas sin pulir, y cosas que simplemente faltan.
-    
+
     - Si tienes críticas constructivas o reportes de errores, puedes contactar con nosotros vía Reddit, GitLab, o por nuestro servidor de Discord.
-    
+
     - Veloren se licencia bajo la licencia de código abierto GPL 3. Esto quiere decir que eres libre para jugar, modificar y redistribuir el juego tal y como desees (siempre y cuando tal trabajo se licencie también bajo la GPL 3).
-    
+
     - Veloren es un proyecto comunitario sin ánimo de lucro, y todo aquel que trabaja en él es un voluntario.
-    
+
     Si te gusta lo que ves, ¡eres bienvenido a unirte a los equipos de desarrollo o arte!
-    
+
     Gracias por tomarte el tiempo de leer esta noticia, ¡esperamos que disfrutes del juego!
     ~ Los desarrolladores de Veloren
 main-login_process =
-    
     Información para iniciar sesión:
 
     Por favor, ten en cuenta que ahora necesitas una cuenta para jugar en servidores con autenticación activada.
-    
+
     Puedes crear una cuenta en
     https://veloren.net/account/.
-
-
 main-login-server_not_found = Servidor no encontrado
 main-login-authentication_error = Error de autenticación al servidor
 main-login-internal_error = Error interno en el cliente (lo más probable es que se haya borrado el personaje)
@@ -62,7 +59,7 @@ main-servers-network_error = Red de servidor/Error de socket: { $raw_error }
 main-servers-participant_error = Desconexión de participante/error protocolo: { $raw_error }
 main-servers-stream_error = Conexión de cliente/compression/error (de)serialización: { $raw_error }
 main-servers-database_error = Error en la base de datos del servidor: { $raw_error }
-main-servers-persistence_error = Error de persistencia del servidor  (Probablemente datos de Asset/Personaje): { $raw_error }
+main-servers-persistence_error = Error de persistencia del servidor (Probablemente datos de Asset/Personaje): { $raw_error }
 main-servers-other_error = Error general del servidor : { $raw_error }
 main-credits = Créditos
 main-credits-created_by = creado por
@@ -84,7 +81,7 @@ loading-tips =
     .a10 = No te olvides de ajustar los gráficos. Pulsa '{ $gameinput-settings }' para abrir la configuración.
     .a11 = ¡Jugar con otros jugadores es divertido! Pulsa '{ $gameinput-social }' para ver quien esta en línea.
     .a12 = Pulsa '{ $gameinput-dance }' para bailar. ¡Fiesta!
-    .a13 = Pulsa '{ $gameinput-glide }' para utilizar tu paravela  y conquistar los cielos.
+    .a13 = Pulsa '{ $gameinput-glide }' para utilizar tu paravela y conquistar los cielos.
     .a14 = Veloren se encuentra todavia en pre-alfa. ¡Hacemos todo lo posible para mejorar la experiencia de juego día a día!
     .a15 = Si quieres unirte al equipo de desarrollo o conversar con nosotros, únete a nuestro servidor de Discord.
     .a16 = Puedes mostrar u ocultar tu total de salud de la barra de salud en los ajustes.

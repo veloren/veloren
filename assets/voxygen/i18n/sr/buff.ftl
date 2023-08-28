@@ -1,6 +1,4 @@
 buff-remove = Кликни да уклониш
-buff-title-missing = Недостаје Наслов
-buff-desc-missing = Недостаје Опис
 buff-title-heal = Лечење
 buff-desc-heal = Обнавља здравње током времена.
 buff-title-potion = Напитак
@@ -30,7 +28,6 @@ buff-desc-wet = Подлога одбија твоја стопала, отеж�
 buff-title-ensnared = Заробљен/а
 buff-desc-ensnared = Ноге се уплићу у лозу, отежавајући ти кретање.
 buff-stat-health = Обнавља { $str_total } Здравље
-buff-stat-increase_max_stamina = Подиже Максималну Снагу за { $strength }
 buff-stat-increase_max_health = Подиже Максимално Здравље за { $strength }
 buff-stat-invulnerability = Додељује Нерањивост
 buff-text-over_seconds = током { $dur_secs } секунди

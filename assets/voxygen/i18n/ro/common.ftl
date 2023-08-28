@@ -87,7 +87,6 @@ common-rand_name = Nume aleatoriu
 common-stats-combat_rating = CR
 common-stats-power = Putere
 common-stats-speed = Viteză
-common-stats-poise = Poise
 common-stats-range = Distanță
 common-stats-energy_efficiency = Eficiența energiei
 common-stats-buff_strength = Buff/Debuff Strength

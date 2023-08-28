@@ -37,7 +37,6 @@ hud-settings-stop_auto_walk_on_input =
     wandelen bij bewegen
 hud-settings-view_distance = Kijkafstand
 hud-settings-sprites_view_distance = Kijkafstand sprites
-hud-settings-figures_view_distance = Kijkafstand entiteiten
 hud-settings-maximum_fps = Maximum FPS
 hud-settings-fov = Gezichtsveld (graden)
 hud-settings-gamma = Gamma
@@ -45,9 +44,6 @@ hud-settings-ambiance = Omgevingshelderheid
 hud-settings-antialiasing_mode = AntiAliasing Modus
 hud-settings-cloud_rendering_mode = Wolk Rendering Modus
 hud-settings-fluid_rendering_mode = Vloeistoffen Rendering Mode
-hud-settings-fluid_rendering_mode-cheap = Goedkoop
-hud-settings-fluid_rendering_mode-shiny = Schitterend
-hud-settings-cloud_rendering_mode-regular = Gewoon
 hud-settings-fullscreen = Volledig scherm
 hud-settings-fullscreen_mode = Volledige scherm modus
 hud-settings-fullscreen_mode-exclusive = Exclusief

@@ -90,7 +90,6 @@ common-rand_name = Losowe imię
 common-stats-combat_rating = CR
 common-stats-power = Moc
 common-stats-speed = Prędkość
-common-stats-poise = Odporność
 common-stats-range = Zasięg
 common-stats-energy_efficiency = Efektywność Energii
 common-stats-buff_strength = Siła Efektów Wzmacniających
