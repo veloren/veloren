@@ -1,7 +1,7 @@
 ## Player events
 
-hud-chat-online_msg = { "[" }{ $name }]이(가) 현재 온라인
-hud-chat-offline_msg = { "[" }{ $name }]이(가) 현재 오프라인
+hud-chat-online_msg = [{ $name }]이(가) 현재 온라인
+hud-chat-offline_msg = [{ $name }]이(가) 현재 오프라인
 
 ## Buff outcomes
 
@@ -14,17 +14,17 @@ hud-outcome-mysterious = 사인: 비밀
 
 ## Buff deaths
 
-hud-chat-died_of_pvp_buff_msg = { "[" }{ $attacker }]이(가) [{ $victim }]을(를) 죽임. { $died_of_buff }
-hud-chat-died_of_buff_nonexistent_msg = { "[" }{ $victim }] { $died_of_buff }
+hud-chat-died_of_pvp_buff_msg = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. { $died_of_buff }
+hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
 hud-chat-died_of_npc_buff_msg = { $attacker }이(가) [{ $victim }]을(를) 죽임. { $died_of_buff }
 
 ## PvP deaths
 
-hud-chat-pvp_melee_kill_msg = { "[" }{ $attacker }]이(가) [{ $victim }]을(를) 쓰러트림
-hud-chat-pvp_ranged_kill_msg = { "[" }{ $attacker }]이(가) [{ $victim }]을(를) 쏴죽임
-hud-chat-pvp_explosion_kill_msg = { "[" }{ $attacker }]이(가) [{ $victim }]을(를) 터트려 죽임
-hud-chat-pvp_energy_kill_msg = { "[" }{ $attacker }]이(가) [{ $victim }]을(를) 마법으로 죽임
-hud-chat-pvp_other_kill_msg = { "[" }{ $attacker }]이(가) [{ $victim }]을(를) 죽임
+hud-chat-pvp_melee_kill_msg = [{ $attacker }]이(가) [{ $victim }]을(를) 쓰러트림
+hud-chat-pvp_ranged_kill_msg = [{ $attacker }]이(가) [{ $victim }]을(를) 쏴죽임
+hud-chat-pvp_explosion_kill_msg = [{ $attacker }]이(가) [{ $victim }]을(를) 터트려 죽임
+hud-chat-pvp_energy_kill_msg = [{ $attacker }]이(가) [{ $victim }]을(를) 마법으로 죽임
+hud-chat-pvp_other_kill_msg = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임
 
 ## PvE deaths
 
@@ -36,10 +36,10 @@ hud-chat-npc_other_kill_msg = { $attacker }이(가) [{ $victim }]을(를) 죽임
 
 ## Other deaths
 
-hud-chat-environmental_kill_msg = { "[" }{ $name }]이(가) { $environment }에서 죽음
-hud-chat-fall_kill_msg = { "[" }{ $name }]이(가) 떨어져 죽음
-hud-chat-suicide_msg = { "[" }{ $name }]이(가) 자해로 인해 사망
-hud-chat-default_death_msg = { "[" }{ $name }]이(가) 죽음
+hud-chat-environmental_kill_msg = [{ $name }]이(가) { $environment }에서 죽음
+hud-chat-fall_kill_msg = [{ $name }]이(가) 떨어져 죽음
+hud-chat-suicide_msg = [{ $name }]이(가) 자해로 인해 사망
+hud-chat-default_death_msg = [{ $name }]이(가) 죽음
 
 ## Utils
 

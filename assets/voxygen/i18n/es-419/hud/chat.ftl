@@ -1,7 +1,7 @@
 ## Player events
 
-hud-chat-online_msg = { "[" }{ $name }] esta en linea
-hud-chat-offline_msg = { "[" }{ $name }] se ha desconectado
+hud-chat-online_msg = [{ $name }] esta en linea
+hud-chat-offline_msg = [{ $name }] se ha desconectado
 
 ## Buff outcomes
 
@@ -14,17 +14,17 @@ hud-outcome-mysterious = ha muerto por: secreto
 
 ## Buff deaths
 
-hud-chat-died_of_pvp_buff_msg = { "[" }{ $victim }] { $died_of_buff } causado por [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = { "[" }{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = { "[" }{ $victim }] { $died_of_buff } causado por { $attacker }
+hud-chat-died_of_pvp_buff_msg = [{ $victim }] { $died_of_buff } causado por [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
+hud-chat-died_of_npc_buff_msg = [{ $victim }] { $died_of_buff } causado por { $attacker }
 
 ## PvP deaths
 
-hud-chat-pvp_melee_kill_msg = { "[" }{ $attacker }] ha derrotado a [{ $victim }]
-hud-chat-pvp_ranged_kill_msg = { "[" }{ $attacker }] disparó a [{ $victim }]
-hud-chat-pvp_explosion_kill_msg = { "[" }{ $attacker }] hizo explotar a [{ $victim }]
-hud-chat-pvp_energy_kill_msg = { "[" }{ $attacker }] mató a [{ $victim }] con magia
-hud-chat-pvp_other_kill_msg = { "[" }{ $attacker }] mató a [{ $victim }]
+hud-chat-pvp_melee_kill_msg = [{ $attacker }] ha derrotado a [{ $victim }]
+hud-chat-pvp_ranged_kill_msg = [{ $attacker }] disparó a [{ $victim }]
+hud-chat-pvp_explosion_kill_msg = [{ $attacker }] hizo explotar a [{ $victim }]
+hud-chat-pvp_energy_kill_msg = [{ $attacker }] mató a [{ $victim }] con magia
+hud-chat-pvp_other_kill_msg = [{ $attacker }] mató a [{ $victim }]
 
 ## PvE deaths
 
@@ -36,10 +36,10 @@ hud-chat-npc_other_kill_msg = { $attacker } mató a [{ $victim }]
 
 ## Other deaths
 
-hud-chat-environmental_kill_msg = { "[" }{ $name }] murió en { $environment }
-hud-chat-fall_kill_msg = { "[" }{ $name }] murio por daño de caida
-hud-chat-suicide_msg = { "[" }{ $name }] murió por heridas autoinfligidas
-hud-chat-default_death_msg = { "[" }{ $name }] murió
+hud-chat-environmental_kill_msg = [{ $name }] murió en { $environment }
+hud-chat-fall_kill_msg = [{ $name }] murio por daño de caida
+hud-chat-suicide_msg = [{ $name }] murió por heridas autoinfligidas
+hud-chat-default_death_msg = [{ $name }] murió
 
 ## Utils
 
