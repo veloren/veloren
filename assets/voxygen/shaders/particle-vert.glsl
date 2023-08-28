@@ -83,7 +83,6 @@ const int GIGA_SNOW = 42;
 const int CYCLOPS_CHARGE = 43;
 const int PORTAL_FIZZ = 45;
 const int INK = 46;
-const int UPWARD_PORTAL_FIZZ = 47;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -702,15 +701,6 @@ void main() {
                 vec3(ink_size),
                 vec4(0.5 * black_color, 0.75 * black_color, black_color, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
-            );
-            break;
-        case UPWARD_PORTAL_FIZZ:
-            f_reflect = 0.0;
-            attr = Attr(
-                inst_dir * percent(),
-                vec3(max(1.0, 0.05 * length(start_pos + inst_dir * percent()))),
-                vec4(vec3(1.23, 1.41, 1.44), 1.0),// * (1.0 - length(inst_dir) * 0.1),
-                identity()//spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
             );
             break;
         default:

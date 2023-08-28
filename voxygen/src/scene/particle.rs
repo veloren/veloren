@@ -760,9 +760,9 @@ impl ParticleMgr {
                 pos + (Vec2::unit_x().rotated_z(rng.gen_range((0.)..PI * 2.)) * 2.7).with_z(0.);
 
             self.particles.push(Particle::new_directed(
-                Duration::from_secs_f32(rng.gen_range(0.2..0.5)),
+                Duration::from_secs_f32(rng.gen_range(0.4..0.8)),
                 time,
-                ParticleMode::UpwardPortalFizz,
+                ParticleMode::CultistFlame,
                 outer_pos,
                 outer_pos + Vec3::unit_z() * rng.gen_range(5.0..7.0),
             ));
@@ -788,7 +788,7 @@ impl ParticleMgr {
             self.particles.push(Particle::new_directed(
                 Duration::from_secs_f32(rng.gen_range(0.5..3.0)),
                 time,
-                ParticleMode::UpwardPortalFizz,
+                ParticleMode::CultistFlame,
                 outer_pos,
                 outer_pos + Vec3::unit_z() * rng.gen_range(3.0..4.0),
             ));
