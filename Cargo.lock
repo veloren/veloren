@@ -388,17 +388,17 @@ dependencies = [
 [[package]]
 name = "auth-common"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/auth.git?rev=42dddd666f28e1a94cdf4b542fcd61f67658e261#42dddd666f28e1a94cdf4b542fcd61f67658e261"
+source = "git+https://gitlab.com/veloren/auth.git?rev=edd69ed70aea81be87cfaa9f2b8e2b40f51da649#edd69ed70aea81be87cfaa9f2b8e2b40f51da649"
 dependencies = [
  "rand 0.8.5",
  "serde",
- "uuid 0.8.2",
+ "uuid",
 ]
 
 [[package]]
 name = "authc"
 version = "1.0.0"
-source = "git+https://gitlab.com/veloren/auth.git?rev=42dddd666f28e1a94cdf4b542fcd61f67658e261#42dddd666f28e1a94cdf4b542fcd61f67658e261"
+source = "git+https://gitlab.com/veloren/auth.git?rev=edd69ed70aea81be87cfaa9f2b8e2b40f51da649#edd69ed70aea81be87cfaa9f2b8e2b40f51da649"
 dependencies = [
  "auth-common",
  "fxhash",
@@ -409,7 +409,7 @@ dependencies = [
  "rust-argon2",
  "serde",
  "serde_json",
- "uuid 0.8.2",
+ "uuid",
 ]
 
 [[package]]
@@ -524,13 +524,13 @@ dependencies = [
 
 [[package]]
 name = "blake2b_simd"
-version = "0.5.11"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afa748e348ad3be8263be728124b24a24f268266f6f5d58af9d75f6a40b5c587"
+checksum = "3c2f0dc9a68c6317d884f97cc36cf5a3d20ba14ce404227df55e1af708ab04bc"
 dependencies = [
  "arrayref",
- "arrayvec 0.5.2",
- "constant_time_eq",
+ "arrayvec 0.7.4",
+ "constant_time_eq 0.2.6",
 ]
 
 [[package]]
@@ -1017,9 +1017,15 @@ checksum = "fbdcdcb6d86f71c5e97409ad45898af11cbc995b4ee8112d59095a28d376c935"
 
 [[package]]
 name = "constant_time_eq"
-version = "0.1.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
+checksum = "21a53c0a4d288377e7415b53dcfc3c04da5cdc2cc95c8d5ac178b58f0b861ad6"
+
+[[package]]
+name = "constant_time_eq"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7144d30dcf0fafbce74250a3963025d8d52177934239851c917d29f1df280c2"
 
 [[package]]
 name = "copyless"
@@ -2470,7 +2476,7 @@ dependencies = [
  "gilrs-core",
  "log",
  "serde",
- "uuid 1.4.1",
+ "uuid",
  "vec_map",
 ]
 
@@ -2488,7 +2494,7 @@ dependencies = [
  "log",
  "nix 0.26.2",
  "serde",
- "uuid 1.4.1",
+ "uuid",
  "vec_map",
  "wasm-bindgen",
  "web-sys",
@@ -2744,9 +2750,9 @@ checksum = "443144c8cdadd93ebf52ddb4056d257f5b52c04d3c804e657d19eb73fc33668b"
 
 [[package]]
 name = "hex"
-version = "0.3.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hibitset"
@@ -5098,7 +5104,7 @@ dependencies = [
  "rkyv_derive",
  "seahash",
  "tinyvec",
- "uuid 1.4.1",
+ "uuid",
 ]
 
 [[package]]
@@ -5218,13 +5224,13 @@ dependencies = [
 
 [[package]]
 name = "rust-argon2"
-version = "0.8.3"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b18820d944b33caa75a71378964ac46f58517c92b6ae5f762636247c09e78fb"
+checksum = "1e71971821b3ae0e769e4a4328dbcb517607b434db7697e9aba17203ec14e46a"
 dependencies = [
- "base64 0.13.1",
+ "base64 0.21.3",
  "blake2b_simd",
- "constant_time_eq",
+ "constant_time_eq 0.3.0",
 ]
 
 [[package]]
@@ -6744,19 +6750,13 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 
 [[package]]
 name = "uuid"
-version = "0.8.2"
+version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 dependencies = [
  "getrandom 0.2.10",
  "serde",
 ]
-
-[[package]]
-name = "uuid"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 
 [[package]]
 name = "valuable"
@@ -6897,7 +6897,7 @@ dependencies = [
  "strum",
  "tracing",
  "tracing-subscriber",
- "uuid 0.8.2",
+ "uuid",
  "vek 0.15.8",
  "veloren-common-assets",
  "veloren-common-base",
