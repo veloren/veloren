@@ -1,6 +1,4 @@
 buff-remove = Clic pentru a elimina
-buff-title-missing = Lipsește Titlul
-buff-desc-missing = Lipsește Descrierea
 buff-title-heal = Vindecă
 buff-desc-heal = Primești viață pe parcurs.
 buff-title-potion = Poțiune

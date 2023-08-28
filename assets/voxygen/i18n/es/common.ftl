@@ -44,8 +44,8 @@ common-chat_settings = Ajustes de chat
 common-networking_settings = Ajustes de red
 common-connection_lost =
     ¡Conexión perdida!
-            ¿Se reinició el servidor?
-            ¿Está el cliente actualizado?
+    ¿Se reinició el servidor?
+    ¿Está el cliente actualizado?
 common-species-orc = Orco
 common-species-human = Humano
 common-species-dwarf = Enano

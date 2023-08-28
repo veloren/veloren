@@ -90,7 +90,6 @@ common-rand_name = Випадкове ім'я
 common-stats-combat_rating = БР
 common-stats-power = Сила
 common-stats-speed = Швидкість
-common-stats-poise = Приголомшення
 common-stats-range = Дистанція
 common-stats-energy_efficiency = Енергоощадливість
 common-stats-buff_strength = Сила бафу/дебафу

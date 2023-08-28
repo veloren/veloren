@@ -16,6 +16,3 @@ hud-trade-invite_sent = { $playername }に取引リクエストを送りまし�
 hud-trade-result-completed = 取引は成立しました。
 hud-trade-result-declined = 取引は不成立でした。
 hud-trade-result-nospace = 取引を完了するためのスペースがありません。
-hud-trade-buy_price = 購入価格
-hud-trade-sell_price = 販売価格
-hud-trade-coin = コイン

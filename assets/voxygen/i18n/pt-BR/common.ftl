@@ -92,7 +92,6 @@ common-rand_name = Nome Aleatório
 common-stats-combat_rating = Nivel de Combate
 common-stats-power = Poder
 common-stats-speed = Velocidade
-common-stats-poise = Veneno
 common-stats-effect-power = Poder de Efeito
 common-stats-range = Alcance
 common-stats-energy_efficiency = Eficiência Energética

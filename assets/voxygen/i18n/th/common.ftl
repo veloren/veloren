@@ -90,7 +90,6 @@ common-rand_name = สุ่มชื่อ
 common-stats-combat_rating = ค่าอุปกรณ์
 common-stats-power = พลังโจมตี
 common-stats-speed = ความเร็ว
-common-stats-poise = ค่าทรงตัว
 common-stats-range = ระยะโจมตี
 common-stats-energy_efficiency = ประสิทธิภาพพลังงาน
 common-stats-buff_strength = เสริมพลังความแข็งแกร่ง

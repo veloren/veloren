@@ -39,7 +39,6 @@ hud-settings-stop_auto_walk_on_input =
     edince kapat
 hud-settings-view_distance = Görüş Mesafesi
 hud-settings-sprites_view_distance = Sprite Görüş Mesafesi
-hud-settings-figures_view_distance = Figür Görüş Mesafesi
 hud-settings-maximum_fps = Maksimum FPS
 hud-settings-fov = Görüş alanı (derece)
 hud-settings-gamma = Gama
@@ -49,8 +48,6 @@ hud-settings-antialiasing_mode = Kenar Yumuşatma Modu
 hud-settings-upscale_factor = Render Büyütme Faktörü
 hud-settings-cloud_rendering_mode = Bulut Kalitesi
 hud-settings-fluid_rendering_mode = Su Kalitesi
-hud-settings-fluid_rendering_mode-cheap = Basit
-hud-settings-fluid_rendering_mode-shiny = Güzel
 hud-settings-cloud_rendering_mode-minimal = En Düşük
 hud-settings-cloud_rendering_mode-low = Düşük
 hud-settings-cloud_rendering_mode-medium = Orta

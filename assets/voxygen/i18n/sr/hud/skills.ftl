@@ -1,13 +1,12 @@
 hud-rank_up = Нови Вештина Поен
 hud-skill-sp_available = { $number } ВП доступан
 hud-skill-not_unlocked = Није откључано
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Потребно { $number } ВП
 hud-skill-inc_health_title = Повећање Здравља
 hud-skill-inc_health = Повећава максимално здравље за { $boost }{ $SP }
-hud-skill-inc_stam_title = Повећање Снаге
-hud-skill-inc_stam = Повећава максималну снагу за { $boost }{ $SP }
 hud-skill-unlck_sword_title = Откључај Мач
 hud-skill-unlck_sword = Откључава стабло мач вештина{ $SP }
 hud-skill-unlck_axe_title = Откључај Секиру
@@ -22,8 +21,6 @@ hud-skill-unlck_sceptre_title = Откључај Жезло
 hud-skill-unlck_sceptre = Откључава стабло жезло вештина{ $SP }
 hud-skill-dodge_title = Котрљање
 hud-skill-dodge = Котрљање се активира средњим кликом, и омогућава привремени имунитет на нападе (iframes) док се котрљаш.
-hud-skill-roll_stamina_title = Котрљајућа Снага
-hud-skill-roll_stamina = Котрљање користи { $boost }% мање снаге{ $SP }
 hud-skill-roll_speed_title = Брзина Котрљања
 hud-skill-roll_speed = Котрљање је { $boost }% брже{ $SP }
 hud-skill-roll_dur_title = Трајање Котрљања
@@ -90,8 +87,6 @@ hud-skill-st_flamethrower_damage_title = Рањавање Бацачем Пла�
 hud-skill-st_flamethrower_damage = Повећава рањавање за { $boost }%{ $SP }
 hud-skill-st_explosion_radius_title = Домет Експлозије
 hud-skill-st_explosion_radius = Већ је бољи, повећава домет експлозије за { $boost }%{ $SP }
-hud-skill-st_stamina_regen_title = Обнављање Снаге
-hud-skill-st_stamina_regen = Повећава обнављање снаге за { $boost }%{ $SP }
 hud-skill-st_fireball_title = Ватрена Кугла
 hud-skill-st_fireball = Испаљује ватрену куглу која екслодира при судару
 hud-skill-st_damage_title = Рањавање

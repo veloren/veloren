@@ -1,6 +1,4 @@
 buff-remove = Klikni pro zrušení
-buff-title-missing = Chybějící název
-buff-desc-missing = Chybějící popis
 buff-title-heal = Léčba
 buff-desc-heal = Přidá život během určitého času.
 buff-title-potion = Lektvar

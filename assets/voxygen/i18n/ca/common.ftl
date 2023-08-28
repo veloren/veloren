@@ -86,7 +86,6 @@ common-rand_name = Nom Aleatori
 common-stats-combat_rating = PC
 common-stats-power = Potència
 common-stats-speed = Velocitat
-common-stats-poise = Estabilitat
 common-stats-crit_chance = Probabilitat de Crític
 common-stats-crit_mult = Multiplicador de Crític
 common-stats-armor = Armadura

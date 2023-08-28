@@ -12,6 +12,3 @@ hud-trade-invite_sent = Žádost o obchod zaslána { $playername }.
 hud-trade-result-completed = Obchod proběhl úspěšně.
 hud-trade-result-declined = Obchod odmítnut.
 hud-trade-result-nospace = Nedostatek místa pro dokončení.
-hud-trade-buy_price = Cena koupě
-hud-trade-sell_price = Cena prodeje
-hud-trade-coin = Peníze

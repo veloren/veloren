@@ -86,7 +86,6 @@ common-rand_name = Выпадковае імя
 common-stats-combat_rating = БР
 common-stats-power = Моц
 common-stats-speed = Хуткасць
-common-stats-poise = Ураўнаважанасць
 common-stats-crit_chance = Крыт. шанец
 common-stats-crit_mult = Крыт. множнік
 common-stats-armor = Браня

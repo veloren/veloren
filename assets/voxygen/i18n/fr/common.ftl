@@ -90,7 +90,6 @@ common-rand_name = Nom aléatoire
 common-stats-combat_rating = CR
 common-stats-power = Puissance
 common-stats-speed = Vitesse
-common-stats-poise = Équilibre
 common-stats-range = Portée
 common-stats-energy_efficiency = Efficacité du coût d'Endurance
 common-stats-buff_strength = Montant de l'augmentation

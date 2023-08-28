@@ -1,6 +1,4 @@
 buff-remove = Etkiyi kadırmak için tıkla
-buff-title-missing = İsim Yok
-buff-desc-missing = Açıklama Yok
 buff-title-heal = İyileşme
 buff-desc-heal = Zamanla can kazan.
 buff-title-potion = İksir
@@ -25,7 +23,7 @@ buff-title-crippled = Topal
 buff-desc-crippled = Bacakların ağır yaralı olduğu için topallıyorsun.
 buff-title-frozen = Donmuş
 buff-desc-frozen = Hareketlerin ve saldırıların yavaşladı.
-buff-title-wet =  Islak
+buff-title-wet = Islak
 buff-desc-wet = Yerler ayağını kabul etmiyor, durmakta zorlanıyorsun.
 buff-title-ensnared = Tuzağa Düşmüş
 buff-desc-ensnared = Sarmaşıklar bacağına dolanarak hareketini kısıtlıyor.

@@ -90,7 +90,6 @@ common-rand_name = 랜덤 이름
 common-stats-combat_rating = CR
 common-stats-power = 공격력
 common-stats-speed = 속도
-common-stats-poise = 균형
 common-stats-range = 사거리
 common-stats-energy_efficiency = 기력 효율
 common-stats-buff_strength = 힘 버프/디버프

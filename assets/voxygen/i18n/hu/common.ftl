@@ -81,7 +81,6 @@ common-rand_name = Véletlenszerű név
 common-stats-combat_rating = KÉ
 common-stats-power = Erő
 common-stats-speed = Gyorsaság
-common-stats-poise = Ellentartás
 common-stats-crit_chance = Kritikus találat esélye
 common-stats-crit_mult = Kritikus találat szorzója
 common-stats-armor = Páncélzat

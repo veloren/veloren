@@ -1,6 +1,4 @@
 buff-remove = Klikk for å fjerne
-buff-title-missing = Mangler tittel
-buff-desc-missing = Mangler beskrivelse
 buff-title-heal = Helbred
 buff-desc-heal = Helbred over tid.
 buff-title-potion = Trylledrikk

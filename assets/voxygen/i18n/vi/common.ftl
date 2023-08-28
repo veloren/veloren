@@ -81,7 +81,6 @@ common-rand_name = Tên ngẫu nhiên
 common-stats-combat_rating = CR
 common-stats-power = Sức Mạnh
 common-stats-speed = Tốc Độ
-common-stats-poise = Tự Chủ
 common-stats-crit_chance = Tỉ Lệ Chí Mạng
 common-stats-armor = Giáp
 common-stats-energy_max = Năng Lượng Tối Đa

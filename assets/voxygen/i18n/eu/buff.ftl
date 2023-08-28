@@ -1,6 +1,4 @@
 buff-remove = Egin klik kentzeko
-buff-title-missing = Izenburua falta da
-buff-desc-missing = Deskribapena falta da
 buff-title-heal = Sendatu
 buff-desc-heal = Berreskuratu osasuna pixkanaka
 buff-title-potion = Edabea

@@ -1,6 +1,4 @@
 buff-remove = Nhấp để xóa
-buff-title-missing = Tiêu Đề Bị Thiếu
-buff-desc-missing = Mô Tả Bị Thiếu
 buff-title-heal = Hồi máu
 buff-desc-heal = Tăng máu theo thời gian.
 buff-title-potion = Thuốc

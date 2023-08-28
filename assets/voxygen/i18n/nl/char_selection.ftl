@@ -3,7 +3,6 @@ char_selection-delete_permanently = Karakter Permanent Verwijderen?
 char_selection-change_server = Server Wisselen
 char_selection-enter_world = Wereld Betreden
 char_selection-logout = Uitloggen
-char_selection-create_new_charater = Nieuw Karakter Maken
 char_selection-creating_character = Karakter Wordt Aangemaakt...
 char_selection-character_creation = Karaktercreatie
 char_selection-human_default = Standaard Mens

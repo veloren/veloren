@@ -1,6 +1,4 @@
 buff-remove = Clica per eliminar
-buff-title-missing = Sense Títol
-buff-desc-missing = Sense Descripció
 buff-title-heal = Sanació
 buff-desc-heal = Restableix Salut durant un temps.
 buff-title-potion = Poció

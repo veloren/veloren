@@ -28,12 +28,6 @@ common-connection_lost =
     連線中斷！
     檢查看看伺服器重啟了嗎？
     客戶端有更新了嗎？
-common-races-orc = 獸人
-common-races-human = 人類
-common-races-dwarf = 矮人
-common-races-elf = 精靈
-common-races-draugr = 不死族
-common-races-danari = 丹那利
 common-weapons-axe = 斧
 common-weapons-sword = 劍
 common-weapons-staff = 杖
