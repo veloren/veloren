@@ -14,7 +14,9 @@ hud-map-trees = Гігантські Дерева
 hud-map-tree = Гігантське Дерево
 hud-map-town = Місто
 hud-map-castle = Фортеця
+hud-map-bridge = Міст
 hud-map-dungeon = Підземелля
+hud-map-df_mine = Шахта 
 hud-map-difficulty_dungeon =
     Підземелля
     
@@ -32,4 +34,5 @@ hud-map-zoom_minimap_explanation =
     побачити область навколо себе
 hud-map-gnarling = Фортифікація Гнарлингів
 hud-map-chapel_site = Морська Каплиця
+hud-map-adlet = Фортеця Адлетів
 hud-map-placed_by = Поставлено { $name }

@@ -39,3 +39,5 @@ hud-bag-stun_res_desc =
 hud-bag-sort_by_name = Сортувати за Назвою
 hud-bag-sort_by_quality = Сортувати за Якістю
 hud-bag-sort_by_category = Сортувати за Категорією
+hud-bag-sort_by_tag = Сортувати за Тегом
+hud-bag-sort_by_quantity = Сортувати за Кількістю
