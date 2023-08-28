@@ -1,0 +1,1 @@
+common-signs-keep_out = Вхід заборонено

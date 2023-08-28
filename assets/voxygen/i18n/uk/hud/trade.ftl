@@ -33,3 +33,4 @@ hud-trade-tooltip_hint_2 = <Ctrl-Click щоб Врівноважити това�
 hud-trade-your_offer = Ваша пропозиція
 hud-trade-their_offer = Його пропозиція
 hud-trade-amount_input = Виберіть предмет
+hud-confirm-trade-for-nothing = Ви насправді хочете віддати ці предмети задарма?
