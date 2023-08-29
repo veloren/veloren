@@ -190,8 +190,12 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     get_attacker_name(KillType::Explosion, by)
                 },
                 (Some(DamageSource::Energy), Some(by)) => get_attacker_name(KillType::Energy, by),
-                (Some(DamageSource::Buff(buff_kind)), Some(by)) => {
-                    get_attacker_name(KillType::Buff(buff_kind), by)
+                (Some(DamageSource::Buff(buff_kind)), by) => {
+                    if let Some(by) = by {
+                        get_attacker_name(KillType::Buff(buff_kind), by)
+                    } else {
+                        KillSource::NonExistent(KillType::Buff(buff_kind))
+                    }
                 },
                 (Some(DamageSource::Other), Some(by)) => get_attacker_name(KillType::Other, by),
                 (Some(DamageSource::Falling), _) => KillSource::FallDamage,
