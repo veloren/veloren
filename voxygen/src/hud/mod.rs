@@ -5311,6 +5311,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::Mud => "common-sprite-mud",
         SpriteKind::Grave => "common-sprite-grave",
         SpriteKind::ChairSingle | SpriteKind::ChairDouble => "common-sprite-chair",
+        SpriteKind::Crate => "common-sprite-crate",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(localized_strings.get_msg(i18n_key))
