@@ -1,13 +1,17 @@
-<p align="center">
-	<img alt="Veloren logo on a screenshot" src="https://cdn.discordapp.com/attachments/541307708146581519/712295605170602075/logo.png">
-</p>
+# ![Veloren logo on a screenshot](https://cdn.discordapp.com/attachments/541307708146581519/712295605170602075/logo.png)
 
-[![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/commits/master)
-[![coverage report](https://gitlab.com/veloren/veloren/badges/master/coverage.svg)](https://gitlab.com/veloren/veloren/commits/master)
-[![license](https://img.shields.io/github/license/veloren/veloren.svg)](https://gitlab.com/veloren/veloren/blob/master/LICENSE)
-[![discord](https://img.shields.io/discord/449602562165833758.svg)](https://discord.gg/veloren-community-449602562165833758)
-[![lines of code](https://tokei.rs/b1/gitlab/veloren/veloren)](https://tokei.rs/b1/gitlab/veloren/veloren)
-[![contributor count](https://img.shields.io/github/contributors/veloren/veloren)](https://gitlab.com/veloren/veloren/-/graphs/master)
+[![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/-/pipelines)
+[![coverage report](https://gitlab.com/veloren/veloren/badges/master/coverage.svg)](https://gitlab.com/veloren/veloren/-/graphs/master/charts)
+[![translation status](https://translate.codeberg.org/widgets/veloren/-/svg-badge.svg)](https://translate.codeberg.org/engage/veloren/)
+[![dependency status](https://deps.rs/repo/gitlab/veloren/veloren/status.svg)](https://deps.rs/repo/gitlab/veloren/veloren)
+[![code contributor count](https://badgen.net/gitlab/contributors/veloren/veloren?label=code%20contributors)](https://gitlab.com/veloren/veloren/-/graphs/master)
+[![financial contributor count](https://badgen.net/opencollective/backers/veloren?label=financial%20contributors)](https://opencollective.com/veloren)
+[![discord](https://badgen.net/discord/members/veloren-community-449602562165833758?icon=discord&label=discord)](https://discord.gg/veloren-community-449602562165833758)
+[![matrix](https://badgen.net/matrix/members/veloren-space/matrix.org)](https://matrix.to/#/#veloren-space:fachschaften.org)
+
+<a href="https://opencollective.com/veloren/donate" target="_blank">
+  <img src="https://opencollective.com/veloren/contribute/button@2x.png?color=blue" width="29%" />
+</a>
 
 ## Welcome to Veloren!
 
@@ -15,7 +19,13 @@ Veloren is a multiplayer voxel RPG written in Rust. It is inspired by games such
 
 ## Development
 
-Currently, most communication among contributors takes place on our [official Discord server](https://discord.gg/veloren-community-449602562165833758). You can join it to keep up with the game development, talk to us or even contribute something yourself. Anyone who shows genuine effort to help is welcome in our team. You do not need to know how to code to contribute to the game!
+Currently, most communication among contributors takes place on our [official Discord server](https://discord.gg/veloren-community-449602562165833758). Similarly, we provide a [Matrix server](https://matrix.to/#/#veloren-space:fachschaften.org) as a more privacy-friendly alternative. You can join it to keep up with the game development, talk with the community or even contribute something yourself. Anyone who shows genuine effort to help is welcome to our team. You do not need to know how to code to contribute to the game!
+
+Translators are welcome to contribute on our Weblate instance.
+
+<a href="https://translate.codeberg.org/engage/veloren/">
+<img src="https://translate.codeberg.org/widgets/veloren/-/open-graph.png" alt="Translation status" width="55%"/>
+</a>
 
 ## Useful links
 
@@ -23,8 +33,8 @@ Currently, most communication among contributors takes place on our [official Di
 Most Veloren servers require you to register with the official authentication server to play.
 
 <details>
-<summary>Click here for more details about authentication</summary>
-The official authentication server uses TLS encryption extensively. It also employs salted hashing to ensure your login credentials are stored securely. Additionally, the server neither tracks any metrics nor uses data for any purpose other than providing the authentication service.
+    <summary>Click here for more details about authentication</summary>
+    The official authentication server uses TLS encryption extensively. It also employs salted hashing to ensure your login credentials are stored securely. Additionally, the server neither tracks any metrics nor uses data for any purpose other than providing the authentication service.
 </details>
 
 [The wiki](https://wiki.veloren.net) - The official wiki which provides various information about the game.
@@ -56,20 +66,28 @@ It is recommended to use [Airshipper](https://book.veloren.net/players/airshippe
 
 If you prefer to compile the game yourself, follow the instructions in our [book](https://book.veloren.net/contributors/introduction.html).
 
-## F.A.Q.
+## FAQ
 
 ### **Q:** How is this game licensed?
 
-**A:** **It is free to play, modify and distribute. Forever.** Since it is a community project, we decided to license it under the **[GNU GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.txt)** license which means it will always stay free and open source.
+**A:** **It is free to play, modify and distribute. Forever.** Since it is a community project, we decided to license it under the **[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0-standalone.html)**, which means it will always stay free and open source.
 
 ### **Q:** What platforms are supported?
 
-**A:** Veloren can run on Windows, macOS and Linux, on all CPU architectures. However, the x86_64 architecture is the main focus in development. Official builds for the ARM64 architecture are also provided for macOS and Linux. It is likely possible to compile the game on other platforms as well.
+**A:** Veloren can run on Windows, macOS and Linux on a great range of CPU architectures. However, the x86_64 architecture is the main focus in development. Official builds for the ARM64 architecture are also provided for macOS and Linux. It is likely possible to compile the game on other platforms as well.
 
 ### **Q:** Do you accept donations?
 
-**A:** You can support the project on our [Open Collective](https://opencollective.com/veloren) page.
+**A:** You can support the project financially on our [Open Collective](https://opencollective.com/veloren) page.
 
 ## Credit
 
-Many thanks to everyone who has contributed to Veloren's source code, provided ideas for the game, crafted game art, composed music, hunted bugs, created tools and, overall, supported the project.
+Our Weblate instance is hosted by [Codeberg](https://codeberg.org/).
+
+Many thanks to:
+
+- Software developers who have contributed to the source code repository, hunted bugs and created tools for the game.
+- Artists who have crafted game art, composed music and provided voxel models.
+- Translators who have localized the game to several languages.
+- People who have provided ideas and feedback for the game.
+- Overall, our awesome community who makes this project possible.
