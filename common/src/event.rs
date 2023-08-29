@@ -387,5 +387,9 @@ impl<'a, E> Emitter<'a, E> {
 }
 
 impl<'a, E> Drop for Emitter<'a, E> {
-    fn drop(&mut self) { self.bus.queue.lock().unwrap().append(&mut self.events); }
+    fn drop(&mut self) {
+        if !self.events.is_empty() {
+            self.bus.queue.lock().unwrap().append(&mut self.events);
+        }
+    }
 }
