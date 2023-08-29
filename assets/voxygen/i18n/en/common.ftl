@@ -116,3 +116,4 @@ common-sprite-chest = Chest
 common-sprite-chair = Chair
 common-sprite-mud = Mud
 common-sprite-grave = Grave
+common-sprite-crate = Crate
