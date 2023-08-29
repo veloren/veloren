@@ -1,5 +1,6 @@
 [
   (1.7, All([
+            // coins are temporary placeholder for unique drops
             MultiDrop(Item("common.items.utility.coins"), 200, 500),
             MultiDrop(Item("common.items.log.eldwood"), 2, 6),
       ],

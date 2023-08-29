@@ -1,6 +1,6 @@
 [
     // Weapons
-    (5.0, LootTable("common.loot_tables.weapons.tier-2")),
+    (5.0, LootTable("common.loot_tables.weapons.tier-1")),
     // Armor
     (5.0, LootTable("common.loot_tables.armor.tier-2")),
     // Misc

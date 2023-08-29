@@ -1,7 +1,9 @@
 [
   (1.7, All([
             Item("common.items.keys.quarry_keys.ancient"),
+            // coins are temporary placeholder for unique drops
             MultiDrop(Item("common.items.utility.coins"), 200, 500),
+            MultiDrop(Item("common.items.log.eldwood"), 2, 6),
       ],
    )),
   (0.1, All([
