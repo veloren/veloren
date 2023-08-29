@@ -9,6 +9,12 @@ hud-skill-inc_health_title = Increase Health
 hud-skill-inc_health = Increases max health by { $boost }{ $SP }
 hud-skill-inc_energy_title = Increase Energy
 hud-skill-inc_energy = Increases max energy by { $boost }{ $SP }
+
+# internally translations, used by ES file currently
+-hud-skill-sc_wardaura_title = ""
+-hud-skill-bow_shotgun_title = ""
+-hud-skill-st_shockwave_title = ""
+
 hud-skill-unlck_sword_title = Unlock Sword
 hud-skill-unlck_sword = Unlocks sword skill tree{ $SP }
 hud-skill-unlck_axe_title = Unlock Axe

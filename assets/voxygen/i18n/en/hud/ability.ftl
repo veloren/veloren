@@ -9,6 +9,31 @@ common-abilities-staff-fireshockwave = Ring of Fire
 common-abilities-sceptre-wardingaura = Warding Aura
     .desc = Wards your allies against enemy attacks.
 
+# internally translations, currently only used in zh-Hans
+# If we remove them here, they also get auto-removed in zh-Hans, so please keep them, even when not used in en
+-heavy_stance = ""
+-agile_stance = ""
+-defensive_stance = ""
+-crippling_stance = ""
+-cleaving_stance = ""
+
+-basic_state = ""
+-heavy_state = ""
+-agile_state = ""
+-defensive_state = ""
+-crippling_state = ""
+-cleaving_state = ""
+-double_slash = ""
+-modified_depending_stance = ""
+-crescent_slash = ""
+-fell_strike = ""
+-skewer = ""
+-cascade = ""
+-cross_cut = ""
+-requires_moderate_combo = ""
+-enter_stance = ""
+-require_stance = ""
+
 # Sword abilities
 veloren-core-pseudo_abilities-sword-heavy_stance = Heavy Stance
     .desc = Attacks in this stance can stagger enemies and deal more damage to staggered enemies but are slower
