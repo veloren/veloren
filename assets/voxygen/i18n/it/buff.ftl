@@ -88,6 +88,27 @@ buff-desc-frigid = Congela i tuoi nemici.
 ## Lifesteal
 buff-title-lifesteal = Rubavita
 buff-desc-lifesteal = Risucchia la vita dai tuoi nemici.
+## Salamander's Aspect
+buff-title-salamanderaspect = Aspetto di salamandra
+buff-desc-salamanderaspect = Non puoi bruciare e ti muovi velocemente sulla lava. 
+## Imminent Critical
+buff-title-imminentcritical = Critico imminente
+buff-desc-imminentcritical = Il tuo prossimo attacco colpirà l'avversario in modo critico.
+## Fury
+buff-title-fury = Furia
+buff-desc-fury = Con la tua furia i tuoi colpi generano più combo.
+## Sunderer
+buff-title-sunderer = Spaccadifese
+buff-desc-sunderer = I tuoi attacchi possono sfondare le difese dei tuoi nemici e rigenerarti con più energia.
+## Sunderer
+buff-title-defiance = Sfida
+buff-desc-defiance = Puoi resistere a colpi più potenti e stordenti e generare combo venendo colpito, ma sei più lento.
+## Bloodfeast
+buff-title-bloodfeast = Festa di sangue
+buff-desc-bloodfeast = Ti rigeneri attaccando nemici che sanguinano.
+## Berserk
+buff-title-berserk = Frenesia
+buff-desc-berserk = Sei in una furia berserker i tuoi attacchi sono più veloci e potenti, ma la tua difesa sarà inferiore.
 ## Util
 buff-text-over_seconds = in { $dur_secs } secondi
 buff-text-for_seconds = per { $dur_secs } secondi

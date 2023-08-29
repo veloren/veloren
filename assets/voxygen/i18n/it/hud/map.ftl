@@ -16,6 +16,7 @@ hud-map-town = Città
 hud-map-castle = Castello
 hud-map-bridge = Ponte
 hud-map-dungeon = Sotterraneo
+hud-map-df_mine = Miniera
 hud-map-difficulty_dungeon =
     Sotterraneo
     
