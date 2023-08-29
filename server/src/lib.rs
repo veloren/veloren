@@ -809,6 +809,8 @@ impl Server {
             self.state.delete_component::<Anchor>(entity);
         }
 
+        let mut rtsim = self.state.ecs().write_resource::<rtsim::RtSim>();
+        let rtsim_entities = self.state.ecs().read_storage::<RtSimEntity>();
         // Remove NPCs that are outside the view distances of all players
         // This is done by removing NPCs in unloaded chunks
         let to_delete = {
@@ -818,9 +820,15 @@ impl Server {
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 !&self.state.ecs().read_storage::<comp::Presence>(),
                 self.state.ecs().read_storage::<Anchor>().maybe(),
+                rtsim_entities.maybe(),
             )
                 .join()
-                .filter(|(_, pos, _, anchor)| {
+                .filter(|(_, pos, _, anchor, rtsim_entity)| {
+                    if rtsim_entity.map_or(false, |rtsim_entity| {
+                        !rtsim.can_unload_entity(*rtsim_entity)
+                    }) {
+                        return false;
+                    }
                     let chunk_key = terrain.pos_key(pos.0.map(|e| e.floor() as i32));
                     match anchor {
                         Some(Anchor::Chunk(hc)) => {
@@ -835,13 +843,11 @@ impl Server {
                         None => terrain.get_key_real(chunk_key).is_none(),
                     }
                 })
-                .map(|(entity, _, _, _)| entity)
+                .map(|(entity, _, _, _, _)| entity)
                 .collect::<Vec<_>>()
         };
 
         {
-            let mut rtsim = self.state.ecs().write_resource::<rtsim::RtSim>();
-            let rtsim_entities = self.state.ecs().read_storage::<RtSimEntity>();
             let rtsim_vehicles = self.state.ecs().read_storage::<RtSimVehicle>();
 
             // Assimilate entities that are part of the real-time world simulation
@@ -856,6 +862,8 @@ impl Server {
                 }
             }
         }
+        drop(rtsim_entities);
+        drop(rtsim);
 
         // Actually perform entity deletion
         for entity in to_delete {

@@ -19,7 +19,7 @@ use rtsim::data::{
     npc::{Profession, SimulationMode},
     Npc, Sites,
 };
-use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
 use tracing::error;
 use world::site::settlement::trader_loadout;
@@ -212,6 +212,7 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
+        Entities<'a>,
         Read<'a, DeltaTime>,
         Read<'a, Time>,
         Read<'a, TimeOfDay>,
@@ -234,6 +235,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
+            entities,
             dt,
             time,
             time_of_day,
@@ -419,30 +421,40 @@ impl<'a> System<'a> for Sys {
                 });
         }
 
+        let mut emitter = server_event_bus.emitter();
         // Synchronise rtsim NPC with entity data
-        for (pos, rtsim_entity, agent) in
-            (&positions, &rtsim_entities, (&mut agents).maybe()).join()
+        for (entity, pos, rtsim_entity, agent) in (
+            &entities,
+            &positions,
+            &rtsim_entities,
+            (&mut agents).maybe(),
+        )
+            .join()
         {
-            data.npcs
-                .get_mut(rtsim_entity.0)
-                .filter(|npc| matches!(npc.mode, SimulationMode::Loaded))
-                .map(|npc| {
-                    // Update rtsim NPC state
-                    npc.wpos = pos.0;
+            if let Some(npc) = data.npcs.get_mut(rtsim_entity.0) {
+                match npc.mode {
+                    SimulationMode::Loaded => {
+                        // Update rtsim NPC state
+                        npc.wpos = pos.0;
 
-                    // Update entity state
-                    if let Some(agent) = agent {
-                        agent.rtsim_controller.personality = npc.personality;
-                        agent.rtsim_controller.activity = npc.controller.activity;
-                        agent
-                            .rtsim_controller
-                            .actions
-                            .extend(std::mem::take(&mut npc.controller.actions));
-                        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
-                            npc.inbox.append(rtsim_outbox);
+                        // Update entity state
+                        if let Some(agent) = agent {
+                            agent.rtsim_controller.personality = npc.personality;
+                            agent.rtsim_controller.activity = npc.controller.activity;
+                            agent
+                                .rtsim_controller
+                                .actions
+                                .extend(std::mem::take(&mut npc.controller.actions));
+                            if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
+                                npc.inbox.append(rtsim_outbox);
+                            }
                         }
-                    }
-                });
+                    },
+                    SimulationMode::Simulated => {
+                        emitter.emit(ServerEvent::Delete(entity));
+                    },
+                }
+            }
         }
     }
 }

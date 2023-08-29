@@ -258,7 +258,7 @@ impl Npc {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Riding {
     pub vehicle: VehicleId,
     pub steering: bool,

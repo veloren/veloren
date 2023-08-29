@@ -183,7 +183,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     match npc.controller.activity {
                         // If steering, the NPC controls the vehicle's motion
                         Some(NpcActivity::Goto(target, speed_factor)) if riding.steering => {
-                            let diff = target.xy() - vehicle.wpos.xy();
+                            let diff = target - vehicle.wpos;
                             let dist2 = diff.magnitude_squared();
 
                             if dist2 > 0.5f32.powi(2) {
@@ -212,7 +212,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                                 }
                                 vehicle.dir = (target.xy() - vehicle.wpos.xy())
                                     .try_normalized()
-                                    .unwrap_or(Vec2::unit_y());
+                                    .unwrap_or(vehicle.dir);
                             }
                         },
                         // When riding, other actions are disabled
@@ -294,7 +294,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         }
     }
 
-    for (_, vehicle) in data.npcs.vehicles.iter_mut() {
+    for (id, vehicle) in data.npcs.vehicles.iter_mut() {
         // Try to keep ships above ground and within the map
         if matches!(vehicle.mode, SimulationMode::Simulated) {
             vehicle.wpos = vehicle
@@ -311,6 +311,13 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                             .get_surface_alt_approx(vehicle.wpos.xy().as_()),
                     ),
                 );
+        }
+        if let Some(Actor::Npc(driver)) = vehicle.driver
+            && data.npcs.npcs.get(driver).and_then(|driver| {
+               Some(driver.riding.as_ref()?.vehicle != id)
+            }).unwrap_or(true)
+        {
+            vehicle.driver = None;
         }
     }
 }
