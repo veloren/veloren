@@ -228,7 +228,7 @@ pub fn localize_chat_message(
                     })
                 },
             }
-            .to_string()
+            .into_owned()
         },
     };
 
