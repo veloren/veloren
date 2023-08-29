@@ -264,3 +264,90 @@ common-abilities-sword-cleaving_sky_splitter = Spaccacieli
     .desc =
         Un potente colpo che potrebbe persino spaccare il cielo, ma spaccherà i nemici
         Richiede una posizione di taglio
+
+
+# Axe abilities
+common-abilities-axe-triple_chop = Triplo colpo
+    .desc =
+        Tre colpi rapidi
+common-abilities-axe-cleave = Fendente
+    .desc =
+        Un colpo discendente che può costruire combo multiple
+common-abilities-axe-brutal_swing = Colpo brutale
+    .desc =
+        Uno squarcio rotante attorno a te
+common-abilities-axe-berserk = Furia
+    .desc =
+        Aumenta la tua forza rendendoti più vulnerabile
+common-abilities-axe-rising_tide =  Flusso crescente
+    .desc =
+        Un colpo ascendente che aumenta notevolmente la combo
+common-abilities-axe-savage_sense = Senso selvaggio
+    .desc =
+        Individua un punto vitale sul tuo bersaglio assicurando un danno critico al prossimo colpo
+common-abilities-axe-adrenaline_rush = Scatto di adrenalina
+    .desc =
+        Consuma tutta la tua combo per ripristinare la tua stamina
+        Scalabile con la combo all'attivazione, consuma tutta la combo
+common-abilities-axe-execute = Esecuzione
+    .desc =
+        Un colpo devastante noto per essere fatale
+        Richiede 30 combo per l'uso
+        Si trasforma automaticamente in Vortice a 50 combo se sbloccato
+common-abilities-axe-maelstrom = Vortice
+    .desc =
+        Colpisci tutto nelle tue vicinanze con un colpo rotante devastante
+        Si trasforma automaticamente da Esecuzione a 50 combo
+common-abilities-axe-rake = Raschiamento
+    .desc =
+        Trascina la tua ascia sul tuo nemico causando sanguinamento
+common-abilities-axe-bloodfeast = Festa di sangue
+    .desc =
+        La tua ascia ha sete del sangue dei tuoi nemici, rigenerandoti con ogni colpo inflitto a un nemico sanguinante
+common-abilities-axe-fierce_raze = Taglio feroce
+    .desc =
+        Un rapido scroscio di colpi sul tuo nemico
+common-abilities-axe-dual_fierce_raze = Doppio taglio feroce
+    .desc =
+        Un rapido scroscio di colpi sul tuo nemico usando entrambe le tue asce
+common-abilities-axe-furor = Furia
+    .desc =
+        Man mano che la tua furia aumenta i tuoi colpi generano più combo
+common-abilities-axe-fracture = Frattura
+    .desc =
+        Un colpo invalidante che ostacola il movimento del tuo nemico
+        Scalabile con la combo all'attivazione, consuma metà della combo
+common-abilities-axe-lacerate = Lacerazione
+    .desc =
+        Lacerare il tuo bersaglio facendo scorrere il loro sangue vitale
+        Richiede 30 combo per l'uso
+        Si trasforma automaticamente in Mareoa a 50 combo se sbloccato
+common-abilities-axe-riptide = Marea
+    .desc =
+        Sfregare tutto nelle vicinanze separandoli dal loro sangue
+        Si trasforma automaticamente in Lacerazione a 50 combo
+common-abilities-axe-skull_bash = Colpo di testa
+    .desc =
+        Un colpo con il lato piatto della tua ascia che può stordire
+common-abilities-axe-sunder = Smantellare
+    .desc =
+        Cambiando la tua presa diventi in grado di aggirare l'armatura del tuo nemico mentre ripristini la tua energia in modo più efficace
+common-abilities-axe-plunder = Saccheggio
+    .desc =
+        Avanza velocemente verso il tuo nemico, privandolo del suo equilibrio con un colpo
+common-abilities-axe-defiance = Sfida
+    .desc =
+        Fissa la morte negli occhi più a lungo e ti rendi più resistente sia agli stordimenti che alla morte
+common-abilities-axe-keelhaul = Gancio
+    .desc =
+        Aggancia il tuo avversario per tirarlo più vicino a te
+        Scalabile con la combo all'attivazione consuma metà della combo
+common-abilities-axe-bulkhead = Murata
+    .desc =
+        Un colpo pesante che alcuni dicono possa persino stordire i titani
+        Richiede 30 combo per l'uso
+        Si trasforma automaticamente in Capovolgimento a 50 combo se sbloccato
+common-abilities-axe-capsize = Capovolgimento
+    .desc =
+        Stordisci tutto nelle vicinanze con un colpo rotante pesante
+        Si trasforma automaticamente in Murata a 50 combo

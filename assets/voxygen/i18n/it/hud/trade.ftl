@@ -29,3 +29,4 @@ hud-trade-tooltip_hint_2 = <Ctrl-Click per autobilanciare lo scambio con questo.
 hud-trade-your_offer = La tua offerta
 hud-trade-their_offer = La sua offerta
 hud-trade-amount_input = Seleziona un oggetto
+hud-confirm-trade-for-nothing = Vuoi veramente donare tutto questo per niente?
