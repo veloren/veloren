@@ -88,6 +88,27 @@ buff-desc-frigid = Frys dina fiender.
 ## Lifesteal
 buff-title-lifesteal = Hälsostöld
 buff-desc-lifesteal = Sug livet ur dina fiender.
+## Polymorped
+buff-title-salamanderaspect = Salamanders Egenskap
+buff-desc-salamanderaspect = Du kan inte brännas och rör dig fort genom lava.
+## Imminent Critical
+buff-title-imminentcritical = Inkommande Kritisk Träff
+buff-desc-imminentcritical = Your next attack will critically hit the enemy.
+## Fury
+buff-title-fury = Raseri
+buff-desc-fury = Med ditt raseri genererar dina hugg mer kombo
+## Sunderer
+buff-title-sunderer = Söndrare
+buff-desc-sunderer = Dina attacker bryter genom dina fienders försvar och friskar upp dig med mer energi.
+## Sunderer
+buff-title-defiance = Motståndskraft
+buff-desc-defiance = Du kan stå emot starkare och mer omskakande slag och genererar kombo när du blir träffad. Däremot är du långsammare.
+## Bloodfeast
+buff-title-bloodfeast = Blodfest
+buff-desc-bloodfeast = Du fyller upp ditt liv när du attackerar blödande fiender
+## Berserk
+buff-title-berserk = Bärsärk
+buff-desc-berserk = Du går bärsärkagång. Dina attacker blir skadligare och både du och dina attacker blir snabbare. Däremot blir dina defensiva förmågor svagare.
 ## Util
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder

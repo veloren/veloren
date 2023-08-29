@@ -16,6 +16,7 @@ hud-map-town = Samhälle
 hud-map-castle = Borg
 hud-map-bridge = Bro
 hud-map-dungeon = Dungeon
+hud-map-df_mine = Gruva
 hud-map-difficulty_dungeon =
     Dungeon
     

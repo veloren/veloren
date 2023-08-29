@@ -127,6 +127,7 @@ hud-settings-inactive_master_volume_perc = Huvudvolym (inaktivt fönster)
 hud-settings-music_volume = Musikvolym
 hud-settings-sound_effect_volume = Ljudeffektsvolym
 hud-settings-ambience_volume = Omgivningsmusiksvolym
+hud-settings-combat_music = Stridsmusik
 hud-settings-music_spacing = Avstånd mellan musik
 hud-settings-audio_device = Ljudenhet
 hud-settings-reset_sound = Återställ till standard

@@ -29,3 +29,4 @@ hud-trade-tooltip_hint_2 = <Ctrl-klicka för att automatiskt balansera med detta
 hud-trade-your_offer = Ditt erbjudande
 hud-trade-their_offer = Deras erbjudande
 hud-trade-amount_input = Välj ett föremål
+hud-confirm-trade-for-nothing = Vill du verkligen ge bort dessa föremål utan något i utbyte?
