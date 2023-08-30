@@ -1,6 +1,0 @@
-[
-    (0.1, Item("common.items.glider.blue")),
-    (0.05, Item("common.items.glider.morpho")),
-    (0.05, Item("common.items.glider.monarch")),
-    (0.05, Item("common.items.glider.moth")),
-]

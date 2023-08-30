@@ -1,6 +1,4 @@
 [
-    // TODO: Make this loot table less cluttered
-    // tier equipment (technically worse than other weapons here until modular weapons)
     (5.0, LootTable("common.loot_tables.weapons.cultist")),
     (5.0, LootTable("common.loot_tables.weapons.cave")),
     (10.0, LootTable("common.loot_tables.armor.cultist")),
@@ -9,7 +7,7 @@
     (1.0, Item("common.items.glider.skullgrin")),
     (0.01, Item("common.items.armor.misc.neck.ankh_of_life")),
     // Legendary weapons
-    (1.0, LootTable("common.loot_tables.weapons.legendary_ranged")),
+    (1.0, Item("common.items.weapons.staff.laevateinn")),
     // Crafting material
     // Allow for Eldwood to drop till entity droppers are implemented
     (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),

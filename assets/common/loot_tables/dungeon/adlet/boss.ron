@@ -1,9 +1,0 @@
-[
-        (1, All([
-            MultiDrop(LootTable("common.loot_tables.weapons.tier-3"), 0, 1),
-            MultiDrop(LootTable("common.loot_tables.armor.tier-3"), 0, 1),
-            MultiDrop(Item("common.items.armor.misc.head.bear_bonnet"), 0, 1),
-            MultiDrop(Item("common.items.armor.misc.head.howl_cowl"), 0, 1),
-        ],
-    )),
-]

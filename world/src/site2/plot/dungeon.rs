@@ -783,14 +783,14 @@ fn turret_5(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
 fn boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.sahagin.boss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.sahagin.tidalwarrior", dynamic_rng),
     ]
 }
 fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(2, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.haniwa.boss", dynamic_rng)
+            .with_asset_expect("common.entity.dungeon.haniwa.claygolem", dynamic_rng)
     });
 
     entities
@@ -799,14 +799,14 @@ fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo
 fn boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.myrmidon.boss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.myrmidon.minotaur", dynamic_rng),
     ]
 }
 
 fn boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.cultist.boss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.cultist.mindflayer", dynamic_rng),
     ]
 }
 
@@ -838,7 +838,7 @@ fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
 fn mini_boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.myrmidon.miniboss", dynamic_rng),
+            .with_asset_expect("common.entity.dungeon.myrmidon.cyclops", dynamic_rng),
     ]
 }
 

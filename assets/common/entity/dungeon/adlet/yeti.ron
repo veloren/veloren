@@ -3,7 +3,7 @@
     name: Name("Yeti"),
     body: RandomWith("yeti"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.adlet.boss"),
+    loot: LootTable("common.loot_tables.dungeon.adlet.yeti"),
     inventory: (
         loadout: FromBody,
     ),

@@ -1,6 +1,7 @@
 [
-    (3.0, Item("common.items.crafting_ing.abyssal_heart")),
+    (2.5, Item("common.items.crafting_ing.abyssal_heart")),
     (3.0, MultiDrop(Item("common.items.crafting_ing.pearl"), 3, 5)),
     (3.0, MultiDrop(Item("common.items.crafting_ing.brinestone"), 3, 6)),
     (1.0, Item("common.items.armor.misc.bag.heavy_seabag")),
+    (0.5, Item("common.items.weapons.sceptre.caduceus")),
 ]

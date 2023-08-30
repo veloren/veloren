@@ -1,10 +1,20 @@
 [
-  (1, All([
-        Item("common.items.keys.quarry_keys.ancient"),
-        LootTable("common.loot_tables.dungeon.dwarven_quarry.t4"),
-        MultiDrop(LootTable("common.loot_tables.dungeon.dwarven_quarry.t4-mats"), 1, 3),
-        MultiDrop(Item("common.items.utility.coins"), 200, 500),
-        LootTable("common.loot_tables.dungeon.myrmidon.boss"),
-        ],
+  (1.7, All([
+            Item("common.items.keys.quarry_keys.ancient"),
+            // coins are temporary placeholder for unique drops
+            MultiDrop(Item("common.items.utility.coins"), 200, 500),
+            MultiDrop(Item("common.items.log.eldwood"), 2, 6),
+      ],
    )),
+  (0.1, All([
+            Item("common.items.keys.quarry_keys.ancient"),
+            Item("common.items.weapons.axe.parashu"),
+      ],
+   )),
+  (0.2, All([
+            Item("common.items.keys.quarry_keys.ancient"),
+            Item("common.items.armor.misc.neck.carcanet_of_wrath"),
+      ],
+   )),
+
 ]

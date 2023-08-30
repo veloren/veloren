@@ -1,8 +1,9 @@
 [
-  (1, All([
-        MultiDrop(Item("common.items.utility.coins"), 200, 500),
-        LootTable("common.loot_tables.dungeon.myrmidon.miniboss"),
-        MultiDrop(LootTable("common.loot_tables.gliders"), 0, 1),
-        ],
-   )),
+  (1.8, All([
+      MultiDrop(Item("common.items.utility.coins"), 200, 500),
+      MultiDrop(Item("common.items.mineral.ingot.bloodsteel"), 2, 4),
+      MultiDrop(Item("common.items.mineral.ingot.silver"), 0, 2),
+  ])),
+  (0.1, Item("common.items.glider.morpho")),
+  (0.1, Item("common.items.weapons.sword.caladbolg")),
 ]

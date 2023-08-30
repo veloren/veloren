@@ -9,8 +9,4 @@
     (3.0, Item("common.items.armor.misc.head.bamboo_twig")),
     // Chieftain Mask
     (1.0, Item("common.items.armor.misc.head.gnarling_mask")),
-    // Indirect crafting materials for T2 gear
-    (1.0, MultiDrop(Item("common.items.crafting_ing.sticky_thread"), 2, 5)),
-    (1.0, MultiDrop(Item("common.items.mineral.ore.coal"), 2, 5)),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.leather.leather_strips"), 2, 5)),
 ]

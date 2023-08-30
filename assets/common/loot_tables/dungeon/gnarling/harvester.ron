@@ -6,4 +6,5 @@
     // Misc
     (3.0, Item("common.items.armor.misc.neck.scratched")),
     (2.0, Item("common.items.lantern.pumpkin")),
+    (1.0, Item("common.items.glider.moth")),
 ]

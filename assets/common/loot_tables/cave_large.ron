@@ -1,11 +1,6 @@
 [
-    // Necklaces
-    (0.25, Item("common.items.armor.misc.neck.gem_of_resilience")),
-    (0.05, Item("common.items.armor.misc.neck.gold")),
     // Materials
     (4.0, LootTable("common.loot_tables.materials.underground")),
-    // Ring
-    (0.05, Item("common.items.armor.misc.ring.gold")),
     // Lantern
     (0.1, Item("common.items.lantern.geode_purp")),
     // Weapons
