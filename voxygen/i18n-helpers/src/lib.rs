@@ -1,4 +1,6 @@
 #![feature(let_chains)]
+use std::borrow::Cow;
+
 use common::comp::{
     chat::{KillSource, KillType},
     BuffKind, ChatMsg, ChatType, Content,
@@ -98,12 +100,12 @@ pub fn localize_chat_message(
         },
         ChatType::Meta => localization.get_content(msg.content()),
         ChatType::Kill(kill_source, victim) => {
-            let i18n_buff = |buff| match buff {
-                BuffKind::Burning => "hud-outcome-burning",
-                BuffKind::Bleeding => "hud-outcome-bleeding",
-                BuffKind::Cursed => "hud-outcome-curse",
-                BuffKind::Crippled => "hud-outcome-crippled",
-                BuffKind::Frozen => "hud-outcome-frozen",
+            let get_buff_ident = |buff| match buff {
+                BuffKind::Burning => "burning",
+                BuffKind::Bleeding => "bleeding",
+                BuffKind::Cursed => "curse",
+                BuffKind::Crippled => "crippled",
+                BuffKind::Frozen => "frozen",
                 BuffKind::Regeneration
                 | BuffKind::Saturation
                 | BuffKind::Potion
@@ -128,7 +130,7 @@ pub fn localize_chat_message(
                 | BuffKind::Bloodfeast
                 | BuffKind::Berserk => {
                     tracing::error!("Player was killed by a positive buff!");
-                    "hud-outcome-mysterious"
+                    "mysterious"
                 },
                 BuffKind::Wet
                 | BuffKind::Ensnared
@@ -137,43 +139,55 @@ pub fn localize_chat_message(
                 | BuffKind::PotionSickness
                 | BuffKind::Polymorphed(_) => {
                     tracing::error!("Player was killed by a debuff that doesn't do damage!");
-                    "hud-outcome-mysterious"
+                    "mysterious"
                 },
             };
 
             match kill_source {
                 // Buff deaths
                 KillSource::Player(attacker, KillType::Buff(buff_kind)) => {
-                    let i18n_buff = i18n_buff(*buff_kind);
-                    let buff = localization.get_msg(i18n_buff);
+                    let buff_ident = get_buff_ident(*buff_kind);
 
-                    localization.get_msg_ctx("hud-chat-died_of_pvp_buff_msg", &i18n::fluent_args! {
-                        "victim" => name_format(victim),
-                        "died_of_buff" => buff,
-                        "attacker" => name_format(attacker),
-                    })
+                    let s = localization
+                        .get_attr_ctx(
+                            "hud-chat-died_of_pvp_buff_msg",
+                            buff_ident,
+                            &i18n::fluent_args! {
+                                "victim" => name_format(victim),
+                                "attacker" => name_format(attacker),
+                            },
+                        )
+                        .into_owned();
+                    Cow::Owned(s)
                 },
                 KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => {
-                    let i18n_buff = i18n_buff(*buff_kind);
-                    let buff = localization.get_msg(i18n_buff);
+                    let buff_ident = get_buff_ident(*buff_kind);
 
-                    localization.get_msg_ctx("hud-chat-died_of_npc_buff_msg", &i18n::fluent_args! {
-                        "victim" => name_format(victim),
-                        "died_of_buff" => buff,
-                        "attacker" => attacker_name,
-                    })
+                    let s = localization
+                        .get_attr_ctx(
+                            "hud-chat-died_of_npc_buff_msg",
+                            buff_ident,
+                            &i18n::fluent_args! {
+                                "victim" => name_format(victim),
+                                "attacker" => attacker_name,
+                            },
+                        )
+                        .into_owned();
+                    Cow::Owned(s)
                 },
                 KillSource::NonExistent(KillType::Buff(buff_kind)) => {
-                    let i18n_buff = i18n_buff(*buff_kind);
-                    let buff = localization.get_msg(i18n_buff);
+                    let buff_ident = get_buff_ident(*buff_kind);
 
-                    localization.get_msg_ctx(
-                        "hud-chat-died_of_buff_nonexistent_msg",
-                        &i18n::fluent_args! {
-                            "victim" => name_format(victim),
-                            "died_of_buff" => buff,
-                        },
-                    )
+                    let s = localization
+                        .get_attr_ctx(
+                            "hud-chat-died_of_buff_nonexistent_msg",
+                            buff_ident,
+                            &i18n::fluent_args! {
+                                "victim" => name_format(victim),
+                            },
+                        )
+                        .into_owned();
+                    Cow::Owned(s)
                 },
                 // PvP deaths
                 KillSource::Player(attacker, kill_type) => {
@@ -228,7 +242,7 @@ pub fn localize_chat_message(
                     })
                 },
             }
-            .to_string()
+            .into_owned()
         },
     };
 

@@ -1,17 +1,28 @@
 ## Player events
 hud-chat-online_msg = [{ $name }] is online now
 hud-chat-offline_msg = [{ $name }] went offline
-## Buff outcomes
-hud-outcome-burning = died of: burning
-hud-outcome-curse = died of: curse
-hud-outcome-bleeding = died of: bleeding
-hud-outcome-crippled = died of: crippled
-hud-outcome-frozen = died of: frozen
-hud-outcome-mysterious = died of: secret
 ## Buff deaths
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] { $died_of_buff } caused by [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = [{ $victim }] { $died_of_buff } caused by { $attacker }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $victim }] died of: burning caused by [{ $attacker }]
+ .bleeding = [{ $victim }] died of: bleeding caused by [{ $attacker }]
+ .curse = [{ $victim }] died of: curse caused by [{ $attacker }]
+ .crippled = [{ $victim }] died of: crippled caused by [{ $attacker }]
+ .frozen = [{ $victim }] died of: frozen caused by [{ $attacker }]
+ .mysterious = [{ $victim }] died of: secret caused by [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] died of: burning
+ .bleeding = [{ $victim }] died of: bleeding
+ .curse = [{ $victim }] died of: curse
+ .crippled = [{ $victim }] died of: crippled
+ .frozen = [{ $victim }] died of: frozen
+ .mysterious = [{ $victim }] died of: secret
+hud-chat-died_of_npc_buff_msg =
+ .burning = [{ $victim }] died of: burning caused by { $attacker }
+ .bleeding = [{ $victim }] died of: bleeding caused by { $attacker }
+ .curse = [{ $victim }] died of: curse caused by { $attacker }
+ .crippled = [{ $victim }] died of: crippled caused by { $attacker }
+ .frozen = [{ $victim }] died of: frozen caused by { $attacker }
+ .mysterious = [{ $victim }] died of: secret caused by { $attacker }
 ## PvP deaths
 hud-chat-pvp_melee_kill_msg = [{ $attacker }] defeated [{ $victim }]
 hud-chat-pvp_ranged_kill_msg = [{ $attacker }] shot [{ $victim }]

@@ -2,16 +2,28 @@
 hud-chat-online_msg = [{ $name }] está online.
 hud-chat-offline_msg = { $name } está offline
 ## Avisos(buff)
-hud-outcome-burning = morreu de: queimadura
-hud-outcome-curse = morreu de: maldição
-hud-outcome-bleeding = morreu de: sangramento
-hud-outcome-crippled = morreu de: aleijamento
-hud-outcome-frozen = morreu de: congelamento
-hud-outcome-mysterious = morreu de: segredo
 ## Mortes(buff)
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] { $died_of_buff } causado por [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = [{ $victim }] { $died_of_buff } causado por { $attacker }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $victim }] morreu de: queimadura causado por [{ $attacker }]
+ .bleeding = [{ $victim }] morreu de: sangramento causado por [{ $attacker }]
+ .curse = [{ $victim }] morreu de: maldição causado por [{ $attacker }]
+ .crippled = [{ $victim }] morreu de: aleijamento causado por [{ $attacker }]
+ .frozen = [{ $victim }] morreu de: congelamento causado por [{ $attacker }]
+ .mysterious = [{ $victim }] morreu de: segredo causado por [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] morreu de: queimadura
+ .bleeding = [{ $victim }] morreu de: sangramento
+ .curse = [{ $victim }] morreu de: maldição
+ .crippled = [{ $victim }] morreu de: aleijamento
+ .frozen = [{ $victim }] morreu de: congelamento
+ .mysterious = [{ $victim }] morreu de: segredo
+hud-chat-died_of_npc_buff_msg =
+ .burning = [{ $victim }] morreu de: queimadura causado por { $attacker }
+ .bleeding = [{ $victim }] morreu de: sangramento causado por { $attacker }
+ .curse = [{ $victim }] morreu de: maldição causado por { $attacker }
+ .crippled = [{ $victim }] morreu de: aleijamento causado por { $attacker }
+ .frozen = [{ $victim }] morreu de: congelamento causado por { $attacker }
+ .mysterious = [{ $victim }] morreu de: segredo causado por { $attacker }
 ## Mortes - PVP
 hud-chat-pvp_melee_kill_msg = [{ $attacker }] derrotou [{ $victim }]
 hud-chat-pvp_ranged_kill_msg = [{ $attacker }] atirou em [{ $victim }]

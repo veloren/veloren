@@ -3,20 +3,31 @@
 hud-chat-online_msg = [{ $name }]이(가) 현재 온라인
 hud-chat-offline_msg = [{ $name }]이(가) 현재 오프라인
 
-## Buff outcomes
 
-hud-outcome-burning = 사인: 화상
-hud-outcome-curse = 사인: 저주
-hud-outcome-bleeding = 사인: 출혈
-hud-outcome-crippled = 사인: 다리 부러짐
-hud-outcome-frozen = 사인: 동사
-hud-outcome-mysterious = 사인: 비밀
 
 ## Buff deaths
 
-hud-chat-died_of_pvp_buff_msg = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. { $died_of_buff }
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = { $attacker }이(가) [{ $victim }]을(를) 죽임. { $died_of_buff }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. 사인: 화상
+ .bleeding = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. 사인: 출혈
+ .curse = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. 사인: 저주
+ .crippled = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. 사인: 다리 부러짐
+ .frozen = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. 사인: 동사
+ .mysterious = [{ $attacker }]이(가) [{ $victim }]을(를) 죽임. 사인: 비밀
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] 사인: 화상
+ .bleeding = [{ $victim }] 사인: 출혈
+ .curse = [{ $victim }] 사인: 저주
+ .crippled = [{ $victim }] 사인: 다리 부러짐
+ .frozen = [{ $victim }] 사인: 동사
+ .mysterious = [{ $victim }] 사인: 비밀
+hud-chat-died_of_npc_buff_msg =
+ .burning = { $attacker }이(가) [{ $victim }]을(를) 죽임. 사인: 화상
+ .bleeding = { $attacker }이(가) [{ $victim }]을(를) 죽임. 사인: 출혈
+ .curse = { $attacker }이(가) [{ $victim }]을(를) 죽임. 사인: 저주
+ .crippled = { $attacker }이(가) [{ $victim }]을(를) 죽임. 사인: 다리 부러짐
+ .frozen = { $attacker }이(가) [{ $victim }]을(를) 죽임. 사인: 동사
+ .mysterious = { $attacker }이(가) [{ $victim }]을(를) 죽임. 사인: 비밀
 
 ## PvP deaths
 

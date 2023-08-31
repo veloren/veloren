@@ -1,17 +1,28 @@
 ## Player events
 hud-chat-online_msg = [{ $name }] är inloggad nu
 hud-chat-offline_msg = [{ $name }] loggade ut
-## Buff outcomes
-hud-outcome-burning = dödsorsak: eld
-hud-outcome-curse = dödsorsak: trolldom
-hud-outcome-bleeding = dödsorsak: blodförlust
-hud-outcome-crippled = dödsorsak: allvarliga skador
-hud-outcome-frozen = dödsorsak: förfrysning
-hud-outcome-mysterious = dödsorsak: hemlig
 ## Buff deaths
-hud-chat-died_of_pvp_buff_msg = [{ $victim }] { $died_of_buff } orsakad av [{ $attacker }]
-hud-chat-died_of_buff_nonexistent_msg = [{ $victim }] { $died_of_buff }
-hud-chat-died_of_npc_buff_msg = [{ $victim }] { $died_of_buff } orsakad av { $attacker }
+hud-chat-died_of_pvp_buff_msg =
+ .burning = [{ $victim }] dödsorsak: eld orsakad av [{ $attacker }]
+ .bleeding = [{ $victim }] dödsorsak: blodförlust orsakad av [{ $attacker }]
+ .curse = [{ $victim }] dödsorsak: trolldom orsakad av [{ $attacker }]
+ .crippled = [{ $victim }] dödsorsak: allvarliga skador orsakad av [{ $attacker }]
+ .frozen = [{ $victim }] dödsorsak: förfrysning orsakad av [{ $attacker }]
+ .mysterious = [{ $victim }] dödsorsak: hemlig orsakad av [{ $attacker }]
+hud-chat-died_of_buff_nonexistent_msg =
+ .burning = [{ $victim }] dödsorsak: eld
+ .bleeding = [{ $victim }] dödsorsak: blodförlust
+ .curse = [{ $victim }] dödsorsak: trolldom
+ .crippled = [{ $victim }] dödsorsak: allvarliga skador
+ .frozen = [{ $victim }] dödsorsak: förfrysning
+ .mysterious = [{ $victim }] dödsorsak: hemlig
+hud-chat-died_of_npc_buff_msg =
+ .burning = [{ $victim }] dödsorsak: eld orsakad av { $attacker }
+ .bleeding = [{ $victim }] dödsorsak: blodförlust orsakad av { $attacker }
+ .curse = [{ $victim }] dödsorsak: trolldom orsakad av { $attacker }
+ .crippled = [{ $victim }] dödsorsak: allvarliga skador orsakad av { $attacker }
+ .frozen = [{ $victim }] dödsorsak: förfrysning orsakad av { $attacker }
+ .mysterious = [{ $victim }] dödsorsak: hemlig orsakad av { $attacker }
 ## PvP deaths
 hud-chat-pvp_melee_kill_msg = [{ $attacker }] besegrade [{ $victim }]
 hud-chat-pvp_ranged_kill_msg = [{ $attacker }] sköt [{ $victim }]
