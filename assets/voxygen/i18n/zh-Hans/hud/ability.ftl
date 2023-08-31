@@ -8,6 +8,32 @@ common-abilities-staff-fireshockwave = 火焰之圈
     .desc = 在地上迸发一圈火焰冲击波.
 common-abilities-sceptre-wardingaura = 守护光环
     .desc = 守护你盟友，抵御敌人的攻击.
+
+# Stances
+-heavy_stance = 重剑姿态
+-agile_stance = 轻剑姿态
+-defensive_stance = 防守姿态
+-crippling_stance = 残忍姿态
+-cleaving_stance = 劈砍姿态
+
+-basic_state = 基础
+-heavy_state = 重型
+-agile_state = 轻型
+-defensive_state = 防守型
+-crippling_state = 残忍型
+-cleaving_state = 劈砍型
+-double_slash = 二连击
+-modified_depending_stance = 会根据姿态而改变形态
+-crescent_slash = 空月斩
+-fell_strike = 陨落打击
+-skewer = 突刺
+-cascade = 威势倾泻
+-cross_cut = X裂斩
+-requires_moderate_combo = 需要较多连击方可使用
+-enter_stance = 进入
+-require_stance = 需要
+
+
 # Sword abilities
 veloren-core-pseudo_abilities-sword-heavy_stance = { -heavy_stance }
     .desc = 使用此姿态可以对震慑敌人，并对震慑的敌人造成更多伤害，但是攻速更慢.
