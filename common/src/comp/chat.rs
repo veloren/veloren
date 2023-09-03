@@ -346,10 +346,10 @@ impl<G> GenericChatMsg<G> {
         }
     }
 
-    pub fn get_group(&self) -> Option<&G> {
-        match &self.chat_type {
-            ChatType::GroupMeta(g) => Some(g),
-            ChatType::Group(_, g) => Some(g),
+    pub fn get_group_mut_sender(&mut self) -> Option<(&mut G, Option<&Uid>)> {
+        match &mut self.chat_type {
+            ChatType::GroupMeta(g) => Some((g, None)),
+            ChatType::Group(sender, g) => Some((g, Some(sender))),
             _ => None,
         }
     }
