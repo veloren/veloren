@@ -908,7 +908,7 @@ impl StateExt for State {
 
     /// Send the chat message to the proper players. Say and region are limited
     /// by location. Faction and group are limited by component.
-    fn send_chat(&self, mut msg: comp::UnresolvedChatMsg) {
+    fn send_chat(&self, msg: comp::UnresolvedChatMsg) {
         let ecs = self.ecs();
         let is_within =
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
@@ -918,31 +918,7 @@ impl StateExt for State {
 
         let group_manager = ecs.read_resource::<comp::group::GroupManager>();
 
-        let group_info = msg.get_group_mut_sender().and_then(|(g, from)| {
-            // Check if the sender is in the group he is trying to send the message to. If
-            // it doesn't match, update the message's group accordingly.
-            // There currently is a bug that can cause group messages to appear in other
-            // groups. This commonly happens when a player has his [ChatMode] set
-            // to group and is kicked from his current group or joins another,
-            // any message sent afterwards appears in the previous group as long
-            // as his chatmode isn't updated.
-            // TODO: Find out why sometimes messages from players never previously in the
-            // group leak.
-            // FIXME: Another pontential fix could be updating the [ChatMode] as the player
-            // leaves and joins a new group. Possibly a better solution?
-            if let Some(from) = from {
-                let group = ecs
-                    .read_storage::<comp::Group>()
-                    .get(entity_from_uid(*from)?)
-                    .copied()?;
-
-                if g != &group {
-                    *g = group;
-                }
-            }
-
-            group_manager.group_info(*g)
-        });
+        let group_info = msg.get_group().and_then(|g| group_manager.group_info(*g));
 
         let resolved_msg = msg
             .clone()
@@ -1100,7 +1076,12 @@ impl StateExt for State {
                 },
                 comp::ChatType::Group(from, g) => {
                     if group_info.is_none() {
-                        // group not found, reply with command error
+                        // Group not found, reply with command error
+                        // This should usually NEVER happen since now it is checked whether the
+                        // sender is still in the group upon emitting the message (TODO: Can this be
+                        // triggered if the message is sent in the same tick as the sender is
+                        // removed from the group?)
+
                         let reply = comp::ChatType::CommandError.into_plain_msg(
                             "You are using group chat but do not belong to a group. Use /world or \
                              /region to change chat.",
