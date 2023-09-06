@@ -913,9 +913,6 @@ impl StateExt for State {
         let is_within =
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
 
-        let id_maps = ecs.read_resource::<IdMaps>();
-        let entity_from_uid = |uid| id_maps.uid_entity(uid);
-
         let group_manager = ecs.read_resource::<comp::group::GroupManager>();
 
         let group_info = msg.get_group().and_then(|g| group_manager.group_info(*g));
@@ -923,6 +920,9 @@ impl StateExt for State {
         let resolved_msg = msg
             .clone()
             .map_group(|_| group_info.map_or_else(|| "???".to_string(), |i| i.name.clone()));
+
+        let id_maps = ecs.read_resource::<IdMaps>();
+        let entity_from_uid = |uid| id_maps.uid_entity(uid);
 
         if msg.chat_type.uid().map_or(true, |sender| {
             entity_from_uid(sender).map_or(false, |e| {

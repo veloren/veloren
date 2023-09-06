@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed wild roaming cyclop loot table to not drop the quarry key
 - Dungeons now have an outer wall, preventing them from intersecting with caves or leaving holes in sides of mountains.
 - Location names are displayed in character selection dialog
+- You can no longer write messages to old groups after being kicked and not having updated your chat mode.
 
 ## [0.15.0] - 2023-07-01
 
