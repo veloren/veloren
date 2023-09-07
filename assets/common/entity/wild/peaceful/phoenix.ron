@@ -3,7 +3,12 @@
     name: Automatic,
     body: RandomWith("phoenix"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.bird_large.phoenix"),
+    loot: All([
+        // Bow and glider, has a lower chance of dropping
+        LootTable("common.loot_tables.creature.bird_large.phoenix"),
+        // Phoenix feathers and food, always dropped
+        LootTable("common.loot_tables.creature.bird_large.phoenix_extra")
+    ]),
     inventory: (
         loadout: FromBody,
     ),
