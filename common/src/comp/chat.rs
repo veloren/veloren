@@ -18,7 +18,7 @@ pub enum ChatMode {
     /// Talk to players in your region of the world
     Region,
     /// Talk to your current group of players
-    Group(Group),
+    Group,
     /// Talk to your faction
     Faction(String),
     /// Talk to every player on the server
@@ -31,19 +31,31 @@ impl Component for ChatMode {
 
 impl ChatMode {
     /// Create a plain message from your current chat mode and uuid.
-    pub fn to_plain_msg(&self, from: Uid, text: impl ToString) -> UnresolvedChatMsg {
+    pub fn to_plain_msg(
+        &self,
+        from: Uid,
+        text: impl ToString,
+        group: Option<Group>,
+    ) -> Result<UnresolvedChatMsg, &'static str> {
         let chat_type = match self {
             ChatMode::Tell(to) => ChatType::Tell(from, *to),
             ChatMode::Say => ChatType::Say(from),
             ChatMode::Region => ChatType::Region(from),
-            ChatMode::Group(group) => ChatType::Group(from, *group),
+            ChatMode::Group => ChatType::Group(
+                from,
+                group.ok_or(
+                    "You tried sending a group message while not belonging to a group. Use /world \
+                     or /region to change your chat mode.",
+                )?,
+            ),
             ChatMode::Faction(faction) => ChatType::Faction(from, faction.clone()),
             ChatMode::World => ChatType::World(from),
         };
-        UnresolvedChatMsg {
+
+        Ok(UnresolvedChatMsg {
             chat_type,
             content: Content::Plain(text.to_string()),
-        }
+        })
     }
 }
 

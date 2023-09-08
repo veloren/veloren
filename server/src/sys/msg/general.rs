@@ -1,12 +1,12 @@
 use crate::client::Client;
 use common::{
-    comp::{ChatMode, Player},
+    comp::{ChatMode, ChatType, Group, Player},
     event::{EventBus, ServerEvent},
     resources::Time,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::ClientGeneral;
+use common_net::msg::{ClientGeneral, ServerGeneral};
 use rayon::prelude::*;
 use specs::{Entities, Join, ParJoin, Read, ReadStorage, WriteStorage};
 use tracing::{debug, error, warn};
@@ -15,10 +15,11 @@ impl Sys {
     fn handle_general_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,
-        _client: &Client,
+        client: &Client,
         player: Option<&Player>,
         uids: &ReadStorage<'_, Uid>,
         chat_modes: &ReadStorage<'_, ChatMode>,
+        groups: &ReadStorage<'_, Group>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         match msg {
@@ -27,8 +28,17 @@ impl Sys {
                     if let Some(from) = uids.get(entity) {
                         const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
                         let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);
-                        // Send chat message
-                        server_emitter.emit(ServerEvent::Chat(mode.to_plain_msg(*from, message)));
+                        // Try sending the chat message
+                        match mode.to_plain_msg(*from, message, groups.get(entity).copied()) {
+                            Ok(message) => {
+                                server_emitter.emit(ServerEvent::Chat(message));
+                            },
+                            Err(error) => {
+                                client.send_fallible(ServerGeneral::ChatMsg(
+                                    ChatType::CommandError.into_plain_msg(error),
+                                ));
+                            },
+                        }
                     } else {
                         error!("Could not send message. Missing player uid");
                     }
@@ -71,6 +81,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,
+        ReadStorage<'a, Group>,
         WriteStorage<'a, Client>,
     );
 
@@ -80,7 +91,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, server_event_bus, time, uids, chat_modes, players, mut clients): Self::SystemData,
+        (entities, server_event_bus, time, uids, chat_modes, players, groups, mut clients): Self::SystemData,
     ) {
         (&entities, &mut clients, players.maybe())
             .par_join()
@@ -95,6 +106,7 @@ impl<'a> System<'a> for Sys {
                             player,
                             &uids,
                             &chat_modes,
+                            &groups,
                             msg,
                         )
                     });

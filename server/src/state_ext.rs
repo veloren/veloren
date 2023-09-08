@@ -1076,22 +1076,26 @@ impl StateExt for State {
                 },
                 comp::ChatType::Group(from, g) => {
                     if group_info.is_none() {
-                        // group not found, reply with command error
+                        // Group not found, reply with command error
+                        // This should usually NEVER happen since now it is checked whether the
+                        // sender is still in the group upon emitting the message (TODO: Can this be
+                        // triggered if the message is sent in the same tick as the sender is
+                        // removed from the group?)
+
                         let reply = comp::ChatType::CommandError.into_plain_msg(
                             "You are using group chat but do not belong to a group. Use /world or \
                              /region to change chat.",
                         );
 
-                        if let Some((client, _)) =
-                            (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>())
-                                .join()
-                                .find(|(_, uid)| *uid == from)
+                        let clients = ecs.read_storage::<Client>();
+                        if let Some(client) =
+                            entity_from_uid(*from).and_then(|entity| clients.get(entity))
                         {
                             client.send_fallible(ServerGeneral::ChatMsg(reply));
                         }
-                        return;
+                    } else {
+                        send_to_group(g, ecs, &resolved_msg);
                     }
-                    send_to_group(g, ecs, &resolved_msg);
                 },
                 comp::ChatType::GroupMeta(g) => {
                     send_to_group(g, ecs, &resolved_msg);

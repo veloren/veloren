@@ -2888,7 +2888,9 @@ fn handle_tell(
         } else {
             message_opt.join(" ")
         };
-        server.state.send_chat(mode.to_plain_msg(target_uid, msg));
+        server
+            .state
+            .send_chat(mode.to_plain_msg(target_uid, msg, None)?);
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
@@ -2913,7 +2915,7 @@ fn handle_faction(
         let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server.state.send_chat(mode.to_plain_msg(*uid, msg));
+                server.state.send_chat(mode.to_plain_msg(*uid, msg, None)?);
             }
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -2933,14 +2935,16 @@ fn handle_group(
     no_sudo(client, target)?;
 
     let groups = server.state.ecs().read_storage::<comp::Group>();
-    if let Some(group) = groups.get(target) {
-        let mode = comp::ChatMode::Group(*group);
+    if let Some(group) = groups.get(target).copied() {
+        let mode = comp::ChatMode::Group;
         drop(groups);
         insert_or_replace_component(server, target, mode.clone(), "target")?;
         let msg = args.join(" ");
         if !msg.is_empty() {
             if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server.state.send_chat(mode.to_plain_msg(*uid, msg));
+                server
+                    .state
+                    .send_chat(mode.to_plain_msg(*uid, msg, Some(group))?);
             }
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -3064,7 +3068,7 @@ fn handle_region(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.to_plain_msg(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg, None)?);
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -3085,7 +3089,7 @@ fn handle_say(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.to_plain_msg(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg, None)?);
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
@@ -3106,7 +3110,7 @@ fn handle_world(
     let msg = args.join(" ");
     if !msg.is_empty() {
         if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server.state.send_chat(mode.to_plain_msg(*uid, msg));
+            server.state.send_chat(mode.to_plain_msg(*uid, msg, None)?);
         }
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));

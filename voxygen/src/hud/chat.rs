@@ -801,7 +801,7 @@ fn render_chat_mode(chat_mode: &ChatMode, imgs: &Imgs) -> (Color, conrod_core::i
         ChatMode::Say => (SAY_COLOR, imgs.chat_say_small),
         ChatMode::Region => (REGION_COLOR, imgs.chat_region_small),
         ChatMode::Faction(_) => (FACTION_COLOR, imgs.chat_faction_small),
-        ChatMode::Group(_) => (GROUP_COLOR, imgs.chat_group_small),
+        ChatMode::Group => (GROUP_COLOR, imgs.chat_group_small),
         ChatMode::Tell(_) => (TELL_COLOR, imgs.chat_tell_small),
     }
 }
