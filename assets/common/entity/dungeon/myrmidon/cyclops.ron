@@ -3,7 +3,12 @@
     name: Automatic,
     body: RandomWith("cyclops"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.biped_large.cyclops"),
+    loot: All([
+        // Hat, wood and lantern, has a lower chance of dropping
+        LootTable("common.loot_tables.dungeon.myrmidon.miniboss"),
+        // Materials, always dropped
+        LootTable("common.loot_tables.dungeon.myrmidon.miniboss_extra"),
+    ]),
     inventory: (
         loadout: FromBody,
     ),

@@ -1,8 +1,8 @@
 [
-  (1.0, All([
-        Item("common.items.keys.quarry_keys.cyclops_eye"),
+    // Mats, always dropped
+    (1.0, All([
         MultiDrop(Item("common.items.utility.coins"), 200, 500),
         MultiDrop(Item("common.items.mineral.ingot.iron"), 5, 10),
-        ],
-   )),
+        MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8),
+    ])),
 ]

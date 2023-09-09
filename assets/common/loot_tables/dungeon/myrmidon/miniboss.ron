@@ -1,14 +1,9 @@
 [
-    // Armor
-    (2.0, LootTable("common.loot_tables.weapons.tier-5")),
-    (2.0, LootTable("common.loot_tables.armor.tier-5")),
-    // Consumables
-    (5.0, MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8)),
-    // lantern
-    (1.0, Item("common.items.lantern.blue_0")),
-    // Gear
-    (2.0, Item("common.items.armor.misc.head.mitre")),
-    // Crafting material
-    // Allow for Eldwood to drop till entity droppers are implemented
-    (1.0, MultiDrop(Item("common.items.log.eldwood"), 2, 4)),
+    (1.05, Nothing),
+    // Lantern drop
+    (0.15, Item("common.items.lantern.blue_0")),
+    // Hat drop
+    (0.3, Item("common.items.armor.misc.head.mitre")),
+    // Allow for Eldwood to drop until entity droppers are implemented
+    (0.5, Item("common.items.log.eldwood")),
 ]
