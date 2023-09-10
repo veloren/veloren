@@ -55,7 +55,7 @@ common-abilities-sword-cleaving_dual_spiral_slash =  Taglio a spirale
 veloren-core-pseudo_abilities-sword-crescent_slash = Taglio a mezzaluna
     .desc =
         Un taglio diagonale verso l'alto
-        Viene modificato a seconda della tua posturance
+        Viene modificato a seconda della tua postura
 common-abilities-sword-basic_crescent_slash = Taglio a mezzaluna base
     .desc = Un semplice taglio diagonale verso l'alto
 common-abilities-sword-heavy_crescent_slash = Taglio a mezzaluna potente
@@ -80,7 +80,7 @@ common-abilities-sword-agile_fell_strike = Colpo deciso agile
     .desc = Un taglio forte ma molto veloce
 common-abilities-sword-defensive_fell_strike = Colpo deciso difensivo
     .desc = Un taglio forte utilizzato per parare gli attacchi
-common-abilities-sword-crippling_fell_strike = Colpo deciso devastabte
+common-abilities-sword-crippling_fell_strike = Colpo deciso devastante
     .desc = Un taglio forte e veloce che può far sanguinare l'avversario
 common-abilities-sword-cleaving_fell_strike = Colpo deciso fendente
     .desc = Un taglio forte e veloce che può squarciare i nemici
@@ -142,7 +142,7 @@ common-abilities-sword-defensive_dual_cross_cut = Taglio incrociato difensivo
     .desc = Un attacco simultaneo di destro e di sinistro che può parare i colpi
 common-abilities-sword-crippling_dual_cross_cut = Taglio incrociato debilitante
     .desc = Un attacco simultaneo di taglio destro e sinistro che può lacerare il nemico
-common-abilities-sword-cleaving_dual_cross_cut = Cleaving Cross Cut
+common-abilities-sword-cleaving_dual_cross_cut = Taglio incrociato fendente
     .desc = Un attacco simultaneo di taglio destro e sinistro che può colpire più nemici
 veloren-core-pseudo_abilities-sword-finisher = Colpo di grazia
     .desc =
@@ -214,7 +214,7 @@ common-abilities-sword-cleaving_whirlwind_slice = Fendenti turbinanti
         Entra in posizione fendente
 common-abilities-sword-cleaving_dual_whirlwind_slice = Taglio vorticante
     .desc =
-        Colpisci tutti i nemici circostanti con attacchi circolari di entambe le spade
+        Colpisci tutti i nemici circostanti con attacchi circolari di entrambe le spade
         Entra in posizione fendente
 common-abilities-sword-cleaving_earth_splitter = Spaccaterra
     .desc =
@@ -321,7 +321,7 @@ common-abilities-axe-lacerate = Lacerazione
     .desc =
         Lacerare il tuo bersaglio facendo scorrere il loro sangue vitale
         Richiede 30 combo per l'uso
-        Si trasforma automaticamente in Mareoa a 50 combo se sbloccato
+        Si trasforma automaticamente in Marea a 50 combo se sbloccato
 common-abilities-axe-riptide = Marea
     .desc =
         Sfregare tutto nelle vicinanze separandoli dal loro sangue

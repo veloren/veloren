@@ -39,7 +39,7 @@ buff-title-frenzied = Frenetico
 buff-desc-frenzied = Sei imbevuto con velocità innaturale e puoi ignorare ferite minori.
 ## Haste
 buff-title-hastened = Rapido
-buff-desc-hastened = I tuoi movimenti e i tuoi attachi sono più veloci.
+buff-desc-hastened = I tuoi movimenti e i tuoi attacchi sono più veloci.
 ## Bleeding
 buff-title-bleed = Sanguinante
 buff-desc-bleed = Infligge danno regolare.
