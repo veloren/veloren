@@ -1034,8 +1034,8 @@ impl Window {
         self.window.set_cursor_visible(!grab);
         let res = if grab {
             self.window
-                .set_cursor_grab(CursorGrabMode::Confined)
-                .or_else(|_e| self.window.set_cursor_grab(CursorGrabMode::Locked))
+                .set_cursor_grab(CursorGrabMode::Locked)
+                .or_else(|_e| self.window.set_cursor_grab(CursorGrabMode::Confined))
         } else {
             self.window.set_cursor_grab(CursorGrabMode::None)
         };
