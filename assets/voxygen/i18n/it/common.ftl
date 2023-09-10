@@ -116,3 +116,4 @@ common-sprite-chest = Cassa
 common-sprite-chair = Sedia
 common-sprite-mud = Fango
 common-sprite-grave = Tomba
+common-sprite-crate = Cassa
