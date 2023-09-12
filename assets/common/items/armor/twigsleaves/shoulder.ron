@@ -5,7 +5,7 @@ ItemDef(
         kind: Shoulder,
         stats: FromSet("Twigs Leaves"),
     )),
-    quality: Common,
+    quality: Moderate,
     tags: [
         SalvageInto(Twig, 1),
     ],
