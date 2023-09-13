@@ -50,7 +50,7 @@ rayon = { workspace = true }
 roots = "0.0.8"
 spin_sleep = "1.0"
 tracing = { workspace = true }
-uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"] }
+uuid = { version = "1.4.1", default-features = false, features = ["serde", "v4"] }
 rand = { workspace = true }
 fxhash = { workspace = true }
 
