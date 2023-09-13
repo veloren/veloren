@@ -1,6 +1,6 @@
 use crate::client::Client;
 use common::{
-    comp::{ChatMode, ChatType, Group, Player},
+    comp::{ChatMode, ChatType, Content, Group, Player},
     event::{EventBus, ServerEvent},
     resources::Time,
     uid::Uid,
@@ -29,13 +29,17 @@ impl Sys {
                         const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
                         let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);
                         // Try sending the chat message
-                        match mode.to_plain_msg(*from, message, groups.get(entity).copied()) {
+                        match mode.to_msg(
+                            *from,
+                            Content::Plain(message),
+                            groups.get(entity).copied(),
+                        ) {
                             Ok(message) => {
                                 server_emitter.emit(ServerEvent::Chat(message));
                             },
                             Err(error) => {
                                 client.send_fallible(ServerGeneral::ChatMsg(
-                                    ChatType::CommandError.into_plain_msg(error),
+                                    ChatType::CommandError.into_msg(error),
                                 ));
                             },
                         }

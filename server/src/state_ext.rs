@@ -21,7 +21,8 @@ use common::{
         misc::PortalData,
         object,
         skills::{GeneralSkill, Skill},
-        ChatType, Group, Inventory, Item, LootOwner, Object, Player, Poise, Presence, PresenceKind,
+        ChatType, Content, Group, Inventory, Item, LootOwner, Object, Player, Poise, Presence,
+        PresenceKind,
     },
     effect::Effect,
     link::{Is, Link, LinkHandle},
@@ -169,7 +170,7 @@ pub trait StateExt {
         entity: EcsEntity,
         dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
-    ) -> Result<T, &'static str>;
+    ) -> Result<T, Content>;
 }
 
 impl StateExt for State {
@@ -1082,10 +1083,8 @@ impl StateExt for State {
                         // triggered if the message is sent in the same tick as the sender is
                         // removed from the group?)
 
-                        let reply = comp::ChatType::CommandError.into_plain_msg(
-                            "You are using group chat but do not belong to a group. Use /world or \
-                             /region to change chat.",
-                        );
+                        let reply = comp::ChatType::CommandError
+                            .into_msg(Content::localized("command-message-group-missing"));
 
                         let clients = ecs.read_storage::<Client>();
                         if let Some(client) =
@@ -1260,7 +1259,7 @@ impl StateExt for State {
         entity: EcsEntity,
         dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
-    ) -> Result<T, &'static str> {
+    ) -> Result<T, Content> {
         if dismount_volume {
             self.ecs().write_storage::<Is<VolumeRider>>().remove(entity);
         }
@@ -1299,7 +1298,10 @@ impl StateExt for State {
                 maybe_pos = Some(pos.0);
                 res
             })
-            .ok_or("Cannot get position for entity!");
+            .ok_or(Content::localized_with_args(
+                "command-position-unavailable",
+                [("target", "entity")],
+            ));
 
         if let Some(pos) = maybe_pos {
             if self
