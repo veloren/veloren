@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dungeons now have an outer wall, preventing them from intersecting with caves or leaving holes in sides of mountains.
 - Location names are displayed in character selection dialog
 - You can no longer write messages to old groups after being kicked and not having updated your chat mode.
+- Location names are now also correct after editing and creating characters
 
 ## [0.15.0] - 2023-07-01
 
