@@ -388,7 +388,7 @@ dependencies = [
 [[package]]
 name = "auth-common"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/auth.git?rev=edd69ed70aea81be87cfaa9f2b8e2b40f51da649#edd69ed70aea81be87cfaa9f2b8e2b40f51da649"
+source = "git+https://gitlab.com/veloren/auth.git?rev=abb1a705827984e11706d7bb97fb7a459e1e6533#abb1a705827984e11706d7bb97fb7a459e1e6533"
 dependencies = [
  "rand 0.8.5",
  "serde",
@@ -398,7 +398,7 @@ dependencies = [
 [[package]]
 name = "authc"
 version = "1.0.0"
-source = "git+https://gitlab.com/veloren/auth.git?rev=edd69ed70aea81be87cfaa9f2b8e2b40f51da649#edd69ed70aea81be87cfaa9f2b8e2b40f51da649"
+source = "git+https://gitlab.com/veloren/auth.git?rev=abb1a705827984e11706d7bb97fb7a459e1e6533#abb1a705827984e11706d7bb97fb7a459e1e6533"
 dependencies = [
  "auth-common",
  "fxhash",
