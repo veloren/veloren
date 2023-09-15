@@ -162,7 +162,10 @@ fn main() -> io::Result<()> {
                 bench = Some(params);
                 // If we are trying to benchmark, don't limit the server view distance.
                 server_settings.max_view_distance = None;
-                // TODO: add setting to adjust entity spawn density
+                // TODO: add setting to adjust wildlife spawn density, note I
+                // tried but Index setup makes it a bit
+                // annoying, might require a more involved refactor to get
+                // working nicely
             },
         };
     }
