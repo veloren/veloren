@@ -82,10 +82,23 @@ pub struct TuiApp {
     command: Message,
 }
 
+#[derive(Debug, Clone, Copy, Parser)]
+pub struct BenchParams {
+    /// View distance of the loaded area (in chunks)
+    #[arg(long)]
+    pub view_distance: u32,
+    /// Duration to run after loading completes (in seconds).
+    #[arg(long)]
+    pub duration: u32,
+}
+
 #[derive(Parser)]
 pub enum ArgvCommand {
     #[command(flatten)]
     Shared(SharedCommand),
+    /// Load an area, run the server for some time, and then exit (useful for
+    /// profiling).
+    Bench(BenchParams),
 }
 
 #[derive(Parser)]

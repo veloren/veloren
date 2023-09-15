@@ -29,7 +29,7 @@ use server::{persistence::DatabaseSettings, settings::Protocol, Event, Input, Se
 use std::{
     io,
     sync::{atomic::AtomicBool, mpsc, Arc},
-    time::Duration,
+    time::{Duration, Instant},
 };
 use tracing::{info, trace};
 
@@ -117,15 +117,16 @@ fn main() -> io::Result<()> {
         sql_log_mode,
     };
 
+    let mut bench = None;
     if let Some(command) = app.command {
-        return match command {
+        match command {
             ArgvCommand::Shared(SharedCommand::Admin { command }) => {
                 let login_provider = server::login_provider::LoginProvider::new(
                     server_settings.auth_server_address,
                     runtime,
                 );
 
-                match command {
+                return match command {
                     Admin::Add { username, role } => {
                         // FIXME: Currently the UUID can get returned even if the file didn't
                         // change, so this can't be relied on as an error
@@ -139,6 +140,7 @@ fn main() -> io::Result<()> {
                             &mut editable_settings,
                             &server_data_dir,
                         );
+                        Ok(())
                     },
                     Admin::Remove { username } => {
                         // FIXME: Currently the UUID can get returned even if the file didn't
@@ -152,9 +154,18 @@ fn main() -> io::Result<()> {
                             &mut editable_settings,
                             &server_data_dir,
                         );
+                        Ok(())
                     },
-                }
-                Ok(())
+                };
+            },
+            ArgvCommand::Bench(params) => {
+                bench = Some(params);
+                // If we are trying to benchmark, don't limit the server view distance.
+                server_settings.max_view_distance = None;
+                // TODO: add setting to adjust wildlife spawn density, note I
+                // tried but Index setup makes it a bit
+                // annoying, might require a more involved refactor to get
+                // working nicely
             },
         };
     }
@@ -207,12 +218,28 @@ fn main() -> io::Result<()> {
 
     // Set up an fps clock
     let mut clock = Clock::new(Duration::from_secs_f64(1.0 / TPS as f64));
-    // Wait for a tick so we don't start with a zero dt
+
+    if let Some(bench) = bench {
+        #[cfg(feature = "worldgen")]
+        server.create_centered_persister(bench.view_distance);
+    }
+    let mut bench_exit_time = None;
 
     let mut tick_no = 0u64;
     loop {
-        tick_no += 1;
         span!(guard, "work");
+        if let Some(bench) = bench {
+            if let Some(t) = bench_exit_time {
+                if Instant::now() > t {
+                    break;
+                }
+            } else if tick_no != 0 && !server.chunks_pending() {
+                println!("Chunk loading complete");
+                bench_exit_time = Some(Instant::now() + Duration::from_secs(bench.duration.into()));
+            }
+        };
+
+        tick_no += 1;
         // Terminate the server if instructed to do so by the shutdown coordinator
         if shutdown_coordinator.check(&mut server, &settings) {
             break;

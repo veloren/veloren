@@ -1442,6 +1442,15 @@ impl Server {
             .build();
     }
 
+    /// Used by benchmarking code.
+    pub fn chunks_pending(&mut self) -> bool {
+        self.state_mut()
+            .mut_resource::<ChunkGenerator>()
+            .pending_chunks()
+            .next()
+            .is_some()
+    }
+
     /// Sets the SQL log mode at runtime
     pub fn set_sql_log_mode(&mut self, sql_log_mode: SqlLogMode) {
         // Unwrap is safe here because we only perform a variable assignment with the
