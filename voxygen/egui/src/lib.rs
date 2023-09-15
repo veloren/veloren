@@ -8,7 +8,7 @@ mod character_states;
 mod experimental_shaders;
 mod widgets;
 
-use client::{Client, Join, World, WorldExt};
+use client::{Client, Join, LendJoin, World, WorldExt};
 use common::{
     cmd::ServerChatCommand,
     comp,

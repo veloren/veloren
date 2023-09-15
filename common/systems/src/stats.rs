@@ -12,7 +12,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, Write,
+    shred::ResourceId, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, World, Write,
     WriteStorage,
 };
 
@@ -70,7 +70,7 @@ impl<'a> System<'a> for Sys {
         let dt = read_data.dt.0;
 
         // Update stats
-        for (entity, stats, mut health, pos, mut energy, inventory) in (
+        let join = (
             &read_data.entities,
             &stats,
             &mut healths,
@@ -78,8 +78,8 @@ impl<'a> System<'a> for Sys {
             &mut energies,
             read_data.inventories.maybe(),
         )
-            .join()
-        {
+            .lend_join();
+        join.for_each(|(entity, stats, mut health, pos, mut energy, inventory)| {
             let set_dead = { health.should_die() && !health.is_dead };
 
             if set_dead {
@@ -112,17 +112,17 @@ impl<'a> System<'a> for Sys {
                 // update to the client.
                 energy.update_internal_integer_maximum(new_max);
             }
-        }
+        });
 
         // Apply effects from leveling skills
-        for (mut skill_set, mut health, mut energy, body) in (
+        let join = (
             &mut skill_sets,
             &mut healths,
             &mut energies,
             &read_data.bodies,
         )
-            .join()
-        {
+            .lend_join();
+        join.for_each(|(mut skill_set, mut health, mut energy, body)| {
             if skill_set.modify_health {
                 let health_level = skill_set
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
@@ -137,12 +137,11 @@ impl<'a> System<'a> for Sys {
                 energy.update_max_energy(*body, energy_level);
                 skill_set.modify_energy = false;
             }
-        }
+        });
 
         // Update energies and poises
-        for (character_state, mut energy, mut poise) in
-            (&read_data.char_states, &mut energies, &mut poises).join()
-        {
+        let join = (&read_data.char_states, &mut energies, &mut poises).lend_join();
+        join.for_each(|(character_state, mut energy, mut poise)| {
             match character_state {
                 // Sitting accelerates recharging energy the most
                 CharacterState::Sit => {
@@ -207,15 +206,17 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::UseItem(_)
                 | CharacterState::SpriteInteract(_) => {},
             }
-        }
+        });
 
         // Decay combo
-        for (_, mut combo) in (&read_data.entities, &mut combos).join() {
-            if combo.counter() > 0
-                && read_data.time.0 - combo.last_increase() > comp::combo::COMBO_DECAY_START
-            {
-                combo.reset();
-            }
-        }
+        (&read_data.entities, &mut combos)
+            .lend_join()
+            .for_each(|(_, mut combo)| {
+                if combo.counter() > 0
+                    && read_data.time.0 - combo.last_increase() > comp::combo::COMBO_DECAY_START
+                {
+                    combo.reset();
+                }
+            });
     }
 }

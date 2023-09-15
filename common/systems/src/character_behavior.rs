@@ -1,5 +1,5 @@
 use specs::{
-    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, SystemData,
+    shred::ResourceId, Entities, LazyUpdate, LendJoin, Read, ReadExpect, ReadStorage, SystemData,
     World, WriteStorage,
 };
 
@@ -105,24 +105,7 @@ impl<'a> System<'a> for Sys {
         let mut server_events = Vec::new();
         let mut output_events = OutputEvents::new(&mut local_events, &mut server_events);
 
-        for (
-            entity,
-            uid,
-            mut char_state,
-            character_activity,
-            pos,
-            vel,
-            ori,
-            mass,
-            density,
-            energy,
-            inventory,
-            controller,
-            health,
-            body,
-            (physics, scale, stat, skill_set, active_abilities, is_rider),
-            combo,
-        ) in (
+        let join = (
             &read_data.entities,
             &read_data.uids,
             &mut character_states,
@@ -147,12 +130,30 @@ impl<'a> System<'a> for Sys {
             ),
             read_data.combos.maybe(),
         )
-            .join()
-        {
+            .lend_join();
+        join.for_each(|comps| {
+            let (
+                entity,
+                uid,
+                mut char_state,
+                character_activity,
+                pos,
+                vel,
+                ori,
+                mass,
+                density,
+                energy,
+                inventory,
+                controller,
+                health,
+                body,
+                (physics, scale, stat, skill_set, active_abilities, is_rider),
+                combo,
+            ) = comps;
             // Being dead overrides all other states
             if health.map_or(false, |h| h.is_dead) {
                 // Do nothing
-                continue;
+                return;
             }
 
             // Enter stunned state if poise damage is enough
@@ -230,7 +231,7 @@ impl<'a> System<'a> for Sys {
             if is_rider.is_some() && !join_struct.char_state.can_perform_mounted() {
                 // TODO: A better way to swap between mount inputs and rider inputs
                 *join_struct.char_state = CharacterState::Idle(idle::Data::default());
-                continue;
+                return;
             }
 
             let j = JoinData::new(
@@ -244,7 +245,7 @@ impl<'a> System<'a> for Sys {
 
             let state_update = j.character.behavior(&j, &mut output_events);
             Self::publish_state_update(&mut join_struct, state_update, &mut output_events);
-        }
+        });
 
         local_emitter.append_vec(local_events);
         server_emitter.append_vec(server_events);

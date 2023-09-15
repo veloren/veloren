@@ -6,7 +6,7 @@ use common::{
     uid::IdMaps,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteStorage};
 use tracing::error;
 use vek::*;
 

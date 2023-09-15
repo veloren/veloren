@@ -15,7 +15,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Join, LendJoin, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -264,7 +264,7 @@ impl<'a> System<'a> for Sys {
         // Set start time on new shockwaves
         // This change doesn't need to be recorded as it is not sent to the client
         shockwaves.set_event_emission(false);
-        (&mut shockwaves).join().for_each(|mut shockwave| {
+        (&mut shockwaves).lend_join().for_each(|mut shockwave| {
             if shockwave.creation.is_none() {
                 shockwave.creation = Some(time);
             }

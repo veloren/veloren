@@ -19,7 +19,7 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::thread_rng;
 use rayon::iter::ParallelIterator;
-use specs::{Join, ParJoin, Read, WriteStorage};
+use specs::{LendJoin, ParJoin, Read, WriteStorage};
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]

@@ -18,7 +18,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use itertools::Itertools;
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World,
+    shred::ResourceId, Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, SystemData, World,
     WriteStorage,
 };
 use vek::*;

@@ -24,8 +24,8 @@ use itertools::Either;
 use plugin_api::Health;
 use rayon::prelude::*;
 use specs::{
-    shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
-    WriteStorage,
+    shred::ResourceId, Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage,
+    SystemData, World, WriteStorage,
 };
 use tracing::{debug, info, trace, warn};
 

@@ -8,7 +8,7 @@ use common::{
     CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadStorage, WriteStorage};
 use vek::Vec3;
 
 const MAX_AGGRO_DIST: f32 = 200.; // If an entity further than this is aggroed at a player, the portal will still work
@@ -109,7 +109,7 @@ impl<'a> System<'a> for Sys {
                     .in_circle_aabr(position.0.xy(), PET_TELEPORT_RADIUS)
                     .filter_map(|entity| {
                         (&entities, &positions, &alignments)
-                            .join()
+                            .lend_join()
                             .get(entity, &entities)
                     })
                     .filter_map(|(nearby_entity, entity_position, alignment)| {

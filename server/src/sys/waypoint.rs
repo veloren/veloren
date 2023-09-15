@@ -5,7 +5,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{Notification, ServerGeneral};
-use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadStorage, WriteStorage};
 
 /// Cooldown time (in seconds) for "Waypoint Saved" notifications
 const NOTIFY_TIME: f64 = 10.0;

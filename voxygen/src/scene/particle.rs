@@ -26,7 +26,7 @@ use common::{
 use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
-use specs::{Join, WorldExt};
+use specs::{Join, LendJoin, WorldExt};
 use std::{
     f32::consts::{PI, TAU},
     time::Duration,

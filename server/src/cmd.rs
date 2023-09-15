@@ -59,7 +59,7 @@ use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::{thread_rng, Rng};
-use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, LendJoin, WorldExt};
 use std::{fmt::Write, ops::DerefMut, str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};

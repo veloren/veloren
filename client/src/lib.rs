@@ -10,7 +10,7 @@ pub use crate::error::Error;
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
 pub use specs::{
-    join::Join, Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, World, WorldExt,
+    Builder, DispatcherBuilder, Entity as EcsEntity, Join, LendJoin, ReadStorage, World, WorldExt,
 };
 
 use crate::addr::ConnectionArgs;
