@@ -30,12 +30,13 @@ use rand_chacha::ChaChaRng;
 use tracing::{debug, info, warn};
 use vek::*;
 
-const fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
+fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
     // NOTE: since map_size_lg's dimensions must fit in a u16, we can safely add
     // them here.
     //
     // NOTE: 48 at "default" scale of 10 × 10 chunk bits (1024 × 1024 chunks).
-    (3 << (map_size_lg.vec().x + map_size_lg.vec().y)) >> 16
+    let cnt = (3 << (map_size_lg.vec().x + map_size_lg.vec().y)) >> 16;
+    cnt.max(1) // we need at least one civ in order to generate a starting site
 }
 
 pub struct CaveInfo {
