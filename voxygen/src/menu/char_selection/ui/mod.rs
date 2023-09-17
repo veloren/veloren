@@ -1325,36 +1325,27 @@ impl Controls {
                 ];
 
                 let right_column_content = if character_id.is_none() {
-                    let site_slider = starter_slider(
-                        i18n.get_msg("char_selection-starting_site").into_owned(),
-                        30,
-                        &mut sliders.starting_site,
-                        self.possible_starting_sites.len() as u32 - 1,
-                        *start_site_idx as u32,
-                        |x| Message::StartingSite(x as usize),
-                        imgs,
-                    );
                     let map_sz = Vec2::new(500, 500);
                     let map_img = Image::new(self.map_img)
                         .height(Length::Units(map_sz.x))
                         .width(Length::Units(map_sz.y));
-                    let site_name = Text::new(
-                        self.possible_starting_sites[*start_site_idx]
-                            .name
-                            .as_deref()
-                            .unwrap_or("Unknown")
-                    )
-                    .horizontal_alignment(HorizontalAlignment::Left)
-                    .color(Color::from_rgb(131.0, 102.0, 0.0))
                     /* .stroke(Stroke {
                         color: Color::WHITE,
                         width: 1.0,
-                    }) */;
+                    }) */
                     //TODO: Add text-outline here whenever we updated iced to a version supporting
                     // this
 
                     let map = if let Some(info) = self.possible_starting_sites.get(*start_site_idx)
                     {
+                        let site_name = Text::new(
+                            self.possible_starting_sites[*start_site_idx]
+                                .name
+                                .as_deref()
+                                .unwrap_or("Unknown"),
+                        )
+                        .horizontal_alignment(HorizontalAlignment::Left)
+                        .color(Color::from_rgb(131.0, 102.0, 0.0));
                         let pos_frac = info
                             .wpos
                             .map2(self.world_sz * TerrainChunkSize::RECT_SIZE, |e, sz| {
@@ -1388,6 +1379,15 @@ impl Controls {
                     if self.possible_starting_sites.is_empty() {
                         vec![map]
                     } else {
+                        let site_slider = starter_slider(
+                            i18n.get_msg("char_selection-starting_site").into_owned(),
+                            30,
+                            &mut sliders.starting_site,
+                            self.possible_starting_sites.len() as u32 - 1,
+                            *start_site_idx as u32,
+                            |x| Message::StartingSite(x as usize),
+                            imgs,
+                        );
                         let site_buttons = Row::with_children(vec![
                             neat_button(
                                 prev_starting_site_button,
@@ -1972,9 +1972,9 @@ impl CharSelectionUi {
         let fonts = Fonts::load(i18n.fonts(), &mut ui).expect("Impossible to load fonts");
 
         #[cfg(feature = "singleplayer")]
-        let default_name = match global_state.singleplayer {
-            Some(_) => String::new(),
-            None => global_state.settings.networking.username.clone(),
+        let default_name = match global_state.singleplayer.is_running() {
+            true => String::new(),
+            false => global_state.settings.networking.username.clone(),
         };
 
         #[cfg(not(feature = "singleplayer"))]

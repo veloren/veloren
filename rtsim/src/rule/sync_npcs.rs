@@ -46,7 +46,7 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
                 // Only include sites in the list if they're not the current one and they're more populus
                 .filter(|(other_id, _, other_site2)| *other_id != site_id && other_site2.plots().len() > site2.plots().len())
                 .collect::<Vec<_>>();
-            other_sites.sort_by_key(|(_, other, _)| other.wpos.distance_squared(site.wpos) as i64);
+            other_sites.sort_by_key(|(_, other, _)| other.wpos.as_::<i64>().distance_squared(site.wpos.as_::<i64>()));
             let mut max_size = 0;
             // Remove sites that aren't in increasing order of size (Stalin sort?!)
             other_sites.retain(|(_, _, other_site2)| {

@@ -55,7 +55,11 @@ impl Site {
                             .get(*faction)
                             .map_or(false, |f| f.good_or_evil == good_or_evil)
                     })
-                    .min_by_key(|(faction_wpos, _)| faction_wpos.distance_squared(wpos))
+                    .min_by_key(|(faction_wpos, _)| {
+                        faction_wpos
+                            .as_::<i64>()
+                            .distance_squared(wpos.as_::<i64>())
+                    })
                     .map(|(_, faction)| *faction)
             }),
             population: Default::default(),

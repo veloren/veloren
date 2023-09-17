@@ -1,4 +1,4 @@
-use super::{Imgs, LoginInfo, Message, FILL_FRAC_ONE, FILL_FRAC_TWO};
+use super::{Imgs, LoginInfo, Message, Showing, FILL_FRAC_ONE, FILL_FRAC_TWO};
 use crate::ui::{
     fonts::IcedFonts as Fonts,
     ice::{
@@ -11,6 +11,7 @@ use crate::ui::{
         Element,
     },
 };
+
 use i18n::{LanguageMetadata, Localization};
 use iced::{
     button, scrollable, text_input, Align, Button, Column, Container, Length, Row, Scrollable,
@@ -22,6 +23,7 @@ const INPUT_WIDTH: u16 = 230;
 const INPUT_TEXT_SIZE: u16 = 20;
 
 /// Login screen for the main menu
+#[derive(Default)]
 pub struct Screen {
     quit_button: button::State,
     // settings_button: button::State,
@@ -36,21 +38,6 @@ pub struct Screen {
 }
 
 impl Screen {
-    pub fn new() -> Self {
-        Self {
-            servers_button: Default::default(),
-            credits_button: Default::default(),
-            // settings_button: Default::default(),
-            quit_button: Default::default(),
-            language_select_button: Default::default(),
-
-            error_okay_button: Default::default(),
-
-            banner: LoginBanner::new(),
-            language_selection: LanguageSelectBanner::new(),
-        }
-    }
-
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,
@@ -59,7 +46,7 @@ impl Screen {
         login_info: &LoginInfo,
         error: Option<&str>,
         i18n: &Localization,
-        is_selecting_language: bool,
+        show: &Showing,
         selected_language_index: Option<usize>,
         language_metadatas: &[LanguageMetadata],
         button_style: style::button::Style,
@@ -171,24 +158,25 @@ impl Screen {
             .height(Length::Units(180))
             .padding(20)
             .into()
-        } else if is_selecting_language {
-            self.language_selection.view(
-                fonts,
-                imgs,
-                i18n,
-                language_metadatas,
-                selected_language_index,
-                button_style,
-            )
         } else {
-            self.banner.view(
-                fonts,
-                imgs,
-                server_field_locked,
-                login_info,
-                i18n,
-                button_style,
-            )
+            match show {
+                Showing::Login => self.banner.view(
+                    fonts,
+                    imgs,
+                    server_field_locked,
+                    login_info,
+                    i18n,
+                    button_style,
+                ),
+                Showing::Languages => self.language_selection.view(
+                    fonts,
+                    imgs,
+                    i18n,
+                    language_metadatas,
+                    selected_language_index,
+                    button_style,
+                ),
+            }
         };
 
         let central_column = Container::new(central_content)
@@ -222,6 +210,7 @@ impl Screen {
     }
 }
 
+#[derive(Default)]
 pub struct LanguageSelectBanner {
     okay_button: button::State,
     language_buttons: Vec<button::State>,
@@ -230,14 +219,6 @@ pub struct LanguageSelectBanner {
 }
 
 impl LanguageSelectBanner {
-    fn new() -> Self {
-        Self {
-            okay_button: Default::default(),
-            language_buttons: Default::default(),
-            selection_list: Default::default(),
-        }
-    }
-
     fn view(
         &mut self,
         fonts: &Fonts,
@@ -336,6 +317,7 @@ impl LanguageSelectBanner {
     }
 }
 
+#[derive(Default)]
 pub struct LoginBanner {
     pub username: text_input::State,
     pub password: text_input::State,
@@ -349,20 +331,6 @@ pub struct LoginBanner {
 }
 
 impl LoginBanner {
-    fn new() -> Self {
-        Self {
-            username: Default::default(),
-            password: Default::default(),
-            server: Default::default(),
-
-            multiplayer_button: Default::default(),
-            #[cfg(feature = "singleplayer")]
-            singleplayer_button: Default::default(),
-
-            unlock_server_field_button: Default::default(),
-        }
-    }
-
     fn view(
         &mut self,
         fonts: &Fonts,

@@ -131,8 +131,8 @@ use {
 use crate::persistence::character_loader::CharacterScreenResponseKind;
 use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
-use world::{
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+pub use world::{
+    sim::{FileOpts, GenOpts, WorldOpts, DEFAULT_WORLD_MAP},
     IndexOwned, World,
 };
 

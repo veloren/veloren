@@ -7,7 +7,7 @@ use common::{
     },
     vol::RectVolSize,
 };
-use tracing::{debug, error, warn};
+use tracing::{debug, error, info, warn};
 // use faster::*;
 use itertools::izip;
 use noise::NoiseFn;
@@ -2640,6 +2640,13 @@ pub fn do_erosion(
 
     (0..n_steps).for_each(|i| {
         debug!("Erosion iteration #{:?}", i);
+
+        // Print out the percentage complete. Do this at most 20 times.
+        if i % std::cmp::max(n_steps / 20, 1) == 0 {
+            let pct = (i as f64 / n_steps as f64) * 100.0;
+            info!("{:.2}% complete", pct);
+        }
+
         erode(
             map_size_lg,
             &mut h,

@@ -42,6 +42,8 @@ pub mod window;
 
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::Singleplayer;
+#[cfg(feature = "singleplayer")]
+use crate::singleplayer::SingleplayerState;
 #[cfg(feature = "egui-ui")]
 use crate::ui::egui::EguiState;
 use crate::{
@@ -74,7 +76,7 @@ pub struct GlobalState {
     pub info_message: Option<String>,
     pub clock: Clock,
     #[cfg(feature = "singleplayer")]
-    pub singleplayer: Option<Singleplayer>,
+    pub singleplayer: SingleplayerState,
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
     pub i18n: LocalizationHandle,
     pub clipboard: iced_winit::Clipboard,
@@ -102,7 +104,7 @@ impl GlobalState {
     #[cfg(feature = "singleplayer")]
     pub fn paused(&self) -> bool {
         self.singleplayer
-            .as_ref()
+            .as_running()
             .map_or(false, Singleplayer::is_paused)
     }
 
@@ -110,10 +112,10 @@ impl GlobalState {
     pub fn paused(&self) -> bool { false }
 
     #[cfg(feature = "singleplayer")]
-    pub fn unpause(&self) { self.singleplayer.as_ref().map(|s| s.pause(false)); }
+    pub fn unpause(&self) { self.singleplayer.as_running().map(|s| s.pause(false)); }
 
     #[cfg(feature = "singleplayer")]
-    pub fn pause(&self) { self.singleplayer.as_ref().map(|s| s.pause(true)); }
+    pub fn pause(&self) { self.singleplayer.as_running().map(|s| s.pause(true)); }
 }
 
 // TODO: appears to be currently unused by playstates

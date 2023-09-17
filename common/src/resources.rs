@@ -75,6 +75,24 @@ impl PlayerPhysicsSetting {
     pub fn client_authoritative(&self) -> bool { !self.server_authoritative() }
 }
 
+/// Describe how the map should be generated.
+#[derive(Copy, Clone, Debug, Deserialize, Serialize, PartialEq, Eq, enum_map::Enum)]
+pub enum MapKind {
+    /// The normal square map, with oceans beyond the map edge
+    Square,
+    /// A more circular map, might have more islands
+    Circle,
+}
+
+impl std::fmt::Display for MapKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MapKind::Square => f.write_str("Square"),
+            MapKind::Circle => f.write_str("Circle"),
+        }
+    }
+}
+
 /// List of which players are using client-authoratative vs server-authoratative
 /// physics, as a stop-gap until we can use server-authoratative physics for
 /// everyone

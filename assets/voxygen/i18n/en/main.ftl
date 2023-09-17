@@ -32,6 +32,23 @@ main-login_process =
     You can create an account over at
     
     https://veloren.net/account/.
+main-singleplayer-new = New
+main-singleplayer-delete = Delete
+main-singleplayer-regenerate = Regenerate
+main-singleplayer-create_custom = Create Custom
+main-singleplayer-invalid_name = Error: Invalid name
+main-singleplayer-seed = Seed
+main-singleplayer-random_seed = Random
+main-singleplayer-size_lg = Logarithmic size
+main-singleplayer-map_large_warning = Warning: Large worlds will take a long time to start for the first time
+main-singleplayer-world_name = World name
+main-singleplayer-map_scale = Vertical scaling
+main-singleplayer-map_erosion_quality = Erosion quality
+main-singleplayer-map_shape = Shape
+main-singleplayer-play = Play
+main-singleplayer-generate_and_play = Generate & Play
+menu-singleplayer-confirm_delete = Are you sure you want to delete "{ $world_name }"
+menu-singleplayer-confirm_regenerate = Are you sure you want to regenerate "{ $world_name }"
 main-login-server_not_found = Server not found
 main-login-authentication_error = Auth error on server
 main-login-internal_error = Internal error on client (most likely, player character was deleted)

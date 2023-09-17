@@ -4,7 +4,7 @@ mod ui;
 
 use super::char_selection::CharSelectionState;
 #[cfg(feature = "singleplayer")]
-use crate::singleplayer::Singleplayer;
+use crate::singleplayer::SingleplayerState;
 use crate::{
     render::{Drawer, GlobalsBindGroup},
     settings::Settings,
@@ -73,7 +73,7 @@ impl PlayState for MainMenuState {
         // Reset singleplayer server if it was running already
         #[cfg(feature = "singleplayer")]
         {
-            global_state.singleplayer = None;
+            global_state.singleplayer = SingleplayerState::None;
         }
 
         // Updated localization in case the selected language was changed
@@ -97,7 +97,7 @@ impl PlayState for MainMenuState {
         // Poll server creation
         #[cfg(feature = "singleplayer")]
         {
-            if let Some(singleplayer) = &global_state.singleplayer {
+            if let Some(singleplayer) = global_state.singleplayer.as_running() {
                 match singleplayer.receiver.try_recv() {
                     Ok(Ok(())) => {
                         // Attempt login after the server is finished initializing
@@ -113,7 +113,7 @@ impl PlayState for MainMenuState {
                     },
                     Ok(Err(e)) => {
                         error!(?e, "Could not start server");
-                        global_state.singleplayer = None;
+                        global_state.singleplayer = SingleplayerState::None;
                         self.init = InitState::None;
                         self.main_menu_ui.cancel_connection();
                         let server_err = match e {
@@ -332,7 +332,7 @@ impl PlayState for MainMenuState {
                     // blocking TODO fix when the network rework happens
                     #[cfg(feature = "singleplayer")]
                     {
-                        global_state.singleplayer = None;
+                        global_state.singleplayer = SingleplayerState::None;
                     }
                     self.init = InitState::None;
                     self.main_menu_ui.cancel_connection();
@@ -351,9 +351,32 @@ impl PlayState for MainMenuState {
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
-                    let singleplayer = Singleplayer::new(&global_state.tokio_runtime);
-
-                    global_state.singleplayer = Some(singleplayer);
+                    global_state.singleplayer.run(&global_state.tokio_runtime);
+                },
+                #[cfg(feature = "singleplayer")]
+                MainMenuEvent::InitSingleplayer => {
+                    global_state.singleplayer = SingleplayerState::init();
+                },
+                #[cfg(feature = "singleplayer")]
+                MainMenuEvent::SinglePlayerChange(change) => {
+                    if let SingleplayerState::Init(ref mut init) = global_state.singleplayer {
+                        match change {
+                            ui::WorldsChange::SetActive(world) => init.current = world,
+                            ui::WorldsChange::Delete(world) => init.remove(world),
+                            ui::WorldsChange::Regenerate(world) => init.delete_map_file(world),
+                            ui::WorldsChange::AddNew => init.new_world(),
+                            ui::WorldsChange::CurrentWorldChange(change) => {
+                                if let Some(world) = init
+                                    .current
+                                    .map(|i| &mut init.worlds[i])
+                                    .filter(|map| !map.is_generated)
+                                {
+                                    change.apply(world);
+                                    init.save_current_meta();
+                                }
+                            },
+                        }
+                    }
                 },
                 MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 // Note: Keeping in case we re-add the disclaimer

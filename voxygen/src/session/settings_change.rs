@@ -742,7 +742,7 @@ impl SettingsChange {
                         global_state.discord = Discord::start(&global_state.tokio_runtime);
 
                         #[cfg(feature = "singleplayer")]
-                        let singleplayer = global_state.singleplayer.is_some();
+                        let singleplayer = global_state.singleplayer.is_running();
                         #[cfg(not(feature = "singleplayer"))]
                         let singleplayer = false;
 
