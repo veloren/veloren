@@ -19,6 +19,8 @@ static GLOBAL: common_base::tracy_client::ProfiledAllocator<std::alloc::System> 
     common_base::tracy_client::ProfiledAllocator::new(std::alloc::System, 128);
 
 use i18n::{self, LocalizationHandle};
+#[cfg(feature = "singleplayer")]
+use veloren_voxygen::singleplayer::SingleplayerState;
 use veloren_voxygen::{
     audio::AudioFrontend,
     panic_handler,
@@ -223,7 +225,7 @@ fn main() {
         settings,
         info_message: None,
         #[cfg(feature = "singleplayer")]
-        singleplayer: None,
+        singleplayer: SingleplayerState::None,
         i18n,
         clipboard,
         clear_shadows_next_frame: false,

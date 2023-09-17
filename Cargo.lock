@@ -7231,6 +7231,7 @@ dependencies = [
  "egui_wgpu_backend",
  "egui_winit_platform",
  "enum-iterator 1.4.1",
+ "enum-map",
  "etagere",
  "euc",
  "gilrs",

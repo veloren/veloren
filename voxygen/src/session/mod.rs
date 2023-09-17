@@ -500,7 +500,7 @@ impl PlayState for SessionState {
         {
             // Update the Discord activity on client initialization
             #[cfg(feature = "singleplayer")]
-            let singleplayer = global_state.singleplayer.is_some();
+            let singleplayer = global_state.singleplayer.is_running();
             #[cfg(not(feature = "singleplayer"))]
             let singleplayer = false;
 

@@ -43,6 +43,7 @@ use common::{
     calendar::Calendar,
     grid::Grid,
     lottery::Lottery,
+    resources::MapKind,
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{
@@ -71,7 +72,7 @@ use std::{
     sync::Arc,
 };
 use strum::IntoEnumIterator;
-use tracing::{debug, warn};
+use tracing::{debug, info, warn};
 use vek::*;
 
 /// Default base two logarithm of the world size, in chunks, per dimension.
@@ -138,22 +139,22 @@ pub(crate) struct GenCtx {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default)]
-pub struct SizeOpts {
-    x_lg: u32,
-    y_lg: u32,
-    scale: f64,
+pub struct GenOpts {
+    pub x_lg: u32,
+    pub y_lg: u32,
+    pub scale: f64,
+    pub map_kind: MapKind,
+    pub erosion_quality: f32,
 }
 
-impl SizeOpts {
-    pub fn new(x_lg: u32, y_lg: u32, scale: f64) -> Self { Self { x_lg, y_lg, scale } }
-}
-
-impl Default for SizeOpts {
+impl Default for GenOpts {
     fn default() -> Self {
         Self {
             x_lg: 10,
             y_lg: 10,
             scale: 2.0,
+            map_kind: MapKind::Square,
+            erosion_quality: 1.0,
         }
     }
 }
@@ -162,17 +163,17 @@ impl Default for SizeOpts {
 pub enum FileOpts {
     /// If set, generate the world map and do not try to save to or load from
     /// file (default).
-    Generate(SizeOpts),
+    Generate(GenOpts),
     /// If set, generate the world map and save the world file (path is created
     /// the same way screenshot paths are).
-    Save(SizeOpts),
+    Save(PathBuf, GenOpts),
     /// Combination of Save and Load.
     /// Load map if exists or generate the world map and save the
     /// world file.
     LoadOrGenerate {
         name: String,
         #[serde(default)]
-        opts: SizeOpts,
+        opts: GenOpts,
         #[serde(default)]
         overwrite: bool,
     },
@@ -192,12 +193,14 @@ pub enum FileOpts {
 }
 
 impl Default for FileOpts {
-    fn default() -> Self { Self::Generate(SizeOpts::default()) }
+    fn default() -> Self { Self::Generate(GenOpts::default()) }
 }
 
 impl FileOpts {
-    fn load_content(&self) -> (Option<ModernMap>, MapSizeLg, f64) {
+    fn load_content(&self) -> (Option<ModernMap>, MapSizeLg, GenOpts) {
         let parsed_world_file = self.try_load_map();
+
+        let mut gen_opts = self.gen_opts().unwrap_or_default();
 
         let map_size_lg = if let Some(map) = &parsed_world_file {
             MapSizeLg::new(map.map_size_lg)
@@ -214,21 +217,26 @@ impl FileOpts {
         //
         // FIXME: This is a hack!  At some point we will have a more principled way of
         // dealing with this.
-        let default_continent_scale_hack = 2.0/*4.0*/;
-        let continent_scale_hack = if let Some(map) = &parsed_world_file {
-            map.continent_scale_hack
-        } else {
-            self.continent_scale_hack()
-                .unwrap_or(default_continent_scale_hack)
+        if let Some(map) = &parsed_world_file {
+            gen_opts.scale = map.continent_scale_hack;
         };
 
-        (parsed_world_file, map_size_lg, continent_scale_hack)
+        (parsed_world_file, map_size_lg, gen_opts)
+    }
+
+    fn gen_opts(&self) -> Option<GenOpts> {
+        match self {
+            Self::Generate(opts) | Self::Save(_, opts) | Self::LoadOrGenerate { opts, .. } => {
+                Some(opts.clone())
+            },
+            _ => None,
+        }
     }
 
     // TODO: this should return Option so that caller can choose fallback
     fn map_size(&self) -> MapSizeLg {
         match self {
-            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate { opts, .. } => {
+            Self::Generate(opts) | Self::Save(_, opts) | Self::LoadOrGenerate { opts, .. } => {
                 MapSizeLg::new(Vec2 {
                     x: opts.x_lg,
                     y: opts.y_lg,
@@ -239,15 +247,6 @@ impl FileOpts {
                 })
             },
             _ => DEFAULT_WORLD_CHUNKS_LG,
-        }
-    }
-
-    fn continent_scale_hack(&self) -> Option<f64> {
-        match self {
-            Self::Generate(opts) | Self::Save(opts) | Self::LoadOrGenerate { opts, .. } => {
-                Some(opts.scale)
-            },
-            _ => None,
         }
     }
 
@@ -357,7 +356,9 @@ impl FileOpts {
                 // NOTE: we intentionally use pattern-matching here to get
                 // options, so that when gen opts get another field, compiler
                 // will force you to update following logic
-                let SizeOpts { x_lg, y_lg, scale } = opts;
+                let GenOpts {
+                    x_lg, y_lg, scale, ..
+                } = opts;
                 let map = match map {
                     WorldFile::Veloren0_7_0(map) => map,
                     WorldFile::Veloren0_5_0(_) => {
@@ -403,25 +404,16 @@ impl FileOpts {
     }
 
     fn map_path(&self) -> Option<PathBuf> {
-        const MAP_DIR: &str = "./maps";
         // TODO: Work out a nice bincode file extension.
-        let file_name = match self {
-            Self::Save { .. } => {
-                use std::time::SystemTime;
-
-                Some(format!(
-                    "map_{}.bin",
-                    SystemTime::now()
-                        .duration_since(SystemTime::UNIX_EPOCH)
-                        .map(|d| d.as_millis())
-                        .unwrap_or(0)
-                ))
+        match self {
+            Self::Save(path, _) => Some(PathBuf::from(&path)),
+            Self::LoadOrGenerate { name, .. } => {
+                const MAP_DIR: &str = "./maps";
+                let file_name = format!("{}.bin", name);
+                Some(std::path::Path::new(MAP_DIR).join(file_name))
             },
-            Self::LoadOrGenerate { name, .. } => Some(format!("{}.bin", name)),
             _ => None,
-        };
-
-        file_name.map(|name| std::path::Path::new(MAP_DIR).join(name))
+        }
     }
 
     fn save(&self, map: &WorldFile) {
@@ -451,6 +443,9 @@ impl FileOpts {
         let writer = BufWriter::new(file);
         if let Err(e) = bincode::serialize_into(writer, map) {
             warn!(?e, "Couldn't write map");
+        }
+        if let Ok(p) = std::fs::canonicalize(path) {
+            info!("Map saved at {}", p.to_string_lossy());
         }
     }
 }
@@ -674,19 +669,21 @@ impl WorldSim {
         let world_file = opts.world_file;
 
         // Parse out the contents of various map formats into the values we need.
-        let (parsed_world_file, map_size_lg, continent_scale_hack) = world_file.load_content();
+        let (parsed_world_file, map_size_lg, gen_opts) = world_file.load_content();
         // Currently only used with LoadOrGenerate to know if we need to
         // overwrite world file
         let fresh = parsed_world_file.is_none();
 
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-        let continent_scale = continent_scale_hack
+        let continent_scale = gen_opts.scale
             * 5_000.0f64
                 .div(32.0)
                 .mul(TerrainChunkSize::RECT_SIZE.x as f64);
         let rock_lacunarity = 2.0;
         let uplift_scale = 128.0;
         let uplift_turb_scale = uplift_scale / 4.0;
+
+        info!("Starting world generation");
 
         // NOTE: Changing order will significantly change WorldGen, so try not to!
         let gen_ctx = GenCtx {
@@ -759,7 +756,7 @@ impl WorldSim {
         // Suppose the old world has grid spacing Δx' = Δy', new Δx = Δy.
         // We define grid_scale such that Δx = height_scale * Δx' ⇒
         //  grid_scale = Δx / Δx'.
-        let grid_scale = 1.0f64 / (4.0 / continent_scale_hack)/*1.0*/;
+        let grid_scale = 1.0f64 / (4.0 / gen_opts.scale)/*1.0*/;
 
         // Now, suppose we want to generate a world with "similar" topography, defined
         // in this case as having roughly equal slopes at steady state, with the
@@ -801,7 +798,7 @@ impl WorldSim {
         // grid (when a chunk isn't available).
         let n_approx = 1.0;
         let max_erosion_per_delta_t = 64.0 * delta_t_scale(n_approx);
-        let n_steps = 100;
+        let n_steps = (100.0 * gen_opts.erosion_quality) as usize;
         let n_small_steps = 0;
         let n_post_load_steps = 0;
 
@@ -821,18 +818,44 @@ impl WorldSim {
         let ((alt_base, _), (chaos, _)) = threadpool.join(
             || {
                 uniform_noise(map_size_lg, |_, wposf| {
-                    // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied
-                    // value is from -0.35 * (CONFIG.mountain_scale * 1.05) to
-                    // 0.35 * (CONFIG.mountain_scale * 0.95), but value here is from -0.3675 to
-                    // 0.3325).
-                    Some(
-                        (gen_ctx
-                            .alt_nz
-                            .get((wposf.div(10_000.0)).into_array())
-                            .clamp(-1.0, 1.0))
-                        .sub(0.05)
-                        .mul(0.35),
-                    )
+                    match gen_opts.map_kind {
+                        MapKind::Square => {
+                            // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale
+                            // (multiplied value is from -0.35 *
+                            // (CONFIG.mountain_scale * 1.05) to
+                            // 0.35 * (CONFIG.mountain_scale * 0.95), but value here is from -0.3675
+                            // to 0.3325).
+                            Some(
+                                (gen_ctx
+                                    .alt_nz
+                                    .get((wposf.div(10_000.0)).into_array())
+                                    .min(1.0)
+                                    .max(-1.0))
+                                .sub(0.05)
+                                .mul(0.35),
+                            )
+                        },
+                        MapKind::Circle => {
+                            let world_sizef = map_size_lg.chunks().map(|e| e as f64)
+                                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+                            Some(
+                                (gen_ctx
+                                    .alt_nz
+                                    .get((wposf.div(5_000.0 * gen_opts.scale)).into_array())
+                                    .min(1.0)
+                                    .max(-1.0))
+                                .add(
+                                    0.2 - ((wposf / world_sizef) * 2.0 - 1.0)
+                                        .magnitude_squared()
+                                        .powf(0.75)
+                                        .clamped(0.0, 1.0)
+                                        .powf(1.0)
+                                        * 0.6,
+                                )
+                                .mul(0.5),
+                            )
+                        },
+                    }
                 })
             },
             || {
@@ -1285,7 +1308,7 @@ impl WorldSim {
         // Save map, if necessary.
         // NOTE: We wll always save a map with latest version.
         let map = WorldFile::new(ModernMap {
-            continent_scale_hack,
+            continent_scale_hack: gen_opts.scale,
             map_size_lg: map_size_lg.vec(),
             alt,
             basement,
@@ -1415,7 +1438,7 @@ impl WorldSim {
 
         let rivers = get_rivers(
             map_size_lg,
-            continent_scale_hack,
+            gen_opts.scale,
             &water_alt_pos,
             &water_alt,
             &dh,

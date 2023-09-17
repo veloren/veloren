@@ -363,6 +363,7 @@ const MIGRATION_UPGRADE_GUARANTEE: &str = "Any valid file of an old verison shou
                                            successfully migrate to the latest version.";
 
 /// Combines all the editable settings into one struct that is stored in the ecs
+#[derive(Clone)]
 pub struct EditableSettings {
     pub whitelist: Whitelist,
     pub banlist: Banlist,
