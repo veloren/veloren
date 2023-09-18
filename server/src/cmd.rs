@@ -2100,16 +2100,16 @@ fn handle_build(
     {
         can_build.enabled ^= true;
 
-        let msg = Content::localized_with_args("command-set-build-status", [
-            ("mode", can_build.enabled.to_string()),
-            (
-                "persistent",
-                server
-                    .settings()
-                    .experimental_terrain_persistence
-                    .to_string(),
-            ),
-        ]);
+        let msg = Content::localized(
+            match (
+                can_build.enabled,
+                server.settings().experimental_terrain_persistence,
+            ) {
+                (false, _) => "command-set-build-mode-off",
+                (true, false) => "command-set-build-mode-on-unpersistent",
+                (true, true) => "command-set-build-mode-on-persistent",
+            },
+        );
 
         let chat_msg = ServerGeneral::server_msg(ChatType::CommandInfo, msg);
         if client != target {
@@ -2642,9 +2642,7 @@ fn handle_lantern(
                     client,
                     ServerGeneral::server_msg(
                         ChatType::CommandInfo,
-                        Content::localized_with_args("command-lantern-adjusted", [(
-                            "color", "true",
-                        )]),
+                        Content::localized("command-lantern-adjusted-strength-color"),
                     ),
                 )
             } else {
@@ -2652,9 +2650,7 @@ fn handle_lantern(
                     client,
                     ServerGeneral::server_msg(
                         ChatType::CommandInfo,
-                        Content::localized_with_args("command-lantern-adjusted", [(
-                            "color", "false",
-                        )]),
+                        Content::localized("command-lantern-adjusted-strength"),
                     ),
                 )
             }
@@ -2681,19 +2677,13 @@ fn handle_explosion(
 
     if power > MAX_POWER {
         return Err(Content::localized_with_args(
-            "command-explosion-power-invalid",
-            [
-                ("power", MAX_POWER.to_string()),
-                ("more", "false".to_string()),
-            ],
+            "command-explosion-power-too-high",
+            [("power", MAX_POWER.to_string())],
         ));
-    } else if power <= 0.0 {
+    } else if power <= MIN_POWER {
         return Err(Content::localized_with_args(
-            "command-explosion-power-invalid",
-            [
-                ("power", MIN_POWER.to_string()),
-                ("more", "true".to_string()),
-            ],
+            "command-explosion-power-too-low",
+            [("power", MIN_POWER.to_string())],
         ));
     }
 

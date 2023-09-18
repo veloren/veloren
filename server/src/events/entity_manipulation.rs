@@ -1667,7 +1667,7 @@ pub fn handle_teleport_to_position(server: &mut Server, entity: EcsEntity, posit
         .state
         .position_mut(entity, true, |pos| pos.0 = position)
     {
-        warn!("Failed to teleport entity: {error:?}");
+        warn!(?error, "Failed to teleport entity");
     }
 }
 

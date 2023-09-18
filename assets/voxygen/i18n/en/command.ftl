@@ -10,7 +10,10 @@ command-uuid-username-unavailable = Unable to determine username for UUID  { $uu
 command-no-sudo = It's rude to impersonate people
 command-entity-dead = Entity { $entity } is dead!
 command-error-while-evaluating-request = Encountered an error while validating the request: { $error }
-command-give-inventory-full = Player inventory full. Gave { $given } of { $total } items.
+command-give-inventory-full = Player inventory full. Gave { $given ->
+  [1] only one
+  *[other] { $given }
+} of { $total } items.
 command-invalid-item = Invalid item: { $item }
 command-invalid-block-kind = Invalid block kind { $kind }
 command-nof-entities-at-least = Number of entities should be at least 1
@@ -39,27 +42,16 @@ command-revoke-build = Permission to build in { $area } revoked
 command-revoke-build-all = Your build permissions have been revoked.
 command-revoked-all-build = All build permissions revoked
 command-no-buid-perms = You do not have permission to build.
-command-set-build-status = Toggled build mode { $mode -> 
-	*[true] on
-	[false] off
-}. { $mode ->
-	*[true] { $persistent ->
-		[true]  Experimental terrain persistence is enabled. The server will attempt to persist
-            changes, but this is not guaranteed.
-		*[false]  Changes will not be persisted when a chunk unloads.
-	}
-}
+command-set-build-mode-off = Toggled build mode off.
+command-set-build-mode-on-persistent = Toggled build mode on. Experimental terrain persistence is enabled. The server will attempt to persist changes, but this is not guaranteed 
+command-set-build-mode-on-unpersistent = Toggled build mode on. Changes will not be persisted when a chunk unloads.
 command-invalid-alignment = Invalid alignment: { $alignment }
 command-kit-not-enough-slots = Inventory doesn't have enough slots
 command-lantern-unequiped = Please equip a lantern first
-command-lantern-adjusted = You adjusted { $color ->
-	*[false] flame strength.
-	[true] flame strength and color.
-}
-command-explosion-power-invalid = Explosion power { $more ->
-	*[true] must
-	[false] mustn't
-} be more than { $power }
+command-lantern-adjusted-strength = You adjusted flame strength.
+command-lantern-adjusted-strength-color = You adjusted flame strength and color.
+command-explosion-power-too-high = Explosion power mustn't be more than { $power }
+command-explosion-power-too-low = Explosion power must be more than { $power }
 # Note: Do not translate "confirm" here
 command-disconnectall-confirm = Please run the command again with the second argument of "confirm" to confirm that
      you really want to disconnect all players from the server
