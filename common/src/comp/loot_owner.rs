@@ -15,9 +15,6 @@ pub struct LootOwner {
     #[serde(skip, default = "Instant::now")]
     expiry: Instant,
     owner: LootOwnerKind,
-    /// This field stands as a wish for NPC's to not pick the loot up, they will
-    /// however be able to decide whether they want to follow your wishes or not
-    /// (players will be able to picke the item up)
     soft: bool,
 }
 
@@ -48,6 +45,9 @@ impl LootOwner {
 
     pub fn default_instant() -> Instant { Instant::now() }
 
+    /// This field stands as a wish for NPC's to not pick the loot up, they will
+    /// however be able to decide whether they want to follow your wishes or not
+    /// (players will be able to pick the item up)
     pub fn is_soft(&self) -> bool { self.soft }
 
     pub fn can_pickup(
