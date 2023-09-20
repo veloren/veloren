@@ -3475,7 +3475,10 @@ fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skillset::SkillGroupKin
         "staff" => Ok(SkillGroupKind::Weapon(ToolKind::Staff)),
         "sceptre" => Ok(SkillGroupKind::Weapon(ToolKind::Sceptre)),
         "mining" => Ok(SkillGroupKind::Weapon(ToolKind::Pick)),
-        _ => Err(Content::localized("command-invalid-skill-group")),
+        _ => Err(Content::localized_with_args(
+            "command-invalid-skill-group",
+            [("group", skill_tree)],
+        )),
     }
 }
 

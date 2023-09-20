@@ -2,20 +2,20 @@ command-no-permission = You don't have permisison to use '/{ $command_name }'
 command-position-unavailable = Cannot get position for { $target }
 command-player-role-unavailable = Cannot get administrator roles for { $target }
 command-uid-unavailable = Cannot get uid for { $target }
-command-area-not-found = Could not find area named { $area }
-command-player-not-found = Player { $player } not found!
-command-player-uuid-not-found = Player with UUID { $uuid } not found!
+command-area-not-found = Could not find area named '{ $area }'
+command-player-not-found = Player '{ $player }' not found!
+command-player-uuid-not-found = Player with UUID '{ $uuid }' not found!
 command-username-uuid-unavailable = Unable to determine UUID for username { $username }
 command-uuid-username-unavailable = Unable to determine username for UUID  { $uuid }
 command-no-sudo = It's rude to impersonate people
-command-entity-dead = Entity { $entity } is dead!
+command-entity-dead = Entity '{ $entity }' is dead!
 command-error-while-evaluating-request = Encountered an error while validating the request: { $error }
 command-give-inventory-full = Player inventory full. Gave { $given ->
   [1] only one
   *[other] { $given }
 } of { $total } items.
 command-invalid-item = Invalid item: { $item }
-command-invalid-block-kind = Invalid block kind { $kind }
+command-invalid-block-kind = Invalid block kind: { $kind }
 command-nof-entities-at-least = Number of entities should be at least 1
 command-nof-entities-less-than = Number of entities should be less than 50
 command-entity-load-failed = Failed to load entity config: { $config }
@@ -35,10 +35,10 @@ command-spawned-campfire = Spawned a campfire
 command-spawned-safezone = Spawned a safezone
 command-volume-size-incorrect = Size has to be between 1 and 127.
 command-volume-created = Created a volume
-command-permit-build-given = You are now permitted to build in { $area }
-command-permit-build-granted = Permission to build in { $area } granted
-command-revoke-build-recv = Your permission to build in { $area } has been revoked
-command-revoke-build = Permission to build in { $area } revoked
+command-permit-build-given = You are now permitted to build in '{ $area }'
+command-permit-build-granted = Permission to build in '{ $area }' granted
+command-revoke-build-recv = Your permission to build in '{ $area }' has been revoked
+command-revoke-build = Permission to build in '{ $area }' revoked
 command-revoke-build-all = Your build permissions have been revoked.
 command-revoked-all-build = All build permissions revoked
 command-no-buid-perms = You do not have permission to build.
@@ -54,7 +54,7 @@ command-explosion-power-too-high = Explosion power mustn't be more than { $power
 command-explosion-power-too-low = Explosion power must be more than { $power }
 # Note: Do not translate "confirm" here
 command-disconnectall-confirm = Please run the command again with the second argument of "confirm" to confirm that
-     you really want to disconnect all players from the server
+  you really want to disconnect all players from the server
 command-invalid-skill-group = { $group } is not a skill group!
 command-unknown = Unknown command
 command-disabled-by-settings = Command disabled in server settings
@@ -68,7 +68,7 @@ command-skillpreset-load-error = Error while loading presets
 command-skillpreset-broken = Skill preset is broken
 command-skillpreset-missing = Preset does not exist: { $preset }
 command-location-invalid = Location name '{ $location }' is invalid. Names may only contain lowercase ASCII and
-     underscores
+  underscores
 command-location-duplicate = Location '{ $location }' already exists, consider deleting it first
 command-location-not-found = Location '{ $location }' does not exist
 command-location-created = Created location '{ $location }'
@@ -80,7 +80,7 @@ command-weather-valid-values = Valid values are 'clear', 'rain', 'wind', 'storm'
 command-scale-set = Set scale to { $scale }
 command-repaired-items = Repaired all equipped items
 command-message-group-missing = You are using group chat but do not belong to a group. Use /world or
-     /region to change chat.
+  /region to change chat.
 command-tell-request = { $sender } wants to talk to you.
 
 # Unreachable/untestable but added for consistency
