@@ -3850,7 +3850,7 @@ fn handle_battlemode(
             if elapsed < COOLDOWN {
                 return Err(Content::localized_with_args(
                     "command-battlemode-cooldown",
-                    [("cooldown", format!("{:0.}", COOLDOWN - elapsed))],
+                    [("cooldown", format!("{:.0}", COOLDOWN - elapsed))],
                 ));
             }
         }
