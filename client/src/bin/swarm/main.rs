@@ -1,3 +1,4 @@
+use clap::Parser;
 use common::{
     comp,
     terrain::{CoordinateConversions, TerrainChunkSize},
@@ -12,29 +13,30 @@ use std::{
     thread,
     time::{Duration, SystemTime},
 };
-use structopt::StructOpt;
 use tokio::runtime::Runtime;
 use vek::*;
 use veloren_client::{addr::ConnectionArgs, Client};
 
 const CHUNK_SIZE: f32 = TerrainChunkSize::RECT_SIZE.x as f32;
 
-#[derive(Clone, Copy, StructOpt)]
+#[derive(Clone, Copy, Parser)]
 struct Opt {
     /// Number of clients to spin up
+    #[arg(value_name = "CLIENT_COUNT")]
     size: u32,
     /// View distance of each client
+    #[arg(value_name = "VIEW_DISTANCE")]
     vd: u32,
     /// Distribution of the clients, if not clustered they are dispersed
-    #[structopt(short, long)]
+    #[arg(short, long)]
     clustered: bool,
     /// Whether the clients should move
-    #[structopt(short, long)]
+    #[arg(short, long)]
     movement: bool,
 }
 
 fn main() {
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
     // Start logging
     let _guards = common_frontend::init_stdout(None);
     // Run clients and stuff
