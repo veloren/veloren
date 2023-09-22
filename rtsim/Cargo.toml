@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
-ron = { workspace = true }
 serde = { workspace = true }
 hashbrown = { workspace = true }
 enum-map = { workspace = true, features = ["serde"] }

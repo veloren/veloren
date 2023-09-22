@@ -22,11 +22,6 @@ vek = { workspace = true }
 ordered-float = { workspace = true }
 itertools = { workspace = true }
 
-# Data structures
-hashbrown = { workspace = true }
-indexmap = "1.3.0"
-slab = { workspace = true }
-
 # ECS
 specs = { workspace = true, features = ["serde", "storage-event-control", "derive"] }
 

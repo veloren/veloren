@@ -1800,16 +1800,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4eeac5c5edb79e4e39fe8439ef35207780a11f69c52cbe424ce3dfad4cb78de6"
 dependencies = [
- "enum-iterator-derive 0.7.0",
-]
-
-[[package]]
-name = "enum-iterator"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7add3873b5dd076766ee79c8e406ad1a472c385476b9e38849f8eec24f1be689"
-dependencies = [
- "enum-iterator-derive 1.2.1",
+ "enum-iterator-derive",
 ]
 
 [[package]]
@@ -1821,17 +1812,6 @@ dependencies = [
  "proc-macro2 1.0.66",
  "quote 1.0.33",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "enum-iterator-derive"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eecf8589574ce9b895052fa12d69af7a233f99e6107f5cb8dd1044f2a17bfdcb"
-dependencies = [
- "proc-macro2 1.0.66",
- "quote 1.0.33",
- "syn 2.0.29",
 ]
 
 [[package]]
@@ -1933,16 +1913,6 @@ checksum = "64f18991e7bf11e7ffee451b5318b5c1a73c52d0d0ada6e5a3017c8c1ced6a21"
 dependencies = [
  "libc",
  "str-buf",
-]
-
-[[package]]
-name = "etagere"
-version = "0.2.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcf22f748754352918e082e0039335ee92454a5d62bcaf69b5e8daf5907d9644"
-dependencies = [
- "euclid",
- "svg_fmt",
 ]
 
 [[package]]
@@ -4815,16 +4785,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rand_distr"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32cb0b9bc82b0a0876c2dd994a7e7a2683d3e7390ca40e6886785ef0c7e3ee31"
-dependencies = [
- "num-traits",
- "rand 0.8.5",
-]
-
-[[package]]
 name = "rand_hc"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6802,14 +6762,12 @@ dependencies = [
  "rustyline",
  "serde",
  "specs",
- "termcolor",
  "tokio",
  "tracing",
  "vek 0.15.8",
  "veloren-client-i18n",
  "veloren-common",
  "veloren-common-base",
- "veloren-common-ecs",
  "veloren-common-frontend",
  "veloren-common-net",
  "veloren-common-state",
@@ -6829,7 +6787,6 @@ dependencies = [
  "fluent-syntax",
  "hashbrown 0.13.2",
  "intl-memoizer",
- "ron 0.8.1",
  "serde",
  "tracing",
  "unic-langid",
@@ -6843,12 +6800,10 @@ version = "0.10.0"
 dependencies = [
  "approx 0.5.1",
  "bitflags 2.4.0",
- "cfg-if 1.0.0",
  "chrono",
  "chrono-tz",
  "clap",
  "criterion",
- "crossbeam-channel",
  "crossbeam-utils 0.8.16",
  "csv",
  "dot_vox",
@@ -6936,7 +6891,6 @@ dependencies = [
  "termcolor",
  "tracing",
  "tracing-appender",
- "tracing-log",
  "tracing-subscriber",
  "tracing-tracy",
  "veloren-common-base",
@@ -6988,13 +6942,10 @@ dependencies = [
 name = "veloren-common-systems"
 version = "0.10.0"
 dependencies = [
- "hashbrown 0.13.2",
- "indexmap 1.9.3",
  "itertools",
  "ordered-float 3.9.1",
  "rand 0.8.5",
  "rayon",
- "slab",
  "specs",
  "tracing",
  "vek 0.15.8",
@@ -7012,12 +6963,10 @@ dependencies = [
  "async-channel",
  "async-trait",
  "bincode",
- "bitflags 2.4.0",
  "bytes",
  "clap",
  "criterion",
  "crossbeam-channel",
- "futures-core",
  "futures-util",
  "hashbrown 0.13.2",
  "lazy_static",
@@ -7058,7 +7007,6 @@ dependencies = [
 name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
- "bincode",
  "serde",
  "veloren-common",
 ]
@@ -7096,7 +7044,6 @@ dependencies = [
  "rand_chacha 0.3.1",
  "rayon",
  "rmp-serde",
- "ron 0.8.1",
  "serde",
  "slotmap 1.0.6",
  "tracing",
@@ -7118,7 +7065,6 @@ dependencies = [
  "crossbeam-channel",
  "drop_guard",
  "enum-map",
- "enumset",
  "futures-util",
  "hashbrown 0.13.2",
  "humantime",
@@ -7132,7 +7078,6 @@ dependencies = [
  "prometheus-hyper",
  "quinn",
  "rand 0.8.5",
- "rand_distr",
  "rayon",
  "refinery",
  "ron 0.8.1",
@@ -7142,7 +7087,6 @@ dependencies = [
  "schnellru",
  "serde",
  "serde_json",
- "slab",
  "specs",
  "strum",
  "tokio",
@@ -7169,13 +7113,9 @@ dependencies = [
  "lazy_static",
  "rand 0.8.5",
  "specs",
- "tracing",
  "vek 0.15.8",
  "veloren-common",
- "veloren-common-base",
  "veloren-common-dynlib",
- "veloren-common-ecs",
- "veloren-common-net",
  "veloren-rtsim",
 ]
 
@@ -7193,7 +7133,6 @@ dependencies = [
  "serde",
  "shell-words",
  "signal-hook 0.3.17",
- "strum",
  "tokio",
  "tracing",
  "tui",
@@ -7212,7 +7151,6 @@ version = "0.15.0"
 dependencies = [
  "assets_manager",
  "backtrace",
- "bincode",
  "bytemuck",
  "chrono",
  "chumsky",
@@ -7230,9 +7168,7 @@ dependencies = [
  "egui",
  "egui_wgpu_backend",
  "egui_winit_platform",
- "enum-iterator 1.4.1",
  "enum-map",
- "etagere",
  "euc",
  "gilrs",
  "glyph_brush",
@@ -7283,7 +7219,6 @@ dependencies = [
  "veloren-world",
  "wgpu",
  "wgpu-profiler",
- "window_clipboard",
  "winit",
  "winres",
 ]
@@ -7332,7 +7267,6 @@ dependencies = [
  "criterion",
  "csv",
  "deflate",
- "enum-iterator 1.4.1",
  "enum-map",
  "fallible-iterator",
  "flate2",
@@ -7612,7 +7546,7 @@ checksum = "f093937725e242e5529fed27e08ff836c011a9ecc22e6819fb818c2ac6ff5f88"
 dependencies = [
  "backtrace",
  "cfg-if 1.0.0",
- "enum-iterator 0.7.0",
+ "enum-iterator",
  "enumset",
  "lazy_static",
  "leb128",
@@ -7665,7 +7599,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "918d2f0bb5eaa95a80c06be33f21dee92f40f12cd0982da34490d121a99d244b"
 dependencies = [
  "bytecheck",
- "enum-iterator 0.7.0",
+ "enum-iterator",
  "enumset",
  "indexmap 1.9.3",
  "more-asserts",
@@ -7686,7 +7620,7 @@ dependencies = [
  "corosensei",
  "dashmap",
  "derivative",
- "enum-iterator 0.7.0",
+ "enum-iterator",
  "fnv",
  "indexmap 1.9.3",
  "lazy_static",

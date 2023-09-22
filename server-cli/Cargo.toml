@@ -46,7 +46,6 @@ shell-words = "1.0.0"
 tracing = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = [ "rc", "derive" ]}
-strum = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 mimalloc = "0.1.29"
