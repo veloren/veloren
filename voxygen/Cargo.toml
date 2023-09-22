@@ -73,7 +73,6 @@ conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta
 euc = "0.5.0"
 iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
 iced_winit = {git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
-window_clipboard = "0.3"
 glyph_brush = "0.7.0"
 # https://gitlab.com/Frinksy/keyboard-keynames/-/merge_requests/8
 keyboard-keynames = { git = "https://gitlab.com/Imbris/keyboard-keynames.git", tag = "veloren-winit-0.28" }
@@ -101,16 +100,13 @@ clap = { workspace = true }
 # Utility
 assets_manager = {version = "0.10", features = ["ab_glyph"]}
 backtrace = "0.3.40"
-bincode = { workspace = true }
 chrono = { workspace = true }
 chumsky = "0.9"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 directories-next = "2.0"
 dot_vox = "5.1"
-enum-iterator = "1.1.0"
 guillotiere = "0.6.2"
-etagere = "0.2.7"
 hashbrown = { workspace = true }
 image = { workspace = true, features = ["ico"]}
 lazy_static = { workspace = true }

@@ -10,15 +10,11 @@ be-dyn-lib = []
 
 [dependencies]
 common = { package = "veloren-common", path = "../../common"}
-common-base = { package = "veloren-common-base", path = "../../common/base" }
-common-net = { package = "veloren-common-net", path = "../../common/net" }
-common-ecs = { package = "veloren-common-ecs", path = "../../common/ecs" }
 common-dynlib = { package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
 rtsim = { package = "veloren-rtsim", path = "../../rtsim" }
 
 specs = { workspace = true, features = ["shred-derive"] }
 vek = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
-tracing = { workspace = true }
 itertools = { workspace = true }
 lazy_static = { workspace = true }

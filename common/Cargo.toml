@@ -28,7 +28,6 @@ serde = { workspace = true, features = ["rc"] }
 # Util
 enum-map = "2.4"
 vek = { workspace = true }
-cfg-if = "1.0.0"
 chrono = { workspace = true }
 chrono-tz = { workspace = true }
 itertools = { workspace = true }
@@ -40,7 +39,6 @@ strum = { workspace = true }
 
 approx = "0.5.1"
 crossbeam-utils = { workspace = true }
-crossbeam-channel = { workspace = true }
 bitflags = { workspace = true, features = ["serde"] }
 lazy_static = { workspace = true }
 num-derive = "0.4.0"

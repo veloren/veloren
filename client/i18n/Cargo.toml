@@ -9,7 +9,6 @@ version = "0.13.0"
 # Assets
 common = {package = "veloren-common", path = "../../common"}
 common-assets = {package = "veloren-common-assets", path = "../../common/assets"}
-ron = { workspace = true }
 serde = { workspace = true }
 # Localization
 unic-langid = { version = "0.9"}

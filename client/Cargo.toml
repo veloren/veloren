@@ -7,7 +7,7 @@ edition = "2021"
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
-bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "common-frontend", "async-channel", "voxygen-i18n-helpers", "client-i18n"]
+bin_bot = ["serde", "ron", "clap", "rustyline", "common-frontend", "async-channel", "voxygen-i18n-helpers", "client-i18n"]
 tracy = ["common-base/tracy"]
 tick_network = []
 
@@ -36,7 +36,6 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "abb1a705827984e117
 #TODO: put bot in a different crate
 #bot only
 async-channel = { version = "1.6", optional = true }
-common-ecs = { package = "veloren-common-ecs", path = "../common/ecs", optional = true }
 voxygen-i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers", optional = true }
 client-i18n = { package = "veloren-client-i18n", path = "i18n", optional = true }
 serde = { workspace = true, features = [ "rc" ], optional = true }
@@ -44,7 +43,6 @@ ron = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
 rustyline = { version = "12.0.0", optional = true }
 ## logging
-termcolor = { version = "1.1", optional = true }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 
 [dev-dependencies]
