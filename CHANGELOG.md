@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed gold ore to gold ingots in the Brinstone armor set recipes
 - Updated windowing library, wayland may work better.
 - Portal model has been updated by @Nectical
+- Chat command responses sent by the server can now be localized
 
 ### Removed
 - Medium and large potions from all loot tables

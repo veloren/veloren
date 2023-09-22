@@ -1,3 +1,4 @@
+use common::comp::Content;
 use hashbrown::HashMap;
 use std::fmt;
 use vek::*;
@@ -7,6 +8,22 @@ pub enum LocationError<'a> {
     InvalidName(String),
     DuplicateName(String),
     DoesNotExist(&'a str),
+}
+
+impl<'a> From<LocationError<'a>> for Content {
+    fn from(value: LocationError<'a>) -> Self {
+        match value {
+            LocationError::InvalidName(location) => {
+                Content::localized_with_args("command-location-invalid", [("location", location)])
+            },
+            LocationError::DuplicateName(location) => {
+                Content::localized_with_args("command-location-duplicate", [("location", location)])
+            },
+            LocationError::DoesNotExist(location) => {
+                Content::localized_with_args("command-location-not-found", [("location", location)])
+            },
+        }
+    }
 }
 
 impl<'a> fmt::Display for LocationError<'a> {

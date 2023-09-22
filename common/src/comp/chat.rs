@@ -30,32 +30,26 @@ impl Component for ChatMode {
 }
 
 impl ChatMode {
-    /// Create a plain message from your current chat mode and uuid.
-    pub fn to_plain_msg(
+    /// Create a message from your current chat mode and uuid
+    pub fn to_msg(
         &self,
         from: Uid,
-        text: impl ToString,
+        content: Content,
         group: Option<Group>,
-    ) -> Result<UnresolvedChatMsg, &'static str> {
+    ) -> Result<UnresolvedChatMsg, Content> {
         let chat_type = match self {
             ChatMode::Tell(to) => ChatType::Tell(from, *to),
             ChatMode::Say => ChatType::Say(from),
             ChatMode::Region => ChatType::Region(from),
             ChatMode::Group => ChatType::Group(
                 from,
-                group.ok_or(
-                    "You tried sending a group message while not belonging to a group. Use /world \
-                     or /region to change your chat mode.",
-                )?,
+                group.ok_or(Content::localized("command-message-group-missing"))?,
             ),
             ChatMode::Faction(faction) => ChatType::Faction(from, faction.clone()),
             ChatMode::World => ChatType::World(from),
         };
 
-        Ok(UnresolvedChatMsg {
-            chat_type,
-            content: Content::Plain(text.to_string()),
-        })
+        Ok(UnresolvedChatMsg { chat_type, content })
     }
 }
 
