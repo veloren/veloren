@@ -75,7 +75,7 @@ macro_rules! reexport_comps {
     ($($name:ident: $type:ident,)*) => {
         mod inner {
             pub use common::comp::*;
-            use common::link::Is
+            use common::link::Is;
             use common::{
                 mounting::{Mount, Rider, VolumeRider},
                 tether::{Leader, Follower},

@@ -40,6 +40,8 @@ use common::{
     effect::Effect,
     event::{EventBus, ServerEvent},
     generation::{EntityConfig, EntityInfo},
+    link::Is,
+    mounting::Rider,
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
@@ -47,7 +49,7 @@ use common::{
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     tether::Tethered,
-    uid::{IdMaps, Uid},
+    uid::Uid,
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };

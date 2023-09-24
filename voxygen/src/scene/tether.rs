@@ -1,20 +1,13 @@
-use crate::{
-    render::{
-        pipelines::tether::{BoundLocals, Locals, Vertex},
-        Consts, CullingMode, FirstPassDrawer, Instances, LodObjectInstance, LodObjectVertex, Mesh,
-        Model, Quad, Renderer, Tri,
-    },
-    scene::{camera, Camera},
-    settings::Settings,
+use crate::render::{
+    pipelines::tether::{BoundLocals, Locals, Vertex},
+    FirstPassDrawer, Mesh, Model, Quad, Renderer,
 };
 use client::Client;
 use common::{
-    assets::{AssetExt, ObjAsset},
     comp,
     link::Is,
     tether::Follower,
     uid::{IdMaps, Uid},
-    util::srgba_to_linear,
 };
 use hashbrown::HashMap;
 use specs::{Join, WorldExt};
