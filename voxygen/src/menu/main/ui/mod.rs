@@ -29,6 +29,8 @@ use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
 use tracing::warn;
 
+use super::DetailedInitializationStage;
+
 // TODO: what is this? (showed up in rebase)
 //const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
 
@@ -179,6 +181,7 @@ enum Screen {
     Connecting {
         screen: connecting::Screen,
         connection_state: ConnectionState,
+        init_stage: DetailedInitializationStage,
     },
     #[cfg(feature = "singleplayer")]
     WorldSelector {
@@ -405,10 +408,12 @@ impl Controls {
             Screen::Connecting {
                 screen,
                 connection_state,
+                init_stage,
             } => screen.view(
                 &self.fonts,
                 &self.imgs,
                 connection_state,
+                init_stage,
                 self.time,
                 &self.i18n.read(),
                 button_style,
@@ -480,6 +485,7 @@ impl Controls {
                 self.screen = Screen::Connecting {
                     screen: connecting::Screen::new(ui),
                     connection_state: ConnectionState::InProgress,
+                    init_stage: DetailedInitializationStage::Singleplayer,
                 };
                 events.push(Event::StartSingleplayer);
             },
@@ -520,6 +526,7 @@ impl Controls {
                 self.screen = Screen::Connecting {
                     screen: connecting::Screen::new(ui),
                     connection_state: ConnectionState::InProgress,
+                    init_stage: DetailedInitializationStage::StartingMultiplayer,
                 };
 
                 events.push(Event::LoginAttempt {
@@ -629,6 +636,12 @@ impl Controls {
         }
     }
 
+    fn init_stage(&mut self, stage: DetailedInitializationStage) {
+        if let Screen::Connecting { init_stage, .. } = &mut self.screen {
+            *init_stage = stage
+        }
+    }
+
     fn tab(&mut self) {
         if let Screen::Login { screen, .. } = &mut self.screen {
             // TODO: add select all function in iced
@@ -713,6 +726,10 @@ impl MainMenuUi {
     }
 
     pub fn show_info(&mut self, msg: String) { self.controls.connection_error(msg); }
+
+    pub fn update_stage(&mut self, stage: DetailedInitializationStage) {
+        self.controls.init_stage(stage);
+    }
 
     pub fn connected(&mut self) { self.controls.exit_connect_screen(); }
 

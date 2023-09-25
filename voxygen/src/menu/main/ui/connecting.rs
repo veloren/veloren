@@ -2,6 +2,7 @@ use super::{ConnectionState, Imgs, Message};
 
 use crate::{
     game_input::GameInput,
+    menu::main::DetailedInitializationStage,
     settings::ControlSettings,
     ui::{
         fonts::IcedFonts as Fonts,
@@ -9,6 +10,7 @@ use crate::{
         Graphic,
     },
 };
+use client::ClientInitStage;
 use common::assets::{self, AssetExt};
 use i18n::Localization;
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
@@ -85,6 +87,7 @@ impl Screen {
         fonts: &Fonts,
         imgs: &Imgs,
         connection_state: &ConnectionState,
+        init_stage: &DetailedInitializationStage,
         time: f64,
         i18n: &Localization,
         button_style: style::button::Style,
@@ -133,6 +136,46 @@ impl Screen {
                     Space::new(Length::Fill, Length::Fill).into()
                 };
 
+                let stage = {
+                    let stage_message = match init_stage {
+                        DetailedInitializationStage::Singleplayer => {
+                            i18n.get_msg("hud-init-stage-singleplayer")
+                        },
+                        DetailedInitializationStage::StartingMultiplayer => {
+                            i18n.get_msg("hud-init-stage-multiplayer")
+                        },
+                        DetailedInitializationStage::Client(client_stage) => match client_stage {
+                            ClientInitStage::ConnectionEstablish => {
+                                i18n.get_msg("hud-init-stage-client-connection-establish")
+                            },
+                            ClientInitStage::WatingForServerVersion => {
+                                i18n.get_msg("hud-init-stage-client-request-server-version")
+                            },
+                            ClientInitStage::Authentication => {
+                                i18n.get_msg("hud-init-stage-client-authentication")
+                            },
+                            ClientInitStage::LoadingInitData => {
+                                i18n.get_msg("hud-init-stage-client-load-init-data")
+                            },
+                            ClientInitStage::StartingClient => {
+                                i18n.get_msg("hud-init-stage-client-starting-client")
+                            },
+                        },
+                        DetailedInitializationStage::CreatingRenderPipeline(done, total) => i18n
+                            .get_msg_ctx(
+                                "hud-init-stage-render-pipeline",
+                                &i18n::fluent_args! { "done" => done, "total" => total },
+                            ),
+                    };
+
+                    Container::new(Text::new(stage_message).size(fonts.cyri.scale(25)))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .padding(10)
+                        .align_y(Align::End)
+                        .into()
+                };
+
                 let cancel = Container::new(neat_button(
                     &mut self.cancel_button,
                     i18n.get_msg("common-cancel"),
@@ -160,13 +203,10 @@ impl Screen {
                 .padding(10)
                 .align_x(Align::End);
 
-                let bottom_content = Row::with_children(vec![
-                    Space::new(Length::Fill, Length::Shrink).into(),
-                    tip_cancel.into(),
-                    gear.into(),
-                ])
-                .align_items(Align::Center)
-                .width(Length::Fill);
+                let bottom_content =
+                    Row::with_children(vec![stage, tip_cancel.into(), gear.into()])
+                        .align_items(Align::Center)
+                        .width(Length::Fill);
 
                 let left_art = Image::new(imgs.loading_art_l)
                     .width(Length::Units(12))
