@@ -1402,22 +1402,28 @@ impl Structure for DesertCityMultiPlot {
                                     }
                                 }
                             }
-                            for h in 0..2 {
-                                for n in 0..2 {
-                                    painter
-                                        .aabb(Aabb {
-                                            min: Vec2::new(
-                                                bldg_b_center.x + (2 * tower_length),
-                                                bldg_b_center.y - 4,
-                                            )
-                                            .with_z(base + 1 + (n * (tower_height / 2)) + (h * 4)),
-                                            max: Vec2::new(
-                                                bldg_b_center.x + (2 * tower_length) + 1,
-                                                bldg_b_center.y + 4,
-                                            )
-                                            .with_z(base + 2 + (n * (tower_height / 2)) + (h * 4)),
-                                        })
-                                        .fill(wood.clone());
+                            for w in 0..2 {
+                                for h in 0..2 {
+                                    for n in 0..2 {
+                                        painter
+                                            .aabb(Aabb {
+                                                min: Vec2::new(
+                                                    bldg_b_center.x + (2 * tower_length),
+                                                    bldg_b_center.y - 4 + (6 * w),
+                                                )
+                                                .with_z(
+                                                    base + 1 + (n * (tower_height / 2)) + (h * 4),
+                                                ),
+                                                max: Vec2::new(
+                                                    bldg_b_center.x + (2 * tower_length) + 1,
+                                                    bldg_b_center.y - 2 + (6 * w),
+                                                )
+                                                .with_z(
+                                                    base + 2 + (n * (tower_height / 2)) + (h * 4),
+                                                ),
+                                            })
+                                            .fill(wood.clone());
+                                    }
                                 }
                             }
                             // Library
