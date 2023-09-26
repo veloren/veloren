@@ -6,6 +6,7 @@
 use crate::{
     character::CharacterId,
     comp::{dialogue::Subject, Content},
+    util::Dir,
 };
 use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
@@ -230,6 +231,8 @@ pub struct RtSimController {
     pub actions: VecDeque<NpcAction>,
     pub personality: Personality,
     pub heading_to: Option<String>,
+    // TODO: Maybe this should allow for looking at a specific entity target?
+    pub look_dir: Option<Dir>,
 }
 
 impl RtSimController {
@@ -248,7 +251,9 @@ pub enum NpcActivity {
     Gather(&'static [ChunkResource]),
     // TODO: Generalise to other entities? What kinds of animals?
     HuntAnimals,
-    Dance,
+    Dance(Option<Dir>),
+    Cheer(Option<Dir>),
+    Sit(Option<Dir>),
 }
 
 /// Represents event-like actions that rtsim NPCs can perform to interact with

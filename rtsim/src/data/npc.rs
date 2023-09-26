@@ -14,6 +14,7 @@ use common::{
     },
     store::Id,
     terrain::CoordinateConversions,
+    util::Dir,
 };
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
@@ -57,6 +58,7 @@ pub struct Controller {
     pub actions: Vec<NpcAction>,
     pub activity: Option<NpcActivity>,
     pub new_home: Option<SiteId>,
+    pub look_dir: Option<Dir>,
 }
 
 impl Controller {
@@ -72,7 +74,11 @@ impl Controller {
 
     pub fn do_hunt_animals(&mut self) { self.activity = Some(NpcActivity::HuntAnimals); }
 
-    pub fn do_dance(&mut self) { self.activity = Some(NpcActivity::Dance); }
+    pub fn do_dance(&mut self, dir: Option<Dir>) { self.activity = Some(NpcActivity::Dance(dir)); }
+
+    pub fn do_cheer(&mut self, dir: Option<Dir>) { self.activity = Some(NpcActivity::Cheer(dir)); }
+
+    pub fn do_sit(&mut self, dir: Option<Dir>) { self.activity = Some(NpcActivity::Sit(dir)); }
 
     pub fn say(&mut self, target: impl Into<Option<Actor>>, content: comp::Content) {
         self.actions.push(NpcAction::Say(target.into(), content));

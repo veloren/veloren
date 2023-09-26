@@ -261,19 +261,8 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..84) {
-                    0..=5 => (
-                        find_site_loc(
-                            &mut ctx,
-                            &ProximityRequirementsBuilder::new()
-                                .avoid_all_of(this.castle_enemies(), 40)
-                                .close_to_one_of(this.towns(), 20)
-                                .finalize(&world_dims),
-                            &SiteKind::Castle,
-                        )?,
-                        SiteKind::Castle,
-                    ),
-                    28..=31 => {
+                let (loc, kind) = match ctx.rng.gen_range(0..79) {
+                    0..=4 => {
                         if index.features().site2_giant_trees {
                             (
                                 find_site_loc(
@@ -298,7 +287,7 @@ impl Civs {
                             )
                         }
                     },
-                    32..=37 => (
+                    5..=10 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -308,8 +297,7 @@ impl Civs {
                         )?,
                         SiteKind::Gnarling,
                     ),
-                    // 32..=37 => (SiteKind::Citadel, (&castle_enemies, 20)),
-                    38..=43 => (
+                    11..=16 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -319,7 +307,7 @@ impl Civs {
                         )?,
                         SiteKind::ChapelSite,
                     ),
-                    44..=49 => (
+                    17..=22 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -329,17 +317,7 @@ impl Civs {
                         )?,
                         SiteKind::Adlet,
                     ),
-                    /*50..=55 => (
-                        find_site_loc(
-                            &mut ctx,
-                            &ProximityRequirementsBuilder::new()
-                                .avoid_all_of(this.mine_site_enemies(), 40)
-                                .finalize(&world_dims),
-                            &SiteKind::DwarvenMine,
-                        )?,
-                        SiteKind::DwarvenMine,
-                    ),*/
-                    56..=68 => (
+                    23..=35 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -349,7 +327,7 @@ impl Civs {
                         )?,
                         SiteKind::PirateHideout,
                     ),
-                    69..=75 => (
+                    36..=42 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -359,6 +337,29 @@ impl Civs {
                         )?,
                         SiteKind::JungleRuin,
                     ),
+                    /*43..=48 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.mine_site_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::DwarvenMine,
+                        )?,
+                        SiteKind::DwarvenMine,
+                    ),
+                    49..=54 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.castle_enemies(), 40)
+                                .close_to_one_of(this.towns(), 20)
+                                .finalize(&world_dims),
+                            &SiteKind::Castle,
+                        )?,
+                        SiteKind::Castle,
+                    ),
+                    55..=60 => (SiteKind::Citadel, (&castle_enemies, 20)),
+                    */
                     _ => (
                         find_site_loc(
                             &mut ctx,

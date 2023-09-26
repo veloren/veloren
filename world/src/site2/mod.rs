@@ -1144,6 +1144,29 @@ impl Site {
 
         site.make_plaza(land, &mut rng);
 
+        let size = 17.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+
+        let desert_city_arena =
+            plot::DesertCityArena::generate(land, &mut reseed(&mut rng), &site, aabr);
+
+        let desert_city_arena_alt = desert_city_arena.alt;
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::DesertCityArena(desert_city_arena),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::Building,
+            plot: Some(plot),
+            hard_alt: Some(desert_city_arena_alt),
+        });
+
         let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2)]);
 
         let mut temples = 0;
@@ -1674,6 +1697,9 @@ impl Site {
                 },
                 PlotKind::DesertCityTemple(desert_city_temple) => {
                     desert_city_temple.render_collect(self, canvas)
+                },
+                PlotKind::DesertCityArena(desert_city_arena) => {
+                    desert_city_arena.render_collect(self, canvas)
                 },
                 PlotKind::Citadel(citadel) => citadel.render_collect(self, canvas),
                 PlotKind::Bridge(bridge) => bridge.render_collect(self, canvas),

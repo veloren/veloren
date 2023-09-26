@@ -373,7 +373,6 @@ impl Site {
                 | SiteKind::CliffTown(_)
                 | SiteKind::SavannahPit(_)
                 | SiteKind::CoastalTown(_)
-                | SiteKind::PirateHideout(_)
                 | SiteKind::DesertCity(_)
                 | SiteKind::Settlement(_)
         )
@@ -416,9 +415,6 @@ impl SiteKind {
             },
             SiteKind::CoastalTown(_) => {
                 Some(SiteKindMeta::Settlement(SettlementKindMeta::CoastalTown))
-            },
-            SiteKind::PirateHideout(_) => {
-                Some(SiteKindMeta::Settlement(SettlementKindMeta::PirateHideout))
             },
             SiteKind::DesertCity(_) => {
                 Some(SiteKindMeta::Settlement(SettlementKindMeta::DesertCity))

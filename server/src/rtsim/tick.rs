@@ -440,6 +440,7 @@ impl<'a> System<'a> for Sys {
                         // Update entity state
                         if let Some(agent) = agent {
                             agent.rtsim_controller.personality = npc.personality;
+                            agent.rtsim_controller.look_dir = npc.controller.look_dir;
                             agent.rtsim_controller.activity = npc.controller.activity;
                             agent
                                 .rtsim_controller

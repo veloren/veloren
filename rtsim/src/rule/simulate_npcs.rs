@@ -220,7 +220,9 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                             NpcActivity::Goto(_, _)
                             | NpcActivity::Gather(_)
                             | NpcActivity::HuntAnimals
-                            | NpcActivity::Dance,
+                            | NpcActivity::Dance(_)
+                            | NpcActivity::Cheer(_)
+                            | NpcActivity::Sit(_),
                         ) => {},
                         None => {},
                     }
@@ -246,7 +248,11 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                         }
                     },
                     Some(
-                        NpcActivity::Gather(_) | NpcActivity::HuntAnimals | NpcActivity::Dance,
+                        NpcActivity::Gather(_)
+                        | NpcActivity::HuntAnimals
+                        | NpcActivity::Dance(_)
+                        | NpcActivity::Cheer(_)
+                        | NpcActivity::Sit(_),
                     ) => {
                         // TODO: Maybe they should walk around randomly
                         // when gathering resources?

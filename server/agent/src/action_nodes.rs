@@ -238,6 +238,7 @@ impl<'a> AgentData<'a> {
         }
 
         agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
+
         'activity: {
             match agent.rtsim_controller.activity {
                 Some(NpcActivity::Goto(travel_to, speed_factor)) => {
@@ -371,8 +372,44 @@ impl<'a> AgentData<'a> {
                     controller.push_action(ControlAction::Dance);
                     break 'activity; // Don't fall through to idle wandering
                 },
-                Some(NpcActivity::Dance) => {
+                Some(NpcActivity::Dance(dir)) => {
+                    // Look at targets specified by rtsim
+                    if let Some(look_dir) = dir {
+                        controller.inputs.look_dir = look_dir;
+                        if self.ori.look_dir().dot(look_dir.to_vec()) < 0.95 {
+                            controller.inputs.move_dir = look_dir.to_vec().xy() * 0.01;
+                            break 'activity;
+                        } else {
+                            controller.inputs.move_dir = Vec2::zero();
+                        }
+                    }
                     controller.push_action(ControlAction::Dance);
+                    break 'activity; // Don't fall through to idle wandering
+                },
+                Some(NpcActivity::Cheer(dir)) => {
+                    if let Some(look_dir) = dir {
+                        controller.inputs.look_dir = look_dir;
+                        if self.ori.look_dir().dot(look_dir.to_vec()) < 0.95 {
+                            controller.inputs.move_dir = look_dir.to_vec().xy() * 0.01;
+                            break 'activity;
+                        } else {
+                            controller.inputs.move_dir = Vec2::zero();
+                        }
+                    }
+                    controller.push_action(ControlAction::Talk);
+                    break 'activity; // Don't fall through to idle wandering
+                },
+                Some(NpcActivity::Sit(dir)) => {
+                    if let Some(look_dir) = dir {
+                        controller.inputs.look_dir = look_dir;
+                        if self.ori.look_dir().dot(look_dir.to_vec()) < 0.95 {
+                            controller.inputs.move_dir = look_dir.to_vec().xy() * 0.01;
+                            break 'activity;
+                        } else {
+                            controller.inputs.move_dir = Vec2::zero();
+                        }
+                    }
+                    controller.push_action(ControlAction::Sit);
                     break 'activity; // Don't fall through to idle wandering
                 },
                 Some(NpcActivity::HuntAnimals) => {
