@@ -1,7 +1,7 @@
 use crate::{client::Client, Settings};
 use common::{
     event::{EventBus, ServerEvent},
-    resources::Time,
+    resources::TrueTime,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PingMsg;
@@ -26,7 +26,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        Read<'a, Time>,
+        Read<'a, TrueTime>,
         WriteStorage<'a, Client>,
         Read<'a, Settings>,
     );

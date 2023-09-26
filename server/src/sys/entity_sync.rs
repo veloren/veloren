@@ -8,7 +8,7 @@ use common::{
     mounting::Rider,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
-    resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale},
+    resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale, TrueTime},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
@@ -32,6 +32,7 @@ impl<'a> System<'a> for Sys {
         TrackedStorages<'a>,
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, Time>,
+        ReadExpect<'a, TrueTime>,
         ReadExpect<'a, Calendar>,
         ReadExpect<'a, TimeScale>,
         ReadExpect<'a, RegionMap>,
@@ -65,6 +66,7 @@ impl<'a> System<'a> for Sys {
             tracked_storages,
             time_of_day,
             time,
+            true_time,
             calendar,
             time_scale,
             region_map,
@@ -434,6 +436,7 @@ impl<'a> System<'a> for Sys {
                         *time_of_day,
                         (*calendar).clone(),
                         *time,
+                        *true_time,
                         *time_scale,
                     ))
                 });

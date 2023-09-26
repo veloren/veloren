@@ -11,7 +11,7 @@ use common::{
     lod,
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook, RepairRecipeBook},
-    resources::{Time, TimeOfDay, TimeScale},
+    resources::{Time, TimeOfDay, TimeScale, TrueTime},
     shared_server_config::ServerConstants,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
@@ -195,7 +195,7 @@ pub enum ServerGeneral {
     ChatMsg(comp::ChatMsg),
     ChatMode(comp::ChatMode),
     SetPlayerEntity(Uid),
-    TimeOfDay(TimeOfDay, Calendar, Time, TimeScale),
+    TimeOfDay(TimeOfDay, Calendar, Time, TrueTime, TimeScale),
     EntitySync(sync::EntitySyncPackage),
     CompSync(sync::CompSyncPackage<EcsCompPacket>, u64),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),
@@ -342,7 +342,7 @@ impl ServerMsg {
                         | ServerGeneral::ChatMsg(_)
                         | ServerGeneral::ChatMode(_)
                         | ServerGeneral::SetPlayerEntity(_)
-                        | ServerGeneral::TimeOfDay(_, _, _, _)
+                        | ServerGeneral::TimeOfDay(_, _, _, _, _)
                         | ServerGeneral::EntitySync(_)
                         | ServerGeneral::CompSync(_, _)
                         | ServerGeneral::CreateEntity(_)

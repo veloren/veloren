@@ -1929,9 +1929,9 @@ impl Client {
         self.tick_terrain()?;
 
         // Send a ping to the server once every second
-        if self.state.get_time() - self.last_server_ping > 1. {
+        if self.state.get_true_time() - self.last_server_ping > 1. {
             self.send_msg_err(PingMsg::Ping)?;
-            self.last_server_ping = self.state.get_time();
+            self.last_server_ping = self.state.get_true_time();
         }
 
         // 6) Update the server about the player's physics attributes.
@@ -2266,9 +2266,16 @@ impl Client {
                     return Err(Error::Other("Failed to find entity from uid.".into()));
                 }
             },
-            ServerGeneral::TimeOfDay(time_of_day, calendar, new_time, time_scale) => {
+            ServerGeneral::TimeOfDay(
+                time_of_day,
+                calendar,
+                new_time,
+                new_true_time,
+                time_scale,
+            ) => {
                 self.target_time_of_day = Some(time_of_day);
                 *self.state.ecs_mut().write_resource() = calendar;
+                *self.state.ecs_mut().write_resource() = new_true_time;
                 let mut time = self.state.ecs_mut().write_resource::<Time>();
                 // Avoid side-eye from Einstein
                 // If new time from server is at least 5 seconds ahead, replace client time.
@@ -2592,8 +2599,8 @@ impl Client {
                 self.send_msg_err(PingMsg::Pong)?;
             },
             PingMsg::Pong => {
-                self.last_server_pong = self.state.get_time();
-                self.last_ping_delta = self.state.get_time() - self.last_server_ping;
+                self.last_server_pong = self.state.get_true_time();
+                self.last_ping_delta = self.state.get_true_time() - self.last_server_ping;
 
                 // Maintain the correct number of deltas for calculating the rolling average
                 // ping. The client sends a ping to the server every second so we should be
@@ -2664,18 +2671,18 @@ impl Client {
         // Check that we have an valid connection.
         // Use the last ping time as a 1s rate limiter, we only notify the user once per
         // second
-        if self.state.get_time() - self.last_server_ping > 1. {
-            let duration_since_last_pong = self.state.get_time() - self.last_server_pong;
+        if self.state.get_true_time() - self.last_server_ping > 1. {
+            let duration_since_last_pong = self.state.get_true_time() - self.last_server_pong;
 
             // Dispatch a notification to the HUD warning they will be kicked in {n} seconds
             const KICK_WARNING_AFTER_REL_TO_TIMEOUT_FRACTION: f64 = 0.75;
             if duration_since_last_pong
                 >= (self.client_timeout.as_secs() as f64
                     * KICK_WARNING_AFTER_REL_TO_TIMEOUT_FRACTION)
-                && self.state.get_time() - duration_since_last_pong > 0.
+                && self.state.get_true_time() - duration_since_last_pong > 0.
             {
                 frontend_events.push(Event::DisconnectionNotification(
-                    (self.state.get_time() - duration_since_last_pong).round() as u64,
+                    (self.state.get_true_time() - duration_since_last_pong).round() as u64,
                 ));
             }
         }
@@ -2683,7 +2690,8 @@ impl Client {
         let msg_count = self.handle_messages(&mut frontend_events)?;
 
         if msg_count == 0
-            && self.state.get_time() - self.last_server_pong > self.client_timeout.as_secs() as f64
+            && self.state.get_true_time() - self.last_server_pong
+                > self.client_timeout.as_secs() as f64
         {
             return Err(Error::ServerTimeout);
         }
@@ -2884,7 +2892,7 @@ impl Client {
         // Advance state time manually since we aren't calling `State::tick`
         self.state
             .ecs()
-            .write_resource::<common::resources::Time>()
+            .write_resource::<common::resources::TrueTime>()
             .0 += dt.as_secs_f64();
 
         // Handle new messages from the server.

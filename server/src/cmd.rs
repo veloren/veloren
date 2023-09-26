@@ -43,7 +43,7 @@ use common::{
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
-    resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
+    resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale, TrueTime},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     uid::Uid,
@@ -1092,6 +1092,7 @@ fn handle_time(
 
     server.state.mut_resource::<TimeOfDay>().0 = new_time;
     let time = server.state.ecs().read_resource::<Time>();
+    let true_time = server.state.ecs().read_resource::<TrueTime>();
 
     // Update all clients with the new TimeOfDay (without this they would have to
     // wait for the next 100th tick to receive the update).
@@ -1105,6 +1106,7 @@ fn handle_time(
                 TimeOfDay(new_time),
                 (*calendar).clone(),
                 *time,
+                *true_time,
                 *time_scale,
             ))
         });
@@ -1158,6 +1160,7 @@ fn handle_time_scale(
         let mut tod_lazymsg = None;
         let clients = server.state.ecs().read_storage::<Client>();
         let time = server.state.ecs().read_resource::<Time>();
+        let true_time = server.state.ecs().read_resource::<TrueTime>();
         let time_of_day = server.state.ecs().read_resource::<TimeOfDay>();
         let calendar = server.state.ecs().read_resource::<Calendar>();
         for client in (&clients).join() {
@@ -1166,6 +1169,7 @@ fn handle_time_scale(
                     *time_of_day,
                     (*calendar).clone(),
                     *time,
+                    *true_time,
                     TimeScale(scale),
                 ))
             });
