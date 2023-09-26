@@ -26,6 +26,7 @@ use common::{
     store::Id,
     terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
     time::DayPeriod,
+    util::Dir,
 };
 use fxhash::FxHasher64;
 use itertools::{Either, Itertools};
@@ -270,7 +271,7 @@ impl Rule for NpcAi {
                     .collect::<Vec<_>>()
             };
 
-            // The sum of the last `SIMULATED_TICK_SKIP` tick deltatimes is the deltatime since 
+            // The sum of the last `SIMULATED_TICK_SKIP` tick deltatimes is the deltatime since
             // simulated npcs ran this tick had their ai ran.
             let simulated_dt = last_ticks.iter().sum::<f32>();
 
@@ -282,6 +283,9 @@ impl Rule for NpcAi {
                     .par_iter_mut()
                     .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain)| {
                         let npc = &data.npcs[*npc_id];
+
+                        // Reset look_dir
+                        controller.look_dir = None;
 
                         brain.action.tick(&mut NpcCtx {
                             state: ctx.state,
@@ -631,7 +635,7 @@ fn socialize() -> impl Action<EveryRange> {
         if matches!(ctx.npc.mode, SimulationMode::Loaded) && socialize.should(ctx) {
             // Sometimes dance
             if ctx.rng.gen_bool(0.15) {
-                return just(|ctx, _| ctx.controller.do_dance())
+                return just(|ctx, _| ctx.controller.do_dance(None))
                     .repeat()
                     .stop_if(timeout(6.0))
                     .debug(|| "dancing")
@@ -692,11 +696,11 @@ fn adventure() -> impl Action<DefaultState> {
                 .unwrap_or_default();
             // Travel to the site
             important(just(move |ctx, _| ctx.controller.say(None, Content::localized_with_args("npc-speech-moving_on", [("site", site_name.clone())])))
-                .then(travel_to_site(tgt_site, 0.6))
-                // Stop for a few minutes
-                .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
-                .map(|_, _| ())
-                .boxed(),
+                          .then(travel_to_site(tgt_site, 0.6))
+                          // Stop for a few minutes
+                          .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
+                          .map(|_, _| ())
+                          .boxed(),
             )
         } else {
             casual(finish().boxed())
@@ -841,6 +845,49 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 .debug(|| "find somewhere to sleep"),
             );
         // Villagers with roles should perform those roles
+        }
+        // Visiting villagers in DesertCity who are not Merchants should sit down in the Arena during the day
+        else if matches!(ctx.state.data().sites[visiting_site].world_site.map(|ws| &ctx.index.sites.get(ws).kind), Some(SiteKind::DesertCity(_)))
+            && !matches!(ctx.npc.profession(), Some(Profession::Merchant | Profession::Guard))
+            && ctx.rng.gen_bool(1.0 / 3.0)
+        {
+            let wait_time = ctx.rng.gen_range(100.0..300.0);
+            if let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site
+                && let Some(ws) = ctx.index.sites.get(ws_id).site2()
+                && let Some(arena) = ws.plots().find_map(|p| match p.kind() { PlotKind::DesertCityArena(a) => Some(a), _ => None})
+            {
+                // We don't use Z coordinates for seats because they are complicated to calculate from the Ramp procedural generation
+                // and using goto_2d seems to work just fine. However it also means that NPC will never go seat on the stands
+                // on the first floor of the arena. This is a compromise that was made because in the current arena procedural generation
+                // there is also no pathways to the stands on the first floor for NPCs.
+                let arena_center = Vec3::new(arena.center.x, arena.center.y, arena.base).as_::<f32>();
+                let stand_dist = arena.stand_dist as f32;
+                let seat_var_width = ctx.rng.gen_range(0..arena.stand_width) as f32;
+                let seat_var_length = ctx.rng.gen_range(-arena.stand_length..arena.stand_length) as f32;
+                // Select a seat on one of the 4 arena stands
+                let seat = match ctx.rng.gen_range(0..4) {
+                    0 => Vec3::new(arena_center.x - stand_dist + seat_var_width, arena_center.y + seat_var_length, arena_center.z),
+                    1 => Vec3::new(arena_center.x + stand_dist - seat_var_width, arena_center.y + seat_var_length, arena_center.z),
+                    2 => Vec3::new(arena_center.x + seat_var_length, arena_center.y - stand_dist + seat_var_width, arena_center.z),
+                    _ => Vec3::new(arena_center.x + seat_var_length, arena_center.y + stand_dist - seat_var_width, arena_center.z),
+                };
+                let look_dir = Dir::from_unnormalized(arena_center - seat);
+                // Walk to an arena seat, cheer, sit and dance
+                return casual(just(move |ctx, _| ctx.controller.say(None, Content::localized("npc-speech-arena")))
+                    .then(goto_2d(seat.xy(), 0.6, 1.0).debug(|| "go to arena"))
+                    // Turn toward the centre of the arena and watch the action!
+                    .then(choose(move |ctx, _| if ctx.rng.gen_bool(0.3) {
+                        casual(just(move |ctx,_| ctx.controller.do_cheer(look_dir)).repeat().stop_if(timeout(5.0)))
+                    } else if ctx.rng.gen_bool(0.15) {
+                        casual(just(move |ctx,_| ctx.controller.do_dance(look_dir)).repeat().stop_if(timeout(5.0)))
+                    } else {
+                        casual(just(move |ctx,_| ctx.controller.do_sit(look_dir)).repeat().stop_if(timeout(15.0)))
+                    })
+                        .repeat()
+                        .stop_if(timeout(wait_time)))
+                    .map(|_, _| ())
+                    .boxed());
+            }
         } else if matches!(ctx.npc.profession(), Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
         {
             if let Some(forest_wpos) = find_forest(ctx) {
