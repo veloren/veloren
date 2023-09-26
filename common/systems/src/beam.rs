@@ -17,8 +17,8 @@ use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::Rng;
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
-    WriteStorage,
+    shred::ResourceId, Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage,
+    SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -311,11 +311,13 @@ impl<'a> System<'a> for Sys {
         // Set start time on new beams
         // This change doesn't need to be recorded as it is not sent to the client
         beam_segments.set_event_emission(false);
-        (&mut beam_segments).join().for_each(|mut beam_segment| {
-            if beam_segment.creation.is_none() {
-                beam_segment.creation = Some(time);
-            }
-        });
+        (&mut beam_segments)
+            .lend_join()
+            .for_each(|mut beam_segment| {
+                if beam_segment.creation.is_none() {
+                    beam_segment.creation = Some(time);
+                }
+            });
         beam_segments.set_event_emission(true);
     }
 }

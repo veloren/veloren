@@ -32,8 +32,8 @@ use core::cmp::Reverse;
 use itertools::Itertools;
 use rayon::{iter::Either, prelude::*};
 use specs::{
-    storage::GenericReadStorage, Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage,
-    Write, WriteExpect, WriteStorage,
+    storage::GenericReadStorage, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect,
+    ReadStorage, Write, WriteExpect, WriteStorage,
 };
 use std::sync::Arc;
 use vek::*;

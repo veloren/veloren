@@ -8,7 +8,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
 use rayon::prelude::*;
-use specs::{Entities, Join, ParJoin, Read, ReadStorage, WriteStorage};
+use specs::{Entities, LendJoin, ParJoin, Read, ReadStorage, WriteStorage};
 use tracing::{debug, error, warn};
 
 impl Sys {

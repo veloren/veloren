@@ -19,7 +19,7 @@ use common_net::msg::{ClientGeneral, ServerGeneral};
 use common_state::{AreasContainer, BlockChange, BuildArea};
 use core::mem;
 use rayon::prelude::*;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use std::{borrow::Cow, time::Instant};
 use tracing::{debug, trace, warn};
 use vek::*;

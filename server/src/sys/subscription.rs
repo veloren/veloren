@@ -13,7 +13,8 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use specs::{
-    Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, WorldExt, WriteStorage,
+    Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, SystemData, World, WorldExt,
+    WriteStorage,
 };
 use tracing::{debug, error};
 use vek::*;

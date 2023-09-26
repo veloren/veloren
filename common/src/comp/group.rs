@@ -2,7 +2,7 @@ use crate::{comp::Alignment, uid::Uid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
-use specs::{Component, DerefFlaggedStorage, Join};
+use specs::{Component, DerefFlaggedStorage, Join, LendJoin};
 use tracing::{error, warn};
 
 // Primitive group system

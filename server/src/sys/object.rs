@@ -8,7 +8,7 @@ use common::{
     CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadStorage};
 use vek::Rgb;
 
 /// This system is responsible for handling misc object behaviours
@@ -195,7 +195,7 @@ impl<'a> System<'a> for Sys {
                         .in_circle_aabr(pos.0.xy(), TELEPORTER_RADIUS)
                         .any(|entity| {
                             (&positions, &teleporting)
-                                .join()
+                                .lend_join()
                                 .get(entity, &entities)
                                 .map_or(false, |(teleporter_pos, _)| {
                                     pos.0.distance_squared(teleporter_pos.0)

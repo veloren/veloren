@@ -22,8 +22,8 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred::ResourceId, Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
-    World, WriteStorage,
+    shred::ResourceId, Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage,
+    SystemData, World, WriteStorage,
 };
 
 #[derive(SystemData)]
@@ -120,7 +120,7 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        for (entity, buff_comp, mut stat, body, health, energy, physics_state) in (
+        let buff_join = (
             &read_data.entities,
             &read_data.buffs,
             &mut stats,
@@ -129,8 +129,9 @@ impl<'a> System<'a> for Sys {
             &read_data.energies,
             read_data.physics_states.maybe(),
         )
-            .join()
-        {
+            .lend_join();
+        buff_join.for_each(|comps| {
+            let (entity, buff_comp, mut stat, body, health, energy, physics_state) = comps;
             // Apply buffs to entity based off of their current physics_state
             if let Some(physics_state) = physics_state {
                 if matches!(
@@ -459,7 +460,7 @@ impl<'a> System<'a> for Sys {
                     },
                 });
             }
-        }
+        });
         // Turned back to true
         stats.set_event_emission(true);
     }

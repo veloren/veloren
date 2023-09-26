@@ -1,7 +1,7 @@
 use super::track::UpdateTracker;
 use common::{resources::Time, uid::Uid};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use specs::{Component, Entity, Join, ReadStorage, World, WorldExt};
+use specs::{storage::AccessMut, Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Debug,
@@ -33,7 +33,7 @@ pub fn handle_insert<C: Component>(comp: C, entity: Entity, world: &World) {
 /// Useful for implementing CompPacket trait
 pub fn handle_modify<C: Component + Debug>(comp: C, entity: Entity, world: &World) {
     if let Some(mut c) = world.write_storage::<C>().get_mut(entity) {
-        *c = comp
+        *c.access_mut() = comp
     } else {
         error!(
             ?comp,
@@ -77,7 +77,7 @@ pub fn handle_interp_modify<C: InterpolatableComponent + Debug>(
 ) {
     if let Some(mut interp_data) = world.write_storage::<C::InterpData>().get_mut(entity) {
         let time = world.read_resource::<Time>().0;
-        comp.update_component(&mut interp_data, time, force_update);
+        comp.update_component(interp_data.access_mut(), time, force_update);
         handle_modify(comp, entity, world);
     } else {
         error!(

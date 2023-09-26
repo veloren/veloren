@@ -1,4 +1,4 @@
-use specs::{Join, WorldExt};
+use specs::{Join, LendJoin, WorldExt};
 use vek::*;
 
 use client::{self, Client};

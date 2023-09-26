@@ -16,7 +16,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use itertools::Either;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use vek::*;
 
 /// This system will send physics updates to the client
@@ -347,7 +347,8 @@ impl<'a> System<'a> for Sys {
         }
 
         // Update the last physics components for each entity
-        for (_, &pos, vel, ori, last_pos, last_vel, last_ori) in (
+
+        (
             &entities,
             &positions,
             velocities.maybe(),
@@ -356,12 +357,12 @@ impl<'a> System<'a> for Sys {
             last_vel.entries(),
             last_ori.entries(),
         )
-            .join()
-        {
-            last_pos.replace(Last(pos));
-            vel.and_then(|&v| last_vel.replace(Last(v)));
-            ori.and_then(|&o| last_ori.replace(Last(o)));
-        }
+            .lend_join()
+            .for_each(|(_, &pos, vel, ori, last_pos, last_vel, last_ori)| {
+                last_pos.replace(Last(pos));
+                vel.and_then(|&v| last_vel.replace(Last(v)));
+                ori.and_then(|&o| last_ori.replace(Last(o)));
+            });
 
         // Handle entity deletion in regions that don't exist in RegionMap
         // (theoretically none)

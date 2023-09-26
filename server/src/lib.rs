@@ -100,7 +100,7 @@ use persistence::{
 };
 use prometheus::Registry;
 use prometheus_hyper::Server as PrometheusServer;
-use specs::{join::Join, Builder, Entity as EcsEntity, Entity, WorldExt};
+use specs::{Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt};
 use std::{
     i32,
     ops::{Deref, DerefMut},

@@ -1,5 +1,5 @@
 use ordered_float::OrderedFloat;
-use specs::{Join, ReadStorage, WorldExt};
+use specs::{Join, LendJoin, ReadStorage, WorldExt};
 use vek::*;
 
 use super::{
@@ -228,7 +228,7 @@ pub(super) fn select_interactable(
             is_riders.maybe(),
             (stats.mask() | items.mask()).maybe(),
         )
-            .join();
+            .lend_join();
 
         let closest_interactable_entity = spacial_grid.0.in_circle_aabr(player_pos.xy(), MAX_PICKUP_RANGE)
             .filter(|&e| e != player_entity) // skip the player's entity
@@ -279,7 +279,7 @@ pub(super) fn select_interactable(
             &ecs.read_storage::<comp::Collider>(),
         );
 
-        let mut volumes_data = volumes_data.join();
+        let mut volumes_data = volumes_data.lend_join();
 
         let volumes = spacial_grid.0.in_circle_aabr(player_pos.xy(), search_dist)
             .filter(|&e| e != player_entity) // skip the player's entity

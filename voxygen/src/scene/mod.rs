@@ -42,7 +42,7 @@ use common_state::State;
 use comp::item::Reagent;
 use hashbrown::HashMap;
 use num::traits::{Float, FloatConst};
-use specs::{Entity as EcsEntity, Join, WorldExt};
+use specs::{Entity as EcsEntity, Join, LendJoin, WorldExt};
 use vek::*;
 
 const ZOOM_CAP_PLAYER: f32 = 1000.0;

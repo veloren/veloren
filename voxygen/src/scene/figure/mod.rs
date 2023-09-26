@@ -62,7 +62,7 @@ use core::{
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-use specs::{Entity as EcsEntity, Join, LazyUpdate, WorldExt};
+use specs::{Entity as EcsEntity, Join, LazyUpdate, LendJoin, WorldExt};
 use std::sync::Arc;
 use treeculler::{BVol, BoundingSphere};
 use vek::*;

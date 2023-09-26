@@ -42,7 +42,7 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
-use specs::{join::Join, Builder, Entity as EcsEntity, Entity, WorldExt};
+use specs::{Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt};
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 use tracing::{debug, error, warn};
 use vek::{Vec2, Vec3};

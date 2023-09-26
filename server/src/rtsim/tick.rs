@@ -19,7 +19,7 @@ use rtsim::data::{
     npc::{Profession, SimulationMode},
     Npc, Sites,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
 use tracing::error;
 use world::site::settlement::trader_loadout;

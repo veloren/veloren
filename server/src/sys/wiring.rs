@@ -8,8 +8,8 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_state::BlockChange;
 use hashbrown::HashMap;
 use specs::{
-    join::Join, shred::ResourceId, Entities, Entity, Read, ReadStorage, SystemData, World, Write,
-    WriteStorage,
+    shred::ResourceId, Entities, Entity, Join, LendJoin, Read, ReadStorage, SystemData, World,
+    Write, WriteStorage,
 };
 
 #[derive(SystemData)]
@@ -106,7 +106,7 @@ impl<'a> System<'a> for Sys {
             (&mut light_emitters).maybe(),
             read_data.pos.maybe(),
         )
-            .join()
+            .lend_join()
             .for_each(
                 |(entity, wiring_element, physics_state, mut light_emitter, pos)| {
                     wiring_element

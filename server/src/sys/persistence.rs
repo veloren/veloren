@@ -8,7 +8,7 @@ use common::{
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Join, ReadStorage, Write, WriteExpect};
+use specs::{Join, LendJoin, ReadStorage, Write, WriteExpect};
 use tracing::error;
 
 #[derive(Default)]

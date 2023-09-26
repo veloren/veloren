@@ -130,7 +130,7 @@ use conrod_core::{
 use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
 use rand::Rng;
-use specs::{Entity as EcsEntity, Join, WorldExt};
+use specs::{Entity as EcsEntity, Join, LendJoin, WorldExt};
 use std::{
     borrow::Cow,
     cmp::Ordering,

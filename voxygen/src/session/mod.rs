@@ -7,7 +7,7 @@ use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Dur
 #[cfg(not(target_os = "macos"))]
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
-use specs::{Join, WorldExt};
+use specs::{Join, LendJoin, WorldExt};
 use tracing::{error, info};
 use vek::*;
 
