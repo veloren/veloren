@@ -21,6 +21,7 @@ use common::comp;
 use common_base::span;
 use i18n::LocalizationHandle;
 use scene::Scene;
+use server::ServerInitStage;
 use std::sync::Arc;
 use tokio::runtime;
 use tracing::error;
@@ -29,6 +30,7 @@ use ui::{Event as MainMenuEvent, MainMenuUi};
 pub enum DetailedInitializationStage {
     // TODO: Map generation and server startup progress
     Singleplayer,
+    SingleplayerServer(ServerInitStage),
     StartingMultiplayer,
     Client(ClientInitStage),
     CreatingRenderPipeline(usize, usize),
@@ -106,6 +108,12 @@ impl PlayState for MainMenuState {
         #[cfg(feature = "singleplayer")]
         {
             if let Some(singleplayer) = global_state.singleplayer.as_running() {
+                if let Ok(stage_update) = singleplayer.init_stage_receiver.try_recv() {
+                    self.main_menu_ui.update_stage(
+                        DetailedInitializationStage::SingleplayerServer(stage_update),
+                    );
+                }
+
                 match singleplayer.receiver.try_recv() {
                     Ok(Ok(())) => {
                         // Attempt login after the server is finished initializing

@@ -1,4 +1,7 @@
-use std::ops::{Add, Mul, Sub};
+use std::{
+    ops::{Add, Mul, Sub},
+    sync::Arc,
+};
 use vek::*;
 use veloren_world::{sim::WorldOpts, util::Sampler, World};
 
@@ -14,6 +17,7 @@ fn main() {
             ..WorldOpts::default()
         },
         &threadpool,
+        Arc::new(|_| {}),
     );
 
     let index = index.as_index_ref();

@@ -2,7 +2,7 @@ use common::clock::Clock;
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
 use server::{
     persistence::{DatabaseSettings, SqlLogMode},
-    Error as ServerError, Event, Input, Server,
+    Error as ServerError, Event, Input, Server, ServerInitStage,
 };
 use std::{
     sync::{
@@ -26,6 +26,7 @@ pub struct Singleplayer {
     _server_thread: JoinHandle<()>,
     stop_server_s: Sender<()>,
     pub receiver: Receiver<Result<(), ServerError>>,
+    pub init_stage_receiver: Receiver<ServerInitStage>,
     // Wether the server is stopped or not
     paused: Arc<AtomicBool>,
 }
@@ -89,6 +90,8 @@ impl SingleplayerState {
 
             let (stop_server_s, stop_server_r) = unbounded();
 
+            let (server_stage_tx, server_stage_rx) = unbounded();
+
             // Create server
 
             // Relative to data_dir
@@ -119,6 +122,7 @@ impl SingleplayerState {
                         editable_settings,
                         database_settings,
                         &server_data_dir,
+                        Some(server_stage_tx),
                         runtime,
                     ) {
                         Ok(server) => (Some(server), Ok(())),
@@ -143,6 +147,7 @@ impl SingleplayerState {
             *self = SingleplayerState::Running(Singleplayer {
                 _server_thread: thread,
                 stop_server_s,
+                init_stage_receiver: server_stage_rx,
                 receiver: result_receiver,
                 paused,
             });

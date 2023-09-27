@@ -32,9 +32,11 @@ pub use crate::{
     layer::PathLocals,
 };
 pub use block::BlockGen;
+use civ::WorldCivStage;
 pub use column::ColumnSample;
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta};
 pub use index::{IndexOwned, IndexRef};
+use sim::WorldSimStage;
 
 use crate::{
     column::ColumnGen,
@@ -62,7 +64,7 @@ use enum_map::EnumMap;
 use rand::{prelude::*, Rng};
 use rand_chacha::ChaCha8Rng;
 use serde::Deserialize;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 use vek::*;
 
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
@@ -83,6 +85,13 @@ pub fn init() { lazy_static::initialize(&LIB); }
 #[derive(Debug)]
 pub enum Error {
     Other(String),
+}
+
+pub enum WorldGenerateStage {
+    WorldSimGenerate(WorldSimStage),
+    WorldCivGenerate(WorldCivStage),
+    EconomySimulation,
+    SpotGeneration,
 }
 
 pub struct World {
@@ -110,6 +119,7 @@ impl World {
         seed: u32,
         opts: sim::WorldOpts,
         threadpool: &rayon::ThreadPool,
+        report_stage: Arc<dyn Fn(WorldGenerateStage) + Send + Sync>,
     ) -> (Self, IndexOwned) {
         prof_span!("World::generate");
         // NOTE: Generating index first in order to quickly fail if the color manifest
@@ -117,12 +127,26 @@ impl World {
         threadpool.install(|| {
             let mut index = Index::new(seed);
 
-            let mut sim = sim::WorldSim::generate(seed, opts, threadpool);
+            let sim_stage_tx = Arc::clone(&report_stage);
+            let mut sim = sim::WorldSim::generate(
+                seed,
+                opts,
+                threadpool,
+                Arc::new(move |stage| sim_stage_tx(WorldGenerateStage::WorldSimGenerate(stage))),
+            );
 
-            let civs = civ::Civs::generate(seed, &mut sim, &mut index);
+            let civ_stage_tx = Arc::clone(&report_stage);
+            let civs = civ::Civs::generate(
+                seed,
+                &mut sim,
+                &mut index,
+                Arc::new(move |stage| civ_stage_tx(WorldGenerateStage::WorldCivGenerate(stage))),
+            );
 
+            report_stage(WorldGenerateStage::EconomySimulation);
             sim2::simulate(&mut index, &mut sim);
 
+            report_stage(WorldGenerateStage::SpotGeneration);
             Spot::generate(&mut sim);
 
             (Self { sim, civs }, IndexOwned::new(index))

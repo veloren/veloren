@@ -27,6 +27,7 @@ use core::{fmt, hash::BuildHasherDefault, ops::Range};
 use fxhash::FxHasher64;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
+use std::sync::Arc;
 use tracing::{debug, info, warn};
 use vek::*;
 
@@ -223,8 +224,20 @@ impl<'a, R: Rng> GenCtx<'a, R> {
     }
 }
 
+pub enum WorldCivStage {
+    /// Civilization creation, how many out of how many civilizations have been
+    /// generated yet
+    CivCreation(u32, u32),
+    SiteGeneration,
+}
+
 impl Civs {
-    pub fn generate(seed: u32, sim: &mut WorldSim, index: &mut Index) -> Self {
+    pub fn generate(
+        seed: u32,
+        sim: &mut WorldSim,
+        index: &mut Index,
+        report_stage: Arc<dyn Fn(WorldCivStage)>,
+    ) -> Self {
         prof_span!("Civs::generate");
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
@@ -247,16 +260,18 @@ impl Civs {
 
         info!("starting civilisation creation");
         prof_span!(guard, "create civs");
-        for _ in 0..initial_civ_count {
+        for i in 0..initial_civ_count {
             prof_span!("create civ");
             debug!("Creating civilisation...");
             if this.birth_civ(&mut ctx.reseed()).is_none() {
                 warn!("Failed to find starting site for civilisation.");
             }
+            report_stage(WorldCivStage::CivCreation(i, initial_civ_count));
         }
         drop(guard);
         info!(?initial_civ_count, "all civilisations created");
 
+        report_stage(WorldCivStage::SiteGeneration);
         prof_span!(guard, "find locations and establish sites");
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {

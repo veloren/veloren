@@ -16,6 +16,7 @@ use i18n::Localization;
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
 use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
+use server::{ServerInitStage, WorldCivStage, WorldGenerateStage, WorldSimStage};
 
 struct LoadingAnimation {
     speed_factor: f32,
@@ -140,6 +141,43 @@ impl Screen {
                     let stage_message = match init_stage {
                         DetailedInitializationStage::Singleplayer => {
                             i18n.get_msg("hud-init-stage-singleplayer")
+                        },
+                        DetailedInitializationStage::SingleplayerServer(server_stage) => {
+                            match server_stage {
+                                ServerInitStage::DbMigrations => {
+                                    i18n.get_msg("hud-init-stage-server-db-migrations")
+                                },
+                                ServerInitStage::DbVacuum => {
+                                    i18n.get_msg("hud-init-stage-server-db-vacuum")
+                                },
+                                ServerInitStage::WorldGen(worldgen_stage) => match worldgen_stage {
+                                    WorldGenerateStage::WorldSimGenerate(worldsim_stage) => {
+                                        match worldsim_stage {
+                                            WorldSimStage::Erosion(done) => i18n
+                                                .get_msg_ctx(
+                                                    "hud-init-stage-server-worldsim-erosion",
+                                                    &i18n::fluent_args! { "percentage" => format!("{done:.0}") }
+                                                ),
+                                        }
+                                    },
+                                    WorldGenerateStage::WorldCivGenerate(worldciv_stage) => {
+                                        match worldciv_stage {
+                                            WorldCivStage::CivCreation(generated, total) => i18n
+                                                .get_msg_ctx(
+                                                    "hud-init-stage-server-worldciv-civcreate",
+                                                    &i18n::fluent_args! {
+                                                        "generated" => generated.to_string(),
+                                                        "total" => total.to_string(),
+                                                    }
+                                                ),
+                                            WorldCivStage::SiteGeneration => i18n.get_msg("hud-init-stage-server-worldciv-site"),
+                                        }
+                                    },
+                                    WorldGenerateStage::EconomySimulation => i18n.get_msg("hud-init-stage-server-economysim"),
+                                    WorldGenerateStage::SpotGeneration => i18n.get_msg("hud-init-stage-server-spotgen"),
+                                },
+                                ServerInitStage::StartingSystems => i18n.get_msg("hud-init-stage-server-starting"),
+                            }
                         },
                         DetailedInitializationStage::StartingMultiplayer => {
                             i18n.get_msg("hud-init-stage-multiplayer")

@@ -2,6 +2,7 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{prelude::*, SeekFrom},
+    sync::Arc,
 };
 type Result = std::io::Result<()>;
 
@@ -32,6 +33,7 @@ fn main() -> Result {
             calendar: None,
         },
         &pool,
+        Arc::new(|_| {}),
     );
     println!("Loaded world");
     let export_path = "dungeon.vox";

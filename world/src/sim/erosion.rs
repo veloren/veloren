@@ -19,6 +19,7 @@ use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
     f32, fmt, mem,
+    rc::Rc,
     time::Instant,
     u32,
 };
@@ -2540,6 +2541,7 @@ pub fn do_erosion(
     k_d_scale: f64,
     k_da_scale: impl Fn(f64) -> f64,
     threadpool: &rayon::ThreadPool,
+    report_progress: Rc<dyn Fn(f64)>,
 ) -> (Box<[Alt]>, Box<[Alt]> /* , Box<[Alt]> */) {
     debug!("Initializing erosion arrays...");
     let oldh_ = (0..map_size_lg.chunks_len())
@@ -2644,6 +2646,7 @@ pub fn do_erosion(
         // Print out the percentage complete. Do this at most 20 times.
         if i % std::cmp::max(n_steps / 20, 1) == 0 {
             let pct = (i as f64 / n_steps as f64) * 100.0;
+            report_progress(pct);
             info!("{:.2}% complete", pct);
         }
 
