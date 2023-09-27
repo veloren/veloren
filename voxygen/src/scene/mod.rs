@@ -533,6 +533,31 @@ impl Scene {
                 .get(scene_data.viewpoint_entity)
                 .map_or(Quaternion::identity(), |ori| ori.to_quat());
 
+            let viewpoint_look_ori = ecs
+                .read_storage::<comp::CharacterActivity>()
+                .get(scene_data.viewpoint_entity)
+                .and_then(|activity| activity.look_dir)
+                .map(|dir| {
+                    let d = dir.to_vec();
+
+                    let pitch = (-d.z).asin();
+                    let yaw = d.x.atan2(d.y);
+
+                    Vec3::new(yaw, pitch, 0.0)
+                })
+                .unwrap_or_else(|| {
+                    let q = viewpoint_ori;
+                    let sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
+                    let cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+                    let pitch = sinr_cosp.atan2(cosr_cosp);
+
+                    let siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+                    let cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+                    let yaw = siny_cosp.atan2(cosy_cosp);
+
+                    Vec3::new(-yaw, -pitch, 0.0)
+                });
+
             let viewpoint_scale = ecs
                 .read_storage::<comp::Scale>()
                 .get(scene_data.viewpoint_entity)
@@ -558,24 +583,7 @@ impl Scene {
                     .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
             } else {
                 // Otherwise set the cameras rotation to the viewpoints
-                let q = viewpoint_ori;
-                let sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
-                let cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
-                let roll = sinr_cosp.atan2(cosr_cosp);
-
-                let sinp = 2.0 * (q.w * q.y - q.z * q.x);
-                let pitch = if sinp.abs() >= 1.0 {
-                    std::f32::consts::FRAC_PI_2.copysign(sinp)
-                } else {
-                    sinp.asin()
-                };
-
-                let siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-                let cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-                let yaw = siny_cosp.atan2(cosy_cosp);
-
-                self.camera
-                    .set_orientation_instant(Vec3::new(-yaw, pitch, roll));
+                self.camera.set_orientation(viewpoint_look_ori);
             }
 
             let viewpoint_offset = if is_humanoid {
