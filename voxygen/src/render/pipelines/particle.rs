@@ -109,7 +109,7 @@ impl ParticleMode {
 pub struct Instance {
     // created_at time, so we can calculate time relativity, needed for relative animation.
     // can save 32 bits per instance, for particles that are not relatively animated.
-    inst_time: f32,
+    inst_time: [f32; 3],
 
     // The lifespan in seconds of the particle
     inst_lifespan: f32,
@@ -147,7 +147,11 @@ impl Instance {
     ) -> Self {
         use rand::Rng;
         Self {
-            inst_time: inst_time as f32,
+            inst_time: [
+                (inst_time % super::TIME_PRECISION) as f32,
+                (inst_time / super::TIME_PRECISION).floor() as f32,
+                inst_time as f32,
+            ],
             inst_lifespan: lifespan,
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
@@ -165,7 +169,11 @@ impl Instance {
     ) -> Self {
         use rand::Rng;
         Self {
-            inst_time: inst_time as f32,
+            inst_time: [
+                (inst_time % super::TIME_PRECISION) as f32,
+                (inst_time / super::TIME_PRECISION).floor() as f32,
+                inst_time as f32,
+            ],
             inst_lifespan: lifespan,
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
@@ -175,7 +183,7 @@ impl Instance {
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![2 => Float32x3, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Instance,

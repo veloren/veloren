@@ -54,13 +54,16 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <light.glsl>
 #include <lod.glsl>
 
-void wave_dx(vec4 posx, vec4 posy, vec2 dir, float speed, float frequency, float timeshift, out vec4 wave, out vec4 dx) {
+void wave_dx(vec2 pos, vec2 dir, float speed, float frequency, float factor, vec4 accumx, vec4 accumy, out vec4 wave, out vec4 dx) {
+    vec2 v = floor(f_vel);
+    float ff = frequency * factor;
     vec4 x = vec4(
-        dot(dir, vec2(posx.x, posy.x)),
-        dot(dir, vec2(posx.y, posy.y)),
-        dot(dir, vec2(posx.z, posy.z)),
-        dot(dir, vec2(posx.w, posy.w))
-    ) * frequency + timeshift * speed;
+      tick_loop(2.0 * PI, speed - ff * (dir.x * v.x + dir.y * v.y), frequency * (dir.x * (factor * pos.x + accumx.x) + dir.y * (factor * pos.y + accumy.x))),
+      tick_loop(2.0 * PI, speed - ff * (dir.x * (v.x + 1.0) + dir.y * v.y), frequency * (dir.x * (factor * pos.x + accumx.y) + dir.y * (factor * pos.y + accumy.y))),
+      tick_loop(2.0 * PI, speed - ff * (dir.x * v.x + dir.y * (v.y + 1.0)), frequency * (dir.x * (factor * pos.x + accumx.z) + dir.y * (factor * pos.y + accumy.z))),
+      tick_loop(2.0 * PI, speed - ff * (dir.x * (v.x + 1.0) + dir.y * (v.y + 1.0)), frequency * (dir.x * (factor * pos.x + accumx.w) + dir.y * (factor * pos.y + accumy.w)))
+    );
+
     wave = sin(x) + 0.5;
     wave *= wave;
     dx = -wave * cos(x);
@@ -70,7 +73,7 @@ void wave_dx(vec4 posx, vec4 posy, vec2 dir, float speed, float frequency, float
 // Modified to allow calculating the wave function 4 times at once using different positions (used for intepolation
 // for moving water). The general idea is to sample the wave function at different positions, where those positions
 // depend on increments of the velocity, and then interpolate between those velocities to get a smooth water velocity.
-vec4 wave_height(vec4 posx, vec4 posy) {
+vec4 wave_height(vec2 pos) {
     float iter = 0.0;
     float phase = 4.0;
     float weight = 1.5;
@@ -79,27 +82,28 @@ vec4 wave_height(vec4 posx, vec4 posy) {
     const float speed_per_iter = 0.1;
     #if (FLUID_MODE == FLUID_MODE_HIGH)
         float speed = 1.0;
-        posx *= 0.2;
-        posy *= 0.2;
+        float factor = 0.2;
         const float drag_factor = 0.035;
         const int iters = 21;
         const float scale = 15.0;
     #else
         float speed = 2.0;
-        posx *= 0.3;
-        posy *= 0.3;
+        float factor = 0.3;
         const float drag_factor = 0.04;
         const int iters = 11;
         const float scale = 3.0;
     #endif
     const float iter_shift = (3.14159 * 2.0) / 7.3;
 
+    vec4 accumx = vec4(0);
+    vec4 accumy = vec4(0);
+
     for(int i = 0; i < iters; i ++) {
         vec2 p = vec2(sin(iter), cos(iter));
         vec4 wave, dx;
-        wave_dx(posx, posy, p, speed, phase, tick.x, wave, dx);
-        posx += p.x * dx * weight * drag_factor;
-        posy += p.y * dx * weight * drag_factor;
+        wave_dx(pos, p, speed, phase, factor, accumx, accumy, wave, dx);
+        accumx += p.x * dx * weight * drag_factor;
+        accumy += p.y * dx * weight * drag_factor;
         w += wave * weight;
         iter += iter_shift * 1.5;
         ws += weight;
@@ -111,10 +115,7 @@ vec4 wave_height(vec4 posx, vec4 posy) {
 }
 
 float wave_height_vel(vec2 pos) {
-    vec4 heights = wave_height(
-        pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
-        pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy
-    );
+    vec4 heights = wave_height(pos);
     return mix(
         mix(heights.x, heights.y, fract(f_vel.x + 1.0)),
         mix(heights.z, heights.w, fract(f_vel.x + 1.0)),

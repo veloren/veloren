@@ -39,4 +39,24 @@ mat4 threshold_matrix = mat4(
 float distance_divider = 2;
 float shadow_dithering = 0.5;
 
+float tick_loop_time = 300000.0;
+
+// Get a scaled time with an offset that loops at a period.
+float tick_loop(float period, float scale, float offset) {
+    float loop = tick_loop_time * scale;
+    float rem = mod(loop, period);
+    float rest = rem * tick.y;
+
+    return mod(rest + tick.x * scale + offset, period);
+}
+
+float tick_loop(float period) {
+    return tick_loop(period, 1.0, 0.0);
+}
+
+// Only works if t happened within tick_loop_time
+float time_since(float t) {
+    return tick.x > t ? (tick_loop_time - t + tick.x) : (tick.x - t); 
+}
+
 #endif

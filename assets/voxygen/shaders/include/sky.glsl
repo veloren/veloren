@@ -17,7 +17,7 @@ struct DirectionalLight {
     // float brightness;
 };
 
-const float PI = 3.141592;
+const float PI = 3.141592653;
 
 const vec3 SKY_DAWN_TOP = vec3(0.10, 0.1, 0.10);
 const vec3 SKY_DAWN_MID = vec3(1.2, 0.3, 0.2);
@@ -236,7 +236,7 @@ const float LIGHTNING_HEIGHT = 25.0;
 const float MAX_LIGHTNING_PERIOD = 5.0;
 
 float lightning_intensity() {
-    float time_since_lightning = tick.x - last_lightning.w;
+    float time_since_lightning = time_since(last_lightning.w);
     return
         // Strength
         1000000
@@ -247,7 +247,7 @@ float lightning_intensity() {
 }
 
 vec3 lightning_at(vec3 wpos) {
-    float time_since_lightning = tick.x - last_lightning.w;
+    float time_since_lightning = time_since(last_lightning.w);
     if (time_since_lightning < MAX_LIGHTNING_PERIOD) {
         vec3 diff = wpos + focus_off.xyz - (last_lightning.xyz + vec3(0, 0, LIGHTNING_HEIGHT));
         float dist = length(diff);

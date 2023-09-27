@@ -52,22 +52,24 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <light.glsl>
 #include <lod.glsl>
 
-vec4 water_col(vec4 posx, vec4 posy) {
-    posx = (posx + focus_off.x) * 0.1;
-    posy = (posy + focus_off.y) * 0.1;
+vec4 water_col(vec2 pos) {
+    pos = pos + focus_off.xy;
+    vec2 v = floor(f_vel);
+    float x0 = tick_loop(1, -v.x * 0.1, pos.x * 0.1);
+    float x1 = tick_loop(1, -(v.x + 1) * 0.1, pos.x * 0.1);
+    float y0 = tick_loop(1, -v.y * 0.1, pos.y * 0.1);
+    float y1 = tick_loop(1, -(v.y + 1) * 0.1, pos.y * 0.1);
+    
     return 0.5 + (vec4(
-        textureLod(sampler2D(t_noise, s_noise), vec2(posx.x, posy.x), 0).x,
-        textureLod(sampler2D(t_noise, s_noise), vec2(posx.y, posy.y), 0).x,
-        textureLod(sampler2D(t_noise, s_noise), vec2(posx.z, posy.z), 0).x,
-        textureLod(sampler2D(t_noise, s_noise), vec2(posx.w, posy.w), 0).x
+        textureLod(sampler2D(t_noise, s_noise), vec2(x0, y0), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(x1, y0), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(x0, y1), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(x1, y1), 0).x
     ) - 0.5) * 1.0;
 }
 
 float water_col_vel(vec2 pos){
-    vec4 cols = water_col(
-        pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
-        pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy
-    );
+    vec4 cols = water_col(pos);
     return mix(
         mix(cols.x, cols.y, fract(f_vel.x + 1.0)),
         mix(cols.z, cols.w, fract(f_vel.x + 1.0)),
@@ -183,7 +185,7 @@ void main() {
 
     // vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, /*vec3(0.0)*/k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, /*time_of_day.x*//*-cam_to_frag*/sun_view_dir/*view_dir*/, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, /*vec3(0.0)*/k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     emitted_light *= not_underground;
     reflected_light *= not_underground;

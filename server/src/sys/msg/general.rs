@@ -2,7 +2,7 @@ use crate::client::Client;
 use common::{
     comp::{ChatMode, ChatType, Content, Group, Player},
     event::{EventBus, ServerEvent},
-    resources::Time,
+    resources::TrueTime,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -81,7 +81,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        Read<'a, Time>,
+        Read<'a, TrueTime>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,

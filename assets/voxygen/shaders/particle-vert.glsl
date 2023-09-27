@@ -20,7 +20,7 @@
 layout(location = 0) in vec3 v_pos;
 // in uint v_col;
 layout(location = 1) in uint v_norm_ao;
-layout(location = 2) in float inst_time;
+layout(location = 2) in vec3 inst_time;
 layout(location = 3) in float inst_lifespan;
 layout(location = 4) in float inst_entropy;
 layout(location = 5) in int inst_mode;
@@ -94,7 +94,13 @@ struct Attr {
     mat4 rot;
 };
 
-float lifetime = tick.x - inst_time;
+float lifetime = max((tick.y - inst_time.y - 1.0), 0.0) * tick_loop_time + (tick.y > inst_time.y ? (tick_loop_time - inst_time.x + tick.x) : (tick.x - inst_time.x));
+
+float loop_inst_time(float period) {
+    float rest = mod(tick_loop_time, period) * inst_time.y;
+
+    return mod(rest + inst_time.x, period);
+}
 
 vec3 linear_motion(vec3 init_offs, vec3 vel) {
     return init_offs + vel * lifetime;
@@ -419,14 +425,14 @@ void main() {
             break;
         case LIFESTEAL_BEAM:
             f_reflect = 0.0;
-            float green_col = 0.8 + 0.8 * sin(tick.x * 5 + lifetime * 5);
-            float purple_col = 0.6 + 0.5 * sin(tick.x * 4 - lifetime * 4) - min(max(green_col - 1, 0), 0.3);
-            float red_col = 1.15 + 0.1 * sin(tick.x * 3 - lifetime * 3) - min(max(green_col - 1, 0), 0.3) - max(purple_col - 0.5, 0);
+            float green_col = 0.8 + 0.8 * sin(tick_loop(2 * PI, 5, lifetime * 5));
+            float purple_col = 0.6 + 0.5 * sin(tick_loop(2 * PI, 4, lifetime * 4)) - min(max(green_col - 1, 0), 0.3);
+            float red_col = 1.15 + 0.1 * sin(tick_loop(2 * PI, 3, lifetime * 3)) - min(max(green_col - 1, 0), 0.3) - max(purple_col - 0.5, 0);
             attr = Attr(
-                spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
-                vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
+                spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, loop_inst_time(PI * 2.0)),
+                vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick_loop(2 * PI, 10, lifetime * 4)))),
                 vec4(vec3(red_col + purple_col * 0.6, green_col + purple_col * 0.35, purple_col), 1),
-                spin_in_axis(inst_dir, tick.z)
+                spin_in_axis(inst_dir, tick_loop(2 * PI))
             );
             break;
         case ENERGY_NATURE:

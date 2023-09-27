@@ -60,6 +60,7 @@ pub enum ServerInit {
     GameSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
         time_of_day: TimeOfDay,
+        true_time: TrueTime,
         max_group_size: u32,
         client_timeout: Duration,
         world_map: crate::msg::world_msg::WorldMapMsg,

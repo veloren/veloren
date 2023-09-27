@@ -376,6 +376,7 @@ impl Client {
         let ServerInit::GameSync {
             entity_package,
             time_of_day,
+            true_time,
             max_group_size,
             client_timeout,
             world_map,
@@ -414,6 +415,7 @@ impl Client {
             state.ecs_mut().register::<comp::Last<CharacterState>>();
             let entity = state.ecs_mut().apply_entity_package(entity_package);
             *state.ecs_mut().write_resource() = time_of_day;
+            *state.ecs_mut().write_resource() = true_time;
             *state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
             state.ecs_mut().insert(material_stats);
             state.ecs_mut().insert(ability_map);
@@ -2276,12 +2278,13 @@ impl Client {
                 self.target_time_of_day = Some(time_of_day);
                 *self.state.ecs_mut().write_resource() = calendar;
                 *self.state.ecs_mut().write_resource() = new_true_time;
+                *self.state.ecs_mut().write_resource() = time_scale;
                 let mut time = self.state.ecs_mut().write_resource::<Time>();
                 // Avoid side-eye from Einstein
                 // If new time from server is at least 5 seconds ahead, replace client time.
                 // Otherwise try to slightly twean client time (by 1%) to keep it in line with
                 // server time.
-                let dt_adjustment = if new_time.0 > time.0 + 5.0 {
+                self.dt_adjustment = if new_time.0 > time.0 + 5.0 {
                     *time = new_time;
                     1.0
                 } else if new_time.0 > time.0 {
@@ -2289,7 +2292,6 @@ impl Client {
                 } else {
                     0.99
                 };
-                self.dt_adjustment = dt_adjustment * time_scale.0;
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
                 let uid = self.uid();
@@ -2693,6 +2695,8 @@ impl Client {
             && self.state.get_true_time() - self.last_server_pong
                 > self.client_timeout.as_secs() as f64
         {
+            dbg!(self.state.get_true_time());
+            dbg!(self.last_server_pong);
             return Err(Error::ServerTimeout);
         }
 

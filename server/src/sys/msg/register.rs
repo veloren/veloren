@@ -9,7 +9,7 @@ use common::{
     comp::{self, Admin, Player, Stats},
     event::{EventBus, ServerEvent},
     recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
-    resources::TimeOfDay,
+    resources::{TimeOfDay, TrueTime},
     shared_server_config::ServerConstants,
     uid::{IdMaps, Uid},
 };
@@ -48,6 +48,7 @@ pub struct ReadData<'a> {
     settings: ReadExpect<'a, Settings>,
     editable_settings: ReadExpect<'a, EditableSettings>,
     time_of_day: Read<'a, TimeOfDay>,
+    true_time: Read<'a, TrueTime>,
     material_stats: ReadExpect<'a, comp::item::MaterialStatManifest>,
     ability_map: ReadExpect<'a, comp::item::tool::AbilityMap>,
     map: ReadExpect<'a, WorldMapMsg>,
@@ -329,6 +330,7 @@ impl<'a> System<'a> for Sys {
                                 .trackers
                                 .create_entity_package_with_uid(entity, *uid, None, None, None),
                             time_of_day: *read_data.time_of_day,
+                            true_time: *read_data.true_time,
                             max_group_size: read_data.settings.max_player_group_size,
                             client_timeout: read_data.settings.client_timeout,
                             world_map: (*read_data.map).clone(),
