@@ -53,18 +53,16 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <lod.glsl>
 
 vec4 water_col(vec2 pos) {
-    pos = pos + focus_off.xy;
-    vec2 v = floor(f_vel);
-    float x0 = tick_loop(1, -v.x * 0.1, pos.x * 0.1);
-    float x1 = tick_loop(1, -(v.x + 1) * 0.1, pos.x * 0.1);
-    float y0 = tick_loop(1, -v.y * 0.1, pos.y * 0.1);
-    float y1 = tick_loop(1, -(v.y + 1) * 0.1, pos.y * 0.1);
+    pos += focus_off.xy;
+    pos *= 0.1;
+    vec2 v = floor(f_vel) * 0.1;
+    vec4 uv = tick_loop4(1, -v.xxyy - vec2(0, 0.1).xyxy, pos.xxyy);
     
     return 0.5 + (vec4(
-        textureLod(sampler2D(t_noise, s_noise), vec2(x0, y0), 0).x,
-        textureLod(sampler2D(t_noise, s_noise), vec2(x1, y0), 0).x,
-        textureLod(sampler2D(t_noise, s_noise), vec2(x0, y1), 0).x,
-        textureLod(sampler2D(t_noise, s_noise), vec2(x1, y1), 0).x
+        textureLod(sampler2D(t_noise, s_noise), uv.xz, 0).x,
+        textureLod(sampler2D(t_noise, s_noise), uv.yz, 0).x,
+        textureLod(sampler2D(t_noise, s_noise), uv.xw, 0).x,
+        textureLod(sampler2D(t_noise, s_noise), uv.yw, 0).x
     ) - 0.5) * 1.0;
 }
 

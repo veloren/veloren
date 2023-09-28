@@ -55,14 +55,14 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <lod.glsl>
 
 void wave_dx(vec2 pos, vec2 dir, float speed, float frequency, float factor, vec4 accumx, vec4 accumy, out vec4 wave, out vec4 dx) {
-    vec2 v = floor(f_vel);
     float ff = frequency * factor;
-    vec4 x = vec4(
-      tick_loop(2.0 * PI, speed - ff * (dir.x * v.x + dir.y * v.y), frequency * (dir.x * (factor * pos.x + accumx.x) + dir.y * (factor * pos.y + accumy.x))),
-      tick_loop(2.0 * PI, speed - ff * (dir.x * (v.x + 1.0) + dir.y * v.y), frequency * (dir.x * (factor * pos.x + accumx.y) + dir.y * (factor * pos.y + accumy.y))),
-      tick_loop(2.0 * PI, speed - ff * (dir.x * v.x + dir.y * (v.y + 1.0)), frequency * (dir.x * (factor * pos.x + accumx.z) + dir.y * (factor * pos.y + accumy.z))),
-      tick_loop(2.0 * PI, speed - ff * (dir.x * (v.x + 1.0) + dir.y * (v.y + 1.0)), frequency * (dir.x * (factor * pos.x + accumx.w) + dir.y * (factor * pos.y + accumy.w)))
-    );
+
+    vec2 v = floor(f_vel);
+    vec4 kx = (v.x + vec2(0, 1)).xyxy;
+    vec4 ky = (v.y + vec2(0, 1)).xxyy;
+    vec4 p = speed - ff * (dir.x * kx + dir.y * ky);
+    vec4 q = frequency * ((dir.x * factor * pos.x + accumx) + dir.y * (factor * pos.y + accumy));
+    vec4 x = tick_loop4(2 * PI, p, q);
 
     wave = sin(x) + 0.5;
     wave *= wave;
@@ -82,13 +82,13 @@ vec4 wave_height(vec2 pos) {
     const float speed_per_iter = 0.1;
     #if (FLUID_MODE == FLUID_MODE_HIGH)
         float speed = 1.0;
-        float factor = 0.2;
+        const float factor = 0.2;
         const float drag_factor = 0.035;
         const int iters = 21;
         const float scale = 15.0;
     #else
         float speed = 2.0;
-        float factor = 0.3;
+        const float factor = 0.3;
         const float drag_factor = 0.04;
         const int iters = 11;
         const float scale = 3.0;
