@@ -56,7 +56,7 @@ float tick_loop(float period) {
 
 // Only works if t happened within tick_loop_time
 float time_since(float t) {
-    return tick.x > t ? (tick_loop_time - t + tick.x) : (tick.x - t); 
+    return tick.x < t ? (tick_loop_time - t + tick.x) : (tick.x - t); 
 }
 
 #endif
