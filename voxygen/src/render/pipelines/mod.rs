@@ -127,7 +127,12 @@ impl Globals {
             focus_off: Vec4::from(focus_pos).map(|e: f32| e.trunc()).into_array(),
             focus_pos: Vec4::from(focus_pos).map(|e: f32| e.fract()).into_array(),
             view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
-            time_of_day: [time_of_day as f32; 4],
+            time_of_day: [
+                (time_of_day % (3600.0 * 24.0)) as f32,
+                (time_of_day / (3600.0 * 24.0) % (300_000.0)) as f32,
+                0.0,
+                0.0,
+            ],
             sun_dir: Vec4::from_direction(Self::get_sun_dir(time_of_day)).into_array(),
             moon_dir: Vec4::from_direction(Self::get_moon_dir(time_of_day)).into_array(),
             tick: [tick as f32; 4],
@@ -176,8 +181,8 @@ impl Globals {
     }
 
     fn get_angle_rad(time_of_day: f64) -> f32 {
-        const TIME_FACTOR: f32 = (std::f32::consts::PI * 2.0) / (3600.0 * 24.0);
-        time_of_day as f32 * TIME_FACTOR
+        const TIME_FACTOR: f64 = (std::f64::consts::PI * 2.0) / (3600.0 * 24.0);
+        ((time_of_day * TIME_FACTOR) % (std::f64::consts::PI * 2.0)) as f32
     }
 
     /// Computes the direction of light from the sun based on the time of day.

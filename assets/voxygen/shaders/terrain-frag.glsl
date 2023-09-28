@@ -387,7 +387,7 @@ void main() {
     vec3 emitted_light = vec3(1.0);
     vec3 reflected_light = vec3(1.0);
 
-    float sun_diffuse = get_sun_diffuse2(/*time_of_day.x, */sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    float sun_diffuse = get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
     max_light += sun_diffuse;
 
     // emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);

@@ -310,7 +310,7 @@ void main() {
         float dist = distance(wpos, cam_pos.xyz);
         vec3 dir = (wpos - cam_pos.xyz) / dist;
 
-        aa_color.rgb = get_cloud_color(aa_color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
+        aa_color.rgb = get_cloud_color(aa_color.rgb, dir, cam_pos.xyz, dist, 1.0);
     #endif
     */
 

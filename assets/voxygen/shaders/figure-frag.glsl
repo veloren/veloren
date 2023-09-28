@@ -288,8 +288,8 @@ void main() {
     /*
     if ((material & (1u << 1u)) > 0u && false) {
         vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
-        reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-        reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
+        reflect_color = get_sky_color(reflect_ray_dir, f_pos, vec3(-100000), 0.125, true);
+        reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, 100000.0, 0.25);
         reflectance = 1.0;
     }
     */

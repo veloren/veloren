@@ -94,7 +94,7 @@ vec3 glow_light(vec3 pos) {
 float CLOUD_AVG_ALT = view_distance.z + (view_distance.w - view_distance.z) * 1.25;
 
 const float wind_speed = 0.25;
-vec2 wind_offset = vec2(time_of_day.x * wind_speed);
+vec2 wind_offset = vec2(time_of_day.y * wind_speed * (3600.0 * 24.0));
 
 float cloud_scale = view_distance.z / 150.0;
 
@@ -140,7 +140,7 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
     #endif
 }
 
-float magnetosphere = sin(time_of_day.x / (3600 * 24));
+float magnetosphere = sin(time_of_day.y);
 #if (CLOUD_MODE <= CLOUD_MODE_LOW)
     const vec3 magnetosphere_tint = vec3(1);
 #else
@@ -156,7 +156,7 @@ float magnetosphere = sin(time_of_day.x / (3600 * 24));
 #if (CLOUD_MODE > CLOUD_MODE_NONE)
     float emission_strength = clamp((magnetosphere - 0.3) * 1.3, 0, 1) * max(-moon_dir.z, 0);
     #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
-        float emission_br = abs(pow(fract(time_of_day.x * 0.000005) * 2 - 1, 2));
+        float emission_br = abs(pow(fract(time_of_day.y * 0.5) * 2 - 1, 2));
     #else
         float emission_br = 0.5;
     #endif
@@ -489,7 +489,6 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
 
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
-
     float star_scale = 80.0;
 
     // Star positions
@@ -516,7 +515,7 @@ float is_star_at(vec3 dir) {
     return power * max(sun_dir.z, 0.1) / (1.0 + pow(dist * 750, 8));
 }
 
-vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
+vec3 get_sky_light(vec3 dir, bool with_stars) {
     // Add white dots for stars. Note these flicker and jump due to FXAA
     float star = 0.0;
     if (with_stars) {
@@ -580,15 +579,11 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
     return sky_color * magnetosphere_tint;
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex, bool fake_clouds, float sun_shade_frac) {
+vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex, bool fake_clouds, float sun_shade_frac) {
     // Sky color
-    /* vec3 sun_dir = get_sun_dir(time_of_day);
-    vec3 moon_dir = get_moon_dir(time_of_day); */
     vec3 sun_dir = sun_dir.xyz;
     vec3 moon_dir = moon_dir.xyz;
 
-    // sun_dir = sun_dir.z <= 0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : sun_dir;
-    // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
 
     // Sun
     const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 10.0;
@@ -660,10 +655,10 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     #else
         if (fake_clouds || medium.x == MEDIUM_WATER) {
     #endif
-        sky_color = get_sky_light(dir, time_of_day, !fake_clouds);
+        sky_color = get_sky_light(dir, !fake_clouds);
     } else {
         if (medium.x == MEDIUM_WATER) {
-            sky_color = get_sky_light(dir, time_of_day, true);
+            sky_color = get_sky_light(dir, true);
         } else {
             vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
             float star = is_star_at(star_dir);
@@ -674,12 +669,12 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     return sky_color + sun_light + moon_light;
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
-    return get_sky_color(dir, time_of_day, origin, f_pos, quality, with_features, refractionIndex, false, 1.0);
+vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
+    return get_sky_color(dir, origin, f_pos, quality, with_features, refractionIndex, false, 1.0);
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars) {
-    return get_sky_color(dir, time_of_day, origin, f_pos, quality, with_stars, 1.0, false, 1.0);
+vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_stars) {
+    return get_sky_color(dir, origin, f_pos, quality, with_stars, 1.0, false, 1.0);
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {

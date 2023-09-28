@@ -163,7 +163,7 @@ void main() {
 
     vec3 reflect_color = vec3(0.0);
     #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
-        reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+        reflect_color = get_sky_color(reflect_ray_dir, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
     #endif
 
     vec3 emitted_light, reflected_light;
@@ -183,7 +183,7 @@ void main() {
 
     // vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, /*time_of_day.x*//*-cam_to_frag*/sun_view_dir/*view_dir*/, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, /*vec3(0.0)*/k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, /*vec3(0.0)*/k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     emitted_light *= not_underground;
     reflected_light *= not_underground;

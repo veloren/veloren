@@ -275,7 +275,7 @@ void main() {
         /* reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1); */
         reflect_color = vec3(0);
     #else
-        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+        reflect_color = get_sky_color(ray_dir, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
     #endif
     // Sort of non-physical, but we try to balance the reflection intensity with the direct light from the sun,
     // resulting in decent reflection of the ambient environment even after the sun has gone down.
@@ -339,7 +339,7 @@ void main() {
     float passthrough = max(dot(cam_norm, -cam_to_frag), 0) * 0.75;
 
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, cam_norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, cam_norm, sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
     emitted_light *= not_underground;
     reflected_light *= not_underground;
 
