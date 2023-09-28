@@ -96,9 +96,11 @@ struct Attr {
 
 float lifetime = time_since(inst_time);
 
+// Retrieves inst_time, repeating over a period. This will be consistent
+// over a time overflow.
 float loop_inst_time(float period) {
     if (tick.x < inst_time) {
-        return mod(mod(tick_loop_time, period) + inst_time, period);
+        return mod(mod(tick_overflow, period) + inst_time, period);
     } else {
         return mod(inst_time, period);
     }

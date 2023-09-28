@@ -91,7 +91,7 @@ pub struct Shadow {
     pos_radius: [f32; 4],
 }
 
-pub const TIME_PRECISION: f64 = 300000.0;
+pub const TIME_OVERFLOW: f64 = 300000.0;
 
 impl Globals {
     /// Create global consts from the provided parameters.
@@ -131,15 +131,15 @@ impl Globals {
             view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
             time_of_day: [
                 (time_of_day % (3600.0 * 24.0)) as f32,
-                (time_of_day / (3600.0 * 24.0) % TIME_PRECISION) as f32,
+                (time_of_day / (3600.0 * 24.0) % TIME_OVERFLOW) as f32,
                 0.0,
                 0.0,
             ],
             sun_dir: Vec4::from_direction(Self::get_sun_dir(time_of_day)).into_array(),
             moon_dir: Vec4::from_direction(Self::get_moon_dir(time_of_day)).into_array(),
             tick: [
-                (tick % TIME_PRECISION) as f32,
-                (tick / TIME_PRECISION).floor() as f32,
+                (tick % TIME_OVERFLOW) as f32,
+                (tick / TIME_OVERFLOW).floor() as f32,
                 tick as f32,
                 0.0,
             ],
@@ -177,7 +177,7 @@ impl Globals {
             gamma_exposure: [gamma, exposure, 0.0, 0.0],
             last_lightning: last_lightning
                 .0
-                .with_w((last_lightning.1 % TIME_PRECISION) as f32)
+                .with_w((last_lightning.1 % TIME_OVERFLOW) as f32)
                 .into_array(),
             wind_vel: wind_vel.into_array(),
             ambiance: ambiance.clamped(0.0, 1.0),
