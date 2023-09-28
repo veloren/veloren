@@ -196,7 +196,7 @@ fn invalid_command_message(client: &Client, user_entered_invalid_command: String
 }
 
 fn run_client_command(
-    client: &mut Client,
+    client: &Client,
     global_state: &mut GlobalState,
     command: ClientChatCommand,
     args: Vec<String>,
@@ -407,7 +407,7 @@ impl TabComplete for ArgumentSpec {
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
-            ArgumentSpec::Boolean(_, part, _) => vec!["true", "false"]
+            ArgumentSpec::Boolean(_, part, _) => ["true", "false"]
                 .iter()
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())

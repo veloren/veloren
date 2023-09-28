@@ -196,7 +196,7 @@ impl<'a> InventoryScroller<'a> {
         .set(self.bg_ids.bg_frame, ui);
     }
 
-    fn title(&mut self, state: &mut ConrodState<'_, InventoryScrollerState>, ui: &mut UiCell<'_>) {
+    fn title(&mut self, state: &ConrodState<'_, InventoryScrollerState>, ui: &mut UiCell<'_>) {
         Text::new(
             &self
                 .localized_strings
@@ -371,7 +371,7 @@ impl<'a> InventoryScroller<'a> {
             });
         }
         for (pos, item) in items.into_iter() {
-            if self.details_mode && !self.is_us && matches!(item, None) {
+            if self.details_mode && !self.is_us && item.is_none() {
                 continue;
             }
             let (x, y) = if self.details_mode {
@@ -488,7 +488,7 @@ impl<'a> InventoryScroller<'a> {
 
     fn footer_metrics(
         &mut self,
-        state: &mut ConrodState<'_, InventoryScrollerState>,
+        state: &ConrodState<'_, InventoryScrollerState>,
         ui: &mut UiCell<'_>,
     ) {
         let space_used = self.inventory.populated_slots();

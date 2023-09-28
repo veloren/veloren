@@ -54,7 +54,7 @@ fn notify_agent_prices(
 
 /// Invoked when the trade UI is up, handling item changes, accepts, etc
 pub(super) fn handle_process_trade_action(
-    server: &mut Server,
+    server: &Server,
     entity: EcsEntity,
     trade_id: TradeId,
     action: TradeAction,
@@ -169,7 +169,7 @@ pub(super) fn handle_process_trade_action(
 /// longer exists or is awareof this cancellation through other means (e.g.
 /// client getting ExitInGameSuccess message knows that it should clear any
 /// trades).
-pub(crate) fn cancel_trades_for(state: &mut common_state::State, entity: EcsEntity) {
+pub(crate) fn cancel_trades_for(state: &common_state::State, entity: EcsEntity) {
     let ecs = state.ecs();
     if let Some(uid) = ecs.uid_from_entity(entity) {
         let mut trades = ecs.write_resource::<Trades>();

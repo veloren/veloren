@@ -300,7 +300,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
         let alignments = state.ecs().read_storage::<Alignment>();
         let uids = state.ecs().read_storage::<Uid>();
-        let mut outcomes = state.ecs().write_resource::<EventBus<Outcome>>();
+        let outcomes = state.ecs().write_resource::<EventBus<Outcome>>();
         let inventories = state.ecs().read_storage::<Inventory>();
 
         let destroyed_group = groups.get(entity);
@@ -384,7 +384,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     attacker_inventory,
                     &mut attacker_skill_set,
                     attacker_uid,
-                    &mut outcomes,
+                    &outcomes,
                 );
             }
         });
@@ -1186,8 +1186,8 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
     }
 }
 
-pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::AuraChange) {
-    let ecs = &server.state.ecs();
+pub fn handle_aura(server: &Server, entity: EcsEntity, aura_change: aura::AuraChange) {
+    let ecs = server.state.ecs();
     let mut auras_all = ecs.write_storage::<Auras>();
     if let Some(mut auras) = auras_all.get_mut(entity) {
         use aura::AuraChange;
@@ -1204,7 +1204,7 @@ pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::Au
     }
 }
 
-pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {
+pub fn handle_buff(server: &Server, entity: EcsEntity, buff_change: buff::BuffChange) {
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     let bodies = ecs.read_storage::<Body>();
@@ -1301,7 +1301,7 @@ fn handle_exp_gain(
     inventory: &Inventory,
     skill_set: &mut SkillSet,
     uid: &Uid,
-    outcomes: &mut EventBus<Outcome>,
+    outcomes: &EventBus<Outcome>,
 ) {
     use comp::inventory::{item::ItemKind, slot::EquipSlot};
 
@@ -1671,7 +1671,7 @@ pub fn handle_teleport_to_position(server: &mut Server, entity: EcsEntity, posit
     }
 }
 
-pub fn handle_start_teleporting(server: &mut Server, entity: EcsEntity, portal: EcsEntity) {
+pub fn handle_start_teleporting(server: &Server, entity: EcsEntity, portal: EcsEntity) {
     let ecs = server.state.ecs();
     let positions = ecs.read_storage::<comp::Pos>();
     let mut teleportings = ecs.write_storage::<comp::Teleporting>();

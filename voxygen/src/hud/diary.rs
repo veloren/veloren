@@ -2572,7 +2572,7 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         events: &mut Vec<Event>,
         diary_tooltip: &Tooltip,
-        state: &mut State<DiaryState>,
+        state: &State<DiaryState>,
     ) {
         for (i, icon) in icons.iter().enumerate() {
             match icon {
@@ -2824,7 +2824,7 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         events: &mut Vec<Event>,
         diary_tooltip: &Tooltip,
-        state: &mut State<DiaryState>,
+        state: &State<DiaryState>,
     ) {
         let locked = !self.skill_set.prerequisites_met(skill);
         let owned = self.skill_set.has_skill(skill);

@@ -22,7 +22,7 @@ pub struct Tui {
 
 impl Tui {
     pub fn new() -> (Self, async_channel::Receiver<Cmd>) {
-        let (mut commands_s, commands_r) = async_channel::unbounded();
+        let (commands_s, commands_r) = async_channel::unbounded();
 
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_millis(20));
@@ -36,7 +36,7 @@ impl Tui {
             )
             .unwrap();
             while let Ok(cmd) = readline.readline("\n\nbotclient> ") {
-                let keep_going = Self::process_command(&cmd, &mut commands_s);
+                let keep_going = Self::process_command(&cmd, &commands_s);
                 readline.add_history_entry(cmd).unwrap();
                 if !keep_going {
                     break;
@@ -47,7 +47,7 @@ impl Tui {
         (Self { _handle: handle }, commands_r)
     }
 
-    pub fn process_command(cmd: &str, command_s: &mut async_channel::Sender<Cmd>) -> bool {
+    pub fn process_command(cmd: &str, command_s: &async_channel::Sender<Cmd>) -> bool {
         let matches = Command::new("veloren-botclient")
             .version(common::util::DISPLAY_VERSION_LONG.as_str())
             .author("The veloren devs <https://gitlab.com/veloren/veloren>")

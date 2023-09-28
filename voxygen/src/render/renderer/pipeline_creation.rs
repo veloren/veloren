@@ -275,7 +275,7 @@ impl ShaderModules {
             })
             .unwrap();
 
-        let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+        let compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
         let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
         options.set_optimization_level(OptimizationLevel::Performance);
         options.set_forced_version_profile(430, shaderc::GlslProfile::Core);
@@ -306,13 +306,13 @@ impl ShaderModules {
             })
         });
 
-        let mut create_shader = |name, kind| {
+        let create_shader = |name, kind| {
             let glsl = &shaders
                 .get(name)
                 .unwrap_or_else(|| panic!("Can't retrieve shader: {}", name))
                 .0;
             let file_name = format!("{}.glsl", name);
-            create_shader_module(device, &mut compiler, glsl, kind, &file_name, &options)
+            create_shader_module(device, &compiler, glsl, kind, &file_name, &options)
         };
 
         let selected_fluid_shader = ["fluid-frag.", match pipeline_modes.fluid {
@@ -388,7 +388,7 @@ impl ShaderModules {
 
 fn create_shader_module(
     device: &wgpu::Device,
-    compiler: &mut shaderc::Compiler,
+    compiler: &shaderc::Compiler,
     source: &str,
     kind: shaderc::ShaderKind,
     file_name: &str,

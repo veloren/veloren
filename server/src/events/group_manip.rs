@@ -18,7 +18,7 @@ use specs::{
 pub fn can_invite(
     state: &State,
     clients: &ReadStorage<'_, Client>,
-    pending_invites: &mut WriteStorage<'_, PendingInvites>,
+    pending_invites: &WriteStorage<'_, PendingInvites>,
     max_group_size: u32,
     inviter: Entity,
     invitee: Entity,

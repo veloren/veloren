@@ -517,7 +517,7 @@ pub fn maintain_egui_inner(
 }
 
 fn selected_entity_window(
-    platform: &mut Platform,
+    platform: &Platform,
     ecs: &World,
     selected_entity_info: &mut SelectedEntityInfo,
     egui_actions: &mut EguiActions,

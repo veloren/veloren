@@ -874,13 +874,13 @@ mod tests {
     #[test]
     fn parse_cmds() {
         let expected: Result<(String, Vec<String>), String> = Ok(("help".to_string(), vec![]));
-        assert_eq!(parse_cmd(r#"help"#), expected);
+        assert_eq!(parse_cmd(r"help"), expected);
 
         let expected: Result<(String, Vec<String>), String> = Ok(("say".to_string(), vec![
             "foo".to_string(),
             "bar".to_string(),
         ]));
-        assert_eq!(parse_cmd(r#"say foo bar"#), expected);
+        assert_eq!(parse_cmd(r"say foo bar"), expected);
         assert_eq!(parse_cmd(r#"say "foo" "bar""#), expected);
 
         let expected: Result<(String, Vec<String>), String> =

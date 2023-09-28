@@ -129,7 +129,7 @@ pub struct ArgvApp {
     pub command: Option<ArgvCommand>,
 }
 
-pub fn parse_command(input: &str, msg_s: &mut Sender<Message>) {
+pub fn parse_command(input: &str, msg_s: &Sender<Message>) {
     match TuiApp::try_parse_from(shell_words::split(input).unwrap_or_default()) {
         Ok(message) => {
             msg_s

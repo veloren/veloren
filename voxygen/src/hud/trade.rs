@@ -143,7 +143,7 @@ impl<'a> Trade<'a> {
 const MAX_TRADE_SLOTS: usize = 16;
 
 impl<'a> Trade<'a> {
-    fn background(&mut self, state: &mut ConrodState<'_, State>, ui: &mut UiCell<'_>) {
+    fn background(&mut self, state: &ConrodState<'_, State>, ui: &mut UiCell<'_>) {
         Image::new(self.imgs.inv_middle_bg_bag)
             .w_h(424.0, 482.0)
             .color(Some(UI_MAIN))
@@ -156,7 +156,7 @@ impl<'a> Trade<'a> {
             .set(state.ids.bg_frame, ui);
     }
 
-    fn title(&mut self, state: &mut ConrodState<'_, State>, ui: &mut UiCell<'_>) {
+    fn title(&mut self, state: &ConrodState<'_, State>, ui: &mut UiCell<'_>) {
         Text::new(&self.localized_strings.get_msg("hud-trade-trade_window"))
             .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
@@ -173,7 +173,7 @@ impl<'a> Trade<'a> {
 
     fn phase_indicator(
         &mut self,
-        state: &mut ConrodState<'_, State>,
+        state: &ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
     ) {
@@ -566,7 +566,7 @@ impl<'a> Trade<'a> {
 
     fn accept_decline_buttons(
         &mut self,
-        state: &mut ConrodState<'_, State>,
+        state: &ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
     ) -> Option<TradeEvent> {
@@ -632,7 +632,7 @@ impl<'a> Trade<'a> {
 
     fn input_item_amount(
         &mut self,
-        state: &mut ConrodState<'_, State>,
+        state: &ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
     ) -> Option<TradeEvent> {
@@ -760,7 +760,7 @@ impl<'a> Trade<'a> {
 
     fn close_button(
         &mut self,
-        state: &mut ConrodState<'_, State>,
+        state: &ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
     ) -> Option<TradeEvent> {
         if Button::image(self.imgs.close_btn)

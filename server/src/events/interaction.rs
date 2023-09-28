@@ -391,8 +391,8 @@ pub fn handle_mine_block(
     }
 }
 
-pub fn handle_sound(server: &mut Server, sound: &Sound) {
-    let ecs = &server.state.ecs();
+pub fn handle_sound(server: &Server, sound: &Sound) {
+    let ecs = server.state.ecs();
     let positions = &ecs.read_storage::<Pos>();
     let agents = &mut ecs.write_storage::<comp::Agent>();
 
@@ -459,7 +459,7 @@ pub fn handle_create_sprite(
     }
 }
 
-pub fn handle_tame_pet(server: &mut Server, pet_entity: EcsEntity, owner_entity: EcsEntity) {
+pub fn handle_tame_pet(server: &Server, pet_entity: EcsEntity, owner_entity: EcsEntity) {
     // TODO: Raise outcome to send to clients to play sound/render an indicator
     // showing taming success?
     tame_pet(server.state.ecs(), pet_entity, owner_entity);

@@ -298,7 +298,7 @@ impl GnarlingFortification {
                 wall_connections
                     .iter()
                     .copied()
-                    .zip(inner_tower_locs.into_iter()),
+                    .zip(inner_tower_locs),
             )
             .collect::<Vec<_>>();
 
@@ -454,7 +454,6 @@ impl Structure for GnarlingFortification {
                 })
                 .for_each(|(point, next_point)| {
                     // 2d world positions of each point in wall segment
-                    let point = point;
                     let start_wpos = point + self.origin;
                     let end_wpos = next_point + self.origin;
 
@@ -1829,7 +1828,7 @@ impl Structure for GnarlingFortification {
         }
         tunnels
             .into_iter()
-            .chain(rooms.into_iter())
+            .chain(rooms)
             .chain(core::iter::once(boss_room))
             .chain(core::iter::once(stump))
             .for_each(|prim| prim.fill(wood.clone()));
@@ -1839,7 +1838,7 @@ impl Structure for GnarlingFortification {
         let mut sprite_clear = Vec::new();
         tunnels_clear
             .into_iter()
-            .chain(rooms_clear.into_iter())
+            .chain(rooms_clear)
             .chain(core::iter::once(boss_room_clear))
             .for_each(|prim| {
                 sprite_clear.push(prim.translate(Vec3::new(0, 0, 1)).intersect(prim));

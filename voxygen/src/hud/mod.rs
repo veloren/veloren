@@ -516,19 +516,7 @@ impl BuffIconKind {
 
 impl PartialOrd for BuffIconKind {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match (self, other) {
-            (
-                BuffIconKind::Buff { kind, .. },
-                BuffIconKind::Buff {
-                    kind: other_kind, ..
-                },
-            ) => Some(kind.cmp(other_kind)),
-            (BuffIconKind::Buff { .. }, BuffIconKind::Stance(_)) => Some(Ordering::Greater),
-            (BuffIconKind::Stance(_), BuffIconKind::Buff { .. }) => Some(Ordering::Less),
-            (BuffIconKind::Stance(stance), BuffIconKind::Stance(stance_other)) => {
-                Some(stance.cmp(stance_other))
-            },
-        }
+        Some(self.cmp(other))
     }
 }
 
@@ -586,7 +574,7 @@ impl BuffIcon {
         buffs
             .iter_active()
             .filter_map(BuffIcon::from_buffs)
-            .chain(stance.and_then(BuffIcon::from_stance).into_iter())
+            .chain(stance.and_then(BuffIcon::from_stance))
             .collect::<Vec<_>>()
     }
 
@@ -1089,7 +1077,7 @@ impl Show {
             || !matches!(self.open_windows, Windows::None)
     }
 
-    fn toggle_windows(&mut self, global_state: &mut GlobalState) {
+    fn toggle_windows(&mut self, global_state: &GlobalState) {
         if self.any_window_requires_cursor() {
             self.bag = false;
             self.trade = false;
@@ -1146,7 +1134,7 @@ impl Show {
 
     /// If all of the menus are closed, adjusts coordinates of cursor to center
     /// of screen
-    fn toggle_cursor_on_menu_close(&self, global_state: &mut GlobalState, ui: &mut Ui) {
+    fn toggle_cursor_on_menu_close(&self, global_state: &GlobalState, ui: &mut Ui) {
         if !self.bag
             && !self.trade
             && !self.esc_menu

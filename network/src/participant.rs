@@ -864,7 +864,7 @@ mod tests {
     async fn mock_mpsc(
         cid: Cid,
         _runtime: &Arc<Runtime>,
-        create_channel: &mut mpsc::UnboundedSender<S2bCreateChannel>,
+        create_channel: &mpsc::UnboundedSender<S2bCreateChannel>,
     ) -> Protocols {
         let (s1, r1) = mpsc::channel(100);
         let (s2, r2) = mpsc::channel(100);
@@ -887,14 +887,14 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             mut b2a_event_r,
-            mut s2b_create_channel_s,
+            s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 
-        let _remote = runtime.block_on(mock_mpsc(0, &runtime, &mut s2b_create_channel_s));
+        let _remote = runtime.block_on(mock_mpsc(0, &runtime, &s2b_create_channel_s));
         std::thread::sleep(Duration::from_millis(50));
 
         let (s, r) = oneshot::channel();
@@ -933,14 +933,14 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             mut b2a_event_r,
-            mut s2b_create_channel_s,
+            s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 
-        let remote = runtime.block_on(mock_mpsc(0, &runtime, &mut s2b_create_channel_s));
+        let remote = runtime.block_on(mock_mpsc(0, &runtime, &s2b_create_channel_s));
         std::thread::sleep(Duration::from_millis(50));
 
         let (s, r) = oneshot::channel();
@@ -980,14 +980,14 @@ mod tests {
             a2b_open_stream_s,
             b2a_stream_opened_r,
             _b2a_event_r,
-            mut s2b_create_channel_s,
+            s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 
-        let remote = runtime.block_on(mock_mpsc(0, &runtime, &mut s2b_create_channel_s));
+        let remote = runtime.block_on(mock_mpsc(0, &runtime, &s2b_create_channel_s));
         std::thread::sleep(Duration::from_millis(50));
 
         // created stream
@@ -1036,14 +1036,14 @@ mod tests {
             a2b_open_stream_s,
             mut b2a_stream_opened_r,
             _b2a_event_r,
-            mut s2b_create_channel_s,
+            s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
             _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 
-        let remote = runtime.block_on(mock_mpsc(0, &runtime, &mut s2b_create_channel_s));
+        let remote = runtime.block_on(mock_mpsc(0, &runtime, &s2b_create_channel_s));
         std::thread::sleep(Duration::from_millis(50));
 
         // create stream

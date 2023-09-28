@@ -316,7 +316,7 @@ fn no_sudo(client: EcsEntity, target: EcsEntity) -> CmdResult<()> {
 /// with a higher role than their permanent role allowing it, and only permanent
 /// roles should be recorded in the settings files.
 fn verify_above_role(
-    server: &mut Server,
+    server: &Server,
     (client, client_uuid): (EcsEntity, Uuid),
     (player, player_uuid): (EcsEntity, Uuid),
     reason: &str,
@@ -379,7 +379,7 @@ fn find_username(server: &mut Server, username: &str) -> CmdResult<Uuid> {
 
 /// NOTE: Intended to be run only on logged-in clients.
 fn uuid_to_username(
-    server: &mut Server,
+    server: &Server,
     fallback_entity: EcsEntity,
     uuid: Uuid,
 ) -> CmdResult<String> {
@@ -405,7 +405,7 @@ fn uuid_to_username(
 }
 
 fn edit_setting_feedback<S: EditableSetting>(
-    server: &mut Server,
+    server: &Server,
     client: EcsEntity,
     result: Option<(String, Result<(), SettingError<S>>)>,
     failure: impl FnOnce() -> String,
@@ -2426,7 +2426,7 @@ fn handle_kit(
     }
 }
 
-fn push_kit<I>(kit: I, count: usize, server: &mut Server, target: EcsEntity) -> CmdResult<()>
+fn push_kit<I>(kit: I, count: usize, server: &Server, target: EcsEntity) -> CmdResult<()>
 where
     I: Iterator<Item = (KitSpec, u32)>,
 {
@@ -4040,7 +4040,7 @@ fn handle_buff(
     }
 }
 
-fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity) -> CmdResult<()> {
+fn cast_buff(kind: &str, data: BuffData, server: &Server, target: EcsEntity) -> CmdResult<()> {
     if let Some(buffkind) = parse_buffkind(kind) {
         let ecs = &server.state.ecs();
         let mut buffs_all = ecs.write_storage::<comp::Buffs>();

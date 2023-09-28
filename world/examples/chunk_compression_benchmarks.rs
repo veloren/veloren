@@ -691,7 +691,7 @@ fn main() {
     let k = 32;
     let sz = world.sim().get_size();
 
-    let sites = vec![
+    let sites = [
         ("center", sz / 2),
         (
             "dungeon",

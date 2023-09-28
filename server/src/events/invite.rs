@@ -71,7 +71,7 @@ pub fn handle_invite(server: &mut Server, inviter: Entity, invitee_uid: Uid, kin
         if !group_manip::can_invite(
             state,
             &clients,
-            &mut pending_invites,
+            &pending_invites,
             max_group_size,
             inviter,
             invitee,
@@ -275,7 +275,7 @@ pub fn handle_invite_accept(server: &mut Server, entity: Entity) {
     }
 }
 
-fn get_inviter_and_kind(entity: Entity, state: &mut State) -> Option<(Entity, InviteKind)> {
+fn get_inviter_and_kind(entity: Entity, state: &State) -> Option<(Entity, InviteKind)> {
     let mut invites = state.ecs().write_storage::<Invite>();
     invites.remove(entity).and_then(|invite| {
         let Invite { inviter, kind } = invite;
@@ -294,7 +294,7 @@ fn get_inviter_and_kind(entity: Entity, state: &mut State) -> Option<(Entity, In
 }
 
 fn handle_invite_answer(
-    state: &mut State,
+    state: &State,
     inviter: Entity,
     entity: Entity,
     invite_answer: InviteAnswer,
