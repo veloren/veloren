@@ -1,4 +1,4 @@
-#![feature(drain_filter, let_chains)]
+#![feature(extract_if, let_chains)]
 #![allow(clippy::option_map_unit_fn)]
 
 mod aura;

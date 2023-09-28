@@ -314,7 +314,7 @@ impl PlayState for MainMenuState {
                     password,
                     server_address,
                 } => {
-                    let mut net_settings = &mut global_state.settings.networking;
+                    let net_settings = &mut global_state.settings.networking;
                     let use_quic = net_settings.use_quic;
                     net_settings.username = username.clone();
                     net_settings.default_server = server_address.clone();

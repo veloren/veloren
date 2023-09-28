@@ -763,9 +763,9 @@ impl Scene {
         renderer.update_consts(&mut self.data.lights, lights);
 
         // Update event lights
-        self.event_lights.drain_filter(|el| {
+        self.event_lights.retain_mut(|el| {
             el.timeout -= dt;
-            el.timeout <= 0.0
+            el.timeout > 0.0
         });
 
         // Update shadow constants

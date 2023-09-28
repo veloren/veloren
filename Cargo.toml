@@ -1,6 +1,7 @@
 cargo-features = ["named-profiles","profile-overrides"]
 
 [workspace]
+resolver = "2"
 members = [
     "common",
     "common/assets",

@@ -741,7 +741,7 @@ impl Civs {
                 1 << ((to_next_idx as u8 + 4) % 8);
         }
         for loc in path.iter() {
-            let mut chunk = ctx.sim.get_mut(loc.0).unwrap();
+            let chunk = ctx.sim.get_mut(loc.0).unwrap();
             let depth = loc.1 * 250.0 - 20.0;
             chunk.cave.1.alt =
                 chunk.alt - depth + ctx.rng.gen_range(-4.0..4.0) * (depth > 10.0) as i32 as f32;
@@ -1408,7 +1408,7 @@ impl Civs {
                             (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
                         */
                         if randomize_offset {
-                            let mut chunk = ctx.sim.get_mut(locs[1]).unwrap();
+                            let chunk = ctx.sim.get_mut(locs[1]).unwrap();
                             chunk.path.0.offset =
                                 Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
                         }

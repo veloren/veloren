@@ -22,6 +22,11 @@ pub struct Locals {
     pub postprocess_bind: postprocess::BindGroup,
 }
 
+fn arr_zip_map<const N: usize, A, B, C>(a: [A; N], b: [B; N], f: impl Fn(A, B) -> C) -> [C; N] {
+    let mut b = b.into_iter();
+    a.map(|a| f(a, b.next().unwrap()))
+}
+
 impl Locals {
     pub(super) fn new(
         device: &wgpu::Device,
@@ -58,10 +63,9 @@ impl Locals {
         );
 
         let bloom_binds = bloom.map(|bloom| {
-            bloom
-                .src_views
-                .zip(bloom.locals) // zip arrays
-                .map(|(view, locals)| layouts.bloom.bind(device, view, sampler, locals))
+            arr_zip_map(bloom.src_views, bloom.locals, |view, locals| {
+                layouts.bloom.bind(device, view, sampler, locals)
+            })
         });
 
         Self {
@@ -107,10 +111,9 @@ impl Locals {
             &self.postprocess,
         );
         self.bloom_binds = bloom.map(|bloom| {
-            bloom
-                .src_views
-                .zip(bloom.locals) // zip arrays
-                .map(|(view, locals)| layouts.bloom.bind(device, view, sampler, locals))
+            arr_zip_map(bloom.src_views, bloom.locals, |view, locals| {
+                layouts.bloom.bind(device, view, sampler, locals)
+            })
         });
     }
 }

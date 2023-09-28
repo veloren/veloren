@@ -517,7 +517,7 @@ impl SkillSet {
                             // Perform all mutation inside this branch, to avoid triggering a copy
                             // on write or flagged storage in cases where this matters.
                             let this_ = to_mut(this_);
-                            let mut this = this_.borrow_mut();
+                            let this = this_.borrow_mut();
                             // NOTE: Verified to exist previously when we accessed
                             // this.skill_groups (assuming a non-pathological implementation of
                             // ToOwned).

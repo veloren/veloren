@@ -12,9 +12,9 @@
     type_alias_impl_trait,
     extend_one,
     arbitrary_self_types,
-    int_roundings
+    int_roundings,
+    hash_extract_if
 )]
-#![feature(hash_drain_filter)]
 
 pub use common_assets as assets;
 pub use uuid;

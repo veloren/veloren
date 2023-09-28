@@ -267,8 +267,8 @@ impl CharacterUpdater {
     }
 
     pub fn process_batch_completion(&mut self, completed_batch_id: u64) {
-        self.pending_database_actions.drain_filter(|_, event| {
-            matches!(event, DatabaseAction::Submitted {
+        self.pending_database_actions.retain(|_, event| {
+            !matches!(event, DatabaseAction::Submitted {
                     batch_id,
             } if completed_batch_id == *batch_id)
         });

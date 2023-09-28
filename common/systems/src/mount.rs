@@ -61,7 +61,7 @@ impl<'a> System<'a> for Sys {
                         .map(|c| (
                             // Only take inputs and actions from the rider if the mount is not intelligent (TODO: expand the definition of 'intelligent').
                             if !matches!(body, Some(Body::Humanoid(_))) {
-                                let actions = c.actions.drain_filter(|action| match action {
+                                let actions = c.actions.extract_if(|action| match action {
                                     ControlAction::StartInput { input: i, .. }
                                     | ControlAction::CancelInput(i) => matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll),
                                     _ => false
@@ -151,7 +151,7 @@ impl<'a> System<'a> for Sys {
             let inputs = controllers.get_mut(entity).map(|c| {
                 let actions: Vec<_> = c
                     .actions
-                    .drain_filter(|action| match action {
+                    .extract_if(|action| match action {
                         ControlAction::StartInput { input: i, .. }
                         | ControlAction::CancelInput(i) => {
                             matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)

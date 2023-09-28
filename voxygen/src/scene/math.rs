@@ -250,7 +250,7 @@ pub fn clip_object_by_plane<T: Float + MulAdd<T, T, Output = T> + core::fmt::Deb
     tolerance: T,
 ) {
     let mut intersection_points = Vec::new();
-    polys.drain_filter(|points| {
+    polys.retain_mut(|points| {
         let len = intersection_points.len();
         let outside_first = clip_points_by_plane(points, plane, &mut intersection_points);
         // Only remember intersections that are not coplanar with this side; i.e. those
@@ -273,7 +273,7 @@ pub fn clip_object_by_plane<T: Float + MulAdd<T, T, Output = T> + core::fmt::Deb
             intersection_points.swap(len, len + 1);
         }
         // Remove polygon if it was clipped away
-        points.is_empty()
+        !points.is_empty()
     });
     // Add a polygon of all intersection points with the plane to close out the
     // object.

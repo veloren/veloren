@@ -322,7 +322,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
             let pass_idx = (-indirection_idx) as usize;
             // NOTE: Must exist since this lake had a downhill in the first place.
             let neighbor_pass_idx = downhill[pass_idx] as usize/*downhill_idx*/;
-            let mut lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
+            let lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
             // We definitely shouldn't have encountered this yet!
             debug_assert!(lake_neighbor_pass.velocity == Vec3::zero());
             // TODO: Rethink making the lake neighbor pass always a river or lake, no matter
@@ -388,7 +388,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
                         river_spline_derivative,
                     )
                 };
-                let mut lake = &mut rivers[chunk_idx];
+                let lake = &mut rivers[chunk_idx];
                 lake.spline_derivative = river_spline_derivative;
                 lake.river_kind = Some(RiverKind::Lake {
                     neighbor_pass_pos: neighbor_pass_pos
@@ -495,7 +495,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         // CONFIG.river_min_height.
         let river = &rivers[chunk_idx];
         let is_river = river.is_river() || width >= 0.5 && height >= CONFIG.river_min_height as f64;
-        let mut downhill_river = &mut rivers[downhill_idx];
+        let downhill_river = &mut rivers[downhill_idx];
 
         if is_river {
             // Provisionally make the downhill chunk a river as well.
@@ -532,7 +532,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         velocity.normalize();
         velocity *= velocity_magnitude;
 
-        let mut river = &mut rivers[chunk_idx];
+        let river = &mut rivers[chunk_idx];
         // NOTE: Not trying to do this more cleverly because we want to keep the river's
         // neighbors. TODO: Actually put something in the neighbors.
         river.velocity = velocity.map(|e| e as f32);

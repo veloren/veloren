@@ -1,4 +1,3 @@
-#![feature(drain_filter)]
 //! Network Protocol
 //!
 //! a I/O-Free protocol for the veloren network crate.

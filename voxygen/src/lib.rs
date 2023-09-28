@@ -4,14 +4,15 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     array_methods,
-    array_zip,
-    drain_filter,
+    extract_if,
     trait_alias,
     option_get_or_insert_default,
     map_try_insert,
     slice_as_chunks,
     let_chains,
-    generic_const_exprs
+    generic_const_exprs,
+    maybe_uninit_uninit_array,
+    maybe_uninit_array_assume_init
 )]
 #![recursion_limit = "2048"]
 

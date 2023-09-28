@@ -3,13 +3,11 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     box_patterns,
-    drain_filter,
     let_chains,
     never_type,
     option_zip,
     unwrap_infallible
 )]
-#![feature(hash_drain_filter)]
 
 pub mod automod;
 mod character_creator;
