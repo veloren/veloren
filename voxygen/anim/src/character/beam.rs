@@ -105,7 +105,6 @@ impl Animation for BeamAnimation {
                         Quaternion::rotation_x(move1 * 0.1) * Quaternion::rotation_z(move1 * -0.1);
                     next.shorts.orientation =
                         Quaternion::rotation_x(move1 * 0.2) * Quaternion::rotation_z(move1 * -0.2);
-                } else {
                 };
             },
             _ => {},

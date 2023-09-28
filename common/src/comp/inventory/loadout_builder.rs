@@ -123,12 +123,12 @@ impl Hands {
 
                 let mainhand = mainhand
                     .as_ref()
-                    .map(|i| from_spec(i))
+                    .map(&mut from_spec)
                     .transpose()?
                     .flatten();
                 let offhand = offhand
                     .as_ref()
-                    .map(|i| from_spec(i))
+                    .map(&mut from_spec)
                     .transpose()?
                     .flatten();
                 Ok((mainhand, offhand))

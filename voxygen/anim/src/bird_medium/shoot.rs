@@ -66,7 +66,6 @@ impl Animation for ShootAnimation {
 
             next.leg_l.orientation = Quaternion::rotation_x(movement1abs * -0.5);
             next.leg_r.orientation = Quaternion::rotation_x(movement1abs * -0.5);
-        } else {
         }
         if velocity.xy().magnitude() < 1.0 {
             next.wing_in_l.orientation = Quaternion::rotation_y(-1.0 + movement1abs * 0.8)

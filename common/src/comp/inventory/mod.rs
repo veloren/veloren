@@ -649,7 +649,7 @@ impl Inventory {
         self.get(inv_slot)
             .and_then(|item| self.loadout.get_slot_to_equip_into(&item.kind()))
             .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot, time))
-            .unwrap_or_else(Vec::new)
+            .unwrap_or_default()
     }
 
     /// Determines how many free inventory slots will be left after equipping an

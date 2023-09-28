@@ -76,11 +76,11 @@ pub enum AreaKind {
 }
 
 lazy_static! {
-    static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
+    static ref ALIGNMENTS: Vec<String> = ["wild", "enemy", "npc", "pet"]
         .iter()
         .map(|s| s.to_string())
         .collect();
-    static ref SKILL_TREES: Vec<String> = vec!["general", "sword", "axe", "hammer", "bow", "staff", "sceptre", "mining"]
+    static ref SKILL_TREES: Vec<String> = ["general", "sword", "axe", "hammer", "bow", "staff", "sceptre", "mining"]
         .iter()
         .map(|s| s.to_string())
         .collect();
@@ -128,14 +128,14 @@ lazy_static! {
         .iter()
         .map(|o| o.to_string().to_string())
         .collect();
-    static ref TIMES: Vec<String> = vec![
+    static ref TIMES: Vec<String> = [
         "midnight", "night", "dawn", "morning", "day", "noon", "dusk"
     ]
     .iter()
     .map(|s| s.to_string())
     .collect();
 
-    static ref WEATHERS: Vec<String> = vec![
+    static ref WEATHERS: Vec<String> = [
         "clear", "cloudy", "rain", "wind", "storm"
     ]
     .iter()

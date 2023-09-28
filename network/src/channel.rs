@@ -500,7 +500,7 @@ pub enum ProtocolsError {
 }
 
 ///////////////////////////////////////
-//// TCP
+// TCP
 #[derive(Debug)]
 pub struct TcpDrain {
     half: OwnedWriteHalf,
@@ -546,7 +546,7 @@ impl UnreliableSink for TcpSink {
 }
 
 ///////////////////////////////////////
-//// MPSC
+// MPSC
 #[derive(Debug)]
 pub struct MpscDrain {
     sender: mpsc::Sender<MpscMsg>,
@@ -584,7 +584,7 @@ impl UnreliableSink for MpscSink {
 }
 
 ///////////////////////////////////////
-//// QUIC
+// QUIC
 #[cfg(feature = "quic")]
 type QuicStream = (
     BytesMut,

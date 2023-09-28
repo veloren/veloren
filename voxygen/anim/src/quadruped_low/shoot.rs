@@ -71,7 +71,6 @@ impl Animation for ShootAnimation {
                     next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
 
                     next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
-                } else {
                 };
             },
             Some("common.abilities.custom.dagon.dagonbombs") => {
@@ -117,7 +116,6 @@ impl Animation for ShootAnimation {
                     next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
 
                     next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
-                } else {
                 };
             },
             _ => {
@@ -150,7 +148,6 @@ impl Animation for ShootAnimation {
                     next.foot_bl.position = Vec3::new(-s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
 
                     next.foot_br.position = Vec3::new(s_a.feet_b.0, s_a.feet_b.1, s_a.feet_b.2);
-                } else {
                 };
             },
         }

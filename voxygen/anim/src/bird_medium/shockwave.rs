@@ -68,7 +68,6 @@ impl Animation for ShockwaveAnimation {
             next.leg_l.orientation = Quaternion::rotation_x(0.0);
             next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2);
             next.leg_r.orientation = Quaternion::rotation_x(0.0);
-        } else {
         }
 
         next

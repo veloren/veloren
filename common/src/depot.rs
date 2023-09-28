@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::{
-    cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
-    fmt, hash,
+    cmp::{Eq, Ord, PartialEq, PartialOrd},
+    fmt,
     marker::PhantomData,
 };
 
 /// Type safe index into Depot
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Id<T> {
     idx: u32,
     gen: u32,
@@ -17,26 +17,6 @@ impl<T> Id<T> {
     pub fn id(&self) -> u64 { self.idx as u64 | ((self.gen as u64) << 32) }
 }
 
-impl<T> Copy for Id<T> {}
-impl<T> Clone for Id<T> {
-    fn clone(&self) -> Self {
-        Self {
-            idx: self.idx,
-            gen: self.gen,
-            phantom: PhantomData,
-        }
-    }
-}
-impl<T> Eq for Id<T> {}
-impl<T> PartialEq for Id<T> {
-    fn eq(&self, other: &Self) -> bool { self.idx == other.idx && self.gen == other.gen }
-}
-impl<T> Ord for Id<T> {
-    fn cmp(&self, other: &Self) -> Ordering { (self.idx, self.gen).cmp(&(other.idx, other.gen)) }
-}
-impl<T> PartialOrd for Id<T> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
-}
 impl<T> fmt::Debug for Id<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -46,12 +26,6 @@ impl<T> fmt::Debug for Id<T> {
             self.idx,
             self.gen
         )
-    }
-}
-impl<T> hash::Hash for Id<T> {
-    fn hash<H: hash::Hasher>(&self, h: &mut H) {
-        self.idx.hash(h);
-        self.gen.hash(h);
     }
 }
 

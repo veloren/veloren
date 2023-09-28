@@ -103,7 +103,6 @@ impl Animation for SummonAnimation {
             next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
             next.tail_rear.orientation =
                 Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * 0.02);
-        } else {
         }
 
         next

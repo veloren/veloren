@@ -84,7 +84,6 @@ impl Animation for RepeaterAnimation {
                         * Quaternion::rotation_z(move1 * -0.6 + move3 * 0.8);
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
                 next.chest.orientation = Quaternion::rotation_x(0.0);
-            } else {
             };
             next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + move1 * 2.0, s_a.shorts.1);
             next.shorts.orientation = Quaternion::rotation_x(move1 * 0.2 + move3 * 0.2);
