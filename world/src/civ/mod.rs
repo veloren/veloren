@@ -224,6 +224,7 @@ impl<'a, R: Rng> GenCtx<'a, R> {
     }
 }
 
+#[derive(Debug)]
 pub enum WorldCivStage {
     /// Civilization creation, how many out of how many civilizations have been
     /// generated yet

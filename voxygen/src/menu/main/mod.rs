@@ -27,8 +27,8 @@ use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
+#[derive(Debug)]
 pub enum DetailedInitializationStage {
-    // TODO: Map generation and server startup progress
     Singleplayer,
     SingleplayerServer(ServerInitStage),
     StartingMultiplayer,

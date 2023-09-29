@@ -30,7 +30,6 @@ tracing = { workspace = true }
 rayon = { workspace = true }
 specs = { workspace = true, features = ["serde", "storage-event-control", "derive"] }
 vek = { workspace = true }
-crossbeam-channel = { workspace = true }
 hashbrown = { workspace = true }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "abb1a705827984e11706d7bb97fb7a459e1e6533" } # xMAC94x/current_master_till_refactored branch
 

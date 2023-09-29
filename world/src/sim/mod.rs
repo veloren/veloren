@@ -646,6 +646,7 @@ impl WorldFile {
     }
 }
 
+#[derive(Debug)]
 pub enum WorldSimStage {
     // TODO: Add more stages
     Erosion(f64),

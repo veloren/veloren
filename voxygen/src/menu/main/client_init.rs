@@ -52,7 +52,7 @@ impl ClientInit {
     ) -> Self {
         let (tx, rx) = unbounded();
         let (trust_tx, trust_rx) = unbounded();
-        let (init_stage_tx, init_stare_rx) = unbounded();
+        let (init_stage_tx, init_stage_rx) = unbounded();
         let cancel = Arc::new(AtomicBool::new(false));
         let cancel2 = Arc::clone(&cancel);
 
@@ -69,13 +69,17 @@ impl ClientInit {
 
             let mut last_err = None;
 
+            let client_stage_reporter: Arc<dyn Fn(ClientInitStage) + Send + Sync> =
+                Arc::new(move |stage| {
+                    let _ = init_stage_tx.send(stage);
+                });
+
             const FOUR_MINUTES_RETRIES: u64 = 48;
             'tries: for _ in 0..FOUR_MINUTES_RETRIES {
                 if cancel2.load(Ordering::Relaxed) {
                     break;
                 }
                 let mut mismatched_server_info = None;
-                let new_init_tx = init_stage_tx.clone();
                 match Client::new(
                     connection_args.clone(),
                     Arc::clone(&runtime2),
@@ -83,7 +87,7 @@ impl ClientInit {
                     &username,
                     &password,
                     trust_fn,
-                    Some(new_init_tx),
+                    Arc::clone(&client_stage_reporter),
                 )
                 .await
                 {
@@ -120,7 +124,7 @@ impl ClientInit {
 
         ClientInit {
             rx,
-            stage_rx: init_stare_rx,
+            stage_rx: init_stage_rx,
             trust_tx,
             cancel,
         }

@@ -206,11 +206,11 @@ impl Screen {
                             ),
                     };
 
-                    Container::new(Text::new(stage_message).size(fonts.cyri.scale(25)))
+                    Container::new(Text::new(stage_message).size(fonts.cyri.scale(20)))
                         .width(Length::Fill)
                         .height(Length::Fill)
                         .padding(10)
-                        .align_y(Align::End)
+                        .align_x(Align::Start)
                         .into()
                 };
 

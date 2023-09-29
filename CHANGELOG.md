@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Portals that spawn in place of the last staircase at old style dungeons to prevent stair cheesing
 - Mutliple singleplayer worlds and map generation UI.
 - New arena building in desert cities, suitable for PVP, also NPCs like to watch the fights too
+- The loading screen now displays status updates for singleplayer server and client initialization progress
 
 ### Changed
 

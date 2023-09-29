@@ -87,6 +87,7 @@ pub enum Error {
     Other(String),
 }
 
+#[derive(Debug)]
 pub enum WorldGenerateStage {
     WorldSimGenerate(WorldSimStage),
     WorldCivGenerate(WorldCivStage),

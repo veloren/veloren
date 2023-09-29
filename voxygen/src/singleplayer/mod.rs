@@ -122,7 +122,9 @@ impl SingleplayerState {
                         editable_settings,
                         database_settings,
                         &server_data_dir,
-                        Some(server_stage_tx),
+                        Arc::new(move |init_stage| {
+                            let _ = server_stage_tx.send(init_stage);
+                        }),
                         runtime,
                     ) {
                         Ok(server) => (Some(server), Ok(())),

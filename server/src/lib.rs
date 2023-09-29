@@ -118,7 +118,6 @@ use crate::{
     persistence::{DatabaseSettings, SqlLogMode},
     sys::terrain,
 };
-use crossbeam_channel::Sender;
 use hashbrown::HashMap;
 use std::sync::RwLock;
 
@@ -200,6 +199,7 @@ pub struct ChunkRequest {
     key: Vec2<i32>,
 }
 
+#[derive(Debug)]
 pub enum ServerInitStage {
     DbMigrations,
     DbVacuum,
@@ -230,7 +230,7 @@ impl Server {
         editable_settings: EditableSettings,
         database_settings: DatabaseSettings,
         data_dir: &std::path::Path,
-        stage_report_tx: Option<Sender<ServerInitStage>>,
+        report_stage: Arc<dyn Fn(ServerInitStage) + Send + Sync>,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
         prof_span!("Server::new");
@@ -238,12 +238,6 @@ impl Server {
         if settings.auth_server_address.is_none() {
             info!("Authentication is disabled");
         }
-
-        let report_stage = |stage: ServerInitStage| {
-            if let Some(stage_report_tx) = &stage_report_tx {
-                let _ = stage_report_tx.send(stage);
-            }
-        };
 
         report_stage(ServerInitStage::DbMigrations);
         // Run pending DB migrations (if any)
@@ -271,7 +265,6 @@ impl Server {
 
         let pools = State::pools(GameMode::Server);
 
-        let world_generate_status_tx = stage_report_tx.clone();
         #[cfg(feature = "worldgen")]
         let (world, index) = World::generate(
             settings.world_seed,
@@ -286,11 +279,12 @@ impl Server {
                 calendar: Some(settings.calendar_mode.calendar_now()),
             },
             &pools,
-            Arc::new(move |stage| {
-                if let Some(stage_report_tx) = &world_generate_status_tx {
-                    let _ = stage_report_tx.send(ServerInitStage::WorldGen(stage));
-                }
-            }),
+            {
+                let report_stage = Arc::clone(&report_stage);
+                Arc::new(move |stage| {
+                    report_stage(ServerInitStage::WorldGen(stage));
+                })
+            },
         );
         #[cfg(not(feature = "worldgen"))]
         let (world, index) = World::generate(settings.world_seed);

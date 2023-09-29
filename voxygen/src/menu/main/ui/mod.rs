@@ -728,6 +728,7 @@ impl MainMenuUi {
     pub fn show_info(&mut self, msg: String) { self.controls.connection_error(msg); }
 
     pub fn update_stage(&mut self, stage: DetailedInitializationStage) {
+        tracing::trace!(?stage, "Updating stage");
         self.controls.init_stage(stage);
     }
 
