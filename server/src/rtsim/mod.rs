@@ -8,7 +8,7 @@ use common::{
     mounting::VolumePos,
     rtsim::{Actor, ChunkResource, RtSimEntity, RtSimVehicle, VehicleId, WorldSettings},
 };
-use common_ecs::dispatch;
+use common_ecs::{dispatch, System};
 use common_state::BlockDiff;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use enum_map::EnumMap;
@@ -294,5 +294,5 @@ pub struct LoadedChunkState {
 }
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
-    dispatch::<tick::Sys>(dispatch_builder, &[]);
+    dispatch::<tick::Sys>(dispatch_builder, &[&common_systems::phys::Sys::sys_name()]);
 }
