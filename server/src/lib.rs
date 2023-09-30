@@ -861,7 +861,7 @@ impl Server {
                         None => terrain.get_key_real(chunk_key).is_none(),
                     }
                 })
-                .map(|(entity, pos, _, _, _)| (entity, pos.0))
+                .map(|(entity, _, _, _, _)| entity)
                 .collect::<Vec<_>>()
         };
 
@@ -869,14 +869,14 @@ impl Server {
             let rtsim_vehicles = self.state.ecs().read_storage::<RtSimVehicle>();
 
             // Assimilate entities that are part of the real-time world simulation
-            for (entity, pos) in &to_delete {
+            for entity in &to_delete {
                 #[cfg(feature = "worldgen")]
                 if let Some(rtsim_entity) = rtsim_entities.get(*entity) {
                     rtsim.hook_rtsim_entity_unload(*rtsim_entity);
                 }
                 #[cfg(feature = "worldgen")]
                 if let Some(rtsim_vehicle) = rtsim_vehicles.get(*entity) {
-                    rtsim.hook_rtsim_vehicle_unload(*rtsim_vehicle, *pos);
+                    rtsim.hook_rtsim_vehicle_unload(*rtsim_vehicle);
                 }
             }
         }
@@ -884,7 +884,7 @@ impl Server {
         drop(rtsim);
 
         // Actually perform entity deletion
-        for (entity, _) in to_delete {
+        for entity in to_delete {
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");
             }

@@ -8,7 +8,7 @@ use common::{
     mounting::VolumePos,
     rtsim::{Actor, ChunkResource, RtSimEntity, RtSimVehicle, VehicleId, WorldSettings},
 };
-use common_ecs::dispatch;
+use common_ecs::{dispatch, System};
 use common_state::BlockDiff;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use enum_map::EnumMap;
@@ -194,26 +194,9 @@ impl RtSim {
             .unwrap_or(true)
     }
 
-    pub fn hook_rtsim_vehicle_unload(&mut self, entity: RtSimVehicle, pos: Vec3<f32>) {
+    pub fn hook_rtsim_vehicle_unload(&mut self, entity: RtSimVehicle) {
         let data = self.state.get_data_mut();
         if let Some(vehicle) = data.npcs.vehicles.get_mut(entity.0) {
-            // If we do not update the vehicle's position here the following bug will occur:
-            // -- tick start, rtsim system hasn't ran yet
-            // The server filters out any entities that have left the player's view
-            // distance, including this ship. These entities are then removed from the ECS,
-            // except for RtSim riders which are set to SimulationMode::Simulated (the
-            // rtsim system is responsible for cleaning this up).
-            // However when the RtSim system runs afterwards, it detects that the position
-            // of the *previous* tick is still in view distance! (positions for
-            // rtsim2 vehiclces are only updated for entities present in the
-            // ECS, but the ship was just removed).
-            // Now the ship is loaded again (in the same tick), and a new captain
-            // with it (note that the old one hasn't been despawned, just set to
-            // SimulationMode::Simulated wich is overwritten in the vehicle loading
-            // anyways).
-            // Result: The ship stays in loaded for one more tick and we now have 2 captains
-            // (one unmanaged by RtSim, having the default unloading behaviour)
-            vehicle.wpos = pos;
             vehicle.mode = SimulationMode::Simulated;
             if let Some(Actor::Npc(npc)) = vehicle.driver {
                 if let Some(npc) = data.npcs.get_mut(npc) {
@@ -311,5 +294,5 @@ pub struct LoadedChunkState {
 }
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
-    dispatch::<tick::Sys>(dispatch_builder, &[]);
+    dispatch::<tick::Sys>(dispatch_builder, &[&common_systems::phys::Sys::sys_name()]);
 }
