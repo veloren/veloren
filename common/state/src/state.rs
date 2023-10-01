@@ -13,8 +13,8 @@ use common::{
     mounting::{Mount, Rider, VolumeRider, VolumeRiders},
     outcome::Outcome,
     resources::{
-        DeltaTime, EntitiesDiedLastTick, GameMode, PlayerEntity, PlayerPhysicsSettings, Time,
-        TimeOfDay, TimeScale, TrueTime,
+        DeltaTime, EntitiesDiedLastTick, GameMode, PlayerEntity, PlayerPhysicsSettings,
+        ProgramTime, Time, TimeOfDay, TimeScale,
     },
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
@@ -269,7 +269,7 @@ impl State {
         ecs.insert(Calendar::default());
         ecs.insert(WeatherGrid::new(Vec2::zero()));
         ecs.insert(Time(0.0));
-        ecs.insert(TrueTime(0.0));
+        ecs.insert(ProgramTime(0.0));
         ecs.insert(TimeScale(1.0));
 
         // Register unsynced resources used by the ECS.
@@ -441,7 +441,7 @@ impl State {
     /// Get the current true in-game time, unaffected by time_scale.
     ///
     /// Note that this does not correspond to the time of day.
-    pub fn get_true_time(&self) -> f64 { self.ecs.read_resource::<TrueTime>().0 }
+    pub fn get_program_time(&self) -> f64 { self.ecs.read_resource::<ProgramTime>().0 }
 
     /// Get the current delta time.
     pub fn get_delta_time(&self) -> f32 { self.ecs.read_resource::<DeltaTime>().0 }
@@ -643,7 +643,7 @@ impl State {
         self.ecs.write_resource::<TimeOfDay>().0 +=
             dt.as_secs_f64() * server_constants.day_cycle_coefficient * time_scale;
         self.ecs.write_resource::<Time>().0 += dt.as_secs_f64() * time_scale;
-        self.ecs.write_resource::<TrueTime>().0 += dt.as_secs_f64();
+        self.ecs.write_resource::<ProgramTime>().0 += dt.as_secs_f64();
 
         // Update delta time.
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping

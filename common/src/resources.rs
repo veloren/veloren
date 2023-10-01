@@ -11,9 +11,9 @@ pub struct TimeOfDay(pub f64);
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Time(pub f64);
 
-/// A resource that stores the real tick, unaffected by `TimeScale`.
+/// A resource that stores the real tick, local to the server/client.
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
-pub struct TrueTime(pub f64);
+pub struct ProgramTime(pub f64);
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct TimeScale(pub f64);
