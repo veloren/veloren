@@ -230,7 +230,7 @@ impl Server {
         editable_settings: EditableSettings,
         database_settings: DatabaseSettings,
         data_dir: &std::path::Path,
-        report_stage: Arc<dyn Fn(ServerInitStage) + Send + Sync>,
+        report_stage: &(dyn Fn(ServerInitStage) + Send + Sync),
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
         prof_span!("Server::new");
@@ -279,11 +279,8 @@ impl Server {
                 calendar: Some(settings.calendar_mode.calendar_now()),
             },
             &pools,
-            {
-                let report_stage = Arc::clone(&report_stage);
-                Arc::new(move |stage| {
-                    report_stage(ServerInitStage::WorldGen(stage));
-                })
+            &|stage| {
+                report_stage(ServerInitStage::WorldGen(stage));
             },
         );
         #[cfg(not(feature = "worldgen"))]

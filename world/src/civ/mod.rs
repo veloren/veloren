@@ -27,7 +27,6 @@ use core::{fmt, hash::BuildHasherDefault, ops::Range};
 use fxhash::FxHasher64;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use std::sync::Arc;
 use tracing::{debug, info, warn};
 use vek::*;
 
@@ -237,7 +236,7 @@ impl Civs {
         seed: u32,
         sim: &mut WorldSim,
         index: &mut Index,
-        report_stage: Arc<dyn Fn(WorldCivStage)>,
+        report_stage: &dyn Fn(WorldCivStage),
     ) -> Self {
         prof_span!("Civs::generate");
         let mut this = Self::default();

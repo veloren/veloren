@@ -69,11 +69,6 @@ impl ClientInit {
 
             let mut last_err = None;
 
-            let client_stage_reporter: Arc<dyn Fn(ClientInitStage) + Send + Sync> =
-                Arc::new(move |stage| {
-                    let _ = init_stage_tx.send(stage);
-                });
-
             const FOUR_MINUTES_RETRIES: u64 = 48;
             'tries: for _ in 0..FOUR_MINUTES_RETRIES {
                 if cancel2.load(Ordering::Relaxed) {
@@ -87,7 +82,9 @@ impl ClientInit {
                     &username,
                     &password,
                     trust_fn,
-                    Arc::clone(&client_stage_reporter),
+                    &|stage| {
+                        let _ = init_stage_tx.send(stage);
+                    },
                 )
                 .await
                 {

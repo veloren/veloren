@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Instant};
+use std::time::Instant;
 use veloren_world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
     World,
@@ -17,7 +17,7 @@ fn main() {
             calendar: None,
         },
         &threadpool,
-        Arc::new(|_| {}),
+        &|_| {},
     );
     core::hint::black_box((world, index));
     println!("{} ms", start.elapsed().as_nanos() / 1_000_000);

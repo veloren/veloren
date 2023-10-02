@@ -72,7 +72,7 @@ pub fn make_client(
             username,
             password,
             |_| true,
-            Arc::new(|_| {})
+            &|_| {},
         ))
         .ok()
 }

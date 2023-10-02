@@ -306,7 +306,7 @@ impl Client {
         username: &str,
         password: &str,
         auth_trusted: impl FnMut(&str) -> bool,
-        init_stage_update: Arc<dyn Fn(ClientInitStage) + Send + Sync>,
+        init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), &runtime);
 
@@ -3000,7 +3000,7 @@ mod tests {
             username,
             password,
             |suggestion: &str| suggestion == auth_server,
-            Arc::new(|_| {}),
+            &|_| {},
         ));
         let localisation = LocalizationHandle::load_expect("en");
 

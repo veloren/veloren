@@ -64,7 +64,7 @@ use enum_map::EnumMap;
 use rand::{prelude::*, Rng};
 use rand_chacha::ChaCha8Rng;
 use serde::Deserialize;
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 use vek::*;
 
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
@@ -120,7 +120,7 @@ impl World {
         seed: u32,
         opts: sim::WorldOpts,
         threadpool: &rayon::ThreadPool,
-        report_stage: Arc<dyn Fn(WorldGenerateStage) + Send + Sync>,
+        report_stage: &(dyn Fn(WorldGenerateStage) + Send + Sync),
     ) -> (Self, IndexOwned) {
         prof_span!("World::generate");
         // NOTE: Generating index first in order to quickly fail if the color manifest
@@ -128,21 +128,13 @@ impl World {
         threadpool.install(|| {
             let mut index = Index::new(seed);
 
-            let sim_stage_tx = Arc::clone(&report_stage);
-            let mut sim = sim::WorldSim::generate(
-                seed,
-                opts,
-                threadpool,
-                Arc::new(move |stage| sim_stage_tx(WorldGenerateStage::WorldSimGenerate(stage))),
-            );
+            let mut sim = sim::WorldSim::generate(seed, opts, threadpool, &|stage| {
+                report_stage(WorldGenerateStage::WorldSimGenerate(stage))
+            });
 
-            let civ_stage_tx = Arc::clone(&report_stage);
-            let civs = civ::Civs::generate(
-                seed,
-                &mut sim,
-                &mut index,
-                Arc::new(move |stage| civ_stage_tx(WorldGenerateStage::WorldCivGenerate(stage))),
-            );
+            let civs = civ::Civs::generate(seed, &mut sim, &mut index, &|stage| {
+                report_stage(WorldGenerateStage::WorldCivGenerate(stage))
+            });
 
             report_stage(WorldGenerateStage::EconomySimulation);
             sim2::simulate(&mut index, &mut sim);

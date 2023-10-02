@@ -69,7 +69,6 @@ use std::{
     io::{BufReader, BufWriter},
     ops::{Add, Div, Mul, Neg, Sub},
     path::PathBuf,
-    rc::Rc,
     sync::Arc,
 };
 use strum::IntoEnumIterator;
@@ -674,7 +673,7 @@ impl WorldSim {
         seed: u32,
         opts: WorldOpts,
         threadpool: &rayon::ThreadPool,
-        stage_report: Arc<dyn Fn(WorldSimStage)>,
+        stage_report: &dyn Fn(WorldSimStage),
     ) -> Self {
         prof_span!("WorldSim::generate");
         let calendar = opts.calendar; // separate lifetime of elements
@@ -1262,8 +1261,8 @@ impl WorldSim {
 
         // Perform some erosion.
 
-        let report_erosion: Rc<dyn Fn(f64)> =
-            Rc::new(move |progress: f64| stage_report(WorldSimStage::Erosion(progress)));
+        let report_erosion: &dyn Fn(f64) =
+            &move |progress: f64| stage_report(WorldSimStage::Erosion(progress));
 
         let (alt, basement) = if let Some(map) = parsed_world_file {
             (map.alt, map.basement)
@@ -1293,7 +1292,7 @@ impl WorldSim {
                 k_d_scale(n_approx),
                 k_da_scale,
                 threadpool,
-                Rc::clone(&report_erosion),
+                report_erosion,
             );
 
             // Quick "small scale" erosion cycle in order to lower extreme angles.
@@ -1318,7 +1317,7 @@ impl WorldSim {
                 k_d_scale(n_approx),
                 k_da_scale,
                 threadpool,
-                Rc::clone(&report_erosion),
+                &report_erosion,
             )
         };
 
@@ -1368,7 +1367,7 @@ impl WorldSim {
                 k_d_scale(n_approx),
                 k_da_scale,
                 threadpool,
-                Rc::clone(&report_erosion),
+                &report_erosion,
             )
         };
 

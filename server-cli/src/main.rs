@@ -192,7 +192,7 @@ fn main() -> io::Result<()> {
         editable_settings,
         database_settings,
         &server_data_dir,
-        Arc::new(|_| {}),
+        &|_| {},
         runtime,
     )
     .expect("Failed to create server instance!");

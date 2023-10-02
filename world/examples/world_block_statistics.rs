@@ -70,6 +70,7 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
             calendar: None,
         },
         &pool,
+        &|_| {},
     );
     println!("Loaded world");
 

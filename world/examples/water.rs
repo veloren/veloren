@@ -7,7 +7,7 @@ use common::{
     vol::RectVolSize,
 };
 use rayon::prelude::*;
-use std::{f64, io::Write, path::PathBuf, sync::Arc, time::SystemTime};
+use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use tracing::{warn, Level};
 use tracing_subscriber::{
     filter::{EnvFilter, LevelFilter},
@@ -53,7 +53,7 @@ fn main() {
             calendar: None,
         },
         &threadpool,
-        Arc::new(|_| {}),
+        &|_| {},
     );
     let index = index.as_index_ref();
     tracing::info!("Sampling data...");

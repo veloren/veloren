@@ -328,8 +328,6 @@ mod tests {
     #[test]
     #[ignore]
     fn test_economy0() {
-        use std::sync::Arc;
-
         execute_with_tracing(Level::INFO, || {
             let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
             info!("init");
@@ -342,9 +340,9 @@ mod tests {
             };
             let mut index = crate::index::Index::new(seed);
             info!("Index created");
-            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, Arc::new(|_| {}));
+            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
             info!("World loaded");
-            let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index, Arc::new(|_| {}));
+            let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index, &|_| {});
             info!("Civs created");
             crate::sim2::simulate(&mut index, &mut sim);
             show_economy(&index.sites, &None);
@@ -356,8 +354,6 @@ mod tests {
     #[test]
     #[ignore]
     fn test_economy1() {
-        use std::sync::Arc;
-
         execute_with_tracing(Level::INFO, || {
             let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
             info!("init");
@@ -370,13 +366,12 @@ mod tests {
             };
             let mut index = crate::index::Index::new(seed);
             info!("Index created");
-            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, Arc::new(|_| {}));
+            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
             info!("World loaded");
             let mut names = None;
             let regenerate_input = false;
             if regenerate_input {
-                let _civs =
-                    crate::civ::Civs::generate(seed, &mut sim, &mut index, Arc::new(|_| {}));
+                let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index, &|_| {});
                 info!("Civs created");
                 let mut outarr: Vec<EconomySetup> = Vec::new();
                 for i in index.sites.values() {
@@ -475,8 +470,6 @@ mod tests {
     #[test]
     /// test whether a site in moderate climate can survive on its own
     fn test_economy_moderate_standalone() {
-        use std::sync::Arc;
-
         fn add_settlement(
             env: &mut Simenv,
             name: &str,
@@ -512,7 +505,7 @@ mod tests {
             };
             let index = crate::index::Index::new(seed);
             info!("Index created");
-            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, Arc::new(|_| {}));
+            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
             info!("World loaded");
             let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
             let mut env = Simenv {

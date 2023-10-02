@@ -4,7 +4,7 @@ use common::{
 };
 use rayon::ThreadPoolBuilder;
 use rusqlite::{Connection, ToSql};
-use std::{error::Error, sync::Arc};
+use std::error::Error;
 use strum::IntoEnumIterator;
 use vek::Vec2;
 use veloren_world::{
@@ -169,7 +169,7 @@ fn main() {
             calendar: None,
         },
         &pool,
-        Arc::new(|_| {}),
+        &|_| {},
     );
     println!("Loaded world");
 
