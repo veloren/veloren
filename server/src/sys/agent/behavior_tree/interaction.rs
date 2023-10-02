@@ -559,20 +559,20 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
     if let Some(msg) = agent.inbox.front() {
         let used = match msg {
             AgentEvent::Talk(by, _) | AgentEvent::TradeAccepted(by) => {
-                if let (Some(target), Some(speaker)) =
-                    (agent.target, get_entity_by_id(*by, bdata.read_data))
-                {
+                if agent
+                    .target
+                    .zip(get_entity_by_id(*by, bdata.read_data))
                     // in combat, speak to players that aren't the current target
-                    if !target.hostile || target.target != speaker {
-                        agent_data.chat_npc_if_allowed_to_speak(
-                            Content::localized("npc-speech-villager_busy"),
-                            agent,
-                            event_emitter,
-                        );
-                    }
+                    .map_or(false, |(target, speaker)| !target.hostile || target.target != speaker)
+                {
+                    agent_data.chat_npc_if_allowed_to_speak(
+                        Content::localized("npc-speech-villager_busy"),
+                        agent,
+                        event_emitter,
+                    );
                 }
 
-                true
+                false
             },
             AgentEvent::TradeInvite(by) => {
                 controller.push_invite_response(InviteResponse::Decline);
