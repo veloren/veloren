@@ -3,6 +3,7 @@ pub const MAX_PICKUP_RANGE: f32 = 5.0;
 pub const MAX_MOUNT_RANGE: f32 = 5.0;
 pub const MAX_SPRITE_MOUNT_RANGE: f32 = 2.0;
 pub const MAX_TRADE_RANGE: f32 = 20.0;
+pub const MAX_NPCINTERACT_RANGE: f32 = 30.0;
 
 pub const GRAVITY: f32 = 25.0;
 pub const FRIC_GROUND: f32 = 0.15;

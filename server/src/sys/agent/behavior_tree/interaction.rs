@@ -557,7 +557,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
     } = bdata;
 
     if let Some(msg) = agent.inbox.front() {
-        let used = match msg {
+        match msg {
             AgentEvent::Talk(by, _) | AgentEvent::TradeAccepted(by) => {
                 if agent
                     .target
@@ -571,8 +571,6 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                         event_emitter,
                     );
                 }
-
-                false
             },
             AgentEvent::TradeInvite(by) => {
                 controller.push_invite_response(InviteResponse::Decline);
@@ -596,7 +594,6 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                         }
                     }
                 }
-                true
             },
             AgentEvent::FinishedTrade(result) => {
                 // copy pasted from recv_interaction
@@ -621,7 +618,6 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     agent.behavior.unset(BehaviorState::TRADING);
                     agent.target = None;
                 }
-                true
             },
             AgentEvent::UpdatePendingTrade(boxval) => {
                 // immediately cancel the trade
@@ -638,14 +634,11 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     agent,
                     event_emitter,
                 );
-                true
             },
-            AgentEvent::ServerSound(_) | AgentEvent::Hurt => false,
+            AgentEvent::ServerSound(_) | AgentEvent::Hurt => return false,
         };
-        if used {
-            agent.inbox.pop_front();
-        }
-        return used;
+
+        agent.inbox.pop_front();
     }
     false
 }

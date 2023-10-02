@@ -14,7 +14,10 @@ use common::{
         tool::{AbilityMap, ToolKind},
         Inventory, LootOwner, Pos, SkillGroupKind,
     },
-    consts::{MAX_MOUNT_RANGE, MAX_SPRITE_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
+    consts::{
+        MAX_MOUNT_RANGE, MAX_NPCINTERACT_RANGE, MAX_SPRITE_MOUNT_RANGE,
+        SOUND_TRAVEL_DIST_PER_VOLUME,
+    },
     event::EventBus,
     link::Is,
     mounting::{Mount, Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
@@ -86,17 +89,25 @@ pub fn handle_npc_interaction(
     subject: Subject,
 ) {
     let state = server.state_mut();
-    if let Some(agent) = state
+    let within_range = {
+        let positions = state.ecs().read_storage::<Pos>();
+        positions
+            .get(interactor)
+            .zip(positions.get(npc_entity))
+            .map_or(false, |(interactor_pos, npc_pos)| {
+                interactor_pos.0.distance_squared(npc_pos.0) <= MAX_NPCINTERACT_RANGE.powi(2)
+            })
+    };
+
+    if within_range && let Some(agent) = state
         .ecs()
         .write_storage::<comp::Agent>()
-        .get_mut(npc_entity)
+        .get_mut(npc_entity) && agent.target.is_none()
     {
-        if agent.target.is_none() {
-            if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
-                agent
-                    .inbox
-                    .push_back(AgentEvent::Talk(interactor_uid, subject));
-            }
+        if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
+            agent
+                .inbox
+                .push_back(AgentEvent::Talk(interactor_uid, subject));
         }
     }
 }
