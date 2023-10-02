@@ -36,8 +36,6 @@ pub enum DetailedInitializationStage {
     CreatingRenderPipeline(usize, usize),
 }
 
-// TODO: show status messages for waiting on server creation, client init, and
-// pipeline creation (we can show progress of pipeline creation)
 enum InitState {
     None,
     // Waiting on the client initialization

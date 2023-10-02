@@ -636,7 +636,7 @@ impl Controls {
         }
     }
 
-    fn init_stage(&mut self, stage: DetailedInitializationStage) {
+    fn update_init_stage(&mut self, stage: DetailedInitializationStage) {
         if let Screen::Connecting { init_stage, .. } = &mut self.screen {
             *init_stage = stage
         }
@@ -729,7 +729,7 @@ impl MainMenuUi {
 
     pub fn update_stage(&mut self, stage: DetailedInitializationStage) {
         tracing::trace!(?stage, "Updating stage");
-        self.controls.init_stage(stage);
+        self.controls.update_init_stage(stage);
     }
 
     pub fn connected(&mut self) { self.controls.exit_connect_screen(); }
