@@ -1223,7 +1223,7 @@ fn bird_large() -> impl Action<DefaultState> {
         if !is_deep_water {
             goto_2d_flying(
                 pos,
-                0.2,
+                0.1,
                 bearing_dist,
                 8.0,
                 8.0,
@@ -1237,7 +1237,7 @@ fn bird_large() -> impl Action<DefaultState> {
 
             goto_2d_flying(
                 pos,
-                0.2,
+                0.1,
                 bearing_dist,
                 8.0,
                 8.0,
