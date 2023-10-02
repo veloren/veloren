@@ -3118,7 +3118,7 @@ impl<'a> AgentData<'a> {
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                 if (self.pos.0.z - tgt_data.pos.0.z) < 35.0 {
                     controller.push_basic_input(InputKind::Fly);
-                    controller.inputs.move_z = 1.0;
+                    controller.inputs.move_z = 0.2;
                 }
             }
         } else if !read_data
