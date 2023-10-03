@@ -2,6 +2,7 @@ use super::{ConnectionState, Imgs, Message};
 
 use crate::{
     game_input::GameInput,
+    menu::main::DetailedInitializationStage,
     settings::ControlSettings,
     ui::{
         fonts::IcedFonts as Fonts,
@@ -9,11 +10,13 @@ use crate::{
         Graphic,
     },
 };
+use client::ClientInitStage;
 use common::assets::{self, AssetExt};
 use i18n::Localization;
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
 use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
+use server::{ServerInitStage, WorldCivStage, WorldGenerateStage, WorldSimStage};
 
 struct LoadingAnimation {
     speed_factor: f32,
@@ -85,6 +88,7 @@ impl Screen {
         fonts: &Fonts,
         imgs: &Imgs,
         connection_state: &ConnectionState,
+        init_stage: &DetailedInitializationStage,
         time: f64,
         i18n: &Localization,
         button_style: style::button::Style,
@@ -133,6 +137,83 @@ impl Screen {
                     Space::new(Length::Fill, Length::Fill).into()
                 };
 
+                let stage = {
+                    let stage_message = match init_stage {
+                        DetailedInitializationStage::Singleplayer => {
+                            i18n.get_msg("hud-init-stage-singleplayer")
+                        },
+                        DetailedInitializationStage::SingleplayerServer(server_stage) => {
+                            match server_stage {
+                                ServerInitStage::DbMigrations => {
+                                    i18n.get_msg("hud-init-stage-server-db-migrations")
+                                },
+                                ServerInitStage::DbVacuum => {
+                                    i18n.get_msg("hud-init-stage-server-db-vacuum")
+                                },
+                                ServerInitStage::WorldGen(worldgen_stage) => match worldgen_stage {
+                                    WorldGenerateStage::WorldSimGenerate(worldsim_stage) => {
+                                        match worldsim_stage {
+                                            WorldSimStage::Erosion(done) => i18n
+                                                .get_msg_ctx(
+                                                    "hud-init-stage-server-worldsim-erosion",
+                                                    &i18n::fluent_args! { "percentage" => format!("{done:.0}") }
+                                                ),
+                                        }
+                                    },
+                                    WorldGenerateStage::WorldCivGenerate(worldciv_stage) => {
+                                        match worldciv_stage {
+                                            WorldCivStage::CivCreation(generated, total) => i18n
+                                                .get_msg_ctx(
+                                                    "hud-init-stage-server-worldciv-civcreate",
+                                                    &i18n::fluent_args! {
+                                                        "generated" => generated.to_string(),
+                                                        "total" => total.to_string(),
+                                                    }
+                                                ),
+                                            WorldCivStage::SiteGeneration => i18n.get_msg("hud-init-stage-server-worldciv-site"),
+                                        }
+                                    },
+                                    WorldGenerateStage::EconomySimulation => i18n.get_msg("hud-init-stage-server-economysim"),
+                                    WorldGenerateStage::SpotGeneration => i18n.get_msg("hud-init-stage-server-spotgen"),
+                                },
+                                ServerInitStage::StartingSystems => i18n.get_msg("hud-init-stage-server-starting"),
+                            }
+                        },
+                        DetailedInitializationStage::StartingMultiplayer => {
+                            i18n.get_msg("hud-init-stage-multiplayer")
+                        },
+                        DetailedInitializationStage::Client(client_stage) => match client_stage {
+                            ClientInitStage::ConnectionEstablish => {
+                                i18n.get_msg("hud-init-stage-client-connection-establish")
+                            },
+                            ClientInitStage::WatingForServerVersion => {
+                                i18n.get_msg("hud-init-stage-client-request-server-version")
+                            },
+                            ClientInitStage::Authentication => {
+                                i18n.get_msg("hud-init-stage-client-authentication")
+                            },
+                            ClientInitStage::LoadingInitData => {
+                                i18n.get_msg("hud-init-stage-client-load-init-data")
+                            },
+                            ClientInitStage::StartingClient => {
+                                i18n.get_msg("hud-init-stage-client-starting-client")
+                            },
+                        },
+                        DetailedInitializationStage::CreatingRenderPipeline(done, total) => i18n
+                            .get_msg_ctx(
+                                "hud-init-stage-render-pipeline",
+                                &i18n::fluent_args! { "done" => done, "total" => total },
+                            ),
+                    };
+
+                    Container::new(Text::new(stage_message).size(fonts.cyri.scale(20)))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .padding(10)
+                        .align_x(Align::Start)
+                        .into()
+                };
+
                 let cancel = Container::new(neat_button(
                     &mut self.cancel_button,
                     i18n.get_msg("common-cancel"),
@@ -160,13 +241,10 @@ impl Screen {
                 .padding(10)
                 .align_x(Align::End);
 
-                let bottom_content = Row::with_children(vec![
-                    Space::new(Length::Fill, Length::Shrink).into(),
-                    tip_cancel.into(),
-                    gear.into(),
-                ])
-                .align_items(Align::Center)
-                .width(Length::Fill);
+                let bottom_content =
+                    Row::with_children(vec![stage, tip_cancel.into(), gear.into()])
+                        .align_items(Align::Center)
+                        .width(Length::Fill);
 
                 let left_art = Image::new(imgs.loading_art_l)
                     .width(Length::Units(12))

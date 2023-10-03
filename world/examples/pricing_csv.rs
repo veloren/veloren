@@ -169,6 +169,7 @@ fn main() {
             calendar: None,
         },
         &pool,
+        &|_| {},
     );
     println!("Loaded world");
 

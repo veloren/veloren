@@ -14,6 +14,7 @@ fn main() {
             ..WorldOpts::default()
         },
         &threadpool,
+        &|_| {},
     );
 
     let index = index.as_index_ref();

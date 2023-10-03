@@ -25,6 +25,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             calendar: None,
         },
         &pool,
+        &|_| {},
     );
     let mut terrain = TerrainGrid::new(
         world.sim().map_size_lg(),

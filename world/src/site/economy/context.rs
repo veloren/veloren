@@ -340,9 +340,9 @@ mod tests {
             };
             let mut index = crate::index::Index::new(seed);
             info!("Index created");
-            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool);
+            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
             info!("World loaded");
-            let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index);
+            let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index, &|_| {});
             info!("Civs created");
             crate::sim2::simulate(&mut index, &mut sim);
             show_economy(&index.sites, &None);
@@ -366,12 +366,12 @@ mod tests {
             };
             let mut index = crate::index::Index::new(seed);
             info!("Index created");
-            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool);
+            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
             info!("World loaded");
             let mut names = None;
             let regenerate_input = false;
             if regenerate_input {
-                let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index);
+                let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index, &|_| {});
                 info!("Civs created");
                 let mut outarr: Vec<EconomySetup> = Vec::new();
                 for i in index.sites.values() {
@@ -505,7 +505,7 @@ mod tests {
             };
             let index = crate::index::Index::new(seed);
             info!("Index created");
-            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool);
+            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
             info!("World loaded");
             let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
             let mut env = Simenv {

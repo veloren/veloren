@@ -115,6 +115,22 @@ pub enum Event {
     SpectatePosition(Vec3<f32>),
 }
 
+#[derive(Debug)]
+pub enum ClientInitStage {
+    /// A connection to the server is being created
+    ConnectionEstablish,
+    /// Waiting for server version
+    WatingForServerVersion,
+    /// We're currently authenticating with the server
+    Authentication,
+    /// Loading map data, site information, recipe information and other
+    /// initialization data
+    LoadingInitData,
+    /// Prepare data received by the server to be used by the client (insert
+    /// data into the ECS, render map)
+    StartingClient,
+}
+
 pub struct WorldData {
     /// Just the "base" layer for LOD; currently includes colors and nothing
     /// else. In the future we'll add more layers, like shadows, rivers, and
@@ -290,9 +306,11 @@ impl Client {
         username: &str,
         password: &str,
         auth_trusted: impl FnMut(&str) -> bool,
+        init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), &runtime);
 
+        init_stage_update(ClientInitStage::ConnectionEstablish);
         let mut participant = match addr {
             ConnectionArgs::Tcp {
                 hostname,
@@ -322,6 +340,7 @@ impl Client {
         let in_game_stream = participant.opened().await?;
         let terrain_stream = participant.opened().await?;
 
+        init_stage_update(ClientInitStage::WatingForServerVersion);
         register_stream.send(ClientType::Game)?;
         let server_info: ServerInfo = register_stream.recv().await?;
         if server_info.git_hash != *common::util::GIT_HASH {
@@ -340,6 +359,7 @@ impl Client {
 
         ping_stream.send(PingMsg::Ping)?;
 
+        init_stage_update(ClientInitStage::Authentication);
         // Register client
         Self::register(
             username,
@@ -350,6 +370,7 @@ impl Client {
         )
         .await?;
 
+        init_stage_update(ClientInitStage::LoadingInitData);
         // Wait for initial sync
         let mut ping_interval = tokio::time::interval(Duration::from_secs(1));
         let ServerInit::GameSync {
@@ -373,6 +394,7 @@ impl Client {
             }
         };
 
+        init_stage_update(ClientInitStage::StartingClient);
         // Spawn in a blocking thread (leaving the network thread free).  This is mostly
         // useful for bots.
         let mut task = tokio::task::spawn_blocking(move || {
@@ -2978,6 +3000,7 @@ mod tests {
             username,
             password,
             |suggestion: &str| suggestion == auth_server,
+            &|_| {},
         ));
         let localisation = LocalizationHandle::load_expect("en");
 

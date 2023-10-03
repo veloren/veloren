@@ -72,6 +72,7 @@ pub fn make_client(
             username,
             password,
             |_| true,
+            &|_| {},
         ))
         .ok()
 }

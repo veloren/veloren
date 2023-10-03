@@ -32,6 +32,7 @@ fn main() -> Result {
             calendar: None,
         },
         &pool,
+        &|_| {},
     );
     println!("Loaded world");
     let export_path = "dungeon.vox";

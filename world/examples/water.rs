@@ -53,6 +53,7 @@ fn main() {
             calendar: None,
         },
         &threadpool,
+        &|_| {},
     );
     let index = index.as_index_ref();
     tracing::info!("Sampling data...");

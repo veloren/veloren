@@ -14,20 +14,28 @@ use crate::{
 use client::{
     addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
-    Client, ServerInfo,
+    Client, ClientInitStage, ServerInfo,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::comp;
 use common_base::span;
 use i18n::LocalizationHandle;
 use scene::Scene;
+use server::ServerInitStage;
 use std::sync::Arc;
 use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
-// TODO: show status messages for waiting on server creation, client init, and
-// pipeline creation (we can show progress of pipeline creation)
+#[derive(Debug)]
+pub enum DetailedInitializationStage {
+    Singleplayer,
+    SingleplayerServer(ServerInitStage),
+    StartingMultiplayer,
+    Client(ClientInitStage),
+    CreatingRenderPipeline(usize, usize),
+}
+
 enum InitState {
     None,
     // Waiting on the client initialization
@@ -98,6 +106,12 @@ impl PlayState for MainMenuState {
         #[cfg(feature = "singleplayer")]
         {
             if let Some(singleplayer) = global_state.singleplayer.as_running() {
+                if let Ok(stage_update) = singleplayer.init_stage_receiver.try_recv() {
+                    self.main_menu_ui.update_stage(
+                        DetailedInitializationStage::SingleplayerServer(stage_update),
+                    );
+                }
+
                 match singleplayer.receiver.try_recv() {
                     Ok(Ok(())) => {
                         // Attempt login after the server is finished initializing
@@ -187,6 +201,12 @@ impl PlayState for MainMenuState {
                 _ => {},
             }
         }
+
+        if let Some(client_stage_update) = self.init.client().and_then(|init| init.stage_update()) {
+            self.main_menu_ui
+                .update_stage(DetailedInitializationStage::Client(client_stage_update));
+        }
+
         // Poll client creation.
         match self.init.client().and_then(|init| init.poll()) {
             Some(InitMsg::Done(Ok(mut client))) => {
@@ -263,13 +283,13 @@ impl PlayState for MainMenuState {
 
         // Poll renderer pipeline creation
         if let InitState::Pipeline(..) = &self.init {
-            // If not complete go to char select screen
-            if global_state
-                .window
-                .renderer()
-                .pipeline_creation_status()
-                .is_none()
+            if let Some((done, total)) = &global_state.window.renderer().pipeline_creation_status()
             {
+                self.main_menu_ui.update_stage(
+                    DetailedInitializationStage::CreatingRenderPipeline(*done, *total),
+                );
+            // If complete go to char select screen
+            } else {
                 // Always succeeds since we check above
                 if let InitState::Pipeline(client) =
                     core::mem::replace(&mut self.init, InitState::None)

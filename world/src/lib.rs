@@ -32,9 +32,11 @@ pub use crate::{
     layer::PathLocals,
 };
 pub use block::BlockGen;
+use civ::WorldCivStage;
 pub use column::ColumnSample;
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta};
 pub use index::{IndexOwned, IndexRef};
+use sim::WorldSimStage;
 
 use crate::{
     column::ColumnGen,
@@ -85,6 +87,14 @@ pub enum Error {
     Other(String),
 }
 
+#[derive(Debug)]
+pub enum WorldGenerateStage {
+    WorldSimGenerate(WorldSimStage),
+    WorldCivGenerate(WorldCivStage),
+    EconomySimulation,
+    SpotGeneration,
+}
+
 pub struct World {
     sim: sim::WorldSim,
     civs: civ::Civs,
@@ -110,6 +120,7 @@ impl World {
         seed: u32,
         opts: sim::WorldOpts,
         threadpool: &rayon::ThreadPool,
+        report_stage: &(dyn Fn(WorldGenerateStage) + Send + Sync),
     ) -> (Self, IndexOwned) {
         prof_span!("World::generate");
         // NOTE: Generating index first in order to quickly fail if the color manifest
@@ -117,12 +128,18 @@ impl World {
         threadpool.install(|| {
             let mut index = Index::new(seed);
 
-            let mut sim = sim::WorldSim::generate(seed, opts, threadpool);
+            let mut sim = sim::WorldSim::generate(seed, opts, threadpool, &|stage| {
+                report_stage(WorldGenerateStage::WorldSimGenerate(stage))
+            });
 
-            let civs = civ::Civs::generate(seed, &mut sim, &mut index);
+            let civs = civ::Civs::generate(seed, &mut sim, &mut index, &|stage| {
+                report_stage(WorldGenerateStage::WorldCivGenerate(stage))
+            });
 
+            report_stage(WorldGenerateStage::EconomySimulation);
             sim2::simulate(&mut index, &mut sim);
 
+            report_stage(WorldGenerateStage::SpotGeneration);
             Spot::generate(&mut sim);
 
             (Self { sim, civs }, IndexOwned::new(index))

@@ -17,6 +17,7 @@ fn main() {
             calendar: None,
         },
         &threadpool,
+        &|_| {},
     );
     core::hint::black_box((world, index));
     println!("{} ms", start.elapsed().as_nanos() / 1_000_000);

@@ -680,6 +680,7 @@ fn main() {
             calendar: None,
         },
         &pool,
+        &|_| {},
     );
     println!("Loaded world");
     const HISTOGRAMS: bool = false;
