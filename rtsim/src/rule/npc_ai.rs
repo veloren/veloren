@@ -16,6 +16,7 @@ use crate::{
 use common::{
     astar::{Astar, PathResult},
     comp::{
+        self,
         compass::{Direction, Distance},
         dialogue::Subject,
         Content,
@@ -252,7 +253,7 @@ impl Rule for NpcAi {
                 data.npcs
                     .iter_mut()
                     // Don't run AI for dead NPCs
-                    .filter(|(_, npc)| !npc.is_dead)
+                    .filter(|(_, npc)| !npc.is_dead && !matches!(npc.role, Role::Vehicle))
                     // Don't run AI for simulated NPCs every tick
                     .filter(|(_, npc)| matches!(npc.mode, SimulationMode::Loaded) || (npc.seed as u64 + ctx.event.tick) % SIMULATED_TICK_SKIP == 0)
                     .map(|(npc_id, npc)| {
@@ -1157,15 +1158,17 @@ fn react_to_events<S: State>(ctx: &mut NpcCtx, _: &mut S) -> Option<impl Action<
 
 fn humanoid() -> impl Action<DefaultState> {
     choose(|ctx, _| {
-        if let Some(riding) = &ctx.npc.riding {
-            if riding.steering {
-                if let Some(vehicle) = ctx.state.data().npcs.vehicles.get(riding.vehicle) {
+        if let Some(riding) = &ctx.state.data().npcs.mounts.get_mount_link(ctx.npc_id) {
+            if riding.is_steering {
+                if let Some(vehicle) = ctx.state.data().npcs.get(riding.mount) {
                     match vehicle.body {
-                        common::comp::ship::Body::DefaultAirship
-                        | common::comp::ship::Body::AirBalloon => important(pilot(vehicle.body)),
-                        common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
-                            important(captain())
-                        },
+                        comp::Body::Ship(
+                            body @ comp::ship::Body::DefaultAirship
+                            | body @ comp::ship::Body::AirBalloon,
+                        ) => important(pilot(body)),
+                        comp::Body::Ship(
+                            comp::ship::Body::SailBoat | comp::ship::Body::Galleon,
+                        ) => important(captain()),
                         _ => casual(idle()),
                     }
                 } else {
@@ -1310,6 +1313,7 @@ fn think() -> impl Action<DefaultState> {
                 .l(),
             Role::Monster => monster().r().r().l(),
             Role::Wild => idle().r(),
+            Role::Vehicle => idle().r(),
         },
     })
 }

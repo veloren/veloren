@@ -674,7 +674,16 @@ fn handle_make_npc(
             } => {
                 let mut entity_builder = server
                     .state
-                    .create_npc(pos, stats, skill_set, health, poise, inventory, body)
+                    .create_npc(
+                        pos,
+                        comp::Ori::default(),
+                        stats,
+                        skill_set,
+                        health,
+                        poise,
+                        inventory,
+                        body,
+                    )
                     .with(alignment)
                     .with(scale)
                     .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)));
@@ -1303,9 +1312,8 @@ fn handle_rtsim_tp(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::RtSim;
-    let (npc_index, dismount_volume) = parse_cmd_args!(args, u32, bool);
-    let pos = if let Some(id) = npc_index {
-        // TODO: Take some other identifier than an integer to this command.
+    let (npc_id, dismount_volume) = parse_cmd_args!(args, u64, bool);
+    let pos = if let Some(id) = npc_id {
         server
             .state
             .ecs()
@@ -1314,8 +1322,8 @@ fn handle_rtsim_tp(
             .data()
             .npcs
             .values()
-            .nth(id as usize)
-            .ok_or(action.help_string())?
+            .find(|npc| npc.uid == id)
+            .ok_or_else(|| format!("No NPC has the id {id}"))?
             .wpos
     } else {
         return Err(Content::Plain(action.help_string()));
@@ -1335,15 +1343,14 @@ fn handle_rtsim_info(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::RtSim;
-    if let Some(id) = parse_cmd_args!(args, u32) {
-        // TODO: Take some other identifier than an integer to this command.
+    if let Some(id) = parse_cmd_args!(args, u64) {
         let rtsim = server.state.ecs().read_resource::<RtSim>();
         let data = rtsim.state().data();
-        let npc = data
+        let (id, npc) = data
             .npcs
-            .values()
-            .nth(id as usize)
-            .ok_or_else(|| format!("No NPC has index {}", id))?;
+            .iter()
+            .find(|(_, npc)| npc.uid == id)
+            .ok_or_else(|| format!("No NPC has the id {id}"))?;
 
         let mut info = String::new();
 
@@ -1360,7 +1367,10 @@ fn handle_rtsim_info(
         let _ = writeln!(
             &mut info,
             "Riding: {:?}",
-            npc.riding.as_ref().map(|riding| riding.vehicle)
+            data.npcs
+                .mounts
+                .get_mount_link(id)
+                .map(|link| data.npcs.get(link.mount).map_or(0, |mount| mount.uid))
         );
         let _ = writeln!(&mut info, "-- Action State --");
         if let Some(brain) = &npc.brain {
@@ -1404,8 +1414,7 @@ fn handle_rtsim_npc(
         let mut npcs = data
             .npcs
             .values()
-            .enumerate()
-            .filter(|(idx, npc)| {
+            .filter(|npc| {
                 let mut tags = vec![
                     npc.profession()
                         .map(|p| format!("{:?}", p))
@@ -1414,9 +1423,10 @@ fn handle_rtsim_npc(
                         Role::Civilised(_) => "civilised".to_string(),
                         Role::Wild => "wild".to_string(),
                         Role::Monster => "monster".to_string(),
+                        Role::Vehicle => "vehicle".to_string(),
                     },
                     format!("{:?}", npc.mode),
-                    format!("{}", idx),
+                    format!("{}", npc.uid),
                     npc_names[&npc.body].keyword.clone(),
                 ];
                 if let Some(species_meta) = npc_names.get_species_meta(&npc.body) {
@@ -1428,14 +1438,14 @@ fn handle_rtsim_npc(
             })
             .collect::<Vec<_>>();
         if let Ok(pos) = position(server, target, "target") {
-            npcs.sort_by_key(|(_, npc)| (npc.wpos.distance_squared(pos.0) * 10.0) as u64);
+            npcs.sort_by_key(|npc| (npc.wpos.distance_squared(pos.0) * 10.0) as u64);
         }
 
         let mut info = String::new();
 
         let _ = writeln!(&mut info, "-- NPCs matching [{}] --", terms.join(", "));
-        for (idx, npc) in npcs.iter().take(count.unwrap_or(!0) as usize) {
-            let _ = write!(&mut info, "{} ({}), ", npc.get_name(), idx);
+        for npc in npcs.iter().take(count.unwrap_or(!0) as usize) {
+            let _ = write!(&mut info, "{} ({}), ", npc.get_name(), npc.uid);
         }
         let _ = writeln!(&mut info);
         let _ = writeln!(
@@ -1600,6 +1610,7 @@ fn handle_spawn(
                     .state
                     .create_npc(
                         pos,
+                        comp::Ori::default(),
                         comp::Stats::new(get_npc_name(id, npc::BodyType::from_body(body)), body),
                         comp::SkillSet::default(),
                         Some(comp::Health::new(body, 0)),
@@ -1706,6 +1717,7 @@ fn handle_spawn_training_dummy(
         .state
         .create_npc(
             pos,
+            comp::Ori::default(),
             stats,
             skill_set,
             Some(health),

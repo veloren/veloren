@@ -84,24 +84,6 @@ fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
 
 fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
     let data = &mut *ctx.state.data_mut();
-    // Update vehicle grid cells
-    for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {
-        let chunk_pos = vehicle.wpos.xy().as_().wpos_to_cpos();
-        if vehicle.chunk_pos != Some(chunk_pos) {
-            if let Some(cell) = vehicle
-                .chunk_pos
-                .and_then(|chunk_pos| data.npcs.npc_grid.get_mut(chunk_pos))
-            {
-                if let Some(index) = cell.vehicles.iter().position(|id| *id == vehicle_id) {
-                    cell.vehicles.swap_remove(index);
-                }
-            }
-            vehicle.chunk_pos = Some(chunk_pos);
-            if let Some(cell) = data.npcs.npc_grid.get_mut(chunk_pos) {
-                cell.vehicles.push(vehicle_id);
-            }
-        }
-    }
     for (npc_id, npc) in data.npcs.npcs.iter_mut() {
         // Update the NPC's current site, if any
         npc.current_site = ctx

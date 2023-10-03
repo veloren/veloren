@@ -2,6 +2,7 @@
 use crate::test_world::{IndexOwned, World};
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
+use rand::Rng;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
@@ -137,6 +138,7 @@ impl<'a> System<'a> for Sys {
             )
         });
 
+        let mut rng = rand::thread_rng();
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();
@@ -211,6 +213,13 @@ impl<'a> System<'a> for Sys {
                     } => {
                         server_emitter.emit(ServerEvent::CreateNpc {
                             pos,
+                            ori: common::util::Dir::from_unnormalized(Vec3::new(
+                                rng.gen_range(-1.0..=1.0),
+                                rng.gen_range(-1.0..=1.0),
+                                0.0,
+                            ))
+                            .map(|dir| comp::Ori::from(dir))
+                            .unwrap_or_default(),
                             npc: NpcBuilder::new(stats, body, alignment)
                                 .with_skill_set(skill_set)
                                 .with_health(health)
@@ -220,6 +229,7 @@ impl<'a> System<'a> for Sys {
                                 .with_scale(scale)
                                 .with_anchor(comp::Anchor::Chunk(key))
                                 .with_loot(loot),
+                            rider: None,
                         });
                     },
                     NpcData::Teleporter(pos, teleporter) => {

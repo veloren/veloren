@@ -52,6 +52,7 @@ pub trait StateExt {
     fn create_npc(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         stats: comp::Stats,
         skill_set: comp::SkillSet,
         health: Option<comp::Health>,
@@ -275,6 +276,7 @@ impl StateExt for State {
     fn create_npc(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         stats: comp::Stats,
         skill_set: comp::SkillSet,
         health: Option<comp::Health>,
@@ -286,14 +288,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(
-                comp::Ori::from_unnormalized_vec(Vec3::new(
-                    thread_rng().gen_range(-1.0..1.0),
-                    thread_rng().gen_range(-1.0..1.0),
-                    0.0,
-                ))
-                .unwrap_or_default(),
-            )
+            .with(ori)
             .with(body.mass())
             .with(body.density())
             .with(body.collider())
@@ -787,10 +782,20 @@ impl StateExt for State {
                 // This is the same as wild creatures naturally spawned in the world
                 const DEFAULT_PET_HEALTH_LEVEL: u16 = 0;
 
+                let mut rng = rand::thread_rng();
+
                 for (pet, body, stats) in pets {
+                    let ori = common::util::Dir::from_unnormalized(Vec3::new(
+                        rng.gen_range(-1.0..=1.0),
+                        rng.gen_range(-1.0..=1.0),
+                        0.0,
+                    ))
+                    .map(|dir| comp::Ori::from(dir))
+                    .unwrap_or_default();
                     let pet_entity = self
                         .create_npc(
                             player_pos,
+                            ori,
                             stats,
                             comp::SkillSet::default(),
                             Some(comp::Health::new(body, DEFAULT_PET_HEALTH_LEVEL)),

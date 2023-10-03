@@ -74,7 +74,7 @@ use common::{
     event::{EventBus, ServerEvent},
     region::RegionMap,
     resources::{BattleMode, GameMode, Time, TimeOfDay},
-    rtsim::{RtSimEntity, RtSimVehicle},
+    rtsim::RtSimEntity,
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::{TerrainChunk, TerrainChunkSize},
@@ -405,7 +405,6 @@ impl Server {
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
         state.ecs_mut().register::<RtSimEntity>();
-        state.ecs_mut().register::<RtSimVehicle>();
 
         // Load banned words list
         let banned_words = settings.moderation.load_banned_words(data_dir);
@@ -846,7 +845,6 @@ impl Server {
         }
 
         let mut rtsim = self.state.ecs().write_resource::<rtsim::RtSim>();
-        let rtsim_entities = self.state.ecs().read_storage::<RtSimEntity>();
         // Remove NPCs that are outside the view distances of all players
         // This is done by removing NPCs in unloaded chunks
         let to_delete = {
@@ -856,15 +854,9 @@ impl Server {
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 !&self.state.ecs().read_storage::<comp::Presence>(),
                 self.state.ecs().read_storage::<Anchor>().maybe(),
-                rtsim_entities.maybe(),
             )
                 .join()
-                .filter(|(_, pos, _, anchor, rtsim_entity)| {
-                    if rtsim_entity.map_or(false, |rtsim_entity| {
-                        !rtsim.can_unload_entity(*rtsim_entity)
-                    }) {
-                        return false;
-                    }
+                .filter(|(_, pos, _, anchor)| {
                     let chunk_key = terrain.pos_key(pos.0.map(|e| e.floor() as i32));
                     match anchor {
                         Some(Anchor::Chunk(hc)) => {
@@ -879,26 +871,20 @@ impl Server {
                         None => terrain.get_key_real(chunk_key).is_none(),
                     }
                 })
-                .map(|(entity, _, _, _, _)| entity)
+                .map(|(entity, _, _, _)| entity)
                 .collect::<Vec<_>>()
         };
 
+        #[cfg(feature = "worldgen")]
         {
-            let rtsim_vehicles = self.state.ecs().read_storage::<RtSimVehicle>();
-
+            let rtsim_entities = self.state.ecs().read_storage::<RtSimEntity>();
             // Assimilate entities that are part of the real-time world simulation
             for entity in &to_delete {
-                #[cfg(feature = "worldgen")]
                 if let Some(rtsim_entity) = rtsim_entities.get(*entity) {
                     rtsim.hook_rtsim_entity_unload(*rtsim_entity);
                 }
-                #[cfg(feature = "worldgen")]
-                if let Some(rtsim_vehicle) = rtsim_vehicles.get(*entity) {
-                    rtsim.hook_rtsim_vehicle_unload(*rtsim_vehicle);
-                }
             }
         }
-        drop(rtsim_entities);
         drop(rtsim);
 
         // Actually perform entity deletion

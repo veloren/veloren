@@ -17,7 +17,7 @@ use common::{
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
     outcome::Outcome,
     resources::{Secs, Time},
-    rtsim::RtSimVehicle,
+    rtsim::RtSimEntity,
     uid::{IdMaps, Uid},
     util::Dir,
     vol::IntoFullVolIterator,
@@ -99,11 +99,18 @@ pub fn handle_loaded_character_data(
     server.notify_client(entity, result_msg);
 }
 
-pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> EcsEntity {
+pub fn handle_create_npc(
+    server: &mut Server,
+    pos: Pos,
+    ori: Ori,
+    mut npc: NpcBuilder,
+    rider: Option<NpcBuilder>,
+) -> EcsEntity {
     let entity = server
         .state
         .create_npc(
             pos,
+            ori,
             npc.stats,
             npc.skill_set,
             npc.health,
@@ -168,8 +175,8 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
     // Add to group system if a pet
     if let comp::Alignment::Owned(owner_uid) = npc.alignment {
         let state = server.state();
-        let clients = state.ecs().read_storage::<Client>();
         let uids = state.ecs().read_storage::<Uid>();
+        let clients = state.ecs().read_storage::<Client>();
         let mut group_manager = state.ecs().write_resource::<comp::group::GroupManager>();
         if let Some(owner) = state.ecs().entity_from_uid(owner_uid) {
             let map_markers = state.ecs().read_storage::<comp::MapMarker>();
@@ -207,6 +214,20 @@ pub fn handle_create_npc(server: &mut Server, pos: Pos, mut npc: NpcBuilder) -> 
         let _ = server.state.ecs().write_storage().insert(new_entity, group);
     }
 
+    if let Some(rider) = rider {
+        let rider_entity = handle_create_npc(server, pos, Ori::default(), rider, None);
+        let uids = server.state().ecs().read_storage::<Uid>();
+        let link = Mounting {
+            mount: *uids.get(new_entity).expect("We just created this entity"),
+            rider: *uids.get(rider_entity).expect("We just created this entity"),
+        };
+        drop(uids);
+        server
+            .state
+            .link(link)
+            .expect("We just created these entities");
+    }
+
     new_entity
 }
 
@@ -215,7 +236,7 @@ pub fn handle_create_ship(
     pos: Pos,
     ori: Ori,
     ship: comp::ship::Body,
-    rtsim_vehicle: Option<RtSimVehicle>,
+    rtsim_entity: Option<RtSimEntity>,
     driver: Option<NpcBuilder>,
     passengers: Vec<NpcBuilder>,
 ) {
@@ -252,13 +273,13 @@ pub fn handle_create_ship(
         entity = entity.with(agent);
     }
     */
-    if let Some(rtsim_vehicle) = rtsim_vehicle {
+    if let Some(rtsim_vehicle) = rtsim_entity {
         entity = entity.with(rtsim_vehicle);
     }
     let entity = entity.build();
 
     if let Some(driver) = driver {
-        let npc_entity = handle_create_npc(server, pos, driver);
+        let npc_entity = handle_create_npc(server, pos, ori, driver, None);
 
         let uids = server.state.ecs().read_storage::<Uid>();
         let (rider_uid, mount_uid) = uids
@@ -292,7 +313,13 @@ pub fn handle_create_ship(
     }
 
     for passenger in passengers {
-        let npc_entity = handle_create_npc(server, Pos(pos.0 + Vec3::unit_z() * 5.0), passenger);
+        let npc_entity = handle_create_npc(
+            server,
+            Pos(pos.0 + Vec3::unit_z() * 5.0),
+            ori,
+            passenger,
+            None,
+        );
         if let Some((rider_pos, rider_block)) = seats.next() {
             let uids = server.state.ecs().read_storage::<Uid>();
             let (rider_uid, mount_uid) = uids

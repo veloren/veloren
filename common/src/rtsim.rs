@@ -17,8 +17,6 @@ use vek::*;
 
 slotmap::new_key_type! { pub struct NpcId; }
 
-slotmap::new_key_type! { pub struct VehicleId; }
-
 slotmap::new_key_type! { pub struct SiteId; }
 
 slotmap::new_key_type! { pub struct FactionId; }
@@ -32,7 +30,7 @@ impl Component for RtSimEntity {
     type Storage = specs::VecStorage<Self>;
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Actor {
     Npc(NpcId),
     Character(CharacterId),
@@ -47,11 +45,12 @@ impl Actor {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
-pub struct RtSimVehicle(pub VehicleId);
+impl From<NpcId> for Actor {
+    fn from(value: NpcId) -> Self { Actor::Npc(value) }
+}
 
-impl Component for RtSimVehicle {
-    type Storage = specs::VecStorage<Self>;
+impl From<CharacterId> for Actor {
+    fn from(value: CharacterId) -> Self { Actor::Character(value) }
 }
 
 #[derive(EnumIter, Clone, Copy)]
@@ -313,6 +312,8 @@ pub enum Role {
     Wild,
     #[serde(rename = "2")]
     Monster,
+    #[serde(rename = "2")]
+    Vehicle,
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field
