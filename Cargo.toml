@@ -166,6 +166,15 @@ wgpu = { git = "https://github.com/pythonesque/wgpu.git", rev = "179ea209374a928
 # ntapi 3.7 fails to compile under windows due to the bug https://github.com/MSxDOS/ntapi/pull/12
 ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e25796739157c0fce3e0007a7de6eb" }
 
+[patch."https://github.com/gfx-rs/gfx"]
+gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+gfx-backend-empty = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+gfx-backend-vulkan = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+gfx-backend-gl = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+gfx-backend-dx12 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+gfx-backend-dx11 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+gfx-backend-metal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+
 # # use the latest fixes in naga (remove when updates trickle down to wgpu-rs)
 # naga = { git = "https://github.com/gfx-rs/naga.git", rev = "3a0f0144112ff621dd7f731bf455adf6cab19164" }
 # # use the latest fixes in gfx (remove when updates trickle down to wgpu-rs)
