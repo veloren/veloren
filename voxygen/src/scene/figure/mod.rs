@@ -527,7 +527,7 @@ pub struct FigureMgr {
 }
 
 impl FigureMgr {
-    pub fn new(renderer: &Renderer) -> Self {
+    pub fn new(renderer: &mut Renderer) -> Self {
         Self {
             atlas: FigureAtlas::new(renderer),
             model_cache: FigureModelCache::new(),
@@ -1101,8 +1101,8 @@ impl FigureMgr {
                     let holding_lantern = inventory
                         .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
                         && light_emitter.is_some()
-                        && !(second_tool_hand.is_some()
-                            || matches!(active_tool_hand, Some(Hands::Two))
+                        && !((matches!(second_tool_hand, Some(_))
+                            || matches!(active_tool_hand, Some(Hands::Two)))
                             && character.map_or(false, |c| c.is_wield()))
                         && !character.map_or(false, |c| c.is_using_hands())
                         && physics.in_liquid().is_none();
@@ -7373,7 +7373,7 @@ pub struct FigureAtlas {
 }
 
 impl FigureAtlas {
-    pub fn new(renderer: &Renderer) -> Self {
+    pub fn new(renderer: &mut Renderer) -> Self {
         let allocator =
             Self::make_allocator(renderer).expect("Failed to create texture atlas for figures");
         Self {
@@ -7499,7 +7499,7 @@ impl FigureAtlas {
         }
     }
 
-    fn make_allocator(renderer: &Renderer) -> Result<AtlasAllocator, RenderError> {
+    fn make_allocator(renderer: &mut Renderer) -> Result<AtlasAllocator, RenderError> {
         let max_texture_size = renderer.max_texture_size();
         let atlas_size = guillotiere::Size::new(max_texture_size as i32, max_texture_size as i32);
         let allocator = AtlasAllocator::with_options(atlas_size, &guillotiere::AllocatorOptions {

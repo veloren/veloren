@@ -437,8 +437,8 @@ fn mesh_worker(
                 (
                     deep_level
                         .into_iter()
-                        .chain(shallow_level)
-                        .chain(surface_level)
+                        .chain(shallow_level.into_iter())
+                        .chain(surface_level.into_iter())
                         .collect(),
                     alt_indices,
                 )
@@ -535,7 +535,7 @@ pub struct SpriteRenderContext {
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
 
 impl SpriteRenderContext {
-    pub fn new(renderer: &Renderer) -> SpriteRenderContextLazy {
+    pub fn new(renderer: &mut Renderer) -> SpriteRenderContextLazy {
         let max_texture_size = renderer.max_texture_size();
 
         struct SpriteWorkerResponse {

@@ -141,7 +141,6 @@ pub fn create_player(state: &mut State) -> Entity {
         .build()
 }
 
-#[allow(clippy::needless_pass_by_ref_mut)]
 pub fn generate_chunk(state: &mut State, chunk_pos: Vec2<i32>) {
     let (x, y) = chunk_pos.map(|e| e.to_le_bytes()).into_tuple();
     let mut rng = SmallRng::from_seed([

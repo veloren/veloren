@@ -1185,7 +1185,7 @@ mod tests {
         init();
         info!("init");
 
-        let mut stock: hashbrown::HashMap<Good, f32> = [
+        let mut stock: hashbrown::HashMap<Good, f32> = vec![
             (Good::Ingredients, 50.0),
             (Good::Tools, 10.0),
             (Good::Armor, 10.0),

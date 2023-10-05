@@ -1173,9 +1173,9 @@ impl Server {
     /// due to a persistence transaction failure and returns the processed
     /// DisconnectionType
     fn disconnect_all_clients_if_requested(&mut self) -> Option<DisconnectType> {
-        let character_updater = self.state.ecs().fetch_mut::<CharacterUpdater>();
+        let mut character_updater = self.state.ecs().fetch_mut::<CharacterUpdater>();
 
-        let disconnect_type = self.get_disconnect_all_clients_requested(&character_updater);
+        let disconnect_type = self.get_disconnect_all_clients_requested(&mut character_updater);
         if let Some(disconnect_type) = disconnect_type {
             let with_persistence = disconnect_type == DisconnectType::WithPersistence;
             let clients = self.state.ecs().read_storage::<Client>();
@@ -1206,7 +1206,7 @@ impl Server {
 
     fn get_disconnect_all_clients_requested(
         &self,
-        character_updater: &CharacterUpdater,
+        character_updater: &mut CharacterUpdater,
     ) -> Option<DisconnectType> {
         let without_persistence_requested = character_updater.disconnect_all_clients_requested();
         let with_persistence_requested = self.disconnect_all_clients_requested;

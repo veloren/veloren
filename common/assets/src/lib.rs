@@ -749,12 +749,12 @@ pub mod asset_tweak {
 
             run_with_file(tweak_path, |file| {
                 file.write_all(
-                    br"
+                    br#"
                     ((
                         such: 5,
                         field: 35.752346,
                     ))
-                    ",
+                    "#,
                 )
                 .expect("failed to write to the file");
 

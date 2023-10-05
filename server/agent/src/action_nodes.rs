@@ -1939,7 +1939,7 @@ impl<'a> AgentData<'a> {
 
     pub fn menacing(
         &self,
-        agent: &Agent,
+        agent: &mut Agent,
         controller: &mut Controller,
         target: EcsEntity,
         read_data: &ReadData,

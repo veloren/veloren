@@ -5,7 +5,7 @@ mod widget;
 
 pub use defaults::Defaults;
 
-use primitive::Primitive;
+pub(self) use primitive::Primitive;
 
 use super::{
     super::graphic::{self, Graphic, TexId},

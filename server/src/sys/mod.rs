@@ -44,7 +44,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<chunk_send::Sys>(dispatch_builder, &[]);
 }
 
-pub fn run_sync_systems(ecs: &specs::World) {
+pub fn run_sync_systems(ecs: &mut specs::World) {
     // Setup for entity sync
     // If I'm not mistaken, these two could be ran in parallel
     run_now::<sentinel::Sys>(ecs);

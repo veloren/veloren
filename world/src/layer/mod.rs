@@ -1036,6 +1036,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             }
         };
 
+        let cavern_top = cavern_top;
         let mut last_kind = BlockKind::Rock;
         for z in cavern_bottom - 1..cavern_top {
             use SpriteKind::*;

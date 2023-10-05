@@ -675,7 +675,6 @@ impl Window {
                             .game_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
-                            #[allow(clippy::never_loop)]
                             for action in actions {
                                 match *action {}
                             }
@@ -685,7 +684,6 @@ impl Window {
                             .menu_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
-                            #[allow(clippy::never_loop)]
                             for action in actions {
                                 match *action {}
                             }

@@ -793,7 +793,7 @@ pub fn change_render_mode(
 fn adjust_terrain_view_distance(
     terrain_vd: u32,
     settings: &mut Settings,
-    session_state: &SessionState,
+    session_state: &mut SessionState,
 ) {
     settings.graphics.terrain_view_distance = terrain_vd;
     client_set_view_distance(settings, session_state);
@@ -802,13 +802,13 @@ fn adjust_terrain_view_distance(
 fn adjust_entity_view_distance(
     entity_vd: u32,
     settings: &mut Settings,
-    session_state: &SessionState,
+    session_state: &mut SessionState,
 ) {
     settings.graphics.entity_view_distance = entity_vd;
     client_set_view_distance(settings, session_state);
 }
 
-fn client_set_view_distance(settings: &Settings, session_state: &SessionState) {
+fn client_set_view_distance(settings: &Settings, session_state: &mut SessionState) {
     let view_distances = common::ViewDistances {
         terrain: settings.graphics.terrain_view_distance,
         entity: settings.graphics.entity_view_distance,

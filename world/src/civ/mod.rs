@@ -1514,7 +1514,7 @@ impl Civs {
 
 /// Attempt to find a path between two locations
 fn find_path(
-    ctx: &GenCtx<impl Rng>,
+    ctx: &mut GenCtx<impl Rng>,
     get_bridge: impl Fn(Vec2<i32>) -> Option<Vec2<i32>>,
     a: Vec2<i32>,
     b: Vec2<i32>,

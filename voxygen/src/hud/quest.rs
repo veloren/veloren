@@ -223,7 +223,7 @@ impl<'a> Widget for Quest<'a> {
         // [amount, item_desc]
 
         //("common.items.weapons.sword.caladbolg");
-        let rewards = [
+        let rewards = vec![
             (1, "common.items.weapons.dagger.starter_dagger", "Dagger"),
             (4, "common.items.crafting_ing.seashells", "Seashell"),
             (

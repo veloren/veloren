@@ -253,7 +253,7 @@ pub fn handle_client_disconnect(
 // temporarily unable to log in during this period to avoid
 // the race condition of their login fetching their old data
 // and overwriting the data saved here.
-fn persist_entity(state: &State, entity: EcsEntity) -> EcsEntity {
+fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
     if let (
         Some(presence),
         Some(skill_set),

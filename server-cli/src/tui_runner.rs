@@ -29,7 +29,7 @@ pub struct Tui {
 }
 
 impl Tui {
-    fn handle_events(input: &mut String, msg_s: &mpsc::Sender<Message>) {
+    fn handle_events(input: &mut String, msg_s: &mut mpsc::Sender<Message>) {
         use crossterm::event::*;
         if let Event::Key(event) = read().unwrap() {
             match event.code {
@@ -81,7 +81,7 @@ impl Tui {
     }
 
     /// In a seperate Thread
-    fn work_b(running: Arc<AtomicBool>, msg_s: mpsc::Sender<Message>) {
+    fn work_b(running: Arc<AtomicBool>, mut msg_s: mpsc::Sender<Message>) {
         while running.load(Ordering::Relaxed) {
             let mut line = String::new();
 
@@ -100,14 +100,14 @@ impl Tui {
                 },
                 Ok(_) => {
                     debug!(?line, "basic mode: command entered");
-                    cli::parse_command(line.trim(), &msg_s);
+                    cli::parse_command(line.trim(), &mut msg_s);
                 },
             }
         }
     }
 
     /// In a seperate Thread
-    fn work_e(running: Arc<AtomicBool>, msg_s: mpsc::Sender<Message>) {
+    fn work_e(running: Arc<AtomicBool>, mut msg_s: mpsc::Sender<Message>) {
         // Start the tui
         let mut stdout = io::stdout();
         execute!(stdout, EnterAlternateScreen, EnableMouseCapture).unwrap();
@@ -169,7 +169,7 @@ impl Tui {
                 warn!(?e, "couldn't draw frame");
             };
             if crossterm::event::poll(Duration::from_millis(100)).unwrap() {
-                Self::handle_events(&mut input, &msg_s);
+                Self::handle_events(&mut input, &mut msg_s);
             };
         }
     }

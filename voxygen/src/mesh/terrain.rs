@@ -529,8 +529,8 @@ pub fn generate_mesh<'a>(
     (
         opaque_deep
             .into_iter()
-            .chain(opaque_shallow)
-            .chain(opaque_surface)
+            .chain(opaque_shallow.into_iter())
+            .chain(opaque_surface.into_iter())
             .collect(),
         fluid_mesh,
         Mesh::new(),

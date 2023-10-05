@@ -2924,7 +2924,11 @@ impl<'a> AgentData<'a> {
             {
                 agent.action_state.counters[FCounters::SummonThreshold as usize] -=
                     SUMMON_THRESHOLD;
-                agent.action_state.conditions[Conditions::AttackToggle as usize] = !agent.action_state.conditions[Conditions::AttackToggle as usize];
+                if !agent.action_state.conditions[Conditions::AttackToggle as usize] {
+                    agent.action_state.conditions[Conditions::AttackToggle as usize] = true;
+                } else {
+                    agent.action_state.conditions[Conditions::AttackToggle as usize] = false;
+                }
             }
         } else {
             // If target is in melee range use flamecrush
