@@ -1069,7 +1069,7 @@ fn mesh_hold() -> BoneMeshes {
     )
 }
 
-/////////
+//////
 #[derive(Deserialize)]
 struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCentralVoxSpec>);
 
@@ -1660,7 +1660,7 @@ impl QuadrupedMediumLateralSpec {
     }
 }
 
-////
+//////
 #[derive(Deserialize)]
 struct BirdMediumCentralSpec(HashMap<(BMSpecies, BMBodyType), SidedBMCentralVoxSpec>);
 
@@ -1914,7 +1914,7 @@ impl BirdMediumLateralSpec {
     }
 }
 
-////
+//////
 #[derive(Deserialize)]
 struct TheropodCentralSpec(HashMap<(TSpecies, TBodyType), SidedTCentralVoxSpec>);
 
@@ -2244,7 +2244,7 @@ impl TheropodLateralSpec {
     }
 }
 
-////
+//////
 #[derive(Deserialize)]
 struct ArthropodCentralSpec(HashMap<(ASpecies, ABodyType), SidedACentralVoxSpec>);
 
@@ -2644,7 +2644,7 @@ impl ArthropodLateralSpec {
         (lateral, Vec3::from(spec.leg_br.offset))
     }
 }
-////
+//////
 #[derive(Deserialize)]
 struct FishMediumCentralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMCentralVoxSpec>);
 
@@ -2850,7 +2850,7 @@ impl FishMediumLateralSpec {
     }
 }
 
-////
+//////
 #[derive(Deserialize)]
 struct FishSmallCentralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSCentralVoxSpec>);
 
@@ -2994,7 +2994,7 @@ impl FishSmallLateralSpec {
     }
 }
 
-////
+//////
 
 #[derive(Deserialize)]
 struct BipedSmallWeaponSpec(HashMap<ToolKey, ArmorVoxSpec>);
@@ -3269,8 +3269,8 @@ impl BipedSmallWeaponSpec {
         (tool_kind_segment, offset)
     }
 }
-////
 
+//////
 #[derive(Deserialize)]
 struct DragonCentralSpec(HashMap<(DSpecies, DBodyType), SidedDCentralVoxSpec>);
 
@@ -3641,7 +3641,7 @@ impl DragonLateralSpec {
     }
 }
 
-////
+//////
 #[derive(Deserialize)]
 struct BirdLargeCentralSpec(HashMap<(BLASpecies, BLABodyType), SidedBLACentralVoxSpec>);
 
@@ -4044,7 +4044,7 @@ impl BirdLargeLateralSpec {
     }
 }
 
-////
+//////
 #[derive(Deserialize)]
 struct BipedLargeCentralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCentralVoxSpec>);
 
@@ -4462,7 +4462,8 @@ impl BipedLargeSecondSpec {
         (tool_kind_segment, offset)
     }
 }
-////
+
+//////
 #[derive(Deserialize)]
 struct GolemCentralSpec(HashMap<(GSpecies, GBodyType), SidedGCentralVoxSpec>);
 
@@ -4772,8 +4773,7 @@ impl GolemLateralSpec {
     }
 }
 
-/////
-
+//////
 #[derive(Deserialize)]
 struct QuadrupedLowCentralSpec(HashMap<(QLSpecies, QLBodyType), SidedQLCentralVoxSpec>);
 
@@ -5050,8 +5050,7 @@ impl QuadrupedLowLateralSpec {
     }
 }
 
-////
-
+//////
 #[derive(Deserialize)]
 struct ObjectCentralSpec(HashMap<object::Body, SidedObjectCentralVoxSpec>);
 

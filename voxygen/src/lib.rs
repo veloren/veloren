@@ -1,6 +1,10 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
-#![allow(clippy::identity_op, clippy::option_map_unit_fn)]
+#![allow(
+    clippy::identity_op,
+    clippy::option_map_unit_fn,
+    clippy::needless_pass_by_ref_mut //until we find a better way for specs
+)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     array_methods,

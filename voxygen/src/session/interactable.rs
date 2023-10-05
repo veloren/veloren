@@ -59,7 +59,7 @@ impl Interactable {
         volume_pos: VolumePos,
         interaction: Interaction,
     ) -> Option<Self> {
-        let Some(block) = volume_pos.get_block(terrain, id_maps, colliders) else { return None };
+        let block= volume_pos.get_block(terrain, id_maps, colliders)?;
         let block_interaction = match interaction {
             Interaction::Collect => {
                 // Check if this is an unlockable sprite

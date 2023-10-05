@@ -1414,7 +1414,7 @@ impl Land {
             }
         }
 
-        closed.into_iter().chain(open.into_iter()).collect()
+        closed.into_iter().chain(open).collect()
     }
 
     fn write_path(

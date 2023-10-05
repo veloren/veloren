@@ -2,7 +2,8 @@
 #![allow(
     clippy::option_map_unit_fn,
     clippy::blocks_in_if_conditions,
-    clippy::identity_op
+    clippy::identity_op,
+    clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 #![allow(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]

@@ -641,7 +641,7 @@ impl Archetype for House {
                             % 6
                         {
                             0 => SpriteKind::HangingSign,
-                            1 | 2 | 3 => SpriteKind::HangingBasket,
+                            1..=3 => SpriteKind::HangingBasket,
                             4 => SpriteKind::WallSconce,
                             5 => SpriteKind::WallLampSmall,
                             _ => SpriteKind::DungeonWallDecor,

@@ -137,7 +137,7 @@ impl Scene {
             figure_state: None,
 
             backdrop: backdrop.map(|specifier| {
-                let mut state = FigureState::new(renderer, FixtureSkeleton::default(), ());
+                let mut state = FigureState::new(renderer, FixtureSkeleton, ());
                 let mut greedy = FigureModel::make_greedy();
                 let mut opaque_mesh = Mesh::new();
                 let (segment, offset) = load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0));
