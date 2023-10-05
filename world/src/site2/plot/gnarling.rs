@@ -294,12 +294,7 @@ impl GnarlingFortification {
             .collect::<Vec<_>>();
         let wall_segments = outer_wall_segments
             .into_iter()
-            .chain(
-                wall_connections
-                    .iter()
-                    .copied()
-                    .zip(inner_tower_locs),
-            )
+            .chain(wall_connections.iter().copied().zip(inner_tower_locs))
             .collect::<Vec<_>>();
 
         Self {

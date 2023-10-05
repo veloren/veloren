@@ -636,31 +636,31 @@ impl m32 {
 ///
 /// This algorithm does this in four steps:
 ///
-/// 1. Sort the nodes in h by height (so the lowest node by altitude is first
-///    in the list, and the highest node by altitude is last).
+/// 1. Sort the nodes in h by height (so the lowest node by altitude is first in
+///    the list, and the highest node by altitude is last).
 /// 2. Iterate through the list in *reverse.*  For each node, we compute its
 ///    drainage area as the sum of the drainage areas of its "children" nodes
 ///    (i.e. the nodes with directed edges to this node).  To do this
-///    efficiently, we start with the "leaves" (the highest nodes), which
-///    have no neighbors higher than them, hence no directed edges to them.
-///    We add their area to themselves, and then to all neighbors that they
-///    flow into (their "ancestors" in the flow graph); currently, this just
-///    means the node immediately downhill of this node. As we go lower, we
-///    know that all our "children" already had their areas computed, which
-///    means that we can repeat the process in order to derive all the final
-///    areas.
+///    efficiently, we start with the "leaves" (the highest nodes), which have
+///    no neighbors higher than them, hence no directed edges to them. We add
+///    their area to themselves, and then to all neighbors that they flow into
+///    (their "ancestors" in the flow graph); currently, this just means the
+///    node immediately downhill of this node. As we go lower, we know that all
+///    our "children" already had their areas computed, which means that we can
+///    repeat the process in order to derive all the final areas.
 /// 3. Now, iterate through the list in *order.*  Whether we used the filling
 ///    method to compute a "filled" version of each depression, or used the lake
 ///    connection algorithm described in [1], each node is guaranteed to have
 ///    zero or one drainage edges out, representing the direction of water flow
 ///    for that node. For nodes i with zero drainage edges out (boundary nodes
 ///    and lake bottoms) we set the slope to 0 (so the change in altitude is
-///    uplift(i))
-///    For nodes with at least one drainage edge out, we take advantage of the
-///    fact that we are computing new heights in order and rewrite our equation
-///    as (letting j = downhill[i], A[i] be the computed area of point i,
-///    p(i) be the x-y position of point i,
-///    flux(i) = k * A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1):
+///    uplift(i)).
+///
+///    For nodes with at least one drainage edge out, we take
+///    advantage of the fact that we are computing new heights in order and
+///    rewrite our equation as (letting j = downhill[i], A[i] be the computed
+///    area of point i, p(i) be the x-y position of point i, flux(i) = k *
+///    A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1):
 ///
 ///    h[i](t + dt) = h[i](t) + δt * (uplift[i] + flux(i) * h[j](t + δt)) / (1 +
 /// flux(i) * δt).

@@ -36,7 +36,7 @@ fn load_map(path: &Path) -> Option<SingleplayerWorld> {
     let meta_path = path.join("meta.ron");
 
     let Ok(f) = fs::File::open(&meta_path) else {
-        error!("Failed to open {}", meta_path.to_string_lossy());  
+        error!("Failed to open {}", meta_path.to_string_lossy());
         return None;
     };
 

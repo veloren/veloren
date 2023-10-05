@@ -1569,7 +1569,9 @@ fn walk_in_all_dirs(
 
     let adjacents = NEIGHBORS.map(|dir| a + dir);
 
-    let Some(a_chunk) = sim.get(a) else { return potential };
+    let Some(a_chunk) = sim.get(a) else {
+        return potential;
+    };
     let mut chunks = [None; 8];
     for i in 0..8 {
         if loc_suitable_for_walking(sim, adjacents[i]) {

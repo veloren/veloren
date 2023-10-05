@@ -1484,27 +1484,13 @@ impl Renderer {
     //     _bones: &Consts<figure::BoneData>,
     //     _lod: &lod_terrain::LodData,
     //     _locals: &Consts<shadow::Locals>,
-    // ) {
-    //     // FIXME: Consider reenabling at some point.
-    //     /* let (point_shadow_maps, directed_shadow_maps) =
-    //         if let Some(shadow_map) = &mut self.shadow_map {
-    //             (
-    //                 (
-    //                     shadow_map.point_res.clone(),
-    //                     shadow_map.point_sampler.clone(),
-    //                 ),
-    //                 (
-    //                     shadow_map.directed_res.clone(),
-    //                     shadow_map.directed_sampler.clone(),
-    //                 ),
-    //             )
-    //         } else {
-    //             (
-    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-    //                 (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
-    //             )
-    //         };
-    //     let model = &model.opaque;
+    // ) { // FIXME: Consider reenabling at some point. /* let (point_shadow_maps,
+    //   directed_shadow_maps) = if let Some(shadow_map) = &mut self.shadow_map { (
+    //   ( shadow_map.point_res.clone(), shadow_map.point_sampler.clone(), ), (
+    //   shadow_map.directed_res.clone(), shadow_map.directed_sampler.clone(), ), )
+    //   } else { ( (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()),
+    //   (self.noise_tex.srv.clone(), self.noise_tex.sampler.clone()), ) }; let
+    //   model = &model.opaque;
 
     //     self.encoder.draw(
     //         &gfx::Slice {

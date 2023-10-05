@@ -885,11 +885,7 @@ fn remembers_fight_with(
 //     read_data: &ReadData,
 //     agent: &mut Agent,
 //     target: EcsEntity,
-// ) {
-//     rtsim_entity.is_some().then(|| {
-//         read_data
-//             .stats
-//             .get(target)
-//             .map(|stats| agent.add_fight_to_memory(&stats.name,
+// ) { rtsim_entity.is_some().then(|| { read_data .stats .get(target)
+//   .map(|stats| agent.add_fight_to_memory(&stats.name,
 // read_data.time.0))     });
 // }

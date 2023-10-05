@@ -1487,9 +1487,7 @@ impl<'a> Widget for Crafting<'a> {
                             });
                     }
 
-                    let can_perform = repair_slot
-                        .item(self.inventory)
-                        .map_or(false, can_repair);
+                    let can_perform = repair_slot.item(self.inventory).map_or(false, can_repair);
 
                     (repair_slot.slot, None, can_perform)
                 },

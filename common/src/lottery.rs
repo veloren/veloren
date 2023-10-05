@@ -133,8 +133,12 @@ pub fn distribute_many<T: Copy + Eq + Hash, I>(
 
         let Some(mut give) = participants
             .iter()
-            .map(|participant| (total_item_amount as f32 * participant.weight / total_weight).ceil() as u32 - participant.recieved_count)
-            .min() else {
+            .map(|participant| {
+                (total_item_amount as f32 * participant.weight / total_weight).ceil() as u32
+                    - participant.recieved_count
+            })
+            .min()
+        else {
             tracing::error!("Tried to distribute items to no participants.");
             return;
         };
@@ -152,8 +156,7 @@ pub fn distribute_many<T: Copy + Eq + Hash, I>(
 
             let participant_count = participants.len();
 
-            let Some(winner) = participants
-                .get_mut(index) else {
+            let Some(winner) = participants.get_mut(index) else {
                 tracing::error!("Tried to distribute items to no participants.");
                 return;
             };

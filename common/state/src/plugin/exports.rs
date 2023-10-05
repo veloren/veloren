@@ -84,7 +84,9 @@ pub(crate) fn wasi_fd_write(
             let Ok(cio) = iov_addr
                 .add_offset(i)
                 .and_then(|p| p.read(&memory.view(&store)))
-            else { return Errno::Memviolation as i32; };
+            else {
+                return Errno::Memviolation as i32;
+            };
             if let Err(e) = print_impl(env.data(), &store, cio.buf, cio.buf_len) {
                 return e as i32;
             }

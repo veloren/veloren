@@ -83,11 +83,14 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             let portal_pos = positions.get(teleporting.portal);
-            let Some(Object::Portal { target, requires_no_aggro, .. }) = objects
-                .get(teleporting.portal)
+            let Some(Object::Portal {
+                target,
+                requires_no_aggro,
+                ..
+            }) = objects.get(teleporting.portal)
             else {
                 cancel_teleporting.push(entity);
-                continue
+                continue;
             };
 
             if portal_pos.map_or(true, |portal_pos| {

@@ -1703,8 +1703,8 @@ impl Structure for House {
                         //1 => {
                         //    painter.prim(Primitive::Aabb(Aabb {
                         //        min: Vec2::new(stair_origin.x, stair_origin.y
-                        // + 10).with_z(alt + previous_floor_height),
-                        //        max: Vec2::new(stair_origin.x + stair_width,
+                        // + 10).with_z(alt + previous_floor_height), max:
+                        //   Vec2::new(stair_origin.x + stair_width,
                         // stair_origin.y + 12).with_z(alt + previous_height +
                         // 1),    }))
                         //},
@@ -1719,8 +1719,8 @@ impl Structure for House {
                         //_ => {
                         //    painter.prim(Primitive::Aabb(Aabb {
                         //        min: Vec2::new(stair_origin.x, stair_origin.y
-                        // + 10).with_z(alt + previous_floor_height),
-                        //        max: Vec2::new(stair_origin.x + stair_width,
+                        // + 10).with_z(alt + previous_floor_height), max:
+                        //   Vec2::new(stair_origin.x + stair_width,
                         // stair_origin.y + 12).with_z(alt + previous_height +
                         // 1),    }))
                         //},
@@ -1792,7 +1792,7 @@ impl Structure for House {
                         //    painter.prim(Primitive::Aabb(Aabb {
                         //        min: Vec2::new(stair_origin.x, stair_origin.y
                         // + stair_width).with_z(alt + previous_floor_height),
-                        //        max: Vec2::new(stair_origin.x + 2,
+                        //   max: Vec2::new(stair_origin.x + 2,
                         // stair_origin.y + 2 * stair_width).with_z(alt +
                         // previous_height + 1),    }))
                         //},

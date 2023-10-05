@@ -61,8 +61,8 @@ impl<'a> System<'a> for Sys {
         // To update subscriptions
         // 1. Iterate through clients
         // 2. Calculate current chunk position
-        // 3. If chunk is different (use fuzziness) or the client view distance
-        //    has changed continue, otherwise return
+        // 3. If chunk is different (use fuzziness) or the client view distance has
+        //    changed continue, otherwise return
         // 4. Iterate through subscribed regions
         // 5. Check if region is still in range (use fuzziness)
         // 6. If not in range

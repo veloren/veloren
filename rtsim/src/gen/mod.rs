@@ -94,7 +94,9 @@ impl Data {
                 .faction
                 .and_then(|f| this.factions.get(f))
                 .map(|f| f.good_or_evil)
-            else { continue };
+            else {
+                continue;
+            };
 
             let rand_wpos = |rng: &mut SmallRng, matches_plot: fn(&PlotKind) -> bool| {
                 let wpos2d = site2
@@ -257,18 +259,23 @@ impl Data {
                 let Some(species) = [
                     Some(comp::body::biped_large::Species::Ogre),
                     Some(comp::body::biped_large::Species::Cyclops),
-                    Some(comp::body::biped_large::Species::Wendigo).filter(|_| biome == BiomeKind::Taiga),
+                    Some(comp::body::biped_large::Species::Wendigo)
+                        .filter(|_| biome == BiomeKind::Taiga),
                     Some(comp::body::biped_large::Species::Cavetroll),
-                    Some(comp::body::biped_large::Species::Mountaintroll).filter(|_| biome == BiomeKind::Mountain),
-                    Some(comp::body::biped_large::Species::Swamptroll).filter(|_| biome == BiomeKind::Swamp),
+                    Some(comp::body::biped_large::Species::Mountaintroll)
+                        .filter(|_| biome == BiomeKind::Mountain),
+                    Some(comp::body::biped_large::Species::Swamptroll)
+                        .filter(|_| biome == BiomeKind::Swamp),
                     Some(comp::body::biped_large::Species::Blueoni),
                     Some(comp::body::biped_large::Species::Redoni),
-                    Some(comp::body::biped_large::Species::Tursus).filter(|_| chunk.temp < CONFIG.snow_temp),
+                    Some(comp::body::biped_large::Species::Tursus)
+                        .filter(|_| chunk.temp < CONFIG.snow_temp),
                 ]
-                    .into_iter()
-                    .flatten()
-                    .choose(&mut rng)
-                else { continue };
+                .into_iter()
+                .flatten()
+                .choose(&mut rng) else {
+                    continue;
+                };
 
                 this.npcs.create_npc(Npc::new(
                     rng.gen(),

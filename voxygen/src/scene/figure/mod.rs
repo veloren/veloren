@@ -1103,7 +1103,7 @@ impl FigureMgr {
                         && light_emitter.is_some()
                         && !(second_tool_hand.is_some()
                             || matches!(active_tool_hand, Some(Hands::Two))
-                            && character.map_or(false, |c| c.is_wield()))
+                                && character.map_or(false, |c| c.is_wield()))
                         && !character.map_or(false, |c| c.is_using_hands())
                         && physics.in_liquid().is_none();
 

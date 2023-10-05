@@ -39,7 +39,11 @@ impl Add<Vertex> for Vertex {
 
     fn add(self, other: Self) -> Self::Output {
         Self {
-            pos: [self.pos[0] + other.pos[0], self.pos[1] + other.pos[1], self.pos[2] + other.pos[2]],
+            pos: [
+                self.pos[0] + other.pos[0],
+                self.pos[1] + other.pos[1],
+                self.pos[2] + other.pos[2],
+            ],
         }
     }
 }

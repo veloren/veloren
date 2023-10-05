@@ -86,10 +86,10 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
         //
         // Rationales:
         //
-        // 1. We have code in the implementation that assumes it. In particular,
-        //    code using `.count_ones()`.
-        // 2. The maximum group size is `256x256x256`, because there's code that
-        //    stores group relative indices as `u8`.
+        // 1. We have code in the implementation that assumes it. In particular, code
+        //    using `.count_ones()`.
+        // 2. The maximum group size is `256x256x256`, because there's code that stores
+        //    group relative indices as `u8`.
         // 3. There's code that stores group indices as `u8`.
         debug_assert!(S::SIZE.x.is_power_of_two());
         debug_assert!(S::SIZE.y.is_power_of_two());

@@ -118,14 +118,17 @@ pub fn members<'a>(
 ) -> impl Iterator<Item = (specs::Entity, Role)> + 'a {
     (entities, groups, alignments, uids)
         .join()
-        .filter(move |&(_e, g, _a, _u)| (*g == group)).map(|(e, _g, a, u)| (
-             e,
-             if matches!(a, Alignment::Owned(owner) if owner != u) {
-                 Role::Pet
-             } else {
-                 Role::Member
-             },
-         ))
+        .filter(move |&(_e, g, _a, _u)| (*g == group))
+        .map(|(e, _g, a, u)| {
+            (
+                e,
+                if matches!(a, Alignment::Owned(owner) if owner != u) {
+                    Role::Pet
+                } else {
+                    Role::Member
+                },
+            )
+        })
 }
 
 // TODO: optimize add/remove for massive NPC groups
