@@ -100,11 +100,11 @@ fn input_validated_string(prompt: &str, check: &dyn Fn(&str) -> bool) -> String 
 }
 
 fn main() {
-    let prompt = r#"
+    let prompt = r"
         Stub implementation.
         If you want to migrate new assets, edit `v1` and `v2` modules.
         If you want to migrate old assets, check commit history.
-    "#;
+    ";
     println!("{prompt}");
 
     let old_dir = input_validated_string(

@@ -861,6 +861,7 @@ mod tests {
         )
     }
 
+    #[allow(clippy::needless_pass_by_ref_mut)]
     async fn mock_mpsc(
         cid: Cid,
         _runtime: &Arc<Runtime>,
