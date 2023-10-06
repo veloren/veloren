@@ -445,7 +445,9 @@ impl<'frame> Drawer<'frame> {
     /// pending uploads.
     fn run_ui_premultiply_passes(&mut self) {
         prof_span!("run_ui_premultiply_passes");
-        let Some(premultiply_alpha) = self.borrow.pipelines.premultiply_alpha() else { return };
+        let Some(premultiply_alpha) = self.borrow.pipelines.premultiply_alpha() else {
+            return;
+        };
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
 

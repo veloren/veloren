@@ -222,7 +222,7 @@ impl<'a> PhysicsData<'a> {
         }
 
         // Update PreviousPhysCache
-        for (_, vel, position, ori, mut phys_cache, collider, scale, cs) in (
+        for (_, vel, position, ori, phys_cache, collider, scale, cs) in (
             &self.read.entities,
             &self.write.velocities,
             &self.write.positions,
@@ -797,7 +797,7 @@ impl<'a> PhysicsData<'a> {
                     ori,
                     body,
                     character_state,
-                    mut physics_state,
+                    physics_state,
                     pos_vel_ori_defer,
                     previous_cache,
                     _,

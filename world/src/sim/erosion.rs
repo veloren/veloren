@@ -322,7 +322,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
             let pass_idx = (-indirection_idx) as usize;
             // NOTE: Must exist since this lake had a downhill in the first place.
             let neighbor_pass_idx = downhill[pass_idx] as usize/*downhill_idx*/;
-            let mut lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
+            let lake_neighbor_pass = &mut rivers[neighbor_pass_idx];
             // We definitely shouldn't have encountered this yet!
             debug_assert!(lake_neighbor_pass.velocity == Vec3::zero());
             // TODO: Rethink making the lake neighbor pass always a river or lake, no matter
@@ -388,7 +388,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
                         river_spline_derivative,
                     )
                 };
-                let mut lake = &mut rivers[chunk_idx];
+                let lake = &mut rivers[chunk_idx];
                 lake.spline_derivative = river_spline_derivative;
                 lake.river_kind = Some(RiverKind::Lake {
                     neighbor_pass_pos: neighbor_pass_pos
@@ -495,7 +495,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         // CONFIG.river_min_height.
         let river = &rivers[chunk_idx];
         let is_river = river.is_river() || width >= 0.5 && height >= CONFIG.river_min_height as f64;
-        let mut downhill_river = &mut rivers[downhill_idx];
+        let downhill_river = &mut rivers[downhill_idx];
 
         if is_river {
             // Provisionally make the downhill chunk a river as well.
@@ -532,7 +532,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         velocity.normalize();
         velocity *= velocity_magnitude;
 
-        let mut river = &mut rivers[chunk_idx];
+        let river = &mut rivers[chunk_idx];
         // NOTE: Not trying to do this more cleverly because we want to keep the river's
         // neighbors. TODO: Actually put something in the neighbors.
         river.velocity = velocity.map(|e| e as f32);
@@ -636,31 +636,31 @@ impl m32 {
 ///
 /// This algorithm does this in four steps:
 ///
-/// 1. Sort the nodes in h by height (so the lowest node by altitude is first
-///    in the list, and the highest node by altitude is last).
+/// 1. Sort the nodes in h by height (so the lowest node by altitude is first in
+///    the list, and the highest node by altitude is last).
 /// 2. Iterate through the list in *reverse.*  For each node, we compute its
 ///    drainage area as the sum of the drainage areas of its "children" nodes
 ///    (i.e. the nodes with directed edges to this node).  To do this
-///    efficiently, we start with the "leaves" (the highest nodes), which
-///    have no neighbors higher than them, hence no directed edges to them.
-///    We add their area to themselves, and then to all neighbors that they
-///    flow into (their "ancestors" in the flow graph); currently, this just
-///    means the node immediately downhill of this node. As we go lower, we
-///    know that all our "children" already had their areas computed, which
-///    means that we can repeat the process in order to derive all the final
-///    areas.
+///    efficiently, we start with the "leaves" (the highest nodes), which have
+///    no neighbors higher than them, hence no directed edges to them. We add
+///    their area to themselves, and then to all neighbors that they flow into
+///    (their "ancestors" in the flow graph); currently, this just means the
+///    node immediately downhill of this node. As we go lower, we know that all
+///    our "children" already had their areas computed, which means that we can
+///    repeat the process in order to derive all the final areas.
 /// 3. Now, iterate through the list in *order.*  Whether we used the filling
 ///    method to compute a "filled" version of each depression, or used the lake
 ///    connection algorithm described in [1], each node is guaranteed to have
 ///    zero or one drainage edges out, representing the direction of water flow
 ///    for that node. For nodes i with zero drainage edges out (boundary nodes
 ///    and lake bottoms) we set the slope to 0 (so the change in altitude is
-///    uplift(i))
-///    For nodes with at least one drainage edge out, we take advantage of the
-///    fact that we are computing new heights in order and rewrite our equation
-///    as (letting j = downhill[i], A[i] be the computed area of point i,
-///    p(i) be the x-y position of point i,
-///    flux(i) = k * A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1):
+///    uplift(i)).
+///
+///    For nodes with at least one drainage edge out, we take
+///    advantage of the fact that we are computing new heights in order and
+///    rewrite our equation as (letting j = downhill[i], A[i] be the computed
+///    area of point i, p(i) be the x-y position of point i, flux(i) = k *
+///    A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1):
 ///
 ///    h[i](t + dt) = h[i](t) + δt * (uplift[i] + flux(i) * h[j](t + δt)) / (1 +
 /// flux(i) * δt).

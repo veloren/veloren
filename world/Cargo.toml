@@ -34,7 +34,7 @@ tracing = { workspace = true }
 rand = { workspace = true }
 rand_chacha = { workspace = true }
 arr_macro = "0.2.1"
-packed_simd = { package = "packed_simd_2", version = "0.3.8", optional = true }
+packed_simd = { version = "0.3.9", optional = true }
 rayon = { workspace = true }
 serde = { workspace = true }
 ron = { workspace = true }

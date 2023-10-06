@@ -137,7 +137,6 @@ impl Animation for ComboAnimation {
                             * Quaternion::rotation_z(0.2);
                         next.wing_out_r.orientation = Quaternion::rotation_y(0.2 + move1 * 0.3)
                             * Quaternion::rotation_z(-0.2);
-                    } else {
                     }
                 },
                 _ => {},

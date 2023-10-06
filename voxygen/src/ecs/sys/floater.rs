@@ -68,7 +68,7 @@ impl<'a> System<'a> for Sys {
                 .as_mut()
                 .map(|t| *t += dt.0);
 
-            for mut floater in hp_floater_list.floaters.iter_mut() {
+            for floater in hp_floater_list.floaters.iter_mut() {
                 // Increment timer
                 floater.timer += dt.0;
                 floater.jump_timer += dt.0;

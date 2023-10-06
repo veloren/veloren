@@ -407,7 +407,7 @@ impl TabComplete for ArgumentSpec {
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
-            ArgumentSpec::Boolean(_, part, _) => vec!["true", "false"]
+            ArgumentSpec::Boolean(_, part, _) => ["true", "false"]
                 .iter()
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())

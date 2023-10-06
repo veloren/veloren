@@ -27,7 +27,6 @@ impl<T: Eq + Hash> DeferredTracer<T> {
             *self.items.entry(t).or_default() += 1;
             self.last = Instant::now();
             self.last_cnt += 1;
-        } else {
         }
     }
 

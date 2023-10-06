@@ -1,3 +1,7 @@
+#![allow(
+    clippy::needless_pass_by_ref_mut //until we find a better way for specs
+)]
+
 use clap::Parser;
 use common::comp;
 use server::persistence::SqlLogMode;

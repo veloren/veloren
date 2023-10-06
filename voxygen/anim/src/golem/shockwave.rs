@@ -73,7 +73,6 @@ impl Animation for ShockwaveAnimation {
             next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2 + move2);
 
             next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2 + move2);
-        } else {
         }
         next
     }

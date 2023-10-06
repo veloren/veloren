@@ -388,7 +388,8 @@ where
             // try to order pending
             let mut pending_violated = false;
             let mut reliable = vec![];
-            self.pending_reliable_buffers.drain_filter(|(_, buffer)| {
+
+            self.pending_reliable_buffers.retain(|(_, buffer)| {
                 // try to get Sid without touching buffer
                 let mut testbuffer = buffer.clone();
                 match ITFrame::read_frame(&mut testbuffer) {
@@ -398,13 +399,13 @@ where
                         length: _,
                     })) => {
                         reliable.push((sid, buffer.clone()));
-                        true
+                        false
                     },
                     Ok(Some(_)) | Err(_) => {
                         pending_violated = true;
-                        true
+                        false
                     },
-                    Ok(None) => false,
+                    Ok(None) => true,
                 }
             });
 

@@ -178,7 +178,7 @@ impl<T: Event> PreparedEventQuery<T> {
         Ok(Self {
             bytes: bincode::serialize(&event).map_err(PluginError::Encoding)?,
             function_name: event.get_event_name(),
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         })
     }
 

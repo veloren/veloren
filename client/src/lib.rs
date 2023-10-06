@@ -1809,18 +1809,16 @@ impl Client {
         // significant changes to this code. Here is the approximate order of
         // things. Please update it as this code changes.
         //
-        // 1) Collect input from the frontend, apply input effects to the state
-        //    of the game
+        // 1) Collect input from the frontend, apply input effects to the state of the
+        //    game
         // 2) Handle messages from the server
-        // 3) Go through any events (timer-driven or otherwise) that need handling
-        //    and apply them to the state of the game
-        // 4) Perform a single LocalState tick (i.e: update the world and entities
-        //    in the world)
-        // 5) Go through the terrain update queue and apply all changes
-        //    to the terrain
+        // 3) Go through any events (timer-driven or otherwise) that need handling and
+        //    apply them to the state of the game
+        // 4) Perform a single LocalState tick (i.e: update the world and entities in
+        //    the world)
+        // 5) Go through the terrain update queue and apply all changes to the terrain
         // 6) Sync information to the server
-        // 7) Finish the tick, passing actions of the main thread back
-        //    to the frontend
+        // 7) Finish the tick, passing actions of the main thread back to the frontend
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.

@@ -196,10 +196,7 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
         let kind = BlockKind::from_str(&row.get::<_, String>(0)?)?;
         let rgb: Rgb<u8> = Rgb::new(row.get(1)?, row.get(2)?, row.get(3)?);
         let count: i64 = row.get(4)?;
-        block_colors
-            .entry(kind)
-            .or_insert_with(Vec::new)
-            .push((rgb, count));
+        block_colors.entry(kind).or_default().push((rgb, count));
     }
     for (_, v) in block_colors.iter_mut() {
         v.sort_by(|a, b| b.1.cmp(&a.1));
@@ -207,7 +204,7 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
 
     let mut palettes: HashMap<BlockKind, Vec<Rgb<u8>>> = HashMap::new();
     for (kind, colors) in block_colors.iter() {
-        let palette = palettes.entry(*kind).or_insert_with(Vec::new);
+        let palette = palettes.entry(*kind).or_default();
         if colors.len() <= 256 {
             for (color, _) in colors {
                 palette.push(*color);

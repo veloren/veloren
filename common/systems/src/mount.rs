@@ -53,27 +53,35 @@ impl<'a> System<'a> for Sys {
         // For each mount...
         for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
             // ...find the rider...
-            let Some((inputs_and_actions, rider)) = id_maps
-                .uid_entity(is_mount.rider)
-                .and_then(|rider| {
-                    controllers
-                        .get_mut(rider)
-                        .map(|c| (
-                            // Only take inputs and actions from the rider if the mount is not intelligent (TODO: expand the definition of 'intelligent').
+            let Some((inputs_and_actions, rider)) =
+                id_maps.uid_entity(is_mount.rider).and_then(|rider| {
+                    controllers.get_mut(rider).map(|c| {
+                        (
+                            // Only take inputs and actions from the rider if the mount is not
+                            // intelligent (TODO: expand the definition of 'intelligent').
                             if !matches!(body, Some(Body::Humanoid(_))) {
-                                let actions = c.actions.drain_filter(|action| match action {
-                                    ControlAction::StartInput { input: i, .. }
-                                    | ControlAction::CancelInput(i) => matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll),
-                                    _ => false
-                                }).collect();
+                                let actions = c
+                                    .actions
+                                    .extract_if(|action| match action {
+                                        ControlAction::StartInput { input: i, .. }
+                                        | ControlAction::CancelInput(i) => matches!(
+                                            i,
+                                            InputKind::Jump | InputKind::Fly | InputKind::Roll
+                                        ),
+                                        _ => false,
+                                    })
+                                    .collect();
                                 Some((c.inputs.clone(), actions))
                             } else {
                                 None
                             },
                             rider,
-                        ))
+                        )
+                    })
                 })
-            else { continue };
+            else {
+                continue;
+            };
 
             // ...apply the mount's position/ori/velocity to the rider...
             let pos = positions.get(entity).copied();
@@ -151,7 +159,7 @@ impl<'a> System<'a> for Sys {
             let inputs = controllers.get_mut(entity).map(|c| {
                 let actions: Vec<_> = c
                     .actions
-                    .drain_filter(|action| match action {
+                    .extract_if(|action| match action {
                         ControlAction::StartInput { input: i, .. }
                         | ControlAction::CancelInput(i) => {
                             matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)

@@ -53,8 +53,8 @@ pub fn map_edge_factor(map_size_lg: MapSizeLg, posi: usize) -> f32 {
 /// At some point, we should probably contribute this back to stats-rs.
 ///
 /// 1. [https://www.r-bloggers.com/sums-of-random-variables/][1],
-/// 2. Sadooghi-Alvandi, S., A. Nematollahi, & R. Habibi, 2009.
-///    On the Distribution of the Sum of Independent Uniform Random Variables.
+/// 2. Sadooghi-Alvandi, S., A. Nematollahi, & R. Habibi, 2009. On the
+///    Distribution of the Sum of Independent Uniform Random Variables.
 ///    Statistical Papers, 50, 171-175.
 /// 3. [https://en.wikipedia.org/wiki/Cumulative_distribution_function][3]
 ///

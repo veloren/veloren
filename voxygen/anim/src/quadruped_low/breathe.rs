@@ -66,7 +66,6 @@ impl Animation for BreatheAnimation {
             next.foot_bl.orientation = Quaternion::rotation_y(twitch2 * 0.02);
 
             next.foot_br.orientation = Quaternion::rotation_y(twitch2 * 0.02);
-        } else {
         };
         next
     }

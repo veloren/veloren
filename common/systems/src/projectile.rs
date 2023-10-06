@@ -74,7 +74,7 @@ impl<'a> System<'a> for Sys {
         let mut rng = rand::thread_rng();
 
         // Attacks
-        'projectile_loop: for (entity, pos, physics, vel, mut projectile) in (
+        'projectile_loop: for (entity, pos, physics, vel, projectile) in (
             &read_data.entities,
             &read_data.positions,
             &read_data.physics_states,

@@ -59,7 +59,7 @@ impl Interactable {
         volume_pos: VolumePos,
         interaction: Interaction,
     ) -> Option<Self> {
-        let Some(block) = volume_pos.get_block(terrain, id_maps, colliders) else { return None };
+        let block = volume_pos.get_block(terrain, id_maps, colliders)?;
         let block_interaction = match interaction {
             Interaction::Collect => {
                 // Check if this is an unlockable sprite
@@ -114,11 +114,11 @@ impl Interactable {
 /// interact with if the interact key is pressed
 /// Selected in the following order:
 /// 1) Targeted items, in order of nearest under cursor:
-///     (a) entity (if within range)
-///     (b) collectable
-///     (c) can be mined, and is a mine sprite (Air) not a weak rock.
+///   a) entity (if within range)
+///   b) collectable
+///   c) can be mined, and is a mine sprite (Air) not a weak rock.
 /// 2) outside of targeted cam ray
-///     -> closest of nearest interactable entity/block
+///   -> closest of nearest interactable entity/block
 pub(super) fn select_interactable(
     client: &Client,
     collect_target: Option<Target<target::Collectable>>,

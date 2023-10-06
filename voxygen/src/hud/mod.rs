@@ -515,28 +515,24 @@ impl BuffIconKind {
 }
 
 impl PartialOrd for BuffIconKind {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
+}
+
+impl Ord for BuffIconKind {
+    fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
             (
                 BuffIconKind::Buff { kind, .. },
                 BuffIconKind::Buff {
                     kind: other_kind, ..
                 },
-            ) => Some(kind.cmp(other_kind)),
-            (BuffIconKind::Buff { .. }, BuffIconKind::Stance(_)) => Some(Ordering::Greater),
-            (BuffIconKind::Stance(_), BuffIconKind::Buff { .. }) => Some(Ordering::Less),
+            ) => kind.cmp(other_kind),
+            (BuffIconKind::Buff { .. }, BuffIconKind::Stance(_)) => Ordering::Greater,
+            (BuffIconKind::Stance(_), BuffIconKind::Buff { .. }) => Ordering::Less,
             (BuffIconKind::Stance(stance), BuffIconKind::Stance(stance_other)) => {
-                Some(stance.cmp(stance_other))
+                stance.cmp(stance_other)
             },
         }
-    }
-}
-
-impl Ord for BuffIconKind {
-    fn cmp(&self, other: &Self) -> Ordering {
-        // We know this is safe since we can look at the partialord implementation and
-        // see that every variant is wrapped in Some
-        self.partial_cmp(other).unwrap()
     }
 }
 
@@ -586,7 +582,7 @@ impl BuffIcon {
         buffs
             .iter_active()
             .filter_map(BuffIcon::from_buffs)
-            .chain(stance.and_then(BuffIcon::from_stance).into_iter())
+            .chain(stance.and_then(BuffIcon::from_stance))
             .collect::<Vec<_>>()
     }
 

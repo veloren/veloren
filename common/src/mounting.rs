@@ -380,8 +380,9 @@ impl Link for VolumeMounting {
             Volume::Terrain => &*terrain_riders,
             Volume::Entity(uid) => {
                 let Some(riders) = entity(uid)
-                .filter(|entity| is_alive(*entity))
-                .and_then(|entity| volume_riders.get(entity)) else {
+                    .filter(|entity| is_alive(*entity))
+                    .and_then(|entity| volume_riders.get(entity))
+                else {
                     return false;
                 };
                 riders

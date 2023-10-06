@@ -16,7 +16,7 @@ impl<T> Id<T> {
 
 impl<T> Copy for Id<T> {}
 impl<T> Clone for Id<T> {
-    fn clone(&self) -> Self { Self(self.0, PhantomData) }
+    fn clone(&self) -> Self { *self }
 }
 impl<T> Eq for Id<T> {}
 impl<T> PartialEq for Id<T> {

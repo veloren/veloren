@@ -1062,7 +1062,7 @@ pub fn update(
         // The `defer_foreign_keys` pragma treats the foreign key
         // constraints as deferred for the next transaction (it turns itself
         // off at the commit boundary). https://sqlite.org/foreignkeys.html#fk_deferred
-        transaction.pragma_update(None, "defer_foreign_keys", &"ON".to_string())?;
+        transaction.pragma_update(None, "defer_foreign_keys", "ON")?;
 
         let mut stmt = transaction.prepare_cached(
             "

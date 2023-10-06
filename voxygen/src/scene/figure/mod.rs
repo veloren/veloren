@@ -648,7 +648,7 @@ impl FigureMgr {
         }
         let dt = ecs.fetch::<DeltaTime>().0;
         let updater = ecs.read_resource::<LazyUpdate>();
-        for (entity, light_emitter_opt, interpolated, pos, body, mut light_anim) in (
+        for (entity, light_emitter_opt, interpolated, pos, body, light_anim) in (
             &ecs.entities(),
             ecs.read_storage::<LightEmitter>().maybe(),
             ecs.read_storage::<Interpolated>().maybe(),
@@ -1101,9 +1101,9 @@ impl FigureMgr {
                     let holding_lantern = inventory
                         .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
                         && light_emitter.is_some()
-                        && !((matches!(second_tool_hand, Some(_))
-                            || matches!(active_tool_hand, Some(Hands::Two)))
-                            && character.map_or(false, |c| c.is_wield()))
+                        && !(second_tool_hand.is_some()
+                            || matches!(active_tool_hand, Some(Hands::Two))
+                                && character.map_or(false, |c| c.is_wield()))
                         && !character.map_or(false, |c| c.is_using_hands())
                         && physics.in_liquid().is_none();
 

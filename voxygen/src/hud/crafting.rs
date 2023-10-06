@@ -1479,7 +1479,7 @@ impl<'a> Widget for Crafting<'a> {
                             });
                         self.inventory
                             .slots_with_id()
-                            .filter(|(_, item)| item.as_ref().map_or(false, |i| can_repair(i)))
+                            .filter(|(_, item)| item.as_ref().map_or(false, can_repair))
                             .for_each(|(slot, _)| {
                                 events.push(Event::RepairItem {
                                     slot: Slot::Inventory(slot),
@@ -1487,9 +1487,7 @@ impl<'a> Widget for Crafting<'a> {
                             });
                     }
 
-                    let can_perform = repair_slot
-                        .item(self.inventory)
-                        .map_or(false, |item| can_repair(item));
+                    let can_perform = repair_slot.item(self.inventory).map_or(false, can_repair);
 
                     (repair_slot.slot, None, can_perform)
                 },

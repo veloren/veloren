@@ -456,7 +456,6 @@ impl BParticipant {
         let retrigger = |cid: Cid, mut p: RecvProtocols, map: &mut HashMap<_, _>| {
             let hacky_recv_s = hacky_recv_s.clone();
             let handle = tokio::spawn(async move {
-                let cid = cid;
                 let r = p.recv().await;
                 let _ = hacky_recv_s.send((cid, r, p)); // ignoring failed
             });
@@ -862,6 +861,7 @@ mod tests {
         )
     }
 
+    #[allow(clippy::needless_pass_by_ref_mut)]
     async fn mock_mpsc(
         cid: Cid,
         _runtime: &Arc<Runtime>,

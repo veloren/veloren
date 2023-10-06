@@ -437,8 +437,8 @@ fn mesh_worker(
                 (
                     deep_level
                         .into_iter()
-                        .chain(shallow_level.into_iter())
-                        .chain(surface_level.into_iter())
+                        .chain(shallow_level)
+                        .chain(surface_level)
                         .collect(),
                     alt_indices,
                 )

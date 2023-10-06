@@ -216,7 +216,7 @@ settings_change_from!(Accessibility);
 
 impl SettingsChange {
     pub fn process(self, global_state: &mut GlobalState, session_state: &mut SessionState) {
-        let mut settings = &mut global_state.settings;
+        let settings = &mut global_state.settings;
 
         match self {
             SettingsChange::Audio(audio_change) => {
@@ -366,7 +366,7 @@ impl SettingsChange {
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},
             SettingsChange::Gameplay(gameplay_change) => {
-                let mut window = &mut global_state.window;
+                let window = &mut global_state.window;
                 match gameplay_change {
                     Gameplay::AdjustMousePan(sensitivity) => {
                         window.pan_sensitivity = sensitivity;

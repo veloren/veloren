@@ -118,17 +118,16 @@ pub fn members<'a>(
 ) -> impl Iterator<Item = (specs::Entity, Role)> + 'a {
     (entities, groups, alignments, uids)
         .join()
-        .filter_map(move |(e, g, a, u)| {
-            (*g == group).then(|| {
-                (
-                    e,
-                    if matches!(a, Alignment::Owned(owner) if owner != u) {
-                        Role::Pet
-                    } else {
-                        Role::Member
-                    },
-                )
-            })
+        .filter(move |&(_e, g, _a, _u)| (*g == group))
+        .map(|(e, _g, a, u)| {
+            (
+                e,
+                if matches!(a, Alignment::Owned(owner) if owner != u) {
+                    Role::Pet
+                } else {
+                    Role::Member
+                },
+            )
         })
 }
 

@@ -145,7 +145,9 @@ impl Tunnel {
     }
 
     fn biome_at(&self, wpos: Vec3<i32>, info: &CanvasInfo) -> Biome {
-        let Some(col) = info.col_or_gen(wpos.xy()) else { return Biome::default() };
+        let Some(col) = info.col_or_gen(wpos.xy()) else {
+            return Biome::default();
+        };
 
         // Below the ground
         let below = ((col.alt - wpos.z as f32) / 120.0).clamped(0.0, 1.0);

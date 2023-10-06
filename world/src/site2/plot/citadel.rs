@@ -61,8 +61,9 @@ impl Citadel {
                     .filter_map(|rpos| Some(grid.get(pos + rpos)?.as_ref()?.alt))
                     .min()
                 {
-                    let Some(Some(cell)) = grid.get_mut(pos)
-                        else { continue };
+                    let Some(Some(cell)) = grid.get_mut(pos) else {
+                        continue;
+                    };
                     if min_alt < cell.alt {
                         cell.colonade = Some(min_alt);
                     }

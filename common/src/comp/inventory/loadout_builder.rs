@@ -121,16 +121,8 @@ impl Hands {
             Hands::InHands((mainhand, offhand)) => {
                 let mut from_spec = |i: &ItemSpec| i.try_to_item(rng);
 
-                let mainhand = mainhand
-                    .as_ref()
-                    .map(|i| from_spec(i))
-                    .transpose()?
-                    .flatten();
-                let offhand = offhand
-                    .as_ref()
-                    .map(|i| from_spec(i))
-                    .transpose()?
-                    .flatten();
+                let mainhand = mainhand.as_ref().map(&mut from_spec).transpose()?.flatten();
+                let offhand = offhand.as_ref().map(&mut from_spec).transpose()?.flatten();
                 Ok((mainhand, offhand))
             },
             Hands::Choice(pairs) => {
