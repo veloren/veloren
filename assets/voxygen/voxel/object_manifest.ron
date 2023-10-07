@@ -121,7 +121,7 @@
     ),
     ChestVines: (
         bone0: (
-            offset: (-7.5, -6.0, 0.0),
+            offset: (-8.5, -7.0, 0.0),
             central: ("object.chest_vines"),
         ),
         bone1: (

@@ -784,17 +784,17 @@ Chest: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.chests.chest_dark",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.chests.chest_vines",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-8.5, -7.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -804,7 +804,7 @@ CommonLockedChest: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_gold",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
 
@@ -816,7 +816,7 @@ DungeonChest0: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_vines",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-8.5, -7.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -826,7 +826,7 @@ DungeonChest1: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_skull",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -836,7 +836,7 @@ DungeonChest2: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_light",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -846,7 +846,7 @@ DungeonChest3: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_gold",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -856,7 +856,7 @@ DungeonChest4: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_gold",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -866,7 +866,7 @@ DungeonChest5: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_demon",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -888,7 +888,7 @@ CoralChest: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_coral",
-            offset: (-7.0, -5.0, -0.0),
+            offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
