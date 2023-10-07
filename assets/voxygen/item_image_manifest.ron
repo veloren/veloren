@@ -1686,7 +1686,7 @@
     // Other
     Simple("common.items.utility.coins"): VoxTrans(
         "voxel.object.v-coin",
-        (0.0, 0.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
+        (0.0, 0.0, 0.0), (-20.0, 25.0, 10.0), 0.9,
     ),
     Simple("common.items.utility.collar"): VoxTrans(
         "voxel.object.collar",
@@ -3189,7 +3189,7 @@
     ),
     Simple("common.items.consumable.potion_big"): VoxTrans(
         "voxel.object.potion_red",
-        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Simple("common.items.boss_drops.potions"): VoxTrans(
         "voxel.object.potion_red",
