@@ -15,6 +15,13 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::*;
 
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+pub enum SpriteSummonAnchor {
+    #[default]
+    Summoner,
+    Target,
+}
+
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
@@ -31,10 +38,14 @@ pub struct StaticData {
     pub del_timeout: Option<(f32, f32)>,
     /// Range that sprites are created relative to the summonner
     pub summon_distance: (f32, f32),
+    /// Relative to what should the sprites be summoned?
+    pub anchor: SpriteSummonAnchor,
     /// Chance that sprite is not created on a particular square
     pub sparseness: f64,
     /// Angle of total coverage, centered on the forward-facing orientation
     pub angle: f32,
+    /// How much we can move
+    pub move_efficiency: f32,
     /// Miscellaneous information about the ability
     pub ability_info: AbilityInfo,
 }
@@ -55,6 +66,17 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        handle_orientation(data, &mut update, 1.0, None);
+        handle_move(data, &mut update, self.static_data.move_efficiency);
+
+        let target_pos = || {
+            data.controller
+                .queued_inputs
+                .get(&self.static_data.ability_info.input)
+                .or(self.static_data.ability_info.input_attr.as_ref())
+                .and_then(|input| input.select_pos)
+        };
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -102,15 +124,23 @@ impl CharacterBehavior for Data {
                                 <= (self.static_data.angle / 2.0)
                                 && !thread_rng().gen_bool(self.static_data.sparseness)
                             {
+                                let anchor_pos = match self.static_data.anchor {
+                                    SpriteSummonAnchor::Summoner => data.pos.0,
+                                    // Use the selected target position, falling back to the
+                                    // summoner position
+                                    SpriteSummonAnchor::Target => {
+                                        target_pos().unwrap_or(data.pos.0)
+                                    },
+                                };
                                 // The coordinates of where the sprite is created
                                 let sprite_pos = Vec3::new(
-                                    data.pos.0.x.floor() as i32 + point.x,
-                                    data.pos.0.y.floor() as i32 + point.y,
-                                    data.pos.0.z.floor() as i32,
+                                    anchor_pos.x.floor() as i32 + point.x,
+                                    anchor_pos.y.floor() as i32 + point.y,
+                                    anchor_pos.z.floor() as i32,
                                 );
 
                                 // Check for collision in z up to 10 blocks up or down
-                                let obstacle_z = data
+                                let (obstacle_z, obstale_z_result) = data
                                     .terrain
                                     .ray(
                                         sprite_pos.map(|x| x as f32 + 0.5) + Vec3::unit_z() * 10.0,
@@ -122,11 +152,17 @@ impl CharacterBehavior for Data {
                                         Block::is_solid(b)
                                             && b.get_sprite() != Some(self.static_data.sprite)
                                     })
-                                    .cast()
-                                    .0;
+                                    .cast();
 
                                 // z height relative to caster
-                                let z = sprite_pos.z + (10.5 - obstacle_z).ceil() as i32;
+                                let z = sprite_pos.z
+                                    + if let (SpriteSummonAnchor::Target, Ok(None)) =
+                                        (&self.static_data.anchor, obstale_z_result)
+                                    {
+                                        0
+                                    } else {
+                                        (10.5 - obstacle_z).ceil() as i32
+                                    };
 
                                 // Location sprite will be created
                                 let sprite_pos = Vec3::new(sprite_pos.x, sprite_pos.y, z);
@@ -154,8 +190,13 @@ impl CharacterBehavior for Data {
                     });
                     // Send local event used for frontend shenanigans
                     if self.static_data.sprite == SpriteKind::IceSpike {
+                        let summoner_pos =
+                            data.pos.0 + *data.ori.look_dir() * data.body.max_radius();
                         output_events.emit_local(LocalEvent::CreateOutcome(Outcome::IceCrack {
-                            pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            pos: match self.static_data.anchor {
+                                SpriteSummonAnchor::Summoner => summoner_pos,
+                                SpriteSummonAnchor::Target => target_pos().unwrap_or(summoner_pos),
+                            },
                         }));
                     }
                 } else {

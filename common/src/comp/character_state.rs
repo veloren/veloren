@@ -920,16 +920,10 @@ impl CharacterState {
                     AttackSource::Projectile
                 })
             },
-            CharacterState::Shockwave(data) => Some(if data.static_data.requires_ground {
-                AttackSource::GroundShockwave
-            } else {
-                AttackSource::AirShockwave
-            }),
-            CharacterState::LeapShockwave(data) => Some(if data.static_data.requires_ground {
-                AttackSource::GroundShockwave
-            } else {
-                AttackSource::AirShockwave
-            }),
+            CharacterState::Shockwave(data) => Some(data.static_data.dodgeable.to_attack_source()),
+            CharacterState::LeapShockwave(data) => {
+                Some(data.static_data.dodgeable.to_attack_source())
+            },
             CharacterState::BasicBeam(_) => Some(AttackSource::Beam),
             CharacterState::BasicAura(_) => None,
             CharacterState::Blink(_) => None,
@@ -974,6 +968,7 @@ impl AttackFilters {
             AttackSource::Beam => self.beams,
             AttackSource::GroundShockwave => self.ground_shockwaves,
             AttackSource::AirShockwave => self.air_shockwaves,
+            AttackSource::UndodgeableShockwave => false,
             AttackSource::Explosion => self.explosions,
         }
     }

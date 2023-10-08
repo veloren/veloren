@@ -198,7 +198,7 @@ impl Sentiment {
             // remembering the last interaction instead of constant updates.
             if rng.gen_bool(
                 (1.0 / (self.positivity.unsigned_abs() as f32 * DECAY_TIME_FACTOR.powi(2) * dt))
-                    as f64,
+                    .max(1.0) as f64,
             ) {
                 self.positivity -= self.positivity.signum();
             }

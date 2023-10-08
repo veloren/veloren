@@ -477,8 +477,12 @@ impl SfxMgr {
             Outcome::SummonedCreature { pos, body, .. } => {
                 match body {
                     Body::BipedSmall(body) => match body.species {
-                        biped_small::Species::Boreal | biped_small::Species::Clockwork => {
+                        biped_small::Species::Clockwork => {
                             let sfx_trigger_item = triggers.get_key_value(&SfxEvent::DeepLaugh);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                        },
+                        biped_small::Species::Boreal => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GigaRoar);
                             audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                         },
                         _ => {},

@@ -40,6 +40,7 @@ pub enum AttackSource {
     Beam,
     GroundShockwave,
     AirShockwave,
+    UndodgeableShockwave,
     Explosion,
 }
 
@@ -948,7 +949,9 @@ impl From<AttackSource> for DamageSource {
             AttackSource::Melee => DamageSource::Melee,
             AttackSource::Projectile => DamageSource::Projectile,
             AttackSource::Explosion => DamageSource::Explosion,
-            AttackSource::AirShockwave | AttackSource::GroundShockwave => DamageSource::Shockwave,
+            AttackSource::AirShockwave
+            | AttackSource::GroundShockwave
+            | AttackSource::UndodgeableShockwave => DamageSource::Shockwave,
             AttackSource::Beam => DamageSource::Energy,
         }
     }

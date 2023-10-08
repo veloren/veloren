@@ -9,6 +9,7 @@ BasicSummon(
             species: Boreal,
             body_type: Male,
             )),
+        use_npc_name: true,
         scale: None,
         has_health: true,
         loadout_config: Some(BorealSummon),

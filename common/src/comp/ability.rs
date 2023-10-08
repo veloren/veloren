@@ -25,6 +25,7 @@ use crate::{
     resources::Secs,
     states::{
         behavior::JoinData,
+        sprite_summon::SpriteSummonAnchor,
         utils::{AbilityInfo, ComboConsumption, ScalingKind, StageSection},
         *,
     },
@@ -33,9 +34,11 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use std::{convert::TryFrom, time::Duration};
+use std::{borrow::Cow, convert::TryFrom, time::Duration};
 
-pub const MAX_ABILITIES: usize = 5;
+use super::shockwave::ShockwaveDodgeable;
+
+pub const BASE_ABILITY_LIMIT: usize = 5;
 pub type AuxiliaryKey = (Option<ToolKind>, Option<ToolKind>);
 
 // TODO: Potentially look into storing previous ability sets for weapon
@@ -48,7 +51,8 @@ pub struct ActiveAbilities {
     pub primary: PrimaryAbility,
     pub secondary: SecondaryAbility,
     pub movement: MovementAbility,
-    pub auxiliary_sets: HashMap<AuxiliaryKey, [AuxiliaryAbility; MAX_ABILITIES]>,
+    pub limit: Option<usize>,
+    pub auxiliary_sets: HashMap<AuxiliaryKey, Vec<AuxiliaryAbility>>,
 }
 
 impl Component for ActiveAbilities {
@@ -62,16 +66,32 @@ impl Default for ActiveAbilities {
             primary: PrimaryAbility::Tool,
             secondary: SecondaryAbility::Tool,
             movement: MovementAbility::Species,
+            limit: None,
             auxiliary_sets: HashMap::new(),
         }
     }
 }
 
 impl ActiveAbilities {
-    pub fn new(auxiliary_sets: HashMap<AuxiliaryKey, [AuxiliaryAbility; MAX_ABILITIES]>) -> Self {
+    pub fn from_auxiliary(
+        auxiliary_sets: HashMap<AuxiliaryKey, Vec<AuxiliaryAbility>>,
+        limit: Option<usize>,
+    ) -> Self {
+        // Discard any sets that exceed the limit
         ActiveAbilities {
-            auxiliary_sets,
+            auxiliary_sets: auxiliary_sets
+                .into_iter()
+                .filter(|(_, set)| limit.map_or(true, |limit| set.len() == limit))
+                .collect(),
+            limit,
             ..Self::default()
+        }
+    }
+
+    pub fn default_limited(limit: usize) -> Self {
+        ActiveAbilities {
+            limit: Some(limit),
+            ..Default::default()
         }
     }
 
@@ -86,7 +106,7 @@ impl ActiveAbilities {
         let auxiliary_set = self
             .auxiliary_sets
             .entry(auxiliary_key)
-            .or_insert(Self::default_ability_set(inventory, skill_set));
+            .or_insert(Self::default_ability_set(inventory, skill_set, self.limit));
         if let Some(ability) = auxiliary_set.get_mut(slot) {
             *ability = new_ability;
         }
@@ -111,13 +131,13 @@ impl ActiveAbilities {
         &self,
         inv: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
-    ) -> [AuxiliaryAbility; MAX_ABILITIES] {
+    ) -> Cow<Vec<AuxiliaryAbility>> {
         let aux_key = Self::active_auxiliary_key(inv);
 
         self.auxiliary_sets
             .get(&aux_key)
-            .copied()
-            .unwrap_or_else(|| Self::default_ability_set(inv, skill_set))
+            .map(Cow::Borrowed)
+            .unwrap_or_else(|| Cow::Owned(Self::default_ability_set(inv, skill_set, self.limit)))
     }
 
     pub fn get_ability(
@@ -311,7 +331,8 @@ impl ActiveAbilities {
     fn default_ability_set<'a>(
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
-    ) -> [AuxiliaryAbility; MAX_ABILITIES] {
+        limit: Option<usize>,
+    ) -> Vec<AuxiliaryAbility> {
         let mut iter = Self::iter_available_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
             .map(AuxiliaryAbility::MainWeapon)
             .chain(
@@ -319,7 +340,13 @@ impl ActiveAbilities {
                     .map(AuxiliaryAbility::OffWeapon),
             );
 
-        [(); MAX_ABILITIES].map(|()| iter.next().unwrap_or(AuxiliaryAbility::Empty))
+        if let Some(limit) = limit {
+            (0..limit)
+                .map(|_| iter.next().unwrap_or(AuxiliaryAbility::Empty))
+                .collect()
+        } else {
+            iter.collect()
+        }
     }
 }
 
@@ -790,7 +817,7 @@ pub enum CharacterAbility {
         shockwave_vertical_angle: f32,
         shockwave_speed: f32,
         shockwave_duration: f32,
-        requires_ground: bool,
+        dodgeable: ShockwaveDodgeable,
         move_efficiency: f32,
         damage_kind: DamageKind,
         specifier: comp::shockwave::FrontendSpecifier,
@@ -863,7 +890,7 @@ pub enum CharacterAbility {
         shockwave_vertical_angle: f32,
         shockwave_speed: f32,
         shockwave_duration: f32,
-        requires_ground: bool,
+        dodgeable: ShockwaveDodgeable,
         move_efficiency: f32,
         damage_kind: DamageKind,
         specifier: comp::shockwave::FrontendSpecifier,
@@ -943,6 +970,10 @@ pub enum CharacterAbility {
         summon_distance: (f32, f32),
         sparseness: f64,
         angle: f32,
+        #[serde(default)]
+        anchor: SpriteSummonAnchor,
+        #[serde(default)]
+        move_efficiency: f32,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1348,7 +1379,7 @@ impl CharacterAbility {
                 shockwave_vertical_angle: _,
                 shockwave_speed: _,
                 ref mut shockwave_duration,
-                requires_ground: _,
+                dodgeable: _,
                 move_efficiency: _,
                 damage_kind: _,
                 specifier: _,
@@ -1467,7 +1498,7 @@ impl CharacterAbility {
                 shockwave_vertical_angle: _,
                 shockwave_speed: _,
                 ref mut shockwave_duration,
-                requires_ground: _,
+                dodgeable: _,
                 move_efficiency: _,
                 damage_kind: _,
                 specifier: _,
@@ -1592,6 +1623,8 @@ impl CharacterAbility {
                 summon_distance: (ref mut inner_dist, ref mut outer_dist),
                 sparseness: _,
                 angle: _,
+                anchor: _,
+                move_efficiency: _,
                 meta: _,
             } => {
                 // TODO: Figure out how/if power should affect this
@@ -2462,7 +2495,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 shockwave_vertical_angle,
                 shockwave_speed,
                 shockwave_duration,
-                requires_ground,
+                dodgeable,
                 move_efficiency,
                 damage_kind,
                 specifier,
@@ -2483,7 +2516,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     shockwave_vertical_angle: *shockwave_vertical_angle,
                     shockwave_speed: *shockwave_speed,
                     shockwave_duration: Duration::from_secs_f32(*shockwave_duration),
-                    requires_ground: *requires_ground,
+                    dodgeable: *dodgeable,
                     move_efficiency: *move_efficiency,
                     damage_kind: *damage_kind,
                     specifier: *specifier,
@@ -2654,7 +2687,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 shockwave_vertical_angle,
                 shockwave_speed,
                 shockwave_duration,
-                requires_ground,
+                dodgeable,
                 move_efficiency,
                 damage_kind,
                 specifier,
@@ -2673,7 +2706,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     shockwave_vertical_angle: *shockwave_vertical_angle,
                     shockwave_speed: *shockwave_speed,
                     shockwave_duration: Duration::from_secs_f32(*shockwave_duration),
-                    requires_ground: *requires_ground,
+                    dodgeable: *dodgeable,
                     move_efficiency: *move_efficiency,
                     damage_effect: *damage_effect,
                     ability_info,
@@ -2821,6 +2854,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 summon_distance,
                 sparseness,
                 angle,
+                anchor,
+                move_efficiency,
                 meta: _,
             } => CharacterState::SpriteSummon(sprite_summon::Data {
                 static_data: sprite_summon::StaticData {
@@ -2832,6 +2867,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     summon_distance: *summon_distance,
                     sparseness: *sparseness,
                     angle: *angle,
+                    anchor: *anchor,
+                    move_efficiency: *move_efficiency,
                     ability_info,
                 },
                 timer: Duration::default(),

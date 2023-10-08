@@ -41,7 +41,7 @@ pub mod visual;
 pub use self::{
     ability::{
         Ability, AbilityInput, ActiveAbilities, CharacterAbility, CharacterAbilityType, Stance,
-        MAX_ABILITIES,
+        BASE_ABILITY_LIMIT,
     },
     admin::{Admin, AdminRole},
     agent::{

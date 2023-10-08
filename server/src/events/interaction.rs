@@ -438,7 +438,7 @@ pub fn handle_create_sprite(
     let state = server.state_mut();
     if state.can_set_block(pos) {
         let block = state.terrain().get(pos).ok().copied();
-        if block.map_or(false, |b| (*b).is_air()) {
+        if block.map_or(false, |b| (*b).is_fluid()) {
             let old_block = block.unwrap_or_else(|| Block::air(SpriteKind::Empty));
             let new_block = old_block.with_sprite(sprite);
             state.set_block(pos, new_block);

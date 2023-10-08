@@ -1,7 +1,17 @@
-use crate::{combat::Attack, uid::Uid};
+use crate::{
+    combat::{Attack, AttackSource},
+    uid::Uid,
+};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::time::Duration;
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ShockwaveDodgeable {
+    Roll,
+    Jump,
+    No,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Properties {
@@ -9,7 +19,7 @@ pub struct Properties {
     pub vertical_angle: f32,
     pub speed: f32,
     pub attack: Attack,
-    pub requires_ground: bool,
+    pub dodgeable: ShockwaveDodgeable,
     pub duration: Duration,
     pub owner: Option<Uid>,
     pub specifier: FrontendSpecifier,
@@ -55,4 +65,14 @@ pub enum FrontendSpecifier {
     Poison,
     Ink,
     Lightning,
+}
+
+impl ShockwaveDodgeable {
+    pub fn to_attack_source(&self) -> AttackSource {
+        match self {
+            Self::Roll => AttackSource::AirShockwave,
+            Self::Jump => AttackSource::GroundShockwave,
+            Self::No => AttackSource::UndodgeableShockwave,
+        }
+    }
 }

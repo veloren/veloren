@@ -1,7 +1,8 @@
 use common::{
-    combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
+    combat::{self, AttackOptions, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
+        shockwave::ShockwaveDodgeable,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
         PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
@@ -182,7 +183,10 @@ impl<'a> System<'a> for Sys {
                         arc_strip.collides_with_circle(Disk::new(pos_b2, rad_b))
                     }
                     && (pos_b_ground - pos.0).angle_between(pos_b.0 - pos.0) < max_angle
-                    && (!shockwave.requires_ground || physics_state_b.on_ground.is_some());
+                    && match shockwave.dodgeable {
+                        ShockwaveDodgeable::Roll | ShockwaveDodgeable::No => true,
+                        ShockwaveDodgeable::Jump => physics_state_b.on_ground.is_some()
+                    };
 
                 if hit {
                     let dir = Dir::from_unnormalized(pos_b.0 - pos.0).unwrap_or(look_dir);
@@ -217,12 +221,10 @@ impl<'a> System<'a> for Sys {
                         .character_states
                         .get(target)
                         .and_then(|cs| cs.attack_immunities())
-                        .map_or(false, |i| {
-                            if shockwave.requires_ground {
-                                i.ground_shockwaves
-                            } else {
-                                i.air_shockwaves
-                            }
+                        .map_or(false, |i| match shockwave.dodgeable {
+                            ShockwaveDodgeable::Roll => i.air_shockwaves,
+                            ShockwaveDodgeable::Jump => i.ground_shockwaves,
+                            ShockwaveDodgeable::No => false,
                         });
                     // PvP check
                     let may_harm = combat::may_harm(
@@ -244,11 +246,7 @@ impl<'a> System<'a> for Sys {
                         dir,
                         attack_options,
                         1.0,
-                        if shockwave.requires_ground {
-                            AttackSource::GroundShockwave
-                        } else {
-                            AttackSource::AirShockwave
-                        },
+                        shockwave.dodgeable.to_attack_source(),
                         *read_data.time,
                         |e| server_emitter.emit(e),
                         |o| outcomes_emitter.emit(o),

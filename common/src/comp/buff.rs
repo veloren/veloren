@@ -156,7 +156,7 @@ pub enum BuffKind {
     /// Results from drinking a potion.
     /// Decreases the health gained from subsequent potions.
     PotionSickness,
-    // Changed into another body.
+    /// Changed into another body.
     Polymorphed(Body),
 }
 
@@ -428,7 +428,10 @@ pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Secs>,
     pub delay: Option<Secs>,
-    // Used for buffs that have rider buffs (e.g. Flame, Frigid)
+    /// Force the buff effects to be applied each tick, ignoring num_ticks
+    #[serde(default)]
+    pub force_immediate: bool,
+    /// Used for buffs that have rider buffs (e.g. Flame, Frigid)
     pub secondary_duration: Option<Secs>,
 }
 
@@ -437,6 +440,7 @@ impl BuffData {
         Self {
             strength,
             duration,
+            force_immediate: false,
             delay: None,
             secondary_duration: None,
         }
@@ -449,6 +453,12 @@ impl BuffData {
 
     pub fn with_secondary_duration(mut self, sec_dur: Secs) -> Self {
         self.secondary_duration = Some(sec_dur);
+        self
+    }
+
+    /// Force the buff effects to be applied each tick, ignoring num_ticks
+    pub fn with_force_immediate(mut self, force_immediate: bool) -> Self {
+        self.force_immediate = force_immediate;
         self
     }
 }

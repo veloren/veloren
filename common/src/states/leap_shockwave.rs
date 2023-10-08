@@ -3,13 +3,19 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget, Knockback,
     },
-    comp::{character_state::OutputEvents, shockwave, CharacterState, StateUpdate},
+    comp::{
+        character_state::OutputEvents,
+        item::Reagent,
+        shockwave::{self, ShockwaveDodgeable},
+        CharacterState, StateUpdate,
+    },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
     },
+    Explosion, KnockbackDir, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -39,8 +45,8 @@ pub struct StaticData {
     pub shockwave_speed: f32,
     /// How long the shockwave travels for
     pub shockwave_duration: Duration,
-    /// Whether the shockwave requires the target to be on the ground
-    pub requires_ground: bool,
+    /// If the shockwave can be dodged, and in what way
+    pub dodgeable: ShockwaveDodgeable,
     /// Movement speed efficiency
     pub move_efficiency: f32,
     /// Adds an effect onto the main damage of the attack
@@ -173,7 +179,7 @@ impl CharacterBehavior for Data {
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
                         attack,
-                        requires_ground: self.static_data.requires_ground,
+                        dodgeable: self.static_data.dodgeable,
                         owner: Some(*data.uid),
                         specifier: self.static_data.specifier,
                     };
@@ -185,6 +191,35 @@ impl CharacterBehavior for Data {
                     // Send local event used for frontend shenanigans
                     match self.static_data.specifier {
                         shockwave::FrontendSpecifier::IceSpikes => {
+                            let damage = AttackDamage::new(
+                                Damage {
+                                    source: DamageSource::Explosion,
+                                    kind: self.static_data.damage_kind,
+                                    value: self.static_data.damage / 2.,
+                                },
+                                Some(GroupTarget::OutOfGroup),
+                                rand::random(),
+                            );
+                            let attack = Attack::default().with_damage(damage).with_effect(
+                                AttackEffect::new(
+                                    Some(GroupTarget::OutOfGroup),
+                                    CombatEffect::Knockback(Knockback {
+                                        direction: KnockbackDir::Away,
+                                        strength: 10.,
+                                    }),
+                                ),
+                            );
+                            let explosion = Explosion {
+                                effects: vec![RadiusEffect::Attack(attack)],
+                                radius: data.body.max_radius() * 3.0,
+                                reagent: Some(Reagent::White),
+                                min_falloff: 0.5,
+                            };
+                            output_events.emit_server(ServerEvent::Explosion {
+                                pos: data.pos.0,
+                                explosion,
+                                owner: Some(*data.uid),
+                            });
                             output_events.emit_local(LocalEvent::CreateOutcome(
                                 Outcome::IceSpikes {
                                     pos: data.pos.0

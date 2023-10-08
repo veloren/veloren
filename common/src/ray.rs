@@ -8,6 +8,7 @@ pub struct Ray<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool, G: RayForEach<V::Vox>>
     from: Vec3<f32>,
     to: Vec3<f32>,
     until: F,
+    is_while: bool,
     for_each: Option<G>,
     max_iter: usize,
     ignore_error: bool,
@@ -25,6 +26,7 @@ where
             from,
             to,
             until,
+            is_while: false,
             for_each: None,
             max_iter: 100,
             ignore_error: false,
@@ -37,6 +39,20 @@ where
             from: self.from,
             to: self.to,
             until: f,
+            is_while: false,
+            for_each: self.for_each,
+            max_iter: self.max_iter,
+            ignore_error: self.ignore_error,
+        }
+    }
+
+    pub fn while_<H: FnMut(&V::Vox) -> bool>(self, f: H) -> Ray<'a, V, H, G> {
+        Ray {
+            vol: self.vol,
+            from: self.from,
+            to: self.to,
+            until: f,
+            is_while: true,
             for_each: self.for_each,
             max_iter: self.max_iter,
             ignore_error: self.ignore_error,
@@ -49,6 +65,7 @@ where
             vol: self.vol,
             from: self.from,
             to: self.to,
+            is_while: self.is_while,
             until: self.until,
             max_iter: self.max_iter,
             ignore_error: self.ignore_error,
@@ -86,17 +103,28 @@ where
 
             let vox = self.vol.get(ipos);
 
-            // for_each
-            if let Some(g) = &mut self.for_each {
-                if let Ok(vox) = vox {
+            if self.is_while {
+                let vox = match vox.map(|vox| (vox, (self.until)(vox))) {
+                    Ok((vox, true)) => return (dist, Ok(Some(vox))),
+                    Ok((vox, _)) => Some(vox),
+                    Err(err) if !self.ignore_error => return (dist, Err(err)),
+                    _ => None,
+                };
+
+                if let Some((vox, g)) = vox.zip(self.for_each.as_mut()) {
                     g(vox, ipos);
                 }
-            }
+            } else {
+                // for_each
+                if let Some((vox, g)) = vox.as_ref().ok().zip(self.for_each.as_mut()) {
+                    g(vox, ipos);
+                }
 
-            match vox.map(|vox| (vox, (self.until)(vox))) {
-                Ok((vox, true)) => return (dist, Ok(Some(vox))),
-                Err(err) if !self.ignore_error => return (dist, Err(err)),
-                _ => {},
+                match vox.map(|vox| (vox, (self.until)(vox))) {
+                    Ok((vox, true)) => return (dist, Ok(Some(vox))),
+                    Err(err) if !self.ignore_error => return (dist, Err(err)),
+                    _ => {},
+                }
             }
 
             let deltas =

@@ -925,19 +925,17 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                     let to = pos + dir * power;
                     let _ = terrain
                         .ray(from, to)
-                        .until(|block: &Block| {
+                        .while_(|block: &Block| {
+                            ray_energy -=
+                                block.explode_power().unwrap_or(0.0) + rng.gen::<f32>() * 0.1;
+
                             // Stop if:
                             // 1) Block is liquid
                             // 2) Consumed all energy
                             // 3) Can't explode block (for example we hit stone wall)
-                            let stop = block.is_liquid()
+                            block.is_liquid()
                                 || block.explode_power().is_none()
-                                || ray_energy <= 0.0;
-
-                            ray_energy -=
-                                block.explode_power().unwrap_or(0.0) + rng.gen::<f32>() * 0.1;
-
-                            stop
+                                || ray_energy <= 0.0
                         })
                         .for_each(|block: &Block, pos| {
                             if block.explode_power().is_some() {

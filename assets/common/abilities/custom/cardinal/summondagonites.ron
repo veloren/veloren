@@ -10,6 +10,7 @@ BasicSummon(
             body_type: Male,
         )),
         scale: None,
+        use_npc_name: true,
         has_health: true,
         loadout_config: None,
         skillset_config: Some(Rank3),

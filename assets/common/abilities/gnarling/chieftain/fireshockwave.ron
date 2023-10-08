@@ -10,7 +10,7 @@ Shockwave(
     shockwave_vertical_angle: 90,
     shockwave_speed: 10,
     shockwave_duration: 1,
-    requires_ground: false,
+    dodgeable: Roll,
     move_efficiency: 0,
     damage_kind: Energy,
     specifier: Fire,

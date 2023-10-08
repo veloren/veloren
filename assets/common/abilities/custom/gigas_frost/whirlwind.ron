@@ -1,0 +1,28 @@
+SpinMelee(
+    buildup_duration: 1.1,
+    swing_duration: 0.4,
+    recover_duration: 0.6,
+    melee_constructor: (
+        kind: Bash(
+            damage: 45.0,
+            poise: 30.0,
+            knockback: 55.0,
+            energy_regen: 0.0,
+        ),
+        range: 20.5,
+        angle: 360.0,
+        damage_effect: Some(Buff((
+            kind: Frozen,
+            dur_secs: 5.0,
+            strength: Value(0.3),
+            chance: 1.0,
+        ))),
+        multi_target: Some(Normal),
+    ),
+    energy_cost: 0,
+    is_infinite: false,
+    movement_behavior: Stationary,
+    forward_speed: 0.0,
+    num_spins: 3,
+    specifier: Some(Whirlwind),
+)

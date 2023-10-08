@@ -161,7 +161,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(1.0, Some(Secs(6.0))),
+                            BuffData::new(1.0, Some(Secs(6.0))).with_force_immediate(true),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -179,7 +179,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(5.0, Some(Secs(3.0))),
+                            BuffData::new(5.0, Some(Secs(3.0))).with_force_immediate(true),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -215,7 +215,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(15.0, Some(Secs(0.1))),
+                            BuffData::new(15.0, Some(Secs(0.1))).with_force_immediate(true),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -228,7 +228,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Frozen,
-                            BuffData::new(0.2, Some(Secs(1.0))),
+                            BuffData::new(0.2, Some(Secs(3.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,
@@ -361,13 +361,15 @@ impl<'a> System<'a> for Sys {
                 }
             });
 
-            let damage_reduction = Damage::compute_damage_reduction(
+            let infinite_damage_reduction = (Damage::compute_damage_reduction(
                 None,
                 read_data.inventories.get(entity),
                 Some(&stat),
                 &read_data.msm,
-            );
-            if (damage_reduction - 1.0).abs() < f32::EPSILON {
+            ) - 1.0)
+                .abs()
+                < f32::EPSILON;
+            if infinite_damage_reduction {
                 for (id, buff) in buff_comp.buffs.iter() {
                     if !buff.kind.is_buff() {
                         expired_buffs.push(*id);
@@ -389,6 +391,10 @@ impl<'a> System<'a> for Sys {
             buff_kinds.sort_by_key(|(kind, _)| !kind.affects_subsequent_buffs());
             for (buff_kind, (buff_ids, kind_start_time)) in buff_kinds.into_iter() {
                 let mut active_buff_ids = Vec::new();
+                if infinite_damage_reduction && !buff_kind.is_buff() {
+                    continue;
+                }
+
                 if buff_kind.stacks() {
                     // Process all the buffs of this kind
                     active_buff_ids = buff_ids;
@@ -414,6 +420,7 @@ impl<'a> System<'a> for Sys {
                             execute_effect(
                                 effect,
                                 buff.kind,
+                                &buff.data,
                                 buff.start_time,
                                 kind_start_time,
                                 &read_data,
@@ -471,6 +478,7 @@ impl<'a> System<'a> for Sys {
 fn execute_effect(
     effect: &BuffEffect,
     buff_kind: BuffKind,
+    buff_data: &BuffData,
     buff_start_time: Time,
     buff_kind_start_time: Time,
     read_data: &ReadData,
@@ -508,7 +516,9 @@ fn execute_effect(
         let prev_tick = ((time_passed - dt).max(0.0) / tick_dur.0).floor();
         let whole_ticks = curr_tick - prev_tick;
 
-        if buff_will_expire {
+        if buff_data.force_immediate {
+            Some((1.0 / tick_dur.0 * dt) as f32)
+        } else if buff_will_expire {
             // If the buff is ending, include the fraction of progress towards the next
             // tick.
             let fractional_tick = (time_passed % tick_dur.0) / tick_dur.0;

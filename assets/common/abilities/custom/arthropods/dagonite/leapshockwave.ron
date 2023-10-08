@@ -11,7 +11,7 @@ LeapShockwave(
     shockwave_vertical_angle: 15.0,
     shockwave_speed: 20.0,
     shockwave_duration: 0.8,
-    requires_ground: true,
+    dodgeable: Jump,
     move_efficiency: 0.2,
     damage_kind: Crushing,
     specifier: Steam,

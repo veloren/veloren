@@ -783,6 +783,9 @@
             Simple(None, "common.abilities.custom.gigas_frost.ice_volley"),
             Simple(None, "common.abilities.custom.gigas_frost.frost_summons"),
             Simple(None, "common.abilities.custom.gigas_frost.flashfreeze"),
+            Simple(None, "common.abilities.custom.gigas_frost.icespike_targeted"),
+            Simple(None, "common.abilities.custom.gigas_frost.bonk"),
+            Simple(None, "common.abilities.custom.gigas_frost.whirlwind"),
         ],
     ),
     Custom("Boreal Bow"): (

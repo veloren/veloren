@@ -869,7 +869,7 @@ impl Body {
                 biped_large::Species::Huskbrute => 800,
                 biped_large::Species::Cultistwarlord => 250,
                 biped_large::Species::Cultistwarlock => 250,
-                biped_large::Species::Gigasfrost => 20000,
+                biped_large::Species::Gigasfrost => 30000,
                 biped_large::Species::AdletElder => 1500,
                 biped_large::Species::Tursus => 300,
                 biped_large::Species::SeaBishop => 550,
@@ -1095,6 +1095,7 @@ impl Body {
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Mindflayer => 320,
                 biped_large::Species::Minotaur => 280,
+                biped_large::Species::Gigasfrost => 800,
                 _ => 250,
             },
             Body::BipedSmall(b) => match b.species {
