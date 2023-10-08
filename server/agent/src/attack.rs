@@ -5,15 +5,19 @@ use crate::{
 };
 use common::{
     comp::{
-        ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance, MAX_ABILITIES},
+        ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance, BASE_ABILITY_LIMIT},
         buff::BuffKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
-        AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, ControlEvent,
-        Controller, InputKind,
+        Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
+        ControlEvent, Controller, Fluid, InputKind,
     },
     path::TraversalConfig,
-    states::{self_buff, sprite_summon, utils::StageSection},
+    states::{
+        self_buff,
+        sprite_summon::{self, SpriteSummonAnchor},
+        utils::StageSection,
+    },
     terrain::Block,
     util::Dir,
     vol::ReadVol,
@@ -4190,43 +4194,61 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
+        rng: &mut impl Rng,
     ) {
-        const GIGAS_MELEE_RANGE: f32 = 6.0;
-        const GIGAS_SPIKE_RANGE: f32 = 12.0;
-        const GIGAS_FREEZE_RANGE: f32 = 20.0;
-        const GIGAS_LEAP_RANGE: f32 = 30.0;
-        const MINION_SUMMON_THRESHOLD: f32 = 0.2;
+        const GIGAS_MELEE_RANGE: f32 = 12.0;
+        const GIGAS_SPIKE_RANGE: f32 = 16.0;
+        const ICEBOMB_RANGE: f32 = 70.0;
+        const GIGAS_LEAP_RANGE: f32 = 50.0;
+        const MINION_SUMMON_THRESHOLD: f32 = 1. / 8.;
+        const FLASHFREEZE_RANGE: f32 = 30.;
+
+        #[allow(clippy::enum_variant_names)]
+        enum ActionStateTimers {
+            AttackChange,
+            Bonk,
+        }
 
         enum ActionStateFCounters {
-            MinionSummonThreshold = 0,
-        }
-        enum ActionStateTimers {
-            AttackChange = 0,
-        }
-        if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 2.5 {
-            agent.action_state.timers[ActionStateTimers::AttackChange as usize] = 0.0;
+            FCounterMinionSummonThreshold = 0,
         }
 
-        let line_of_sight_with_target = || {
-            entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                self.scale,
-                tgt_data.pos,
-                tgt_data.body,
-                tgt_data.scale,
-                read_data,
-            )
+        enum ActionStateICounters {
+            /// An ability that is forced to fully complete until moving on to
+            /// other attacks.
+            /// 1 = Leap shockwave, 2 = Flashfreeze, 3 = Spike summon,
+            /// 4 = Whirlwind, 5 = Remote ice spikes, 6 = Ice bombs
+            CurrentAbility = 0,
+        }
+
+        let should_use_targeted_spikes = || matches!(self.physics_state.in_fluid, Some(Fluid::Liquid { depth, .. }) if depth >= 2.0);
+        let remote_spikes_action = || ControlAction::StartInput {
+            input: InputKind::Ability(5),
+            target_entity: None,
+            select_pos: Some(tgt_data.pos.0),
         };
+
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // Sets counter at start of combat, using `condition` to keep track of whether
         // it was already initialized
         if !agent.action_state.initialized {
-            agent.action_state.counters[ActionStateFCounters::MinionSummonThreshold as usize] =
+            agent.action_state.counters
+                [ActionStateFCounters::FCounterMinionSummonThreshold as usize] =
                 1.0 - MINION_SUMMON_THRESHOLD;
             agent.action_state.initialized = true;
-        } else if health_fraction
-            < agent.action_state.counters[ActionStateFCounters::MinionSummonThreshold as usize]
+        }
+
+        // Update timers
+        if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 6.0 {
+            agent.action_state.timers[ActionStateTimers::AttackChange as usize] = 0.0;
+        } else {
+            agent.action_state.timers[ActionStateTimers::AttackChange as usize] += read_data.dt.0;
+        }
+        agent.action_state.timers[ActionStateTimers::Bonk as usize] += read_data.dt.0;
+
+        if health_fraction
+            < agent.action_state.counters
+                [ActionStateFCounters::FCounterMinionSummonThreshold as usize]
         {
             // Summon minions at particular thresholds of health
             controller.push_basic_input(InputKind::Ability(3));
@@ -4234,57 +4256,131 @@ impl<'a> AgentData<'a> {
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.action_state.counters
-                    [ActionStateFCounters::MinionSummonThreshold as usize] -=
+                    [ActionStateFCounters::FCounterMinionSummonThreshold as usize] -=
                     MINION_SUMMON_THRESHOLD;
             }
-        } else {
-            // If the target is in melee range of frost use primary and secondary
-            // attacks accordingly
-            if attack_data.dist_sqrd < GIGAS_MELEE_RANGE.powi(2) {
-                if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 1.0 {
-                    // Backhand anyone trying to circle strafe frost
-                    if attack_data.angle > 160.0 {
-                        // Use reorientate strike
-                        controller.push_basic_input(InputKind::Secondary);
-                        // If in front of frost use primary
-                    } else {
-                        // Hit them regularly
-                        controller.push_basic_input(InputKind::Primary);
-                    }
-                } else {
-                    controller.push_basic_input(InputKind::Ability(4));
-                }
-            } else if attack_data.dist_sqrd < GIGAS_SPIKE_RANGE.powi(2)
-                && line_of_sight_with_target()
-            {
-                if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 1.0 {
-                    // Use icespike attack
-                    controller.push_basic_input(InputKind::Ability(0));
-                } else {
-                    // or Flashfreeze
-                    controller.push_basic_input(InputKind::Ability(4));
-                }
-            } else if attack_data.dist_sqrd < GIGAS_FREEZE_RANGE.powi(2)
-                && line_of_sight_with_target()
-            {
-                // Use Flashfreeze
-                controller.push_basic_input(InputKind::Ability(4));
-            } else if attack_data.dist_sqrd > GIGAS_LEAP_RANGE.powi(2) {
-                // Use ranged attack (icebombs) when past a certain distance
-                controller.push_basic_input(InputKind::Ability(2));
-            } else if attack_data.dist_sqrd < GIGAS_LEAP_RANGE.powi(2) {
-                // Use a leap attack (custom comp made by ythern) that goes
-                // after the furthest entity in range, Angle
-                // doesn't matter, should be spurratic
-                if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 1.0 {
+        // Continue casting any attacks that are forced to complete
+        } else if let Some(ability) = Some(
+            &mut agent.action_state.int_counters[ActionStateICounters::CurrentAbility as usize],
+        )
+        .filter(|i| **i != 0)
+        {
+            if *ability == 3 && should_use_targeted_spikes() {
+                *ability = 5
+            };
+
+            let reset = match ability {
+                // Must be rolled
+                1 => {
                     controller.push_basic_input(InputKind::Ability(1));
-                } else {
-                    // or icebombs
+                    matches!(self.char_state, CharacterState::LeapShockwave(c) if matches!(c.stage_section, StageSection::Recover))
+                },
+                // Attacker will have to run away here
+                2 => {
+                    controller.push_basic_input(InputKind::Ability(4));
+                    matches!(self.char_state, CharacterState::Shockwave(c) if matches!(c.stage_section, StageSection::Recover))
+                },
+                // Avoid the spikes!
+                3 => {
+                    controller.push_basic_input(InputKind::Ability(0));
+                    matches!(self.char_state, CharacterState::SpriteSummon(c)
+                        if matches!((c.stage_section, c.static_data.anchor), (StageSection::Recover, SpriteSummonAnchor::Summoner)))
+                },
+                // Long whirlwind attack
+                4 => {
+                    controller.push_basic_input(InputKind::Ability(7));
+                    matches!(self.char_state, CharacterState::SpinMelee(c) if matches!(c.stage_section, StageSection::Recover))
+                },
+                // Remote ice spikes
+                5 => {
+                    controller.push_action(remote_spikes_action());
+                    matches!(self.char_state, CharacterState::SpriteSummon(c)
+                        if matches!((c.stage_section, c.static_data.anchor), (StageSection::Recover, SpriteSummonAnchor::Target)))
+                },
+                // Ice bombs
+                6 => {
                     controller.push_basic_input(InputKind::Ability(2));
-                }
+                    matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
+                },
+                // Should never happen
+                _ => true,
+            };
+
+            if reset {
+                *ability = 0;
             }
-            agent.action_state.timers[ActionStateTimers::AttackChange as usize] += read_data.dt.0;
+        // If our target is nearby and above us, potentially cheesing, have a
+        // chance of summoning remote ice spikes or throwing ice bombs.
+        // Cheesing from less than 5 blocks away is usually not possible
+        } else if attack_data.dist_sqrd > 5f32.powi(2)
+            // Calculate the "cheesing factor" (height of the normalized position difference)
+            && (tgt_data.pos.0 - self.pos.0).normalized().map(f32::abs).z > 0.6
+            // Make it happen at about every 10 seconds!
+            && rng.gen_bool((0.2 * read_data.dt.0).min(1.0) as f64)
+        {
+            agent.action_state.int_counters[ActionStateICounters::CurrentAbility as usize] =
+                rng.gen_range(5..=6);
+        } else if attack_data.dist_sqrd < GIGAS_MELEE_RANGE.powi(2) {
+            // Bonk the target every 10-8 s
+            if agent.action_state.timers[ActionStateTimers::Bonk as usize] > 10. {
+                controller.push_basic_input(InputKind::Ability(6));
+
+                if matches!(self.char_state, CharacterState::BasicMelee(c)
+                    if matches!(c.stage_section, StageSection::Recover) &&
+                    c.static_data.ability_info.ability.map_or(false,
+                        |meta| matches!(meta.ability, Ability::MainWeaponAux(6))
+                    )
+                ) {
+                    agent.action_state.timers[ActionStateTimers::Bonk as usize] =
+                        rng.gen_range(0.0..3.0);
+                }
+            // Have a small chance at starting a mixup attack
+            } else if agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 4.0
+                && rng.gen_bool(0.1 * read_data.dt.0.min(1.0) as f64)
+            {
+                agent.action_state.int_counters[ActionStateICounters::CurrentAbility as usize] =
+                    rng.gen_range(1..=4);
+            // Melee the target, do a whirlwind whenever he is trying to go
+            // behind or after every 5s
+            } else if attack_data.angle > 90.0
+                || agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 5.0
+            {
+                // If our target is *very* behind, punish with a whirlwind
+                if attack_data.angle > 120.0 {
+                    agent.action_state.int_counters
+                        [ActionStateICounters::CurrentAbility as usize] = 4;
+                } else {
+                    controller.push_basic_input(InputKind::Secondary);
+                }
+            } else {
+                controller.push_basic_input(InputKind::Primary);
+            }
+        } else if attack_data.dist_sqrd < GIGAS_SPIKE_RANGE.powi(2)
+            && agent.action_state.timers[ActionStateTimers::AttackChange as usize] < 2.0
+        {
+            if should_use_targeted_spikes() {
+                controller.push_action(remote_spikes_action());
+            } else {
+                controller.push_basic_input(InputKind::Ability(0));
+            }
+        } else if attack_data.dist_sqrd < FLASHFREEZE_RANGE.powi(2)
+            && agent.action_state.timers[ActionStateTimers::AttackChange as usize] < 4.0
+        {
+            controller.push_basic_input(InputKind::Ability(4));
+        // Start a leap after either every 3s or our target is not in LoS
+        } else if attack_data.dist_sqrd < GIGAS_LEAP_RANGE.powi(2)
+            && agent.action_state.timers[ActionStateTimers::AttackChange as usize] > 3.0
+        {
+            controller.push_basic_input(InputKind::Ability(1));
+        } else if attack_data.dist_sqrd < ICEBOMB_RANGE.powi(2)
+            && agent.action_state.timers[ActionStateTimers::AttackChange as usize] < 3.0
+        {
+            controller.push_basic_input(InputKind::Ability(2));
+        // Spawn ice sprites under distant attackers
+        } else {
+            controller.push_action(remote_spikes_action());
         }
+
         // Always attempt to path towards target
         self.path_toward_target(
             agent,
@@ -5486,7 +5582,7 @@ impl<'a> AgentData<'a> {
         rng: &mut impl Rng,
         primary_weight: u8,
         secondary_weight: u8,
-        ability_weights: [u8; MAX_ABILITIES],
+        ability_weights: [u8; BASE_ABILITY_LIMIT],
     ) {
         let primary = self.extract_ability(AbilityInput::Primary);
         let secondary = self.extract_ability(AbilityInput::Secondary);
@@ -5534,7 +5630,7 @@ impl<'a> AgentData<'a> {
         let secondary_chance = secondary_weight as f64
             / ((secondary_weight + ability_weights.iter().sum::<u8>()) as f64).max(0.01);
         let ability_chances = {
-            let mut chances = [0.0; MAX_ABILITIES];
+            let mut chances = [0.0; BASE_ABILITY_LIMIT];
             chances.iter_mut().enumerate().for_each(|(i, chance)| {
                 *chance = ability_weights[i] as f64
                     / (ability_weights

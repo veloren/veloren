@@ -23,7 +23,7 @@ use common::{
     combat,
     comp::{
         self,
-        ability::{Ability, ActiveAbilities, AuxiliaryAbility, MAX_ABILITIES},
+        ability::{Ability, ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT},
         inventory::{
             item::{
                 item_key::ItemKey,
@@ -811,12 +811,12 @@ impl<'a> Widget for Diary<'a> {
                 state.update(|s| {
                     s.ids
                         .active_abilities
-                        .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
+                        .resize(BASE_ABILITY_LIMIT, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
                         .active_abilities_keys
-                        .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
+                        .resize(BASE_ABILITY_LIMIT, &mut ui.widget_id_generator())
                 });
 
                 let mut slot_maker = SlotMaker {
@@ -844,7 +844,7 @@ impl<'a> Widget for Diary<'a> {
                     pulse: 0.0,
                 };
 
-                for i in 0..MAX_ABILITIES {
+                for i in 0..BASE_ABILITY_LIMIT {
                     let ability_id = self
                         .active_abilities
                         .get_ability(

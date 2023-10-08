@@ -3,7 +3,7 @@ use common::{
     character::CharacterId,
     comp::{
         inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats,
-        Waypoint,
+        Waypoint, BASE_ABILITY_LIMIT,
     },
 };
 use specs::{Entity, WriteExpect};
@@ -76,7 +76,7 @@ pub fn create_character(
         inventory,
         waypoint,
         pets: Vec::new(),
-        active_abilities: Default::default(),
+        active_abilities: common::comp::ActiveAbilities::default_limited(BASE_ABILITY_LIMIT),
         map_marker,
     });
     Ok(())

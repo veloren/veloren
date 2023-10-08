@@ -10,6 +10,7 @@ use crate::{
     uid::Uid,
     Explosion, RadiusEffect,
 };
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use std::time::Duration;
@@ -761,10 +762,18 @@ impl ProjectileConstructor {
                     .with_crit(crit_chance, crit_mult)
                     .with_effect(knockback)
                     .with_effect(buff);
+                let variation = thread_rng().gen::<f32>();
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(30.0, Rgb::new(0.0, 191.0, 255.0)),
+                        RadiusEffect::TerrainDestruction(
+                            30.0,
+                            Rgb::new(
+                                83.0 - (20.0 * variation),
+                                212.0 - (52.0 * variation),
+                                255.0 - (62.0 * variation),
+                            ),
+                        ),
                     ],
                     radius,
                     reagent: Some(Reagent::White),

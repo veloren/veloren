@@ -22,7 +22,7 @@ use common::{
         object,
         skills::{GeneralSkill, Skill},
         ChatType, Content, Group, Inventory, Item, LootOwner, Object, Player, Poise, Presence,
-        PresenceKind,
+        PresenceKind, BASE_ABILITY_LIMIT,
     },
     effect::Effect,
     link::{Is, Link, LinkHandle},
@@ -312,7 +312,11 @@ impl StateExt for State {
                     .unwrap_or(0),
             ))
             .with(stats)
-            .with(comp::ActiveAbilities::default())
+            .with(if body.is_humanoid() {
+                comp::ActiveAbilities::default_limited(BASE_ABILITY_LIMIT)
+            } else {
+                comp::ActiveAbilities::default()
+            })
             .with(skill_set)
             .maybe_with(health)
             .with(poise)

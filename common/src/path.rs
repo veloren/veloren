@@ -460,7 +460,7 @@ impl Chaser {
                 // has been determined, so we start sampling terrain.
                 // Check for falling off walls and try moving straight
                 // towards the target if falling is not a danger
-                let walking_towards_edge = (-3..2).all(|z| {
+                let walking_towards_edge = (-8..2).all(|z| {
                     vol.get(
                         (pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32)
                             + Vec3::unit_z() * z,

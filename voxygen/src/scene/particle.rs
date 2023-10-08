@@ -11,8 +11,11 @@ use crate::{
 use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
-        self, aura, beam, body, buff, item::Reagent, object, shockwave, BeamSegment, Body,
-        CharacterState, Ori, Pos, Scale, Shockwave, Vel,
+        self, aura, beam, body, buff,
+        item::Reagent,
+        object,
+        shockwave::{self, ShockwaveDodgeable},
+        BeamSegment, Body, CharacterState, Ori, Pos, Scale, Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -925,6 +928,29 @@ impl ParticleMgr {
                                             );
                                         }
                                     }
+                                }
+                            },
+                            states::spin_melee::FrontendSpecifier::Whirlwind => {
+                                if matches!(spin.stage_section, StageSection::Action) {
+                                    let time = scene_data.state.get_time();
+                                    let mut rng = thread_rng();
+                                    self.particles.resize_with(
+                                        self.particles.len()
+                                            + 3
+                                            + usize::from(
+                                                self.scheduler.heartbeats(Duration::from_millis(5)),
+                                            ),
+                                        || {
+                                            Particle::new(
+                                                Duration::from_millis(1000),
+                                                time,
+                                                ParticleMode::Whirlwind,
+                                                interpolated
+                                                    .pos
+                                                    .map(|e| e + rng.gen_range(-0.25..0.25)),
+                                            )
+                                        },
+                                    );
                                 }
                             },
                         }
@@ -2246,7 +2272,8 @@ impl ParticleMgr {
                     let new_particle_count = particles_per_length * heartbeats as usize;
                     self.particles.reserve(new_particle_count);
                     // higher wave when wave doesn't require ground
-                    let wave = if shockwave.properties.requires_ground {
+                    let wave = if matches!(shockwave.properties.dodgeable, ShockwaveDodgeable::Jump)
+                    {
                         0.5
                     } else {
                         8.0

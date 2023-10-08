@@ -1,7 +1,7 @@
 use crate::util::*;
 use common::{
     comp::{
-        ability::{CharacterAbility, MAX_ABILITIES},
+        ability::{CharacterAbility, BASE_ABILITY_LIMIT},
         buff::{BuffKind, Buffs},
         character_state::AttackFilters,
         group,
@@ -43,7 +43,6 @@ pub struct AgentData<'a> {
     pub body: Option<&'a Body>,
     pub inventory: &'a Inventory,
     pub skill_set: &'a SkillSet,
-    #[allow(dead_code)] // may be useful for pathing
     pub physics_state: &'a PhysicsState,
     pub alignment: Option<&'a Alignment>,
     pub traversal_config: TraversalConfig,
@@ -182,7 +181,7 @@ pub enum Tactic {
     RandomAbilities {
         primary: u8,
         secondary: u8,
-        abilities: [u8; MAX_ABILITIES],
+        abilities: [u8; BASE_ABILITY_LIMIT],
     },
 
     // Tool specific tactics

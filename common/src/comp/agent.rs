@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        arthropod, biped_small, bird_medium, humanoid, quadruped_low, quadruped_medium,
-        quadruped_small, ship, Body, UtteranceKind,
+        arthropod, biped_large, biped_small, bird_medium, humanoid, quadruped_low,
+        quadruped_medium, quadruped_small, ship, Body, UtteranceKind,
     },
     path::Chaser,
     rtsim::{NpcInput, RtSimController},
@@ -383,6 +383,10 @@ impl<'a> From<&'a Body> for Psyche {
             },
             sight_dist: match body {
                 Body::BirdLarge(_) => 250.0,
+                Body::BipedLarge(biped_large) => match biped_large.species {
+                    biped_large::Species::Gigasfrost => 200.0,
+                    _ => 100.0,
+                },
                 _ => 40.0,
             },
             listen_dist: 30.0,

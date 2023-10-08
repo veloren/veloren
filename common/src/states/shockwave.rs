@@ -3,7 +3,11 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget, Knockback,
     },
-    comp::{character_state::OutputEvents, shockwave, CharacterState, StateUpdate},
+    comp::{
+        character_state::OutputEvents,
+        shockwave::{self, ShockwaveDodgeable},
+        CharacterState, StateUpdate,
+    },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
     states::{
@@ -37,8 +41,8 @@ pub struct StaticData {
     pub shockwave_speed: f32,
     /// How long the shockwave travels for
     pub shockwave_duration: Duration,
-    /// Whether the shockwave requires the target to be on the ground
-    pub requires_ground: bool,
+    /// If the shockwave can be dodged, and in what way
+    pub dodgeable: ShockwaveDodgeable,
     /// Movement speed efficiency
     pub move_efficiency: f32,
     /// What key is used to press ability
@@ -117,7 +121,7 @@ impl CharacterBehavior for Data {
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
                         attack,
-                        requires_ground: self.static_data.requires_ground,
+                        dodgeable: self.static_data.dodgeable,
                         owner: Some(*data.uid),
                         specifier: self.static_data.specifier,
                     };

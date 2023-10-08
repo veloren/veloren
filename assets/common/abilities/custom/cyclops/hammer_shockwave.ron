@@ -10,7 +10,7 @@ Shockwave(
     shockwave_vertical_angle: 360.0,
     shockwave_speed: 40.0,
     shockwave_duration: 0.4,
-    requires_ground: true,
+    dodgeable: Jump,
     move_efficiency: 0.0,
     damage_kind: Piercing,
     specifier: Ground,

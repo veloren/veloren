@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mutliple singleplayer worlds and map generation UI.
 - New arena building in desert cities, suitable for PVP, also NPCs like to watch the fights too
 - The loading screen now displays status updates for singleplayer server and client initialization progress
+- New Frost Gigas attacks & AI
 
 ### Changed
 
@@ -54,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated windowing library, wayland may work better.
 - Portal model has been updated by @Nectical
 - Chat command responses sent by the server can now be localized
+- Frost Gigas spawns in cold areas (but isn't forced to stay there)
+- The ability limit for non-humanoids has been removed
 
 ### Removed
 - Medium and large potions from all loot tables

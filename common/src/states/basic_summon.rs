@@ -7,6 +7,7 @@ use crate::{
         Behavior, BehaviorCapability, CharacterState, Projectile, StateUpdate,
     },
     event::{LocalEvent, NpcBuilder, ServerEvent},
+    npc::NPC_NAMES,
     outcome::Outcome,
     skillset_builder::{self, SkillSetBuilder},
     states::{
@@ -111,7 +112,20 @@ impl CharacterBehavior for Data {
                             }
                         };
 
-                        let stats = comp::Stats::new("Summon".to_string(), body);
+                        let stats = comp::Stats::new(
+                            self.static_data
+                                .summon_info
+                                .use_npc_name
+                                .then(|| {
+                                    let all_names = NPC_NAMES.read();
+                                    all_names
+                                        .get_species_meta(&self.static_data.summon_info.body)
+                                        .map(|meta| meta.generic.clone())
+                                })
+                                .flatten()
+                                .unwrap_or_else(|| "Summon".to_string()),
+                            body,
+                        );
 
                         let health = self.static_data.summon_info.has_health.then(|| {
                             let health_level = skill_set
@@ -248,6 +262,8 @@ pub struct SummonInfo {
     body: comp::Body,
     scale: Option<comp::Scale>,
     has_health: bool,
+    #[serde(default)]
+    use_npc_name: bool,
     // TODO: use assets for specifying skills and loadout?
     loadout_config: Option<loadout_builder::Preset>,
     skillset_config: Option<skillset_builder::Preset>,

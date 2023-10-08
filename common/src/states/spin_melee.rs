@@ -171,4 +171,5 @@ pub enum MovementBehavior {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     CultistVortex,
+    Whirlwind,
 }

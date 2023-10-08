@@ -9,8 +9,8 @@ BasicRanged(
         min_falloff: 0.1,
     ),
     projectile_body: Object(IceBomb),
-    projectile_speed: 25.0,
+    projectile_speed: 40.0,
     num_projectiles: 5,
-    projectile_spread: 0.07,
+    projectile_spread: 0.05,
     move_efficiency: 0.3,
 )

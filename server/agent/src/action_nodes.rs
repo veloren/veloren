@@ -14,7 +14,7 @@ use common::{
     combat::perception_dist_multiplier_from_stealth,
     comp::{
         self,
-        ability::MAX_ABILITIES,
+        ability::BASE_ABILITY_LIMIT,
         agent::{Sound, SoundKind, Target},
         inventory::slot::EquipSlot,
         item::{
@@ -1097,7 +1097,7 @@ impl<'a> AgentData<'a> {
                             "Frostfang" => Tactic::RandomAbilities {
                                 primary: 1,
                                 secondary: 3,
-                                abilities: [0; MAX_ABILITIES],
+                                abilities: [0; BASE_ABILITY_LIMIT],
                             },
                             "Tursus Claws" => Tactic::RandomAbilities {
                                 primary: 2,
@@ -1551,9 +1551,14 @@ impl<'a> AgentData<'a> {
                 read_data,
                 rng,
             ),
-            Tactic::FrostGigas => {
-                self.handle_frostgigas_attack(agent, controller, &attack_data, tgt_data, read_data)
-            },
+            Tactic::FrostGigas => self.handle_frostgigas_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
             Tactic::BorealHammer => self.handle_boreal_hammer_attack(
                 agent,
                 controller,

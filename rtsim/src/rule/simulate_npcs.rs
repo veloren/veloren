@@ -14,7 +14,7 @@ use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::{error, warn};
 use vek::{Clamp, Vec2};
-use world::site::SiteKind;
+use world::{site::SiteKind, CONFIG};
 
 pub struct SimulateNpcs;
 
@@ -132,7 +132,14 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                             .map(|e| e as f32 + 0.5)
                             .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
                     } else {
-                        let pos = (0..10)
+                        let is_gigas = matches!(body, Body::BipedLarge(body) if body.species == comp::body::biped_large::Species::Gigasfrost);
+
+                        let pos = (0..(if is_gigas {
+                            /* More attempts for gigas */
+                            100
+                        } else {
+                            10
+                        }))
                             .map(|_| {
                                 ctx.world
                                     .sim()
@@ -140,10 +147,9 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                                     .map(|sz| rng.gen_range(0..sz as i32))
                             })
                             .find(|pos| {
-                                ctx.world
-                                    .sim()
-                                    .get(*pos)
-                                    .map_or(false, |c| !c.is_underwater())
+                                ctx.world.sim().get(*pos).map_or(false, |c| {
+                                    !c.is_underwater() && (!is_gigas || c.temp < CONFIG.snow_temp)
+                                })
                             })
                             .unwrap_or(ctx.world.sim().get_size().as_() / 2);
                         let wpos2d = pos.cpos_to_wpos_center();

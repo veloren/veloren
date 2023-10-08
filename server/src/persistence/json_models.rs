@@ -271,7 +271,7 @@ pub fn active_abilities_from_db_model(
                  abilities,
              }| {
                 let mut auxiliary_abilities =
-                    [comp::ability::AuxiliaryAbility::Empty; comp::ability::MAX_ABILITIES];
+                    vec![comp::ability::AuxiliaryAbility::Empty; comp::ability::BASE_ABILITY_LIMIT];
                 for (empty, ability) in auxiliary_abilities.iter_mut().zip(abilities.into_iter()) {
                     *empty = aux_ability_from_string(&ability);
                 }
@@ -285,7 +285,10 @@ pub fn active_abilities_from_db_model(
             },
         )
         .collect::<HashMap<_, _>>();
-    comp::ability::ActiveAbilities::new(ability_sets)
+    comp::ability::ActiveAbilities::from_auxiliary(
+        ability_sets,
+        Some(comp::ability::BASE_ABILITY_LIMIT),
+    )
 }
 
 /// Struct containing item properties in the format that they get persisted to
