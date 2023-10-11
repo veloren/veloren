@@ -142,7 +142,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
     if (emission_strength <= 0.0) {
         emission = vec3(0);
     } else {
-        float nz = textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005 - time_of_day.y, 0).x;//noise_3d(vec3(wind_pos.xy * 0.00005 + cloud_tendency * 0.2, time_of_day.x * 0.0002));
+        float nz = textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005 - time_of_day.y * 8.0, 0).x;//noise_3d(vec3(wind_pos.xy * 0.00005 + cloud_tendency * 0.2, time_of_day.x * 0.0002));
 
         float emission_alt = alt * 0.5 + 1000 + 1000 * nz;
         float emission_height = 1000.0;
@@ -205,7 +205,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, float max_dist, con
     // improves visual quality for low cloud settings
     float splay = 1.0;
     #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-        splay += (textureLod(sampler2D(t_noise, s_noise), vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day.y * 0.5, 0).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
+        splay += (textureLod(sampler2D(t_noise, s_noise), vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day.y * 4.0, 0).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
     #endif
 
     const vec3 RAYLEIGH = vec3(0.025, 0.1, 0.5);
