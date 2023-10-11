@@ -33,7 +33,7 @@ use common::{
     calendar::Calendar,
     comp::{self, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, TimeScale},
     terrain::{BlockKind, TerrainChunk, TerrainGrid},
     vol::ReadVol,
 };
@@ -113,6 +113,7 @@ pub struct Scene {
     wind_vel: Vec2<f32>,
     pub interpolated_time_of_day: Option<f64>,
     last_lightning: Option<(Vec3<f32>, f64)>,
+    client_time: f64,
 }
 
 pub struct SceneData<'a> {
@@ -348,6 +349,7 @@ impl Scene {
             wind_vel: Vec2::zero(),
             interpolated_time_of_day: None,
             last_lightning: None,
+            client_time: 0.0,
         }
     }
 
@@ -522,6 +524,8 @@ impl Scene {
         let ecs = scene_data.state.ecs();
 
         let dt = ecs.fetch::<DeltaTime>().0;
+
+        self.client_time += dt as f64 * ecs.fetch::<TimeScale>().0;
 
         let positions = ecs.read_storage::<comp::Pos>();
 
@@ -846,6 +850,7 @@ impl Scene {
             self.map_bounds,
             time_of_day,
             scene_data.state.get_time(),
+            self.client_time,
             renderer.resolution().as_(),
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
             lights.len(),

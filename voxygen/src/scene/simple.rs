@@ -272,6 +272,7 @@ impl Scene {
             self.map_bounds,
             TIME,
             scene_data.time,
+            0.0,
             renderer.resolution().as_(),
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
             0,
