@@ -16,6 +16,7 @@ use i18n::Localization;
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
 use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "singleplayer")]
 use server::{ServerInitStage, WorldCivStage, WorldGenerateStage, WorldSimStage};
 
 struct LoadingAnimation {
@@ -139,9 +140,11 @@ impl Screen {
 
                 let stage = {
                     let stage_message = match init_stage {
+                        #[cfg(feature = "singleplayer")]
                         DetailedInitializationStage::Singleplayer => {
                             i18n.get_msg("hud-init-stage-singleplayer")
                         },
+                        #[cfg(feature = "singleplayer")]
                         DetailedInitializationStage::SingleplayerServer(server_stage) => {
                             match server_stage {
                                 ServerInitStage::DbMigrations => {

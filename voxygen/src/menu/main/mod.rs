@@ -21,6 +21,7 @@ use common::comp;
 use common_base::span;
 use i18n::LocalizationHandle;
 use scene::Scene;
+#[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
 use std::sync::Arc;
 use tokio::runtime;
@@ -29,7 +30,9 @@ use ui::{Event as MainMenuEvent, MainMenuUi};
 
 #[derive(Debug)]
 pub enum DetailedInitializationStage {
+    #[cfg(feature = "singleplayer")]
     Singleplayer,
+    #[cfg(feature = "singleplayer")]
     SingleplayerServer(ServerInitStage),
     StartingMultiplayer,
     Client(ClientInitStage),
