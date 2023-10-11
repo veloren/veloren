@@ -91,6 +91,8 @@ pub struct Shadow {
     pos_radius: [f32; 4],
 }
 
+pub const TIME_OVERFLOW: f64 = 300000.0;
+
 impl Globals {
     /// Create global consts from the provided parameters.
     #[allow(clippy::too_many_arguments)]
@@ -127,10 +129,27 @@ impl Globals {
             focus_off: Vec4::from(focus_pos).map(|e: f32| e.trunc()).into_array(),
             focus_pos: Vec4::from(focus_pos).map(|e: f32| e.fract()).into_array(),
             view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
-            time_of_day: [time_of_day as f32; 4],
+            time_of_day: [
+                (time_of_day % (3600.0 * 24.0)) as f32,
+                // TODO: Find a better way than just pure repetition. A solution like
+                // the one applied to `tick` could work, but it would be used in hot
+                // shader_code. So we might not want to use that method there.
+                //
+                // Repeats every 1000 ingame days. This increases by dt * (1 / 3600)
+                // per tick on defualt server settings. So those per tick changes can't
+                // really be fully represented at a value above `50.0`.
+                (time_of_day / (3600.0 * 24.0) % 1000.0) as f32,
+                0.0,
+                0.0,
+            ],
             sun_dir: Vec4::from_direction(Self::get_sun_dir(time_of_day)).into_array(),
             moon_dir: Vec4::from_direction(Self::get_moon_dir(time_of_day)).into_array(),
-            tick: [tick as f32; 4],
+            tick: [
+                (tick % TIME_OVERFLOW) as f32,
+                (tick / TIME_OVERFLOW).floor() as f32,
+                tick as f32,
+                0.0,
+            ],
             // Provide the shadow map far plane as well.
             screen_res: [
                 screen_res.x as f32,
@@ -165,7 +184,7 @@ impl Globals {
             gamma_exposure: [gamma, exposure, 0.0, 0.0],
             last_lightning: last_lightning
                 .0
-                .with_w(last_lightning.1 as f32)
+                .with_w((last_lightning.1 % TIME_OVERFLOW) as f32)
                 .into_array(),
             wind_vel: wind_vel.into_array(),
             ambiance: ambiance.clamped(0.0, 1.0),
@@ -176,8 +195,8 @@ impl Globals {
     }
 
     fn get_angle_rad(time_of_day: f64) -> f32 {
-        const TIME_FACTOR: f32 = (std::f32::consts::PI * 2.0) / (3600.0 * 24.0);
-        time_of_day as f32 * TIME_FACTOR
+        const TIME_FACTOR: f64 = (std::f64::consts::PI * 2.0) / (3600.0 * 24.0);
+        ((time_of_day * TIME_FACTOR) % (std::f64::consts::PI * 2.0)) as f32
     }
 
     /// Computes the direction of light from the sun based on the time of day.

@@ -2,7 +2,7 @@ use crate::client::Client;
 use common::{
     comp::{ChatMode, ChatType, Content, Group, Player},
     event::{EventBus, ServerEvent},
-    resources::Time,
+    resources::ProgramTime,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -81,7 +81,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        Read<'a, Time>,
+        Read<'a, ProgramTime>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,
@@ -95,7 +95,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, server_event_bus, time, uids, chat_modes, players, groups, mut clients): Self::SystemData,
+        (entities, server_event_bus, program_time, uids, chat_modes, players, groups, mut clients): Self::SystemData,
     ) {
         (&entities, &mut clients, players.maybe())
             .par_join()
@@ -117,7 +117,7 @@ impl<'a> System<'a> for Sys {
 
                     if let Ok(1_u64..=u64::MAX) = res {
                         // Update client ping.
-                        client.last_ping = time.0
+                        client.last_ping = program_time.0
                     }
                 },
             );

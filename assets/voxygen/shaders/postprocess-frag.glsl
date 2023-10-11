@@ -244,7 +244,9 @@ void main() {
     vec2 sample_uv = uv;
     #ifdef EXPERIMENTAL_UNDERWARPER
         if (medium.x == MEDIUM_WATER) {
-            sample_uv += sin(uv.yx * 60 + tick.xx * 3.0) * 0.003;
+            float x = tick_loop(2.0 * PI, 3.0, uv.y * 60);
+            float y = tick_loop(2.0 * PI, 3.0, uv.x * 60);
+            sample_uv += sin(vec2(x, y)) * 0.003;
         }
     #endif
 
@@ -310,7 +312,7 @@ void main() {
         float dist = distance(wpos, cam_pos.xyz);
         vec3 dir = (wpos - cam_pos.xyz) / dist;
 
-        aa_color.rgb = get_cloud_color(aa_color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
+        aa_color.rgb = get_cloud_color(aa_color.rgb, dir, cam_pos.xyz, dist, 1.0);
     #endif
     */
 

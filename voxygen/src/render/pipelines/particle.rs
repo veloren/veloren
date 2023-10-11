@@ -148,7 +148,7 @@ impl Instance {
     ) -> Self {
         use rand::Rng;
         Self {
-            inst_time: inst_time as f32,
+            inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
             inst_lifespan: lifespan,
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,
@@ -166,7 +166,7 @@ impl Instance {
     ) -> Self {
         use rand::Rng;
         Self {
-            inst_time: inst_time as f32,
+            inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
             inst_lifespan: lifespan,
             inst_entropy: rand::thread_rng().gen(),
             inst_mode: inst_mode as i32,

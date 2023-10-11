@@ -83,8 +83,8 @@ float wind_wave(float off, float scaling, float speed, float strength) {
     strength = max(strength, 6.0);
     aspeed = max(aspeed, 5.0);
 
-    return (sin(tick.x * 0.35 * scaling * floor(aspeed) + off) * (1.0 - fract(aspeed))
-        + sin(tick.x * 0.35 * scaling * ceil(aspeed) + off) * fract(aspeed)) * abs(strength) * 0.25;
+    return (sin(tick_loop(2.0 * PI, 0.35 * scaling * floor(aspeed), off)) * (1.0 - fract(aspeed))
+        + sin(tick_loop(2.0 * PI, 0.35 * scaling * ceil(aspeed), off)) * fract(aspeed)) * abs(strength) * 0.25;
     //return sin(tick.x * 1.5 * scaling + off) + sin(tick.x * 0.35 * scaling + off);
 }
 
@@ -152,7 +152,7 @@ void main() {
     #ifndef EXPERIMENTAL_BAREMINIMUM
         #ifndef EXPERIMENTAL_NOTERRAINPOP
             // Terrain 'pop-in' effect
-            f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+            f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(time_since(load_time), 10.0), 1.0));
         #endif
     #endif
 

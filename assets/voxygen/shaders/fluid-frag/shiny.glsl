@@ -54,13 +54,16 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <light.glsl>
 #include <lod.glsl>
 
-void wave_dx(vec4 posx, vec4 posy, vec2 dir, float speed, float frequency, float timeshift, out vec4 wave, out vec4 dx) {
-    vec4 x = vec4(
-        dot(dir, vec2(posx.x, posy.x)),
-        dot(dir, vec2(posx.y, posy.y)),
-        dot(dir, vec2(posx.z, posy.z)),
-        dot(dir, vec2(posx.w, posy.w))
-    ) * frequency + timeshift * speed;
+void wave_dx(vec2 pos, vec2 dir, float speed, float frequency, float factor, vec4 accumx, vec4 accumy, out vec4 wave, out vec4 dx) {
+    float ff = frequency * factor;
+
+    vec2 v = floor(f_vel);
+    vec4 kx = (v.x + vec2(0, 1)).xyxy;
+    vec4 ky = (v.y + vec2(0, 1)).xxyy;
+    vec4 p = speed - ff * (dir.x * kx + dir.y * ky);
+    vec4 q = frequency * ((dir.x * factor * pos.x + accumx) + dir.y * (factor * pos.y + accumy));
+    vec4 x = tick_loop4(2 * PI, p, q);
+
     wave = sin(x) + 0.5;
     wave *= wave;
     dx = -wave * cos(x);
@@ -70,7 +73,7 @@ void wave_dx(vec4 posx, vec4 posy, vec2 dir, float speed, float frequency, float
 // Modified to allow calculating the wave function 4 times at once using different positions (used for intepolation
 // for moving water). The general idea is to sample the wave function at different positions, where those positions
 // depend on increments of the velocity, and then interpolate between those velocities to get a smooth water velocity.
-vec4 wave_height(vec4 posx, vec4 posy) {
+vec4 wave_height(vec2 pos) {
     float iter = 0.0;
     float phase = 4.0;
     float weight = 1.5;
@@ -79,27 +82,28 @@ vec4 wave_height(vec4 posx, vec4 posy) {
     const float speed_per_iter = 0.1;
     #if (FLUID_MODE == FLUID_MODE_HIGH)
         float speed = 1.0;
-        posx *= 0.2;
-        posy *= 0.2;
+        const float factor = 0.2;
         const float drag_factor = 0.035;
         const int iters = 21;
         const float scale = 15.0;
     #else
         float speed = 2.0;
-        posx *= 0.3;
-        posy *= 0.3;
+        const float factor = 0.3;
         const float drag_factor = 0.04;
         const int iters = 11;
         const float scale = 3.0;
     #endif
     const float iter_shift = (3.14159 * 2.0) / 7.3;
 
+    vec4 accumx = vec4(0);
+    vec4 accumy = vec4(0);
+
     for(int i = 0; i < iters; i ++) {
         vec2 p = vec2(sin(iter), cos(iter));
         vec4 wave, dx;
-        wave_dx(posx, posy, p, speed, phase, tick.x, wave, dx);
-        posx += p.x * dx * weight * drag_factor;
-        posy += p.y * dx * weight * drag_factor;
+        wave_dx(pos, p, speed, phase, factor, accumx, accumy, wave, dx);
+        accumx += p.x * dx * weight * drag_factor;
+        accumy += p.y * dx * weight * drag_factor;
         w += wave * weight;
         iter += iter_shift * 1.5;
         ws += weight;
@@ -111,10 +115,7 @@ vec4 wave_height(vec4 posx, vec4 posy) {
 }
 
 float wave_height_vel(vec2 pos) {
-    vec4 heights = wave_height(
-        pos.x - tick.x * floor(f_vel.x) - vec2(0.0, tick.x).xyxy,
-        pos.y - tick.x * floor(f_vel.y) - vec2(0.0, tick.x).xxyy
-    );
+    vec4 heights = wave_height(pos);
     return mix(
         mix(heights.x, heights.y, fract(f_vel.x + 1.0)),
         mix(heights.z, heights.w, fract(f_vel.x + 1.0)),
@@ -275,7 +276,7 @@ void main() {
         /* reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1); */
         reflect_color = vec3(0);
     #else
-        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+        reflect_color = get_sky_color(ray_dir, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
     #endif
     // Sort of non-physical, but we try to balance the reflection intensity with the direct light from the sun,
     // resulting in decent reflection of the ambient environment even after the sun has gone down.
@@ -339,7 +340,7 @@ void main() {
     float passthrough = max(dot(cam_norm, -cam_to_frag), 0) * 0.75;
 
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, cam_norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, cam_norm, sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
     emitted_light *= not_underground;
     reflected_light *= not_underground;
 

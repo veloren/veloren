@@ -142,7 +142,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
     if (emission_strength <= 0.0) {
         emission = vec3(0);
     } else {
-        float nz = textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005 - time_of_day.x * 0.0001, 0).x;//noise_3d(vec3(wind_pos.xy * 0.00005 + cloud_tendency * 0.2, time_of_day.x * 0.0002));
+        float nz = textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005 - time_of_day.y * 8.0, 0).x;//noise_3d(vec3(wind_pos.xy * 0.00005 + cloud_tendency * 0.2, time_of_day.x * 0.0002));
 
         float emission_alt = alt * 0.5 + 1000 + 1000 * nz;
         float emission_height = 1000.0;
@@ -195,7 +195,7 @@ float dist_to_step(float dist, float quality) {
 // consistently support forward declarations (not surprising, it's designed for single-pass compilers).
 #include <point_glow.glsl>
 
-vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of_day, float max_dist, const float quality) {
+vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, float max_dist, const float quality) {
     // Limit the marching distance to reduce maximum jumps
     max_dist = min(max_dist, DIST_CAP);
 
@@ -205,7 +205,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     // improves visual quality for low cloud settings
     float splay = 1.0;
     #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-        splay += (textureLod(sampler2D(t_noise, s_noise), vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005, 0).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
+        splay += (textureLod(sampler2D(t_noise, s_noise), vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day.y * 4.0, 0).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
     #endif
 
     const vec3 RAYLEIGH = vec3(0.025, 0.1, 0.5);
@@ -215,7 +215,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     float moon_scatter = dot(-dir, moon_dir.xyz) * 0.5 + 0.7;
     float net_light = get_sun_brightness() + get_moon_brightness();
     vec3 sky_color = RAYLEIGH * net_light;
-    vec3 sky_light = get_sky_light(dir, time_of_day, false);
+    vec3 sky_light = get_sky_light(dir, false);
     vec3 sun_color = get_sun_color();
     vec3 moon_color = get_moon_color();
 

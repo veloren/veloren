@@ -152,8 +152,7 @@ float alt_at_real(vec2 pos) {
 }
 
 
-float horizon_at2(vec4 f_horizons, float alt, vec3 pos, /*float time_of_day*/vec4 light_dir) {
-    // vec3 sun_dir = get_sun_dir(time_of_day);
+float horizon_at2(vec4 f_horizons, float alt, vec3 pos, vec4 light_dir) {
     const float PI_2 = 3.1415926535897932384626433832795 / 2.0;
     const float MIN_LIGHT = 0.0;//0.115/*0.0*/;
 

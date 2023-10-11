@@ -1195,6 +1195,11 @@ impl PlayState for SessionState {
                                 if self.viewpoint_entity.is_some() {
                                     self.viewpoint_entity = None;
                                     self.scene.camera_mut().set_mode(CameraMode::Freefly);
+                                    let mut ori = self.scene.camera().get_orientation();
+                                    // Remove any roll that could have possibly been set to the
+                                    // camera as a result of spectating.
+                                    ori.z = 0.0;
+                                    self.scene.camera_mut().set_orientation(ori);
                                 } else if let Some(interactable) = &self.interactable {
                                     if self.scene.camera().get_mode() == CameraMode::Freefly {
                                         match interactable {
