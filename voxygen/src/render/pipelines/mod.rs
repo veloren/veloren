@@ -131,7 +131,14 @@ impl Globals {
             view_distance: [view_distance, tgt_detail, map_bounds.x, map_bounds.y],
             time_of_day: [
                 (time_of_day % (3600.0 * 24.0)) as f32,
-                (time_of_day / (3600.0 * 24.0) % TIME_OVERFLOW) as f32,
+                // TODO: Find a better way than just pure repetition. A solution like
+                // the one applied to `tick` could work, but it would be used in hot
+                // shader_code. So we might not want to use that method there.
+                //
+                // Repeats every 1000 ingame days. This increases by dt * (1 / 3600)
+                // per tick on defualt server settings. So those per tick changes can't
+                // really be fully represented at a value above `50.0`.
+                (time_of_day / (3600.0 * 24.0) % 1000.0) as f32,
                 0.0,
                 0.0,
             ],
