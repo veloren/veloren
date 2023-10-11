@@ -98,11 +98,11 @@ float lifetime = time_since(inst_time);
 
 // Retrieves inst_time, repeating over a period. This will be consistent
 // over a time overflow.
-float loop_inst_time(float period) {
+float loop_inst_time(float period, float scale) {
     if (tick.x < inst_time) {
-        return mod(mod(tick_overflow, period) + inst_time, period);
+        return mod(mod(tick_overflow * scale, period) + inst_time * scale, period);
     } else {
-        return mod(inst_time, period);
+        return mod(inst_time * scale, period);
     }
 }
 
@@ -430,11 +430,11 @@ void main() {
         case LIFESTEAL_BEAM:
             f_reflect = 0.0;
             float green_col = 0.8 + 0.8 * sin(tick_loop(2 * PI, 5, lifetime * 5));
-            float purple_col = 0.6 + 0.5 * sin(tick_loop(2 * PI, 4, lifetime * 4)) - min(max(green_col - 1, 0), 0.3);
-            float red_col = 1.15 + 0.1 * sin(tick_loop(2 * PI, 3, lifetime * 3)) - min(max(green_col - 1, 0), 0.3) - max(purple_col - 0.5, 0);
+            float purple_col = 0.6 + 0.5 * sin(loop_inst_time(2 * PI, 4)) - min(max(green_col - 1, 0), 0.3);
+            float red_col = 1.15 + 0.1 * sin(loop_inst_time(2 * PI, 3)) - min(max(green_col - 1, 0), 0.3) - max(purple_col - 0.5, 0);
             attr = Attr(
-                spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, loop_inst_time(2.0 * PI)),
-                vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick_loop(2 * PI, 10, lifetime * 4)))),
+                spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, loop_inst_time(2.0 * PI, 1.0)),
+                vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick_loop(2 * PI, 10, -lifetime * 4)))),
                 vec4(vec3(red_col + purple_col * 0.6, green_col + purple_col * 0.35, purple_col), 1),
                 spin_in_axis(inst_dir, tick_loop(2 * PI))
             );
