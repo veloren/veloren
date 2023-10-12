@@ -72,6 +72,8 @@ impl Animation for MountAnimation {
             0.0
         } * 1.3;
 
+        let bob = (anim_time * 12.0).sin();
+
         next.head.scale = Vec3::one() * s_a.head_scale;
         next.chest.scale = Vec3::one() * 1.01;
         next.hand_l.scale = Vec3::one() * 1.04;
@@ -88,8 +90,8 @@ impl Animation for MountAnimation {
             * Quaternion::rotation_x((0.35 + head_look.y + tilt.abs() * 1.2).abs());
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-        next.chest.orientation =
-            Quaternion::rotation_x(-0.4 + tilt.abs() * -1.5) * Quaternion::rotation_y(tilt * 2.0);
+        next.chest.orientation = Quaternion::rotation_x(-0.4 + tilt.abs() * -1.5 - bob * 0.2)
+            * Quaternion::rotation_y(tilt * 2.0);
 
         next.belt.position = Vec3::new(0.0, s_a.belt.0 + 0.5, s_a.belt.1 + 0.5);
         next.belt.orientation = Quaternion::rotation_x(0.2) * Quaternion::rotation_y(tilt * -0.5);
@@ -99,13 +101,21 @@ impl Animation for MountAnimation {
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + 1.0, s_a.shorts.1 + 1.0);
         next.shorts.orientation = Quaternion::rotation_x(0.3) * Quaternion::rotation_y(tilt * -1.0);
 
-        next.hand_l.position = Vec3::new(-s_a.hand.0 + 3.0, s_a.hand.1 + 9.0, s_a.hand.2 + 4.0);
+        next.hand_l.position = Vec3::new(
+            -s_a.hand.0 + 3.0,
+            s_a.hand.1 + 6.0,
+            s_a.hand.2 + 2.0 + (bob + 1.0) * speed * 0.1,
+        );
         next.hand_l.orientation =
-            Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(-PI / 2.0 + 0.5);
+            Quaternion::rotation_x(PI * 0.4) * Quaternion::rotation_z(-PI / 2.0 + 1.0);
 
-        next.hand_r.position = Vec3::new(s_a.hand.0 - 3.0, s_a.hand.1 + 9.0, s_a.hand.2 + 4.0);
+        next.hand_r.position = Vec3::new(
+            s_a.hand.0 - 3.0,
+            s_a.hand.1 + 6.0,
+            s_a.hand.2 + 2.0 + (bob + 1.0) * speed * 0.1,
+        );
         next.hand_r.orientation =
-            Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI / 2.0 - 0.5);
+            Quaternion::rotation_x(PI * 0.4) * Quaternion::rotation_z(PI / 2.0 - 1.0);
 
         next.foot_l.position = Vec3::new(-s_a.foot.0 - 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
         next.foot_l.orientation = Quaternion::rotation_x(0.5) * Quaternion::rotation_y(0.5);
