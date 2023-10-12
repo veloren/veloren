@@ -58,6 +58,7 @@ impl Body {
                 quadruped_small::Species::Rabbit => 110.0,
                 quadruped_small::Species::Cat => 150.0,
                 quadruped_small::Species::Quokka => 100.0,
+                quadruped_small::Species::MossySnail => 20.0,
                 _ => 125.0,
             },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {

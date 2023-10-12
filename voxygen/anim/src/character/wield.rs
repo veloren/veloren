@@ -64,7 +64,6 @@ impl Animation for WieldAnimation {
 
         let u_slowalt = (anim_time * 5.0 + PI).cos();
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
-        let side = velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x;
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

@@ -9,7 +9,7 @@ use crate::{
 };
 use client::Client;
 use common::{
-    comp::{Body, CharacterState, PhysicsState, Pos, Vel},
+    comp::{Body, CharacterState, PhysicsState, Pos, Scale, Vel},
     resources::DeltaTime,
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
@@ -26,7 +26,7 @@ struct PreviousEntityState {
     time: Instant,
     on_ground: bool,
     in_water: bool,
-    distance_travelled: f32,
+    steps_taken: f32,
 }
 
 impl Default for PreviousEntityState {
@@ -36,7 +36,7 @@ impl Default for PreviousEntityState {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         }
     }
 }
@@ -61,11 +61,12 @@ impl EventMapper for MovementEventMapper {
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
 
-        for (entity, pos, vel, body, physics, character) in (
+        for (entity, pos, vel, body, scale, physics, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
+            ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
@@ -115,7 +116,7 @@ impl EventMapper for MovementEventMapper {
                         underwater,
                     );
                     internal_state.time = Instant::now();
-                    internal_state.distance_travelled = 0.0;
+                    internal_state.steps_taken = 0.0;
                 }
 
                 // update state to determine the next event. We only record the time (above) if
@@ -124,7 +125,8 @@ impl EventMapper for MovementEventMapper {
                 internal_state.on_ground = physics.on_ground.is_some();
                 internal_state.in_water = physics.in_liquid().is_some();
                 let dt = ecs.fetch::<DeltaTime>().0;
-                internal_state.distance_travelled += vel.0.magnitude() * dt;
+                internal_state.steps_taken +=
+                    vel.0.magnitude() * dt / (body.stride_length() * scale.map_or(1.0, |s| s.0));
             }
         }
 
@@ -167,9 +169,9 @@ impl MovementEventMapper {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
                 match event {
-                    SfxEvent::Run(_) => previous_state.distance_travelled >= item.threshold,
-                    SfxEvent::Climb => previous_state.distance_travelled >= item.threshold,
-                    SfxEvent::QuadRun(_) => previous_state.distance_travelled >= item.threshold,
+                    SfxEvent::Run(_) => previous_state.steps_taken >= item.threshold,
+                    SfxEvent::Climb => previous_state.steps_taken >= item.threshold,
+                    SfxEvent::QuadRun(_) => previous_state.steps_taken >= item.threshold,
                     _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold,
                 }
             } else {
