@@ -275,6 +275,7 @@ impl Animation for RunAnimation {
                 s_a.hand.2 + 12.0 + impact * -0.1,
             );
             next.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
+            next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 + 2.0);
 
             let fast = (anim_time * 8.0).sin();
             let fast2 = (anim_time * 6.0 + 8.0).sin();
