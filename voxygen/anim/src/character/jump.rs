@@ -37,6 +37,7 @@ impl Animation for JumpAnimation {
         let check = subtract - subtract.trunc();
         let switch = (check - 0.5).signum();
 
+        let falling = (velocity.z * 0.1).clamped(-1.0, 1.0);
         let speed = Vec2::<f32>::from(velocity).magnitude();
         let speednorm = (speed / 10.0).min(1.0);
 
@@ -115,14 +116,14 @@ impl Animation for JumpAnimation {
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,
             s_a.foot.1 - 5.0 * switch,
-            2.0 + s_a.foot.2 + slow * 1.5,
+            2.0 + s_a.foot.2 + slow * 1.5 + falling * -2.0,
         );
         next.foot_l.orientation = Quaternion::rotation_x(-0.8 * switch + slow * -0.2 * switch);
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0,
             s_a.foot.1 + 5.0 * switch,
-            2.0 + s_a.foot.2 + slow * 1.5,
+            2.0 + s_a.foot.2 + slow * 1.5 + falling * -2.0,
         );
         next.foot_r.orientation = Quaternion::rotation_x(0.8 * switch + slow * 0.2 * switch);
 
