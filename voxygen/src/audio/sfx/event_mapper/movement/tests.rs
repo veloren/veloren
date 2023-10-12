@@ -200,6 +200,7 @@ fn maps_roll() {
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
             was_wielded: true,
+            prev_aimed_dir: None,
             is_sneaking: false,
             was_combo: None,
         }),
