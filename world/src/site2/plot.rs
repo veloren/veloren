@@ -1,4 +1,5 @@
 mod adlet;
+mod airship_dock;
 mod bridge;
 mod castle;
 mod citadel;
@@ -22,11 +23,12 @@ mod sea_chapel;
 mod workshop;
 
 pub use self::{
-    adlet::AdletStronghold, bridge::Bridge, castle::Castle, citadel::Citadel,
-    cliff_tower::CliffTower, coastal_house::CoastalHouse, coastal_workshop::CoastalWorkshop,
-    desert_city_arena::DesertCityArena, desert_city_multiplot::DesertCityMultiPlot,
-    desert_city_temple::DesertCityTemple, dungeon::Dungeon, dwarven_mine::DwarvenMine,
-    giant_tree::GiantTree, gnarling::GnarlingFortification, house::House, jungle_ruin::JungleRuin,
+    adlet::AdletStronghold, airship_dock::AirshipDock, bridge::Bridge, castle::Castle,
+    citadel::Citadel, cliff_tower::CliffTower, coastal_house::CoastalHouse,
+    coastal_workshop::CoastalWorkshop, desert_city_arena::DesertCityArena,
+    desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
+    dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
+    gnarling::GnarlingFortification, house::House, jungle_ruin::JungleRuin,
     pirate_hideout::PirateHideout, savannah_hut::SavannahHut, savannah_pit::SavannahPit,
     savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel, workshop::Workshop,
 };
@@ -70,6 +72,7 @@ impl Plot {
 
 pub enum PlotKind {
     House(House),
+    AirshipDock(AirshipDock),
     CoastalHouse(CoastalHouse),
     CoastalWorkshop(CoastalWorkshop),
     Workshop(Workshop),
