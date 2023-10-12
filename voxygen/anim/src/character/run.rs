@@ -111,7 +111,7 @@ impl Animation for RunAnimation {
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + short * 0.1);
         next.head.orientation =
-            Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 + short * -0.25)
+            Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 + short * -0.3)
                 * Quaternion::rotation_x(head_look.y + 0.45 * speednorm + shortalt2 * -0.05);
         next.head.scale = Vec3::one() * s_a.head_scale;
 
