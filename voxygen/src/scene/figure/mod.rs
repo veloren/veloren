@@ -1101,9 +1101,9 @@ impl FigureMgr {
                     let holding_lantern = inventory
                         .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
                         && light_emitter.is_some()
-                        && !(second_tool_hand.is_some()
-                            || matches!(active_tool_hand, Some(Hands::Two))
-                                && character.map_or(false, |c| c.is_wield()))
+                        && ((second_tool_hand.is_none()
+                            && matches!(active_tool_hand, Some(Hands::One)))
+                            || !character.map_or(false, |c| c.is_wield()))
                         && !character.map_or(false, |c| c.is_using_hands())
                         && physics.in_liquid().is_none();
 
@@ -1263,6 +1263,7 @@ impl FigureMgr {
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
+                                    s.prev_aimed_dir,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,

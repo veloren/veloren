@@ -9,6 +9,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -41,6 +42,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Had weapon
     pub was_wielded: bool,
+    /// What direction were we previously aiming in?
+    pub prev_aimed_dir: Option<Dir>,
     /// Is sneaking, true if previous state was also considered sneaking
     pub is_sneaking: bool,
     /// Was in state with combo

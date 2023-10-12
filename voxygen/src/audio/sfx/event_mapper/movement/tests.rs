@@ -32,7 +32,7 @@ fn config_but_played_since_threshold_no_emit() {
         time: Instant::now(),
         on_ground: true,
         in_water: false,
-        distance_travelled: 0.0,
+        steps_taken: 0.0,
     };
 
     let result = MovementEventMapper::should_emit(
@@ -56,7 +56,7 @@ fn config_and_not_played_since_threshold_emits() {
         time: Instant::now().checked_add(Duration::from_secs(1)).unwrap(),
         on_ground: true,
         in_water: false,
-        distance_travelled: 0.0,
+        steps_taken: 0.0,
     };
 
     let result = MovementEventMapper::should_emit(
@@ -82,7 +82,7 @@ fn same_previous_event_elapsed_emits() {
             .unwrap(),
         on_ground: true,
         in_water: false,
-        distance_travelled: 2.0,
+        steps_taken: 2.0,
     };
 
     let result = MovementEventMapper::should_emit(
@@ -106,7 +106,7 @@ fn maps_idle() {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -128,7 +128,7 @@ fn maps_run_with_sufficient_velocity() {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         },
         Vec3::new(0.5, 0.8, 0.0),
         BlockKind::Grass,
@@ -150,7 +150,7 @@ fn does_not_map_run_with_insufficient_velocity() {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         },
         Vec3::new(0.02, 0.0001, 0.0),
         BlockKind::Grass,
@@ -169,7 +169,7 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         },
         Vec3::new(0.5, 0.8, 0.0),
         BlockKind::Grass,
@@ -200,6 +200,7 @@ fn maps_roll() {
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
             was_wielded: true,
+            prev_aimed_dir: None,
             is_sneaking: false,
             was_combo: None,
         }),
@@ -212,7 +213,7 @@ fn maps_roll() {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         },
         Vec3::new(0.5, 0.5, 0.0),
         BlockKind::Grass,
@@ -234,7 +235,7 @@ fn maps_land_on_ground_to_run() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -253,7 +254,7 @@ fn maps_glide() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
-            distance_travelled: 0.0,
+            steps_taken: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,

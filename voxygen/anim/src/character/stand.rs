@@ -185,6 +185,7 @@ impl Animation for StandAnimation {
                 * Quaternion::rotation_z(0.9)
                 * Quaternion::rotation_y(head_look.x * 1.5)
                 * Quaternion::rotation_x(head_look.y * 1.5);
+            next.shoulder_r.orientation = Quaternion::rotation_x(slow * 0.15 + 2.0);
 
             let fast = (anim_time * 5.0).sin();
             let fast2 = (anim_time * 4.5 + 8.0).sin();

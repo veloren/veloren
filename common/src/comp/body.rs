@@ -275,6 +275,18 @@ impl Body {
         )
     }
 
+    /// The length of the stride of the body, in metres (not accounting for
+    /// different legs)
+    pub fn stride_length(&self) -> f32 {
+        if let Body::Humanoid(body) = self {
+            body.scaler() * 3.75
+        } else {
+            // Rough heuristic
+            let dims = self.dimensions();
+            0.65 + (dims.y + dims.z) * 0.6
+        }
+    }
+
     pub fn scale(&self) -> Scale {
         let s = match self {
             Body::BirdMedium(bird_medium) => match bird_medium.species {

@@ -58,6 +58,7 @@ impl Body {
                 quadruped_small::Species::Rabbit => 110.0,
                 quadruped_small::Species::Cat => 150.0,
                 quadruped_small::Species::Quokka => 100.0,
+                quadruped_small::Species::MossySnail => 20.0,
                 _ => 125.0,
             },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -1246,6 +1247,9 @@ fn handle_ability(
                         roll.is_sneaking = true;
                     }
                 }
+                if data.character.is_aimed() {
+                    roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);
+                }
             }
             return true;
         }
@@ -1552,6 +1556,11 @@ pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
             footwear: None,
             time_entered: *data.time,
         });
+    }
+    if let CharacterState::Roll(roll) = data.character {
+        if let Some(dir) = roll.prev_aimed_dir {
+            update.ori = dir.into();
+        }
     }
 }
 

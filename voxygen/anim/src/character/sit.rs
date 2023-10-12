@@ -60,18 +60,20 @@ impl Animation for SitAnimation {
         next.shorts.orientation = Quaternion::rotation_x(stop * 0.6);
 
         next.hand_l.position = Vec3::new(
-            -s_a.hand.0,
+            -s_a.hand.0 - 1.0,
             s_a.hand.1 + slowa * 0.15,
-            s_a.hand.2 + slow * 0.7 + stop * -2.0,
+            s_a.hand.2 + slow * 0.7 + stop * -2.0 - 1.0,
         );
-        next.hand_l.orientation = Quaternion::rotation_x(slowa * -0.1 + slow * 0.1);
+        next.hand_l.orientation =
+            Quaternion::rotation_x(slowa * -0.1 + slow * 0.1) * Quaternion::rotation_y(PI * 0.15);
 
         next.hand_r.position = Vec3::new(
-            s_a.hand.0,
+            s_a.hand.0 + 1.0,
             s_a.hand.1 + slowa * 0.15,
-            s_a.hand.2 + slow * 0.7 + stop * -2.0,
+            s_a.hand.2 + slow * 0.7 + stop * -2.0 - 1.0,
         );
-        next.hand_r.orientation = Quaternion::rotation_x(slow * -0.1 + slowa * 0.1);
+        next.hand_r.orientation =
+            Quaternion::rotation_x(slow * -0.1 + slowa * 0.1) * Quaternion::rotation_y(PI * -0.15);
 
         next.foot_l.position = Vec3::new(-s_a.foot.0, 4.0 + s_a.foot.1, 3.0 + s_a.foot.2);
         next.foot_l.orientation = Quaternion::rotation_x(slow * 0.1 + stop * 1.2 + slow * 0.1);

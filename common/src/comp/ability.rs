@@ -2404,6 +2404,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 was_wielded: false, // false by default. utils might set it to true
+                prev_aimed_dir: None,
                 is_sneaking: false,
                 was_combo: None,
             }),

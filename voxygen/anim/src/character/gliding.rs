@@ -29,7 +29,7 @@ impl Animation for GlidingAnimation {
         next.glider_trails = true;
 
         let speednorm = velocity.magnitude().min(50.0) / 50.0;
-        let slow = (acc_vel * 0.5).sin();
+        let slow = (acc_vel * 0.25).sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) / 4.0).floor().mul(7331.0).sin() * 0.5,
@@ -56,6 +56,7 @@ impl Animation for GlidingAnimation {
         next.shorts.orientation = Quaternion::rotation_z(0.0);
         next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
+        next.shorts.orientation = Quaternion::rotation_z(-speedlog + slow * 0.15);
 
         next.hand_l.position =
             glider_pos + glider_ori * Vec3::new(-s_a.hand.0 + -2.0, s_a.hand.1 + 8.0, s_a.hand.2);
@@ -65,11 +66,19 @@ impl Animation for GlidingAnimation {
             glider_pos + glider_ori * Vec3::new(s_a.hand.0 + 2.0, s_a.hand.1 + 8.0, s_a.hand.2);
         next.hand_r.orientation = Quaternion::rotation_x(3.35) * Quaternion::rotation_y(-0.2);
 
-        next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1 + speedlog * -1.0, s_a.foot.2);
-        next.foot_l.orientation = Quaternion::rotation_x(-speedlog + slow * -0.3 * speedlog);
+        next.foot_l.position = Vec3::new(
+            -s_a.foot.0,
+            s_a.foot.1 + speedlog * -1.0 - slow * 2.3,
+            s_a.foot.2,
+        );
+        next.foot_l.orientation = Quaternion::rotation_x(-speedlog + slow * -1.3 * speedlog);
 
-        next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1 + speedlog * -1.0, s_a.foot.2);
-        next.foot_r.orientation = Quaternion::rotation_x(-speedlog + slow * 0.3 * speedlog);
+        next.foot_r.position = Vec3::new(
+            s_a.foot.0,
+            s_a.foot.1 + speedlog * -1.0 + slow * 2.3,
+            s_a.foot.2,
+        );
+        next.foot_r.orientation = Quaternion::rotation_x(-speedlog + slow * 1.3 * speedlog);
 
         next
     }
