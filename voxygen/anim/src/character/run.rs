@@ -54,7 +54,7 @@ impl Animation for RunAnimation {
         let impact = (avg_vel.z).max(-8.0);
         let speednorm = (speed / 9.4).powf(0.6);
 
-        let lab: f32 = 0.8;
+        let lab: f32 = 0.5 / s_a.scaler;
 
         let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * 1.6 * lab + PI * 1.4).sin()).powi(2)))
             .sqrt())
@@ -132,7 +132,8 @@ impl Animation for RunAnimation {
 
         next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
         next.back.orientation =
-            Quaternion::rotation_x(-0.05 + short * 0.02 + noisea * 0.02 + noiseb * 0.02);
+            Quaternion::rotation_x(-0.05 + short * 0.02 + noisea * 0.02 + noiseb * 0.02)
+                * Quaternion::rotation_y(foothorir * 0.2);
 
         next.shorts.position = Vec3::new(0.0, 0.65 + s_a.shorts.0, 0.65 * speednorm + s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_x(0.2 * speednorm)
