@@ -177,7 +177,7 @@ impl Animation for RunAnimation {
         next.foot_l.orientation = Quaternion::rotation_x(
             (1.0 - sideabs) * (-0.3 + foothoril * -1.5 * speednorm) + sideabs * -0.5,
         ) * Quaternion::rotation_y(
-            tilt * 2.0 + side * 0.3 + side * (foothoril * 0.3),
+            tilt * -0.5 + side * 0.3 + side * (foothoril * 0.3),
         ) * Quaternion::rotation_z(side * 0.2);
 
         next.foot_r.position = Vec3::new(
@@ -193,7 +193,7 @@ impl Animation for RunAnimation {
         next.foot_r.orientation = Quaternion::rotation_x(
             (1.0 - sideabs) * (-0.3 + foothorir * -1.5 * speednorm) + sideabs * -0.5,
         ) * Quaternion::rotation_y(
-            tilt * 2.0 + side * 0.3 + side * (foothorir * 0.3),
+            tilt * -0.5 + side * 0.3 + side * (foothorir * 0.3),
         ) * Quaternion::rotation_z(side * 0.2);
         //
 
