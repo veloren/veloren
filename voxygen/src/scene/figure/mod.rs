@@ -1263,6 +1263,7 @@ impl FigureMgr {
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
+                                    s.prev_aimed_dir,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,

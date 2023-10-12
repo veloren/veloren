@@ -5,6 +5,7 @@ use super::{
 use common::{
     comp::item::{Hands, ToolKind},
     states::utils::StageSection,
+    util::Dir,
 };
 use std::f32::consts::PI;
 
@@ -19,6 +20,7 @@ type RollAnimationDependency = (
     Vec3<f32>,
     f32,
     Option<StageSection>,
+    Option<Dir>,
 );
 
 impl Animation for RollAnimation {
@@ -41,6 +43,7 @@ impl Animation for RollAnimation {
             last_ori,
             _global_time,
             stage_section,
+            prev_aimed_dir,
         ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
@@ -257,9 +260,25 @@ impl Animation for RollAnimation {
         next.foot_r.orientation = Quaternion::rotation_x(0.9 * movement1);
 
         next.torso.position = Vec3::new(0.0, 0.0, 7.0 * movement1);
-        next.torso.orientation =
-            Quaternion::rotation_x(-0.3 + movement1 * -0.4 + movement2 * -2.0 * PI)
-                * Quaternion::rotation_z(tilt * -10.0);
+        let roll_spin = Quaternion::rotation_x(-0.3 + movement1 * -0.4 + movement2 * -2.0 * PI);
+        next.torso.orientation = if let Some(prev_aimed_dir) = prev_aimed_dir {
+            // This is *slightly* hacky. Because rolling is not strafed movement, we
+            // actually correct for the entity orientation to make sure that our
+            // rolling motion is correct with respect to our original orientation
+            let move_dir = Quaternion::<f32>::from_vec4(
+                Dir::new(orientation.into_array().into())
+                    .rotation()
+                    .into_vec4()
+                    .into_array()
+                    .into(),
+            );
+            let aim_dir = Quaternion::<f32>::from_vec4(
+                prev_aimed_dir.rotation().into_vec4().into_array().into(),
+            );
+            roll_spin * move_dir.inverse() * aim_dir
+        } else {
+            roll_spin * Quaternion::rotation_z(tilt * -10.0)
+        };
 
         next
     }

@@ -1246,6 +1246,9 @@ fn handle_ability(
                         roll.is_sneaking = true;
                     }
                 }
+                if data.character.is_aimed() {
+                    roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);
+                }
             }
             return true;
         }
@@ -1552,6 +1555,11 @@ pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
             footwear: None,
             time_entered: *data.time,
         });
+    }
+    if let CharacterState::Roll(roll) = data.character {
+        if let Some(dir) = roll.prev_aimed_dir {
+            update.ori = dir.into();
+        }
     }
 }
 
