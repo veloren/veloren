@@ -149,7 +149,7 @@ impl Animation for RunAnimation {
         );
         next.hand_l.orientation =
             Quaternion::rotation_x(0.6 * speednorm + (footrotr * -1.8) * speednorm)
-                * Quaternion::rotation_y(footrotr * 0.4 * speednorm);
+                * Quaternion::rotation_y(footrotr * 0.4 * speednorm + PI * 0.1);
 
         next.hand_r.position = Vec3::new(
             s_a.hand.0 + foothoril * 1.3 * speednorm
@@ -160,7 +160,7 @@ impl Animation for RunAnimation {
         );
         next.hand_r.orientation =
             Quaternion::rotation_x(0.6 * speednorm + (footrotl * -1.2) * speednorm)
-                * Quaternion::rotation_y(footrotl * -0.4 * speednorm);
+                * Quaternion::rotation_y(footrotl * -0.4 * speednorm - PI * 0.1);
 
         //
         next.foot_l.position = Vec3::new(
@@ -169,7 +169,7 @@ impl Animation for RunAnimation {
                 + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -10.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
-                + (1.0 - sideabs) * (1.25 * speednorm + ((footvertl * -2.5 * speednorm).max(-1.0)))
+                + (1.0 - sideabs) * (1.25 * speednorm + ((footvertl * -5.0 * speednorm).max(-1.0)))
                 + side * ((footvertsl * 1.5).max(-1.0))
                 + foothoril.abs().powf(6.0) * speednorm * 5.0,
         );
@@ -185,7 +185,7 @@ impl Animation for RunAnimation {
                 + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -10.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
-                + (1.0 - sideabs) * (1.25 * speednorm + ((footvertr * -2.5 * speednorm).max(-1.0)))
+                + (1.0 - sideabs) * (1.25 * speednorm + ((footvertr * -5.0 * speednorm).max(-1.0)))
                 + side * ((footvertsr * -1.5).max(-1.0))
                 + foothorir.abs().powf(6.0) * speednorm * 5.0,
         );
