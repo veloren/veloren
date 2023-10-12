@@ -54,27 +54,17 @@ impl Animation for WieldAnimation {
             (global_time + anim_time / 3.0).floor().mul(1337.0).sin() * 0.1,
         );
 
-        let foothoril = (anim_time * 16.0 * lab + PI * 1.45).sin();
-
         let beltstatic = (anim_time * 10.0 * lab + PI / 2.0).sin();
         let footvertlstatic = (anim_time * 10.0 * lab).sin();
         let footvertrstatic = (anim_time * 10.0 * lab + PI).sin();
-        let footrotl =
-            ((1.0 / (0.5 + (0.5) * ((anim_time * 16.0 * lab + PI * 1.4).sin()).powi(2))).sqrt())
-                * ((anim_time * 16.0 * lab + PI * 1.4).sin());
-
-        let shortalt = (anim_time * lab * 16.0 + PI / 2.0).sin();
 
         let slowalt = (anim_time * 9.0 + PI).cos();
         let u_slow = (anim_time * 4.5 + PI).sin();
         let slow = (anim_time * 7.0 + PI).sin();
 
         let u_slowalt = (anim_time * 5.0 + PI).cos();
-        let short = ((5.0 / (1.5 + 3.5 * ((anim_time * lab * 16.0).sin()).powi(2))).sqrt())
-            * ((anim_time * lab * 16.0 + PI * 0.5).sin());
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
         let side = velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x;
-        let strafe = -((1.0 / (direction).abs() - 1.0).min(1.0)).copysign(side);
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

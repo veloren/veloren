@@ -90,8 +90,9 @@ impl Animation for MountAnimation {
             * Quaternion::rotation_x((0.35 + head_look.y + tilt.abs() * 1.2).abs());
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-        next.chest.orientation = Quaternion::rotation_x(-0.4 + tilt.abs() * -1.5 - bob * 0.2)
-            * Quaternion::rotation_y(tilt * 2.0);
+        next.chest.orientation =
+            Quaternion::rotation_x(-0.4 + tilt.abs() * -1.5 - bob * speed * 0.0)
+                * Quaternion::rotation_y(tilt * 2.0);
 
         next.belt.position = Vec3::new(0.0, s_a.belt.0 + 0.5, s_a.belt.1 + 0.5);
         next.belt.orientation = Quaternion::rotation_x(0.2) * Quaternion::rotation_y(tilt * -0.5);
