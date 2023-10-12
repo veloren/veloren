@@ -165,7 +165,7 @@ impl Animation for RunAnimation {
 
         //
         next.foot_l.position = Vec3::new(
-            -s_a.foot.0 + footstrafel * sideabs * 3.0 + tilt * -2.0,
+            -s_a.foot.0 + footstrafel * sideabs * 3.0 + tilt * -10.0,
             s_a.foot.1
                 + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -10.5 * speednorm)
                 + (direction * 5.0).max(0.0),
@@ -181,7 +181,7 @@ impl Animation for RunAnimation {
         ) * Quaternion::rotation_z(side * 0.2);
 
         next.foot_r.position = Vec3::new(
-            s_a.foot.0 + footstrafer * sideabs * 3.0 + tilt * -2.0,
+            s_a.foot.0 + footstrafer * sideabs * 3.0 + tilt * -10.0,
             s_a.foot.1
                 + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -10.5 * speednorm)
                 + (direction * 5.0).max(0.0),
