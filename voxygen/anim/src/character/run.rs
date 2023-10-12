@@ -120,11 +120,10 @@ impl Animation for RunAnimation {
             s_a.chest.0,
             s_a.chest.1 + 1.0 * speednorm + shortalt * 1.1,
         );
-        next.chest.orientation = Quaternion::rotation_z(short * 0.4 + tilt * -0.6)
-            * Quaternion::rotation_y(tilt * 1.6 + short * 0.2)
-            * Quaternion::rotation_x(
-                impact * 0.06 + shortalt2 * 0.03 + speednorm * -0.5 + (tilt.abs()),
-            );
+        next.chest.orientation = Quaternion::rotation_x(impact * 0.07)
+            * Quaternion::rotation_z(short * 0.4 + tilt * -0.6)
+            * Quaternion::rotation_y(tilt * 2.0 + short * 0.2)
+            * Quaternion::rotation_x(shortalt2 * 0.03 + speednorm * -0.5 + tilt.abs());
 
         next.belt.position = Vec3::new(0.0, 0.25 + s_a.belt.0, 0.25 + s_a.belt.1);
         next.belt.orientation = Quaternion::rotation_x(0.1 * speednorm)

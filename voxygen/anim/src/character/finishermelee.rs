@@ -230,7 +230,7 @@ impl Animation for FinisherMeleeAnimation {
                 let move2_reset = ((move2 - 0.5).abs() - 0.5).abs() * 2.0;
                 let move2 = move2 * pullback;
 
-                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2 + 10.0);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
                 next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
