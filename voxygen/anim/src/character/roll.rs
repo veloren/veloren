@@ -265,17 +265,18 @@ impl Animation for RollAnimation {
             // This is *slightly* hacky. Because rolling is not strafed movement, we
             // actually correct for the entity orientation to make sure that our
             // rolling motion is correct with respect to our original orientation
-            let move_dir = Quaternion::<f32>::from_vec4(
-                Dir::new(orientation.into_array().into())
-                    .rotation()
-                    .into_vec4()
-                    .into_array()
-                    .into(),
-            );
-            let aim_dir = Quaternion::<f32>::from_vec4(
-                prev_aimed_dir.rotation().into_vec4().into_array().into(),
-            );
-            roll_spin * move_dir.inverse() * aim_dir
+            roll_spin
+                * Dir::from_unnormalized(orientation.into_array().into())
+                    .zip(prev_aimed_dir.to_horizontal())
+                    .map(|(ori, prev_aimed_dir)| {
+                        Quaternion::<f32>::from_vec4(
+                            ori.rotation_between(prev_aimed_dir)
+                                .into_vec4()
+                                .into_array()
+                                .into(),
+                        )
+                    })
+                    .unwrap_or_default()
         } else {
             roll_spin * Quaternion::rotation_z(tilt * -10.0)
         };
