@@ -104,23 +104,27 @@ impl Animation for WieldAnimation {
             next.shorts.orientation = Quaternion::rotation_z(0.3 + beltstatic * tilt * 0.2);
             next.torso.orientation = Quaternion::rotation_z(tilt * 0.4);
 
+            let on_spot = (anim_time * 7.0).sin() * tilt;
+            let on_spotz = (anim_time * 7.0 + PI * 0.5).sin() * tilt.clamp(-0.3, 0.3);
+
             next.foot_l.position = Vec3::new(
                 -s_a.foot.0,
-                -2.0 + s_a.foot.1 + jump * -4.0,
-                s_a.foot.2 + (tilt * footvertlstatic * 1.0).max(0.0),
+                -2.0 + s_a.foot.1 + jump * -4.0 - on_spot * 5.0,
+                s_a.foot.2 + (tilt * footvertlstatic * 1.0).max(0.0) + (-on_spotz).max(0.0) * 5.0,
             );
             next.foot_l.orientation = Quaternion::rotation_x(
                 jump * -0.7 + u_slowalt * 0.035 - 0.2 + tilt * footvertlstatic * 0.1
-                    - tilt.abs() * 0.3,
+                    - tilt.abs() * 0.3 * speednorm,
             ) * Quaternion::rotation_z(-tilt * 0.3);
 
             next.foot_r.position = Vec3::new(
                 s_a.foot.0,
-                2.0 + s_a.foot.1 + jump * 4.0,
-                s_a.foot.2 + (tilt * footvertrstatic * 1.0).max(0.0),
+                2.0 + s_a.foot.1 + jump * 4.0 + on_spot * 5.0,
+                s_a.foot.2 + (tilt * footvertrstatic * 1.0).max(0.0) + on_spotz.max(0.0) * 5.0,
             );
             next.foot_r.orientation = Quaternion::rotation_x(
-                jump * 0.7 + u_slow * 0.035 + tilt * footvertrstatic * 0.1 - tilt.abs() * 0.3,
+                jump * 0.7 + u_slow * 0.035 + tilt * footvertrstatic * 0.1
+                    - tilt.abs() * 0.3 * speednorm,
             ) * Quaternion::rotation_z(-tilt * 0.3);
 
             next.chest.orientation = Quaternion::rotation_y(u_slowalt * 0.04)

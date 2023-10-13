@@ -497,11 +497,8 @@ fn backpack_crash() {
     let mut inv = Inventory::with_empty();
 
     let backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
-    inv.loadout.swap(
-        EquipSlot::Armor(ArmorSlot::Backpack),
-        Some(backpack),
-        Time(0.0),
-    );
+    inv.loadout
+        .swap(EquipSlot::Armor(ArmorSlot::Back), Some(backpack), Time(0.0));
 
     fill_inv_slots(&mut inv, 35);
 
@@ -510,7 +507,7 @@ fn backpack_crash() {
 
     let returned_items = inv.swap_inventory_loadout(
         InvSlotId::new(9, 17),
-        EquipSlot::Armor(ArmorSlot::Backpack),
+        EquipSlot::Armor(ArmorSlot::Back),
         Time(0.0),
     );
     assert_eq!(18, returned_items.len());
