@@ -106,6 +106,7 @@ impl Globals {
         map_bounds: Vec2<f32>,
         time_of_day: f64,
         tick: f64,
+        client_tick: f64,
         screen_res: Vec2<u16>,
         shadow_planes: Vec2<f32>,
         light_count: usize,
@@ -147,7 +148,7 @@ impl Globals {
             tick: [
                 (tick % TIME_OVERFLOW) as f32,
                 (tick / TIME_OVERFLOW).floor() as f32,
-                tick as f32,
+                client_tick as f32,
                 0.0,
             ],
             // Provide the shadow map far plane as well.
@@ -222,6 +223,7 @@ impl Default for Globals {
             0.0,
             100.0,
             Vec2::new(140.0, 2048.0),
+            0.0,
             0.0,
             0.0,
             Vec2::new(800, 500),

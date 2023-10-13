@@ -52,22 +52,22 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <light.glsl>
 #include <lod.glsl>
 
-vec4 water_col(vec2 pos) {
-    pos += focus_off.xy;
-    pos *= 0.1;
-    vec2 v = floor(f_vel) * 0.1;
-    vec4 uv = tick_loop4(1, -v.xxyy - vec2(0, 0.1).xyxy, pos.xxyy);
-    
+vec4 water_col(vec4 posx, vec4 posy) {
+    posx = (posx + focus_off.x) * 0.1;
+    posy = (posy + focus_off.y) * 0.1;
     return 0.5 + (vec4(
-        textureLod(sampler2D(t_noise, s_noise), uv.xz, 0).x,
-        textureLod(sampler2D(t_noise, s_noise), uv.yz, 0).x,
-        textureLod(sampler2D(t_noise, s_noise), uv.xw, 0).x,
-        textureLod(sampler2D(t_noise, s_noise), uv.yw, 0).x
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.x, posy.x), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.y, posy.y), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.z, posy.z), 0).x,
+        textureLod(sampler2D(t_noise, s_noise), vec2(posx.w, posy.w), 0).x
     ) - 0.5) * 1.0;
 }
 
 float water_col_vel(vec2 pos){
-    vec4 cols = water_col(pos);
+    vec4 cols = water_col(
+        pos.x - tick.z * floor(f_vel.x) - vec2(0.0, tick.z).xyxy,
+        pos.y - tick.z * floor(f_vel.y) - vec2(0.0, tick.z).xxyy
+    );
     return mix(
         mix(cols.x, cols.y, fract(f_vel.x + 1.0)),
         mix(cols.z, cols.w, fract(f_vel.x + 1.0)),
