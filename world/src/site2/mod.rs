@@ -585,12 +585,20 @@ impl Site {
 
         site.make_plaza(land, &mut rng);
 
-        let build_chance = Lottery::from(vec![(64.0, 1), (5.0, 2), (8.0, 3), (5.0, 4), (5.0, 5)]);
+        let build_chance = Lottery::from(vec![
+            (64.0, 1),
+            (5.0, 2),
+            (8.0, 3),
+            (5.0, 4),
+            (5.0, 5),
+            (15.0, 6),
+        ]);
 
         let mut castles = 0;
 
         let mut workshops = 0;
 
+        let mut airship_docks = 0;
         for _ in 0..(size * 200.0) as i32 {
             match *build_chance.choose_seeded(rng.gen()) {
                 // Workshop
@@ -866,6 +874,46 @@ impl Site {
                         );
 
                         castles += 1;
+                    }
+                },
+                //airship dock
+                n if (n == 6 && size > 0.125 && airship_docks == 0) => {
+                    if let Some((_aabr, _, _door_dir)) = attempt(10, || {
+                        site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
+                    }) {
+                        let size = 3.0 as u32;
+                        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                            site.find_roadside_aabr(
+                                &mut rng,
+                                4..(size + 1).pow(2),
+                                Extent2::broadcast(size),
+                            )
+                        }) {
+                            let airship_dock = plot::AirshipDock::generate(
+                                land,
+                                &mut reseed(&mut rng),
+                                &site,
+                                door_tile,
+                                door_dir,
+                                aabr,
+                            );
+                            let airship_dock_alt = airship_dock.alt;
+                            let plot = site.create_plot(Plot {
+                                kind: PlotKind::AirshipDock(airship_dock),
+                                root_tile: aabr.center(),
+                                tiles: aabr_tiles(aabr).collect(),
+                                seed: rng.gen(),
+                            });
+
+                            site.blit_aabr(aabr, Tile {
+                                kind: TileKind::Building,
+                                plot: Some(plot),
+                                hard_alt: Some(airship_dock_alt),
+                            });
+                            airship_docks += 1;
+                        } else {
+                            site.make_plaza(land, &mut rng);
+                        }
                     }
                 },
                 _ => {},
@@ -1672,6 +1720,7 @@ impl Site {
         for plot in plots_to_render {
             let (prim_tree, fills, mut entities) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self, canvas),
+                PlotKind::AirshipDock(airship_dock) => airship_dock.render_collect(self, canvas),
                 PlotKind::CoastalHouse(coastal_house) => coastal_house.render_collect(self, canvas),
                 PlotKind::CoastalWorkshop(coastal_workshop) => {
                     coastal_workshop.render_collect(self, canvas)
