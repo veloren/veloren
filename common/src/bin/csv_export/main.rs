@@ -203,6 +203,7 @@ fn get_armor_kind(kind: &ArmorKind) -> String {
         ArmorKind::Pants => "Pants".to_string(),
         ArmorKind::Foot => "Foot".to_string(),
         ArmorKind::Back => "Back".to_string(),
+        ArmorKind::Backpack => "Backpack".to_string(),
         ArmorKind::Ring => "Ring".to_string(),
         ArmorKind::Neck => "Neck".to_string(),
         ArmorKind::Head => "Head".to_string(),

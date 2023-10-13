@@ -2,7 +2,7 @@ ItemDef(
     name: "Miner's Backpack",
     description: "Battered from heavy rocks being carried inside.",
     kind: Armor((
-        kind: Back,
+        kind: Backpack,
         stats: FromSet("Miner"),
     )),
     quality: High,

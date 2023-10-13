@@ -293,6 +293,7 @@ fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> Cow<'a, str> {
         ArmorKind::Pants => i18n.get_msg("hud-bag-legs"),
         ArmorKind::Foot => i18n.get_msg("hud-bag-feet"),
         ArmorKind::Back => i18n.get_msg("hud-bag-back"),
+        ArmorKind::Backpack => i18n.get_msg("hud-bag-backpack"),
         ArmorKind::Ring => i18n.get_msg("hud-bag-ring"),
         ArmorKind::Neck => i18n.get_msg("hud-bag-neck"),
         ArmorKind::Head => i18n.get_msg("hud-bag-head"),

@@ -75,6 +75,7 @@ impl From<&Item> for Body {
                 ArmorKind::Pants => Body::Armor(ItemDropArmorKind::Pants),
                 ArmorKind::Foot => Body::Armor(ItemDropArmorKind::Foot),
                 ArmorKind::Back => Body::Armor(ItemDropArmorKind::Back),
+                ArmorKind::Backpack => Body::Armor(ItemDropArmorKind::Back),
                 ArmorKind::Ring => Body::Armor(ItemDropArmorKind::Ring),
                 ArmorKind::Neck => Body::Armor(ItemDropArmorKind::Neck),
                 ArmorKind::Head => Body::Armor(ItemDropArmorKind::Head),
