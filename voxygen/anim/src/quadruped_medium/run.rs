@@ -26,7 +26,7 @@ impl Animation for RunAnimation {
         *rate = 1.0;
         let lab: f32 = 0.72;
         let amplitude = (speed / 24.0).powf(0.6);
-        let amplitude2 = (speed / 24.0).powf(0.6);
+        let amplitude2 = (speed / 8.0).powf(0.6);
         let amplitude3 = (speed / 24.0).powf(0.6);
         let speedmult = s_a.tempo;
         let canceler = (speed / 24.0).powf(0.6);
@@ -104,9 +104,9 @@ impl Animation for RunAnimation {
         //Gallop
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + shortalt * -0.2);
         next.head.orientation = Quaternion::rotation_x(
-            look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * 0.05 - 0.1,
+            look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * 0.2 - 0.1,
         ) * Quaternion::rotation_z(
-            look.x * 0.3 / ((canceler).max(0.5)) + tilt * -1.2,
+            look.x * 0.3 / ((canceler).max(0.5)) + tilt * -2.0,
         ) * Quaternion::rotation_y(tilt * 0.8);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1 + shortalt * -0.8);
