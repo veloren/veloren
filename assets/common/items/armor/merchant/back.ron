@@ -2,7 +2,7 @@ ItemDef(
     name: "Merchant Backpack",
     description: "",
     kind: Armor((
-        kind: Back,
+        kind: Backpack,
         stats: FromSet("Merchant"),
     )),
     quality: High,

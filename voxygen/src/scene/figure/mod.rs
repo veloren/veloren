@@ -37,8 +37,9 @@ use anim::{
 use common::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{Hands, ItemKind, ToolKind},
+        item::{armor::ArmorKind, Hands, ItemKind, ToolKind},
         ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
+        slot::ArmorSlot,
         Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, Item,
         ItemKey, Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PoiseState, Pos,
         Scale, Vel,
@@ -1107,6 +1108,21 @@ impl FigureMgr {
                         && !character.map_or(false, |c| c.is_using_hands())
                         && physics.in_liquid().is_none();
 
+                    let back_carry_offset = inventory
+                        .and_then(|i| i.equipped(EquipSlot::Armor(ArmorSlot::Back)))
+                        .and_then(|i| {
+                            if let ItemKind::Armor(armor) = i.kind().as_ref() {
+                                match &armor.kind {
+                                    ArmorKind::Backpack => Some(4.0),
+                                    ArmorKind::Back => Some(1.5),
+                                    _ => None,
+                                }
+                            } else {
+                                None
+                            }
+                        })
+                        .unwrap_or(0.0);
+
                     let state = self
                         .states
                         .character_states
@@ -1114,7 +1130,7 @@ impl FigureMgr {
                         .or_insert_with(|| {
                             FigureState::new(
                                 renderer,
-                                CharacterSkeleton::new(holding_lantern),
+                                CharacterSkeleton::new(holding_lantern, back_carry_offset),
                                 body,
                             )
                         });
@@ -1141,7 +1157,7 @@ impl FigureMgr {
                         // Standing or Skating
                         (true, false, false, false, _) | (_, _, false, false, true) => {
                             anim::character::StandAnimation::update_skeleton(
-                                &CharacterSkeleton::new(holding_lantern),
+                                &CharacterSkeleton::new(holding_lantern, back_carry_offset),
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -1160,7 +1176,7 @@ impl FigureMgr {
                         // Running
                         (true, true, false, false, _) => {
                             anim::character::RunAnimation::update_skeleton(
-                                &CharacterSkeleton::new(holding_lantern),
+                                &CharacterSkeleton::new(holding_lantern, back_carry_offset),
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -1182,7 +1198,7 @@ impl FigureMgr {
                         // In air
                         (false, _, false, false, _) => {
                             anim::character::JumpAnimation::update_skeleton(
-                                &CharacterSkeleton::new(holding_lantern),
+                                &CharacterSkeleton::new(holding_lantern, back_carry_offset),
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
@@ -1200,7 +1216,7 @@ impl FigureMgr {
                         },
                         // Swim
                         (_, _, true, false, _) => anim::character::SwimAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1218,7 +1234,7 @@ impl FigureMgr {
                         ),
                         // Mount
                         (_, _, _, true, _) => anim::character::MountAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern),
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
                             (
                                 active_tool_kind,
                                 second_tool_kind,

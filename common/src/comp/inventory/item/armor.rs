@@ -23,6 +23,7 @@ pub enum ArmorKind {
     Head,
     Tabard,
     Bag,
+    Backpack,
 }
 
 impl ArmorKind {
@@ -35,6 +36,7 @@ impl ArmorKind {
             ArmorKind::Pants => true,
             ArmorKind::Foot => true,
             ArmorKind::Back => true,
+            ArmorKind::Backpack => true,
             ArmorKind::Ring => false,
             ArmorKind::Neck => false,
             ArmorKind::Head => true,
@@ -252,6 +254,7 @@ impl Armor {
                     ArmorKind::Pants => 2.0,
                     ArmorKind::Foot => 1.0,
                     ArmorKind::Back => 0.5,
+                    ArmorKind::Backpack => 0.0,
                     ArmorKind::Ring => 0.0,
                     ArmorKind::Neck => 0.0,
                     ArmorKind::Head => 0.0,

@@ -104,9 +104,9 @@ impl Animation for RunAnimation {
         //Gallop
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + shortalt * -0.2);
         next.head.orientation = Quaternion::rotation_x(
-            look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * 0.05 - 0.1,
+            look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * 0.2 - 0.1,
         ) * Quaternion::rotation_z(
-            look.x * 0.3 / ((canceler).max(0.5)) + tilt * -1.2,
+            look.x * 0.3 / ((canceler).max(0.5)) + tilt * -2.0,
         ) * Quaternion::rotation_y(tilt * 0.8);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1 + shortalt * -0.8);
@@ -167,21 +167,21 @@ impl Animation for RunAnimation {
 
         next.leg_bl.position = Vec3::new(
             -s_a.leg_b.0,
-            s_a.leg_b.1 + amplitude3 * foot3b * -1.1,
-            s_a.leg_b.2 + amplitude3 * foot3a * 1.1,
+            s_a.leg_b.1 + amplitude3 * foot3a * -4.5,
+            s_a.leg_b.2 + amplitude3 * foot3b * -2.2,
         );
         next.leg_bl.orientation =
-            Quaternion::rotation_x(canceler * -0.2 + amplitude3 * foot3b * -0.55)
+            Quaternion::rotation_x(canceler * -0.1 + amplitude3 * foot3a * -1.2)
                 * Quaternion::rotation_y(tilt * 1.5)
                 * Quaternion::rotation_z(tilt * -1.5);
 
         next.leg_br.position = Vec3::new(
             s_a.leg_b.0,
-            s_a.leg_b.1 + amplitude3 * foot4b * -1.1,
-            s_a.leg_b.2 + amplitude3 * foot4a * 1.1,
+            s_a.leg_b.1 + amplitude3 * foot4a * -4.5,
+            s_a.leg_b.2 + amplitude3 * foot4b * -2.2,
         );
         next.leg_br.orientation =
-            Quaternion::rotation_x(canceler * -0.2 + amplitude3 * foot4b * -0.55)
+            Quaternion::rotation_x(canceler * -0.1 + amplitude3 * foot4a * -1.2)
                 * Quaternion::rotation_y(tilt * 1.5)
                 * Quaternion::rotation_z(tilt * -1.5);
 

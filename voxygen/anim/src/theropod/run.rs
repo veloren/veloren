@@ -30,7 +30,7 @@ impl Animation for RunAnimation {
         let mixed_vel = acc_vel + anim_time * 6.0; //sets run frequency using speed, with anim_time setting a floor
 
         let speedmult = 1.0;
-        let lab: f32 = 0.6; //6
+        let lab: f32 = 0.45; //6
 
         let short = ((1.0
             / (0.72
@@ -120,8 +120,8 @@ impl Animation for RunAnimation {
         };
         next.leg_l.position = Vec3::new(
             -s_a.leg.0 + speednorm * 1.5,
-            s_a.leg.1 + foot1b * -1.3,
-            s_a.leg.2 + foot1a * 1.0,
+            s_a.leg.1 + foot1b * -2.3,
+            s_a.leg.2 * 1.5 + foot1a.max(0.0) * 3.0,
         );
         next.leg_l.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot1a * 0.15)
             * Quaternion::rotation_y(tilt * 0.5)
@@ -129,8 +129,8 @@ impl Animation for RunAnimation {
 
         next.leg_r.position = Vec3::new(
             s_a.leg.0 + speednorm * -1.5,
-            s_a.leg.1 + foot2b * -1.3,
-            s_a.leg.2 + foot2a * 1.0,
+            s_a.leg.1 + foot2b * -2.3,
+            s_a.leg.2 * 1.5 + foot2a.max(0.0) * 3.0,
         );
         next.leg_r.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot2a * 0.15)
             * Quaternion::rotation_y(tilt * 0.5)
@@ -141,17 +141,16 @@ impl Animation for RunAnimation {
             s_a.foot.1 + foot1b * -2.0,
             s_a.foot.2 + speednorm * 0.5 + (foot1a * 1.5).max(0.0),
         );
-        next.foot_l.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot1b * -0.35)
-            * Quaternion::rotation_y(tilt * -1.0)
-            * Quaternion::rotation_z(tilt * -0.5);
+        next.foot_l.orientation =
+            Quaternion::rotation_x(0.2 + foot2b * 0.6) * Quaternion::rotation_y(tilt * -1.0);
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0,
             s_a.foot.1 + foot2b * -2.0,
             s_a.foot.2 + speednorm * 0.5 + (foot2a * 1.5).max(0.0),
         );
-        next.foot_r.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot2b * -0.35)
-            * Quaternion::rotation_y(tilt * -1.0);
+        next.foot_r.orientation =
+            Quaternion::rotation_x(0.2 + foot1b * 0.6) * Quaternion::rotation_y(tilt * -1.0);
 
         next
     }

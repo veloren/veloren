@@ -86,6 +86,8 @@ skeleton_impls!(struct CharacterSkeleton {
     control_r,
     :: // Begin non-bone fields
     holding_lantern: bool,
+    // The offset from the back that carried weapons should be given to avoid clipping due to, say, a backpack
+    back_carry_offset: f32,
     main_weapon_trail: bool,
     off_weapon_trail: bool,
     // Cannot exist at same time as weapon trails. Since gliding and attacking are mutually exclusive, should never be a concern.
@@ -93,9 +95,10 @@ skeleton_impls!(struct CharacterSkeleton {
 });
 
 impl CharacterSkeleton {
-    pub fn new(holding_lantern: bool) -> Self {
+    pub fn new(holding_lantern: bool, back_carry_offset: f32) -> Self {
         Self {
             holding_lantern,
+            back_carry_offset,
             ..Self::default()
         }
     }

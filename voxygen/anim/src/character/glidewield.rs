@@ -31,6 +31,9 @@ impl Animation for GlideWieldAnimation {
             glider_pos + glider_ori * Vec3::new(-s_a.hand.0 + -2.0, s_a.hand.1 + 8.0, s_a.hand.2);
         next.hand_l.orientation = Quaternion::rotation_x(3.35) * Quaternion::rotation_y(0.2);
 
+        next.shoulder_r.orientation = glider_ori * Quaternion::rotation_x(2.0);
+        next.shoulder_l.orientation = next.shoulder_r.orientation;
+
         next.hand_r.position =
             glider_pos + glider_ori * Vec3::new(s_a.hand.0 + 2.0, s_a.hand.1 + 8.0, s_a.hand.2);
         next.hand_r.orientation = Quaternion::rotation_x(3.35) * Quaternion::rotation_y(-0.2);

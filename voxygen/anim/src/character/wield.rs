@@ -110,8 +110,8 @@ impl Animation for WieldAnimation {
                 s_a.foot.2 + (tilt * footvertlstatic * 1.0).max(0.0),
             );
             next.foot_l.orientation = Quaternion::rotation_x(
-                jump * -0.7 + u_slowalt * 0.035 - 0.2 + tilt * footvertlstatic * 0.1
-                    - tilt.abs() * 0.3,
+                jump * -0.7 + u_slowalt * 0.035 + tilt * footvertlstatic * 0.1
+                    - tilt.abs() * 0.3 * speednorm,
             ) * Quaternion::rotation_z(-tilt * 0.3);
 
             next.foot_r.position = Vec3::new(
@@ -120,7 +120,8 @@ impl Animation for WieldAnimation {
                 s_a.foot.2 + (tilt * footvertrstatic * 1.0).max(0.0),
             );
             next.foot_r.orientation = Quaternion::rotation_x(
-                jump * 0.7 + u_slow * 0.035 + tilt * footvertrstatic * 0.1 - tilt.abs() * 0.3,
+                jump * 0.7 + u_slow * 0.035 + tilt * footvertrstatic * 0.1
+                    - tilt.abs() * 0.3 * speednorm,
             ) * Quaternion::rotation_z(-tilt * 0.3);
 
             next.chest.orientation = Quaternion::rotation_y(u_slowalt * 0.04)

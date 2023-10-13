@@ -89,17 +89,17 @@ impl Animation for IdleAnimation {
         match hands {
             (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match active_tool_kind {
                 Some(ToolKind::Bow) => {
-                    next.main.position = Vec3::new(0.0, -5.0, 6.0);
+                    next.main.position = Vec3::new(0.0, -5.0 - skeleton.back_carry_offset, 6.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
                 },
                 Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                    next.main.position = Vec3::new(2.0, -5.0, -1.0);
+                    next.main.position = Vec3::new(2.0, -5.0 - skeleton.back_carry_offset, -1.0);
                     next.main.orientation =
                         Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
                 },
                 _ => {
-                    next.main.position = Vec3::new(-7.0, -5.0, 15.0);
+                    next.main.position = Vec3::new(-7.0, -5. - skeleton.back_carry_offset, 15.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
                 },
@@ -110,12 +110,12 @@ impl Animation for IdleAnimation {
         match hands {
             (Some(Hands::One), _) => match active_tool_kind {
                 Some(ToolKind::Dagger) => {
-                    next.main.position = Vec3::new(5.0, 1.0, 2.0);
+                    next.main.position = Vec3::new(5.0, 1.0 - skeleton.back_carry_offset, 2.0);
                     next.main.orientation =
                         Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
                 },
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.main.position = Vec3::new(-4.0, -5.0, 10.0);
+                    next.main.position = Vec3::new(-4.0, -4.0 - skeleton.back_carry_offset, 10.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.35) * Quaternion::rotation_z(PI / 2.0);
                 },
@@ -127,12 +127,12 @@ impl Animation for IdleAnimation {
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
                 Some(ToolKind::Dagger) => {
-                    next.second.position = Vec3::new(-5.0, 1.0, 2.0);
+                    next.second.position = Vec3::new(-5.0, 1.0 - skeleton.back_carry_offset, 2.0);
                     next.second.orientation =
                         Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
                 },
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -6.0, 10.0);
+                    next.second.position = Vec3::new(4.0, -5.0 - skeleton.back_carry_offset, 10.0);
                     next.second.orientation =
                         Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
                 },

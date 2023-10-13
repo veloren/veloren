@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First version of multisalvage that allows to obtain more than one piece of material from salvage
 - Axe
 - Combat music toggle
-- Spawn rtsim wyverns that travel the world, providing dragon scale loot drops 
+- Spawn rtsim wyverns that travel the world, providing dragon scale loot drops
 - Hardwood in tropical forests, frostwood in cold forests, and iron wood on the top of giant trees
 - Recipe for shovel, which is used to dig in mud and graves
 - Recipe for a new leather pack
@@ -41,7 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deflect no longer parry melee hits
 - Changed recipes for some bags to make them more horizontal
 - Increase invetory slots on some bags to improve early game experience
-
 - Made helmets, necklaces, rings, twig armors and some gliders salvageable
 - Tweaked stats on some foods so they generally increase a tiny bit more HP
 - Reduced idle time after consumption from 5 to 4 seconds
@@ -57,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat command responses sent by the server can now be localized
 - Frost Gigas spawns in cold areas (but isn't forced to stay there)
 - The ability limit for non-humanoids has been removed
+- Improved running, wielding, and riding animations
+- Fixed offset of items carried on backs when wearing cloaks and backpacks
 
 ### Removed
 - Medium and large potions from all loot tables

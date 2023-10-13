@@ -149,7 +149,7 @@
             color: None
         ),
         "common.items.armor.merchant.back": (
-            vox_spec: ("armor.merchant.back", (-9.0, -7.0, -12.0)),
+            vox_spec: ("armor.merchant.back", (-8.0, -7.0, -11.0)),
             color: None
         ),
     },

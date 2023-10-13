@@ -14,6 +14,7 @@ hud-bag-glider = Glider
 hud-bag-belt = Belt
 hud-bag-ring = Ring
 hud-bag-back = Back
+hud-bag-backpack = Backpack
 hud-bag-legs = Legs
 hud-bag-feet = Feet
 hud-bag-mainhand = Mainhand
