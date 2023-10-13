@@ -54,7 +54,7 @@ impl Animation for RunAnimation {
         let impact = (avg_vel.z).max(-8.0);
         let speednorm = (speed / 9.4).powf(0.65);
 
-        let lab: f32 = 0.5 / s_a.scaler;
+        let lab: f32 = 0.6 / s_a.scaler.powf(0.75);
 
         let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * 1.6 * lab + PI * 1.4).sin()).powi(2)))
             .sqrt())
