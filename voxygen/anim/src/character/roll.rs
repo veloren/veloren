@@ -211,22 +211,38 @@ impl Animation for RollAnimation {
                 s_a.hand.1 + 1.0 * movement1,
                 s_a.hand.2 + 2.0 * movement1,
             );
-
             next.hand_l.orientation = Quaternion::rotation_x(0.6 * movement1);
 
-            next.hand_r.position = Vec3::new(
-                -1.0 * movement1 + s_a.hand.0,
-                s_a.hand.1 + 1.0 * movement1,
-                s_a.hand.2 + 2.0 * movement1,
-            );
-            next.hand_r.orientation = Quaternion::rotation_x(0.6 * movement1);
+            next.hand_r.position = if prev_aimed_dir.is_some() {
+                Vec3::new(
+                    -1.0 * movement1 + s_a.hand.0,
+                    s_a.hand.1 + 1.0 * movement1,
+                    s_a.hand.2 + 2.0 * movement1,
+                )
+            } else {
+                Vec3::new(
+                    -1.0 * movement1 + s_a.hand.0 + 3.0,
+                    s_a.hand.1 + 1.0 * movement1,
+                    s_a.hand.2 + 2.0 * movement1 + 8.0,
+                )
+            };
+            next.hand_r.orientation = if prev_aimed_dir.is_some() {
+                Quaternion::rotation_x(0.6 * movement1)
+            } else {
+                Quaternion::rotation_y(-1.0)
+            };
         };
         next.head.position = Vec3::new(
             0.0,
             s_a.head.0 + 1.5 * movement1,
             s_a.head.1 - 1.0 * movement1,
         );
-        next.head.orientation = Quaternion::rotation_x(-0.3 * movement1);
+        next.head.orientation = Quaternion::rotation_x(-0.3 * movement1)
+            * if prev_aimed_dir.is_some() {
+                Quaternion::identity()
+            } else {
+                Quaternion::rotation_y(-0.4)
+            };
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, -9.5 * movement1 + s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_x(-0.2 * movement1);
@@ -246,20 +262,32 @@ impl Animation for RollAnimation {
         next.shorts.orientation = Quaternion::rotation_x(0.8 * movement1);
 
         next.foot_l.position = Vec3::new(
-            1.0 * movement1 - s_a.foot.0,
+            if prev_aimed_dir.is_some() {
+                1.0 * movement1 - s_a.foot.0
+            } else {
+                1.0 * movement1 - s_a.foot.0 + 5.0
+            },
             s_a.foot.1 + 5.5 * movement1,
             s_a.foot.2 - 5.0 * movement1,
         );
         next.foot_l.orientation = Quaternion::rotation_x(0.9 * movement1);
 
         next.foot_r.position = Vec3::new(
-            1.0 * movement1 + s_a.foot.0,
+            if prev_aimed_dir.is_some() {
+                1.0 * movement1 + s_a.foot.0
+            } else {
+                1.0 * movement1 + s_a.foot.0 + 3.0
+            },
             s_a.foot.1 + 5.5 * movement1,
             s_a.foot.2 - 5.0 * movement1,
         );
         next.foot_r.orientation = Quaternion::rotation_x(0.9 * movement1);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 7.0 * movement1);
+        next.torso.position = if prev_aimed_dir.is_some() {
+            Vec3::new(0.0, 0.0, 7.0 * movement1)
+        } else {
+            Vec3::new(4.0, 0.0, 7.0 * movement1)
+        };
         let roll_spin = Quaternion::rotation_x(-0.3 + movement1 * -0.4 + movement2 * -2.0 * PI);
         next.torso.orientation = if let Some(prev_aimed_dir) = prev_aimed_dir {
             // This is *slightly* hacky. Because rolling is not strafed movement, we
@@ -278,7 +306,7 @@ impl Animation for RollAnimation {
                     })
                     .unwrap_or_default()
         } else {
-            roll_spin * Quaternion::rotation_z(tilt * -10.0)
+            roll_spin * Quaternion::rotation_z(tilt * -10.0) * Quaternion::rotation_y(-0.6)
         };
 
         next
