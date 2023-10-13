@@ -16,7 +16,7 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     vec4 moon_dir;
     // .x = The `Time` resource, repeated every `tick_overflow`
     // .y = a floored (`Time` / `tick_overflow`)
-    // .z = Client time, not synced between clients.
+    // .z = Time local to client, not synced between clients.
     vec4 tick;
     vec4 screen_res;
     uvec4 light_shadow_count;
