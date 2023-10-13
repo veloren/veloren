@@ -26,7 +26,7 @@ impl Animation for RunAnimation {
         *rate = 1.0;
         let lab: f32 = 0.72;
         let amplitude = (speed / 24.0).powf(0.6);
-        let amplitude2 = (speed / 8.0).powf(0.6);
+        let amplitude2 = (speed / 24.0).powf(0.6);
         let amplitude3 = (speed / 24.0).powf(0.6);
         let speedmult = s_a.tempo;
         let canceler = (speed / 24.0).powf(0.6);
