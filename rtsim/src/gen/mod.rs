@@ -118,6 +118,7 @@ impl Data {
                     kind,
                     PlotKind::House(_)
                         | PlotKind::Workshop(_)
+                        | PlotKind::AirshipDock(_)
                         | PlotKind::Plaza
                         | PlotKind::SavannahPit(_)
                         | PlotKind::SavannahHut(_)
