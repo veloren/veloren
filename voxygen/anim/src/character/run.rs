@@ -70,9 +70,19 @@ impl Animation for RunAnimation {
         let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());
 
+        let back_speed = 2.6;
+
         let dirside = orientation.xy().dot(velocity.xy()).signum();
-        let foothoril = (acc_vel * 1.6 * lab + PI * 1.45).sin() * dirside;
-        let foothorir = (acc_vel * 1.6 * lab + PI * (0.45)).sin() * dirside;
+        let foothoril = if dirside > 0.0 {
+            (acc_vel * 1.6 * lab + PI * 1.45).sin() * dirside
+        } else {
+            (acc_vel * back_speed * lab + PI * 1.45).sin() * dirside
+        };
+        let foothorir = if dirside > 0.0 {
+            (acc_vel * 1.6 * lab + PI * (0.45)).sin() * dirside
+        } else {
+            (acc_vel * back_speed * lab + PI * (0.45)).sin() * dirside
+        };
         let strafeside = orientation
             .xy()
             .dot(velocity.xy().rotated_z(PI * -0.5))
@@ -80,8 +90,16 @@ impl Animation for RunAnimation {
         let footstrafel = (acc_vel * 1.6 * lab + PI * 1.5).sin() * strafeside;
         let footstrafer = (acc_vel * 1.6 * lab + PI).sin() * -strafeside;
 
-        let footvertl = (acc_vel * 1.6 * lab).sin();
-        let footvertr = (acc_vel * 1.6 * lab + PI).sin();
+        let footvertl = if dirside > 0.0 {
+            (acc_vel * 1.6 * lab).sin()
+        } else {
+            (acc_vel * back_speed * lab).sin()
+        };
+        let footvertr = if dirside > 0.0 {
+            (acc_vel * 1.6 * lab + PI).sin()
+        } else {
+            (acc_vel * back_speed * lab + PI).sin()
+        };
         let footvertsl = (acc_vel * 1.6 * lab).sin();
         let footvertsr = (acc_vel * 1.6 * lab + PI * 0.5).sin();
 

@@ -167,21 +167,21 @@ impl Animation for RunAnimation {
 
         next.leg_bl.position = Vec3::new(
             -s_a.leg_b.0,
-            s_a.leg_b.1 + amplitude3 * foot3b * -1.1,
-            s_a.leg_b.2 + amplitude3 * foot3a * 1.1,
+            s_a.leg_b.1 + amplitude3 * foot3a * -4.5,
+            s_a.leg_b.2 + amplitude3 * foot3b * -2.2,
         );
         next.leg_bl.orientation =
-            Quaternion::rotation_x(canceler * -0.2 + amplitude3 * foot3b * -0.55)
+            Quaternion::rotation_x(canceler * -0.1 + amplitude3 * foot3a * -1.2)
                 * Quaternion::rotation_y(tilt * 1.5)
                 * Quaternion::rotation_z(tilt * -1.5);
 
         next.leg_br.position = Vec3::new(
             s_a.leg_b.0,
-            s_a.leg_b.1 + amplitude3 * foot4b * -1.1,
-            s_a.leg_b.2 + amplitude3 * foot4a * 1.1,
+            s_a.leg_b.1 + amplitude3 * foot4a * -4.5,
+            s_a.leg_b.2 + amplitude3 * foot4b * -2.2,
         );
         next.leg_br.orientation =
-            Quaternion::rotation_x(canceler * -0.2 + amplitude3 * foot4b * -0.55)
+            Quaternion::rotation_x(canceler * -0.1 + amplitude3 * foot4a * -1.2)
                 * Quaternion::rotation_y(tilt * 1.5)
                 * Quaternion::rotation_z(tilt * -1.5);
 
