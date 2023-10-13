@@ -52,7 +52,7 @@ impl Animation for RunAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
         let impact = (avg_vel.z).max(-8.0);
-        let speednorm = (speed / 9.4).powf(0.6);
+        let speednorm = (speed / 9.4).powf(0.65);
 
         let lab: f32 = 0.5 / s_a.scaler;
 
@@ -70,20 +70,15 @@ impl Animation for RunAnimation {
         let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());
 
-        let dirside = if orientation.xy().dot(velocity.xy()) > 0.0 {
-            1.0
-        } else {
-            -1.0
-        };
+        let dirside = orientation.xy().dot(velocity.xy()).signum();
         let foothoril = (acc_vel * 1.6 * lab + PI * 1.45).sin() * dirside;
         let foothorir = (acc_vel * 1.6 * lab + PI * (0.45)).sin() * dirside;
-        let strafeside = if orientation.xy().dot(velocity.xy().rotated_z(PI * 0.5)) > 0.0 {
-            -1.0
-        } else {
-            1.0
-        };
+        let strafeside = orientation
+            .xy()
+            .dot(velocity.xy().rotated_z(PI * -0.5))
+            .signum();
         let footstrafel = (acc_vel * 1.6 * lab + PI * 1.45).sin() * strafeside;
-        let footstrafer = (acc_vel * 1.6 * lab + PI * (0.95)).sin() * -strafeside;
+        let footstrafer = (acc_vel * 1.6 * lab + PI * 0.95).sin() * -strafeside;
 
         let footvertl = (acc_vel * 1.6 * lab).sin();
         let footvertr = (acc_vel * 1.6 * lab + PI).sin();
@@ -169,34 +164,29 @@ impl Animation for RunAnimation {
             Quaternion::rotation_x(0.6 * speednorm + (footrotl * -1.5 + 0.5) * speednorm)
                 * Quaternion::rotation_y(footrotl * -0.4 * speednorm - PI * 0.07);
 
-        //
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + footstrafel * sideabs * 7.0 + tilt * -10.0,
             s_a.foot.1 + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -10.5 * speednorm),
             s_a.foot.2
                 + (1.0 - sideabs) * (1.25 * speednorm + ((footvertl * -5.0 * speednorm).max(-1.0)))
-                + side * ((footvertsl * 1.5).max(-1.0))
-                + foothoril.abs().powf(6.0) * speednorm * 5.0,
+                + side * ((footvertsl * 1.5).max(-1.0)),
         );
-        next.foot_l.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (-0.3 + foothoril * -1.5 * speednorm) + sideabs * -0.5,
-        ) * Quaternion::rotation_y(
-            tilt * -0.5 + side * 0.3 + side * (foothoril * 0.3),
-        ) * Quaternion::rotation_z(side * 0.2);
+        next.foot_l.orientation =
+            Quaternion::rotation_x((1.0 - sideabs) * foothoril * -1.5 * speednorm + sideabs * -0.5)
+                * Quaternion::rotation_y(tilt * -0.5 + side * 0.3 + side * (foothoril * 0.3))
+                * Quaternion::rotation_z(side * 0.9 * orientation.xy().dot(velocity.xy() / speed));
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + footstrafer * sideabs * 7.0 + tilt * -10.0,
             s_a.foot.1 + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -10.5 * speednorm),
             s_a.foot.2
                 + (1.0 - sideabs) * (1.25 * speednorm + ((footvertr * -5.0 * speednorm).max(-1.0)))
-                + side * ((footvertsr * -1.5).max(-1.0))
-                + foothorir.abs().powf(6.0) * speednorm * 5.0,
+                + side * ((footvertsr * -1.5).max(-1.0)),
         );
-        next.foot_r.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (-0.3 + foothorir * -1.5 * speednorm) + sideabs * -0.5,
-        ) * Quaternion::rotation_y(
-            tilt * -0.5 + side * 0.3 + side * (foothorir * 0.3),
-        ) * Quaternion::rotation_z(side * 0.2);
+        next.foot_r.orientation =
+            Quaternion::rotation_x((1.0 - sideabs) * foothorir * -1.5 * speednorm + sideabs * -0.5)
+                * Quaternion::rotation_y(tilt * -0.5 + side * 0.3 + side * (foothorir * 0.3))
+                * Quaternion::rotation_z(side * 0.9 * orientation.xy().dot(velocity.xy() / speed));
         //
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);

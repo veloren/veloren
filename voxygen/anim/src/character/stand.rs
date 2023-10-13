@@ -95,21 +95,10 @@ impl Animation for StandAnimation {
         );
         next.hand_r.orientation = Quaternion::rotation_x(slow * -0.06 + impact * -0.1);
 
-        let on_spot = (anim_time * 7.0).sin() * tilt;
-        let on_spotz = (anim_time * 7.0 + PI * 0.5).sin() * tilt.clamp(-0.3, 0.3);
-
-        next.foot_l.position = Vec3::new(
-            -s_a.foot.0,
-            s_a.foot.1 - impact * 0.15 - on_spot * 15.0,
-            s_a.foot.2 + (-on_spotz).max(0.0) * 5.0,
-        );
+        next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1 - impact * 0.15, s_a.foot.2);
         next.foot_l.orientation = Quaternion::rotation_x(impact * 0.02);
 
-        next.foot_r.position = Vec3::new(
-            s_a.foot.0,
-            s_a.foot.1 + impact * 0.15 + on_spot * 15.0,
-            s_a.foot.2 + on_spotz.max(0.0) * 5.0,
-        );
+        next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1 + impact * 0.15, s_a.foot.2);
         next.foot_r.orientation = Quaternion::rotation_x(impact * -0.02);
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
