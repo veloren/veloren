@@ -11,6 +11,7 @@ pub struct KeyState {
     pub swim_down: bool,
     pub fly: bool,
     pub auto_walk: bool,
+    pub speed_mul: f32,
     pub trade: bool,
     pub analog_matrix: Vec2<f32>,
 }
@@ -28,6 +29,7 @@ impl Default for KeyState {
             swim_down: false,
             fly: false,
             auto_walk: false,
+            speed_mul: 1.0,
             trade: false,
             analog_matrix: Vec2::zero(),
         }
@@ -44,7 +46,7 @@ impl KeyState {
             )
         } else {
             self.analog_matrix
-        };
+        } * self.speed_mul;
 
         if dir.magnitude_squared() <= 1.0 {
             dir

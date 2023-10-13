@@ -170,6 +170,8 @@ pub enum GameInput {
     MuteSfx,
     #[strum(serialize = "gameinput-muteambience")]
     MuteAmbience,
+    #[strum(serialize = "gameinput-togglewalk")]
+    ToggleWalk,
 }
 
 impl GameInput {

@@ -101,6 +101,7 @@ pub struct SessionState {
     walk_right_dir: Vec2<f32>,
     free_look: bool,
     auto_walk: bool,
+    walking_speed: bool,
     camera_clamp: bool,
     zoom_lock: bool,
     is_aiming: bool,
@@ -171,6 +172,7 @@ impl SessionState {
             walk_right_dir,
             free_look: false,
             auto_walk: false,
+            walking_speed: false,
             camera_clamp: false,
             zoom_lock: false,
             is_aiming: false,
@@ -1213,6 +1215,22 @@ impl PlayState for SessionState {
                                         }
                                     }
                                 }
+                            },
+                            GameInput::ToggleWalk if state => {
+                                let hud = &mut self.hud;
+                                global_state
+                                    .settings
+                                    .gameplay
+                                    .walking_speed_behavior
+                                    .update(state, &mut self.walking_speed, |b| {
+                                        hud.walking_speed(b)
+                                    });
+
+                                self.key_state.speed_mul = if self.walking_speed {
+                                    global_state.settings.gameplay.walking_speed
+                                } else {
+                                    1.0
+                                };
                             },
                             _ => {},
                         }

@@ -36,6 +36,7 @@ hud-diary = Diary
 hud-free_look_indicator = Free look active. Press { $key } to disable.
 hud-camera_clamp_indicator = Camera vertical clamp active. Press { $key } to disable.
 hud-auto_walk_indicator = Auto walk/swim active
+hud-walking_speed_indicator = Walking speed active
 hud-zoom_lock_indicator-remind = Zoom locked
 hud-zoom_lock_indicator-enable = Camera zoom locked
 hud-zoom_lock_indicator-disable = Camera zoom unlocked

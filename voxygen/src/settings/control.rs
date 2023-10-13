@@ -200,6 +200,7 @@ impl ControlSettings {
             GameInput::MuteMusic => Some(KeyMouse::Key(VirtualKeyCode::F8)),
             GameInput::MuteSfx => None,
             GameInput::MuteAmbience => None,
+            GameInput::ToggleWalk => Some(KeyMouse::Key(VirtualKeyCode::I)),
         }
     }
 }
