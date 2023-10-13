@@ -157,6 +157,8 @@ coverage:
   before_script:
     - *tmacos-before-script
     - export RUST_TARGET="x86_64-apple-darwin"
+    # Using fat LTO on macos_x86_64 caused timeouts in the build pipeline, overriding it to thin here fixes this
+    - export RUSTFLAGS="-C lto=thin"
 
 .tmacos-aarch64:
   extends:
