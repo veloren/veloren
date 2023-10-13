@@ -157,6 +157,7 @@ coverage:
   before_script:
     - *tmacos-before-script
     - export RUST_TARGET="x86_64-apple-darwin"
+    - export RUSTFLAGS="-C lto=thin"
 
 .tmacos-aarch64:
   extends:
