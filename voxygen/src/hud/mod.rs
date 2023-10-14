@@ -2155,6 +2155,7 @@ impl Hud {
                     BlockInteraction::Mount => {
                         let key = match block.get_sprite() {
                             Some(SpriteKind::Helm) => "hud-steer",
+                            Some(SpriteKind::Bed | SpriteKind::Bedroll | SpriteKind::BedrollSnow | SpriteKind::BedrollPirate) => "hud-lay",
                             _ => "hud-sit",
                         };
                         vec![(Some(GameInput::Mount), i18n.get_msg(key).to_string())]

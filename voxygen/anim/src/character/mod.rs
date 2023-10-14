@@ -28,11 +28,13 @@ pub mod selfbuff;
 pub mod shockwave;
 pub mod shoot;
 pub mod sit;
+pub mod sleep;
 pub mod sneak;
 pub mod sneakequip;
 pub mod sneakwield;
 pub mod staggered;
 pub mod stand;
+pub mod steer;
 pub mod stunned;
 pub mod swim;
 pub mod swimwield;
@@ -51,11 +53,11 @@ pub use self::{
     mount::MountAnimation, music::MusicAnimation, rapidmelee::RapidMeleeAnimation,
     repeater::RepeaterAnimation, ripostemelee::RiposteMeleeAnimation, roll::RollAnimation,
     run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
-    shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
+    shoot::ShootAnimation, sit::SitAnimation, sleep::SleepAnimation, sneak::SneakAnimation,
     sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation,
-    staggered::StaggeredAnimation, stand::StandAnimation, stunned::StunnedAnimation,
-    swim::SwimAnimation, swimwield::SwimWieldAnimation, talk::TalkAnimation,
-    wallrun::WallrunAnimation, wield::WieldAnimation,
+    staggered::StaggeredAnimation, stand::StandAnimation, steer::SteerAnimation,
+    stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
+    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp::{

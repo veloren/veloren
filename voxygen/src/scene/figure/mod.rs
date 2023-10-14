@@ -1110,7 +1110,10 @@ impl FigureMgr {
                             && matches!(active_tool_hand, Some(Hands::One)))
                             || !character.map_or(false, |c| c.is_wield()))
                         && !character.map_or(false, |c| c.is_using_hands())
-                        && physics.in_liquid().is_none();
+                        && physics.in_liquid().is_none()
+                        && is_volume_rider.map_or(true, |volume_rider| {
+                            !matches!(volume_rider.block.get_sprite(), Some(SpriteKind::Helm))
+                        });
 
                     let back_carry_offset = inventory
                         .and_then(|i| i.equipped(EquipSlot::Armor(ArmorSlot::Back)))
@@ -2137,7 +2140,26 @@ impl FigureMgr {
                             {
                                 match sprite {
                                     SpriteKind::Helm => {
-                                        anim::character::DanceAnimation::update_skeleton(
+                                        anim::character::SteerAnimation::update_skeleton(
+                                            &target_base,
+                                            (
+                                                active_tool_kind,
+                                                second_tool_kind,
+                                                character_activity
+                                                    .and_then(|a| a.steer_dir)
+                                                    .unwrap_or(0.0),
+                                                time,
+                                            ),
+                                            state.state_time,
+                                            &mut state_animation_rate,
+                                            skeleton_attr,
+                                        )
+                                    },
+                                    SpriteKind::Bed
+                                    | SpriteKind::Bedroll
+                                    | SpriteKind::BedrollSnow
+                                    | SpriteKind::BedrollPirate => {
+                                        anim::character::SleepAnimation::update_skeleton(
                                             &target_base,
                                             (active_tool_kind, second_tool_kind, time),
                                             state.state_time,
