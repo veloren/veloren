@@ -130,27 +130,7 @@ impl Animation for MountAnimation {
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
 
-        if skeleton.holding_lantern {
-            next.hand_r.position = Vec3::new(
-                s_a.hand.0 + 1.0 - head_look.x * 8.0,
-                s_a.hand.1 + 5.0 + head_look.x * 6.0,
-                s_a.hand.2 + 9.0 + head_look.y * 6.0,
-            );
-            next.hand_r.orientation = Quaternion::rotation_x(2.25)
-                * Quaternion::rotation_z(0.9)
-                * Quaternion::rotation_y(head_look.x * 3.0)
-                * Quaternion::rotation_x(head_look.y * 3.0);
-
-            let fast = (anim_time * 5.0).sin();
-            let fast2 = (anim_time * 4.5 + 8.0).sin();
-
-            next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
-            next.lantern.orientation = next.hand_r.orientation.inverse()
-                * Quaternion::rotation_x(fast * 0.1)
-                * Quaternion::rotation_y(fast2 * 0.1);
-        } else {
-            next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        };
+        next.do_hold_lantern(s_a, anim_time, 0.0, speed * 0.1 + 0.1, 0.0, tilt);
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;

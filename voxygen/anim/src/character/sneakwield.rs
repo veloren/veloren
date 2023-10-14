@@ -66,9 +66,6 @@ impl Animation for SneakWieldAnimation {
         let noisea = (anim_time * 11.0 + PI / 6.0).sin();
         let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
 
-        let shorte = ((5.0 / (4.0 + 1.0 * ((anim_time * lab * 7.0).sin()).powi(2))).sqrt())
-            * ((anim_time * lab * 7.0).sin());
-
         let shortalt = (anim_time * lab * 7.0 + PI / 2.0).sin();
 
         let head_look = Vec2::new(
@@ -145,9 +142,6 @@ impl Animation for SneakWieldAnimation {
             next.shoulder_l.orientation = Quaternion::rotation_x(short * 0.15 * walkintensity);
 
             next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 * walkintensity);
-
-            next.lantern.orientation =
-                Quaternion::rotation_x(shorte * 0.2 + 0.4) * Quaternion::rotation_y(shorte * 0.1);
         } else {
             next.head.position = Vec3::new(
                 0.0,
@@ -176,14 +170,6 @@ impl Animation for SneakWieldAnimation {
             next.foot_l.orientation = Quaternion::rotation_x(-0.5);
 
             next.foot_r.position = Vec3::new(s_a.foot.0, 4.0 + s_a.foot.1, s_a.foot.2);
-        }
-
-        if skeleton.holding_lantern {
-            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1 + 5.0, s_a.hand.2 + 9.0);
-            next.hand_r.orientation = Quaternion::rotation_x(2.5);
-
-            next.lantern.position = Vec3::new(0.0, 1.5, -5.5);
-            next.lantern.orientation = next.hand_r.orientation.inverse();
         }
 
         match (hands, active_tool_kind, second_tool_kind) {
@@ -374,27 +360,8 @@ impl Animation for SneakWieldAnimation {
             next.second = next.main;
         }
 
-        if skeleton.holding_lantern {
-            next.hand_r.position = Vec3::new(
-                s_a.hand.0 - head_look.x * 6.0,
-                s_a.hand.1 + 5.0 - head_look.y * 10.0 + slow * 0.15,
-                s_a.hand.2 + 12.0 + head_look.y * 6.0 + slow * 0.5,
-            );
-            next.hand_r.orientation = Quaternion::rotation_x(2.25 + slow * -0.06)
-                * Quaternion::rotation_z(0.9)
-                * Quaternion::rotation_y(head_look.x * 1.5)
-                * Quaternion::rotation_x(head_look.y * 1.5);
+        next.do_hold_lantern(s_a, anim_time, anim_time, speednorm, 0.0, tilt);
 
-            let fast = (anim_time * 8.0).sin();
-            let fast2 = (anim_time * 6.0 + 8.0).sin();
-
-            next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
-            next.lantern.orientation = next.hand_r.orientation.inverse()
-                * Quaternion::rotation_x((fast + 0.5) * 1.0 * speednorm + fast * 0.1)
-                * Quaternion::rotation_y(
-                    tilt * 1.0 * fast + tilt * 1.0 + fast2 * speednorm * 0.25 + fast2 * 0.1,
-                );
-        }
         next
     }
 }

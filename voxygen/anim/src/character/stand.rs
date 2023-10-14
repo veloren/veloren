@@ -110,29 +110,7 @@ impl Animation for StandAnimation {
 
         next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-        next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
-
-        if skeleton.holding_lantern {
-            next.hand_r.position = Vec3::new(
-                s_a.hand.0 - head_look.x * 10.0,
-                s_a.hand.1 + 5.0 - head_look.y * 8.0 + slow * 0.15 - impact * 0.2,
-                s_a.hand.2 + 12.0 + slow * 0.5 + impact * -0.1,
-            );
-            next.hand_r.orientation = Quaternion::rotation_x(2.5 + slow * -0.06 + impact * -0.1)
-                * Quaternion::rotation_z(0.9)
-                * Quaternion::rotation_y(head_look.x * 1.5)
-                * Quaternion::rotation_x(head_look.y * 1.5);
-            next.shoulder_r.orientation = Quaternion::rotation_x(slow * 0.15 + 2.0);
-
-            let fast = (anim_time * 5.0).sin();
-            let fast2 = (anim_time * 4.5 + 8.0).sin();
-
-            next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
-            next.lantern.orientation = next.hand_r.orientation.inverse()
-                * Quaternion::rotation_x(fast * 0.1)
-                * Quaternion::rotation_y(fast2 * 0.1 + tilt * 3.0);
-        }
+        next.do_hold_lantern(s_a, anim_time, 0.0, 0.0, impact, tilt);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.scale = Vec3::one();

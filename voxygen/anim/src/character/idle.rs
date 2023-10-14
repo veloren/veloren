@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use core::f32::consts::PI;
 use std::ops::Mul;
 
 pub struct IdleAnimation;
@@ -41,7 +40,6 @@ impl Animation for IdleAnimation {
         next.hand_r.scale = Vec3::one() * 1.04;
         next.back.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
-        next.lantern.scale = Vec3::one() * 0.65;
         next.shoulder_l.scale = Vec3::one() * 1.1;
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
@@ -89,8 +87,7 @@ impl Animation for IdleAnimation {
 
         next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-        next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
+        next.do_hold_lantern(s_a, anim_time, anim_time, 0.0, 0.0, 0.0);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
