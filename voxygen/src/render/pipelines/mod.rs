@@ -19,7 +19,7 @@ pub mod ui;
 use super::{Consts, Renderer, Texture};
 use crate::scene::camera::CameraMode;
 use bytemuck::{Pod, Zeroable};
-use common::terrain::BlockKind;
+use common::{terrain::BlockKind, util::srgb_to_linear};
 use std::marker::PhantomData;
 use vek::*;
 
@@ -246,9 +246,12 @@ impl Default for Globals {
 
 impl Light {
     pub fn new(pos: Vec3<f32>, col: Rgb<f32>, strength: f32) -> Self {
+        let linearized_col = srgb_to_linear(col);
+
         Self {
             pos: Vec4::from(pos).into_array(),
-            col: (Rgba::new(col.r, col.g, col.b, 0.0) * strength).into_array(),
+            col: (Rgba::new(linearized_col.r, linearized_col.g, linearized_col.b, 0.0) * strength)
+                .into_array(),
         }
     }
 

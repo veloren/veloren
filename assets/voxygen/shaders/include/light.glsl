@@ -84,7 +84,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 
         float strength = attenuation_strength(difference);
 
-        vec3 color = srgb_to_linear(L.light_col.rgb) * strength;
+        vec3 color = L.light_col.rgb * strength;
 
         light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIANCE);
     }

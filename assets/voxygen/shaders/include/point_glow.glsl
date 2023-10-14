@@ -33,7 +33,7 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
         strength *= clamp(cam_dist_2 / 9.0, 0.25, 1.0);
     #endif
 
-    vec3 light_color = srgb_to_linear(L.light_col.rgb) * strength;
+    vec3 light_color = L.light_col.rgb * strength;
 
     const float LIGHT_AMBIANCE = 0.025;
     color += light_color

@@ -1,6 +1,6 @@
 use common::{
     figure::Segment,
-    util::{linear_to_srgba, srgb_to_linear},
+    util::{linear_to_srgba, srgb_to_linear_fast},
     vol::{FilledVox, IntoFullVolIterator, ReadVol, SizedVol},
 };
 use euc::{buffer::Buffer2d, rasterizer, Pipeline};
@@ -97,7 +97,7 @@ impl Pipeline for Voxel {
         let diffuse = norm.dot(-self.light_dir).max(0.0);
         let brightness = 2.5;
         let light = Rgb::from(*ao_level as f32 / 4.0) * (diffuse + ambiance) * brightness;
-        let color = light * srgb_to_linear(*col);
+        let color = light * srgb_to_linear_fast(*col);
         let position = (self.mvp * Vec4::from_point(*pos)).into_array();
         (position, VsOut(Rgba::from_opaque(color)))
     }

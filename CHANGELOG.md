@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The ability limit for non-humanoids has been removed
 - Improved running, wielding, and riding animations
 - Fixed offset of items carried on backs when wearing cloaks and backpacks
+- Linearize light colors on the CPU rather than in shaders on the GPU
 
 ### Removed
 - Medium and large potions from all loot tables
