@@ -4,8 +4,9 @@ use crate::Concatenate;
 
 use super::{fs::FileSystem, tar_source::Tar};
 use assets_manager::{
+    hot_reloading::{DynUpdateSender, EventSender},
     source::{FileContent, Source},
-    AnyCache, AssetCache, BoxedError, hot_reloading::{EventSender, DynUpdateSender},
+    AnyCache, AssetCache, BoxedError,
 };
 
 struct PluginEntry {
@@ -16,14 +17,14 @@ struct PluginEntry {
 /// The source combining filesystem and plugins (typically used via
 /// CombinedCache)
 pub struct CombinedSource {
-    fs: FileSystem,
+    fs: AssetCache<FileSystem>,
     plugin_list: RwLock<Vec<PluginEntry>>,
 }
 
 impl CombinedSource {
     pub fn new() -> std::io::Result<Self> {
         Ok(Self {
-            fs: FileSystem::new()?,
+            fs: AssetCache::with_source(FileSystem::new()?),
             plugin_list: RwLock::new(Vec::new()),
         })
     }
@@ -32,7 +33,7 @@ impl CombinedSource {
 impl CombinedSource {
     fn read_multiple(&self, id: &str, ext: &str) -> Vec<(Option<usize>, FileContent<'_>)> {
         let mut result = Vec::new();
-        if let Ok(file_entry) = self.fs.read(id, ext) {
+        if let Ok(file_entry) = self.fs.raw_source().read(id, ext) {
             result.push((None, file_entry));
         }
         if let Ok(guard) = self.plugin_list.read() {
@@ -88,22 +89,23 @@ impl Source for CombinedSource {
         f: &mut dyn FnMut(assets_manager::source::DirEntry),
     ) -> std::io::Result<()> {
         // TODO: we should combine the sources
-        self.fs.read_dir(id, f)
+        self.fs.raw_source().read_dir(id, f)
     }
 
     fn exists(&self, entry: assets_manager::source::DirEntry) -> bool {
-        self.fs.exists(entry)
-            || self.plugin_list
+        self.fs.raw_source().exists(entry)
+            || self
+                .plugin_list
                 .read()
                 .map(|p| p.iter().any(|p| p.cache.raw_source().exists(entry)))
                 .unwrap_or_default()
     }
 
     // TODO: Enable hot reloading for plugins
-    fn make_source(&self) -> Option<Box<dyn Source + Send>> { self.fs.make_source() }
+    fn make_source(&self) -> Option<Box<dyn Source + Send>> { self.fs.raw_source().make_source() }
 
     fn configure_hot_reloading(&self, events: EventSender) -> Result<DynUpdateSender, BoxedError> {
-        self.fs.configure_hot_reloading(events)
+        self.fs.raw_source().configure_hot_reloading(events)
     }
 }
 
@@ -120,7 +122,7 @@ impl CombinedCache {
         &self,
         load_from: impl Fn(AnyCache) -> Result<T, BoxedError>,
     ) -> Result<T, BoxedError> {
-        let mut result = load_from(self.as_any_cache());
+        let mut result = load_from(self.0.raw_source().fs.as_any_cache());
         for i in self.0.raw_source().plugin_list.read().unwrap().iter() {
             if let Ok(b) = load_from(i.cache.as_any_cache()) {
                 result = if let Ok(a) = result {
@@ -135,11 +137,16 @@ impl CombinedCache {
 
     pub fn register_tar(&self, path: PathBuf) -> std::io::Result<()> {
         let tar_source = Tar::from_path(&path)?;
-        println!("Tar {:?} {:?}", path, tar_source);
+        //println!("Tar {:?} {:?}", path, tar_source);
         let cache = AssetCache::with_source(tar_source);
-        self.0.raw_source().plugin_list.write().unwrap().push(PluginEntry { path, cache });
+        self.0
+            .raw_source()
+            .plugin_list
+            .write()
+            .unwrap()
+            .push(PluginEntry { path, cache });
         Ok(())
-    }    
+    }
 }
 
 impl std::ops::Deref for CombinedCache {
