@@ -275,7 +275,7 @@ void main() {
         /* reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1); */
         reflect_color = vec3(0);
     #else
-        reflect_color = get_sky_color(ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
+        reflect_color = get_sky_color(ray_dir, f_pos, vec3(-100000), 0.125, true, 1.0, true, sun_shade_frac);
     #endif
     // Sort of non-physical, but we try to balance the reflection intensity with the direct light from the sun,
     // resulting in decent reflection of the ambient environment even after the sun has gone down.
