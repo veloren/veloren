@@ -3,7 +3,7 @@ use crate::{
     comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
-        idle,
+        idle, wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,10 @@ use vek::Vec2;
 const WALLRUN_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.5;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct Data;
+pub struct Data {
+    /// Had weapon
+    pub was_wielded: bool,
+}
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
@@ -36,7 +39,11 @@ impl CharacterBehavior for Data {
             || data.physics.on_ground.is_some()
             || data.physics.in_liquid().is_some()
         {
-            update.character = CharacterState::Idle(idle::Data::default());
+            update.character = if self.was_wielded {
+                CharacterState::Wielding(wielding::Data { is_sneaking: false })
+            } else {
+                CharacterState::Idle(idle::Data::default())
+            };
         }
 
         update

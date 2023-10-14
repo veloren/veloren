@@ -177,6 +177,7 @@ impl CharacterState {
                     was_wielded: true,
                     ..
                 })
+                | CharacterState::Wallrun(wallrun::Data { was_wielded: true })
                 | CharacterState::Stunned(stunned::Data {
                     was_wielded: true,
                     ..
@@ -194,6 +195,7 @@ impl CharacterState {
             CharacterState::Stunned(data) => data.was_wielded,
             CharacterState::SpriteInteract(data) => data.static_data.was_wielded,
             CharacterState::UseItem(data) => data.static_data.was_wielded,
+            CharacterState::Wallrun(data) => data.was_wielded,
             _ => false,
         }
     }
