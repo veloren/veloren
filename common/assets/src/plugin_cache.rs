@@ -5,30 +5,26 @@ use crate::Concatenate;
 use super::{fs::FileSystem, tar_source::Tar};
 use assets_manager::{
     source::{FileContent, Source},
-    AnyCache, AssetCache, BoxedError,
+    AnyCache, AssetCache, BoxedError, hot_reloading::{EventSender, DynUpdateSender},
 };
-use lazy_static::lazy_static;
 
 struct PluginEntry {
     path: PathBuf,
     cache: AssetCache<Tar>,
 }
 
-lazy_static! {
-    static ref PLUGIN_LIST: RwLock<Vec<PluginEntry>> = RwLock::new(Vec::new());
-}
-
 /// The source combining filesystem and plugins (typically used via
 /// CombinedCache)
-#[derive(Debug, Clone)]
 pub struct CombinedSource {
     fs: FileSystem,
+    plugin_list: RwLock<Vec<PluginEntry>>,
 }
 
 impl CombinedSource {
     pub fn new() -> std::io::Result<Self> {
         Ok(Self {
             fs: FileSystem::new()?,
+            plugin_list: RwLock::new(Vec::new()),
         })
     }
 }
@@ -39,7 +35,7 @@ impl CombinedSource {
         if let Ok(file_entry) = self.fs.read(id, ext) {
             result.push((None, file_entry));
         }
-        if let Ok(guard) = PLUGIN_LIST.read() {
+        if let Ok(guard) = self.plugin_list.read() {
             for (n, p) in guard.iter().enumerate() {
                 if let Ok(entry) = p.cache.raw_source().read(id, ext) {
                     result.push((Some(n), match entry {
@@ -58,7 +54,7 @@ impl CombinedSource {
     // we don't want to keep the lock, so we clone
     fn plugin_path(&self, index: Option<usize>) -> Option<PathBuf> {
         if let Some(index) = index {
-            PLUGIN_LIST
+            self.plugin_list
                 .read()
                 .ok()
                 .and_then(|p| p.get(index).map(|p| p.path.clone()))
@@ -97,13 +93,18 @@ impl Source for CombinedSource {
 
     fn exists(&self, entry: assets_manager::source::DirEntry) -> bool {
         self.fs.exists(entry)
-            || PLUGIN_LIST
+            || self.plugin_list
                 .read()
                 .map(|p| p.iter().any(|p| p.cache.raw_source().exists(entry)))
                 .unwrap_or_default()
     }
 
-    fn make_source(&self) -> Option<Box<dyn Source + Send>> { None }
+    // TODO: Enable hot reloading for plugins
+    fn make_source(&self) -> Option<Box<dyn Source + Send>> { self.fs.make_source() }
+
+    fn configure_hot_reloading(&self, events: EventSender) -> Result<DynUpdateSender, BoxedError> {
+        self.fs.configure_hot_reloading(events)
+    }
 }
 
 /// A cache combining filesystem and plugin assets
@@ -120,7 +121,7 @@ impl CombinedCache {
         load_from: impl Fn(AnyCache) -> Result<T, BoxedError>,
     ) -> Result<T, BoxedError> {
         let mut result = load_from(self.as_any_cache());
-        for i in PLUGIN_LIST.read().unwrap().iter() {
+        for i in self.0.raw_source().plugin_list.read().unwrap().iter() {
             if let Ok(b) = load_from(i.cache.as_any_cache()) {
                 result = if let Ok(a) = result {
                     Ok(a.concatenate(b))
@@ -136,7 +137,7 @@ impl CombinedCache {
         let tar_source = Tar::from_path(&path)?;
         println!("Tar {:?} {:?}", path, tar_source);
         let cache = AssetCache::with_source(tar_source);
-        PLUGIN_LIST.write().unwrap().push(PluginEntry { path, cache });
+        self.0.raw_source().plugin_list.write().unwrap().push(PluginEntry { path, cache });
         Ok(())
     }    
 }
