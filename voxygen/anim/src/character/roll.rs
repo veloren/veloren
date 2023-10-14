@@ -213,15 +213,13 @@ impl Animation for RollAnimation {
             s_a.head.0 + 1.5 * movement1,
             s_a.head.1 - 1.0 * movement1,
         );
-        next.head.orientation = Quaternion::rotation_x(-0.3 * movement1)
-            * if prev_aimed_dir.is_some() {
-                Quaternion::identity()
-            } else {
-                Quaternion::rotation_y(-0.4)
-            };
+        next.head.orientation = if prev_aimed_dir.is_some() {
+            Quaternion::identity()
+        } else {
+            Quaternion::rotation_x(-0.3 * movement1) * Quaternion::rotation_y(-0.4)
+        };
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, -9.5 * movement1 + s_a.chest.1);
-        next.chest.orientation = Quaternion::rotation_x(-0.2 * movement1);
 
         next.belt.position = Vec3::new(
             0.0,
@@ -230,37 +228,71 @@ impl Animation for RollAnimation {
         );
         next.belt.orientation = Quaternion::rotation_x(0.55 * movement1);
 
-        next.shorts.position = Vec3::new(
-            0.0,
-            s_a.shorts.0 + 4.5 * movement1,
-            s_a.shorts.1 + 2.5 * movement1,
-        );
-        next.shorts.orientation = Quaternion::rotation_x(0.8 * movement1);
+        if prev_aimed_dir.is_some() {
+            if matches!(hands.0, None | Some(Hands::One)) {
+                next.hand_l.position += Vec3::new(-2.0, -8.0, 8.0);
+                next.hand_l.orientation =
+                    next.hand_l.orientation * Quaternion::rotation_z(PI * -0.25);
 
-        next.foot_l.position = Vec3::new(
-            if prev_aimed_dir.is_some() {
-                1.0 * movement1 - s_a.foot.0
-            } else {
-                1.0 * movement1 - s_a.foot.0 + 5.0
-            },
-            s_a.foot.1 + 5.5 * movement1,
-            s_a.foot.2 - 5.0 * movement1,
-        );
-        next.foot_l.orientation = Quaternion::rotation_x(0.9 * movement1);
+                next.main.position += Vec3::new(-2.0, -8.0, 8.0);
+                next.main.orientation = next.main.orientation * Quaternion::rotation_x(PI * 0.6);
+            }
 
-        next.foot_r.position = Vec3::new(
-            if prev_aimed_dir.is_some() {
-                1.0 * movement1 + s_a.foot.0
-            } else {
-                1.0 * movement1 + s_a.foot.0 + 3.0
-            },
-            s_a.foot.1 + 5.5 * movement1,
-            s_a.foot.2 - 5.0 * movement1,
-        );
-        next.foot_r.orientation = Quaternion::rotation_x(0.9 * movement1);
+            if matches!(hands.1, None | Some(Hands::One)) {
+                next.hand_r.position += Vec3::new(2.0, -8.0, 8.0);
+                next.hand_r.orientation =
+                    next.hand_r.orientation * Quaternion::rotation_z(PI * 0.25);
+
+                next.second.position += Vec3::new(2.0, -8.0, 8.0);
+                next.second.orientation =
+                    next.second.orientation * Quaternion::rotation_x(PI * 0.6);
+            }
+
+            next.shorts.position =
+                Vec3::new(0.0, s_a.shorts.0 + 0.5 * movement1, s_a.shorts.1 - 1.0);
+
+            next.shorts.orientation = Quaternion::rotation_x(0.0 * movement1);
+
+            next.foot_l.position = Vec3::new(
+                1.0 * movement1 - s_a.foot.0,
+                s_a.foot.1 + 5.5 * movement1,
+                s_a.foot.2 - 5.0 * movement1 - 5.0,
+            );
+            next.foot_l.orientation = Quaternion::rotation_x(0.0 * movement1 + 0.5);
+
+            next.foot_r.position = Vec3::new(
+                1.0 * movement1 + s_a.foot.0,
+                s_a.foot.1 - 5.5 * movement1,
+                s_a.foot.2 - 5.0 * movement1 - 5.0,
+            );
+            next.foot_r.orientation = Quaternion::rotation_x(0.0 * movement1 - 0.5);
+        } else {
+            next.chest.orientation = Quaternion::rotation_x(-0.2 * movement1);
+
+            next.shorts.position = Vec3::new(
+                0.0,
+                s_a.shorts.0 + 4.5 * movement1,
+                s_a.shorts.1 + 2.5 * movement1,
+            );
+            next.shorts.orientation = Quaternion::rotation_x(0.8 * movement1);
+
+            next.foot_l.position = Vec3::new(
+                1.0 * movement1 - s_a.foot.0 + 5.0,
+                s_a.foot.1 + 5.5 * movement1,
+                s_a.foot.2 - 5.0 * movement1,
+            );
+            next.foot_l.orientation = Quaternion::rotation_x(0.9 * movement1);
+
+            next.foot_r.position = Vec3::new(
+                1.0 * movement1 + s_a.foot.0 + 3.0,
+                s_a.foot.1 + 5.5 * movement1,
+                s_a.foot.2 - 5.0 * movement1,
+            );
+            next.foot_r.orientation = Quaternion::rotation_x(0.9 * movement1);
+        }
 
         next.torso.position = if prev_aimed_dir.is_some() {
-            Vec3::new(0.0, 0.0, 7.0 * movement1)
+            Vec3::new(0.0, 0.0, 4.0 + 7.0 * movement1)
         } else {
             Vec3::new(4.0, 0.0, 7.0 * movement1)
         };
