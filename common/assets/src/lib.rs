@@ -25,7 +25,6 @@ mod fs;
 mod plugin_cache;
 #[cfg(feature = "plugins")] mod tar_source;
 mod walk;
-pub use plugin_cache::register_tar;
 pub use walk::{walk_tree, Walk};
 
 lazy_static! {
@@ -35,6 +34,9 @@ lazy_static! {
 
 #[cfg(feature = "hot-reloading")]
 pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
+
+// register a new plugin
+pub fn register_tar(path: PathBuf) -> std::io::Result<()> { ASSETS.register_tar(path) }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
 pub type AssetGuard<T> = assets_manager::AssetGuard<'static, T>;

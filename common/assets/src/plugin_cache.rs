@@ -18,14 +18,6 @@ lazy_static! {
     static ref PLUGIN_LIST: RwLock<Vec<PluginEntry>> = RwLock::new(Vec::new());
 }
 
-pub fn register_tar(path: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-    let tar_source = Tar::from_path(&path)?;
-    println!("Tar {:?} {:?}", path, tar_source);
-    let cache = AssetCache::with_source(tar_source);
-    PLUGIN_LIST.write()?.push(PluginEntry { path, cache });
-    Ok(())
-}
-
 /// The source combining filesystem and plugins (typically used via
 /// CombinedCache)
 #[derive(Debug, Clone)]
@@ -139,6 +131,14 @@ impl CombinedCache {
         }
         result
     }
+
+    pub fn register_tar(&self, path: PathBuf) -> std::io::Result<()> {
+        let tar_source = Tar::from_path(&path)?;
+        println!("Tar {:?} {:?}", path, tar_source);
+        let cache = AssetCache::with_source(tar_source);
+        PLUGIN_LIST.write().unwrap().push(PluginEntry { path, cache });
+        Ok(())
+    }    
 }
 
 impl std::ops::Deref for CombinedCache {
