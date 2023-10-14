@@ -1,13 +1,27 @@
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
+/// This function is optimized for speed over perfect accuracy
 #[inline(always)]
 #[allow(clippy::excessive_precision)]
-pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
+pub fn srgb_to_linear_fast(col: Rgb<f32>) -> Rgb<f32> {
     col.map(|c| {
         if c <= 0.104 {
             c * 0.08677088
         } else {
             0.012522878 * c + 0.682171111 * c * c + 0.305306011 * c * c * c
+        }
+    })
+}
+
+/// directly converted from 'vec3 srgb_to_linear(vec3 srgb)' function in
+/// 'srgb.glsl'
+#[inline(always)]
+pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
+    col.map(|c| {
+        if c <= 0.04045 {
+            c / 12.92
+        } else {
+            f32::powf((c + 0.055) / 1.055, 2.4)
         }
     })
 }
@@ -29,7 +43,7 @@ pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
 
 #[inline(always)]
 pub fn srgba_to_linear(col: Rgba<f32>) -> Rgba<f32> {
-    Rgba::from_translucent(srgb_to_linear(Rgb::from(col)), col.a)
+    Rgba::from_translucent(srgb_to_linear_fast(Rgb::from(col)), col.a)
 }
 
 #[inline(always)]
@@ -133,7 +147,7 @@ pub fn xyy_to_rgb(xyy: Vec3<f32>) -> Rgb<f32> {
 // TO-DO: speed this up
 #[inline(always)]
 pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
-    let mut hsv = rgb_to_hsv(srgb_to_linear(col));
+    let mut hsv = rgb_to_hsv(srgb_to_linear_fast(col));
     hsv.y *= 1.0 + value;
     linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.clamp(0.0, 1.0)))
 }
@@ -142,8 +156,8 @@ pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
 /// other
 #[inline(always)]
 pub fn chromify_srgb(luma: Rgb<f32>, chroma: Rgb<f32>) -> Rgb<f32> {
-    let l = rgb_to_xyy(srgb_to_linear(luma)).z;
-    let mut xyy = rgb_to_xyy(srgb_to_linear(chroma));
+    let l = rgb_to_xyy(srgb_to_linear_fast(luma)).z;
+    let mut xyy = rgb_to_xyy(srgb_to_linear_fast(chroma));
     xyy.z = l;
 
     linear_to_srgb(xyy_to_rgb(xyy).map(|e| e.clamp(0.0, 1.0)))

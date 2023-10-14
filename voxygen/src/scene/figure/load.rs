@@ -92,12 +92,12 @@ pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> BoneMeshes {
 }
 
 fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
-    use common::util::{linear_to_srgb, srgb_to_linear};
+    use common::util::{linear_to_srgb, srgb_to_linear_fast};
 
     const BASE_GREY: f32 = 178.0;
     if rgb.r == rgb.g && rgb.g == rgb.b {
-        let c1 = srgb_to_linear(rgb.map(|e| e as f32 / BASE_GREY));
-        let c2 = srgb_to_linear(color.map(|e| e as f32 / 255.0));
+        let c1 = srgb_to_linear_fast(rgb.map(|e| e as f32 / BASE_GREY));
+        let c2 = srgb_to_linear_fast(color.map(|e| e as f32 / 255.0));
 
         linear_to_srgb(c1 * c2).map(|e| (e.clamp(0.0, 1.0) * 255.0) as u8)
     } else {
