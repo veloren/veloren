@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use core::f32::consts::PI;
 use std::ops::Mul;
 
 pub struct StandAnimation;
@@ -108,69 +107,8 @@ impl Animation for StandAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
         next.hold.position = Vec3::new(0.4, -0.3, -5.8);
-        match (hands, active_tool_kind, second_tool_kind) {
-            ((Some(Hands::Two), _), tool, _) | ((None, Some(Hands::Two)), _, tool) => match tool {
-                Some(ToolKind::Bow) => {
-                    next.main.position = Vec3::new(0.0, -5.0 - skeleton.back_carry_offset, 6.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-                },
-                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                    next.main.position = Vec3::new(2.0, -5.0 - skeleton.back_carry_offset, -1.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
-                },
-                _ => {
-                    next.main.position = Vec3::new(-7.0, -5.0 - skeleton.back_carry_offset, 15.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-                },
-            },
-            ((_, _), _, _) => {},
-        };
 
-        match hands {
-            (Some(Hands::One), _) => match active_tool_kind {
-                Some(ToolKind::Dagger) => {
-                    next.main.position = Vec3::new(5.0, 1.0 - skeleton.back_carry_offset, 2.0);
-                    next.main.orientation =
-                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
-                },
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.main.position = Vec3::new(-4.0, -4.5 - skeleton.back_carry_offset, 10.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-                },
-                Some(ToolKind::Shield) => {
-                    next.main.position = Vec3::new(-0.0, -4.0 - skeleton.back_carry_offset, 3.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-                },
-                _ => {},
-            },
-            (_, _) => {},
-        };
-        match hands {
-            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
-                Some(ToolKind::Dagger) => {
-                    next.second.position = Vec3::new(-5.0, 1.0 - skeleton.back_carry_offset, 2.0);
-                    next.second.orientation =
-                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
-                },
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -5.0 - skeleton.back_carry_offset, 10.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
-                },
-                Some(ToolKind::Shield) => {
-                    next.second.position = Vec3::new(0.0, -4.0 - skeleton.back_carry_offset, 3.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-                },
-                _ => {},
-            },
-            (_, _) => {},
-        };
+        next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);

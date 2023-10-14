@@ -155,59 +155,8 @@ impl Animation for MountAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
         next.hold.position = Vec3::new(0.4, -0.3, -5.8);
-        match hands {
-            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match active_tool_kind {
-                Some(ToolKind::Bow) => {
-                    next.main.position = Vec3::new(0.0, -5.0, 6.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-                },
-                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                    next.main.position = Vec3::new(2.0, -5.0, -1.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
-                },
-                _ => {
-                    next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-                },
-            },
-            (_, _) => {},
-        };
 
-        match hands {
-            (Some(Hands::One), _) => match active_tool_kind {
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.main.position = Vec3::new(-4.0, -5.0, 10.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(1.57);
-                },
-
-                _ => {},
-            },
-            (_, _) => {},
-        };
-        match hands {
-            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -6.0, 10.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-1.57);
-                },
-                _ => {},
-            },
-            (_, _) => {},
-        };
-
-        next.second.scale = match hands {
-            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
-
-        if let (None, Some(Hands::Two)) = hands {
-            next.second = next.main;
-        }
+        next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
         next
     }

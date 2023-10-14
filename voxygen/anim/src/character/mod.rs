@@ -58,7 +58,10 @@ pub use self::{
     wallrun::WallrunAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
-use common::comp;
+use common::comp::{
+    self,
+    tool::{Hands, ToolKind},
+};
 use core::{convert::TryFrom, f32::consts::PI};
 
 pub type Body = comp::humanoid::Body;
@@ -330,6 +333,79 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             bhl: (0.0, -4.0, 1.0, PI / 2.0, 0.0, 0.0),
             bhr: (1.0, 2.0, -2.0, PI / 2.0, 0.0, 0.0),
             bc: (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
+        }
+    }
+}
+
+impl CharacterSkeleton {
+    pub fn do_tools_on_back(
+        &mut self,
+        hands: (Option<Hands>, Option<Hands>),
+        active_tool_kind: Option<ToolKind>,
+        second_tool_kind: Option<ToolKind>,
+    ) {
+        match (hands, active_tool_kind, second_tool_kind) {
+            ((Some(Hands::Two), _), tool, _) | ((None, Some(Hands::Two)), _, tool) => match tool {
+                Some(ToolKind::Bow) => {
+                    self.main.position = Vec3::new(0.0, -5.0 - self.back_carry_offset, 6.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
+                    self.main.position = Vec3::new(2.0, -5.0 - self.back_carry_offset, -1.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+                _ => {
+                    self.main.position = Vec3::new(-7.0, -5.0 - self.back_carry_offset, 15.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+            },
+            ((_, _), _, _) => {},
+        }
+
+        match hands {
+            (Some(Hands::One), _) => match active_tool_kind {
+                Some(ToolKind::Dagger) => {
+                    self.main.position = Vec3::new(5.0, 1.0 - self.back_carry_offset, 2.0);
+                    self.main.orientation =
+                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
+                },
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    self.main.position = Vec3::new(-4.0, -4.5 - self.back_carry_offset, 10.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+                Some(ToolKind::Shield) => {
+                    self.main.position = Vec3::new(-0.0, -4.0 - self.back_carry_offset, 3.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+                },
+                _ => {},
+            },
+            (_, _) => {},
+        }
+        match hands {
+            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
+                Some(ToolKind::Dagger) => {
+                    self.second.position = Vec3::new(-5.0, 1.0 - self.back_carry_offset, 2.0);
+                    self.second.orientation =
+                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
+                },
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    self.second.position = Vec3::new(4.0, -5.0 - self.back_carry_offset, 10.0);
+                    self.second.orientation =
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
+                },
+                Some(ToolKind::Shield) => {
+                    self.second.position = Vec3::new(0.0, -4.0 - self.back_carry_offset, 3.0);
+                    self.second.orientation =
+                        Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+                },
+                _ => {},
+            },
+            (_, _) => {},
         }
     }
 }

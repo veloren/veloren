@@ -36,7 +36,7 @@ impl Animation for RollAnimation {
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
-            _second_tool_kind,
+            second_tool_kind,
             hands,
             wield_status,
             orientation,
@@ -206,32 +206,8 @@ impl Animation for RollAnimation {
                 (_, _) => {},
             }
         } else {
-            next.hand_l.position = Vec3::new(
-                -s_a.hand.0,
-                s_a.hand.1 + 1.0 * movement1,
-                s_a.hand.2 + 2.0 * movement1,
-            );
-            next.hand_l.orientation = Quaternion::rotation_x(0.6 * movement1);
-
-            next.hand_r.position = if prev_aimed_dir.is_some() {
-                Vec3::new(
-                    -1.0 * movement1 + s_a.hand.0,
-                    s_a.hand.1 + 1.0 * movement1,
-                    s_a.hand.2 + 2.0 * movement1,
-                )
-            } else {
-                Vec3::new(
-                    -1.0 * movement1 + s_a.hand.0 + 3.0,
-                    s_a.hand.1 + 1.0 * movement1,
-                    s_a.hand.2 + 2.0 * movement1 + 8.0,
-                )
-            };
-            next.hand_r.orientation = if prev_aimed_dir.is_some() {
-                Quaternion::rotation_x(0.6 * movement1)
-            } else {
-                Quaternion::rotation_y(-1.0)
-            };
-        };
+            next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
+        }
         next.head.position = Vec3::new(
             0.0,
             s_a.head.0 + 1.5 * movement1,

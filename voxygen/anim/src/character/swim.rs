@@ -171,57 +171,7 @@ impl Animation for SwimAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        let main_tool = if let (None, Some(Hands::Two)) = hands {
-            second_tool_kind
-        } else {
-            active_tool_kind
-        };
-
-        match main_tool {
-            Some(ToolKind::Dagger) => {
-                next.main.position = Vec3::new(5.0, 1.0, 2.0);
-                next.main.orientation =
-                    Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
-            },
-            Some(ToolKind::Shield) => {
-                next.main.position = Vec3::new(-0.0, -5.0, 3.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-            },
-            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                next.main.position = Vec3::new(2.0, -5.0, -1.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
-            },
-            Some(ToolKind::Bow) => {
-                next.main.position = Vec3::new(0.0, -5.0, 6.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-            },
-            _ => {
-                next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-            },
-        }
-
-        match second_tool_kind {
-            Some(ToolKind::Dagger) => {
-                next.second.position = Vec3::new(-5.0, 1.0, 2.0);
-                next.second.orientation =
-                    Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
-            },
-            Some(ToolKind::Shield) => {
-                next.second.position = Vec3::new(0.0, -4.0, 3.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-            },
-            _ => {
-                next.second.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-            },
-        }
+        next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.scale = Vec3::one() * 0.65;
@@ -238,37 +188,6 @@ impl Animation for SwimAnimation {
                 + avgspeed * avg_vel.z * -0.003,
         ) * Quaternion::rotation_y(tilt * 2.0)
             * Quaternion::rotation_z(tilt * 3.0);
-        match hands {
-            (Some(Hands::One), _) => match active_tool_kind {
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.main.position = Vec3::new(-4.0, -5.0, 10.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(PI / 2.0);
-                },
-
-                _ => {},
-            },
-            (_, _) => {},
-        };
-        match hands {
-            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -6.0, 10.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
-                },
-                _ => {},
-            },
-            (_, _) => {},
-        };
-        next.second.scale = match hands {
-            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
-
-        if let (None, Some(Hands::Two)) = hands {
-            next.second = next.main;
-        }
 
         next
     }
