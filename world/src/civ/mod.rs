@@ -539,6 +539,7 @@ impl Civs {
                         let size = Lerp::lerp(0.03, 1.0, rng.gen_range(0.0..1f32).powi(5));
                         WorldSite::refactor(site2::Site::generate_city(
                             &Land::from_sim(ctx.sim),
+                            index_ref,
                             &mut rng,
                             wpos,
                             size,
