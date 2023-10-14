@@ -4,7 +4,13 @@
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
-use std::{borrow::Cow, path::PathBuf, sync::Arc};
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+    hash::{BuildHasher, Hash},
+    path::PathBuf,
+    sync::Arc,
+};
 
 pub use assets_manager::{
     asset::{DirLoadable, Ron},
@@ -16,13 +22,15 @@ pub use assets_manager::{
 };
 
 mod fs;
+mod plugin_cache;
+#[cfg(feature = "plugins")] mod tar_source;
 mod walk;
+pub use plugin_cache::register_tar;
 pub use walk::{walk_tree, Walk};
 
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: AssetCache<fs::FileSystem> =
-        AssetCache::with_source(fs::FileSystem::new().unwrap());
+    static ref ASSETS: plugin_cache::CombinedCache = plugin_cache::CombinedCache::new().unwrap();
 }
 
 #[cfg(feature = "hot-reloading")]
@@ -206,6 +214,56 @@ impl Loader<ObjAsset> for ObjAssetLoader {
     fn load(content: Cow<[u8]>, _: &str) -> Result<ObjAsset, BoxedError> {
         let data = wavefront::Obj::from_reader(&*content)?;
         Ok(ObjAsset(data))
+    }
+}
+
+pub trait Concatenate {
+    fn concatenate(self, b: Self) -> Self;
+}
+
+impl<K: Eq + Hash, V, S: BuildHasher> Concatenate for HashMap<K, V, S> {
+    fn concatenate(mut self, b: Self) -> Self {
+        self.extend(b);
+        self
+    }
+}
+
+impl<V> Concatenate for Vec<V> {
+    fn concatenate(mut self, b: Self) -> Self {
+        self.extend(b);
+        self
+    }
+}
+
+#[cfg(feature = "hashbrown")]
+impl<K: Eq + Hash, V, S: BuildHasher> Concatenate for hashbrown::HashMap<K, V, S> {
+    fn concatenate(mut self, b: Self) -> Self {
+        self.extend(b);
+        self
+    }
+}
+
+impl<T: Concatenate> Concatenate for Ron<T> {
+    fn concatenate(self, _b: Self) -> Self { todo!() }
+}
+
+/// This wrapper combines several RON files from multiple sources
+pub struct MultiRon<T>(pub T);
+
+impl<T: Clone> Clone for MultiRon<T> {
+    fn clone(&self) -> Self { Self(self.0.clone()) }
+
+    fn clone_from(&mut self, source: &Self) { self.0.clone_from(&source.0) }
+}
+
+impl<T> Compound for MultiRon<T>
+where
+    T: for<'de> serde::Deserialize<'de> + Send + Sync + 'static + Concatenate,
+{
+    fn load(_cache: AnyCache, id: &SharedString) -> Result<Self, BoxedError> {
+        ASSETS
+            .combine(|cache: AnyCache| <Ron<T> as Compound>::load(cache, id).map(|r| r.0))
+            .map(MultiRon)
     }
 }
 
