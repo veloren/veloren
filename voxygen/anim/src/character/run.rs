@@ -131,7 +131,7 @@ impl Animation for RunAnimation {
             (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.1,
         );
 
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + short * 0.1);
+        next.head.position = Vec3::new(0.0, s_a.head.0 * 1.5, s_a.head.1 + short * 0.1);
         next.head.orientation =
             Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 + short * -0.3)
                 * Quaternion::rotation_x(head_look.y + 0.45 * speednorm + shortalt2 * -0.05);
@@ -186,13 +186,13 @@ impl Animation for RunAnimation {
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + footstrafel * sideabs * 7.0 + tilt * -10.0,
-            s_a.foot.1 + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -10.5 * speednorm),
+            s_a.foot.1 + (1.0 - sideabs) * (-1.5 * speednorm + foothoril * -10.0 * speednorm),
             s_a.foot.2
                 + (1.0 - sideabs) * (1.25 * speednorm + ((footvertl * -5.0 * speednorm).max(-1.0)))
                 + side * ((footvertsl * 1.5).max(-1.0)),
         );
         next.foot_l.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (foothoril + 0.4 * (1.0 - sideabs)) * -1.5 * speednorm
+            (1.0 - sideabs) * (foothoril + 0.3 * (1.0 - sideabs)) * -1.5 * speednorm
                 + sideabs * -0.5,
         ) * Quaternion::rotation_y(
             tilt * -0.5 + side * (foothoril * 0.3) + footstrafer * side * 0.5,
@@ -202,13 +202,13 @@ impl Animation for RunAnimation {
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + footstrafer * sideabs * 7.0 + tilt * -10.0,
-            s_a.foot.1 + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -10.5 * speednorm),
+            s_a.foot.1 + (1.0 - sideabs) * (-1.5 * speednorm + foothorir * -10.0 * speednorm),
             s_a.foot.2
                 + (1.0 - sideabs) * (1.25 * speednorm + ((footvertr * -5.0 * speednorm).max(-1.0)))
                 + side * ((footvertsr * -1.5).max(-1.0)),
         );
         next.foot_r.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (foothorir + 0.4 * (1.0 - sideabs)) * -1.5 * speednorm
+            (1.0 - sideabs) * (foothorir + 0.3 * (1.0 - sideabs)) * -1.5 * speednorm
                 + sideabs * -0.5,
         ) * Quaternion::rotation_y(
             tilt * -0.5 + side * (foothorir * 0.3) - footstrafer * side * 0.5,
