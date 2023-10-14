@@ -267,8 +267,8 @@ void main() {
                 if (puddle > 0.0) {
                     f_alpha = puddle * 0.2 * max(1.0 + cam_to_frag.z, 0.3);
                     #ifdef EXPERIMENTAL_PUDDLEDETAILS
-                        let t0 = sin(tick_loop(2.0 * PI, 8.0, f_pos.x * 3));
-                        let t1 = sin(tick_loop(2.0 * PI, 3.5, -f_pos.x * 6));
+                        float t0 = sin(tick_loop(2.0 * PI, 8.0, f_pos.x * 3));
+                        float t1 = sin(tick_loop(2.0 * PI, 3.5, -f_pos.x * 6));
                         float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * t0
                             + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * t1;
                         float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * t0
