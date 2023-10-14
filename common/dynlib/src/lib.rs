@@ -29,7 +29,10 @@ pub struct LoadedLib {
     /// Loaded library.
     pub lib: Library,
     /// Path to the library.
-    pub lib_path: PathBuf,
+    lib_path: PathBuf,
+    /// Reload count, used for naming new library (loader will reuse old library
+    /// if it has the same name).
+    reload_count: u64,
 }
 
 impl LoadedLib {
@@ -38,6 +41,8 @@ impl LoadedLib {
     /// This is necessary because the very first time you use hot reloading you
     /// wont have the library, so you can't load it until you have compiled it!
     fn compile_load(dyn_package: &str) -> Self {
+        let reload_count = 0; // This is the first time loading.
+
         #[cfg(target_os = "macos")]
         error!("The hot reloading feature does not work on macos.");
 
@@ -48,9 +53,13 @@ impl LoadedLib {
             info!("{} compile succeeded.", dyn_package);
         }
 
-        copy(&LoadedLib::determine_path(dyn_package), dyn_package);
+        copy(
+            &LoadedLib::determine_path(dyn_package, reload_count),
+            dyn_package,
+            reload_count,
+        );
 
-        Self::load(dyn_package)
+        Self::load(dyn_package, reload_count)
     }
 
     /// Load a library from disk.
@@ -58,8 +67,8 @@ impl LoadedLib {
     /// Currently this is pretty fragile, it gets the path of where it thinks
     /// the dynamic library should be and tries to load it. It will panic if it
     /// is missing.
-    fn load(dyn_package: &str) -> Self {
-        let lib_path = LoadedLib::determine_path(dyn_package);
+    fn load(dyn_package: &str, reload_count: u64) -> Self {
+        let lib_path = LoadedLib::determine_path(dyn_package, reload_count);
 
         // Try to load the library.
         let lib = match unsafe { Library::new(lib_path.clone()) } {
@@ -71,12 +80,16 @@ impl LoadedLib {
             ),
         };
 
-        Self { lib, lib_path }
+        Self {
+            lib,
+            lib_path,
+            reload_count,
+        }
     }
 
     /// Determine the path to the dynamic library based on the path of the
     /// current executable.
-    fn determine_path(dyn_package: &str) -> PathBuf {
+    fn determine_path(dyn_package: &str, reload_count: u64) -> PathBuf {
         let current_exe = env::current_exe();
 
         // If we got the current_exe, we need to go up a level and then down
@@ -109,7 +122,7 @@ impl LoadedLib {
 
         // Determine the platform specific path and push it onto our already
         // established target/debug dir.
-        lib_path.push(active_file(dyn_package));
+        lib_path.push(active_file(dyn_package, reload_count));
 
         lib_path
     }
@@ -174,18 +187,29 @@ pub fn init(
     lib_storage
 }
 
-fn compiled_file(dyn_package: &str) -> String { dyn_lib_file(dyn_package, false) }
+fn compiled_file(dyn_package: &str) -> String { dyn_lib_file(dyn_package, None) }
 
-fn active_file(dyn_package: &str) -> String { dyn_lib_file(dyn_package, true) }
+fn active_file(dyn_package: &str, reload_count: u64) -> String {
+    dyn_lib_file(dyn_package, Some(reload_count))
+}
 
-fn dyn_lib_file(dyn_package: &str, active: bool) -> String {
-    format!(
-        "{}{}{}{}",
-        DLL_PREFIX,
-        dyn_package.replace('-', "_"),
-        if active { "_active" } else { "" },
-        DLL_SUFFIX
-    )
+fn dyn_lib_file(dyn_package: &str, active: Option<u64>) -> String {
+    if let Some(count) = active {
+        format!(
+            "{}{}_active{}{}",
+            DLL_PREFIX,
+            dyn_package.replace('-', "_"),
+            count,
+            DLL_SUFFIX
+        )
+    } else {
+        format!(
+            "{}{}{}",
+            DLL_PREFIX,
+            dyn_package.replace('-', "_"),
+            DLL_SUFFIX
+        )
+    }
 }
 
 /// Event function to hotreload the dynamic library
@@ -221,10 +245,11 @@ fn hotreload(dyn_package: &str, loaded_lib: &Mutex<Option<LoadedLib>>) {
         // Close lib.
         let loaded_lib = lock.take().unwrap();
         loaded_lib.lib.close().unwrap();
-        copy(&loaded_lib.lib_path, dyn_package);
+        let new_count = loaded_lib.reload_count + 1;
+        copy(&loaded_lib.lib_path, dyn_package, new_count);
 
         // Open new lib.
-        *lock = Some(LoadedLib::load(dyn_package));
+        *lock = Some(LoadedLib::load(dyn_package, new_count));
 
         info!("Updated {}.", dyn_package);
     }
@@ -256,13 +281,21 @@ fn compile(dyn_package: &str) -> bool {
 ///
 /// We do this for all OS's although it is only strictly necessary for windows.
 /// The reason we do this is to make the code easier to understand and debug.
-fn copy(lib_path: &Path, dyn_package: &str) {
+fn copy(lib_path: &Path, dyn_package: &str, reload_count: u64) {
     // Use the platform specific names.
     let lib_compiled_path = lib_path.with_file_name(compiled_file(dyn_package));
-    let lib_output_path = lib_path.with_file_name(active_file(dyn_package));
+    let lib_output_path = lib_path.with_file_name(active_file(dyn_package, reload_count));
+    let old_lib_output_path = reload_count
+        .checked_sub(1)
+        .map(|old_count| lib_path.with_file_name(active_file(dyn_package, old_count)));
 
     // Get the path to where the lib was compiled to.
     debug!(?lib_compiled_path, ?lib_output_path, "Moving.");
+
+    // delete old file
+    if let Some(old) = old_lib_output_path {
+        std::fs::remove_file(old).expect("Failed to delete old library");
+    }
 
     // Copy the library file from where it is output, to where we are going to
     // load it from i.e. lib_path.
