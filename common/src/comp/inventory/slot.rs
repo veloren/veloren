@@ -107,16 +107,6 @@ pub enum ArmorSlot {
     Bag4,
 }
 
-impl Slot {
-    pub fn can_hold(self, item_kind: &ItemKind) -> bool {
-        match (self, item_kind) {
-            (Self::Inventory(_), _) => true,
-            (Self::Equip(slot), item_kind) => slot.can_hold(item_kind),
-            (Self::Overflow(_), _) => true,
-        }
-    }
-}
-
 impl EquipSlot {
     pub fn can_hold(self, item_kind: &ItemKind) -> bool {
         match (self, item_kind) {

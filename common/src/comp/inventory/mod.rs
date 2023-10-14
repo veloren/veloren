@@ -562,6 +562,7 @@ impl Inventory {
     }
 
     /// Remove an item from an overflow slot
+    #[must_use = "Returned items will be lost if not used"]
     pub fn overflow_remove(&mut self, overflow_slot: usize) -> Option<Item> {
         if overflow_slot < self.overflow_items.len() {
             Some(self.overflow_items.remove(overflow_slot))
@@ -595,6 +596,7 @@ impl Inventory {
     }
 
     /// Takes half of the items from a slot in the inventory
+    #[must_use = "Returned items will be lost if not used"]
     pub fn take_half(
         &mut self,
         inv_slot_id: InvSlotId,
@@ -602,25 +604,15 @@ impl Inventory {
         msm: &MaterialStatManifest,
     ) -> Option<Item> {
         if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
-            if item.is_stackable() && item.amount() > 1 {
-                let mut return_item = item.duplicate(ability_map, msm);
-                let returning_amount = item.amount() / 2;
-                item.decrease_amount(returning_amount).ok()?;
-                return_item.set_amount(returning_amount).expect(
-                    "return_item.amount() = item.amount() / 2 < item.amount() (since \
-                     item.amount() ≥ 1) ≤ item.max_amount() = return_item.max_amount(), since \
-                     return_item is a duplicate of item",
-                );
-                Some(return_item)
-            } else {
-                self.remove(inv_slot_id)
-            }
+            item.take_half(ability_map, msm)
+                .or(self.remove(inv_slot_id))
         } else {
             None
         }
     }
 
     /// Takes half of the items from an overflow slot
+    #[must_use = "Returned items will be lost if not used"]
     pub fn overflow_take_half(
         &mut self,
         overflow_slot: usize,
@@ -628,21 +620,8 @@ impl Inventory {
         msm: &MaterialStatManifest,
     ) -> Option<Item> {
         if let Some(item) = self.overflow_items.get_mut(overflow_slot) {
-            if item.is_stackable() && item.amount() > 1 {
-                let mut return_item = item.duplicate(ability_map, msm);
-                let returning_amount = item.amount() / 2;
-                item.decrease_amount(returning_amount).ok()?;
-                return_item.set_amount(returning_amount).expect(
-                    "return_item.amount() = item.amount() / 2 < item.amount() (since \
-                     item.amount() ≥ 1) ≤ item.max_amount() = return_item.max_amount(), since \
-                     return_item is a duplicate of item",
-                );
-                Some(return_item)
-            } else if overflow_slot < self.overflow_items.len() {
-                Some(self.overflow_items.remove(overflow_slot))
-            } else {
-                None
-            }
+            item.take_half(ability_map, msm)
+                .or(self.overflow_remove(overflow_slot))
         } else {
             None
         }

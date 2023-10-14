@@ -67,7 +67,7 @@ pub fn convert_items_to_database_items(
         .slots_with_id()
         .map(|(pos, item)| {
             (
-                serde_json::to_string(&pos).expect("failed to serialize InventorySlotPos"),
+                serde_json::to_string(&pos).expect("failed to serialize InvSlotId"),
                 item.as_ref(),
                 inventory_container_id,
             )
@@ -473,8 +473,6 @@ pub fn convert_inventory_from_database_items(
                 &|(inv, f_i): &mut (&mut Inventory, &mut FailedInserts), s| {
                     // Attempts first to access inventory if that slot exists there. If it does not
                     // it instead attempts to access failed inserts list.
-                    // Question for Sharp/XVar: Should this attempt to look in failed inserts list
-                    // first?
                     slot(s)
                         .ok()
                         .and_then(|slot| inv.slot_mut(slot))
