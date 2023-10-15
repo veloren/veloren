@@ -227,7 +227,7 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
     }
     .made_valid();
 
-    let [ramp_aabr, aabr] = bridge.dir.split_aabr(aabr, height);
+    let [ramp_aabr, aabr] = bridge.dir.split_aabr_offset(aabr, height);
 
     let ramp_prim = |ramp_aabr: Aabr<i32>, offset: i32| {
         painter
@@ -254,7 +254,7 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
     let vault_offset = 5;
     let bridge_thickness = 4;
 
-    let [vault, _] = bridge.dir.split_aabr(aabr, vault_width);
+    let [vault, _] = bridge.dir.split_aabr_offset(aabr, vault_width);
 
     let len = bridge.dir.select(aabr.size());
     let true_offset = vault_width + vault_offset;
@@ -321,8 +321,11 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
     }
     .made_valid();
 
-    let [_start_aabr, rest] = bridge.dir.split_aabr(aabr, bridge_start_z - bridge.start.z);
-    let [_end_aabr, bridge_aabr] = (-bridge.dir).split_aabr(rest, bridge_start_z - bridge.end.z);
+    let [_start_aabr, rest] = bridge
+        .dir
+        .split_aabr_offset(aabr, bridge_start_z - bridge.start.z);
+    let [_end_aabr, bridge_aabr] =
+        (-bridge.dir).split_aabr_offset(rest, bridge_start_z - bridge.end.z);
     let under = bridge.center.z - 15;
 
     let bridge_prim = |bridge_width: i32| {
@@ -334,11 +337,14 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
         }
         .made_valid();
 
-        let [start_aabr, rest] = bridge.dir.split_aabr(aabr, bridge_start_z - bridge.start.z);
-        let [end_aabr, bridge_aabr] = (-bridge.dir).split_aabr(rest, bridge_start_z - bridge.end.z);
+        let [start_aabr, rest] = bridge
+            .dir
+            .split_aabr_offset(aabr, bridge_start_z - bridge.start.z);
+        let [end_aabr, bridge_aabr] =
+            (-bridge.dir).split_aabr_offset(rest, bridge_start_z - bridge.end.z);
         let [bridge_start, bridge_end] = bridge
             .dir
-            .split_aabr(bridge_aabr, bridge.dir.select(bridge_aabr.size()) / 2);
+            .split_aabr_offset(bridge_aabr, bridge.dir.select(bridge_aabr.size()) / 2);
 
         let ramp_in_aabr = |aabr: Aabr<i32>, dir: Dir, zmin, zmax| {
             let inset = dir.select(aabr.size());
@@ -592,7 +598,7 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
     let aabr = bridge
         .dir
         .rotated_cw()
-        .split_aabr(tower_aabr, stair_thickness + 1)[1];
+        .split_aabr_offset(tower_aabr, stair_thickness + 1)[1];
 
     painter
         .aabb(aabb(
@@ -748,7 +754,7 @@ fn render_hang(bridge: &Bridge, painter: &Painter) {
     let top_offset = 4;
     let top = bridge.end.z + top_offset;
 
-    let [ramp_f, aabr] = bridge.dir.split_aabr(aabr, top - bridge.start.z + 1);
+    let [ramp_f, aabr] = bridge.dir.split_aabr_offset(aabr, top - bridge.start.z + 1);
 
     painter
         .aabb(aabb(
@@ -764,7 +770,7 @@ fn render_hang(bridge: &Bridge, painter: &Painter) {
         )
         .fill(rock.clone());
 
-    let [ramp_b, aabr] = (-bridge.dir).split_aabr(aabr, top_offset + 1);
+    let [ramp_b, aabr] = (-bridge.dir).split_aabr_offset(aabr, top_offset + 1);
     painter
         .aabb(aabb(
             ramp_b.min.with_z(bridge.end.z - 10),

@@ -223,7 +223,7 @@ impl Dir {
         }
     }
 
-    pub fn split_aabr<T>(self, aabr: Aabr<T>, offset: T) -> [Aabr<T>; 2]
+    pub fn split_aabr_offset<T>(self, aabr: Aabr<T>, offset: T) -> [Aabr<T>; 2]
     where
         T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T>,
     {
@@ -237,6 +237,29 @@ impl Dir {
             Dir::NegY => {
                 let res = aabr.split_at_y(aabr.max.y - offset);
                 [res[1], res[0]]
+            },
+        }
+    }
+
+    /// Try to split an aabr in a certain direction
+    pub fn try_split_aabr<T>(self, aabr: Aabr<T>, sp: T) -> Option<[Aabr<T>; 2]>
+    where
+        T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T>,
+    {
+        match self {
+            Dir::NegX | Dir::X => {
+                if aabr.min.x <= sp && sp <= aabr.max.x {
+                    Some(aabr.split_at_x(sp))
+                } else {
+                    None
+                }
+            },
+            Dir::NegY | Dir::Y => {
+                if aabr.min.y <= sp && sp <= aabr.max.y {
+                    Some(aabr.split_at_y(sp))
+                } else {
+                    None
+                }
             },
         }
     }
