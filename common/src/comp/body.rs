@@ -541,7 +541,7 @@ impl Body {
                 quadruped_medium::Species::Catoblepas => Vec3::new(2.0, 4.0, 2.3),
                 quadruped_medium::Species::Cattle => Vec3::new(2.0, 3.6, 2.4),
                 quadruped_medium::Species::Deer => Vec3::new(2.0, 3.0, 2.2),
-                quadruped_medium::Species::Dreadhorn => Vec3::new(3.5, 6.0, 2.6),
+                quadruped_medium::Species::Dreadhorn => Vec3::new(3.5, 7.0, 4.0),
                 quadruped_medium::Species::Frostfang => Vec3::new(1.5, 3.0, 1.5),
                 quadruped_medium::Species::Grolgar => Vec3::new(2.0, 4.0, 2.0),
                 quadruped_medium::Species::Highland => Vec3::new(2.0, 3.6, 2.4),
