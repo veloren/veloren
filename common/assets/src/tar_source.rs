@@ -10,15 +10,7 @@ use std::{
     path::{self, Path, PathBuf},
 };
 
-// derived from the zip source from assets_manager
-
-#[inline]
-pub(crate) fn extension_of(path: &Path) -> Option<&str> {
-    match path.extension() {
-        Some(ext) => ext.to_str(),
-        None => Some(""),
-    }
-}
+// derived from the zip source in the assets_manager crate
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 struct FileDesc(String, String);
@@ -68,126 +60,74 @@ impl fmt::Debug for FileDesc {
     }
 }
 
-/// An entry in a archive directory.
-#[derive(Debug)]
-enum OwnedEntry {
-    File(FileDesc),
-    //    Dir(String),
+impl FileDesc {
+    fn as_dir_entry(&self) -> DirEntry { DirEntry::File(&self.0, &self.1) }
 }
 
-impl OwnedEntry {
-    fn as_dir_entry(&self) -> DirEntry {
-        match self {
-            OwnedEntry::File(FileDesc(desc0, desc1)) => DirEntry::File(desc0, desc1),
-            // OwnedEntry::Dir(id) => DirEntry::Directory(id),
-        }
-    }
-}
-
-/// Build ids from components.
-///
-/// Using this allows to easily reuse buffers when building several ids in a
-/// row, and thus to avoid repeated allocations.
-#[derive(Default)]
-struct IdBuilder {
-    segments: Vec<String>,
-    len: usize,
-}
-
-impl IdBuilder {
-    /// Pushs a segment in the builder.
-    #[inline]
-    fn push(&mut self, s: &str) {
-        match self.segments.get_mut(self.len) {
-            Some(seg) => {
-                seg.clear();
-                seg.push_str(s);
-            },
-            None => self.segments.push(s.to_owned()),
-        }
-        self.len += 1;
-    }
-
-    /// Joins segments to build a id.
-    #[inline]
-    fn join(&self) -> String { self.segments[..self.len].join(".") }
-
-    /// Resets the builder without freeing buffers.
-    #[inline]
-    fn reset(&mut self) { self.len = 0; }
-}
-
-/// Register a file of an archive in maps.
+/// Register a file of an archive in maps, components in asset ids are separated
+/// by points
 fn register_file(
     path: &Path,
-    position: usize,
+    position: u64,
     length: usize,
-    files: &mut HashMap<FileDesc, (usize, usize)>,
-    dirs: &mut HashMap<String, Vec<OwnedEntry>>,
-    id_builder: &mut IdBuilder,
+    files: &mut HashMap<FileDesc, (u64, usize)>,
+    dirs: &mut HashMap<String, Vec<FileDesc>>,
 ) {
-    id_builder.reset();
-
     // Parse the path and register it.
+    let mut parent_id = String::default();
     // The closure is used as a cheap `try` block.
-    let ok = (|| {
-        // Fill `id_builder` from the parent's components
+    let unsupported_path = (|| {
         let parent = path.parent()?;
         for comp in parent.components() {
             match comp {
                 path::Component::Normal(s) => {
                     let segment = s.to_str()?;
+                    // reject paths with extensions
                     if segment.contains('.') {
                         return None;
                     }
-                    id_builder.push(segment);
+                    if !parent_id.is_empty() {
+                        parent_id.push('.');
+                    }
+                    parent_id.push_str(segment);
                 },
+                // reject paths with non-name components
                 _ => return None,
             }
         }
 
-        // Build the ids of the file and its parent.
-        let parent_id = id_builder.join();
-        id_builder.push(path.file_stem()?.to_str()?);
-        let id = id_builder.join();
-
+        let file_id = parent_id.clone() + "." + path.file_stem()?.to_str()?;
         // Register the file in the maps.
-        let ext = extension_of(path)?.to_owned();
-        let desc = FileDesc(id, ext);
+        let ext = path.extension().unwrap_or_default().to_str()?.to_owned();
+        let desc = FileDesc(file_id, ext);
         files.insert(desc.clone(), (position, length));
-        let entry = OwnedEntry::File(desc);
-        dirs.entry(parent_id).or_default().push(entry);
+        dirs.entry(parent_id).or_default().push(desc);
 
         Some(())
     })()
-    .is_some();
-
-    if !ok {
+    .is_none();
+    if unsupported_path {
         tracing::warn!("Unsupported path in tar archive: {path:?}");
     }
 }
 
-enum Backend {
-    File(PathBuf),
-    // Buffer(&'static [u8]),
-}
+// we avoid the extra dependency of sync_file introduced by Zip here by opening
+// the file for each read
+struct Backend(PathBuf);
 
 impl Backend {
-    fn read(&self, pos: usize, len: usize) -> std::io::Result<Vec<u8>> {
-        match self {
-            Backend::File(path) => File::open(path).and_then(|file| {
-                let mut result = vec![0; len];
-                file.read_at(result.as_mut_slice(), pos as u64)
-                    .map(move |_bytes| result)
-            }),
-            // Backend::Buffer(_) => todo!(),
-        }
+    fn read(&self, pos: u64, len: usize) -> std::io::Result<Vec<u8>> {
+        File::open(self.0.clone()).and_then(|file| {
+            let mut result = vec![0; len];
+            file.read_at(result.as_mut_slice(), pos)
+                .map(move |_bytes| result)
+        })
     }
 }
 
 pub struct Tar {
-    files: HashMap<FileDesc, (usize, usize)>,
-    dirs: HashMap<String, Vec<OwnedEntry>>,
+    files: HashMap<FileDesc, (u64, usize)>,
+    dirs: HashMap<String, Vec<FileDesc>>,
     backend: Backend,
 }
 
@@ -201,23 +141,21 @@ impl Tar {
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         let mut files = HashMap::with_capacity(contents.size_hint().0);
         let mut dirs = HashMap::new();
-        let mut id_builder = IdBuilder::default();
         for e in contents.flatten() {
             if matches!(e.header().entry_type(), EntryType::Regular) {
                 register_file(
                     e.path().map_err(io::Error::other)?.as_ref(),
-                    e.raw_file_position() as usize,
+                    e.raw_file_position(),
                     e.size() as usize,
                     &mut files,
                     &mut dirs,
-                    &mut id_builder,
                 );
             }
         }
         Ok(Tar {
             files,
             dirs,
-            backend: Backend::File(path.to_path_buf()),
+            backend: Backend(path.to_path_buf()),
         })
     }
 }
@@ -225,22 +163,13 @@ impl Tar {
 impl Source for Tar {
     fn read(&self, id: &str, ext: &str) -> io::Result<FileContent> {
         let key: &dyn FileKey = &(id, ext);
-        let id = *self
-            .files
-            .get(key)
-            .or_else(|| {
-                // also accept assets within the assets dir for now
-                let with_prefix = "assets.".to_string() + id;
-                let prefixed_key: &dyn FileKey = &(with_prefix.as_str(), ext);
-                self.files.get(prefixed_key)
-            })
-            .ok_or(io::ErrorKind::NotFound)?;
+        let id = *self.files.get(key).ok_or(io::ErrorKind::NotFound)?;
         self.backend.read(id.0, id.1).map(FileContent::Buffer)
     }
 
     fn read_dir(&self, id: &str, f: &mut dyn FnMut(DirEntry)) -> io::Result<()> {
         let dir = self.dirs.get(id).ok_or(io::ErrorKind::NotFound)?;
-        dir.iter().map(OwnedEntry::as_dir_entry).for_each(f);
+        dir.iter().map(FileDesc::as_dir_entry).for_each(f);
         Ok(())
     }
 

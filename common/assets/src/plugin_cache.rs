@@ -126,18 +126,15 @@ impl CombinedCache {
         let mut result = load_from(self.0.raw_source().fs.as_any_cache());
         // report a severe error from the filesystem asset even if later overwritten by
         // an Ok value from a plugin
-        match result {
-            Err(ref e) => {
-                match e
-                    .source()
-                    .and_then(|s| s.downcast_ref::<std::io::Error>())
-                    .map(|e| e.kind())
-                {
-                    Some(std::io::ErrorKind::NotFound) => (),
-                    _ => tracing::error!("Filesystem asset load {e:?}"),
-                }
-            },
-            _ => (),
+        if let Err(ref e) = result {
+            match e
+                .source()
+                .and_then(|s| s.downcast_ref::<std::io::Error>())
+                .map(|e| e.kind())
+            {
+                Some(std::io::ErrorKind::NotFound) => (),
+                _ => tracing::error!("Filesystem asset load {e:?}"),
+            }
         }
         for i in self.0.raw_source().plugin_list.read().unwrap().iter() {
             match load_from(i.cache.as_any_cache()) {
