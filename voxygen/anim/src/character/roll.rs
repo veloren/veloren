@@ -228,18 +228,21 @@ impl Animation for RollAnimation {
         );
         next.belt.orientation = Quaternion::rotation_x(0.55 * movement1);
 
-        if prev_aimed_dir.is_some() {
+        if let Some(prev_aimed_dir) = prev_aimed_dir {
+            let forward = prev_aimed_dir.dot(orientation.into()).abs();
+            let sideways = 1.0 - forward;
+
             if matches!(hands.0, None | Some(Hands::One)) {
-                next.hand_l.position += Vec3::new(-2.0, -8.0, 8.0);
+                next.hand_l.position += Vec3::new(-2.0, -8.0, 6.0);
                 next.hand_l.orientation =
                     next.hand_l.orientation * Quaternion::rotation_z(PI * -0.25);
 
-                next.main.position += Vec3::new(-2.0, -8.0, 8.0);
+                next.main.position += Vec3::new(-2.0, -6.0, 8.0);
                 next.main.orientation = next.main.orientation * Quaternion::rotation_x(PI * 0.6);
             }
 
             if matches!(hands.1, None | Some(Hands::One)) {
-                next.hand_r.position += Vec3::new(2.0, -8.0, 8.0);
+                next.hand_r.position += Vec3::new(2.0, -6.0, 6.0);
                 next.hand_r.orientation =
                     next.hand_r.orientation * Quaternion::rotation_z(PI * 0.25);
 
@@ -254,18 +257,20 @@ impl Animation for RollAnimation {
             next.shorts.orientation = Quaternion::rotation_x(0.0 * movement1);
 
             next.foot_l.position = Vec3::new(
-                1.0 * movement1 - s_a.foot.0,
-                s_a.foot.1 + 5.5 * movement1,
+                1.0 * movement1 - s_a.foot.0 - 4.0 * sideways,
+                s_a.foot.1 + 5.5 * movement1 * forward,
                 s_a.foot.2 - 5.0 * movement1 - 5.0,
             );
-            next.foot_l.orientation = Quaternion::rotation_x(0.0 * movement1 + 0.5);
+            next.foot_l.orientation =
+                Quaternion::rotation_x(0.5 * forward) * Quaternion::rotation_y(0.8 * sideways);
 
             next.foot_r.position = Vec3::new(
-                1.0 * movement1 + s_a.foot.0,
-                s_a.foot.1 - 5.5 * movement1,
-                s_a.foot.2 - 5.0 * movement1 - 5.0,
+                1.0 * movement1 + s_a.foot.0 + 4.0 * sideways,
+                s_a.foot.1 - (5.5 * movement1 + 4.0) * forward,
+                s_a.foot.2 - 5.0 * movement1 - 3.0,
             );
-            next.foot_r.orientation = Quaternion::rotation_x(0.0 * movement1 - 0.5);
+            next.foot_r.orientation =
+                Quaternion::rotation_x(1.5 * forward) * Quaternion::rotation_y(-0.8 * sideways);
         } else {
             next.chest.orientation = Quaternion::rotation_x(-0.2 * movement1);
 
