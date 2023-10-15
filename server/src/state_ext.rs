@@ -91,13 +91,6 @@ pub trait StateExt {
         pos: comp::Pos,
         ori: comp::Ori,
     ) -> EcsEntityBuilder;
-    /// Build a beam entity
-    fn create_beam(
-        &mut self,
-        properties: comp::beam::Properties,
-        pos: comp::Pos,
-        ori: comp::Ori,
-    ) -> EcsEntityBuilder;
     /// Creates a safezone
     fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder;
     fn create_wiring(
@@ -502,22 +495,6 @@ impl StateExt for State {
             })
             .with(comp::ShockwaveHitEntities {
                 hit_entities: Vec::<Uid>::new(),
-            })
-    }
-
-    fn create_beam(
-        &mut self,
-        properties: comp::beam::Properties,
-        pos: comp::Pos,
-        ori: comp::Ori,
-    ) -> EcsEntityBuilder {
-        self.ecs_mut()
-            .create_entity_synced()
-            .with(pos)
-            .with(ori)
-            .with(comp::BeamSegment {
-                properties,
-                creation: None,
             })
     }
 

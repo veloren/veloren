@@ -213,7 +213,7 @@ impl State {
         ecs.register::<comp::Group>();
         ecs.register::<comp::Shockwave>();
         ecs.register::<comp::ShockwaveHitEntities>();
-        ecs.register::<comp::BeamSegment>();
+        ecs.register::<comp::Beam>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::LootOwner>();
         ecs.register::<comp::Admin>();
@@ -261,7 +261,6 @@ impl State {
         ecs.register::<comp::Faction>();
         ecs.register::<comp::invite::Invite>();
         ecs.register::<comp::invite::PendingInvites>();
-        ecs.register::<comp::Beam>();
         ecs.register::<VolumeRiders>();
 
         // Register synced resources used by the ECS.

@@ -902,7 +902,7 @@ pub enum CharacterAbility {
     BasicBeam {
         buildup_duration: f32,
         recover_duration: f32,
-        beam_duration: f32,
+        beam_duration: f64,
         damage: f32,
         tick_rate: f32,
         range: f32,
@@ -1536,7 +1536,7 @@ impl CharacterAbility {
                 *tick_rate *= stats.speed;
                 *range *= stats.range;
                 // Duration modified to keep velocity constant
-                *beam_duration *= stats.range;
+                *beam_duration *= stats.range as f64;
                 *energy_drain /= stats.energy_efficiency;
                 *damage_effect = damage_effect.map(|de| de.adjusted_by_stats(stats));
             },
@@ -2127,7 +2127,7 @@ impl CharacterAbility {
                     let range_mod = modifiers.range.powi(level.into());
                     *range *= range_mod;
                     // Duration modified to keep velocity constant
-                    *beam_duration *= range_mod;
+                    *beam_duration *= range_mod as f64;
                 }
                 if let Ok(level) = skillset.skill_level(Staff(FDrain)) {
                     *energy_drain *= modifiers.energy_drain.powi(level.into());
@@ -2135,7 +2135,7 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Staff(FVelocity)) {
                     let velocity_increase = modifiers.velocity.powi(level.into());
                     let duration_mod = 1.0 / (1.0 + velocity_increase);
-                    *beam_duration *= duration_mod;
+                    *beam_duration *= duration_mod as f64;
                 }
             },
             CharacterAbility::Shockwave {
@@ -2185,7 +2185,7 @@ impl CharacterAbility {
                     let range_mod = modifiers.range.powi(level.into());
                     *range *= range_mod;
                     // Duration modified to keep velocity constant
-                    *beam_duration *= range_mod;
+                    *beam_duration *= range_mod as f64;
                 }
                 if let Ok(level) = skillset.skill_level(Sceptre(LRegen)) {
                     *energy_regen *= modifiers.energy_regen.powi(level.into());
@@ -2736,11 +2736,11 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 static_data: basic_beam::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    beam_duration: Duration::from_secs_f32(*beam_duration),
+                    beam_duration: Secs(*beam_duration),
                     damage: *damage,
                     tick_rate: *tick_rate,
                     range: *range,
-                    max_angle: *max_angle,
+                    end_radius: max_angle.to_radians().tan() * *range,
                     damage_effect: *damage_effect,
                     energy_regen: *energy_regen,
                     energy_drain: *energy_drain,
@@ -2750,6 +2750,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
+                aim_dir: data.ori.look_dir(),
+                beam_offset: data.pos.0,
             }),
             CharacterAbility::BasicAura {
                 buildup_duration,

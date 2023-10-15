@@ -15,7 +15,7 @@ use common::{
         item::Reagent,
         object,
         shockwave::{self, ShockwaveDodgeable},
-        BeamSegment, Body, CharacterState, Ori, Pos, Scale, Shockwave, Vel,
+        Beam, Body, CharacterState, Ori, Pos, Scale, Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -1030,35 +1030,28 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
-        let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
 
-        for (interp, pos, ori, beam) in (
-            ecs.read_storage::<Interpolated>().maybe(),
-            &ecs.read_storage::<Pos>(),
-            &ecs.read_storage::<Ori>(),
-            &ecs.read_storage::<BeamSegment>(),
-        )
-            .join()
-            .filter(|(_, _, _, b)| b.creation.map_or(true, |c| (c + dt as f64) >= time))
-        {
-            let pos = interp.map_or(pos.0, |i| i.pos);
-            let ori = interp.map_or(*ori, |i| i.ori);
-
+        for (beam, ori) in (&ecs.read_storage::<Beam>(), &ecs.read_storage::<Ori>()).join() {
             // TODO: Handle this less hackily. Done this way as beam segments are created
             // every server tick, which is approximately 33 ms. Heartbeat scheduler used to
             // account for clients with less than 30 fps because they start the creation
             // time when the segments are received and could receive 2 at once
+            // TODO: Above limitation no longer exists. Evaluate changing below behavior
+            // later to allow for better beam particles.
             let beam_tick_count = 33.max(self.scheduler.heartbeats(Duration::from_millis(1)));
-            let range = beam.properties.speed * beam.properties.duration.as_secs_f32();
-            match beam.properties.specifier {
+            let angle = (beam.end_radius / beam.range).atan();
+            let beam_dir = (beam.bezier.ctrl - beam.bezier.start)
+                .try_normalized()
+                .unwrap_or(*ori.look_dir());
+            match beam.specifier {
                 beam::FrontendSpecifier::Flamethrower => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     // Emit a light when using flames
                     if scene_data.flashing_lights_enabled {
                         lights.push(Light::new(
-                            pos,
+                            beam.bezier.start,
                             Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
                             2.0,
                         ));
@@ -1066,7 +1059,7 @@ impl ParticleMgr {
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 2,
                         || {
-                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let phi: f32 = rng.gen_range(0.0..angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                             let offset_z = Vec3::new(
                                 phi.sin() * theta.cos(),
@@ -1075,23 +1068,23 @@ impl ParticleMgr {
                             );
                             let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                             Particle::new_directed(
-                                beam.properties.duration,
+                                Duration::from_secs_f64(beam.duration.0),
                                 time,
                                 ParticleMode::FlameThrower,
-                                pos,
-                                pos + random_ori * range,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
                             )
                         },
                     );
                 },
                 beam::FrontendSpecifier::Cultist => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     // Emit a light when using flames
                     if scene_data.flashing_lights_enabled {
                         lights.push(Light::new(
-                            pos,
+                            beam.bezier.start,
                             Rgb::new(1.0, 0.0, 1.0).map(|e| e * rng.gen_range(0.5..1.0)),
                             2.0,
                         ));
@@ -1099,7 +1092,7 @@ impl ParticleMgr {
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 2,
                         || {
-                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let phi: f32 = rng.gen_range(0.0..angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                             let offset_z = Vec3::new(
                                 phi.sin() * theta.cos(),
@@ -1108,11 +1101,11 @@ impl ParticleMgr {
                             );
                             let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                             Particle::new_directed(
-                                beam.properties.duration,
+                                Duration::from_secs_f64(beam.duration.0),
                                 time,
                                 ParticleMode::CultistFlame,
-                                pos,
-                                pos + random_ori * range,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
                             )
                         },
                     );
@@ -1120,49 +1113,49 @@ impl ParticleMgr {
                 beam::FrontendSpecifier::LifestealBeam => {
                     // Emit a light when using lifesteal beam
                     if scene_data.flashing_lights_enabled {
-                        lights.push(Light::new(pos, Rgb::new(0.8, 1.0, 0.5), 1.0));
+                        lights.push(Light::new(beam.bezier.start, Rgb::new(0.8, 1.0, 0.5), 1.0));
                     }
                     self.particles.reserve(beam_tick_count as usize);
                     for i in 0..beam_tick_count {
                         self.particles.push(Particle::new_directed(
-                            beam.properties.duration,
+                            Duration::from_secs_f64(beam.duration.0),
                             time + i as f64 / 1000.0,
                             ParticleMode::LifestealBeam,
-                            pos,
-                            pos + *ori.look_dir() * range,
+                            beam.bezier.start,
+                            beam.bezier.start + beam_dir * beam.range,
                         ));
                     }
                 },
                 beam::FrontendSpecifier::ClayGolem => {
                     self.particles.resize_with(self.particles.len() + 2, || {
                         Particle::new_directed(
-                            beam.properties.duration,
+                            Duration::from_secs_f64(beam.duration.0),
                             time,
                             ParticleMode::Laser,
-                            pos,
-                            pos + *ori.look_dir() * range,
+                            beam.bezier.start,
+                            beam.bezier.start + beam_dir * beam.range,
                         )
                     })
                 },
                 beam::FrontendSpecifier::WebStrand => {
                     self.particles.resize_with(self.particles.len() + 1, || {
                         Particle::new_directed(
-                            beam.properties.duration,
+                            Duration::from_secs_f64(beam.duration.0),
                             time,
                             ParticleMode::WebStrand,
-                            pos,
-                            pos + *ori.look_dir() * range,
+                            beam.bezier.start,
+                            beam.bezier.start + beam_dir * beam.range,
                         )
                     })
                 },
                 beam::FrontendSpecifier::Bubbles => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 15,
                         || {
-                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let phi: f32 = rng.gen_range(0.0..angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                             let offset_z = Vec3::new(
                                 phi.sin() * theta.cos(),
@@ -1171,23 +1164,23 @@ impl ParticleMgr {
                             );
                             let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                             Particle::new_directed(
-                                beam.properties.duration,
+                                Duration::from_secs_f64(beam.duration.0),
                                 time,
                                 ParticleMode::Bubbles,
-                                pos,
-                                pos + random_ori * range,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
                             )
                         },
                     );
                 },
                 beam::FrontendSpecifier::Poison => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 15,
                         || {
-                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let phi: f32 = rng.gen_range(0.0..angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                             let offset_z = Vec3::new(
                                 phi.sin() * theta.cos(),
@@ -1196,23 +1189,23 @@ impl ParticleMgr {
                             );
                             let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                             Particle::new_directed(
-                                beam.properties.duration,
+                                Duration::from_secs_f64(beam.duration.0),
                                 time,
                                 ParticleMode::CultistFlame,
-                                pos,
-                                pos + random_ori * range,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
                             )
                         },
                     );
                 },
                 beam::FrontendSpecifier::Ink => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 15,
                         || {
-                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let phi: f32 = rng.gen_range(0.0..angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                             let offset_z = Vec3::new(
                                 phi.sin() * theta.cos(),
@@ -1221,23 +1214,23 @@ impl ParticleMgr {
                             );
                             let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                             Particle::new_directed(
-                                beam.properties.duration,
+                                Duration::from_secs_f64(beam.duration.0),
                                 time,
                                 ParticleMode::Ink,
-                                pos,
-                                pos + random_ori * range,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
                             )
                         },
                     );
                 },
                 beam::FrontendSpecifier::Steam => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 15,
                         || {
-                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let phi: f32 = rng.gen_range(0.0..angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                             let offset_z = Vec3::new(
                                 phi.sin() * theta.cos(),
@@ -1246,11 +1239,11 @@ impl ParticleMgr {
                             );
                             let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                             Particle::new_directed(
-                                beam.properties.duration,
+                                Duration::from_secs_f64(beam.duration.0),
                                 time,
                                 ParticleMode::Steam,
-                                pos,
-                                pos + random_ori * range,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
                             )
                         },
                     );
@@ -1258,22 +1251,22 @@ impl ParticleMgr {
                 beam::FrontendSpecifier::Lightning => {
                     self.particles.resize_with(self.particles.len() + 2, || {
                         Particle::new_directed(
-                            beam.properties.duration,
+                            Duration::from_secs_f64(beam.duration.0),
                             time,
                             ParticleMode::Lightning,
-                            pos,
-                            pos + *ori.look_dir() * range,
+                            beam.bezier.start,
+                            beam.bezier.start + beam_dir * beam.range,
                         )
                     })
                 },
                 beam::FrontendSpecifier::Frost => {
                     let mut rng = thread_rng();
-                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                     self.particles.resize_with(
                         self.particles.len() + usize::from(beam_tick_count) / 4,
                         || {
-                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let phi: f32 = rng.gen_range(0.0..angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                             let offset_z = Vec3::new(
                                 phi.sin() * theta.cos(),
@@ -1282,11 +1275,11 @@ impl ParticleMgr {
                             );
                             let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                             Particle::new_directed(
-                                beam.properties.duration,
+                                Duration::from_secs_f64(beam.duration.0),
                                 time,
                                 ParticleMode::Ice,
-                                pos,
-                                pos + random_ori * range,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
                             )
                         },
                     );
