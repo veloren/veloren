@@ -79,13 +79,14 @@ impl ParticleMgr {
             },
             Outcome::SpriteDelete { pos, sprite } => match sprite {
                 SpriteKind::SeaUrchin => {
+                    let pos = pos.map(|e| e as f32 + 0.5);
                     self.particles.resize_with(self.particles.len() + 10, || {
                         Particle::new_directed(
                             Duration::from_secs_f32(rng.gen_range(0.1..0.5)),
                             time,
                             ParticleMode::Steam,
-                            *pos + Vec3::new(0.0, 0.0, rng.gen_range(0.0..1.5)),
-                            *pos,
+                            pos + Vec3::new(0.0, 0.0, rng.gen_range(0.0..1.5)),
+                            pos,
                         )
                     });
                 },
