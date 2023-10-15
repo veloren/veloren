@@ -36,30 +36,27 @@ impl CombinedSource {
         if let Ok(file_entry) = self.fs.raw_source().read(id, ext) {
             result.push((None, file_entry));
         }
-        if let Ok(guard) = self.plugin_list.read() {
-            for (n, p) in guard.iter().enumerate() {
-                if let Ok(entry) = p.cache.raw_source().read(id, ext) {
-                    // the data is behind an RwLockReadGuard, so own it for returning
-                    result.push((Some(n), match entry {
-                        FileContent::Slice(s) => FileContent::Buffer(Vec::from(s)),
-                        FileContent::Buffer(b) => FileContent::Buffer(b),
-                        FileContent::Owned(s) => {
-                            FileContent::Buffer(Vec::from(s.as_ref().as_ref()))
-                        },
-                    }));
-                }
+        for (n, p) in self.plugin_list.read().unwrap().iter().enumerate() {
+            if let Ok(entry) = p.cache.raw_source().read(id, ext) {
+                // the data is behind an RwLockReadGuard, so own it for returning
+                result.push((Some(n), match entry {
+                    FileContent::Slice(s) => FileContent::Buffer(Vec::from(s)),
+                    FileContent::Buffer(b) => FileContent::Buffer(b),
+                    FileContent::Owned(s) => FileContent::Buffer(Vec::from(s.as_ref().as_ref())),
+                }));
             }
         }
         result
     }
 
-    // we don't want to keep the lock, so we clone
+    // We don't want to keep the lock, so we clone
     fn plugin_path(&self, index: Option<usize>) -> Option<PathBuf> {
         if let Some(index) = index {
             self.plugin_list
                 .read()
-                .ok()
-                .and_then(|p| p.get(index).map(|p| p.path.clone()))
+                .unwrap()
+                .get(index)
+                .map(|plugin| plugin.path.clone())
         } else {
             None
         }
@@ -68,7 +65,7 @@ impl CombinedSource {
 
 impl Source for CombinedSource {
     fn read(&self, id: &str, ext: &str) -> std::io::Result<FileContent<'_>> {
-        // we could shortcut on fs if we dont want to check for conflicts
+        // We could shortcut on fs if we dont check for conflicts
         let mut entries = self.read_multiple(id, ext);
         if entries.is_empty() {
             Err(std::io::ErrorKind::NotFound.into())
@@ -89,7 +86,7 @@ impl Source for CombinedSource {
         id: &str,
         f: &mut dyn FnMut(assets_manager::source::DirEntry),
     ) -> std::io::Result<()> {
-        // TODO: we should combine the sources
+        // TODO: We should combine the sources, but this isn't used in veloren
         self.fs.raw_source().read_dir(id, f)
     }
 
@@ -98,8 +95,9 @@ impl Source for CombinedSource {
             || self
                 .plugin_list
                 .read()
-                .map(|p| p.iter().any(|p| p.cache.raw_source().exists(entry)))
-                .unwrap_or_default()
+                .unwrap()
+                .iter()
+                .any(|plugin| plugin.cache.raw_source().exists(entry))
     }
 
     // TODO: Enable hot reloading for plugins
@@ -115,29 +113,29 @@ pub struct CombinedCache(AssetCache<CombinedSource>);
 
 impl CombinedCache {
     pub fn new() -> std::io::Result<Self> {
-        CombinedSource::new().map(|s| Self(AssetCache::with_source(s)))
+        CombinedSource::new().map(|combined_source| Self(AssetCache::with_source(combined_source)))
     }
 
-    /// combine objects from filesystem and plugins
+    /// Combine objects from filesystem and plugins
     pub fn combine<T: Concatenate>(
         &self,
         load_from: impl Fn(AnyCache) -> Result<T, BoxedError>,
     ) -> Result<T, BoxedError> {
         let mut result = load_from(self.0.raw_source().fs.as_any_cache());
-        // report a severe error from the filesystem asset even if later overwritten by
+        // Report a severe error from the filesystem asset even if later overwritten by
         // an Ok value from a plugin
-        if let Err(ref e) = result {
-            match e
+        if let Err(ref fs_error) = result {
+            match fs_error
                 .source()
-                .and_then(|s| s.downcast_ref::<std::io::Error>())
-                .map(|e| e.kind())
+                .and_then(|error_source| error_source.downcast_ref::<std::io::Error>())
+                .map(|io_error| io_error.kind())
             {
                 Some(std::io::ErrorKind::NotFound) => (),
-                _ => tracing::error!("Filesystem asset load {e:?}"),
+                _ => tracing::error!("Filesystem asset load {fs_error:?}"),
             }
         }
-        for i in self.0.raw_source().plugin_list.read().unwrap().iter() {
-            match load_from(i.cache.as_any_cache()) {
+        for plugin in self.0.raw_source().plugin_list.read().unwrap().iter() {
+            match load_from(plugin.cache.as_any_cache()) {
                 Ok(b) => {
                     result = if let Ok(a) = result {
                         Ok(a.concatenate(b))
@@ -145,15 +143,18 @@ impl CombinedCache {
                         Ok(b)
                     };
                 },
-                // report any error other than NotFound
-                Err(e) => {
-                    match e
+                // Report any error other than NotFound
+                Err(plugin_error) => {
+                    match plugin_error
                         .source()
-                        .and_then(|s| s.downcast_ref::<std::io::Error>())
-                        .map(|e| e.kind())
+                        .and_then(|error_source| error_source.downcast_ref::<std::io::Error>())
+                        .map(|io_error| io_error.kind())
                     {
                         Some(std::io::ErrorKind::NotFound) => (),
-                        _ => tracing::error!("Loading from {:?} failed {e:?}", i.path),
+                        _ => tracing::error!(
+                            "Loading from {:?} failed {plugin_error:?}",
+                            plugin.path
+                        ),
                     }
                 },
             }
@@ -163,7 +164,6 @@ impl CombinedCache {
 
     pub fn register_tar(&self, path: PathBuf) -> std::io::Result<()> {
         let tar_source = Tar::from_path(&path)?;
-        //println!("Tar {:?} {:?}", path, tar_source);
         let cache = AssetCache::with_source(tar_source);
         self.0
             .raw_source()

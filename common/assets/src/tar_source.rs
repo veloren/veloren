@@ -10,7 +10,7 @@ use std::{
     path::{self, Path, PathBuf},
 };
 
-// derived from the zip source in the assets_manager crate
+// Derived from the zip source in the assets_manager crate
 
 #[derive(Clone, Hash, PartialEq, Eq)]
 struct FileDesc(String, String);
@@ -82,7 +82,7 @@ fn register_file(
             match comp {
                 path::Component::Normal(s) => {
                     let segment = s.to_str()?;
-                    // reject paths with extensions
+                    // Reject paths with extensions
                     if segment.contains('.') {
                         return None;
                     }
@@ -91,7 +91,7 @@ fn register_file(
                     }
                     parent_id.push_str(segment);
                 },
-                // reject paths with non-name components
+                // Reject paths with non-name components
                 _ => return None,
             }
         }
@@ -107,11 +107,11 @@ fn register_file(
     })()
     .is_none();
     if unsupported_path {
-        tracing::warn!("Unsupported path in tar archive: {path:?}");
+        tracing::error!("Unsupported path in tar archive: {path:?}");
     }
 }
 
-// we avoid the extra dependency of sync_file introduced by Zip here by opening
+// We avoid the extra dependency of sync_file introduced by Zip here by opening
 // the file for each read
 struct Backend(PathBuf);
 
@@ -120,7 +120,7 @@ impl Backend {
         File::open(self.0.clone()).and_then(|file| {
             let mut result = vec![0; len];
             file.read_at(result.as_mut_slice(), pos)
-                .map(move |_bytes| result)
+                .map(move |_num_bytes| result)
         })
     }
 }
@@ -141,12 +141,12 @@ impl Tar {
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         let mut files = HashMap::with_capacity(contents.size_hint().0);
         let mut dirs = HashMap::new();
-        for e in contents.flatten() {
-            if matches!(e.header().entry_type(), EntryType::Regular) {
+        for entry in contents.flatten() {
+            if matches!(entry.header().entry_type(), EntryType::Regular) {
                 register_file(
-                    e.path().map_err(io::Error::other)?.as_ref(),
-                    e.raw_file_position(),
-                    e.size() as usize,
+                    entry.path().map_err(io::Error::other)?.as_ref(),
+                    entry.raw_file_position(),
+                    entry.size() as usize,
                     &mut files,
                     &mut dirs,
                 );

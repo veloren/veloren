@@ -197,11 +197,11 @@ impl PluginMgr {
                 {
                     info!("Loading plugin at {:?}", entry.path());
                     Plugin::from_reader(fs::File::open(entry.path()).map_err(PluginError::Io)?).map(
-                        |o| {
+                        |plugin| {
                             if let Err(e) = common::assets::register_tar(entry.path()) {
                                 error!("Plugin {:?} tar error {e:?}", entry.path());
                             }
-                            Some(o)
+                            Some(plugin)
                         },
                     )
                 } else {
