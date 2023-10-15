@@ -7217,7 +7217,6 @@ version = "0.15.0"
 dependencies = [
  "atomicwrites",
  "authc",
- "axum",
  "bincode",
  "censor",
  "chrono",
@@ -7228,7 +7227,6 @@ dependencies = [
  "futures-util",
  "hashbrown 0.13.2",
  "humantime",
- "hyper",
  "itertools",
  "lazy_static",
  "noise",
@@ -7283,12 +7281,16 @@ dependencies = [
 name = "veloren-server-cli"
 version = "0.15.0"
 dependencies = [
+ "axum",
  "cansi",
+ "chrono",
  "clap",
  "crossterm 0.26.1",
+ "hyper",
  "lazy_static",
  "mimalloc",
  "num_cpus",
+ "prometheus",
  "ron 0.8.1",
  "serde",
  "shell-words",

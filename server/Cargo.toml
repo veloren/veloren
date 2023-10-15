@@ -64,10 +64,6 @@ enum-map = { workspace = true }
 noise = { version = "0.7", default-features = false }
 censor = "0.3"
 
-#HTTP
-axum = { version = "0.6.20" }
-hyper = "0.14.26"
-
 rusqlite = { version = "0.28.0", features = ["array", "vtab", "bundled", "trace"] }
 refinery = { version = "0.8.8", features = ["rusqlite"] }
 

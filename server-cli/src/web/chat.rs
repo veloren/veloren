@@ -5,63 +5,16 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use chrono::{DateTime, Utc};
-use common::comp::ChatMsg;
+use chrono::DateTime;
 use hyper::{Request, StatusCode};
-use serde::{Deserialize, Deserializer, Serialize};
-use std::{
-    borrow::Cow, collections::VecDeque, mem::size_of, ops::Sub, str::FromStr, sync::Arc,
-    time::Duration,
-};
-use tokio::sync::Mutex;
-
-/// The chat cache gets it data from the gameserver and will keep it for some
-/// time It will be made available for its consumers, the REST Api
-#[derive(Clone)]
-pub struct ChatCache {
-    messages: Arc<Mutex<VecDeque<ChatMessage>>>,
-}
+use serde::{Deserialize, Deserializer};
+use server::chat::ChatCache;
+use std::{borrow::Cow, str::FromStr};
 
 /// Keep Size small, so we dont have to Clone much for each request.
 #[derive(Clone)]
 struct ChatToken {
-    secret_token: Cow<'static, str>,
-}
-
-pub struct ChatExporter {
-    messages: Arc<Mutex<VecDeque<ChatMessage>>>,
-    keep_duration: chrono::Duration,
-}
-
-impl ChatExporter {
-    pub fn send(&self, msg: ChatMsg) {
-        let time = Utc::now();
-        let drop_older_than = time.sub(self.keep_duration);
-        let mut messages = self.messages.blocking_lock();
-        while let Some(msg) = messages.front() && msg.time < drop_older_than {
-            messages.pop_front();
-        }
-        messages.push_back(ChatMessage { time, msg });
-        const MAX_CACHE_BYTES: usize = 10_000_000; // approx. because HashMap allocates on Heap
-        if messages.len() * size_of::<ChatMessage>() > MAX_CACHE_BYTES {
-            let msg_count = messages.len();
-            tracing::debug!(?msg_count, "shrinking cache");
-            messages.shrink_to_fit();
-        }
-    }
-}
-
-impl ChatCache {
-    pub fn new(keep_duration: Duration) -> (Self, ChatExporter) {
-        let messages: Arc<Mutex<VecDeque<ChatMessage>>> = Default::default();
-        let messages_clone = Arc::clone(&messages);
-        let keep_duration = chrono::Duration::from_std(keep_duration).unwrap();
-
-        (Self { messages }, ChatExporter {
-            messages: messages_clone,
-            keep_duration,
-        })
-    }
+    secret_token: Option<Cow<'static, str>>,
 }
 
 async fn validate_secret<B>(
@@ -69,33 +22,30 @@ async fn validate_secret<B>(
     req: Request<B>,
     next: Next<B>,
 ) -> Result<Response, StatusCode> {
+    // check if this endpoint is disabled
+    let secret_token = token.secret_token.ok_or(StatusCode::METHOD_NOT_ALLOWED)?;
+
     pub const X_SECRET_TOKEN: &str = "X-Secret-Token";
     let session_cookie = req
         .headers()
         .get(X_SECRET_TOKEN)
         .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    if session_cookie.as_bytes() != token.secret_token.as_bytes() {
+    if session_cookie.as_bytes() != secret_token.as_bytes() {
         return Err(StatusCode::UNAUTHORIZED);
     }
 
     Ok(next.run(req).await)
 }
 
-pub fn router(cache: ChatCache, secret_token: String) -> Router {
+pub fn router(cache: ChatCache, secret_token: Option<String>) -> Router {
     let token = ChatToken {
-        secret_token: Cow::Owned(secret_token),
+        secret_token: secret_token.map(Cow::Owned),
     };
     Router::new()
         .route("/history", get(history))
         .layer(axum::middleware::from_fn_with_state(token, validate_secret))
         .with_state(cache)
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct ChatMessage {
-    time: DateTime<Utc>,
-    msg: ChatMsg,
 }
 
 #[derive(Debug, Deserialize)]

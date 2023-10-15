@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    net::{Ipv4Addr, SocketAddr},
+    path::PathBuf,
+};
 use tracing::warn;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -7,6 +11,10 @@ use tracing::warn;
 pub struct Settings {
     pub update_shutdown_grace_period_secs: u32,
     pub update_shutdown_message: String,
+    pub web_address: SocketAddr,
+    /// SECRET API HEADER used to access the chat api, if disabled the API is
+    /// unreachable
+    pub web_chat_secret: Option<String>,
 }
 
 impl Default for Settings {
@@ -14,6 +22,8 @@ impl Default for Settings {
         Self {
             update_shutdown_grace_period_secs: 120,
             update_shutdown_message: "The server is restarting for an update".to_owned(),
+            web_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
+            web_chat_secret: None,
         }
     }
 }

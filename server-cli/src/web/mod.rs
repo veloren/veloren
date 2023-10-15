@@ -2,15 +2,15 @@ use axum::{extract::State, response::IntoResponse, routing::get, Router};
 use core::{future::Future, ops::Deref};
 use hyper::{header, http, Body, StatusCode};
 use prometheus::{Registry, TextEncoder};
+use server::chat::ChatCache;
 use std::net::SocketAddr;
 
 mod chat;
-pub use chat::{ChatCache, ChatExporter};
 
 pub async fn run<S, F, R>(
     registry: R,
     cache: ChatCache,
-    chat_token: String,
+    chat_secret: Option<String>,
     addr: S,
     shutdown: F,
 ) -> Result<(), hyper::Error>
@@ -24,7 +24,7 @@ where
         .with_state(registry.deref().clone());
 
     let app = Router::new()
-        .nest("/chat/v1", chat::router(cache, chat_token))
+        .nest("/chat/v1", chat::router(cache, chat_secret))
         .nest("/metrics", metrics)
         .route("/health", get(|| async {}));
 
