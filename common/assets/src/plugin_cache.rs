@@ -2,7 +2,7 @@ use std::{path::PathBuf, sync::RwLock};
 
 use crate::Concatenate;
 
-use super::{fs::FileSystem, tar_source::Tar};
+use super::{fs::FileSystem, tar_source::Tar, ASSETS_PATH};
 use assets_manager::{
     hot_reloading::{DynUpdateSender, EventSender},
     source::{FileContent, Source},
@@ -74,11 +74,11 @@ impl Source for CombinedSource {
             Err(std::io::ErrorKind::NotFound.into())
         } else {
             if entries.len() > 1 {
-                tracing::error!(
-                    "Duplicate asset {id} in read, plugins {:?} + {:?}",
-                    self.plugin_path(entries[0].0),
-                    self.plugin_path(entries[1].0)
-                );
+                let plugina = self.plugin_path(entries[0].0);
+                let pluginb = self.plugin_path(entries[1].0);
+                let patha = plugina.as_ref().unwrap_or(&ASSETS_PATH);
+                let pathb = pluginb.as_ref().unwrap_or(&ASSETS_PATH);
+                tracing::error!("Duplicate asset {id} in {patha:?} and {pathb:?}");
             }
             Ok(entries.swap_remove(0).1)
         }
