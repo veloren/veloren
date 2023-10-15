@@ -22,20 +22,28 @@ pub use assets_manager::{
 };
 
 mod fs;
-mod plugin_cache;
+#[cfg(feature = "plugins")] mod plugin_cache;
 #[cfg(feature = "plugins")] mod tar_source;
 mod walk;
 pub use walk::{walk_tree, Walk};
 
+#[cfg(feature = "plugins")]
 lazy_static! {
-    /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: plugin_cache::CombinedCache = plugin_cache::CombinedCache::new().unwrap();
+/// The HashMap where all loaded assets are stored in.
+static ref ASSETS: plugin_cache::CombinedCache = plugin_cache::CombinedCache::new().unwrap();
+}
+#[cfg(not(feature = "plugins"))]
+lazy_static! {
+/// The HashMap where all loaded assets are stored in.
+static ref ASSETS: AssetCache<fs::FileSystem> =
+        AssetCache::with_source(fs::FileSystem::new().unwrap());
 }
 
 #[cfg(feature = "hot-reloading")]
 pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 // register a new plugin
+#[cfg(feature = "plugins")]
 pub fn register_tar(path: PathBuf) -> std::io::Result<()> { ASSETS.register_tar(path) }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
@@ -258,6 +266,7 @@ impl<T: Clone> Clone for MultiRon<T> {
     fn clone_from(&mut self, source: &Self) { self.0.clone_from(&source.0) }
 }
 
+#[cfg(feature = "plugins")]
 impl<T> Compound for MultiRon<T>
 where
     T: for<'de> serde::Deserialize<'de> + Send + Sync + 'static + Concatenate,
