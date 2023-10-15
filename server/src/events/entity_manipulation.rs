@@ -140,6 +140,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         return;
     }
 
+    // Remove components that should not persist across death
+    state.ecs().write_storage::<comp::Melee>().remove(entity);
+    state.ecs().write_storage::<comp::Beam>().remove(entity);
+
     let get_attacker_name = |cause_of_death: KillType, by: Uid| -> KillSource {
         // Get attacker entity
         if let Some(char_entity) = state.ecs().entity_from_uid(by) {

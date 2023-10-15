@@ -11,9 +11,8 @@ use crate::{
 use common::event::{EventBus, ServerEvent, ServerEventDiscriminants};
 use common_base::span;
 use entity_creation::{
-    handle_beam, handle_create_npc, handle_create_ship, handle_create_waypoint,
-    handle_initialize_character, handle_initialize_spectator, handle_loaded_character_data,
-    handle_shockwave, handle_shoot,
+    handle_create_npc, handle_create_ship, handle_create_waypoint, handle_initialize_character,
+    handle_initialize_spectator, handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
     handle_aura, handle_bonk, handle_buff, handle_change_ability, handle_change_body,
@@ -107,11 +106,6 @@ impl Server {
                     pos,
                     ori,
                 } => handle_shockwave(self, properties, pos, ori),
-                ServerEvent::BeamSegment {
-                    properties,
-                    pos,
-                    ori,
-                } => handle_beam(self, properties, pos, ori),
                 ServerEvent::Knockback { entity, impulse } => {
                     handle_knockback(self, entity, impulse)
                 },

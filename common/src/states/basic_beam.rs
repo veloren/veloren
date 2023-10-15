@@ -5,16 +5,16 @@ use crate::{
     },
     comp::{
         beam, body::biped_large, character_state::OutputEvents, object::Body::Flamethrower, Body,
-        CharacterState, Ori, Pos, StateUpdate,
+        CharacterState, Ori, StateUpdate,
     },
-    event::{LocalEvent, ServerEvent},
+    event::LocalEvent,
     outcome::Outcome,
+    resources::Secs,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
     terrain::Block,
-    uid::Uid,
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
@@ -28,16 +28,17 @@ pub struct StaticData {
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// How long each beam segment persists for
-    pub beam_duration: Duration,
+    /// Time required for beam to travel from start pos to end pos
+    pub beam_duration: Secs,
     /// Base damage per tick
     pub damage: f32,
     /// Ticks per second
     pub tick_rate: f32,
     /// Max range
     pub range: f32,
-    /// Max angle (45.0 will give you a 90.0 angle window)
-    pub max_angle: f32,
+    /// The radius at the far distance of the beam. Radius linearly increases
+    /// from 0 moving from start pos to end po.
+    pub end_radius: f32,
     /// Adds an effect onto the main damage of the attack
     pub damage_effect: Option<CombatEffect>,
     /// Energy regenerated per tick
@@ -61,6 +62,10 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
+    /// Direction that beam should be aimed in
+    pub aim_dir: Dir,
+    /// Offset for beam start pos
+    pub beam_offset: Vec3<f32>,
 }
 
 impl CharacterBehavior for Data {
@@ -93,11 +98,47 @@ impl CharacterBehavior for Data {
                         }
                     };
                 } else {
+                    let attack = {
+                        let energy = AttackEffect::new(
+                            None,
+                            CombatEffect::EnergyReward(self.static_data.energy_regen),
+                        )
+                        .with_requirement(CombatRequirement::AnyDamage);
+                        let mut damage = AttackDamage::new(
+                            Damage {
+                                source: DamageSource::Energy,
+                                kind: DamageKind::Energy,
+                                value: self.static_data.damage,
+                            },
+                            Some(GroupTarget::OutOfGroup),
+                            rand::random(),
+                        );
+                        if let Some(effect) = self.static_data.damage_effect {
+                            damage = damage.with_effect(effect);
+                        }
+                        let (crit_chance, crit_mult) =
+                            get_crit_data(data, self.static_data.ability_info);
+                        Attack::default()
+                            .with_damage(damage)
+                            .with_crit(crit_chance, crit_mult)
+                            .with_effect(energy)
+                            .with_combo_increment()
+                    };
+
                     // Creates beam
                     data.updater.insert(data.entity, beam::Beam {
-                        hit_entities: Vec::<Uid>::new(),
-                        tick_dur: Duration::from_secs_f32(1.0 / self.static_data.tick_rate),
-                        timer: Duration::default(),
+                        attack,
+                        end_radius: self.static_data.end_radius,
+                        range: self.static_data.range,
+                        duration: self.static_data.beam_duration,
+                        tick_dur: Secs(1.0 / self.static_data.tick_rate as f64),
+                        hit_entities: Vec::new(),
+                        specifier: self.static_data.specifier,
+                        bezier: QuadraticBezier3 {
+                            start: data.pos.0,
+                            ctrl: data.pos.0,
+                            end: data.pos.0,
+                        },
                     });
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
@@ -112,42 +153,6 @@ impl CharacterBehavior for Data {
                     && (self.static_data.energy_drain <= f32::EPSILON
                         || update.energy.current() > 0.0)
                 {
-                    let speed =
-                        self.static_data.range / self.static_data.beam_duration.as_secs_f32();
-
-                    let energy = AttackEffect::new(
-                        None,
-                        CombatEffect::EnergyReward(self.static_data.energy_regen),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let mut damage = AttackDamage::new(
-                        Damage {
-                            source: DamageSource::Energy,
-                            kind: DamageKind::Energy,
-                            value: self.static_data.damage,
-                        },
-                        Some(GroupTarget::OutOfGroup),
-                        rand::random(),
-                    );
-                    if let Some(effect) = self.static_data.damage_effect {
-                        damage = damage.with_effect(effect);
-                    }
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
-                    let attack = Attack::default()
-                        .with_damage(damage)
-                        .with_crit(crit_chance, crit_mult)
-                        .with_effect(energy)
-                        .with_combo_increment();
-
-                    let properties = beam::Properties {
-                        attack,
-                        angle: self.static_data.max_angle.to_radians(),
-                        speed,
-                        duration: self.static_data.beam_duration,
-                        owner: Some(*data.uid),
-                        specifier: self.static_data.specifier,
-                    };
                     let beam_ori = {
                         // We want Beam to use Ori of owner.
                         // But we also want beam to use Z part of where owner looks.
@@ -184,15 +189,10 @@ impl CharacterBehavior for Data {
                         rel_vel,
                         data.physics.on_ground,
                     );
-                    let pos = Pos(data.pos.0 + body_offsets);
 
-                    // Create beam segment
-                    output_events.emit_server(ServerEvent::BeamSegment {
-                        properties,
-                        pos,
-                        ori: beam_ori,
-                    });
                     update.character = CharacterState::BasicBeam(Data {
+                        beam_offset: body_offsets,
+                        aim_dir: beam_ori.look_dir(),
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });

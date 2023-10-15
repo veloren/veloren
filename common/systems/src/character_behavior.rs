@@ -156,6 +156,14 @@ impl<'a> System<'a> for Sys {
                 return;
             }
 
+            // Remove components that entity should not have if not in relevant char state
+            if !char_state.is_melee_attack() {
+                read_data.lazy_update.remove::<Melee>(entity);
+            }
+            if !char_state.is_beam_attack() {
+                read_data.lazy_update.remove::<Beam>(entity);
+            }
+
             // Enter stunned state if poise damage is enough
             if let Some(mut poise) = poises.get_mut(entity) {
                 let was_wielded = char_state.is_wield();

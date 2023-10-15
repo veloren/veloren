@@ -391,6 +391,8 @@ impl CharacterState {
         matches!(self.attack_kind(), Some(AttackSource::Melee))
     }
 
+    pub fn is_beam_attack(&self) -> bool { matches!(self.attack_kind(), Some(AttackSource::Beam)) }
+
     pub fn can_perform_mounted(&self) -> bool {
         matches!(
             self,

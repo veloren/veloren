@@ -43,7 +43,7 @@ macro_rules! synced_components {
             character_state: CharacterState,
             character_activity: CharacterActivity,
             shockwave: Shockwave,
-            beam_segment: BeamSegment,
+            beam: Beam,
             alignment: Alignment,
             stance: Stance,
             // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
@@ -214,7 +214,7 @@ impl NetSync for Shockwave {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
-impl NetSync for BeamSegment {
+impl NetSync for Beam {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

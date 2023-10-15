@@ -7,7 +7,6 @@ use common::{
     comp::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
-        beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         misc::PortalData,
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
@@ -365,17 +364,6 @@ pub fn handle_shockwave(
 ) {
     let state = server.state_mut();
     state.create_shockwave(properties, pos, ori).build();
-}
-
-pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, ori: Ori) {
-    let state = server.state_mut();
-    let ecs = state.ecs();
-    ecs.read_resource::<EventBus<Outcome>>()
-        .emit_now(Outcome::Beam {
-            pos: pos.0,
-            specifier: properties.specifier,
-        });
-    state.create_beam(properties, pos, ori).build();
 }
 
 pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
