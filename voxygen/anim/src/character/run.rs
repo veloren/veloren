@@ -212,16 +212,15 @@ impl Animation for RunAnimation {
         ) * Quaternion::rotation_z(
             side * 1.3 * orientation.xy().dot(velocity.xy() / (speed + 0.01)),
         );
-        //
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation =
-            Quaternion::rotation_x(short * 0.15 + (footrotl * 1.2 + 0.5) * speednorm);
+            Quaternion::rotation_x(short * 0.15 + (footrotl * 0.5 + 0.5) * speednorm);
         next.shoulder_l.scale = Vec3::one() * 1.1;
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation =
-            Quaternion::rotation_x(short * -0.15 + (footrotr * 1.2 + 0.5) * speednorm);
+            Quaternion::rotation_x(short * -0.15 + (footrotr * 0.5 + 0.5) * speednorm);
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
