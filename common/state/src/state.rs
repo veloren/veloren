@@ -573,9 +573,9 @@ impl State {
             }
             let outcome = self.ecs.read_resource::<EventBus<Outcome>>();
             while let Some(outcomes) = scheduled_changes.outcomes.poll(current_time) {
-                for (pos, block) in outcomes.iter() {
+                for (pos, block) in outcomes.into_iter() {
                     if let Some(sprite) = block.get_sprite() {
-                        outcome.emit_now(Outcome::SpriteDelete { pos: *pos, sprite });
+                        outcome.emit_now(Outcome::SpriteDelete { pos, sprite });
                     }
                 }
             }
