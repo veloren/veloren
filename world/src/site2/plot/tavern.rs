@@ -1,9 +1,10 @@
 use std::{cmp::Ordering, mem::swap, ops::RangeInclusive};
 
 use common::{
+    comp::Content,
     lottery::Lottery,
     store::{Id, Store},
-    terrain::{Block, BlockKind, SpriteKind},
+    terrain::{Block, BlockKind, SpriteCfg, SpriteKind},
 };
 use enum_map::EnumMap;
 use hashbrown::HashSet;
@@ -12,7 +13,9 @@ use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
 use crate::{
-    site2::{Dir, Fill, Site, Structure},
+    site::namegen,
+    site2::{gen::PrimitiveTransform, Dir, Fill, Site, Structure},
+    util::RandomField,
     IndexRef, Land,
 };
 
@@ -66,6 +69,7 @@ struct Stairs {
 }
 
 pub struct Tavern {
+    name: String,
     rooms: Store<Room>,
     stairs: Store<Stairs>,
     walls: Store<Wall>,
@@ -204,7 +208,7 @@ impl Tavern {
                 top_alt: entrance_room_aabb.max.z,
                 from: None,
                 to: Some(entrance_id),
-                to_dir: door_dir,
+                to_dir: -door_dir,
                 door: Some(door_dir.rotated_cw().select(door_wpos.xy() - start).abs()),
             });
             rooms[entrance_id].walls[door_dir].push(wall_id);
@@ -504,7 +508,7 @@ impl Tavern {
                 let p1 = n_room_bounds.projected_point(room_bounds.center());
                 let p0 = room_bounds.projected_point(p1);
 
-                let to_dir = Dir::from_vector(p1 - p0);
+                let to_dir = Dir::from_vec2(p1 - p0);
 
                 let intersection = to_dir
                     .extend_aabr(room_bounds, 1)
@@ -566,31 +570,46 @@ impl Tavern {
 
         // Compute detail areas
         for room in rooms.values_mut() {
-            room.detail_areas.push(to_aabr(room.bounds));
+            let bounds = to_aabr(room.bounds);
+            let c = bounds.center();
+            let mut b = bounds.split_at_x(c.x);
+            b[0].max.x -= 1;
+            room.detail_areas.extend(b.into_iter().flat_map(|b| {
+                let mut b = b.split_at_y(c.y);
+                b[0].max.y -= 1;
+                b
+            }));
             for (dir, dir_walls) in room.walls.iter() {
                 for door_pos in dir_walls.iter().filter_map(|wall_id| {
                     let wall = &walls[*wall_id];
 
                     wall.door.map(|door| {
-                        let wall_dir = Dir::from_vector(wall.end - wall.start);
+                        let wall_dir = Dir::from_vec2(wall.end - wall.start);
                         wall.start + wall_dir.to_vec2() * door
                     })
                 }) {
                     let orth = dir.orthogonal();
                     for i in 0..room.detail_areas.len() {
-                        if let Some([a, b]) =
-                            orth.try_split_aabr(room.detail_areas[i], orth.select(door_pos))
-                        {
-                            room.detail_areas[i] = a;
-                            room.detail_areas.push(b);
+                        let bc = room.detail_areas[i].center();
+                        // Check if we are on the doors side of the center of the room.
+                        if dir.select(bc - c) * dir.signum() >= 0 {
+                            if let Some([a, b]) =
+                                orth.try_split_aabr(room.detail_areas[i], orth.select(door_pos))
+                            {
+                                room.detail_areas[i] = orth.extend_aabr(a, -1);
+                                room.detail_areas.push(orth.opposite().extend_aabr(b, -1));
+                            }
                         }
                     }
+                    room.detail_areas.retain(|area| area.is_valid());
                 }
             }
-            room.detail_areas.retain(|area| area.size().product() >= 4);
         }
 
+        let name = namegen::NameGen::location(rng).generate_tavern();
+
         Self {
+            name,
             rooms,
             stairs,
             walls,
@@ -620,7 +639,9 @@ impl Structure for Tavern {
 
         let stone = Fill::Brick(BlockKind::Rock, Rgb::new(70, 70, 70), 10);
         let wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(106, 73, 64)));
+        let dark_wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(80, 53, 48)));
 
+        let field = RandomField::new(740384);
         painter
             .aabb(aabb(Aabb {
                 min: bounds.min.with_z(self.door_wpos.z - 10),
@@ -637,20 +658,244 @@ impl Structure for Tavern {
                 }))
                 .fill(wood.clone());
 
+            let room_aabr = Aabr {
+                min: room.bounds.min.xy(),
+                max: room.bounds.max.xy(),
+            };
+            let table_set = |pos, bounds: Aabr<i32>| -> bool {
+                if bounds.size().reduce_min() >= 1 {
+                    painter.sprite(pos, SpriteKind::TableDining);
+
+                    for dir in Dir::iter() {
+                        let pos = pos + dir.to_vec2();
+                        if bounds.contains_point(pos.xy()) {
+                            painter.rotated_sprite(
+                                pos,
+                                SpriteKind::ChairSingle,
+                                dir.opposite().sprite_ori(),
+                            );
+                        }
+                    }
+                    true
+                } else {
+                    false
+                }
+            };
+            for (i, aabr) in room.detail_areas.iter().enumerate() {
+                let color = fxhash::hash32(&i).to_le_bytes();
+
+                painter
+                    .aabb(aabb(Aabb {
+                        min: aabr.min.with_z(room.bounds.min.z - 1),
+                        max: aabr.max.with_z(room.bounds.min.z - 1),
+                    }))
+                    .fill(Fill::Block(Block::new(
+                        BlockKind::Rock,
+                        Rgb::new(color[0], color[1], color[3]),
+                    )));
+            }
             match room.kind {
                 RoomKind::Garden => {
                     for aabr in room.detail_areas.iter() {
+                        let pos = aabr.center().with_z(room.bounds.min.z);
+
+                        if field.chance(pos, 0.6) {
+                            table_set(pos, *aabr);
+                        }
+                    }
+
+                    let dir = Dir::from_vec2(room_aabr.size().into());
+
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: dir
+                                .select_aabr_with(room_aabr, room_aabr.min - 2)
+                                .with_z(room.bounds.max.z + 1),
+                            max: dir
+                                .select_aabr_with(room_aabr, room_aabr.max + 2)
+                                .with_z(room.bounds.max.z + 1),
+                        }))
+                        .repeat(
+                            -dir.to_vec3() * 2,
+                            (dir.select(room_aabr.size()) as u32 + 3) / 2,
+                        )
+                        .fill(dark_wood.clone())
+                },
+                RoomKind::StageRoom => {
+                    let mut stage = None;
+                    let mut stage_score = 0;
+                    for aabr in room.detail_areas.iter() {
+                        let edges = Dir::iter()
+                            .filter(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
+                            .count() as i32;
+                        let test_stage_score = edges * aabr.size().product();
+                        let Some(aabr) = (if stage_score < test_stage_score {
+                            stage_score = test_stage_score;
+                            stage.replace(*aabr)
+                        } else {
+                            Some(*aabr)
+                        }) else {
+                            continue;
+                        };
+
+                        table_set(aabr.center().with_z(room.bounds.min.z), aabr);
+                        for dir in Dir::iter().filter(|dir| {
+                            dir.select_aabr(aabr) == dir.select_aabr(room_aabr)
+                                && dir.rotated_cw().select_aabr(aabr)
+                                    == dir.rotated_cw().select_aabr(room_aabr)
+                        }) {
+                            let pos = dir.select_aabr_with(
+                                aabr,
+                                Vec2::broadcast(dir.rotated_cw().select_aabr(aabr)),
+                            );
+                            painter.sprite(pos.with_z(room.bounds.min.z), SpriteKind::StreetLamp);
+                        }
+                    }
+                    if let Some(aabr) = stage {
                         painter
                             .aabb(aabb(Aabb {
                                 min: aabr.min.with_z(room.bounds.min.z),
                                 max: aabr.max.with_z(room.bounds.min.z),
                             }))
-                            .fill(Fill::Sprite(SpriteKind::Apple))
+                            .fill(stone.clone());
+                        painter
+                            .aabb(aabb(Aabb {
+                                min: (aabr.min + 1).with_z(room.bounds.min.z),
+                                max: (aabr.max - 1).with_z(room.bounds.min.z),
+                            }))
+                            .fill(wood.clone());
+                        for dir in Dir::iter().filter(|dir| {
+                            dir.select_aabr(aabr) != dir.select_aabr(room_aabr)
+                                && dir.rotated_cw().select_aabr(aabr)
+                                    != dir.rotated_cw().select_aabr(room_aabr)
+                        }) {
+                            let pos = dir.select_aabr_with(
+                                aabr,
+                                Vec2::broadcast(dir.rotated_cw().select_aabr(aabr)),
+                            );
+                            painter
+                                .column(pos, room.bounds.min.z..=room.bounds.max.z)
+                                .fill(dark_wood.clone());
+
+                            for dir in Dir::iter() {
+                                painter.rotated_sprite(
+                                    pos.with_z(room.bounds.center().z + 1) + dir.to_vec2(),
+                                    SpriteKind::WallSconce,
+                                    dir.sprite_ori(),
+                                );
+                            }
+                        }
                     }
                 },
-                RoomKind::StageRoom => {},
-                RoomKind::BarRoom => {},
-                RoomKind::EntranceRoom => {},
+                RoomKind::BarRoom => {
+                    let mut bar = None;
+                    let mut bar_score = 0;
+                    for aabr in room.detail_areas.iter() {
+                        let test_stage_score = Dir::iter()
+                            .any(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
+                            as i32
+                            * aabr.size().product();
+                        let Some(aabr) = (if bar_score < test_stage_score {
+                            bar_score = test_stage_score;
+                            bar.replace(*aabr)
+                        } else {
+                            Some(*aabr)
+                        }) else {
+                            continue;
+                        };
+
+                        for dir in Dir::iter()
+                            .filter(|dir| dir.select_aabr(aabr) == dir.select_aabr(room_aabr))
+                        {
+                            let pos = dir
+                                .select_aabr_with(aabr, aabr.center())
+                                .with_z(room.bounds.center().z);
+
+                            painter.rotated_sprite(
+                                pos,
+                                SpriteKind::WallLampSmall,
+                                dir.opposite().sprite_ori(),
+                            );
+                        }
+                    }
+                    if let Some(aabr) = bar {
+                        for dir in Dir::iter() {
+                            let edge = dir.select_aabr(aabr);
+                            let rot_dir = if field.chance(aabr.center().with_z(0), 0.5) {
+                                dir.rotated_cw()
+                            } else {
+                                dir.rotated_ccw()
+                            };
+                            let rot_edge = rot_dir.select_aabr(aabr);
+                            match (
+                                edge == dir.select_aabr(room_aabr),
+                                rot_edge == rot_dir.select_aabr(room_aabr),
+                            ) {
+                                (false, _) => {
+                                    let (min, max) = (
+                                        dir.select_aabr_with(
+                                            aabr,
+                                            Vec2::broadcast(rot_dir.select_aabr(aabr)),
+                                        ),
+                                        dir.select_aabr_with(
+                                            aabr,
+                                            Vec2::broadcast(rot_dir.opposite().select_aabr(aabr)),
+                                        ),
+                                    );
+                                    painter
+                                        .aabb(aabb(Aabb {
+                                            min: (min - rot_dir.to_vec2())
+                                                .with_z(room.bounds.min.z),
+                                            max: max.with_z(room.bounds.min.z),
+                                        }))
+                                        .fill(dark_wood.clone());
+                                    painter
+                                        .aabb(aabb(Aabb {
+                                            min: min.with_z(room.bounds.min.z + 3),
+                                            max: max.with_z(room.bounds.max.z),
+                                        }))
+                                        .fill(dark_wood.clone());
+                                },
+                                (true, true) => {
+                                    painter.sprite(
+                                        dir.vec2(edge, rot_edge).with_z(room.bounds.min.z),
+                                        SpriteKind::CookingPot,
+                                    );
+                                },
+                                (true, false) => {},
+                            }
+                        }
+                    }
+                },
+                RoomKind::EntranceRoom => {
+                    for aabr in room.detail_areas.iter() {
+                        let edges = Dir::iter()
+                            .filter(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
+                            .count();
+                        let hanger_pos = if edges == 2 {
+                            let pos = aabr.center().with_z(room.bounds.min.z);
+                            painter.sprite(pos, SpriteKind::CoatRack);
+                            Some(pos)
+                        } else {
+                            None
+                        };
+
+                        for dir in Dir::iter()
+                            .filter(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
+                        {
+                            let pos = dir
+                                .select_aabr_with(*aabr, aabr.center())
+                                .with_z(room.bounds.center().z + 1);
+                            if hanger_pos.map_or(false, |p| p.xy() != pos.xy()) {
+                                painter.rotated_sprite(
+                                    pos,
+                                    SpriteKind::WallLampSmall,
+                                    dir.opposite().sprite_ori(),
+                                );
+                            }
+                        }
+                    }
+                },
             }
         }
 
@@ -660,27 +905,53 @@ impl Structure for Tavern {
                 min: wall.start.with_z(wall.base_alt),
                 max: wall.end.with_z(wall.top_alt),
             };
+            let wall_dir = Dir::from_vec2(wall.end - wall.start);
             match (wall.from.map(get_kind), wall.to.map(get_kind)) {
                 (Some(RoomKind::Garden), Some(RoomKind::Garden) | None)
                 | (None, Some(RoomKind::Garden)) => {
                     let hgt = wall_aabb.min.z..=wall_aabb.max.z;
                     painter
                         .column(wall_aabb.min.xy(), hgt.clone())
-                        .fill(wood.clone());
-                    painter.column(wall_aabb.max.xy(), hgt).fill(wood.clone());
+                        .fill(dark_wood.clone());
+                    painter
+                        .column(wall_aabb.max.xy(), hgt)
+                        .fill(dark_wood.clone());
+                    let z = (wall.base_alt + wall.top_alt) / 2;
+
+                    painter.rotated_sprite(
+                        wall_aabb.min.with_z(z) + wall_dir.to_vec2(),
+                        SpriteKind::WallSconce,
+                        wall_dir.sprite_ori(),
+                    );
+                    painter.rotated_sprite(
+                        wall_aabb.max.with_z(z) - wall_dir.to_vec2(),
+                        SpriteKind::WallSconce,
+                        wall_dir.opposite().sprite_ori(),
+                    );
                     painter
                         .aabb(aabb(Aabb {
                             min: wall_aabb.min,
                             max: wall_aabb.max.with_z(wall_aabb.min.z),
                         }))
-                        .fill(wood.clone());
+                        .fill(dark_wood.clone());
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: wall_aabb.min.with_z(wall_aabb.max.z),
+                            max: wall_aabb.max,
+                        }))
+                        .fill(dark_wood.clone());
                 },
                 (None, None) => {},
                 _ => {
                     painter.aabb(aabb(wall_aabb)).fill(wood.clone());
+                    painter
+                        .column(wall.start, wall.base_alt..=wall.top_alt)
+                        .fill(dark_wood.clone());
+                    painter
+                        .column(wall.end, wall.base_alt..=wall.top_alt)
+                        .fill(dark_wood.clone());
                 },
             }
-            let wall_dir = Dir::from_vector(wall.end - wall.start);
             if let Some(door) = wall.door {
                 let door_pos = wall.start + wall_dir.to_vec2() * door;
                 let min = match wall.from {
@@ -697,6 +968,64 @@ impl Structure for Tavern {
                         max: max.with_z(wall.base_alt + 2),
                     }))
                     .clear();
+            }
+            if let (Some(room), to @ None) | (None, to @ Some(room)) =
+                (wall.from.map(get_kind), wall.to.map(get_kind))
+            {
+                let dir = if to.is_none() {
+                    -wall.to_dir
+                } else {
+                    wall.to_dir
+                };
+                let width = dir.orthogonal().select(wall.end - wall.start).abs();
+                let wall_center = (wall.start + wall.end) / 2;
+                let d = wall_dir.select(wall_center - wall.start) * wall_dir.signum();
+                match room {
+                    RoomKind::Garden => {
+                        if wall.door.map_or(true, |door| (door - d).abs() >= 2) {
+                            painter.rotated_sprite(
+                                wall_center.with_z(wall.base_alt + 1),
+                                SpriteKind::Planter,
+                                dir.sprite_ori(),
+                            );
+                        }
+                    },
+                    _ => {
+                        if width >= 5 && wall.door.map_or(true, |door| (door - d).abs() > 3) {
+                            painter
+                                .aabb(aabb(Aabb {
+                                    min: (wall_center + dir.rotated_ccw().to_vec2())
+                                        .with_z(wall.base_alt + 1),
+                                    max: (wall_center + dir.rotated_cw().to_vec2())
+                                        .with_z(wall.base_alt + 2),
+                                }))
+                                .fill(Fill::RotatedSprite(SpriteKind::Window1, dir.sprite_ori()));
+                        }
+                    },
+                }
+                if let Some(door) = wall.door {
+                    let door_pos = wall.start + wall_dir.to_vec2() * door;
+                    let diff = door_pos - wall_aabb.center().xy();
+                    let orth = if diff == Vec2::zero() {
+                        wall_dir
+                    } else {
+                        Dir::from_vec2(diff)
+                    };
+                    let pos = door_pos - dir.to_vec2() + orth.to_vec2();
+                    let (sprite, z) = match room {
+                        RoomKind::Garden => (SpriteKind::Sign, 0),
+                        _ => (SpriteKind::HangingSign, 2),
+                    };
+                    painter.rotated_sprite_with_cfg(
+                        pos.with_z(wall.base_alt + z),
+                        sprite,
+                        dir.opposite().sprite_ori(),
+                        SpriteCfg {
+                            unlock: None,
+                            content: Some(Content::Plain(self.name.clone())),
+                        },
+                    );
+                }
             }
         }
 

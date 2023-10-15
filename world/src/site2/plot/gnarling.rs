@@ -237,7 +237,7 @@ impl GnarlingFortification {
                     ))
                 }
             }) {
-                let dir_to_center = Dir::from_vector(hut_loc.xy()).opposite();
+                let dir_to_center = Dir::from_vec2(hut_loc.xy()).opposite();
                 let door_rng: u32 = rng.gen_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_center,
@@ -262,7 +262,7 @@ impl GnarlingFortification {
         let chieftain_hut_loc = ((inner_tower_locs[0] + inner_tower_locs[1])
             + 2 * outer_wall_corners[chieftain_indices[1]])
             / 4;
-        let chieftain_hut_ori = Dir::from_vector(chieftain_hut_loc).opposite();
+        let chieftain_hut_ori = Dir::from_vec2(chieftain_hut_loc).opposite();
         structure_locations.push((
             GnarlingStructure::ChieftainHut,
             chieftain_hut_loc.with_z(rpos_height(chieftain_hut_loc)),

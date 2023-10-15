@@ -939,7 +939,7 @@ impl Site {
                             &mut reseed(&mut rng),
                             &site,
                             door_tile,
-                            Dir::from_vector(door_dir),
+                            Dir::from_vec2(door_dir),
                             aabr,
                         );
                         let tavern_alt = tavern.door_wpos.z;

@@ -26,7 +26,7 @@ impl Dir {
         }
     }
 
-    pub fn from_vector(vec: Vec2<i32>) -> Dir {
+    pub fn from_vec2(vec: Vec2<i32>) -> Dir {
         if vec.x.abs() > vec.y.abs() {
             if vec.x > 0 { Dir::X } else { Dir::NegX }
         } else if vec.y > 0 {
@@ -107,6 +107,15 @@ impl Dir {
             Dir::NegX => Vec3::new(-1, 0, 0),
             Dir::Y => Vec3::new(0, 1, 0),
             Dir::NegY => Vec3::new(0, -1, 0),
+        }
+    }
+
+    pub fn vec2(self, x: i32, y: i32) -> Vec2<i32> {
+        match self {
+            Dir::X => Vec2::new(x, y),
+            Dir::NegX => Vec2::new(x, y),
+            Dir::Y => Vec2::new(y, x),
+            Dir::NegY => Vec2::new(y, x),
         }
     }
 

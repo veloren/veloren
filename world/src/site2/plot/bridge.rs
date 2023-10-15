@@ -884,7 +884,7 @@ impl Bridge {
         let min_water_dist = 5;
         let find_edge = |start: Vec2<i32>, end: Vec2<i32>| {
             let mut test_start = start;
-            let dir = Dir::from_vector(end - start).to_vec2();
+            let dir = Dir::from_vec2(end - start).to_vec2();
             let mut last_alt = if let Some(col) = land.column_sample(start, index) {
                 col.alt as i32
             } else {
@@ -938,7 +938,7 @@ impl Bridge {
             start,
             end,
             center,
-            dir: Dir::from_vector(end.xy() - start.xy()),
+            dir: Dir::from_vec2(end.xy() - start.xy()),
             kind: bridge,
             biome: land
                 .get_chunk_wpos(center.xy())
