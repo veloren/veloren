@@ -31,6 +31,7 @@ pub mod sys;
 #[cfg(feature = "persistent_world")]
 pub mod terrain_persistence;
 #[cfg(not(feature = "worldgen"))] mod test_world;
+mod web;
 
 mod weather;
 
@@ -94,7 +95,6 @@ use persistence::{
     character_updater::CharacterUpdater,
 };
 use prometheus::Registry;
-use prometheus_hyper::Server as PrometheusServer;
 use specs::{Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt};
 use std::{
     i32,
@@ -124,7 +124,7 @@ use {
     common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
 };
 
-use crate::persistence::character_loader::CharacterScreenResponseKind;
+use crate::{persistence::character_loader::CharacterScreenResponseKind, web::ChatCache};
 use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 pub use world::{
@@ -486,9 +486,13 @@ impl Server {
         let metrics_shutdown = Arc::new(Notify::new());
         let metrics_shutdown_clone = Arc::clone(&metrics_shutdown);
         let addr = settings.metrics_address;
+        let (chat_cache, chat_tracker) = ChatCache::new(Duration::from_secs(60));
+        state.ecs_mut().insert(chat_tracker);
         runtime.spawn(async move {
-            PrometheusServer::run(
+            web::run(
                 Arc::clone(&registry),
+                chat_cache,
+                "secretpassword".to_string(),
                 addr,
                 metrics_shutdown_clone.notified(),
             )

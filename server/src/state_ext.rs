@@ -8,6 +8,7 @@ use crate::{
     rtsim::RtSim,
     settings::Settings,
     sys::sentinel::DeletedEntities,
+    web::ChatExporter,
     wiring, BattleModeBuffer, SpawnPoint,
 };
 use common::{
@@ -900,6 +901,7 @@ impl StateExt for State {
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
 
         let group_manager = ecs.read_resource::<comp::group::GroupManager>();
+        let chat_exporter = ecs.read_resource::<ChatExporter>();
 
         let group_info = msg.get_group().and_then(|g| group_manager.group_info(*g));
 
@@ -925,6 +927,7 @@ impl StateExt for State {
                 | comp::ChatType::CommandError
                 | comp::ChatType::Meta
                 | comp::ChatType::World(_) => {
+                    chat_exporter.send(resolved_msg.clone());
                     self.notify_players(ServerGeneral::ChatMsg(resolved_msg))
                 },
                 comp::ChatType::Online(u) => {
@@ -935,6 +938,7 @@ impl StateExt for State {
                             client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
+                    chat_exporter.send(resolved_msg);
                 },
                 comp::ChatType::Tell(from, to) => {
                     for (client, uid) in
@@ -944,10 +948,12 @@ impl StateExt for State {
                             client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
+                    chat_exporter.send(resolved_msg);
                 },
                 comp::ChatType::Kill(kill_source, uid) => {
                     let clients = ecs.read_storage::<Client>();
                     let clients_count = clients.count();
+                    chat_exporter.send(resolved_msg.clone());
                     // Avoid chat spam, send kill message only to group or nearby players if a
                     // certain amount of clients are online
                     if clients_count
@@ -1002,6 +1008,7 @@ impl StateExt for State {
                             }
                         }
                     }
+                    chat_exporter.send(resolved_msg);
                 },
                 comp::ChatType::Region(uid) => {
                     let entity_opt = entity_from_uid(*uid);
@@ -1014,6 +1021,7 @@ impl StateExt for State {
                             }
                         }
                     }
+                    chat_exporter.send(resolved_msg);
                 },
                 comp::ChatType::Npc(uid) => {
                     let entity_opt = entity_from_uid(*uid);
@@ -1059,6 +1067,7 @@ impl StateExt for State {
                             client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
                         }
                     }
+                    chat_exporter.send(resolved_msg);
                 },
                 comp::ChatType::Group(from, g) => {
                     if group_info.is_none() {
@@ -1080,6 +1089,7 @@ impl StateExt for State {
                     } else {
                         send_to_group(g, ecs, &resolved_msg);
                     }
+                    chat_exporter.send(resolved_msg);
                 },
                 comp::ChatType::GroupMeta(g) => {
                     send_to_group(g, ecs, &resolved_msg);
