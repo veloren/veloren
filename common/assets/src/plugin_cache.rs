@@ -39,6 +39,7 @@ impl CombinedSource {
         if let Ok(guard) = self.plugin_list.read() {
             for (n, p) in guard.iter().enumerate() {
                 if let Ok(entry) = p.cache.raw_source().read(id, ext) {
+                    // the data is behind an RwLockReadGuard, so own it for returning
                     result.push((Some(n), match entry {
                         FileContent::Slice(s) => FileContent::Buffer(Vec::from(s)),
                         FileContent::Buffer(b) => FileContent::Buffer(b),
@@ -123,13 +124,41 @@ impl CombinedCache {
         load_from: impl Fn(AnyCache) -> Result<T, BoxedError>,
     ) -> Result<T, BoxedError> {
         let mut result = load_from(self.0.raw_source().fs.as_any_cache());
+        // report a severe error from the filesystem asset even if later overwritten by
+        // an Ok value from a plugin
+        match result {
+            Err(ref e) => {
+                match e
+                    .source()
+                    .and_then(|s| s.downcast_ref::<std::io::Error>())
+                    .map(|e| e.kind())
+                {
+                    Some(std::io::ErrorKind::NotFound) => (),
+                    _ => tracing::error!("Filesystem asset load {e:?}"),
+                }
+            },
+            _ => (),
+        }
         for i in self.0.raw_source().plugin_list.read().unwrap().iter() {
-            if let Ok(b) = load_from(i.cache.as_any_cache()) {
-                result = if let Ok(a) = result {
-                    Ok(a.concatenate(b))
-                } else {
-                    Ok(b)
-                };
+            match load_from(i.cache.as_any_cache()) {
+                Ok(b) => {
+                    result = if let Ok(a) = result {
+                        Ok(a.concatenate(b))
+                    } else {
+                        Ok(b)
+                    };
+                },
+                // report any error other than NotFound
+                Err(e) => {
+                    match e
+                        .source()
+                        .and_then(|s| s.downcast_ref::<std::io::Error>())
+                        .map(|e| e.kind())
+                    {
+                        Some(std::io::ErrorKind::NotFound) => (),
+                        _ => tracing::error!("Loading from {:?} failed {e:?}", i.path),
+                    }
+                },
             }
         }
         result
