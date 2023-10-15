@@ -44,6 +44,8 @@ impl KeyState {
                 if self.up || self.auto_walk { 1.0 } else { 0.0 }
                     + if self.down { -1.0 } else { 0.0 },
             )
+            .try_normalized()
+            .unwrap_or_default()
         } else {
             self.analog_matrix
         } * self.speed_mul;
