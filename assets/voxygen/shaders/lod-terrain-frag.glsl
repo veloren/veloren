@@ -359,6 +359,27 @@ void main() {
         }
     #endif
 
+    vec3 f_pos2 = (f_pos + focus_off.xyz) * 0.7;//;
+
+    f_ao = 1.0;
+    float t = -2.0;// / dot(cam_dir, f_norm);
+    for (int i = 0; i < 6; i ++) {
+        vec3 deltas = (step(vec3(0), cam_dir) - fract(f_pos2 + cam_dir * t)) / cam_dir;
+        float m = min(min(deltas.x, deltas.y), deltas.z);
+
+        t += max(m, 0.01);
+
+        vec3 block_pos = floor(f_pos2 + cam_dir * t) + 0.5;
+        if (dot(block_pos - f_pos2, -f_norm) < 0.0) {
+            vec3 to_center = abs(block_pos - (f_pos2 + cam_dir * t));
+            voxel_norm = step(max(max(to_center.x, to_center.y), to_center.z), to_center) * sign(cam_dir);
+            /* voxel_norm = f_norm; */
+            voxel_norm = normalize(mix(f_norm, voxel_norm, voxelize_factor));
+            f_ao = mix(1.0, clamp(1.0 + t * 0.5 / f_norm.z, 0.3, 1.0), voxelize_factor);
+            break;
+        }
+    }
+
     // vec3 f_ao_view = max(vec3(dot(f_orig_view_dir.yz, sides.yz), dot(f_orig_view_dir.xz, sides.xz), dot(f_orig_view_dir.xy, sides.xy)), 0.0);
     // delta_sides *= sqrt(1.0 - f_ao_view * f_ao_view);
     // delta_sides *= 1.0 - mix(view_dir / f_ao_view, vec3(0.0), equal(f_ao_view, vec3(0.0)));// sqrt(1.0 - f_ao_view * f_ao_view);
