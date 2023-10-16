@@ -264,27 +264,35 @@ impl GroupManager {
         uids: &Uids,
         notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
     ) {
-        let group = match groups.get(owner).copied() {
-            Some(group) => group,
-            None => {
-                let new_group = self.create_group(owner, 1);
-                groups.insert(owner, new_group).unwrap();
-                // Inform
-                notifier(owner, ChangeNotification::NewLeader(owner));
-                new_group
-            },
-        };
+        if !entities.is_alive(owner) {
+            warn!("Tried to create new pet for non-existent owner {owner:?}");
+        } else if !entities.is_alive(pet) {
+            warn!("Tried to create new pet for non-existent pet {pet:?}");
+        } else {
+            let group = match groups.get(owner).copied() {
+                Some(group) => group,
+                None => {
+                    let new_group = self.create_group(owner, 1);
+                    // Unwrap can't fail, we checked that `owner` is alive above
+                    groups.insert(owner, new_group).unwrap();
+                    // Inform
+                    notifier(owner, ChangeNotification::NewLeader(owner));
+                    new_group
+                },
+            };
 
-        // Inform
-        members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| match role {
-            Role::Member => {
-                notifier(e, ChangeNotification::Added(pet, Role::Pet));
-            },
-            Role::Pet => {},
-        });
+            // Inform
+            members(group, &*groups, entities, alignments, uids).for_each(|(e, role)| match role {
+                Role::Member => {
+                    notifier(e, ChangeNotification::Added(pet, Role::Pet));
+                },
+                Role::Pet => {},
+            });
 
-        // Add
-        groups.insert(pet, group).unwrap();
+            // Add
+            // Unwrap can't fail, we checked that `pet` is alive above
+            groups.insert(pet, group).unwrap();
+        }
     }
 
     pub fn leave_group(
