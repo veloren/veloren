@@ -119,7 +119,7 @@ pub enum Outcome {
         wielded: bool,
     },
     SpriteDelete {
-        pos: Vec3<f32>,
+        pos: Vec3<i32>,
         sprite: SpriteKind,
     },
     SpriteUnlocked {
@@ -171,7 +171,6 @@ impl Outcome {
             | Outcome::FireShockwave { pos }
             | Outcome::IceCrack { pos }
             | Outcome::Utterance { pos, .. }
-            | Outcome::SpriteDelete { pos, .. }
             | Outcome::CyclopsCharge { pos }
             | Outcome::FlamethrowerCharge { pos }
             | Outcome::LaserBeam { pos }
@@ -181,6 +180,7 @@ impl Outcome {
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }
+            | Outcome::SpriteDelete { pos, .. }
             | Outcome::FailedSpriteUnlock { pos } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }

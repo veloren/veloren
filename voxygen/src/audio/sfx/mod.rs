@@ -740,13 +740,14 @@ impl SfxMgr {
             Outcome::SpriteDelete { pos, sprite } => {
                 match sprite {
                     SpriteKind::SeaUrchin => {
+                        let pos = pos.map(|e| e as f32 + 0.5);
                         let power = (0.6 - pos.distance(audio.listener.pos) / 5_000.0)
                             .max(0.0)
                             .powi(7);
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Explosion);
                         audio.emit_sfx(
                             sfx_trigger_item,
-                            *pos,
+                            pos,
                             Some((power.abs() / 2.5).min(0.3)),
                             underwater,
                         );

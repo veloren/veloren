@@ -572,17 +572,9 @@ impl State {
             }
             let outcome = self.ecs.read_resource::<EventBus<Outcome>>();
             while let Some(outcomes) = scheduled_changes.outcomes.poll(current_time) {
-                for (pos, block) in outcomes.iter() {
-                    let offset_dir = Vec3::<i32>::zero() - pos;
-                    let offset = offset_dir
-                        / Vec3::new(offset_dir.x.abs(), offset_dir.y.abs(), offset_dir.z.abs());
-                    let outcome_pos = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32)
-                        - (Vec3::new(offset.x as f32, offset.y as f32, offset.z as f32) / 2.0);
+                for (pos, block) in outcomes.into_iter() {
                     if let Some(sprite) = block.get_sprite() {
-                        outcome.emit_now(Outcome::SpriteDelete {
-                            pos: outcome_pos,
-                            sprite,
-                        });
+                        outcome.emit_now(Outcome::SpriteDelete { pos, sprite });
                     }
                 }
             }
