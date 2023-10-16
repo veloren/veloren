@@ -383,9 +383,9 @@ impl<'a> System<'a> for Sys {
                 // TODO: code duplication for chunk insertion between here and state.rs
                 terrain.remove(key).map(|chunk| {
                     terrain_changes.removed_chunks.insert(key);
-                    #[cfg(feature = "worldgen")]
-                    rtsim.hook_unload_chunk(key);
                     chunk
+                    // The rtsim hook to unload the chunks is later called in
+                    // the main server tick function
                 })
             })
             .collect::<Vec<_>>();
