@@ -67,9 +67,6 @@ impl Animation for RunAnimation {
         let noisea = (acc_vel * 11.0 + PI / 6.0).sin();
         let noiseb = (acc_vel * 19.0 + PI / 4.0).sin();
 
-        let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
-            * ((acc_vel * lab * 1.6).sin());
-
         let back_speed = 2.6;
 
         let dirside = orientation.xy().dot(velocity.xy()).signum();
@@ -131,9 +128,9 @@ impl Animation for RunAnimation {
             (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.1,
         );
 
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + short * 0.1);
+        next.head.position = Vec3::new(0.0, s_a.head.0 * 1.5, s_a.head.1 + short * 0.1);
         next.head.orientation =
-            Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 + short * -0.3)
+            Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 + short * -0.3 * speednorm)
                 * Quaternion::rotation_x(head_look.y + 0.45 * speednorm + shortalt2 * -0.05);
         next.head.scale = Vec3::one() * s_a.head_scale;
 
@@ -143,8 +140,8 @@ impl Animation for RunAnimation {
             s_a.chest.1 + 1.0 * speednorm + shortalt * 1.1,
         );
         next.chest.orientation = Quaternion::rotation_x(impact * 0.07)
-            * Quaternion::rotation_z(short * 0.4 + tilt * -0.6)
-            * Quaternion::rotation_y(tilt * 2.0 + short * 0.2)
+            * Quaternion::rotation_z(short * 0.4 * speednorm + tilt * -0.6)
+            * Quaternion::rotation_y(tilt * 2.0 + short * 0.2 * speednorm)
             * Quaternion::rotation_x(shortalt2 * 0.03 + speednorm * -0.5 + tilt.abs());
 
         next.belt.position = Vec3::new(0.0, 0.25 + s_a.belt.0, 0.25 + s_a.belt.1);
@@ -159,14 +156,14 @@ impl Animation for RunAnimation {
 
         next.shorts.position = Vec3::new(0.0, 0.65 + s_a.shorts.0, 0.65 * speednorm + s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_x(0.2 * speednorm)
-            * Quaternion::rotation_z(short * -0.9 + tilt * -1.5)
+            * Quaternion::rotation_z(short * -0.9 * speednorm + tilt * -1.5)
             * Quaternion::rotation_y(tilt * 0.7 + short * 0.08);
 
         next.hand_l.position = Vec3::new(
             -s_a.hand.0 * 1.2 - foothorir * 1.3 * speednorm
-                + (foothoril.abs().powf(2.0) - 0.5) * speednorm * 4.0,
-            s_a.hand.1 * 1.3 + foothorir * -7.0 * speednorm * (1.0 - sideabs),
-            s_a.hand.2 - foothorir * 2.75 * speednorm + foothoril.abs().powf(3.0) * speednorm * 8.0,
+                + (foothoril.abs().powi(2) - 0.5) * speednorm * 4.0,
+            s_a.hand.1 * 1.3 + foothorir * -7.0 * speednorm.powi(2) * (1.0 - sideabs),
+            s_a.hand.2 - foothorir * 2.75 * speednorm + foothoril.abs().powi(3) * speednorm * 8.0,
         );
         next.hand_l.orientation =
             Quaternion::rotation_x(
@@ -175,9 +172,9 @@ impl Animation for RunAnimation {
 
         next.hand_r.position = Vec3::new(
             s_a.hand.0 * 1.2 + foothoril * 1.3 * speednorm
-                - (foothorir.abs().powf(2.0) - 0.5) * speednorm * 4.0,
-            s_a.hand.1 * 1.3 + foothoril * -7.0 * speednorm * (1.0 - sideabs),
-            s_a.hand.2 - foothoril * 2.75 * speednorm + foothorir.abs().powf(3.0) * speednorm * 8.0,
+                - (foothorir.abs().powi(2) - 0.5) * speednorm * 4.0,
+            s_a.hand.1 * 1.3 + foothoril * -7.0 * speednorm.powi(2) * (1.0 - sideabs),
+            s_a.hand.2 - foothoril * 2.75 * speednorm + foothorir.abs().powi(3) * speednorm * 8.0,
         );
         next.hand_r.orientation =
             Quaternion::rotation_x(
@@ -186,160 +183,55 @@ impl Animation for RunAnimation {
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + footstrafel * sideabs * 7.0 + tilt * -10.0,
-            s_a.foot.1 + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -10.5 * speednorm),
+            s_a.foot.1 + (1.0 - sideabs) * (-1.5 * speednorm + foothoril * -10.0 * speednorm),
             s_a.foot.2
-                + (1.0 - sideabs) * (1.25 * speednorm + ((footvertl * -5.0 * speednorm).max(-1.0)))
+                + (1.0 - sideabs) * (1.25 + (footvertl * -5.0).max(-1.0)) * speednorm
                 + side * ((footvertsl * 1.5).max(-1.0)),
         );
         next.foot_l.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (foothoril + 0.4 * (1.0 - sideabs)) * -1.5 * speednorm
+            (1.0 - sideabs) * (foothoril + 0.3 * (1.0 - sideabs)) * -1.5 * speednorm
                 + sideabs * -0.5,
         ) * Quaternion::rotation_y(
-            tilt * -0.5 + side * 0.3 + side * (foothoril * 0.3),
+            tilt * -0.5 + side * (foothoril * 0.3) + footstrafer * side * 0.5,
         ) * Quaternion::rotation_z(
-            side * 0.9 * orientation.xy().dot(velocity.xy() / (speed + 0.01)),
+            side * 1.3 * orientation.xy().dot(velocity.xy() / (speed + 0.01)),
         );
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + footstrafer * sideabs * 7.0 + tilt * -10.0,
-            s_a.foot.1 + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -10.5 * speednorm),
+            s_a.foot.1 + (1.0 - sideabs) * (-1.5 * speednorm + foothorir * -10.0 * speednorm),
             s_a.foot.2
-                + (1.0 - sideabs) * (1.25 * speednorm + ((footvertr * -5.0 * speednorm).max(-1.0)))
+                + (1.0 - sideabs) * (1.25 + (footvertr * -5.0).max(-1.0)) * speednorm
                 + side * ((footvertsr * -1.5).max(-1.0)),
         );
         next.foot_r.orientation = Quaternion::rotation_x(
-            (1.0 - sideabs) * (foothorir + 0.4 * (1.0 - sideabs)) * -1.5 * speednorm
+            (1.0 - sideabs) * (foothorir + 0.3 * (1.0 - sideabs)) * -1.5 * speednorm
                 + sideabs * -0.5,
         ) * Quaternion::rotation_y(
-            tilt * -0.5 + side * 0.3 + side * (foothorir * 0.3),
+            tilt * -0.5 + side * (foothorir * 0.3) - footstrafer * side * 0.5,
         ) * Quaternion::rotation_z(
-            side * 0.9 * orientation.xy().dot(velocity.xy() / (speed + 0.01)),
+            side * 1.3 * orientation.xy().dot(velocity.xy() / (speed + 0.01)),
         );
-        //
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation =
-            Quaternion::rotation_x(short * 0.15 + (footrotl * 1.2 + 0.5) * speednorm);
+            Quaternion::rotation_x(short * 0.15 * speednorm + (footrotl * 0.5 + 0.5) * speednorm);
         next.shoulder_l.scale = Vec3::one() * 1.1;
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation =
-            Quaternion::rotation_x(short * -0.15 + (footrotr * 1.2 + 0.5) * speednorm);
+            Quaternion::rotation_x(short * -0.15 * speednorm + (footrotr * 0.5 + 0.5) * speednorm);
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        let main_tool = if let (None, Some(Hands::Two)) = hands {
-            second_tool_kind
-        } else {
-            active_tool_kind
-        };
+        next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-        match main_tool {
-            Some(ToolKind::Dagger) => {
-                next.main.position = Vec3::new(5.0, 1.0 - skeleton.back_carry_offset, 2.0);
-                next.main.orientation =
-                    Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
-            },
-            Some(ToolKind::Shield) => {
-                next.main.position = Vec3::new(-0.0, -5.0 - skeleton.back_carry_offset, 3.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-            },
-            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                next.main.position = Vec3::new(2.0, -5.0 - skeleton.back_carry_offset, -1.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
-            },
-            Some(ToolKind::Bow) => {
-                next.main.position = Vec3::new(0.0, -5.0 - skeleton.back_carry_offset, 6.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-            },
-            _ => {
-                next.main.position = Vec3::new(-7.0, -5.0 - skeleton.back_carry_offset, 15.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0 + shorte * -0.2);
-            },
-        }
-
-        match second_tool_kind {
-            Some(ToolKind::Dagger) => {
-                next.second.position = Vec3::new(-5.0, 1.0 - skeleton.back_carry_offset, 2.0);
-                next.second.orientation =
-                    Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
-            },
-            Some(ToolKind::Shield) => {
-                next.second.position = Vec3::new(0.0, -4.5 - skeleton.back_carry_offset, 3.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
-            },
-            _ => {
-                next.second.position = Vec3::new(-7.0, -5.0 - skeleton.back_carry_offset, 15.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-            },
-        }
-
-        next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        next.lantern.orientation =
-            Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
-        next.lantern.scale = Vec3::one() * 0.65;
-        next.hold.scale = Vec3::one() * 0.0;
-
-        if skeleton.holding_lantern {
-            next.hand_r.position = Vec3::new(
-                s_a.hand.0 + 1.0,
-                s_a.hand.1 + 2.0 - impact * 0.2,
-                s_a.hand.2 + 12.0 + impact * -0.1,
-            );
-            next.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
-            next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 + 2.0);
-
-            let fast = (anim_time * 8.0).sin();
-            let fast2 = (anim_time * 6.0 + 8.0).sin();
-
-            next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
-            next.lantern.orientation = next.hand_r.orientation.inverse()
-                * Quaternion::rotation_x((fast + 0.5) * 1.0 * speednorm)
-                * Quaternion::rotation_y(tilt * 4.0 * fast + tilt * 3.0 + fast2 * speednorm * 0.25);
-        }
+        next.do_hold_lantern(s_a, anim_time, acc_vel, speednorm, impact, tilt);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
-        match hands {
-            (Some(Hands::One), _) => match active_tool_kind {
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.main.position = Vec3::new(-4.0, -4.5 - skeleton.back_carry_offset, 10.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(PI / 2.0);
-                },
-
-                _ => {},
-            },
-            (_, _) => {},
-        };
-        match hands {
-            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -5.0 - skeleton.back_carry_offset, 10.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
-                },
-                _ => {},
-            },
-            (_, _) => {},
-        };
-
-        next.second.scale = match hands {
-            (Some(Hands::One) | None, Some(Hands::One)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
-
-        if let (None, Some(Hands::Two)) = hands {
-            next.second = next.main;
-        }
         if wall.map_or(false, |e| e.y > 0.5) {
             let push = (1.0 - orientation.x.abs()).powi(2);
             let right_sub = -(orientation.x).min(0.0);

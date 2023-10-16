@@ -3,7 +3,6 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use core::f32::consts::PI;
 use std::ops::Mul;
 
 pub struct IdleAnimation;
@@ -41,7 +40,6 @@ impl Animation for IdleAnimation {
         next.hand_r.scale = Vec3::one() * 1.04;
         next.back.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
-        next.lantern.scale = Vec3::one() * 0.65;
         next.shoulder_l.scale = Vec3::one() * 1.1;
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
@@ -86,74 +84,12 @@ impl Animation for IdleAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
         next.hold.position = Vec3::new(0.4, -0.3, -5.8);
-        match hands {
-            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match active_tool_kind {
-                Some(ToolKind::Bow) => {
-                    next.main.position = Vec3::new(0.0, -5.0 - skeleton.back_carry_offset, 6.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-                },
-                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                    next.main.position = Vec3::new(2.0, -5.0 - skeleton.back_carry_offset, -1.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
-                },
-                _ => {
-                    next.main.position = Vec3::new(-7.0, -5. - skeleton.back_carry_offset, 15.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
-                },
-            },
-            (_, _) => {},
-        };
 
-        match hands {
-            (Some(Hands::One), _) => match active_tool_kind {
-                Some(ToolKind::Dagger) => {
-                    next.main.position = Vec3::new(5.0, 1.0 - skeleton.back_carry_offset, 2.0);
-                    next.main.orientation =
-                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
-                },
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.main.position = Vec3::new(-4.0, -4.0 - skeleton.back_carry_offset, 10.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(PI / 2.0);
-                },
+        next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-                _ => {},
-            },
-            (_, _) => {},
-        };
-        match hands {
-            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
-                Some(ToolKind::Dagger) => {
-                    next.second.position = Vec3::new(-5.0, 1.0 - skeleton.back_carry_offset, 2.0);
-                    next.second.orientation =
-                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
-                },
-                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
-                    next.second.position = Vec3::new(4.0, -5.0 - skeleton.back_carry_offset, 10.0);
-                    next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
-                },
-                _ => {},
-            },
-            (_, _) => {},
-        };
-
-        next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
+        next.do_hold_lantern(s_a, anim_time, 0.0, 0.0, 0.0, 0.0);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
-
-        next.second.scale = match hands {
-            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
-
-        if let (None, Some(Hands::Two)) = hands {
-            next.second = next.main;
-        }
 
         next
     }

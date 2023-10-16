@@ -29,7 +29,7 @@ impl Animation for GlidingAnimation {
         next.glider_trails = true;
 
         let speednorm = velocity.magnitude().min(50.0) / 50.0;
-        let slow = (acc_vel * 0.25).sin();
+        let slow = (acc_vel * 0.1).sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) / 4.0).floor().mul(7331.0).sin() * 0.5,
@@ -53,10 +53,9 @@ impl Animation for GlidingAnimation {
 
         //necessary for overwriting jump anim
         next.belt.orientation = Quaternion::rotation_z(0.0);
-        next.shorts.orientation = Quaternion::rotation_z(0.0);
         next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
-        next.shorts.orientation = Quaternion::rotation_z(-speedlog + slow * 0.15);
+        next.shorts.orientation = Quaternion::rotation_z(slow * 0.15);
 
         next.shoulder_r.orientation = glider_ori * Quaternion::rotation_x(2.0);
         next.shoulder_l.orientation = next.shoulder_r.orientation;

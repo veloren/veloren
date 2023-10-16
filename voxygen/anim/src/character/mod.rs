@@ -58,7 +58,10 @@ pub use self::{
     wallrun::WallrunAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
-use common::comp;
+use common::comp::{
+    self,
+    tool::{Hands, ToolKind},
+};
 use core::{convert::TryFrom, f32::consts::PI};
 
 pub type Body = comp::humanoid::Body;
@@ -330,6 +333,127 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             bhl: (0.0, -4.0, 1.0, PI / 2.0, 0.0, 0.0),
             bhr: (1.0, 2.0, -2.0, PI / 2.0, 0.0, 0.0),
             bc: (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
+        }
+    }
+}
+
+impl CharacterSkeleton {
+    /// Animate tools (main and secondary) on the character's back, taking in
+    /// account backpack offsets.
+    pub fn do_tools_on_back(
+        &mut self,
+        hands: (Option<Hands>, Option<Hands>),
+        active_tool_kind: Option<ToolKind>,
+        second_tool_kind: Option<ToolKind>,
+    ) {
+        match (hands, active_tool_kind, second_tool_kind) {
+            ((Some(Hands::Two), _), tool, _) | ((None, Some(Hands::Two)), _, tool) => match tool {
+                Some(ToolKind::Bow) => {
+                    self.main.position = Vec3::new(0.0, -5.0 - self.back_carry_offset, 6.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
+                    self.main.position = Vec3::new(2.0, -5.0 - self.back_carry_offset, -1.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+                _ => {
+                    self.main.position = Vec3::new(-7.0, -5.0 - self.back_carry_offset, 15.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+            },
+            ((_, _), _, _) => {},
+        }
+
+        match hands {
+            (Some(Hands::One), _) => match active_tool_kind {
+                Some(ToolKind::Dagger) => {
+                    self.main.position = Vec3::new(5.0, 1.0 - self.back_carry_offset, 2.0);
+                    self.main.orientation =
+                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
+                },
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    self.main.position = Vec3::new(-4.0, -4.5 - self.back_carry_offset, 10.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                },
+                Some(ToolKind::Shield) => {
+                    self.main.position = Vec3::new(-0.0, -4.0 - self.back_carry_offset, 3.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+                },
+                _ => {},
+            },
+            (_, _) => {},
+        }
+        match hands {
+            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
+                Some(ToolKind::Dagger) => {
+                    self.second.position = Vec3::new(-5.0, 1.0 - self.back_carry_offset, 2.0);
+                    self.second.orientation =
+                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
+                },
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    self.second.position = Vec3::new(4.0, -5.0 - self.back_carry_offset, 10.0);
+                    self.second.orientation =
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
+                },
+                Some(ToolKind::Shield) => {
+                    self.second.position = Vec3::new(0.0, -4.0 - self.back_carry_offset, 3.0);
+                    self.second.orientation =
+                        Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+                },
+                _ => {},
+            },
+            (_, _) => {},
+        }
+    }
+
+    /// If we're holding a lantern, animate hold the lantern in a reasonable
+    /// position.
+    pub fn do_hold_lantern(
+        &mut self,
+        s_a: &SkeletonAttr,
+        anim_time: f32,
+        acc_vel: f32,
+        speednorm: f32,
+        impact: f32,
+        tilt: f32,
+    ) {
+        let lab = 2.0 / s_a.scaler;
+
+        let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.6 + PI * 0.5).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab * 1.6 + PI * 0.5).sin());
+
+        let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab * 1.6).sin());
+
+        self.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
+        self.lantern.orientation =
+            Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
+        self.lantern.scale = Vec3::one() * 0.65;
+        self.hold.scale = Vec3::one() * 0.0;
+
+        if self.holding_lantern {
+            self.hand_r.position = Vec3::new(
+                s_a.hand.0 + 1.0,
+                s_a.hand.1 + 2.0 - impact * 0.2,
+                s_a.hand.2 + 12.0 + impact * -0.1,
+            );
+            self.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
+            self.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 + 2.0);
+
+            let fast = (anim_time * 8.0).sin();
+            let fast2 = (anim_time * 6.0 + 8.0).sin();
+
+            self.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
+            self.lantern.orientation = self.hand_r.orientation.inverse()
+                * Quaternion::rotation_x(
+                    (fast + 0.5) * 1.0 * speednorm + (tilt.abs() * 2.0).min(PI * 0.5),
+                )
+                * Quaternion::rotation_y(tilt * 1.0 * fast + tilt * 1.0 + fast2 * speednorm * 0.25);
         }
     }
 }

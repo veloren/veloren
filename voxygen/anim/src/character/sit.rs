@@ -89,25 +89,7 @@ impl Animation for SitAnimation {
 
         next.torso.position = Vec3::new(0.0, -2.2, stop * -1.76);
 
-        if skeleton.holding_lantern {
-            next.hand_r.position = Vec3::new(
-                s_a.hand.0 + 1.0 - head_look.x * 8.0,
-                s_a.hand.1 + 5.0 + head_look.x * 6.0,
-                s_a.hand.2 + 9.0 + head_look.y * 6.0,
-            );
-            next.hand_r.orientation = Quaternion::rotation_x(2.25)
-                * Quaternion::rotation_z(0.9)
-                * Quaternion::rotation_y(head_look.x * 3.0)
-                * Quaternion::rotation_x(head_look.y * 3.0);
-
-            let fast = (anim_time * 5.0).sin();
-            let fast2 = (anim_time * 4.5 + 8.0).sin();
-
-            next.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
-            next.lantern.orientation = next.hand_r.orientation.inverse()
-                * Quaternion::rotation_x(fast * 0.1)
-                * Quaternion::rotation_y(fast2 * 0.1);
-        }
+        next.do_hold_lantern(s_a, anim_time, 0.0, 0.0, 0.0, 0.0);
 
         next
     }

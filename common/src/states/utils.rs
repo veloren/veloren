@@ -895,7 +895,9 @@ pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
         && data.physics.in_liquid().is_none()
         && data.body.can_climb()
     {
-        update.character = CharacterState::Wallrun(wallrun::Data);
+        update.character = CharacterState::Wallrun(wallrun::Data {
+            was_wielded: data.character.is_wield() || data.character.was_wielded(),
+        });
         true
     } else {
         false
