@@ -3489,6 +3489,12 @@ fn handle_reload_chunks(
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
+    #[cfg(feature = "persistent_world")]
+    server
+        .state
+        .ecs()
+        .write_resource::<crate::terrain_persistence::TerrainPersistence>()
+        .unload_all();
     server.state.clear_terrain();
 
     Ok(())
