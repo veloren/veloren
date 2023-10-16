@@ -811,6 +811,15 @@ impl Server {
             run_now::<terrain::Sys>(self.state.ecs_mut());
         }
 
+        // Hook rtsim chunk unloads
+        #[cfg(feature = "worldgen")]
+        {
+            let mut rtsim = self.state.ecs().write_resource::<rtsim::RtSim>();
+            for chunk in &self.state.terrain_changes().removed_chunks {
+                rtsim.hook_unload_chunk(*chunk);
+            }
+        }
+
         // Prevent anchor entity chains which are not currently supported
         let anchors = self.state.ecs().read_storage::<Anchor>();
         let anchored_anchor_entities: Vec<Entity> = (

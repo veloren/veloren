@@ -380,11 +380,13 @@ impl<'a> System<'a> for Sys {
 
                 chunk_generator.cancel_if_pending(key);
 
+                // If you want to trigger any behaivour on unload, do it in `Server::tick` by
+                // reading `TerrainChanges::removed_chunks` since chunks can also be removed
+                // using eg. /reload_chunks
+
                 // TODO: code duplication for chunk insertion between here and state.rs
                 terrain.remove(key).map(|chunk| {
                     terrain_changes.removed_chunks.insert(key);
-                    #[cfg(feature = "worldgen")]
-                    rtsim.hook_unload_chunk(key);
                     chunk
                 })
             })
