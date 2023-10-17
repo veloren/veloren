@@ -25,5 +25,4 @@ walkdir = "2.3.2"
 [features]
 hot-reloading = ["assets_manager/hot-reloading"]
 asset_tweak = ["dep:serde", "hot-reloading"]
-hashbrown = ["dep:hashbrown"]
-plugins = ["dep:serde", "dep:tar"]
+plugins = ["dep:serde", "dep:tar", "dep:hashbrown"]

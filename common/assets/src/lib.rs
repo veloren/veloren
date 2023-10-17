@@ -245,7 +245,7 @@ impl<V> Concatenate for Vec<V> {
     }
 }
 
-#[cfg(feature = "hashbrown")]
+#[cfg(feature = "plugins")]
 impl<K: Eq + Hash, V, S: BuildHasher> Concatenate for hashbrown::HashMap<K, V, S> {
     fn concatenate(mut self, b: Self) -> Self {
         self.extend(b);

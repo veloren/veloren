@@ -119,7 +119,7 @@ impl Backend {
     fn read(&self, pos: u64, len: usize) -> std::io::Result<Vec<u8>> {
         File::open(self.0.clone()).and_then(|file| {
             let mut result = vec![0; len];
-            file.read_at(result.as_mut_slice(), pos)
+            file.read_exact_at(result.as_mut_slice(), pos)
                 .map(move |_num_bytes| result)
         })
     }

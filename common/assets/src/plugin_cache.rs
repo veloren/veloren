@@ -14,8 +14,18 @@ struct PluginEntry {
     cache: AssetCache<Tar>,
 }
 
-/// The source combining filesystem and plugins (typically used via
-/// CombinedCache)
+/// The location of this asset
+enum AssetSource {
+    FileSystem,
+    Plugin { index: usize },
+}
+
+struct SourceAndContents<'a>(AssetSource, FileContent<'a>);
+
+/// This source combines assets loaded from the filesystem and from plugins.
+/// It is typically used via the CombinedCache type.
+///
+/// A load will search through all sources and warn about unhandled duplicates.
 pub struct CombinedSource {
     fs: AssetCache<FileSystem>,
     plugin_list: RwLock<Vec<PluginEntry>>,
@@ -31,34 +41,40 @@ impl CombinedSource {
 }
 
 impl CombinedSource {
-    fn read_multiple(&self, id: &str, ext: &str) -> Vec<(Option<usize>, FileContent<'_>)> {
+    /// Look for an asset in all known sources
+    fn read_multiple(&self, id: &str, ext: &str) -> Vec<SourceAndContents<'_>> {
         let mut result = Vec::new();
         if let Ok(file_entry) = self.fs.raw_source().read(id, ext) {
-            result.push((None, file_entry));
+            result.push(SourceAndContents(AssetSource::FileSystem, file_entry));
         }
         for (n, p) in self.plugin_list.read().unwrap().iter().enumerate() {
             if let Ok(entry) = p.cache.raw_source().read(id, ext) {
                 // the data is behind an RwLockReadGuard, so own it for returning
-                result.push((Some(n), match entry {
-                    FileContent::Slice(s) => FileContent::Buffer(Vec::from(s)),
-                    FileContent::Buffer(b) => FileContent::Buffer(b),
-                    FileContent::Owned(s) => FileContent::Buffer(Vec::from(s.as_ref().as_ref())),
-                }));
+                result.push(SourceAndContents(
+                    AssetSource::Plugin { index: n },
+                    match entry {
+                        FileContent::Slice(s) => FileContent::Buffer(Vec::from(s)),
+                        FileContent::Buffer(b) => FileContent::Buffer(b),
+                        FileContent::Owned(s) => {
+                            FileContent::Buffer(Vec::from(s.as_ref().as_ref()))
+                        },
+                    },
+                ));
             }
         }
         result
     }
 
-    // We don't want to keep the lock, so we clone
-    fn plugin_path(&self, index: Option<usize>) -> Option<PathBuf> {
-        if let Some(index) = index {
-            self.plugin_list
+    /// Return the path of a source
+    fn plugin_path(&self, index: &AssetSource) -> Option<PathBuf> {
+        match index {
+            AssetSource::FileSystem => Some(ASSETS_PATH.clone()),
+            AssetSource::Plugin { index } => self.plugin_list
                 .read()
                 .unwrap()
-                .get(index)
-                .map(|plugin| plugin.path.clone())
-        } else {
-            None
+                .get(*index)
+                // We don't want to keep the lock, so we clone
+                .map(|plugin| plugin.path.clone()),
         }
     }
 }
@@ -71,12 +87,11 @@ impl Source for CombinedSource {
             Err(std::io::ErrorKind::NotFound.into())
         } else {
             if entries.len() > 1 {
-                let plugina = self.plugin_path(entries[0].0);
-                let pluginb = self.plugin_path(entries[1].0);
-                let patha = plugina.as_ref().unwrap_or(&ASSETS_PATH);
-                let pathb = pluginb.as_ref().unwrap_or(&ASSETS_PATH);
+                let patha = self.plugin_path(&entries[0].0);
+                let pathb = self.plugin_path(&entries[1].0);
                 tracing::error!("Duplicate asset {id} in {patha:?} and {pathb:?}");
             }
+            // unconditionally return the first asset found
             Ok(entries.swap_remove(0).1)
         }
     }
@@ -119,7 +134,7 @@ impl CombinedCache {
     /// Combine objects from filesystem and plugins
     pub fn combine<T: Concatenate>(
         &self,
-        load_from: impl Fn(AnyCache) -> Result<T, BoxedError>,
+        mut load_from: impl FnMut(AnyCache) -> Result<T, BoxedError>,
     ) -> Result<T, BoxedError> {
         let mut result = load_from(self.0.raw_source().fs.as_any_cache());
         // Report a severe error from the filesystem asset even if later overwritten by
@@ -162,6 +177,8 @@ impl CombinedCache {
         result
     }
 
+    /// Add a tar archive (a plugin) to the system.
+    /// All files in that tar file become potential assets.
     pub fn register_tar(&self, path: PathBuf) -> std::io::Result<()> {
         let tar_source = Tar::from_path(&path)?;
         let cache = AssetCache::with_source(tar_source);
@@ -175,6 +192,7 @@ impl CombinedCache {
     }
 }
 
+// Delegate all cache operations directly to the contained cache object
 impl std::ops::Deref for CombinedCache {
     type Target = AssetCache<CombinedSource>;
 
