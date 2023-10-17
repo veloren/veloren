@@ -22,7 +22,7 @@ mod savannah_hut;
 mod savannah_pit;
 mod savannah_workshop;
 mod sea_chapel;
-mod tavern;
+pub mod tavern;
 mod troll_cave;
 mod workshop;
 

@@ -79,7 +79,9 @@ impl Controller {
 
     pub fn do_cheer(&mut self, dir: Option<Dir>) { self.activity = Some(NpcActivity::Cheer(dir)); }
 
-    pub fn do_sit(&mut self, dir: Option<Dir>) { self.activity = Some(NpcActivity::Sit(dir)); }
+    pub fn do_sit(&mut self, dir: Option<Dir>, pos: Option<Vec3<i32>>) {
+        self.activity = Some(NpcActivity::Sit(dir, pos));
+    }
 
     pub fn say(&mut self, target: impl Into<Option<Actor>>, content: comp::Content) {
         self.actions.push(NpcAction::Say(target.into(), content));

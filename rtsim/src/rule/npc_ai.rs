@@ -38,7 +38,7 @@ use vek::*;
 use world::{
     civ::{self, Track},
     site::{Site as WorldSite, SiteKind},
-    site2::{self, PlotKind, TileKind},
+    site2::{self, plot::tavern, PlotKind, TileKind},
     util::NEIGHBORS,
     IndexRef, World,
 };
@@ -325,7 +325,7 @@ impl Rule for NpcAi {
     }
 }
 
-fn idle<S: State>() -> impl Action<S> { just(|ctx, _| ctx.controller.do_idle()).debug(|| "idle") }
+fn idle<S: State>() -> impl Action<S> + Clone { just(|ctx, _| ctx.controller.do_idle()).debug(|| "idle") }
 
 /// Try to walk toward a 3D position without caring for obstacles.
 fn goto<S: State>(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action<S> {
@@ -578,7 +578,7 @@ fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<
         .map(|_, _| ())
 }
 
-fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
+fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + Clone {
     now(move |ctx, _| {
         if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
             // Cut off the conversation sometimes to avoid infinite conversations (but only
@@ -630,7 +630,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
     })
 }
 
-fn socialize() -> impl Action<EveryRange> {
+fn socialize() -> impl Action<EveryRange> + Clone {
     now(move |ctx, socialize: &mut EveryRange| {
         // Skip most socialising actions if we're not loaded
         if matches!(ctx.npc.mode, SimulationMode::Loaded) && socialize.should(ctx) {
@@ -758,6 +758,8 @@ fn choose_plaza(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
         })
 }
 
+const WALKING_SPEED: f32 = 0.35;
+
 fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
     choose(move |ctx, state: &mut DefaultState| {
         // Consider moving home if the home site gets too full
@@ -804,8 +806,9 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 .then(travel_to_site(new_home, 0.5))
                 .then(just(move |ctx, _| ctx.controller.set_new_home(new_home))));
         }
-
-        if DayPeriod::from(ctx.time_of_day.0).is_dark()
+        let day_period = DayPeriod::from(ctx.time_of_day.0);
+        let is_weekend = ctx.time_of_day.day() as u64 % 6 == 0;
+        if day_period.is_dark()
             && !matches!(ctx.npc.profession(), Some(Profession::Guard))
         {
             return important(
@@ -845,51 +848,142 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 })
                 .debug(|| "find somewhere to sleep"),
             );
-        // Villagers with roles should perform those roles
         }
-        // Visiting villagers in DesertCity who are not Merchants should sit down in the Arena during the day
-        else if matches!(ctx.state.data().sites[visiting_site].world_site.map(|ws| &ctx.index.sites.get(ws).kind), Some(SiteKind::DesertCity(_)))
-            && !matches!(ctx.npc.profession(), Some(Profession::Merchant | Profession::Guard))
-            && ctx.rng.gen_bool(1.0 / 3.0)
-        {
-            let wait_time = ctx.rng.gen_range(100.0..300.0);
+        // Go do something fun on evenings and holidays, or on random days.
+        else if
+            // Ain't no rest for the wicked 
+            !matches!(ctx.npc.profession(), Some(Profession::Guard))
+            && (matches!(day_period, DayPeriod::Evening) || is_weekend || ctx.rng.gen_bool(0.05)) {
+            let mut fun_stuff = Vec::new();
+
             if let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site
-                && let Some(ws) = ctx.index.sites.get(ws_id).site2()
-                && let Some(arena) = ws.plots().find_map(|p| match p.kind() { PlotKind::DesertCityArena(a) => Some(a), _ => None})
-            {
-                // We don't use Z coordinates for seats because they are complicated to calculate from the Ramp procedural generation
-                // and using goto_2d seems to work just fine. However it also means that NPC will never go seat on the stands
-                // on the first floor of the arena. This is a compromise that was made because in the current arena procedural generation
-                // there is also no pathways to the stands on the first floor for NPCs.
-                let arena_center = Vec3::new(arena.center.x, arena.center.y, arena.base).as_::<f32>();
-                let stand_dist = arena.stand_dist as f32;
-                let seat_var_width = ctx.rng.gen_range(0..arena.stand_width) as f32;
-                let seat_var_length = ctx.rng.gen_range(-arena.stand_length..arena.stand_length) as f32;
-                // Select a seat on one of the 4 arena stands
-                let seat = match ctx.rng.gen_range(0..4) {
-                    0 => Vec3::new(arena_center.x - stand_dist + seat_var_width, arena_center.y + seat_var_length, arena_center.z),
-                    1 => Vec3::new(arena_center.x + stand_dist - seat_var_width, arena_center.y + seat_var_length, arena_center.z),
-                    2 => Vec3::new(arena_center.x + seat_var_length, arena_center.y - stand_dist + seat_var_width, arena_center.z),
-                    _ => Vec3::new(arena_center.x + seat_var_length, arena_center.y + stand_dist - seat_var_width, arena_center.z),
-                };
-                let look_dir = Dir::from_unnormalized(arena_center - seat);
-                // Walk to an arena seat, cheer, sit and dance
-                return casual(just(move |ctx, _| ctx.controller.say(None, Content::localized("npc-speech-arena")))
-                    .then(goto_2d(seat.xy(), 0.6, 1.0).debug(|| "go to arena"))
-                    // Turn toward the centre of the arena and watch the action!
-                    .then(choose(move |ctx, _| if ctx.rng.gen_bool(0.3) {
-                        casual(just(move |ctx,_| ctx.controller.do_cheer(look_dir)).repeat().stop_if(timeout(5.0)))
-                    } else if ctx.rng.gen_bool(0.15) {
-                        casual(just(move |ctx,_| ctx.controller.do_dance(look_dir)).repeat().stop_if(timeout(5.0)))
-                    } else {
-                        casual(just(move |ctx,_| ctx.controller.do_sit(look_dir)).repeat().stop_if(timeout(15.0)))
-                    })
+                && let Some(ws) = ctx.index.sites.get(ws_id).site2() {
+                if let Some(arena) = ws.plots().find_map(|p| match p.kind() { PlotKind::DesertCityArena(a) => Some(a), _ => None}) {
+                    let wait_time = ctx.rng.gen_range(100.0..300.0);
+                    // We don't use Z coordinates for seats because they are complicated to calculate from the Ramp procedural generation
+                    // and using goto_2d seems to work just fine. However it also means that NPC will never go seat on the stands
+                    // on the first floor of the arena. This is a compromise that was made because in the current arena procedural generation
+                    // there is also no pathways to the stands on the first floor for NPCs.
+                    let arena_center = Vec3::new(arena.center.x, arena.center.y, arena.base).as_::<f32>();
+                    let stand_dist = arena.stand_dist as f32;
+                    let seat_var_width = ctx.rng.gen_range(0..arena.stand_width) as f32;
+                    let seat_var_length = ctx.rng.gen_range(-arena.stand_length..arena.stand_length) as f32;
+                    // Select a seat on one of the 4 arena stands
+                    let seat = match ctx.rng.gen_range(0..4) {
+                        0 => Vec3::new(arena_center.x - stand_dist + seat_var_width, arena_center.y + seat_var_length, arena_center.z),
+                        1 => Vec3::new(arena_center.x + stand_dist - seat_var_width, arena_center.y + seat_var_length, arena_center.z),
+                        2 => Vec3::new(arena_center.x + seat_var_length, arena_center.y - stand_dist + seat_var_width, arena_center.z),
+                        _ => Vec3::new(arena_center.x + seat_var_length, arena_center.y + stand_dist - seat_var_width, arena_center.z),
+                    };
+                    let look_dir = Dir::from_unnormalized(arena_center - seat);
+                    // Walk to an arena seat, cheer, sit and dance
+                    let action = casual(just(move |ctx, _| ctx.controller.say(None, Content::localized("npc-speech-arena")))
+                            .then(goto_2d(seat.xy(), 0.6, 1.0).debug(|| "go to arena"))
+                            // Turn toward the centre of the arena and watch the action!
+                            .then(choose(move |ctx, _| if ctx.rng.gen_bool(0.3) {
+                                casual(just(move |ctx,_| ctx.controller.do_cheer(look_dir)).repeat().stop_if(timeout(5.0)))
+                            } else if ctx.rng.gen_bool(0.15) {
+                                casual(just(move |ctx,_| ctx.controller.do_dance(look_dir)).repeat().stop_if(timeout(5.0)))
+                            } else {
+                                casual(just(move |ctx,_| ctx.controller.do_sit(look_dir, None)).repeat().stop_if(timeout(15.0)))
+                            })
+                                .repeat()
+                                .stop_if(timeout(wait_time)))
+                            .map(|_, _| ())
+                            .boxed());
+                    fun_stuff.push(action);
+                }
+                if let Some(tavern) = ws.plots().filter_map(|p| match p.kind() {  PlotKind::Tavern(a) => Some(a), _ => None }).choose(&mut ctx.rng) {
+                    let wait_time = ctx.rng.gen_range(100.0..300.0);
+
+                    let (stage_aabr, stage_z) = tavern.rooms.values().flat_map(|room| {
+                        room.details.iter().filter_map(|detail| match detail {
+                            tavern::Detail::Stage { aabr } => Some((*aabr, room.bounds.min.z + 1)),
+                            _ => None,
+                        })
+                    }).choose(&mut ctx.rng).unwrap_or((tavern.bounds, tavern.door_wpos.z));
+
+                    let bar_pos = tavern.rooms.values().flat_map(|room|
+                        room.details.iter().filter_map(|detail| match detail {
+                            tavern::Detail::Bar { aabr } => {
+                                let side = site2::util::Dir::from_vec2(room.bounds.center().xy() - aabr.center());
+                                let pos = side.select_aabr_with(*aabr, aabr.center()) + side.to_vec2();
+
+                                Some(pos.with_z(room.bounds.min.z))
+                            }
+                            _ => None,
+                        })
+                    ).choose(&mut ctx.rng).unwrap_or(stage_aabr.center().with_z(stage_z));
+                    
+                    // Pick a chair that is theirs for the stay
+                    let chair_pos = tavern.rooms.values().flat_map(|room| { 
+                        let z = room.bounds.min.z;
+                        room.details.iter().filter_map(move |detail| match detail {
+                            tavern::Detail::Table { pos, chairs } => Some(chairs.into_iter().map(move |dir| pos.with_z(z) + dir.to_vec2())),
+                            _ => None,
+                        })
+                        .flatten()
+                    }
+                    ).choose(&mut ctx.rng)
+                    // This path is possible, but highly unlikely.
+                    .unwrap_or(bar_pos);
+
+                    let stage_aabr = stage_aabr.as_::<f32>();
+                    let stage_z = stage_z as f32;
+
+                    let action = casual(travel_to_point(tavern.door_wpos.xy().as_() + 0.5, 0.8).then(choose(move |ctx, (last_action, _)| {
+                            let action = [0, 1, 2].into_iter().filter(|i| *last_action != Some(*i)).choose(&mut ctx.rng).expect("We have at least 2 elements");
+                            let socialize = socialize().map_state(|(_, timer)| timer).repeat();
+                            match action {
+                                // Go and dance on a stage.
+                                0 => {
+                                    casual(now(move |ctx, (last_action, _)| {
+                                        *last_action = Some(action);
+                                        goto(stage_aabr.min.map2(stage_aabr.max, |a, b| ctx.rng.gen_range(a..b)).with_z(stage_z), WALKING_SPEED, 1.0)
+                                    })
+                                    .then(just(move |ctx,_| ctx.controller.do_dance(None)).repeat().stop_if(timeout(ctx.rng.gen_range(20.0..30.0))))
+                                    .map(|_, _| ())
+                                    )
+                                },
+                                // Go and sit at a table.
+                                1 => {
+                                    casual(
+                                        now(move |ctx, (last_action, _)| {
+                                            *last_action = Some(action);
+                                            goto(chair_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(just(move |ctx, _| ctx.controller.do_sit(None, Some(chair_pos)))).then(socialize.clone().stop_if(timeout(ctx.rng.gen_range(30.0..60.0)))).map(|_, _| ())
+                                        })
+                                    )
+                                },
+                                // Go to the bar.
+                                _ => {
+                                    casual(
+                                        now(move |ctx, (last_action, _)| {
+                                            *last_action = Some(action);
+                                            goto(bar_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(socialize.clone().stop_if(timeout(ctx.rng.gen_range(10.0..25.0)))).map(|_, _| ())
+                                        })
+                                    )
+                                },
+                            }
+                        })
+                        .with_state((None::<u32>, every_range(5.0..10.0)))
                         .repeat()
                         .stop_if(timeout(wait_time)))
-                    .map(|_, _| ())
-                    .boxed());
+                        .map(|_, _| ())
+                        .boxed()
+                    );
+
+                    fun_stuff.push(action);
+                }
             }
-        } else if matches!(ctx.npc.profession(), Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
+
+
+            if !fun_stuff.is_empty() {
+                let i = ctx.rng.gen_range(0..fun_stuff.len());
+                return fun_stuff.swap_remove(i);
+            }
+        }
+        // Villagers with roles should perform those roles
+        else if matches!(ctx.npc.profession(), Some(Profession::Herbalist)) && ctx.rng.gen_bool(0.8)
         {
             if let Some(forest_wpos) = find_forest(ctx) {
                 return casual(

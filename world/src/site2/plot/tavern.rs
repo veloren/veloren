@@ -22,7 +22,7 @@ use crate::{
 
 type Neighbor = Option<Id<Room>>;
 
-struct Wall {
+pub struct Wall {
     start: Vec2<i32>,
     end: Vec2<i32>,
     base_alt: i32,
@@ -31,6 +31,15 @@ struct Wall {
     to: Neighbor,
     to_dir: Dir,
     door: Option<i32>,
+}
+
+impl Wall {
+    pub fn door_pos(&self) -> Option<Vec3<i32>> {
+        let wall_dir = Dir::from_vec2(self.end - self.start);
+
+        self.door
+            .map(|door| (self.start + wall_dir.to_vec2() * door).with_z(self.base_alt))
+    }
 }
 
 #[derive(Clone, Copy, EnumIter, enum_map::Enum)]
@@ -54,7 +63,7 @@ impl RoomKind {
 }
 
 #[derive(Clone, Copy)]
-enum Detail {
+pub enum Detail {
     Bar {
         aabr: Aabr<i32>,
     },
@@ -67,15 +76,15 @@ enum Detail {
     },
 }
 
-struct Room {
+pub struct Room {
     /// Inclusive
-    bounds: Aabb<i32>,
+    pub bounds: Aabb<i32>,
     kind: RoomKind,
     // stairs: Option<Id<Stairs>>,
     walls: EnumMap<Dir, Vec<Id<Wall>>>,
     // TODO: Remove this, used for debugging
     detail_areas: Vec<Aabr<i32>>,
-    details: Vec<Detail>,
+    pub details: Vec<Detail>,
 }
 
 impl Room {
@@ -99,14 +108,14 @@ struct Stairs {
 
 pub struct Tavern {
     name: String,
-    rooms: Store<Room>,
+    pub rooms: Store<Room>,
     stairs: Store<Stairs>,
     walls: Store<Wall>,
     /// Tile position of the door tile
     pub door_tile: Vec2<i32>,
-    pub(crate) door_wpos: Vec3<i32>,
+    pub door_wpos: Vec3<i32>,
     /// Axis aligned bounding region for the house
-    bounds: Aabr<i32>,
+    pub bounds: Aabr<i32>,
 }
 
 impl Tavern {
@@ -138,9 +147,7 @@ impl Tavern {
         let door_tile_center = site.tile_center_wpos(door_tile);
         let door_wpos = door_dir.select_aabr_with(ibounds, door_tile_center);
 
-        let door_alt = land
-            .column_sample(door_wpos, index)
-            .map_or_else(|| land.get_alt_approx(door_wpos), |sample| sample.alt);
+        let door_alt = land.get_alt_approx(door_wpos);
         let door_wpos = door_wpos.with_z(door_alt.ceil() as i32);
 
         /// Place room in bounds.
@@ -605,10 +612,7 @@ impl Tavern {
                 for door_pos in dir_walls.iter().filter_map(|wall_id| {
                     let wall = &walls[*wall_id];
 
-                    wall.door.map(|door| {
-                        let wall_dir = Dir::from_vec2(wall.end - wall.start);
-                        wall.start + wall_dir.to_vec2() * door
-                    })
+                    wall.door_pos()
                 }) {
                     let orth = dir.orthogonal();
                     for i in 0..room.detail_areas.len() {
@@ -1005,8 +1009,7 @@ impl Structure for Tavern {
                         .fill(dark_wood.clone());
                 },
             }
-            if let Some(door) = wall.door {
-                let door_pos = wall.start + wall_dir.to_vec2() * door;
+            if let Some(door_pos) = wall.door_pos() {
                 let min = match wall.from {
                     None => door_pos - wall.to_dir.to_vec2(),
                     Some(_) => door_pos,
@@ -1056,9 +1059,8 @@ impl Structure for Tavern {
                         }
                     },
                 }
-                if let Some(door) = wall.door {
-                    let door_pos = wall.start + wall_dir.to_vec2() * door;
-                    let diff = door_pos - wall_aabb.center().xy();
+                if let Some(door_pos) = wall.door_pos() {
+                    let diff = door_pos.xy() - wall_aabb.center().xy();
                     let orth = if diff == Vec2::zero() {
                         wall_dir
                     } else {

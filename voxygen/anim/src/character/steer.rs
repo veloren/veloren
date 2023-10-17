@@ -69,20 +69,28 @@ impl Animation for SteerAnimation {
         let hand_offset = Vec3::new(rot.cos(), 0.0, -rot.sin()) * 0.4 / s_a.scaler * 11.0;
 
         next.hand_l.position = helm_center - hand_offset;
-        next.hand_l.orientation = hand_rotation;
-
         next.hand_r.position = helm_center + hand_offset;
-        next.hand_r.orientation = -hand_rotation;
+
+        let ori_l = Quaternion::rotation_x(
+            PI / 2.0 + (next.hand_l.position.z / next.hand_l.position.x).atan(),
+        );
+        let ori_r = Quaternion::rotation_x(
+            PI / 2.0 - (next.hand_r.position.z / next.hand_r.position.x).atan(),
+        );
+
+        next.hand_l.orientation = hand_rotation * ori_l;
+        next.hand_r.orientation = -hand_rotation * ori_r;
+
+        next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
+        next.shoulder_l.orientation = ori_r;
+        next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
+        next.shoulder_r.orientation = ori_l;
 
         next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
         next.foot_l.orientation = Quaternion::identity();
 
         next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
         next.foot_r.orientation = Quaternion::identity();
-
-        next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-
-        next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
