@@ -77,6 +77,15 @@ vec4 textureBicubic(texture2D tex, sampler sampl, vec2 texCoords) {
     , sy);
 }
 
+vec4 textureMaybeBicubic(texture2D tex, sampler sampl, vec2 texCoords) {
+    #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
+        return textureBicubic(tex, sampl, texCoords);
+    #else
+    vec2 offset = (texCoords + vec2(-1.0, 0.5)) / textureSize(sampler2D(tex, sampl), 0);
+    return texture(sampler2D(tex, sampl), offset);
+    #endif
+}
+
 // 16 bit version (each of the 2 8-bit components are combined after bilinear sampling)
 // NOTE: We assume the sampled coordinates are already in "texture pixels".
 vec2 textureBicubic16(texture2D tex, sampler sampl, vec2 texCoords) {
@@ -241,7 +250,7 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, vec4 light_dir) {
 }
 
 // float horizon_at(vec3 pos, /*float time_of_day*/vec3 light_dir) {
-//     vec4 f_horizons = textureBicubic(t_horizon, pos_to_tex(pos.xy));
+//     vec4 f_horizons = textureMaybeBicubic(t_horizon, pos_to_tex(pos.xy));
 //     // f_horizons.xyz = /*linear_to_srgb*/(f_horizons.xyz);
 //     float alt = alt_at_real(pos.xy);
 //     return horizon_at2(f_horizons, alt, pos, light_dir);

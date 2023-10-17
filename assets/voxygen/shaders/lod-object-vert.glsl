@@ -47,7 +47,7 @@ void main() {
     #endif
 
     f_norm = v_norm;
-    f_col = vec4(vec3(inst_col) * (1.0 / 255.0) * v_col * (hash(inst_pos.xyxy) * 0.35 + 0.65), 1.0);
+    f_col = vec4(vec3(inst_col) * (1.0 / 255.0) * v_col * (hash(inst_pos.xyxy) * 0.4 + 0.6), 1.0);
     f_flags = inst_flags;
 
     gl_Position =

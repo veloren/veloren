@@ -56,6 +56,7 @@ const float EXTRA_NEG_Z = 32768.0;
 const float VERT_EXTRA_NEG_XY = 128.0;
 const float VERT_EXTRA_NEG_Z = 128.0;
 const uint VERT_PAGE_SIZE = 256;
+const uint VERT_PAGE_SIZE_BITS = VERT_PAGE_SIZE - 1;
 
 // vec4(vec3(position), distance)
 vec4 nearest_entity(in vec3 sprite_pos, const float entity_radius_factor) {
@@ -104,22 +105,17 @@ void main() {
     f_inst_light = vec2(inst_light, inst_glow);
 
     // Index of the vertex data in the 1D vertex texture
-    int vertex_index = int(uint(gl_VertexIndex) % VERT_PAGE_SIZE + inst_vert_page * VERT_PAGE_SIZE);
+    int vertex_index = int((uint(gl_VertexIndex) & VERT_PAGE_SIZE_BITS) + inst_vert_page * VERT_PAGE_SIZE);
     uvec2 pos_atlas_pos_norm_ao = verts[vertex_index];
     uint v_pos_norm = pos_atlas_pos_norm_ao.x;
     uint v_atlas_pos = pos_atlas_pos_norm_ao.y;
 
     // Expand the model vertex position bits into float values
-    vec3 v_pos = vec3(
-        float(v_pos_norm & 0xFFu) - VERT_EXTRA_NEG_XY,
-        float((v_pos_norm >> 8) & 0xFFu) - VERT_EXTRA_NEG_XY,
-        float((v_pos_norm >> 16) & 0x0FFFu) - VERT_EXTRA_NEG_Z
-    );
+    vec3 v_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu, 0xFFu, 0x0FFFu)) - ivec3(VERT_EXTRA_NEG_XY, VERT_EXTRA_NEG_XY, VERT_EXTRA_NEG_Z));
 
     // Position of the sprite block in the chunk
     // Used for highlighting the selected sprite, and for opening doors
     vec3 sprite_pos = inst_mat[3].xyz + chunk_offs;
-    float sprite_ori = (inst_pos_ori_door >> 29) & 0x7u;
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
         if((inst_pos_ori_door & (1 << 28)) != 0) {
@@ -128,6 +124,7 @@ void main() {
             float min_entity_dist = nearest_entity(sprite_pos, 1.0).w;
 
             if (min_entity_dist < MAX_OPEN_DIST) {
+                float sprite_ori = (inst_pos_ori_door >> 29) & 0x7u;
                 float flip = sprite_ori <= 3 ? 1.0 : -1.0;
                 float theta = mix(PI/2.0, 0, pow(max(0.0, min_entity_dist - MIN_OPEN_DIST) / (MAX_OPEN_DIST - MIN_OPEN_DIST), 1.0));
                 float costheta = cos(flip * theta);
@@ -191,14 +188,7 @@ void main() {
     // Shader@0x000001AABD89BEE0(112,43-53): error X4576: Input array signature parameter  cannot be indexed dynamically.
     //vec3 norm = (inst_mat[(v_pos_norm >> 30u) & 3u].xyz);
     uint index = v_pos_norm >> 30u & 3u;
-    vec3 norm;
-    if (index == 0) {
-        norm = (inst_mat[0].xyz);
-    } else if (index == 1) {
-        norm = (inst_mat[1].xyz);
-    } else {
-        norm = (inst_mat[2].xyz);
-    }
+    vec3 norm = (inst_mat[index].xyz);
 
     f_norm = normalize(mix(-norm, norm, v_pos_norm >> 29u & 1u));
 

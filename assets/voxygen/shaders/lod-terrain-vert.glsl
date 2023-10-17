@@ -44,7 +44,7 @@ void main() {
 
     // f_norm = lod_norm(f_pos.xy);
 
-    // f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    // f_shadow = textureMaybeBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
     // TODO: disabled because it isn't designed to work with reverse depth
     //float dist = distance(focus_pos.xy, f_pos.xy);

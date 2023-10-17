@@ -245,7 +245,7 @@ void main() {
     #else
         const float f_alpha = 1.0;
     #endif
-    #if (CLOUD_MODE != CLOUD_MODE_NONE)
+    #if (CLOUD_MODE != CLOUD_MODE_NONE && REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
         if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
             vec3 pos = f_pos + focus_off.xyz;
             vec3 drop_density = vec3(2, 2, 2);
@@ -311,9 +311,9 @@ void main() {
     /* float sun_shade_frac = horizon_at(f_pos, sun_dir);
     float moon_shade_frac = horizon_at(f_pos, moon_dir); */
     // float f_alt = alt_at(f_pos.xy);
-    // vec4 f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    // vec4 f_shadow = textureMaybeBicubic(t_horizon, pos_to_tex(f_pos.xy));
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
+    vec4 f_shadow = textureMaybeBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
     float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
 #elif (SHADOW_MODE == SHADOW_MODE_NONE)
     float sun_shade_frac = 1.0;//horizon_at2(f_shadow, f_alt, f_pos, sun_dir);

@@ -147,7 +147,7 @@ void main() {
 
     // Also precalculate shadow texture and estimated terrain altitude.
     // f_alt = alt_at(f_pos.xy);
-    // f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    // f_shadow = textureMaybeBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
     gl_Position = all_mat/*shadowMats[0].shadowMatrices*/ * vec4(f_pos, 1);
     // gl_Position.z = -gl_Position.z / 100.0 / gl_Position.w;
