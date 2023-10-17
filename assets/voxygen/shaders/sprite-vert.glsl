@@ -147,7 +147,7 @@ void main() {
     f_pos += chunk_offs;
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
-        #ifndef EXPERIMENTAL_NOTERRAINPOP
+        #ifdef EXPERIMENTAL_TERRAINPOP
             // Terrain 'pop-in' effect
             f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(time_since(load_time), 10.0), 1.0));
         #endif
