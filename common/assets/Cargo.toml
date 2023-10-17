@@ -13,13 +13,16 @@ dot_vox = "5.1"
 wavefront = "0.2" # TODO: Use vertex-colors branch when we have models that have them
 image = { workspace = true }
 tracing = { workspace = true }
+tar = { version = "0.4.37", optional = true }
 
 # asset tweak
 serde = { workspace = true, optional = true }
+hashbrown = { workspace = true, optional = true }
 
 [dev-dependencies]
 walkdir = "2.3.2"
 
 [features]
 hot-reloading = ["assets_manager/hot-reloading"]
-asset_tweak = ["serde", "hot-reloading"]
+asset_tweak = ["dep:serde", "hot-reloading"]
+plugins = ["dep:serde", "dep:tar", "dep:hashbrown"]

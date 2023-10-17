@@ -2,7 +2,7 @@ use super::cache::{
     FigureKey, FigureModelEntryFuture, ModelEntryFuture, TerrainModelEntryFuture, ToolKey,
 };
 use common::{
-    assets::{self, AssetExt, AssetHandle, DotVoxAsset, ReloadWatcher, Ron},
+    assets::{self, AssetExt, AssetHandle, Concatenate, DotVoxAsset, MultiRon, ReloadWatcher},
     comp::{
         arthropod::{self, BodyType as ABodyType, Species as ASpecies},
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
@@ -143,7 +143,7 @@ macro_rules! make_vox_spec {
     ) => {
         #[derive(Clone)]
         pub struct $Spec {
-            $( $field: AssetHandle<Ron<$ty>>, )*
+            $( $field: AssetHandle<MultiRon<$ty>>, )*
         }
 
         impl assets::Compound for $Spec {
@@ -177,6 +177,13 @@ macro_rules! make_vox_spec {
             }
         }
     }
+}
+macro_rules! impl_concatenate_for_wrapper {
+    ($name:ty) => {
+        impl Concatenate for $name {
+            fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }
+        }
+    };
 }
 
 // All offsets should be relative to an initial origin that doesn't change when
@@ -257,6 +264,10 @@ impl HumColorSpec {
             .into()
         })
     }
+}
+
+impl Concatenate for HumColorSpec {
+    fn concatenate(self, _b: Self) -> Self { todo!("Can't concatenate HumColorSpec") }
 }
 
 // All reliant on humanoid::Species and humanoid::BodyType
@@ -364,6 +375,7 @@ impl HumHeadSpec {
         )
     }
 }
+impl_concatenate_for_wrapper!(HumHeadSpec);
 
 // Armor aspects should be in the same order, top to bottom.
 // These seem overly split up, but wanted to keep the armor seperated
@@ -376,32 +388,53 @@ where
     default: S,
     map: HashMap<K, S>,
 }
+impl<K: Hash + Eq, S> Concatenate for ArmorVoxSpecMap<K, S> {
+    fn concatenate(self, b: Self) -> Self {
+        Self {
+            default: self.default,
+            map: self.map.concatenate(b.map),
+        }
+    }
+}
 #[derive(Deserialize)]
 struct HumArmorShoulderSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorShoulderSpec);
 #[derive(Deserialize)]
 struct HumArmorChestSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorChestSpec);
 #[derive(Deserialize)]
 struct HumArmorHandSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorHandSpec);
 #[derive(Deserialize)]
 struct HumArmorBeltSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorBeltSpec);
 #[derive(Deserialize)]
 struct HumArmorBackSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorBackSpec);
 #[derive(Deserialize)]
 struct HumArmorPantsSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorPantsSpec);
 #[derive(Deserialize)]
 struct HumArmorFootSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorFootSpec);
 #[derive(Deserialize)]
 struct HumMainWeaponSpec(HashMap<ToolKey, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumMainWeaponSpec);
 #[derive(Deserialize)]
 struct HumModularComponentSpec(HashMap<String, ModularComponentSpec>);
+impl_concatenate_for_wrapper!(HumModularComponentSpec);
 #[derive(Deserialize)]
 struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorLanternSpec);
 #[derive(Deserialize)]
 struct HumArmorGliderSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorGliderSpec);
 #[derive(Deserialize)]
 struct HumArmorHeadSpec(ArmorVoxSpecMap<(Species, BodyType, String), ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorHeadSpec);
 #[derive(Deserialize)]
 struct HumArmorTabardSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(HumArmorTabardSpec);
 
 make_vox_spec!(
     Body,
@@ -1072,6 +1105,7 @@ fn mesh_hold() -> BoneMeshes {
 //////
 #[derive(Deserialize)]
 struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCentralVoxSpec>);
+impl_concatenate_for_wrapper!(QuadrupedSmallCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedQSCentralVoxSpec {
@@ -1089,6 +1123,7 @@ struct QuadrupedSmallCentralSubSpec {
 
 #[derive(Deserialize)]
 struct QuadrupedSmallLateralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSLateralVoxSpec>);
+impl_concatenate_for_wrapper!(QuadrupedSmallLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedQSLateralVoxSpec {
@@ -1287,6 +1322,7 @@ impl QuadrupedSmallLateralSpec {
 //////
 #[derive(Deserialize)]
 struct QuadrupedMediumCentralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMCentralVoxSpec>);
+impl_concatenate_for_wrapper!(QuadrupedMediumCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedQMCentralVoxSpec {
@@ -1308,6 +1344,7 @@ struct QuadrupedMediumCentralSubSpec {
 
 #[derive(Deserialize)]
 struct QuadrupedMediumLateralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMLateralVoxSpec>);
+impl_concatenate_for_wrapper!(QuadrupedMediumLateralSpec);
 #[derive(Deserialize)]
 struct SidedQMLateralVoxSpec {
     leg_fl: QuadrupedMediumLateralSubSpec,
@@ -1663,6 +1700,7 @@ impl QuadrupedMediumLateralSpec {
 //////
 #[derive(Deserialize)]
 struct BirdMediumCentralSpec(HashMap<(BMSpecies, BMBodyType), SidedBMCentralVoxSpec>);
+impl_concatenate_for_wrapper!(BirdMediumCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedBMCentralVoxSpec {
@@ -1680,6 +1718,7 @@ struct BirdMediumCentralSubSpec {
 
 #[derive(Deserialize)]
 struct BirdMediumLateralSpec(HashMap<(BMSpecies, BMBodyType), SidedBMLateralVoxSpec>);
+impl_concatenate_for_wrapper!(BirdMediumLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedBMLateralVoxSpec {
@@ -1917,6 +1956,7 @@ impl BirdMediumLateralSpec {
 //////
 #[derive(Deserialize)]
 struct TheropodCentralSpec(HashMap<(TSpecies, TBodyType), SidedTCentralVoxSpec>);
+impl_concatenate_for_wrapper!(TheropodCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedTCentralVoxSpec {
@@ -1937,6 +1977,7 @@ struct TheropodCentralSubSpec {
 }
 #[derive(Deserialize)]
 struct TheropodLateralSpec(HashMap<(TSpecies, TBodyType), SidedTLateralVoxSpec>);
+impl_concatenate_for_wrapper!(TheropodLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedTLateralVoxSpec {
@@ -2247,6 +2288,7 @@ impl TheropodLateralSpec {
 //////
 #[derive(Deserialize)]
 struct ArthropodCentralSpec(HashMap<(ASpecies, ABodyType), SidedACentralVoxSpec>);
+impl_concatenate_for_wrapper!(ArthropodCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedACentralVoxSpec {
@@ -2262,6 +2304,7 @@ struct ArthropodCentralSubSpec {
 }
 #[derive(Deserialize)]
 struct ArthropodLateralSpec(HashMap<(ASpecies, ABodyType), SidedALateralVoxSpec>);
+impl_concatenate_for_wrapper!(ArthropodLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedALateralVoxSpec {
@@ -2647,6 +2690,7 @@ impl ArthropodLateralSpec {
 //////
 #[derive(Deserialize)]
 struct FishMediumCentralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMCentralVoxSpec>);
+impl_concatenate_for_wrapper!(FishMediumCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedFMCentralVoxSpec {
@@ -2665,6 +2709,7 @@ struct FishMediumCentralSubSpec {
 }
 #[derive(Deserialize)]
 struct FishMediumLateralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMLateralVoxSpec>);
+impl_concatenate_for_wrapper!(FishMediumLateralSpec);
 #[derive(Deserialize)]
 struct SidedFMLateralVoxSpec {
     fin_l: FishMediumLateralSubSpec,
@@ -2853,6 +2898,7 @@ impl FishMediumLateralSpec {
 //////
 #[derive(Deserialize)]
 struct FishSmallCentralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSCentralVoxSpec>);
+impl_concatenate_for_wrapper!(FishSmallCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedFSCentralVoxSpec {
@@ -2868,6 +2914,7 @@ struct FishSmallCentralSubSpec {
 }
 #[derive(Deserialize)]
 struct FishSmallLateralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSLateralVoxSpec>);
+impl_concatenate_for_wrapper!(FishSmallLateralSpec);
 #[derive(Deserialize)]
 struct SidedFSLateralVoxSpec {
     fin_l: FishSmallLateralSubSpec,
@@ -2998,18 +3045,25 @@ impl FishSmallLateralSpec {
 
 #[derive(Deserialize)]
 struct BipedSmallWeaponSpec(HashMap<ToolKey, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedSmallWeaponSpec);
 #[derive(Deserialize)]
 struct BipedSmallArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedSmallArmorHeadSpec);
 #[derive(Deserialize)]
 struct BipedSmallArmorHandSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedSmallArmorHandSpec);
 #[derive(Deserialize)]
 struct BipedSmallArmorFootSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedSmallArmorFootSpec);
 #[derive(Deserialize)]
 struct BipedSmallArmorChestSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedSmallArmorChestSpec);
 #[derive(Deserialize)]
 struct BipedSmallArmorPantsSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedSmallArmorPantsSpec);
 #[derive(Deserialize)]
 struct BipedSmallArmorTailSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedSmallArmorTailSpec);
 make_vox_spec!(
     biped_small::Body,
     struct BipedSmallSpec {
@@ -3273,6 +3327,7 @@ impl BipedSmallWeaponSpec {
 //////
 #[derive(Deserialize)]
 struct DragonCentralSpec(HashMap<(DSpecies, DBodyType), SidedDCentralVoxSpec>);
+impl_concatenate_for_wrapper!(DragonCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedDCentralVoxSpec {
@@ -3294,6 +3349,7 @@ struct DragonCentralSubSpec {
 
 #[derive(Deserialize)]
 struct DragonLateralSpec(HashMap<(DSpecies, DBodyType), SidedDLateralVoxSpec>);
+impl_concatenate_for_wrapper!(DragonLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedDLateralVoxSpec {
@@ -3644,6 +3700,7 @@ impl DragonLateralSpec {
 //////
 #[derive(Deserialize)]
 struct BirdLargeCentralSpec(HashMap<(BLASpecies, BLABodyType), SidedBLACentralVoxSpec>);
+impl_concatenate_for_wrapper!(BirdLargeCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedBLACentralVoxSpec {
@@ -3664,6 +3721,7 @@ struct BirdLargeCentralSubSpec {
 
 #[derive(Deserialize)]
 struct BirdLargeLateralSpec(HashMap<(BLASpecies, BLABodyType), SidedBLALateralVoxSpec>);
+impl_concatenate_for_wrapper!(BirdLargeLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedBLALateralVoxSpec {
@@ -4047,6 +4105,7 @@ impl BirdLargeLateralSpec {
 //////
 #[derive(Deserialize)]
 struct BipedLargeCentralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCentralVoxSpec>);
+impl_concatenate_for_wrapper!(BipedLargeCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedBLCentralVoxSpec {
@@ -4066,6 +4125,7 @@ struct BipedLargeCentralSubSpec {
 
 #[derive(Deserialize)]
 struct BipedLargeLateralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLLateralVoxSpec>);
+impl_concatenate_for_wrapper!(BipedLargeLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedBLLateralVoxSpec {
@@ -4087,8 +4147,10 @@ struct BipedLargeLateralSubSpec {
 }
 #[derive(Deserialize)]
 struct BipedLargeMainSpec(HashMap<ToolKey, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedLargeMainSpec);
 #[derive(Deserialize)]
 struct BipedLargeSecondSpec(HashMap<ToolKey, ArmorVoxSpec>);
+impl_concatenate_for_wrapper!(BipedLargeSecondSpec);
 make_vox_spec!(
     biped_large::Body,
     struct BipedLargeSpec {
@@ -4466,6 +4528,7 @@ impl BipedLargeSecondSpec {
 //////
 #[derive(Deserialize)]
 struct GolemCentralSpec(HashMap<(GSpecies, GBodyType), SidedGCentralVoxSpec>);
+impl_concatenate_for_wrapper!(GolemCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedGCentralVoxSpec {
@@ -4484,6 +4547,7 @@ struct GolemCentralSubSpec {
 
 #[derive(Deserialize)]
 struct GolemLateralSpec(HashMap<(GSpecies, GBodyType), SidedGLateralVoxSpec>);
+impl_concatenate_for_wrapper!(GolemLateralSpec);
 
 #[derive(Deserialize)]
 struct SidedGLateralVoxSpec {
@@ -4776,6 +4840,7 @@ impl GolemLateralSpec {
 //////
 #[derive(Deserialize)]
 struct QuadrupedLowCentralSpec(HashMap<(QLSpecies, QLBodyType), SidedQLCentralVoxSpec>);
+impl_concatenate_for_wrapper!(QuadrupedLowCentralSpec);
 
 #[derive(Deserialize)]
 struct SidedQLCentralVoxSpec {
@@ -4796,6 +4861,7 @@ struct QuadrupedLowCentralSubSpec {
 
 #[derive(Deserialize)]
 struct QuadrupedLowLateralSpec(HashMap<(QLSpecies, QLBodyType), SidedQLLateralVoxSpec>);
+impl_concatenate_for_wrapper!(QuadrupedLowLateralSpec);
 #[derive(Deserialize)]
 struct SidedQLLateralVoxSpec {
     front_left: QuadrupedLowLateralSubSpec,
@@ -5125,6 +5191,7 @@ impl ObjectCentralSpec {
         (central, Vec3::from(spec.bone1.offset))
     }
 }
+impl_concatenate_for_wrapper!(ObjectCentralSpec);
 
 struct ModelWithOptionalIndex(String, u32);
 
@@ -5162,6 +5229,7 @@ impl<'de> Deserialize<'de> for ModelWithOptionalIndex {
 
 #[derive(Deserialize)]
 struct ItemDropCentralSpec(HashMap<ItemKey, ModelWithOptionalIndex>);
+impl_concatenate_for_wrapper!(ItemDropCentralSpec);
 
 make_vox_spec!(
     item_drop::Body,

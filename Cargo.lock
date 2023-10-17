@@ -6872,10 +6872,12 @@ version = "0.10.0"
 dependencies = [
  "assets_manager",
  "dot_vox",
+ "hashbrown 0.13.2",
  "image",
  "lazy_static",
  "ron 0.8.1",
  "serde",
+ "tar",
  "tracing",
  "walkdir",
  "wavefront",
