@@ -147,7 +147,7 @@ void main() {
                 vec3 to_center = abs(block_pos - (f_pos - cam_dir * t));
                 voxel_norm = step(max(max(to_center.x, to_center.y), to_center.z), to_center) * sign(-cam_dir);
                 voxel_norm = mix(f_norm, voxel_norm, voxelize_factor);
-                f_ao = mix(1.0, clamp(1.0 + (t - nz_offset + 0.0) * 0.5, 0.1, 1.0), voxelize_factor);
+                f_ao = mix(1.0, clamp(1.0 + (t - nz_offset) * 0.5, 0.1, 1.0), voxelize_factor);
                 break;
             }
         }

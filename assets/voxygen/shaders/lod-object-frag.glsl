@@ -94,14 +94,15 @@ void main() {
             vec3 deltas = (step(vec3(0), -cam_dir) - fract(f_pos - cam_dir * t)) / -cam_dir;
             float m = min(min(deltas.x, deltas.y), deltas.z);
 
-            t += max(m, 0.05);
+            t += max(m, 0.01);
 
             vec3 block_pos = floor(f_pos - cam_dir * t) + 0.5;
             if (dot(block_pos - f_pos, -f_norm) < 0.0) {
                 vec3 to_center = abs(block_pos - (f_pos - cam_dir * t));
                 voxel_norm = step(max(max(to_center.x, to_center.y), to_center.z), to_center) * sign(-cam_dir);
                 voxel_norm = mix(f_norm, voxel_norm, voxelize_factor);
-                f_ao = mix(1.0, clamp(1.0 + t * 1.5, 0.3, 1.0), voxelize_factor);
+                surf_color *= mix(0.65, 1.0, hash_three(uvec3(block_pos + focus_off.xyz)));
+                f_ao = mix(1.0, clamp(1.0 + t, 0.2, 1.0), voxelize_factor);
                 break;
             }
         }
