@@ -26,6 +26,7 @@ layout(location = 4) flat in uint f_flags;
 
 const uint FLAG_SNOW_COVERED = 1;
 const uint FLAG_IS_BUILDING = 2;
+const uint FLAG_IS_GIANT_TREE = 4;
 
 layout(location = 0) out vec4 tgt_color;
 layout(location = 1) out uvec4 tgt_mat;
@@ -76,7 +77,11 @@ void main() {
     vec3 k_s = vec3(R_s);
 
     // Tree trunks
-    if (model_pos.z < 25.0 && dot(abs(model_pos.xy), vec2(1)) < 6.0) { surf_color = vec3(0.05, 0.02, 0.0); }
+    if ((f_flags & FLAG_IS_GIANT_TREE) > 0u) {
+        if (dot(abs(model_pos.xyz) * vec3(1.0, 1.0, 2.0), vec3(1)) < 430.0) { surf_color = vec3(0.05, 0.02, 0.0); }
+    } else {
+        if (model_pos.z < 25.0 && dot(abs(model_pos.xy), vec2(1)) < 6.0) { surf_color = vec3(0.05, 0.02, 0.0); }
+    }
 
     vec3 voxel_norm = f_norm;
     float my_alt = f_pos.z + focus_off.z;

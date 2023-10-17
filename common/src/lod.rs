@@ -9,8 +9,9 @@ pub const ZONE_SIZE: u32 = 32;
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
     pub struct Flags: u8 {
-        const SNOW_COVERED = 0b00000001;
-        const IS_BUILDING  = 0b00000010;
+        const SNOW_COVERED  = 0b00000001;
+        const IS_BUILDING   = 0b00000010;
+        const IS_GIANT_TREE = 0b00000100;
     }
 }
 

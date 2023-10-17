@@ -678,6 +678,7 @@ impl World {
                                 .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16)
                         },
                         flags: lod::Flags::empty()
+                            | lod::Flags::IS_GIANT_TREE
                             | if col.snow_cover {
                                 lod::Flags::SNOW_COVERED
                             } else {
