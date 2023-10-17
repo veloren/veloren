@@ -72,6 +72,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop, server: Option<
 
         match event {
             winit::event::Event::NewEvents(_) => {
+                event_span.take();
                 prof_span!(span, "Process Events");
                 event_span = Some(span);
             },
