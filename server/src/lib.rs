@@ -484,7 +484,7 @@ impl Server {
         state.ecs_mut().insert(DeletedEntities::default());
 
         let network = Network::new_with_registry(Pid::new(), &runtime, &registry);
-        let (chat_cache, chat_tracker) = ChatCache::new(Duration::from_secs(60));
+        let (chat_cache, chat_tracker) = ChatCache::new(Duration::from_secs(60), &runtime);
         state.ecs_mut().insert(chat_tracker);
 
         let mut printed_quic_warning = false;

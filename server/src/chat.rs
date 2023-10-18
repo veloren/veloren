@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Join, World, WorldExt};
 use std::{collections::VecDeque, ops::Sub, sync::Arc, time::Duration};
 use tokio::sync::Mutex;
+use tracing::{info_span, Instrument};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct PlayerInfo {
@@ -61,9 +62,15 @@ pub struct ChatCache {
     pub messages: MessagesStore,
 }
 
-pub struct ChatExporter {
+/// Will internally run on tokio and take stress from main loop
+struct ChatForwarder {
+    chat_r: tokio::sync::mpsc::Receiver<ChatMessage>,
     messages: MessagesStore,
     keep_duration: chrono::Duration,
+}
+
+pub struct ChatExporter {
+    chat_s: tokio::sync::mpsc::Sender<ChatMessage>,
 }
 
 impl ChatMessage {
@@ -199,30 +206,50 @@ impl ChatExporter {
     }
 
     pub fn send(&self, msg: ChatMessage) {
-        let drop_older_than = msg.time.sub(self.keep_duration);
-        let mut messages = self.messages.blocking_lock();
-        while let Some(msg) = messages.front() && msg.time < drop_older_than {
-            messages.pop_front();
+        if let Err(e) = self.chat_s.blocking_send(msg) {
+            tracing::warn!(
+                ?e,
+                "could not export chat message. the tokio sender seems to be broken"
+            );
         }
-        messages.push_back(msg);
-        const MAX_CACHE_MESSAGES: usize = 10_000; // in case we have a short spam of many many messages, we dont want to keep the capacity forever
-        if messages.capacity() > messages.len() + MAX_CACHE_MESSAGES {
-            let msg_count = messages.len();
-            tracing::debug!(?msg_count, "shrinking cache");
-            messages.shrink_to_fit();
+    }
+}
+
+impl ChatForwarder {
+    async fn run(mut self) {
+        while let Some(msg) = self.chat_r.recv().await {
+            let drop_older_than = msg.time.sub(self.keep_duration);
+            let mut messages = self.messages.lock().await;
+            while let Some(msg) = messages.front() && msg.time < drop_older_than {
+                messages.pop_front();
+            }
+            messages.push_back(msg);
+            const MAX_CACHE_MESSAGES: usize = 10_000; // in case we have a short spam of many many messages, we dont want to keep the capacity forever
+            if messages.capacity() > messages.len() + MAX_CACHE_MESSAGES {
+                let msg_count = messages.len();
+                tracing::debug!(?msg_count, "shrinking cache");
+                messages.shrink_to_fit();
+            }
         }
     }
 }
 
 impl ChatCache {
-    pub fn new(keep_duration: Duration) -> (Self, ChatExporter) {
+    pub fn new(keep_duration: Duration, runtime: &tokio::runtime::Runtime) -> (Self, ChatExporter) {
+        const BUFFER_SIZE: usize = 1_000;
+        let (chat_s, chat_r) = tokio::sync::mpsc::channel(BUFFER_SIZE);
         let messages: Arc<Mutex<VecDeque<ChatMessage>>> = Default::default();
         let messages_clone = Arc::clone(&messages);
         let keep_duration = chrono::Duration::from_std(keep_duration).unwrap();
 
-        (Self { messages }, ChatExporter {
-            messages: messages_clone,
+        let worker = ChatForwarder {
             keep_duration,
-        })
+            chat_r,
+            messages: messages_clone,
+        };
+
+        runtime.spawn(worker.run().instrument(info_span!("chat_forwarder")));
+
+        (Self { messages }, ChatExporter { chat_s })
     }
 }
