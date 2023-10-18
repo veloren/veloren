@@ -9,12 +9,12 @@ use chrono::DateTime;
 use hyper::{Request, StatusCode};
 use serde::{Deserialize, Deserializer};
 use server::chat::ChatCache;
-use std::{borrow::Cow, str::FromStr};
+use std::str::FromStr;
 
 /// Keep Size small, so we dont have to Clone much for each request.
 #[derive(Clone)]
 struct ChatToken {
-    secret_token: Option<Cow<'static, str>>,
+    secret_token: Option<String>,
 }
 
 async fn validate_secret<B>(
@@ -39,9 +39,7 @@ async fn validate_secret<B>(
 }
 
 pub fn router(cache: ChatCache, secret_token: Option<String>) -> Router {
-    let token = ChatToken {
-        secret_token: secret_token.map(Cow::Owned),
-    };
+    let token = ChatToken { secret_token };
     Router::new()
         .route("/history", get(history))
         .layer(axum::middleware::from_fn_with_state(token, validate_secret))

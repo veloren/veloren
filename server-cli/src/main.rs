@@ -262,7 +262,6 @@ fn main() -> io::Result<()> {
         tick_no += 1;
         // Terminate the server if instructed to do so by the shutdown coordinator
         if shutdown_coordinator.check(&mut server, &settings) {
-            metrics_shutdown.notify_one();
             break;
         }
 
@@ -337,6 +336,7 @@ fn main() -> io::Result<()> {
         #[cfg(feature = "tracy")]
         common_base::tracy_client::frame_mark();
     }
+    metrics_shutdown.notify_one();
 
     Ok(())
 }

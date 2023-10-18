@@ -51,10 +51,15 @@ async fn metrics(State(registry): State<Registry>) -> Result<impl IntoResponse, 
         .encode(&mf, &mut buffer)
         .expect("write to vec cannot fail");
 
-    let resp = http::Response::builder()
+    match http::Response::builder()
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, "text/plain; charset=utf-8")
         .body(Body::from(buffer))
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(resp)
+    {
+        Err(e) => {
+            tracing::warn!(?e, "could not export metrics to HTTP format");
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        },
+        Ok(r) => Ok(r),
+    }
 }
