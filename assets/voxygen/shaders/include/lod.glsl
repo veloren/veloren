@@ -78,12 +78,13 @@ vec4 textureBicubic(texture2D tex, sampler sampl, vec2 texCoords) {
 }
 
 vec4 textureMaybeBicubic(texture2D tex, sampler sampl, vec2 texCoords) {
-    #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
+    // TODO: Allow regular `texture` to be used when cause of light leaking issues is found
+    //#if (CLOUD_MODE >= CLOUD_MODE_HIGH)
         return textureBicubic(tex, sampl, texCoords);
-    #else
-    vec2 offset = (texCoords + vec2(-1.0, 0.5)) / textureSize(sampler2D(tex, sampl), 0);
-    return texture(sampler2D(tex, sampl), offset);
-    #endif
+    //#else
+    //    vec2 offset = (texCoords + vec2(-1.0, 0.5)) / textureSize(sampler2D(tex, sampl), 0);
+    //    return texture(sampler2D(tex, sampl), offset);
+    //#endif
 }
 
 // 16 bit version (each of the 2 8-bit components are combined after bilinear sampling)

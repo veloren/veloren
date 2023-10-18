@@ -71,7 +71,9 @@ const float EXTRA_NEG_Z = 32768.0;
 
 void main() {
     // over it (if this vertex to see if it intersects.
-    vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+    // TODO: Use the following, see [https://gitlab.com/veloren/veloren/-/merge_requests/3091]
+    //vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+    vec3 f_chunk_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
 
     f_pos = (model_mat * vec4(f_chunk_pos, 1.0)).xyz - focus_off.xyz;
 
