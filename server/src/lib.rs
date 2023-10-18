@@ -8,6 +8,7 @@
 
 pub mod automod;
 mod character_creator;
+pub mod chat;
 pub mod chunk_generator;
 mod chunk_serialize;
 pub mod client;
@@ -94,7 +95,6 @@ use persistence::{
     character_updater::CharacterUpdater,
 };
 use prometheus::Registry;
-use prometheus_hyper::Server as PrometheusServer;
 use specs::{Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt};
 use std::{
     i32,
@@ -104,7 +104,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{IndexOwned, World};
-use tokio::{runtime::Runtime, sync::Notify};
+use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
 pub use world::{civ::WorldCivStage, sim::WorldSimStage, WorldGenerateStage};
@@ -124,7 +124,7 @@ use {
     common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
 };
 
-use crate::persistence::character_loader::CharacterScreenResponseKind;
+use crate::{chat::ChatCache, persistence::character_loader::CharacterScreenResponseKind};
 use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 pub use world::{
@@ -211,7 +211,8 @@ pub struct Server {
 
     runtime: Arc<Runtime>,
 
-    metrics_shutdown: Arc<Notify>,
+    metrics_registry: Arc<Registry>,
+    chat_cache: ChatCache,
     database_settings: Arc<RwLock<DatabaseSettings>>,
     disconnect_all_clients_requested: bool,
 
@@ -483,17 +484,8 @@ impl Server {
         state.ecs_mut().insert(DeletedEntities::default());
 
         let network = Network::new_with_registry(Pid::new(), &runtime, &registry);
-        let metrics_shutdown = Arc::new(Notify::new());
-        let metrics_shutdown_clone = Arc::clone(&metrics_shutdown);
-        let addr = settings.metrics_address;
-        runtime.spawn(async move {
-            PrometheusServer::run(
-                Arc::clone(&registry),
-                addr,
-                metrics_shutdown_clone.notified(),
-            )
-            .await
-        });
+        let (chat_cache, chat_tracker) = ChatCache::new(Duration::from_secs(60), &runtime);
+        state.ecs_mut().insert(chat_tracker);
 
         let mut printed_quic_warning = false;
         for protocol in &settings.gameserver_protocols {
@@ -599,7 +591,8 @@ impl Server {
             connection_handler,
             runtime,
 
-            metrics_shutdown,
+            metrics_registry: registry,
+            chat_cache,
             database_settings,
             disconnect_all_clients_requested: false,
 
@@ -663,6 +656,12 @@ impl Server {
 
     /// Get a reference to the server's world.
     pub fn world(&self) -> &World { &self.world }
+
+    /// Get a reference to the Metrics Registry
+    pub fn metrics_registry(&self) -> &Arc<Registry> { &self.metrics_registry }
+
+    /// Get a reference to the Chat Cache
+    pub fn chat_cache(&self) -> &ChatCache { &self.chat_cache }
 
     fn parse_locations(&self, character_list_data: &mut [CharacterItem]) {
         character_list_data.iter_mut().for_each(|c| {
@@ -1493,8 +1492,6 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
-        self.metrics_shutdown.notify_one();
-
         self.state
             .notify_players(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
 

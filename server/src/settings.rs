@@ -160,7 +160,6 @@ impl CalendarMode {
 #[serde(default)]
 pub struct Settings {
     pub gameserver_protocols: Vec<Protocol>,
-    pub metrics_address: SocketAddr,
     pub auth_server_address: Option<String>,
     pub max_players: u16,
     pub world_seed: u32,
@@ -202,7 +201,6 @@ impl Default for Settings {
                     address: SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14004)),
                 },
             ],
-            metrics_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             auth_server_address: Some("https://auth.veloren.net".into()),
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Server".into(),
@@ -285,10 +283,6 @@ impl Settings {
                     pick_unused_port().expect("Failed to find unused port!"),
                 )),
             }],
-            metrics_address: SocketAddr::from((
-                Ipv4Addr::LOCALHOST,
-                pick_unused_port().expect("Failed to find unused port!"),
-            )),
             auth_server_address: None,
             // If loading the default map file, make sure the seed is also default.
             world_seed: if load.map_file.is_some() {

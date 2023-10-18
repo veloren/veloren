@@ -47,6 +47,12 @@ tracing = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = [ "rc", "derive" ]}
 
+#HTTP
+axum = { version = "0.6.20" }
+hyper = "0.14.26"
+prometheus = { workspace = true }
+chrono = { workspace = true }
+
 [target.'cfg(windows)'.dependencies]
 mimalloc = "0.1.29"
 

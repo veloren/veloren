@@ -60,7 +60,7 @@ where
         "veloren_server::events::entity_manipulation=info",
         "hyper=info",
         "prometheus_hyper=info",
-        "mio::pool=info",
+        "mio::poll=info",
         "mio::sys::windows=info",
         "h2=info",
         "tokio_util=info",

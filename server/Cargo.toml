@@ -39,7 +39,6 @@ tracing = { workspace = true }
 vek = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
-prometheus-hyper = { workspace = true }
 quinn = "0.10"
 rustls = { version = "0.21", default-features = false }
 rustls-pemfile = { version = "1", default-features = false }

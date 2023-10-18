@@ -16,6 +16,7 @@ mod settings;
 mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
+mod web;
 use crate::{
     cli::{Admin, ArgvApp, ArgvCommand, Message, SharedCommand, Shutdown},
     shutdown_coordinator::ShutdownCoordinator,
@@ -31,6 +32,7 @@ use std::{
     sync::{atomic::AtomicBool, mpsc, Arc},
     time::{Duration, Instant},
 };
+use tokio::sync::Notify;
 use tracing::{info, trace};
 
 lazy_static::lazy_static! {
@@ -185,7 +187,7 @@ fn main() -> io::Result<()> {
     info!("Starting server...");
 
     let protocols_and_addresses = server_settings.gameserver_protocols.clone();
-    let metrics_port = &server_settings.metrics_address.port();
+    let web_port = &settings.web_address.port();
     // Create server
     let mut server = Server::new(
         server_settings,
@@ -193,9 +195,26 @@ fn main() -> io::Result<()> {
         database_settings,
         &server_data_dir,
         &|_| {},
-        runtime,
+        Arc::clone(&runtime),
     )
     .expect("Failed to create server instance!");
+
+    let registry = Arc::clone(server.metrics_registry());
+    let chat = server.chat_cache().clone();
+    let metrics_shutdown = Arc::new(Notify::new());
+    let metrics_shutdown_clone = Arc::clone(&metrics_shutdown);
+    let web_chat_secret = settings.web_chat_secret.clone();
+
+    runtime.spawn(async move {
+        web::run(
+            registry,
+            chat,
+            web_chat_secret,
+            settings.web_address,
+            metrics_shutdown_clone.notified(),
+        )
+        .await
+    });
 
     // Collect addresses that the server is listening to log.
     let gameserver_addresses = protocols_and_addresses
@@ -210,7 +229,7 @@ fn main() -> io::Result<()> {
         });
 
     info!(
-        ?metrics_port,
+        ?web_port,
         ?gameserver_addresses,
         "Server is ready to accept connections."
     );
@@ -317,6 +336,7 @@ fn main() -> io::Result<()> {
         #[cfg(feature = "tracy")]
         common_base::tracy_client::frame_mark();
     }
+    metrics_shutdown.notify_one();
 
     Ok(())
 }

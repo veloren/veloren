@@ -1,5 +1,6 @@
 use crate::{
     automod::AutoMod,
+    chat::ChatExporter,
     client::Client,
     events::{self, update_map_markers},
     persistence::PersistedComponents,
@@ -900,8 +901,13 @@ impl StateExt for State {
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
 
         let group_manager = ecs.read_resource::<comp::group::GroupManager>();
+        let chat_exporter = ecs.read_resource::<ChatExporter>();
 
         let group_info = msg.get_group().and_then(|g| group_manager.group_info(*g));
+
+        if let Some(exported_message) = ChatExporter::generate(&msg, ecs) {
+            chat_exporter.send(exported_message);
+        }
 
         let resolved_msg = msg
             .clone()
