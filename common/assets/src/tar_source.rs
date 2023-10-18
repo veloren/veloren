@@ -5,8 +5,8 @@ use tar::EntryType;
 use std::{
     fmt,
     fs::File,
-    hash, io,
-    os::unix::prelude::FileExt,
+    hash,
+    io::{self, Read, Seek, SeekFrom},
     path::{self, Path, PathBuf},
 };
 
@@ -117,10 +117,12 @@ struct Backend(PathBuf);
 
 impl Backend {
     fn read(&self, pos: u64, len: usize) -> std::io::Result<Vec<u8>> {
-        File::open(self.0.clone()).and_then(|file| {
-            let mut result = vec![0; len];
-            file.read_exact_at(result.as_mut_slice(), pos)
-                .map(move |_num_bytes| result)
+        File::open(self.0.clone()).and_then(|mut file| {
+            file.seek(SeekFrom::Start(pos)).and_then(|_| {
+                let mut result = vec![0; len];
+                file.read_exact(result.as_mut_slice())
+                    .map(move |_num_bytes| result)
+            })
         })
     }
 }
