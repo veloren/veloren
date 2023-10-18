@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, mem::swap, ops::RangeInclusive};
+use std::{mem::swap, ops::RangeInclusive};
 
 use common::{
     comp::Content,
@@ -30,15 +30,29 @@ pub struct Wall {
     from: Neighbor,
     to: Neighbor,
     to_dir: Dir,
-    door: Option<i32>,
+    door: Option<(i32, i32)>,
 }
 
 impl Wall {
-    pub fn door_pos(&self) -> Option<Vec3<i32>> {
+    pub fn door_pos(&self) -> Option<Vec3<f32>> {
         let wall_dir = Dir::from_vec2(self.end - self.start);
 
-        self.door
-            .map(|door| (self.start + wall_dir.to_vec2() * door).with_z(self.base_alt))
+        self.door.map(|(door_min, door_max)| {
+            (self.start.as_() + wall_dir.to_vec2().as_() * (door_min + door_max) as f32 / 2.0 + 0.5)
+                .with_z(self.base_alt as f32)
+        })
+    }
+
+    pub fn door_bounds(&self) -> Option<Aabr<i32>> {
+        let wall_dir = Dir::from_vec2(self.end - self.start);
+
+        self.door.map(|(door_min, door_max)| {
+            Aabr {
+                min: self.start + wall_dir.to_vec2() * door_min,
+                max: self.start + wall_dir.to_vec2() * door_max,
+            }
+            .made_valid()
+        })
     }
 }
 
@@ -128,6 +142,8 @@ impl Tavern {
         door_dir: Dir,
         tile_aabr: Aabr<i32>,
     ) -> Self {
+        let name = namegen::NameGen::location(rng).generate_tavern();
+
         let start = std::time::Instant::now();
         let mut rooms = Store::default();
         let stairs = Store::default();
@@ -229,6 +245,7 @@ impl Tavern {
                 Vec2::broadcast(door_dir.rotated_cw().select_aabr(entrance_room_aabr)),
             ) + door_dir.rotated_cw().to_vec2()
                 + door_dir.to_vec2();
+            let door_center = door_dir.rotated_cw().select(door_wpos.xy() - start).abs();
             let wall_id = walls.insert(Wall {
                 start,
                 end: door_dir.select_aabr_with(
@@ -241,7 +258,7 @@ impl Tavern {
                 from: None,
                 to: Some(entrance_id),
                 to_dir: -door_dir,
-                door: Some(door_dir.rotated_cw().select(door_wpos.xy() - start).abs()),
+                door: Some((door_center - 1, door_center + 1)),
             });
             rooms[entrance_id].walls[door_dir].push(wall_id);
 
@@ -298,19 +315,23 @@ impl Tavern {
                 max: in_dir.select_aabr_with(ibounds, ibounds.max),
             }
             .made_valid();
+            // Height of the new room
+            let room_hgt = rng.gen_range(3..=5);
+            let alt = land.get_alt_approx(max_bounds.center()) as i32;
+            let min_z = from_room.bounds.min.z.min(alt);
+            let max_z = from_room.bounds.max.z.max(alt + room_hgt);
 
             // Take other rooms into account when calculating `max_bounds`. We don't care
             // about this room if it's the originating room or at another
             // height.
             for (_, room) in rooms.iter().filter(|(room_id, room)| {
-                *room_id != from_id
-                    && room.bounds.min.z <= from_room.bounds.max.z
-                    && room.bounds.max.z >= from_room.bounds.min.z
+                *room_id != from_id && room.bounds.min.z <= max_z && room.bounds.max.z >= min_z
             }) {
                 let bounds = to_aabr(room.bounds);
                 let bounds = extend_aabr(bounds, 2);
                 let intersection = bounds.intersection(max_bounds);
                 if intersection.is_valid() {
+                    // Find the direction to shrink in that yields the highest area.
                     let Some(bounds) = Dir::iter()
                         .filter(|dir| {
                             *dir != in_dir
@@ -368,7 +389,7 @@ impl Tavern {
                                 2.0 / (1.0 + room_counts[RoomKind::BarRoom] as f32).powi(2)
                             },
                             RoomKind::EntranceRoom => {
-                                0.1 / (1.0 + room_counts[RoomKind::EntranceRoom] as f32)
+                                0.05 / (1.0 + room_counts[RoomKind::EntranceRoom] as f32)
                             },
                         },
                         room_kind,
@@ -405,11 +426,9 @@ impl Tavern {
                 continue 'room_gen;
             };
 
-            let room_hgt = rng.gen_range(3..=5);
-
             let bounds3 = Aabb {
-                min: bounds.min.with_z(from_room.bounds.min.z),
-                max: bounds.max.with_z(from_room.bounds.min.z + room_hgt),
+                min: bounds.min.with_z(alt),
+                max: bounds.max.with_z(alt + room_hgt),
             };
             let id = rooms.insert(Room::new(bounds3, room));
 
@@ -429,15 +448,19 @@ impl Tavern {
             ) + in_dir.to_vec2()
                 + right.to_vec2();
 
+            let door_center = right.select(in_pos - start);
+            let b = rng.gen_bool(0.5);
+            let door_min = door_center - b as i32;
+            let door_max = door_center - (!b) as i32;
             let wall_id = walls.insert(Wall {
                 start,
                 end,
-                base_alt: bounds3.min.z,
-                top_alt: bounds3.max.z,
+                base_alt: min_z,
+                top_alt: max_z,
                 from: Some(from_id),
                 to: Some(id),
                 to_dir: in_dir,
-                door: Some(right.select(in_pos - start)),
+                door: Some((door_min, door_max)),
             });
 
             rooms[id].walls[-in_dir].push(wall_id);
@@ -461,42 +484,33 @@ impl Tavern {
                 let range = (orth.select(room_bounds.min), orth.select(room_bounds.max));
                 wall_ranges[dir].push(range);
             }
+            // Split the wall into parts.
             let mut split_range = |dir: Dir, min: i32, max: i32| {
                 debug_assert!(min <= max);
-                let Ok(i) = wall_ranges[dir].binary_search_by(|(r_min, r_max)| {
-                    match (min.cmp(r_min), min.cmp(r_max)) {
-                        (Ordering::Less, _) => Ordering::Greater,
-                        (Ordering::Greater | Ordering::Equal, Ordering::Less | Ordering::Equal) => {
-                            Ordering::Equal
-                        },
-                        (_, Ordering::Greater) => Ordering::Less,
+                let mut new_ranges = Vec::new();
+                wall_ranges[dir].retain_mut(|(r_min, r_max)| {
+                    if *r_min <= max && *r_max >= min {
+                        match (*r_min >= min, *r_max <= max) {
+                            (true, true) => false,
+                            (true, false) => {
+                                *r_min = max + 1;
+                                true
+                            },
+                            (false, true) => {
+                                *r_max = min - 1;
+                                true
+                            },
+                            (false, false) => {
+                                new_ranges.push((max + 1, *r_max));
+                                *r_max = min - 1;
+                                true
+                            },
+                        }
+                    } else {
+                        true
                     }
-                }) else {
-                    // TODO: Don't panic here.
-                    dbg!((min, max));
-                    dbg!(&wall_ranges[dir]);
-                    panic!("Couldn't find range");
-                };
-
-                let range = &mut wall_ranges[dir][i];
-                debug_assert!(range.0 <= min);
-                debug_assert!(range.1 >= max);
-
-                match (range.0 == min, range.1 == max) {
-                    (true, true) => {
-                        wall_ranges[dir].remove(i);
-                    },
-                    (true, false) => *range = (max + 1, range.1),
-                    (false, true) => *range = (range.0, min - 1),
-                    (false, false) => {
-                        let tmp = range.1;
-                        *range = (range.0, min - 1);
-                        debug_assert!(range.0 <= range.1);
-                        let m = (max + 1, tmp);
-                        debug_assert!(m.0 <= m.1, "{m:?}");
-                        wall_ranges[dir].insert(i + 1, m);
-                    },
-                }
+                });
+                wall_ranges[dir].extend(new_ranges);
             };
             for dir in Dir::iter() {
                 let connected_walls = &mut rooms[from_id].walls[dir];
@@ -526,7 +540,7 @@ impl Tavern {
                 let a_max_z = rooms[from_id].bounds.max.z;
                 let b_min_z = rooms[to_id].bounds.min.z;
                 let b_max_z = rooms[to_id].bounds.max.z;
-                if a_min_z > b_max_z || a_max_z < b_min_z {
+                if a_min_z >= b_max_z || a_max_z <= b_min_z {
                     // We are not at the same altitude.
                     continue;
                 }
@@ -552,8 +566,9 @@ impl Tavern {
                     let min = orth.select(start);
                     let max = orth.select(end);
                     split_range(to_dir, min, max);
-                    let door = if max - min >= 3 && rng.gen_bool(0.8) {
-                        Some(rng.gen_range(1..=max - min))
+                    let door = if max - min > 2 && max_z - min_z > 3 && rng.gen_bool(0.8) {
+                        let door_center = rng.gen_range(1..=max - min - 2);
+                        Some((door_center, door_center + 1))
                     } else {
                         None
                     };
@@ -600,40 +615,73 @@ impl Tavern {
         // Compute detail areas
         for room in rooms.values_mut() {
             let bounds = to_aabr(room.bounds);
-            let c = bounds.center();
-            let mut b = bounds.split_at_x(c.x);
-            b[0].max.x -= 1;
-            room.detail_areas.extend(b.into_iter().flat_map(|b| {
-                let mut b = b.split_at_y(c.y);
-                b[0].max.y -= 1;
-                b
-            }));
-            for (dir, dir_walls) in room.walls.iter() {
-                for door_pos in dir_walls.iter().filter_map(|wall_id| {
-                    let wall = &walls[*wall_id];
+            let walls = &walls;
+            let mut avoid = room
+                .walls
+                .iter()
+                .flat_map(|(dir, dir_walls)| {
+                    dir_walls.iter().filter_map(move |wall_id| {
+                        let wall = &walls[*wall_id];
 
-                    wall.door_pos()
-                }) {
-                    let orth = dir.orthogonal();
-                    for i in 0..room.detail_areas.len() {
-                        let bc = room.detail_areas[i].center();
-                        // Check if we are on the doors side of the center of the room.
-                        if dir.select(bc - c) * dir.signum() >= 0 {
-                            if let Some([a, b]) =
-                                orth.try_split_aabr(room.detail_areas[i], orth.select(door_pos))
-                            {
-                                room.detail_areas[i] = orth.extend_aabr(a, -1);
-                                room.detail_areas.push(orth.opposite().extend_aabr(b, -1));
+                        let door_bounds = wall.door_bounds()?;
+
+                        Some(
+                            Aabr {
+                                min: dir.select_aabr_with(bounds, door_bounds.min),
+                                max: dir.select_with(bounds.center(), door_bounds.max),
+                            }
+                            .made_valid(),
+                        )
+                    })
+                })
+                .collect::<Vec<_>>();
+
+            let mut x = bounds.min.x;
+            while x <= bounds.max.x {
+                let mut y = bounds.min.y;
+                'y_loop: while y <= bounds.max.y {
+                    let min = Vec2::new(x, y);
+                    let mut max_y = bounds.max.y;
+                    for area in avoid.iter() {
+                        let contains_x = area.min.x <= min.x && min.x <= area.max.x;
+                        let contains_y = area.min.y <= min.y && min.y <= area.max.y;
+                        if contains_x && contains_y {
+                            y = area.max.y + 1;
+                            continue 'y_loop;
+                        }
+
+                        if contains_x && min.y < area.min.y {
+                            if area.min.y - 1 < max_y {
+                                max_y = area.min.y - 1;
                             }
                         }
                     }
-                    room.detail_areas.retain(|area| area.is_valid());
+
+                    let max_x = avoid
+                        .iter()
+                        .filter_map(|area| {
+                            if area.min.x > x && area.min.y <= max_y && area.max.y >= min.y {
+                                Some(area.min.x - 1)
+                            } else {
+                                None
+                            }
+                        })
+                        .min()
+                        .unwrap_or(bounds.max.x);
+
+                    let area = Aabr {
+                        min,
+                        max: Vec2::new(max_x, max_y),
+                    };
+                    avoid.push(area);
+                    room.detail_areas.push(area);
+                    y = max_y + 1;
                 }
+                x += 1;
             }
         }
 
         // Place details in detail areas.
-
         for room in rooms.values_mut() {
             let room_aabr = to_aabr(room.bounds);
             let table = |pos: Vec2<i32>, aabr: Aabr<i32>| Detail::Table {
@@ -705,8 +753,6 @@ impl Tavern {
             }
         }
 
-        let name = namegen::NameGen::location(rng).generate_tavern();
-
         println!("GENERATION TIME: {}μs", start.elapsed().as_micros());
         Self {
             name,
@@ -732,22 +778,11 @@ impl Structure for Tavern {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_tavern")]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &crate::site2::Painter) {
-        let bounds = Aabr {
-            min: self.bounds.min,
-            max: self.bounds.max - 1,
-        };
-
         let stone = Fill::Brick(BlockKind::Rock, Rgb::new(70, 70, 70), 10);
         let wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(106, 73, 64)));
         let dark_wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(80, 53, 48)));
 
         let field = RandomField::new(740384);
-        painter
-            .aabb(aabb(Aabb {
-                min: bounds.min.with_z(self.door_wpos.z - 10),
-                max: bounds.max.with_z(self.door_wpos.z - 1),
-            }))
-            .fill(stone.clone());
 
         for (_, room) in self.rooms.iter() {
             painter.aabb(aabb(room.bounds)).clear();
@@ -757,11 +792,6 @@ impl Structure for Tavern {
                     max: room.bounds.max.with_z(room.bounds.min.z - 1),
                 }))
                 .fill(wood.clone());
-
-            let room_aabr = Aabr {
-                min: room.bounds.min.xy(),
-                max: room.bounds.max.xy(),
-            };
             for (i, aabr) in room.detail_areas.iter().enumerate() {
                 let color = fxhash::hash32(&i).to_le_bytes();
 
@@ -775,6 +805,11 @@ impl Structure for Tavern {
                         Rgb::new(color[0], color[1], color[3]),
                     )));
             }
+
+            let room_aabr = Aabr {
+                min: room.bounds.min.xy(),
+                max: room.bounds.max.xy(),
+            };
             match room.kind {
                 RoomKind::Garden => {
                     let dir = Dir::from_vec2(room_aabr.size().into());
@@ -1009,72 +1044,103 @@ impl Structure for Tavern {
                         .fill(dark_wood.clone());
                 },
             }
-            if let Some(door_pos) = wall.door_pos() {
-                let min = match wall.from {
-                    None => door_pos - wall.to_dir.to_vec2(),
-                    Some(_) => door_pos,
-                };
-                let max = match wall.to {
-                    None => door_pos + wall.to_dir.to_vec2(),
-                    Some(_) => door_pos,
-                };
-                painter
-                    .aabb(aabb(Aabb {
-                        min: min.with_z(wall.base_alt),
-                        max: max.with_z(wall.base_alt + 2),
-                    }))
-                    .clear();
-            }
-            if let (Some(room), to @ None) | (None, to @ Some(room)) =
+            let in_dir_room = if let (Some(room), to @ None) | (None, to @ Some(room)) =
                 (wall.from.map(get_kind), wall.to.map(get_kind))
             {
-                let dir = if to.is_none() {
+                let in_dir = if to.is_none() {
                     -wall.to_dir
                 } else {
                     wall.to_dir
                 };
-                let width = dir.orthogonal().select(wall.end - wall.start).abs();
+
+                Some((in_dir, room))
+            } else {
+                None
+            };
+            if let Some((in_dir, room)) = in_dir_room {
+                let width = in_dir.orthogonal().select(wall.end - wall.start).abs();
                 let wall_center = (wall.start + wall.end) / 2;
-                let d = wall_dir.select(wall_center - wall.start) * wall_dir.signum();
+                let door_dist = wall.door_bounds().map_or(i32::MAX, |door| {
+                    (door.min - wall_center)
+                        .map(|x| x.abs())
+                        .reduce_max()
+                        .max((door.max - wall_center).map(|x| x.abs()).reduce_max())
+                });
                 match room {
                     RoomKind::Garden => {
-                        if wall.door.map_or(true, |door| (door - d).abs() >= 2) {
+                        if door_dist >= 2 {
                             painter.rotated_sprite(
                                 wall_center.with_z(wall.base_alt + 1),
                                 SpriteKind::Planter,
-                                dir.sprite_ori(),
+                                in_dir.sprite_ori(),
                             );
                         }
                     },
                     _ => {
-                        if width >= 5 && wall.door.map_or(true, |door| (door - d).abs() > 3) {
+                        if width >= 5 && door_dist > 3 {
                             painter
                                 .aabb(aabb(Aabb {
-                                    min: (wall_center + dir.rotated_ccw().to_vec2())
+                                    min: (wall_center + in_dir.rotated_ccw().to_vec2())
                                         .with_z(wall.base_alt + 1),
-                                    max: (wall_center + dir.rotated_cw().to_vec2())
+                                    max: (wall_center + in_dir.rotated_cw().to_vec2())
                                         .with_z(wall.base_alt + 2),
                                 }))
-                                .fill(Fill::RotatedSprite(SpriteKind::Window1, dir.sprite_ori()));
+                                .fill(Fill::RotatedSprite(
+                                    SpriteKind::Window1,
+                                    in_dir.sprite_ori(),
+                                ));
                         }
                     },
                 }
-                if let Some(door_pos) = wall.door_pos() {
-                    let diff = door_pos.xy() - wall_aabb.center().xy();
-                    let orth = if diff == Vec2::zero() {
-                        wall_dir
-                    } else {
-                        Dir::from_vec2(diff)
+            }
+            if let Some(door) = wall.door_bounds() {
+                let orth = wall.to_dir.orthogonal();
+                painter
+                    .aabb(aabb(Aabb {
+                        min: (door.min - orth.to_vec2()).with_z(wall.base_alt - 1),
+                        max: (door.max + orth.to_vec2()).with_z(wall.base_alt + 3),
+                    }))
+                    .fill(stone.clone());
+                painter
+                    .aabb(aabb(Aabb {
+                        min: (door.min + wall.to_dir.to_vec2()).with_z(wall.base_alt),
+                        max: (door.max - wall.to_dir.to_vec2()).with_z(wall.base_alt + 2),
+                    }))
+                    .clear();
+                if let Some((in_dir, _room)) = in_dir_room {
+                    let sprite = match in_dir.rotated_cw().select(door.size()) {
+                        2.. => SpriteKind::DoorWide,
+                        _ => SpriteKind::Door,
                     };
-                    let pos = door_pos - dir.to_vec2() + orth.to_vec2();
-                    let (sprite, z) = match room {
-                        RoomKind::Garden => (SpriteKind::Sign, 0),
-                        _ => (SpriteKind::HangingSign, 2),
-                    };
-                    painter.rotated_sprite_with_cfg(
-                        pos.with_z(wall.base_alt + z),
+                    painter.rotated_sprite(
+                        in_dir
+                            .rotated_cw()
+                            .select_aabr_with(door, door.min)
+                            .with_z(wall.base_alt),
                         sprite,
-                        dir.opposite().sprite_ori(),
+                        in_dir.sprite_ori(),
+                    );
+                    painter.rotated_sprite(
+                        in_dir
+                            .rotated_ccw()
+                            .select_aabr_with(door, door.min)
+                            .with_z(wall.base_alt),
+                        sprite,
+                        in_dir.opposite().sprite_ori(),
+                    );
+
+                    let dir = match field.chance(door.min.with_z(wall.base_alt), 0.5) {
+                        true => in_dir.rotated_cw(),
+                        false => in_dir.rotated_ccw(),
+                    };
+
+                    let pos =
+                        dir.select_aabr_with(door, door.min) + dir.to_vec2() - in_dir.to_vec2();
+
+                    painter.rotated_sprite_with_cfg(
+                        pos.with_z(wall.base_alt + 2),
+                        SpriteKind::HangingSign,
+                        in_dir.opposite().sprite_ori(),
                         SpriteCfg {
                             unlock: None,
                             content: Some(Content::Plain(self.name.clone())),
