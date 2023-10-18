@@ -16,7 +16,7 @@ use vek::*;
 use crate::{
     site::namegen,
     site2::{gen::PrimitiveTransform, Dir, Fill, Site, Structure},
-    util::RandomField,
+    util::{RandomField, Sampler},
     IndexRef, Land,
 };
 
@@ -380,7 +380,7 @@ impl Tavern {
                     (
                         match room_kind {
                             RoomKind::Garden => {
-                                1.0 / (1.0 + room_counts[RoomKind::Garden] as f32 / 2.0)
+                                0.5 / (1.0 + room_counts[RoomKind::Garden] as f32 * 0.8)
                             },
                             RoomKind::StageRoom => {
                                 2.0 / (1.0 + room_counts[RoomKind::StageRoom] as f32).powi(2)
@@ -778,11 +778,29 @@ impl Structure for Tavern {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_tavern")]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &crate::site2::Painter) {
-        let stone = Fill::Brick(BlockKind::Rock, Rgb::new(70, 70, 70), 10);
-        let wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(106, 73, 64)));
-        let dark_wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(80, 53, 48)));
-
         let field = RandomField::new(740384);
+
+        const PALETTES: [[Rgb<u8>; 5]; 2] = [
+            [
+                Rgb::new(55, 65, 64),
+                Rgb::new(220, 53, 34),
+                Rgb::new(108, 100, 79),
+                Rgb::new(42, 44, 43),
+                Rgb::new(30, 30, 32),
+            ],
+            [
+                Rgb::new(46, 62, 215),
+                Rgb::new(147, 51, 29),
+                Rgb::new(200, 200, 200),
+                Rgb::new(56, 18, 0),
+                Rgb::new(252, 100, 113),
+            ],
+        ];
+        let palette = PALETTES[field.get(self.door_wpos) as usize % PALETTES.len()];
+        let detail0 = Fill::Brick(BlockKind::Rock, palette[0], 10);
+        let color0 = Fill::Block(Block::new(BlockKind::Wood, palette[1]));
+        let color1 = Fill::Block(Block::new(BlockKind::Wood, palette[2]));
+        let color2 = Fill::Block(Block::new(BlockKind::Wood, palette[3]));
 
         for (_, room) in self.rooms.iter() {
             painter.aabb(aabb(room.bounds)).clear();
@@ -791,20 +809,7 @@ impl Structure for Tavern {
                     min: room.bounds.min.with_z(room.bounds.min.z - 1),
                     max: room.bounds.max.with_z(room.bounds.min.z - 1),
                 }))
-                .fill(wood.clone());
-            for (i, aabr) in room.detail_areas.iter().enumerate() {
-                let color = fxhash::hash32(&i).to_le_bytes();
-
-                painter
-                    .aabb(aabb(Aabb {
-                        min: aabr.min.with_z(room.bounds.min.z - 1),
-                        max: aabr.max.with_z(room.bounds.min.z - 1),
-                    }))
-                    .fill(Fill::Block(Block::new(
-                        BlockKind::Rock,
-                        Rgb::new(color[0], color[1], color[3]),
-                    )));
-            }
+                .fill(color2.clone());
 
             let room_aabr = Aabr {
                 min: room.bounds.min.xy(),
@@ -814,6 +819,7 @@ impl Structure for Tavern {
                 RoomKind::Garden => {
                     let dir = Dir::from_vec2(room_aabr.size().into());
 
+                    /*
                     painter
                         .aabb(aabb(Aabb {
                             min: dir
@@ -827,7 +833,8 @@ impl Structure for Tavern {
                             -dir.to_vec3() * 2,
                             (dir.select(room_aabr.size()) as u32 + 3) / 2,
                         )
-                        .fill(dark_wood.clone())
+                        .fill(color1.clone())
+                    */
                 },
                 RoomKind::StageRoom => {
                     for aabr in room.detail_areas.iter().copied() {
@@ -923,13 +930,13 @@ impl Structure for Tavern {
                                                 .with_z(room.bounds.min.z),
                                             max: max.with_z(room.bounds.min.z),
                                         }))
-                                        .fill(dark_wood.clone());
+                                        .fill(color1.clone());
                                     painter
                                         .aabb(aabb(Aabb {
                                             min: min.with_z(room.bounds.min.z + 3),
                                             max: max.with_z(room.bounds.max.z),
                                         }))
-                                        .fill(dark_wood.clone());
+                                        .fill(color1.clone());
                                 },
                                 (true, true) => {
                                     painter.sprite(
@@ -947,13 +954,13 @@ impl Structure for Tavern {
                                 min: aabr.min.with_z(room.bounds.min.z),
                                 max: aabr.max.with_z(room.bounds.min.z),
                             }))
-                            .fill(stone.clone());
+                            .fill(detail0.clone());
                         painter
                             .aabb(aabb(Aabb {
                                 min: (aabr.min + 1).with_z(room.bounds.min.z),
                                 max: (aabr.max - 1).with_z(room.bounds.min.z),
                             }))
-                            .fill(wood.clone());
+                            .fill(color0.clone());
                         for dir in Dir::iter().filter(|dir| {
                             dir.select_aabr(aabr) != dir.select_aabr(room_aabr)
                                 && dir.rotated_cw().select_aabr(aabr)
@@ -965,7 +972,7 @@ impl Structure for Tavern {
                             );
                             painter
                                 .column(pos, room.bounds.min.z..=room.bounds.max.z)
-                                .fill(dark_wood.clone());
+                                .fill(color1.clone());
 
                             for dir in Dir::iter() {
                                 painter.rotated_sprite(
@@ -1004,10 +1011,8 @@ impl Structure for Tavern {
                     let hgt = wall_aabb.min.z..=wall_aabb.max.z;
                     painter
                         .column(wall_aabb.min.xy(), hgt.clone())
-                        .fill(dark_wood.clone());
-                    painter
-                        .column(wall_aabb.max.xy(), hgt)
-                        .fill(dark_wood.clone());
+                        .fill(color1.clone());
+                    painter.column(wall_aabb.max.xy(), hgt).fill(color1.clone());
                     let z = (wall.base_alt + wall.top_alt) / 2;
 
                     painter.rotated_sprite(
@@ -1025,23 +1030,23 @@ impl Structure for Tavern {
                             min: wall_aabb.min,
                             max: wall_aabb.max.with_z(wall_aabb.min.z),
                         }))
-                        .fill(dark_wood.clone());
+                        .fill(color1.clone());
                     painter
                         .aabb(aabb(Aabb {
                             min: wall_aabb.min.with_z(wall_aabb.max.z),
                             max: wall_aabb.max,
                         }))
-                        .fill(dark_wood.clone());
+                        .fill(color1.clone());
                 },
                 (None, None) => {},
                 _ => {
-                    painter.aabb(aabb(wall_aabb)).fill(wood.clone());
+                    painter.aabb(aabb(wall_aabb)).fill(color0.clone());
                     painter
                         .column(wall.start, wall.base_alt..=wall.top_alt)
-                        .fill(dark_wood.clone());
+                        .fill(color1.clone());
                     painter
                         .column(wall.end, wall.base_alt..=wall.top_alt)
-                        .fill(dark_wood.clone());
+                        .fill(color1.clone());
                 },
             }
             let in_dir_room = if let (Some(room), to @ None) | (None, to @ Some(room)) =
@@ -1100,13 +1105,42 @@ impl Structure for Tavern {
                         min: (door.min - orth.to_vec2()).with_z(wall.base_alt - 1),
                         max: (door.max + orth.to_vec2()).with_z(wall.base_alt + 3),
                     }))
-                    .fill(stone.clone());
+                    .fill(detail0.clone());
                 painter
                     .aabb(aabb(Aabb {
                         min: (door.min + wall.to_dir.to_vec2()).with_z(wall.base_alt),
                         max: (door.max - wall.to_dir.to_vec2()).with_z(wall.base_alt + 2),
                     }))
                     .clear();
+                let filter = |room: &Id<Room>| self.rooms[*room].bounds.min.z > wall.base_alt;
+                if let Some((room, to_dir)) = wall
+                    .to
+                    .filter(filter)
+                    .zip(Some(wall.to_dir))
+                    .or(wall.from.filter(filter).zip(Some(-wall.to_dir)))
+                {
+                    let room = &self.rooms[room];
+
+                    let max = door.max + to_dir.to_vec2() * (room.bounds.min.z - wall.base_alt + 1);
+                    painter
+                        .ramp(
+                            aabb(Aabb {
+                                min: (door.min - to_dir.to_vec2() * 3).with_z(wall.base_alt),
+                                max: max.with_z(room.bounds.min.z + 2),
+                            }),
+                            to_dir,
+                        )
+                        .clear();
+                    painter
+                        .ramp(
+                            aabb(Aabb {
+                                min: (door.min + to_dir.to_vec2() * 2).with_z(wall.base_alt),
+                                max: max.with_z(room.bounds.min.z - 1),
+                            }),
+                            to_dir,
+                        )
+                        .fill(color2.clone());
+                }
                 if let Some((in_dir, _room)) = in_dir_room {
                     let sprite = match in_dir.rotated_cw().select(door.size()) {
                         2.. => SpriteKind::DoorWide,
@@ -1178,7 +1212,7 @@ impl Structure for Tavern {
                     }),
                     stairs.dir,
                 )
-                .fill(wood.clone());
+                .fill(color0.clone());
         }
     }
 }
