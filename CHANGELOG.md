@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The loading screen now displays status updates for singleplayer server and client initialization progress
 - New Frost Gigas attacks & AI
 - Allow plugins to add weapon and armor items
+- New voxelised LoD shader effect
 
 ### Changed
 
@@ -63,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Medium and large potions from all loot tables
+- LoD pop-in effect
 
 ### Fixed
 - Fixed wild roaming cyclop loot table to not drop the quarry key
