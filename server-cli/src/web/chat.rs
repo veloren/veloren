@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Query, State},
+    extract::{ConnectInfo, Query, State},
     middleware::Next,
     response::{IntoResponse, Response},
     routing::get,
@@ -9,12 +9,23 @@ use chrono::DateTime;
 use hyper::{Request, StatusCode};
 use serde::{Deserialize, Deserializer};
 use server::chat::ChatCache;
-use std::str::FromStr;
+use std::{
+    collections::HashSet,
+    net::{IpAddr, SocketAddr},
+    str::FromStr,
+    sync::Arc,
+};
+use tokio::sync::Mutex;
 
 /// Keep Size small, so we dont have to Clone much for each request.
 #[derive(Clone)]
 struct ChatToken {
     secret_token: Option<String>,
+}
+
+#[derive(Clone, Default)]
+struct IpAddresses {
+    users: Arc<Mutex<HashSet<IpAddr>>>,
 }
 
 async fn validate_secret<B>(
@@ -38,10 +49,29 @@ async fn validate_secret<B>(
     Ok(next.run(req).await)
 }
 
+/// Logs each new IP address that accesses this API authenticated
+async fn log_users<B>(
+    State(ip_addresses): State<IpAddresses>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    req: Request<B>,
+    next: Next<B>,
+) -> Result<Response, StatusCode> {
+    let mut ip_addresses = ip_addresses.users.lock().await;
+    let ip_addr = addr.ip();
+    if !ip_addresses.contains(&ip_addr) {
+        ip_addresses.insert(ip_addr);
+        let users_so_far = ip_addresses.len();
+        tracing::info!(?ip_addr, ?users_so_far, "Is accessing the /chat endpoint");
+    }
+    Ok(next.run(req).await)
+}
+
 pub fn router(cache: ChatCache, secret_token: Option<String>) -> Router {
     let token = ChatToken { secret_token };
+    let ip_addrs = IpAddresses::default();
     Router::new()
         .route("/history", get(history))
+        .layer(axum::middleware::from_fn_with_state(ip_addrs, log_users))
         .layer(axum::middleware::from_fn_with_state(token, validate_secret))
         .with_state(cache)
 }

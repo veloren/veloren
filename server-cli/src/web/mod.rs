@@ -30,7 +30,8 @@ where
 
     // run it
     let addr = addr.into();
-    let server = axum::Server::bind(&addr).serve(app.into_make_service());
+    let server =
+        axum::Server::bind(&addr).serve(app.into_make_service_with_connect_info::<SocketAddr>());
     let server = server.with_graceful_shutdown(shutdown);
     tracing::info!("listening on {}", addr);
     match server.await {
