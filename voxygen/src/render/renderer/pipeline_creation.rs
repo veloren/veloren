@@ -14,6 +14,7 @@ use super::{
 };
 use common_base::{prof_span, prof_span_alloc};
 use std::sync::Arc;
+use tracing::warn;
 
 /// All the pipelines
 pub struct Pipelines {
@@ -400,6 +401,13 @@ fn create_shader_module(
     let spv = compiler
         .compile_into_spirv(source, kind, file_name, "main", Some(options))
         .map_err(|e| (file_name, e))?;
+
+    if spv.get_num_warnings() > 0 {
+        warn!(
+            "shaderc emitted compilation warnings for {file_name}:\n\n{}",
+            spv.get_warning_messages()
+        );
+    }
 
     let label = [file_name, "\n\n", source].concat();
     Ok(device.create_shader_module(&wgpu::ShaderModuleDescriptor {

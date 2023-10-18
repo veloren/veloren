@@ -1,4 +1,4 @@
-#version 420 core
+#version 430 core
 
 layout(push_constant) uniform Params {
     // Size of the source image.

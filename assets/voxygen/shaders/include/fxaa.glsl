@@ -58,7 +58,7 @@ vec4 fxaa(texture2D tex, sampler smplr, vec2 fragCoord, vec2 resolution,
             vec2 v_rgbSW, vec2 v_rgbSE,
             vec2 v_rgbM) {
     vec4 color;
-    mediump vec2 inverseVP = vec2(1.0 / resolution.x, 1.0 / resolution.y);
+    vec2 inverseVP = vec2(1.0 / resolution.x, 1.0 / resolution.y);
     vec3 rgbNW = texture(sampler2D(tex, smplr), v_rgbNW).xyz;
     vec3 rgbNE = texture(sampler2D(tex, smplr), v_rgbNE).xyz;
     vec3 rgbSW = texture(sampler2D(tex, smplr), v_rgbSW).xyz;
@@ -74,7 +74,7 @@ vec4 fxaa(texture2D tex, sampler smplr, vec2 fragCoord, vec2 resolution,
     float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
     float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
 
-    mediump vec2 dir;
+    vec2 dir;
     dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
     dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
 
@@ -121,11 +121,11 @@ vec4 fxaa_apply(
     vec2 resolution,
     float sampleScale
 ) {
-    mediump vec2 v_rgbNW;
-    mediump vec2 v_rgbNE;
-    mediump vec2 v_rgbSW;
-    mediump vec2 v_rgbSE;
-    mediump vec2 v_rgbM;
+    vec2 v_rgbNW;
+    vec2 v_rgbNE;
+    vec2 v_rgbSW;
+    vec2 v_rgbSE;
+    vec2 v_rgbM;
 
     float fxaa_scale = textureSize(sampler2D(tex, smplr), 0).x / resolution.x * sampleScale;
 
