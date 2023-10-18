@@ -1,4 +1,4 @@
-#version 420 core
+#version 430 core
 
 #include <constants.glsl>
 
@@ -111,7 +111,13 @@ void main() {
     uint v_atlas_pos = pos_atlas_pos_norm_ao.y;
 
     // Expand the model vertex position bits into float values
-    vec3 v_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu, 0xFFu, 0x0FFFu)) - ivec3(VERT_EXTRA_NEG_XY, VERT_EXTRA_NEG_XY, VERT_EXTRA_NEG_Z));
+    // TODO: Use this instead, see [https://gitlab.com/veloren/veloren/-/merge_requests/3091]
+    //vec3 v_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu, 0xFFu, 0x0FFFu)) - ivec3(VERT_EXTRA_NEG_XY, VERT_EXTRA_NEG_XY, VERT_EXTRA_NEG_Z));
+    vec3 v_pos = vec3(
+        float(v_pos_norm & 0xFFu) - VERT_EXTRA_NEG_XY,
+        float((v_pos_norm >> 8) & 0xFFu) - VERT_EXTRA_NEG_XY,
+        float((v_pos_norm >> 16) & 0x0FFFu) - VERT_EXTRA_NEG_Z
+    );
 
     // Position of the sprite block in the chunk
     // Used for highlighting the selected sprite, and for opening doors
@@ -188,7 +194,14 @@ void main() {
     // Shader@0x000001AABD89BEE0(112,43-53): error X4576: Input array signature parameter  cannot be indexed dynamically.
     //vec3 norm = (inst_mat[(v_pos_norm >> 30u) & 3u].xyz);
     uint index = v_pos_norm >> 30u & 3u;
-    vec3 norm = (inst_mat[index].xyz);
+    vec3 norm;
+    if (index == 0) {
+        norm = (inst_mat[0].xyz);
+    } else if (index == 1) {
+        norm = (inst_mat[1].xyz);
+    } else {
+        norm = (inst_mat[2].xyz);
+    }
 
     f_norm = normalize(mix(-norm, norm, v_pos_norm >> 29u & 1u));
 
