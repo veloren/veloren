@@ -513,8 +513,8 @@ pub enum ExperimentalShader {
     LowGlowNearCamera,
     /// Disable the fake voxel effect on LoD features.
     NoLodVoxels,
-    /// Disable the 'pop-in' effect when loading terrain.
-    NoTerrainPop,
+    /// Enable a 'pop-in' effect when loading terrain.
+    TerrainPop,
     /// Display grid lines to visualize the distribution of shadow map texels
     /// for the directional light from the sun.
     DirectionalShadowMapTexelGrid,

@@ -36,7 +36,7 @@ void main() {
     model_pos = v_pos;
 
     float pull_down = 1.0 / pow(distance(focus_pos.xy, obj_pos.xy) / (view_distance.x * 0.95), 150.0);
-    #ifndef EXPERIMENTAL_NOTERRAINPOP
+    #ifdef EXPERIMENTAL_TERRAINPOP
         f_pos.z -= pull_down;
     #else
         f_pos.z -= step(0.1, pull_down) * 10000.0;
@@ -47,7 +47,7 @@ void main() {
     #endif
 
     f_norm = v_norm;
-    f_col = vec4(vec3(inst_col) * (1.0 / 255.0) * v_col * (hash(inst_pos.xyxy) * 0.35 + 0.65), 1.0);
+    f_col = vec4(vec3(inst_col) * (1.0 / 255.0) * v_col * (hash(inst_pos.xyxy) * 0.4 + 0.6), 1.0);
     f_flags = inst_flags;
 
     gl_Position =

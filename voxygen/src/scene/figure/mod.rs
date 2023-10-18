@@ -993,6 +993,10 @@ impl FigureMgr {
                 (true, 0)
             };
 
+            if !in_frustum {
+                continue;
+            }
+
             // Change in health as color!
             let col = health
                 .map(|h| {

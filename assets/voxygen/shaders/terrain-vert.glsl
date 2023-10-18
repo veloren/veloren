@@ -71,8 +71,8 @@ const float EXTRA_NEG_Z = 32768.0;
 
 void main() {
     // over it (if this vertex to see if it intersects.
-    // f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
-    vec3 f_chunk_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
+    vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+
     f_pos = (model_mat * vec4(f_chunk_pos, 1.0)).xyz - focus_off.xyz;
 
     f_load_time = load_time;
@@ -81,7 +81,7 @@ void main() {
 
     // Terrain 'pop-in' effect
     #ifndef EXPERIMENTAL_BAREMINIMUM
-        #ifndef EXPERIMENTAL_NOTERRAINPOP
+        #ifdef EXPERIMENTAL_TERRAINPOP
             v_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(time_since(load_time), 10.0), 1.0));
             // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
         #endif
@@ -125,7 +125,7 @@ void main() {
 
     // Also precalculate shadow texture and estimated terrain altitude.
     // f_alt = alt_at(f_pos.xy);
-    // f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
+    // f_shadow = textureMaybeBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
     // IDEA: Cast a ray from the vertex to the camera (if this vertex is above the camera) or from the camera to the vertex (if this
     // vertex is below the camera) to see where it intersects the plane of water.  All of this only applies if either the terrain
