@@ -109,6 +109,13 @@ impl EventMapper for BlockEventMapper {
                     volume: 1.5,
                     cond: |_| true,
                 },
+                BlockSounds {
+                    blocks: |boi| &boi.lavapool,
+                    range: 1,
+                    sfx: SfxEvent::Lavapool,
+                    volume: 1.5,
+                    cond: |_| true,
+                },
                 //BlockSounds {
                 //    blocks: |boi| &boi.embers,
                 //    range: 1,
@@ -194,7 +201,7 @@ impl EventMapper for BlockEventMapper {
 
                         // Replace all RunningWater blocks with just one random one per tick
                         let blocks = if sounds.sfx == SfxEvent::RunningWaterSlow
-                            || sounds.sfx == SfxEvent::RunningWaterFast
+                            || sounds.sfx == SfxEvent::RunningWaterFast || sounds.sfx == SfxEvent::Lavapool
                         {
                             blocks
                                 .choose(&mut thread_rng())

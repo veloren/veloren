@@ -129,6 +129,18 @@
             threshold: 5.0,
             subtitle: "subtitle-running_water",
         ),
+        Lavapool: (
+            files: [
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-003",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-004",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-005",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-006",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-012",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-013",
+            ],
+            threshold: 7.0,
+            subtitle: "subtitle-lavapool",
+        ),
         //
         // Character States
         //
