@@ -34,7 +34,8 @@ SpawnEntry (
                 (5, (1, 3, "common.entity.wild.peaceful.squirrel")),
                 (5, (1, 1, "common.entity.wild.peaceful.forest_fox")),
                 (5, (1, 3, "common.entity.wild.peaceful.raccoon")),
-                (2, (1, 1, "common.entity.wild.aggressive.dullahan")),
+                // TODO: Maybe reenable once the dullahan design is more carefully considered, or move it elsewhere (i.e: such as a haunted/ruins site)
+                //(2, (1, 1, "common.entity.wild.aggressive.dullahan")),
             ],
             spawn_mode: Land,
             day_period: [Night],
