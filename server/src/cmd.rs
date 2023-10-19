@@ -3493,8 +3493,8 @@ fn handle_reload_chunks(
     server
         .state
         .ecs()
-        .write_resource::<crate::terrain_persistence::TerrainPersistence>()
-        .unload_all();
+        .try_fetch_mut::<crate::terrain_persistence::TerrainPersistence>()
+        .map(|mut terrain_persistence| terrain_persistence.unload_all());
     server.state.clear_terrain();
 
     Ok(())
