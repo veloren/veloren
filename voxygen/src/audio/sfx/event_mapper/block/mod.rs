@@ -61,10 +61,10 @@ impl EventMapper for BlockEventMapper {
                 (e.floor() as i32).div_euclid(sz as i32)
             });
 
-            // For determining if underground/crickets should chirp
-            let (terrain_alt, temp) = match client.current_chunk() {
-                Some(chunk) => (chunk.meta().alt(), chunk.meta().temp()),
-                None => (0.0, 0.0),
+            // For determining if crickets should chirp
+            let temp = match client.current_chunk() {
+                Some(chunk) => chunk.meta().temp(),
+                None => 0.0,
             };
 
             struct BlockSounds<'a> {
@@ -113,7 +113,7 @@ impl EventMapper for BlockEventMapper {
                     blocks: |boi| &boi.lavapool,
                     range: 1,
                     sfx: SfxEvent::Lavapool,
-                    volume: 1.5,
+                    volume: 1.8,
                     cond: |_| true,
                 },
                 //BlockSounds {
@@ -172,10 +172,8 @@ impl EventMapper for BlockEventMapper {
             // Iterate through each kind of block of interest
             for sounds in sounds.iter() {
                 // If the timing condition is false, continue
-                // or if the player is far enough underground, continue
-                // TODO Address bird hack properly. See TODO on line 190
+                // TODO Address bird hack properly. See TODO below
                 if !(sounds.cond)(state)
-                    || player_pos.0.z < (terrain_alt - 30.0)
                     || (sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995))
                     || (sounds.sfx == SfxEvent::Owl && thread_rng().gen_bool(0.998))
                     || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.95))
@@ -219,8 +217,8 @@ impl EventMapper for BlockEventMapper {
                             if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
                                 && thread_rng().gen_bool(0.9995))
                                 || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.75))
-                                || (sounds.sfx == SfxEvent::RunningWaterSlow
-                                    && thread_rng().gen_bool(0.5))
+                                || (sounds.sfx == SfxEvent::RunningWaterSlow && thread_rng().gen_bool(0.5))
+                                || (sounds.sfx == SfxEvent::Lavapool && thread_rng().gen_bool(0.99))
                             {
                                 continue;
                             }
