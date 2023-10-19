@@ -213,7 +213,7 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
                 let data: Result<A, _> = ASSETS.combine(|cache: AnyCache| A::load(cache, &id));
                 data.map(|data| self.get_or_insert(specifier, data))
             },
-            |obj| Ok(obj),
+            Ok,
         )
     }
 }
