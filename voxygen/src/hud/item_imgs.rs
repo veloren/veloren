@@ -1,6 +1,6 @@
 use crate::ui::{Graphic, SampleStrat, Transform, Ui};
 use common::{
-    assets::{self, AssetExt, AssetHandle, DotVoxAsset, ReloadWatcher},
+    assets::{self, AssetCombined, AssetExt, AssetHandle, Concatenate, DotVoxAsset, ReloadWatcher},
     comp::item::item_key::ItemKey,
     figure::Segment,
 };
@@ -62,6 +62,9 @@ impl assets::Asset for ItemImagesSpec {
 
     const EXTENSION: &'static str = "ron";
 }
+impl Concatenate for ItemImagesSpec {
+    fn concatenate(self, b: Self) -> Self { ItemImagesSpec(self.0.concatenate(b.0)) }
+}
 
 // TODO: when there are more images don't load them all into memory
 pub struct ItemImgs {
@@ -73,7 +76,7 @@ pub struct ItemImgs {
 
 impl ItemImgs {
     pub fn new(ui: &mut Ui, not_found: Id) -> Self {
-        let manifest = ItemImagesSpec::load_expect("voxygen.item_image_manifest");
+        let manifest = ItemImagesSpec::load_expect_combined("voxygen.item_image_manifest");
         let map = manifest
             .read()
             .0

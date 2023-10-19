@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Frost Gigas attacks & AI
 - Allow plugins to add weapon and armor items
 - New voxelised LoD shader effect
+- Allow plugins to add recipes and item images
 
 ### Changed
 
