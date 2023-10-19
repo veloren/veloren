@@ -126,14 +126,17 @@ impl BlocksOfInterest {
                 BlockKind::Water if river_speed_sq > 0.3_f32.powi(2) => slow_river.push(pos),
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                 BlockKind::Lava
-                    if rng.gen_range(0..5) == 0
-                        && chunk
-                            .get(pos + Vec3::unit_z())
-                            .map_or(true, |b| !b.is_filled()) =>
+                    if chunk
+                        .get(pos + Vec3::unit_z())
+                        .map_or(true, |b| !b.is_filled()) =>
                 {
-                    fires.push(pos + Vec3::unit_z())
+                    if rng.gen_range(0..5) == 0 {
+                        fires.push(pos + Vec3::unit_z())
+                    }
+                    if rng.gen_range(0..16) == 0 {
+                        lavapool.push(pos)
+                    }
                 },
-                BlockKind::Lava if rng.gen_range(0..8) == 0 => lavapool.push(pos),
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {

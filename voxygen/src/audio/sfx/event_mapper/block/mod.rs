@@ -62,9 +62,9 @@ impl EventMapper for BlockEventMapper {
             });
 
             // For determining if crickets should chirp
-            let temp = match client.current_chunk() {
-                Some(chunk) => chunk.meta().temp(),
-                None => 0.0,
+            let (terrain_alt, temp) = match client.current_chunk() {
+                Some(chunk) => (chunk.meta().alt(), chunk.meta().temp()),
+                None => (0.0, 0.0),
             };
 
             struct BlockSounds<'a> {
@@ -174,6 +174,7 @@ impl EventMapper for BlockEventMapper {
                 // If the timing condition is false, continue
                 // TODO Address bird hack properly. See TODO below
                 if !(sounds.cond)(state)
+                    || (!(sounds.sfx == SfxEvent::Lavapool) && player_pos.0.z < (terrain_alt - 30.0))
                     || (sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995))
                     || (sounds.sfx == SfxEvent::Owl && thread_rng().gen_bool(0.998))
                     || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.95))
