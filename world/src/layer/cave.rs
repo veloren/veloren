@@ -897,6 +897,10 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 Some("common.entity.wild.aggressive.bat"),
                 (biome.dusty + 0.1) * 0.25,
             ),
+            (
+                Some("common.entity.wild.aggressive.dullahan"),
+                (biome.dusty + 0.1) * 0.025,
+            ),
             // Icy biome
             (
                 Some("common.entity.wild.aggressive.blue_oni"),
