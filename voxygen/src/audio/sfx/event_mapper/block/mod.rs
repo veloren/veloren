@@ -199,7 +199,8 @@ impl EventMapper for BlockEventMapper {
 
                         // Replace all RunningWater blocks with just one random one per tick
                         let blocks = if sounds.sfx == SfxEvent::RunningWaterSlow
-                            || sounds.sfx == SfxEvent::RunningWaterFast || sounds.sfx == SfxEvent::Lavapool
+                            || sounds.sfx == SfxEvent::RunningWaterFast
+                            || sounds.sfx == SfxEvent::Lavapool
                         {
                             blocks
                                 .choose(&mut thread_rng())
@@ -217,7 +218,8 @@ impl EventMapper for BlockEventMapper {
                             if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
                                 && thread_rng().gen_bool(0.9995))
                                 || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.75))
-                                || (sounds.sfx == SfxEvent::RunningWaterSlow && thread_rng().gen_bool(0.5))
+                                || (sounds.sfx == SfxEvent::RunningWaterSlow
+                                    && thread_rng().gen_bool(0.5))
                                 || (sounds.sfx == SfxEvent::Lavapool && thread_rng().gen_bool(0.99))
                             {
                                 continue;
