@@ -28,7 +28,7 @@ pub struct TetherMgr {
     /// Every tick, the 'alive' state of the flag flips between `true` and
     /// `false` to avoid the need to wastefully reset the flag of every
     /// alive tether on each tick (this is a common optimisation in some garbage
-    /// collection algoruthms too).
+    /// collection algorithms too).
     stale_flag: bool,
     tethers: HashMap<(Uid, Uid), (BoundLocals, bool)>,
 }
