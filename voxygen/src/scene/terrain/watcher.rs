@@ -39,6 +39,7 @@ pub struct BlocksOfInterest {
     pub grass: Vec<Vec3<i32>>,
     pub slow_river: Vec<Vec3<i32>>,
     pub fast_river: Vec<Vec3<i32>>,
+    pub lavapool: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
     pub smokers: Vec<SmokerProperties>,
     pub beehives: Vec<Vec3<i32>>,
@@ -76,6 +77,7 @@ impl BlocksOfInterest {
         let mut grass = Vec::new();
         let mut slow_river = Vec::new();
         let mut fast_river = Vec::new();
+        let mut lavapool = Vec::new();
         let mut fires = Vec::new();
         let mut smokers = Vec::new();
         let mut beehives = Vec::new();
@@ -124,12 +126,16 @@ impl BlocksOfInterest {
                 BlockKind::Water if river_speed_sq > 0.3_f32.powi(2) => slow_river.push(pos),
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                 BlockKind::Lava
-                    if rng.gen_range(0..5) == 0
-                        && chunk
-                            .get(pos + Vec3::unit_z())
-                            .map_or(true, |b| !b.is_filled()) =>
+                    if chunk
+                        .get(pos + Vec3::unit_z())
+                        .map_or(true, |b| !b.is_filled()) =>
                 {
-                    fires.push(pos + Vec3::unit_z())
+                    if rng.gen_range(0..5) == 0 {
+                        fires.push(pos + Vec3::unit_z())
+                    }
+                    if rng.gen_range(0..16) == 0 {
+                        lavapool.push(pos)
+                    }
                 },
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => match block.get_sprite() {
@@ -235,6 +241,7 @@ impl BlocksOfInterest {
             grass,
             slow_river,
             fast_river,
+            lavapool,
             fires,
             smokers,
             beehives,

@@ -133,6 +133,7 @@ pub enum SfxEvent {
     Bees,
     RunningWaterSlow,
     RunningWaterFast,
+    Lavapool,
     Idle,
     Swim,
     Run(BlockKind),
