@@ -19,7 +19,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, Is<Follower>>,
-        WriteStorage<'a, Pos>,
+        ReadStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         ReadStorage<'a, Body>,

@@ -41,7 +41,7 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::{EntityConfig, EntityInfo},
     link::Is,
-    mounting::Rider,
+    mounting::{Rider, Volume, VolumeRider},
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
@@ -1817,16 +1817,33 @@ fn handle_spawn_ship(
             .state
             .read_component_cloned::<Is<Rider>>(target)
             .map(|is_rider| is_rider.mount)
+            .or_else(|| {
+                server
+                    .state
+                    .read_component_cloned::<Is<VolumeRider>>(target)
+                    .and_then(|is_volume_rider| {
+                        if let Volume::Entity(uid) = is_volume_rider.pos.kind {
+                            Some(uid)
+                        } else {
+                            None
+                        }
+                    })
+            })
             .or_else(|| server.state.ecs().uid_from_entity(target));
         let tether_follower = server.state.ecs().uid_from_entity(new_entity);
 
         if let (Some(leader), Some(follower)) = (tether_leader, tether_follower) {
+            let tether_length = tether_leader
+                .and_then(|uid| server.state.ecs().entity_from_uid(uid))
+                .and_then(|e| server.state.read_component_cloned::<comp::Body>(e))
+                .map(|b| b.dimensions().z * 2.0 + 0.5)
+                .unwrap_or(6.0);
             server
                 .state
                 .link(Tethered {
                     leader,
                     follower,
-                    tether_length: 6.0,
+                    tether_length,
                 })
                 .map_err(|_| "Failed to tether entities")?;
         } else {

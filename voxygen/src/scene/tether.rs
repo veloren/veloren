@@ -1,5 +1,5 @@
 use crate::render::{
-    pipelines::tether::{BoundLocals, Locals, Vertex},
+    pipelines::rope::{BoundLocals, Locals, Vertex},
     FirstPassDrawer, Mesh, Model, Quad, Renderer,
 };
 use client::Client;
@@ -15,6 +15,20 @@ use vek::*;
 
 pub struct TetherMgr {
     model: Model<Vertex>,
+    /// Used to garbage-collect tethers that no longer exist.
+    ///
+    /// Because a tether is not an entity, but instead a relationship between
+    /// two entities, there is no single 'event' that we can listen to in
+    /// order to determine that a tether has been broken. Instead, every tick,
+    /// we go through the set of tethers that we observe in the world and
+    /// mark their entries in the `tethers` map below with a flag.
+    /// At the end of the tick, every unmarked tether in the `tethers` map below
+    /// can be deleted.
+    ///
+    /// Every tick, the 'alive' state of the flag flips between `true` and
+    /// `false` to avoid the need to wastefully reset the flag of every
+    /// alive tether on each tick (this is a common optimisation in some garbage
+    /// collection algoruthms too).
     stale_flag: bool,
     tethers: HashMap<(Uid, Uid), (BoundLocals, bool)>,
 }
@@ -61,7 +75,7 @@ impl TetherMgr {
                 .entry((is_follower.leader, is_follower.follower))
                 .or_insert_with(|| {
                     (
-                        renderer.create_tether_bound_locals(&[Locals::default()]),
+                        renderer.create_rope_bound_locals(&[Locals::default()]),
                         self.stale_flag,
                     )
                 });
@@ -81,9 +95,9 @@ impl TetherMgr {
     }
 
     pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {
-        let mut tether_drawer = drawer.draw_tethers();
+        let mut rope_drawer = drawer.draw_ropes();
         for (locals, _) in self.tethers.values() {
-            tether_drawer.draw(&self.model, locals);
+            rope_drawer.draw(&self.model, locals);
         }
     }
 }

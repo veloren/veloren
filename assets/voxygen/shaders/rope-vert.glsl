@@ -24,7 +24,7 @@ layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec4 pos_a;
     vec4 pos_b;
-    float tether_length;
+    float rope_length;
 };
 
 layout(location = 0) out vec3 f_pos;
@@ -43,7 +43,7 @@ void main() {
         wind_wave(pos.y * 1.5, 1.9, wind_vel.x, wind_vel.y),
         wind_wave(pos.x * 1.5, 2.1, wind_vel.y, wind_vel.x)
     );
-    float dip = (1 - pow(abs(v_pos.z - 0.5) * 2.0, 2)) * max(tether_length - dist, 0.0);
+    float dip = (1 - pow(abs(v_pos.z - 0.5) * 2.0, 2)) * max(rope_length - dist, 0.0);
     pos += vec3(ideal_wind_sway * min(pow(dip, 2), 0.005), -0.5 * dip);
 
     f_pos = pos + focus_pos.xyz;

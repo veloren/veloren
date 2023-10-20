@@ -6,8 +6,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, shadow,
-            skybox, sprite, terrain, tether, trail, ui, AtlasTextures, FigureSpriteAtlasData,
+            blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, rope,
+            shadow, skybox, sprite, terrain, trail, ui, AtlasTextures, FigureSpriteAtlasData,
             GlobalsBindGroup, TerrainAtlasData,
         },
         AltIndices, CullingMode,
@@ -966,13 +966,13 @@ impl<'pass> FirstPassDrawer<'pass> {
         ParticleDrawer { render_pass }
     }
 
-    pub fn draw_tethers(&mut self) -> TetherDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("tethers", self.borrow.device);
+    pub fn draw_ropes(&mut self) -> RopeDrawer<'_, 'pass> {
+        let mut render_pass = self.render_pass.scope("ropes", self.borrow.device);
 
-        render_pass.set_pipeline(&self.pipelines.tether.pipeline);
-        set_quad_index_buffer::<tether::Vertex>(&mut render_pass, self.borrow);
+        render_pass.set_pipeline(&self.pipelines.rope.pipeline);
+        set_quad_index_buffer::<rope::Vertex>(&mut render_pass, self.borrow);
 
-        TetherDrawer { render_pass }
+        RopeDrawer { render_pass }
     }
 
     pub fn draw_sprites<'data: 'pass>(
@@ -1121,17 +1121,17 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
 }
 
 #[must_use]
-pub struct TetherDrawer<'pass_ref, 'pass: 'pass_ref> {
+pub struct RopeDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
-impl<'pass_ref, 'pass: 'pass_ref> TetherDrawer<'pass_ref, 'pass> {
+impl<'pass_ref, 'pass: 'pass_ref> RopeDrawer<'pass_ref, 'pass> {
     // Note: if we ever need to draw less than the whole model, these APIs can be
     // changed
     pub fn draw<'data: 'pass>(
         &mut self,
-        model: &'data Model<tether::Vertex>,
-        locals: &'data tether::BoundLocals,
+        model: &'data Model<rope::Vertex>,
+        locals: &'data rope::BoundLocals,
     ) {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.set_bind_group(2, &locals.bind_group, &[]);

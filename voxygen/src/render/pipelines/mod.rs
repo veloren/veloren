@@ -9,11 +9,11 @@ pub mod lod_terrain;
 pub mod particle;
 pub mod postprocess;
 pub mod rain_occlusion;
+pub mod rope;
 pub mod shadow;
 pub mod skybox;
 pub mod sprite;
 pub mod terrain;
-pub mod tether;
 pub mod trail;
 pub mod ui;
 

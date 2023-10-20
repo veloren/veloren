@@ -8,15 +8,15 @@ use vek::*;
 pub struct Locals {
     pos_a: [f32; 4],
     pos_b: [f32; 4],
-    tether_length: f32,
+    rope_length: f32,
 }
 
 impl Locals {
-    pub fn new(pos_a: Vec3<f32>, pos_b: Vec3<f32>, tether_length: f32) -> Self {
+    pub fn new(pos_a: Vec3<f32>, pos_b: Vec3<f32>, rope_length: f32) -> Self {
         Self {
             pos_a: pos_a.with_w(0.0).into_array(),
             pos_b: pos_b.with_w(0.0).into_array(),
-            tether_length,
+            rope_length,
         }
     }
 }
@@ -58,11 +58,11 @@ impl VertexTrait for Vertex {
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
-pub struct TetherLayout {
+pub struct RopeLayout {
     pub locals: wgpu::BindGroupLayout,
 }
 
-impl TetherLayout {
+impl RopeLayout {
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
             locals: device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -101,23 +101,23 @@ impl TetherLayout {
     }
 }
 
-pub struct TetherPipeline {
+pub struct RopePipeline {
     pub pipeline: wgpu::RenderPipeline,
 }
 
-impl TetherPipeline {
+impl RopePipeline {
     pub fn new(
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
-        layout: &TetherLayout,
+        layout: &RopeLayout,
         aa_mode: AaMode,
     ) -> Self {
-        common_base::span!(_guard, "TetherPipeline::new");
+        common_base::span!(_guard, "RopePipeline::new");
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Tether pipeline layout"),
+                label: Some("Rope pipeline layout"),
                 push_constant_ranges: &[],
                 bind_group_layouts: &[
                     &global_layout.globals,
@@ -129,7 +129,7 @@ impl TetherPipeline {
         let samples = aa_mode.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Tether pipeline"),
+            label: Some("Rope pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
