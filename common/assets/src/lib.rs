@@ -1,6 +1,7 @@
 //#![warn(clippy::pedantic)]
 //! Load assets (images or voxel data) from files
 
+#[cfg(feature = "plugins")]
 use assets_manager::SharedBytes;
 use dot_vox::DotVoxData;
 use image::DynamicImage;
@@ -122,6 +123,7 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 }
 
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
+#[cfg(feature = "plugins")]
 pub trait AssetCombined: AssetExt {
     fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError>;
 
@@ -138,6 +140,7 @@ pub trait AssetCombined: AssetExt {
 }
 
 /// Extension to AnyCache to combine Ron files from filesystem and plugins
+#[cfg(feature = "plugins")]
 pub trait CacheCombined<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
@@ -198,6 +201,7 @@ impl<T: Compound> AssetExt for T {
     }
 }
 
+#[cfg(feature = "plugins")]
 impl<'a> CacheCombined<'a> for AnyCache<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
@@ -218,6 +222,7 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     }
 }
 
+#[cfg(feature = "plugins")]
 impl<T: Compound + Concatenate> AssetCombined for T {
     fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError> {
         ASSETS.as_any_cache().load_and_combine(specifier)
