@@ -1836,7 +1836,7 @@ fn handle_spawn_ship(
             let tether_length = tether_leader
                 .and_then(|uid| server.state.ecs().entity_from_uid(uid))
                 .and_then(|e| server.state.read_component_cloned::<comp::Body>(e))
-                .map(|b| b.dimensions().z * 2.0 + 0.5)
+                .map(|b| b.dimensions().y * 1.5 + 1.0)
                 .unwrap_or(6.0);
             server
                 .state
