@@ -5,7 +5,6 @@ use tar::EntryType;
 use std::{
     fmt,
     fs::File,
-    hash,
     io::{self, Read, Seek, SeekFrom},
     path::{self, Path, PathBuf},
 };
@@ -15,40 +14,8 @@ use std::{
 #[derive(Clone, Hash, PartialEq, Eq)]
 struct FileDesc(String, String);
 
-/// This hack enables us to use a `(&str, &str)` as a key for an HashMap without
-/// allocating a `FileDesc`
-trait FileKey {
-    fn id(&self) -> &str;
-    fn ext(&self) -> &str;
-}
-
-impl FileKey for FileDesc {
-    fn id(&self) -> &str { &self.0 }
-
-    fn ext(&self) -> &str { &self.1 }
-}
-
-impl FileKey for (&'_ str, &'_ str) {
-    fn id(&self) -> &str { self.0 }
-
-    fn ext(&self) -> &str { self.1 }
-}
-
-impl<'a> std::borrow::Borrow<dyn FileKey + 'a> for FileDesc {
-    fn borrow(&self) -> &(dyn FileKey + 'a) { self }
-}
-
-impl PartialEq for dyn FileKey + '_ {
-    fn eq(&self, other: &Self) -> bool { self.id() == other.id() && self.ext() == other.ext() }
-}
-
-impl Eq for dyn FileKey + '_ {}
-
-impl hash::Hash for dyn FileKey + '_ {
-    fn hash<H: hash::Hasher>(&self, hasher: &mut H) {
-        self.id().hash(hasher);
-        self.ext().hash(hasher);
-    }
+impl hashbrown::Equivalent<FileDesc> for (&str, &str) {
+    fn equivalent(&self, key: &FileDesc) -> bool { self.0 == key.0 && self.1 == key.1 }
 }
 
 impl fmt::Debug for FileDesc {
@@ -164,8 +131,7 @@ impl Tar {
 
 impl Source for Tar {
     fn read(&self, id: &str, ext: &str) -> io::Result<FileContent> {
-        let key: &dyn FileKey = &(id, ext);
-        let id = *self.files.get(key).ok_or(io::ErrorKind::NotFound)?;
+        let id = *self.files.get(&(id, ext)).ok_or(io::ErrorKind::NotFound)?;
         self.backend.read(id.0, id.1).map(FileContent::Buffer)
     }
 
@@ -177,7 +143,7 @@ impl Source for Tar {
 
     fn exists(&self, entry: DirEntry) -> bool {
         match entry {
-            DirEntry::File(id, ext) => self.files.contains_key(&(id, ext) as &dyn FileKey),
+            DirEntry::File(id, ext) => self.files.contains_key(&(id, ext)),
             DirEntry::Directory(id) => self.dirs.contains_key(id),
         }
     }

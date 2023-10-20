@@ -258,13 +258,8 @@ impl<T: Concatenate> Concatenate for Ron<T> {
 }
 
 /// This wrapper combines several RON files from multiple sources
+#[derive(Clone)]
 pub struct MultiRon<T>(pub T);
-
-impl<T: Clone> Clone for MultiRon<T> {
-    fn clone(&self) -> Self { Self(self.0.clone()) }
-
-    fn clone_from(&mut self, source: &Self) { self.0.clone_from(&source.0) }
-}
 
 #[cfg(feature = "plugins")]
 impl<T> Compound for MultiRon<T>
