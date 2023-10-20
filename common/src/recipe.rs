@@ -516,9 +516,6 @@ impl assets::Asset for ItemList {
 
     const EXTENSION: &'static str = "ron";
 }
-impl Concatenate for ItemList {
-    fn concatenate(self, b: Self) -> Self { ItemList(self.0.concatenate(b.0)) }
-}
 
 impl assets::Compound for RecipeBook {
     fn load(
