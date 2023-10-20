@@ -863,6 +863,18 @@ impl<'a> PhysicsData<'a> {
                     let climbing =
                         character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
 
+                    let friction_factor = |vel: Vec3<f32>| {
+                        if let Some(Body::Ship(ship)) = body && ship.has_wheels() {
+                        vel
+                            .try_normalized()
+                            .and_then(|dir| Some(orientations.get(entity)?.right().dot(dir).abs()))
+                            .unwrap_or(1.0)
+                            .max(0.2)
+                    } else {
+                        1.0
+                    }
+                    };
+
                     match &collider {
                         Collider::Voxel { .. } | Collider::Volume(_) => {
                             // For now, treat entities with voxel colliders
@@ -874,8 +886,6 @@ impl<'a> PhysicsData<'a> {
                             let radius = collider.bounding_radius() * scale * 0.1;
                             let (_, z_max) = collider.get_z_limits(scale);
                             let z_min = 0.0;
-
-                            let body = read.bodies.get(entity);
 
                             let mut cpos = *pos;
                             let cylinder = (radius, z_min, z_max);
@@ -896,15 +906,7 @@ impl<'a> PhysicsData<'a> {
                                 },
                                 read,
                                 &ori,
-                                |vel| if let Some(Body::Ship(ship)) = body && ship.has_wheels() {
-                                    vel
-                                        .try_normalized()
-                                        .and_then(|dir| Some(orientations.get(entity)?.right().dot(dir).abs()))
-                                        .unwrap_or(1.0)
-                                        .max(0.2)
-                                } else {
-                                    1.0
-                                },
+                                |vel| friction_factor(vel),
                             );
                             tgt_pos = cpos.0;
                         },
@@ -920,8 +922,6 @@ impl<'a> PhysicsData<'a> {
                             let z_min = 0.0;
                             let z_max = z_max.clamped(1.2, 1.95) * scale;
 
-                            let body = read.bodies.get(entity);
-
                             let cylinder = (radius, z_min, z_max);
                             let mut cpos = *pos;
                             box_voxel_collision(
@@ -941,15 +941,7 @@ impl<'a> PhysicsData<'a> {
                                 },
                                 read,
                                 &ori,
-                                |vel| if let Some(Body::Ship(ship)) = body && ship.has_wheels() {
-                                    vel
-                                        .try_normalized()
-                                        .and_then(|dir| Some(1.0 - orientations.get(entity)?.right().dot(dir).abs()))
-                                        .unwrap_or(1.0)
-                                        .max(0.2)
-                                } else {
-                                    1.0
-                                },
+                                |vel| friction_factor(vel),
                             );
 
                             // Sticky things shouldn't move when on a surface
@@ -1213,8 +1205,6 @@ impl<'a> PhysicsData<'a> {
                                         vel.0 = previous_cache_other.ori.inverse()
                                             * (vel.0 - vel_other);
 
-                                        let body = read.bodies.get(entity);
-
                                         // Perform collision resolution
                                         box_voxel_collision(
                                             (radius, z_min, z_max),
@@ -1238,15 +1228,7 @@ impl<'a> PhysicsData<'a> {
                                             },
                                             read,
                                             &ori,
-                                            |vel| if let Some(Body::Ship(ship)) = body && ship.has_wheels() {
-                                                (previous_cache_other.ori * vel)
-                                                    .try_normalized()
-                                                    .and_then(|dir| Some(1.0 - orientations.get(entity)?.right().dot(dir).abs()))
-                                                    .unwrap_or(1.0)
-                                                    .max(0.2)
-                                            } else {
-                                                1.0
-                                            },
+                                            |vel| friction_factor(vel),
                                         );
 
                                         // Transform entity attributes back into world space now
