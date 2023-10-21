@@ -864,10 +864,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let surface_rigidity =
             surface_rigidity.max(((basement_sub_alt + 3.0) / 1.5).clamped(0.0, 2.0));
         let warp = ((marble_mid * 0.2 + marble * 0.8) * 2.0 - 1.0)
-            * 15.0
+            * (10.0 + rockiness * 15.0)
             * gradient.unwrap_or(0.0).min(1.0)
             * surface_rigidity
             * warp_factor;
+
+        let mesa = 1.0f32
+            .min(30.0 / (1.0 + -basement_sub_alt.min(0.0)))
+            .min(1.0 - humidity * 4.0)
+            .min(temp)
+            .min(Lerp::lerp(-0.4, 1.0, gradient.unwrap_or(0.0)).max(0.0))
+            .max(0.0);
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt + riverless_alt_delta + warp;
@@ -1127,6 +1134,46 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let ground = water_dist
             .map(|wd| Lerp::lerp(sub_surface_color, ground, (wd / 3.0).clamped(0.0, 1.0)))
             .unwrap_or(ground);
+
+        let (sub_surface_color, ground, alt) = if mesa > 0.0 {
+            let marble_big = (sim.gen_ctx.hill_nz.get((wposf3d.div(128.0)).into_array()) as f32)
+                .mul(0.75)
+                .add(1.0)
+                .mul(0.5);
+            let cliff_scale = 130.0;
+            let cliff2_scale = 50.0;
+            let cliff_offset = |scale: f32| {
+                let x = (alt * 0.95 * (1.0 / scale) + marble_mixed * 0.07).fract() - 0.75;
+                if x > 0.0 { x * 3.0 * scale } else { -x * scale }
+            };
+            let mesa_alt = alt
+                + Lerp::lerp(
+                    cliff_offset(cliff_scale),
+                    cliff_offset(cliff2_scale),
+                    ((marble_big - 0.5) * 3.0 + (marble_mixed - 0.5) * 0.0).clamped(-0.5, 0.5)
+                        + 0.5,
+                ) * 0.9;
+            let alt = Lerp::lerp(alt, mesa_alt, mesa.powf(2.0) * warp_factor);
+
+            let mesa_color = Lerp::lerp(
+                Lerp::lerp(
+                    Rgb::new(0.6, 0.3, 0.2),
+                    Rgb::new(0.4, 0.03, 0.1),
+                    (alt * 0.2).sin() * 0.5 + 0.5,
+                ),
+                Lerp::lerp(
+                    Rgb::new(0.8, 0.5, 0.2),
+                    Rgb::new(0.6, 0.25, 0.25),
+                    (alt * 0.3).sin() * 0.5 + 0.5,
+                ),
+                (alt * 0.5).sin() * 0.5 + 0.5,
+            );
+            let sub_surface_color = Lerp::lerp(sub_surface_color, mesa_color, mesa.powf(0.25));
+
+            (sub_surface_color, ground, alt)
+        } else {
+            (sub_surface_color, ground, alt)
+        };
 
         // Ground under thick trees should be receive less sunlight and so often become
         // dirt
