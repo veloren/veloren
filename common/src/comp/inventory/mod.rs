@@ -605,7 +605,7 @@ impl Inventory {
     ) -> Option<Item> {
         if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
             item.take_half(ability_map, msm)
-                .or(self.remove(inv_slot_id))
+                .or_else(|| self.remove(inv_slot_id))
         } else {
             None
         }
@@ -621,7 +621,7 @@ impl Inventory {
     ) -> Option<Item> {
         if let Some(item) = self.overflow_items.get_mut(overflow_slot) {
             item.take_half(ability_map, msm)
-                .or(self.overflow_remove(overflow_slot))
+                .or_else(|| self.overflow_remove(overflow_slot))
         } else {
             None
         }

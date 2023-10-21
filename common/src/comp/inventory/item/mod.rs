@@ -1442,6 +1442,7 @@ impl Item {
     /// If an item is stackable and has an amount greater than 1, creates a new
     /// item with half the amount (rounded down), and decreases the amount of
     /// the original item by the same quantity.
+    #[must_use = "Returned items will be lost if not used"]
     pub fn take_half(
         &mut self,
         ability_map: &AbilityMap,
