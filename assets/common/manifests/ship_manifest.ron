@@ -233,4 +233,40 @@
             19: Air(Lantern, 4),
         },
     ),
+    Cart: (
+        bone0: (
+            offset: (-3.5, -3.5, 0.5),
+            central: ("cart.structure"),
+        ),
+        bone1: (
+            offset: (-1.0, -2.5, -1.0),
+            central: ("cart.axle"),
+        ),
+        bone2: (
+            offset: (-1.0, -2.5, -1.0),
+            central: ("cart.axle"),
+        ),
+        bone3: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+
+        custom_indices: {
+            1: Air(ChairSingle, 4),
+            2: Air(Helm, 0),
+            3: Air(ChairSingle, 2),
+            4: Air(ChairSingle, 6),
+            9: Air(CraftingBench, 0),
+            10: Air(Window1, 0),
+            11: Air(RepairBench, 0),
+            12: Air(DismantlingBench, 4),
+            13: Air(Window1, 2),
+            14: Air(Crate, 0),
+            15: Air(Cauldron, 2),
+            16: Air(ChairSingle, 0),
+            17: Air(CookingPot, 0),
+            18: Air(WallLampSmall, 4),
+            19: Air(Lantern, 4),
+        },
+    ),
 })

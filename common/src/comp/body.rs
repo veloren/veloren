@@ -1198,6 +1198,7 @@ impl Body {
                 ship::Body::Skiff => [1.0, -2.0, 2.0],
                 ship::Body::Submarine => [1.0, -2.0, 2.0],
                 ship::Body::Carriage => [1.0, -2.0, 2.0],
+                ship::Body::Cart => [1.0, -2.0, 2.0],
                 ship::Body::Volume => [0.0, 0.0, 0.0],
             },
             _ => [0.0, 0.0, 0.0],
@@ -1212,6 +1213,14 @@ impl Body {
             _ => [0.0, 0.0, 0.0],
         }
         .into()
+    }
+
+    pub fn tether_offset_leader(&self) -> Vec3<f32> {
+        Vec3::new(0.0, self.dimensions().y * -0.4, self.dimensions().z * 0.7)
+    }
+
+    pub fn tether_offset_follower(&self) -> Vec3<f32> {
+        Vec3::new(0.0, self.dimensions().y * 0.6, self.dimensions().z * 0.7)
     }
 
     pub fn localize(&self) -> Content {

@@ -4,7 +4,7 @@ use super::{
     super::{
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle,
-            postprocess, shadow, skybox, sprite, terrain, trail, ui,
+            postprocess, rope, shadow, skybox, sprite, terrain, trail, ui,
         },
         AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, ReflectionMode,
         RenderError, ShadowMode,
@@ -23,6 +23,7 @@ pub struct Pipelines {
     pub fluid: fluid::FluidPipeline,
     pub lod_terrain: lod_terrain::LodTerrainPipeline,
     pub particle: particle::ParticlePipeline,
+    pub rope: rope::RopePipeline,
     pub trail: trail::TrailPipeline,
     pub clouds: clouds::CloudsPipeline,
     pub bloom: Option<bloom::BloomPipelines>,
@@ -46,6 +47,7 @@ pub struct IngamePipelines {
     fluid: fluid::FluidPipeline,
     lod_terrain: lod_terrain::LodTerrainPipeline,
     particle: particle::ParticlePipeline,
+    rope: rope::RopePipeline,
     trail: trail::TrailPipeline,
     clouds: clouds::CloudsPipeline,
     pub bloom: Option<bloom::BloomPipelines>,
@@ -93,6 +95,7 @@ impl Pipelines {
             fluid: ingame.fluid,
             lod_terrain: ingame.lod_terrain,
             particle: ingame.particle,
+            rope: ingame.rope,
             trail: ingame.trail,
             clouds: ingame.clouds,
             bloom: ingame.bloom,
@@ -127,6 +130,8 @@ struct ShaderModules {
     lod_object_frag: wgpu::ShaderModule,
     particle_vert: wgpu::ShaderModule,
     particle_frag: wgpu::ShaderModule,
+    rope_vert: wgpu::ShaderModule,
+    rope_frag: wgpu::ShaderModule,
     trail_vert: wgpu::ShaderModule,
     trail_frag: wgpu::ShaderModule,
     ui_vert: wgpu::ShaderModule,
@@ -339,6 +344,8 @@ impl ShaderModules {
             lod_object_frag: create_shader("lod-object-frag", ShaderKind::Fragment)?,
             particle_vert: create_shader("particle-vert", ShaderKind::Vertex)?,
             particle_frag: create_shader("particle-frag", ShaderKind::Fragment)?,
+            rope_vert: create_shader("rope-vert", ShaderKind::Vertex)?,
+            rope_frag: create_shader("rope-frag", ShaderKind::Fragment)?,
             trail_vert: create_shader("trail-vert", ShaderKind::Vertex)?,
             trail_frag: create_shader("trail-frag", ShaderKind::Fragment)?,
             ui_vert: create_shader("ui-vert", ShaderKind::Vertex)?,
@@ -500,7 +507,7 @@ fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
     // TODO: Reduce the boilerplate in this file
-    tasks: [Task; 19],
+    tasks: [Task; 20],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
 
@@ -521,6 +528,7 @@ fn create_ingame_and_shadow_pipelines(
         sprite_task,
         lod_object_task,
         particle_task,
+        rope_task,
         trail_task,
         lod_terrain_task,
         clouds_task,
@@ -663,6 +671,22 @@ fn create_ingame_and_shadow_pipelines(
                 )
             },
             "particle pipeline creation",
+        )
+    };
+    // Pipeline for rendering ropes
+    let create_rope = || {
+        rope_task.run(
+            || {
+                rope::RopePipeline::new(
+                    device,
+                    &shaders.rope_vert,
+                    &shaders.rope_frag,
+                    &layouts.global,
+                    &layouts.rope,
+                    pipeline_modes.aa,
+                )
+            },
+            "rope pipeline creation",
         )
     };
     // Pipeline for rendering weapon trails
@@ -888,6 +912,7 @@ fn create_ingame_and_shadow_pipelines(
             )
         })
     };
+    let j8 = create_rope;
 
     // Ignore this
     let (
@@ -900,11 +925,11 @@ fn create_ingame_and_shadow_pipelines(
                 (postprocess, point_shadow),
                 (terrain_directed_shadow, (figure_directed_shadow, debug_directed_shadow)),
             ),
-            (lod_object, (terrain_directed_rain_occlusion, figure_directed_rain_occlusion)),
+            ((lod_object, (terrain_directed_rain_occlusion, figure_directed_rain_occlusion)), rope),
         ),
     ) = pool.join(
         || pool.join(|| pool.join(j1, j2), || pool.join(j3, j4)),
-        || pool.join(|| pool.join(j5, j6), j7),
+        || pool.join(|| pool.join(j5, j6), || pool.join(j7, j8)),
     );
 
     IngameAndShadowPipelines {
@@ -914,6 +939,7 @@ fn create_ingame_and_shadow_pipelines(
             fluid,
             lod_terrain,
             particle,
+            rope,
             trail,
             clouds,
             bloom,

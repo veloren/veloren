@@ -24,8 +24,8 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, bloom, clouds, debug, figure, postprocess, rain_occlusion, shadow, sprite, terrain,
-        ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
+        blit, bloom, clouds, debug, figure, postprocess, rain_occlusion, rope, shadow, sprite,
+        terrain, ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
     AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode, ShadowMapMode,
@@ -54,6 +54,7 @@ struct ImmutableLayouts {
     rain_occlusion: rain_occlusion::RainOcclusionLayout,
     sprite: sprite::SpriteLayout,
     terrain: terrain::TerrainLayout,
+    rope: rope::RopeLayout,
     clouds: clouds::CloudsLayout,
     bloom: bloom::BloomLayout,
     ui: ui::UiLayout,
@@ -383,6 +384,7 @@ impl Renderer {
             let rain_occlusion = rain_occlusion::RainOcclusionLayout::new(&device);
             let sprite = sprite::SpriteLayout::new(&device);
             let terrain = terrain::TerrainLayout::new(&device);
+            let rope = rope::RopeLayout::new(&device);
             let clouds = clouds::CloudsLayout::new(&device);
             let bloom = bloom::BloomLayout::new(&device);
             let postprocess = Arc::new(postprocess::PostProcessLayout::new(
@@ -402,6 +404,7 @@ impl Renderer {
                 rain_occlusion,
                 sprite,
                 terrain,
+                rope,
                 clouds,
                 bloom,
                 ui,

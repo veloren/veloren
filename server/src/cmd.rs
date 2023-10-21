@@ -40,12 +40,15 @@ use common::{
     effect::Effect,
     event::{EventBus, ServerEvent},
     generation::{EntityConfig, EntityInfo},
+    link::Is,
+    mounting::{Rider, Volume, VolumeRider},
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
+    tether::Tethered,
     uid::Uid,
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
@@ -1558,8 +1561,15 @@ fn handle_spawn(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    match parse_cmd_args!(args, String, npc::NpcBody, u32, bool, f32) {
-        (Some(opt_align), Some(npc::NpcBody(id, mut body)), opt_amount, opt_ai, opt_scale) => {
+    match parse_cmd_args!(args, String, npc::NpcBody, u32, bool, f32, bool) {
+        (
+            Some(opt_align),
+            Some(npc::NpcBody(id, mut body)),
+            opt_amount,
+            opt_ai,
+            opt_scale,
+            opt_tethered,
+        ) => {
             let uid = uid(server, target, "target")?;
             let alignment = parse_alignment(uid, &opt_align)?;
             let amount = opt_amount.filter(|x| *x > 0).unwrap_or(1).min(50);
@@ -1607,6 +1617,28 @@ fn handle_spawn(
                 }
 
                 let new_entity = entity_base.build();
+
+                if opt_tethered == Some(true) {
+                    let tether_leader = server
+                        .state
+                        .read_component_cloned::<Is<Rider>>(target)
+                        .map(|is_rider| is_rider.mount)
+                        .or_else(|| server.state.ecs().uid_from_entity(target));
+                    let tether_follower = server.state.ecs().uid_from_entity(new_entity);
+
+                    if let (Some(leader), Some(follower)) = (tether_leader, tether_follower) {
+                        server
+                            .state
+                            .link(Tethered {
+                                leader,
+                                follower,
+                                tether_length: 4.0,
+                            })
+                            .map_err(|_| "Failed to tether entities")?;
+                    } else {
+                        return Err("Tether members don't have Uids.".into());
+                    }
+                }
 
                 // Add to group system if a pet
                 if matches!(alignment, comp::Alignment::Owned { .. }) {
@@ -1748,7 +1780,7 @@ fn handle_spawn_ship(
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let (body_name, angle) = parse_cmd_args!(args, String, f32);
+    let (body_name, tethered, angle) = parse_cmd_args!(args, String, bool, f32);
     let mut pos = position(server, target, "target")?;
     pos.0.z += 2.0;
     const DESTINATION_RADIUS: f32 = 2000.0;
@@ -1767,6 +1799,7 @@ fn handle_spawn_ship(
     let mut builder = server
         .state
         .create_ship(pos, ori, ship, |ship| ship.make_collider());
+
     if let Some(pos) = destination {
         let (kp, ki, kd) =
             comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
@@ -1776,7 +1809,47 @@ fn handle_spawn_ship(
             .with_position_pid_controller(comp::PidController::new(kp, ki, kd, pos, 0.0, pure_z));
         builder = builder.with(agent);
     }
-    builder.build();
+
+    let new_entity = builder.build();
+
+    if tethered == Some(true) {
+        let tether_leader = server
+            .state
+            .read_component_cloned::<Is<Rider>>(target)
+            .map(|is_rider| is_rider.mount)
+            .or_else(|| {
+                server
+                    .state
+                    .read_component_cloned::<Is<VolumeRider>>(target)
+                    .and_then(|is_volume_rider| {
+                        if let Volume::Entity(uid) = is_volume_rider.pos.kind {
+                            Some(uid)
+                        } else {
+                            None
+                        }
+                    })
+            })
+            .or_else(|| server.state.ecs().uid_from_entity(target));
+        let tether_follower = server.state.ecs().uid_from_entity(new_entity);
+
+        if let (Some(leader), Some(follower)) = (tether_leader, tether_follower) {
+            let tether_length = tether_leader
+                .and_then(|uid| server.state.ecs().entity_from_uid(uid))
+                .and_then(|e| server.state.read_component_cloned::<comp::Body>(e))
+                .map(|b| b.dimensions().y * 1.5 + 1.0)
+                .unwrap_or(6.0);
+            server
+                .state
+                .link(Tethered {
+                    leader,
+                    follower,
+                    tether_length,
+                })
+                .map_err(|_| "Failed to tether entities")?;
+        } else {
+            return Err("Tether members don't have Uids.".into());
+        }
+    }
 
     server.notify_client(
         client,

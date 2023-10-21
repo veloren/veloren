@@ -59,6 +59,8 @@ impl assets::Compound for Shaders {
             "debug-vert",
             "debug-frag",
             "figure-frag",
+            "rope-vert",
+            "rope-frag",
             "terrain-vert",
             "terrain-frag",
             "fluid-vert",

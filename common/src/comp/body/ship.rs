@@ -19,12 +19,13 @@ pub const ALL_BODIES: [Body; 6] = [
 ];
 
 pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
-pub const ALL_SHIPS: [Body; 5] = [
+pub const ALL_SHIPS: [Body; 6] = [
     Body::SailBoat,
     Body::Galleon,
     Body::Skiff,
     Body::Submarine,
     Body::Carriage,
+    Body::Cart,
 ];
 
 make_case_elim!(
@@ -40,6 +41,7 @@ make_case_elim!(
         Skiff = 5,
         Submarine = 6,
         Carriage = 7,
+        Cart = 8,
     }
 );
 
@@ -72,6 +74,7 @@ impl Body {
             Body::Skiff => Some("skiff.structure"),
             Body::Submarine => Some("submarine.structure"),
             Body::Carriage => Some("carriage.structure"),
+            Body::Cart => Some("cart.structure"),
             Body::Volume => None,
         }
     }
@@ -84,7 +87,8 @@ impl Body {
             Body::Galleon => Vec3::new(14.0, 48.0, 10.0),
             Body::Skiff => Vec3::new(7.0, 15.0, 10.0),
             Body::Submarine => Vec3::new(2.0, 15.0, 8.0),
-            Body::Carriage => Vec3::new(6.0, 12.0, 8.0),
+            Body::Carriage => Vec3::new(5.0, 12.0, 2.0),
+            Body::Cart => Vec3::new(3.0, 6.0, 1.0),
         }
     }
 
@@ -119,12 +123,20 @@ impl Body {
             Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
             Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
             Body::Carriage => Density(WATER_DENSITY * 0.5),
+            Body::Cart => Density(500.0 / self.dimensions().product()), /* Carts get a constant */
+            // mass
             _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
                                                                       * buoyant */
         }
     }
 
-    pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
+    pub fn mass(&self) -> Mass {
+        if self.can_fly() {
+            Mass((self.hull_vol() + self.balloon_vol()) * self.density().0)
+        } else {
+            Mass(self.density().0 * self.dimensions().product())
+        }
+    }
 
     pub fn can_fly(&self) -> bool {
         matches!(self, Body::DefaultAirship | Body::AirBalloon | Body::Volume)
@@ -136,7 +148,7 @@ impl Body {
         matches!(self, Body::SailBoat | Body::Galleon | Body::Skiff)
     }
 
-    pub fn has_wheels(&self) -> bool { matches!(self, Body::Carriage) }
+    pub fn has_wheels(&self) -> bool { matches!(self, Body::Carriage | Body::Cart) }
 
     pub fn make_collider(&self) -> Collider {
         match self.manifest_entry() {

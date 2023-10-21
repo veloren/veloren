@@ -863,6 +863,18 @@ impl<'a> PhysicsData<'a> {
                     let climbing =
                         character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
 
+                    let friction_factor = |vel: Vec3<f32>| {
+                        if let Some(Body::Ship(ship)) = body && ship.has_wheels() {
+                        vel
+                            .try_normalized()
+                            .and_then(|dir| Some(orientations.get(entity)?.right().dot(dir).abs()))
+                            .unwrap_or(1.0)
+                            .max(0.2)
+                    } else {
+                        1.0
+                    }
+                    };
+
                     match &collider {
                         Collider::Voxel { .. } | Collider::Volume(_) => {
                             // For now, treat entities with voxel colliders
@@ -894,6 +906,7 @@ impl<'a> PhysicsData<'a> {
                                 },
                                 read,
                                 &ori,
+                                friction_factor,
                             );
                             tgt_pos = cpos.0;
                         },
@@ -928,6 +941,7 @@ impl<'a> PhysicsData<'a> {
                                 },
                                 read,
                                 &ori,
+                                friction_factor,
                             );
 
                             // Sticky things shouldn't move when on a surface
@@ -1214,6 +1228,7 @@ impl<'a> PhysicsData<'a> {
                                             },
                                             read,
                                             &ori,
+                                            |vel| friction_factor(previous_cache_other.ori * vel),
                                         );
 
                                         // Transform entity attributes back into world space now
@@ -1433,6 +1448,8 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     mut land_on_ground: impl FnMut(Entity, Vel, Vec3<f32>),
     read: &PhysicsRead,
     ori: &Ori,
+    // Get the proportion of surface friction that should be applied based on the current velocity
+    friction_factor: impl Fn(Vec3<f32>) -> f32,
 ) {
     // We cap out scale at 10.0 to prevent an enormous amount of lag
     let scale = read.scales.get(entity).map_or(1.0, |s| s.0.min(10.0));
@@ -1905,7 +1922,8 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         } * physics_state
             .on_ground
             .map(|b| b.get_friction())
-            .unwrap_or(0.0);
+            .unwrap_or(0.0)
+            * friction_factor(vel.0);
         let wall_fric = if physics_state.on_wall.is_some() && climbing {
             FRIC_GROUND
         } else {

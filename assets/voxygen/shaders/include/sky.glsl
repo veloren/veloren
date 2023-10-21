@@ -804,4 +804,17 @@ vec3 simple_lighting(vec3 pos, vec3 col, float shade) {
     return col * clamp(2.5 / dot(d, d), shade * (get_sun_brightness() + 0.01), 1);
 }
 
+float wind_wave(float off, float scaling, float speed, float strength) {
+    float aspeed = abs(speed);
+
+    // TODO: Right now, the wind model is pretty simplistic. This means that there is frequently no wind at all, which
+    // looks bad. For now, we add a lower bound on the wind speed to keep things looking nice.
+    strength = max(strength, 6.0);
+    aspeed = max(aspeed, 5.0);
+
+    return (sin(tick_loop(2.0 * PI, 0.35 * scaling * floor(aspeed), off)) * (1.0 - fract(aspeed))
+        + sin(tick_loop(2.0 * PI, 0.35 * scaling * ceil(aspeed), off)) * fract(aspeed)) * abs(strength) * 0.25;
+    //return sin(tick.x * 1.5 * scaling + off) + sin(tick.x * 0.35 * scaling + off);
+}
+
 #endif
