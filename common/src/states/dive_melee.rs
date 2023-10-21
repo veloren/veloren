@@ -1,4 +1,5 @@
 use crate::{
+    combat,
     comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -94,7 +95,7 @@ impl CharacterBehavior for Data {
             StageSection::Action => {
                 if !self.exhausted {
                     // Attack
-                    let crit_data = get_crit_data(data, self.static_data.ability_info);
+                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     let scaling = self.max_vertical_speed / self.static_data.vertical_speed;
                     let scaling = scaling.min(self.static_data.max_scaling);
@@ -104,7 +105,7 @@ impl CharacterBehavior for Data {
                         self.static_data
                             .melee_constructor
                             .handle_scaling(scaling)
-                            .create_melee(crit_data, tool_stats),
+                            .create_melee(crit_mult, tool_stats),
                     );
 
                     if let CharacterState::DiveMelee(c) = &mut update.character {

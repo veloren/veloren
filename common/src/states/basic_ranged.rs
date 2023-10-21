@@ -1,5 +1,5 @@
 use crate::{
-    combat::CombatEffect,
+    combat::{self, CombatEffect},
     comp::{
         character_state::OutputEvents, object::Body::LaserBeam, Body, CharacterState, LightEmitter,
         Pos, ProjectileConstructor, StateUpdate,
@@ -87,12 +87,10 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if !self.exhausted {
                     // Fire
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
+                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     let projectile = self.static_data.projectile.create_projectile(
                         Some(*data.uid),
-                        crit_chance,
                         crit_mult,
                         tool_stats,
                         self.static_data.damage_effect,

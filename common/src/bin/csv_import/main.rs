@@ -341,15 +341,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             Hands::Two
                         };
 
-                        let crit_chance: f32 = record
-                            .get(headers["Crit Chance"])
-                            .expect(&format!(
-                                "Error unwrapping crit_chance for {:?}",
-                                item.item_definition_id()
-                            ))
-                            .parse()
-                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
                         let range: f32 = record
                             .get(headers["Range"])
                             .expect(&format!(
@@ -382,7 +373,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             power,
                             effect_power,
                             speed,
-                            crit_chance,
                             range,
                             energy_efficiency,
                             buff_strength,

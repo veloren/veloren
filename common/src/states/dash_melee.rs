@@ -1,4 +1,5 @@
 use crate::{
+    combat,
     comp::{
         character_state::OutputEvents, item::tool, CharacterState, Melee, MeleeConstructor,
         MeleeConstructorKind, StateUpdate,
@@ -61,12 +62,12 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.1);
 
         let create_melee = |charge_frac: f32| {
-            let crit_data = get_crit_data(data, self.static_data.ability_info);
+            let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
             let tool_stats = get_tool_stats(data, self.static_data.ability_info);
             self.static_data
                 .melee_constructor
                 .handle_scaling(charge_frac)
-                .create_melee(crit_data, tool_stats)
+                .create_melee(crit_mult, tool_stats)
         };
 
         match self.stage_section {
@@ -207,7 +208,7 @@ impl CharacterBehavior for Data {
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
 
-                    let crit_data = get_crit_data(data, self.static_data.ability_info);
+                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
@@ -215,7 +216,7 @@ impl CharacterBehavior for Data {
                         self.static_data
                             .melee_constructor
                             .handle_scaling(charge_frac)
-                            .create_melee(crit_data, tool_stats),
+                            .create_melee(crit_mult, tool_stats),
                     );
 
                     update.character = CharacterState::DashMelee(Data {
@@ -279,5 +280,5 @@ fn create_test_melee(static_data: StaticData) -> Melee {
         simultaneous_hits: 1,
         combo_gain: 0,
     };
-    melee.create_melee((0.0, 0.0), tool::Stats::one())
+    melee.create_melee(0.0, tool::Stats::one())
 }

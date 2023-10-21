@@ -646,16 +646,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                     2,
                 );
 
-                // Crit chance
-                stat_text(
-                    format!(
-                        "{} : {:.1}%",
-                        i18n.get_msg("common-stats-crit_chance"),
-                        stats.crit_chance * 100.0
-                    ),
-                    3,
-                );
-
                 // Range
                 stat_text(
                     format!(
@@ -663,7 +653,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         i18n.get_msg("common-stats-range"),
                         (stats.range - 1.0) * 100.0
                     ),
-                    4,
+                    3,
                 );
 
                 // Energy Efficiency
@@ -673,7 +663,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         i18n.get_msg("common-stats-energy_efficiency"),
                         (stats.energy_efficiency - 1.0) * 100.0
                     ),
-                    5,
+                    4,
                 );
 
                 // Buff Strength
@@ -683,7 +673,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         i18n.get_msg("common-stats-buff_strength"),
                         (stats.buff_strength - 1.0) * 100.0
                     ),
-                    6,
+                    5,
                 );
 
                 if item.has_durability() {
@@ -695,7 +685,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             durability,
                             Item::MAX_DURABILITY
                         ),
-                        7,
+                        6,
                     )
                 }
 
@@ -712,10 +702,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                         let effect_power_diff = util::comparison(
                             tool_stats.effect_power,
                             equipped_tool_stats.effect_power,
-                        );
-                        let crit_chance_diff = util::comparison(
-                            tool_stats.crit_chance,
-                            equipped_tool_stats.crit_chance,
                         );
                         let range_diff =
                             util::comparison(tool_stats.range, equipped_tool_stats.range);
@@ -761,14 +747,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 &diff.effect_power * 100.0
                             );
                             diff_text(text, effect_power_diff.1, 2)
-                        }
-                        if diff.crit_chance.abs() > f32::EPSILON {
-                            let text = format!(
-                                "{} {:.1}%",
-                                &crit_chance_diff.0,
-                                &diff.crit_chance * 100.0
-                            );
-                            diff_text(text, crit_chance_diff.1, 3)
                         }
                         if diff.range.abs() > f32::EPSILON {
                             let text = format!("{} {:.1}%", &range_diff.0, &diff.range * 100.0);
@@ -1141,28 +1119,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .color(text_color)
                         .down_from(state.ids.stats[1], V_PAD_STATS)
                         .set(state.ids.stats[2], ui);
-
-                    // Crit chance
-                    let crit_chance_text = if is_primary {
-                        format!(
-                            "{} : {:.1}%",
-                            i18n.get_msg("common-stats-crit_chance"),
-                            stats.crit_chance * 100.0
-                        )
-                    } else {
-                        format!(
-                            "{} : x{:.2}",
-                            i18n.get_msg("common-stats-crit_chance"),
-                            stats.crit_chance
-                        )
-                    };
-                    widget::Text::new(&crit_chance_text)
-                        .graphics_for(id)
-                        .parent(id)
-                        .with_style(self.style.desc)
-                        .color(text_color)
-                        .down_from(state.ids.stats[2], V_PAD_STATS)
-                        .set(state.ids.stats[3], ui);
 
                     // Range
                     let range_text = if is_primary {

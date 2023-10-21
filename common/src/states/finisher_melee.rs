@@ -1,5 +1,5 @@
 use crate::{
-    combat::{CombatBuff, CombatEffect},
+    combat::{self, CombatBuff, CombatEffect},
     comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -102,12 +102,12 @@ impl CharacterBehavior for Data {
                         }
                     }
 
-                    let crit_data = get_crit_data(data, self.static_data.ability_info);
+                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
-                        melee_constructor.create_melee(crit_data, tool_stats),
+                        melee_constructor.create_melee(crit_mult, tool_stats),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

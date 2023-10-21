@@ -79,7 +79,6 @@ pub struct AttackOptions {
 pub struct Attack {
     damages: Vec<AttackDamage>,
     effects: Vec<AttackEffect>,
-    crit_chance: f32,
     crit_multiplier: f32,
 }
 
@@ -88,7 +87,6 @@ impl Default for Attack {
         Self {
             damages: Vec::new(),
             effects: Vec::new(),
-            crit_chance: 0.0,
             crit_multiplier: 1.0,
         }
     }
@@ -108,8 +106,7 @@ impl Attack {
     }
 
     #[must_use]
-    pub fn with_crit(mut self, crit_chance: f32, crit_multiplier: f32) -> Self {
-        self.crit_chance = crit_chance;
+    pub fn with_crit(mut self, crit_multiplier: f32) -> Self {
         self.crit_multiplier = crit_multiplier;
         self
     }
@@ -220,14 +217,7 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let crit_chance = attacker
-            .and_then(|a| a.stats)
-            .map(|s| s.crit_chance_modifier)
-            .map_or(self.crit_chance, |cc_mod| {
-                self.crit_chance * cc_mod.mult_mod + cc_mod.add_mod
-            })
-            .clamp(0.0, 1.0);
-        let is_crit = rng.gen::<f32>() < crit_chance;
+        let is_crit = false;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
@@ -1224,7 +1214,6 @@ pub fn get_weapon_kinds(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>)
 fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
     const POWER_WEIGHT: f32 = 2.0;
     const SPEED_WEIGHT: f32 = 3.0;
-    const CRIT_CHANCE_WEIGHT: f32 = 1.5;
     const RANGE_WEIGHT: f32 = 0.8;
     const EFFECT_WEIGHT: f32 = 1.5;
     const EQUIP_TIME_WEIGHT: f32 = 0.0;
@@ -1240,7 +1229,6 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
 
         let power_rating = stats.power;
         let speed_rating = stats.speed - 1.0;
-        let crit_chance_rating = (stats.crit_chance - 0.1) * 10.0;
         let range_rating = stats.range - 1.0;
         let effect_rating = stats.effect_power - 1.0;
         let equip_time_rating = 0.5 - stats.equip_time_secs;
@@ -1249,7 +1237,6 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
 
         power_rating * POWER_WEIGHT
             + speed_rating * SPEED_WEIGHT
-            + crit_chance_rating * CRIT_CHANCE_WEIGHT
             + range_rating * RANGE_WEIGHT
             + effect_rating * EFFECT_WEIGHT
             + equip_time_rating * EQUIP_TIME_WEIGHT

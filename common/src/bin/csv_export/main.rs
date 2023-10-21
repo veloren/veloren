@@ -111,7 +111,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Power",
         "Effect Power",
         "Speed",
-        "Crit Chance",
         "Range",
         "Energy Efficiency",
         "Buff Strength",
@@ -132,7 +131,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             let power = tool_stats.power.to_string();
             let effect_power = tool_stats.effect_power.to_string();
             let speed = tool_stats.speed.to_string();
-            let crit_chance = tool_stats.crit_chance.to_string();
             let range = tool_stats.range.to_string();
             let energy_efficiency = tool_stats.energy_efficiency.to_string();
             let buff_strength = tool_stats.buff_strength.to_string();
@@ -151,7 +149,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                 &power,
                 &effect_power,
                 &speed,
-                &crit_chance,
                 &range,
                 &energy_efficiency,
                 &buff_strength,

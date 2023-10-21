@@ -1,6 +1,5 @@
 use crate::{
     astar::Astar,
-    combat,
     comp::{
         ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
@@ -1357,32 +1356,6 @@ pub fn get_hands(data: &JoinData<'_>) -> (Option<Hands>, Option<Hands>) {
         hand(EquipSlot::ActiveMainhand),
         hand(EquipSlot::ActiveOffhand),
     )
-}
-
-/// Returns (critical chance, critical multiplier) which is calculated from
-/// equipped weapon and equipped armor respectively
-pub fn get_crit_data(data: &JoinData<'_>, ai: AbilityInfo) -> (f32, f32) {
-    const DEFAULT_CRIT_CHANCE: f32 = 0.1;
-
-    let crit_chance = ai
-        .hand
-        .map(|hand| match hand {
-            HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
-            HandInfo::OffHand => EquipSlot::ActiveOffhand,
-        })
-        .and_then(|slot| data.inventory.and_then(|inv| inv.equipped(slot)))
-        .and_then(|item| {
-            if let ItemKind::Tool(tool) = &*item.kind() {
-                Some(tool.stats(item.stats_durability_multiplier()).crit_chance)
-            } else {
-                None
-            }
-        })
-        .unwrap_or(DEFAULT_CRIT_CHANCE);
-
-    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
-
-    (crit_chance, crit_mult)
 }
 
 pub fn get_tool_stats(data: &JoinData<'_>, ai: AbilityInfo) -> tool::Stats {

@@ -9,7 +9,6 @@ ItemDef(
             power: 0.6,
             effect_power: 1.0,
             speed: 0.6,
-            crit_chance: 0.1,
             range: 0.8,
             energy_efficiency: 1.0,
             buff_strength: 0.9,

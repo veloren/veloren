@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
-        DamageSource, GroupTarget, Knockback,
+        self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
+        DamageKind, DamageSource, GroupTarget, Knockback,
     },
     comp::{
         character_state::OutputEvents,
@@ -107,11 +107,10 @@ impl CharacterBehavior for Data {
                     if let Some(effect) = self.static_data.damage_effect {
                         damage = damage.with_effect(effect);
                     }
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
+                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
                     let attack = Attack::default()
                         .with_damage(damage)
-                        .with_crit(crit_chance, crit_mult)
+                        .with_crit(crit_mult)
                         .with_effect(poise)
                         .with_effect(knockback)
                         .with_combo_increment();

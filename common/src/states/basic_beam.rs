@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
-        DamageSource, GroupTarget,
+        self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
+        DamageKind, DamageSource, GroupTarget,
     },
     comp::{
         beam, body::biped_large, character_state::OutputEvents, object::Body::Flamethrower, Body,
@@ -116,11 +116,10 @@ impl CharacterBehavior for Data {
                         if let Some(effect) = self.static_data.damage_effect {
                             damage = damage.with_effect(effect);
                         }
-                        let (crit_chance, crit_mult) =
-                            get_crit_data(data, self.static_data.ability_info);
+                        let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
                         Attack::default()
                             .with_damage(damage)
-                            .with_crit(crit_chance, crit_mult)
+                            .with_crit(crit_mult)
                             .with_effect(energy)
                             .with_combo_increment()
                     };

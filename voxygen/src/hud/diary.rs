@@ -1145,7 +1145,7 @@ impl<'a> Widget for Diary<'a> {
                 events
             },
             DiarySection::Stats => {
-                const STATS: [&str; 13] = [
+                const STATS: [&str; 12] = [
                     "Hitpoints",
                     "Energy",
                     "Poise",
@@ -1158,7 +1158,6 @@ impl<'a> Widget for Diary<'a> {
                     "Weapon Power",
                     "Weapon Speed",
                     "Weapon Effect Power",
-                    "Weapon Crit-Chance",
                 ];
 
                 // Background Art
@@ -1301,20 +1300,6 @@ impl<'a> Widget for Diary<'a> {
                                 format!("{}", stats.effect_power * 10.0)
                             },
                             (None, None) => String::new(),
-                        },
-                        "Weapon Crit-Chance" => {
-                            let crit_fmt = |cc| cc * 100.0;
-                            match (main_weap_stats, off_weap_stats) {
-                                (Some(m_stats), Some(o_stats)) => format!(
-                                    "{:.1}%   {:.1}%",
-                                    crit_fmt(m_stats.crit_chance),
-                                    crit_fmt(o_stats.crit_chance)
-                                ),
-                                (Some(stats), None) | (None, Some(stats)) => {
-                                    format!("{:.1}%", crit_fmt(stats.crit_chance))
-                                },
-                                (None, None) => String::new(),
-                            }
                         },
                         unknown => unreachable!("{}", unknown),
                     };
