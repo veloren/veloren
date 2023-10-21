@@ -906,7 +906,7 @@ impl<'a> PhysicsData<'a> {
                                 },
                                 read,
                                 &ori,
-                                |vel| friction_factor(vel),
+                                friction_factor,
                             );
                             tgt_pos = cpos.0;
                         },
@@ -941,7 +941,7 @@ impl<'a> PhysicsData<'a> {
                                 },
                                 read,
                                 &ori,
-                                |vel| friction_factor(vel),
+                                friction_factor,
                             );
 
                             // Sticky things shouldn't move when on a surface
@@ -1228,7 +1228,7 @@ impl<'a> PhysicsData<'a> {
                                             },
                                             read,
                                             &ori,
-                                            |vel| friction_factor(vel),
+                                            |vel| friction_factor(previous_cache_other.ori * vel),
                                         );
 
                                         // Transform entity attributes back into world space now

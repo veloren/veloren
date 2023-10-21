@@ -7,7 +7,7 @@ use common::{
     util::Dir,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadStorage, WriteStorage};
 use vek::*;
 
 /// This system is responsible for controlling mounts
@@ -49,17 +49,22 @@ impl<'a> System<'a> for Sys {
         for (follower, is_follower, follower_body, follower_scale) in
             (&entities, &is_followers, bodies.maybe(), scales.maybe()).join()
         {
-            let Some(leader) = id_maps.uid_entity(is_follower.leader) else { continue };
+            let Some(leader) = id_maps.uid_entity(is_follower.leader) else {
+                continue;
+            };
 
             let (Some(leader_pos), Some(follower_pos)) = (
                 positions.get(leader).copied(),
                 positions.get(follower).copied(),
-            ) else { continue };
+            ) else {
+                continue;
+            };
 
-            let (Some(leader_mass), Some(follower_mass)) = (
-                masses.get(leader).copied(),
-                masses.get(follower).copied(),
-            ) else { continue };
+            let (Some(leader_mass), Some(follower_mass)) =
+                (masses.get(leader).copied(), masses.get(follower).copied())
+            else {
+                continue;
+            };
 
             if velocities.contains(follower) && velocities.contains(leader) {
                 let attach_offset = orientations

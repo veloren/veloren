@@ -10,7 +10,7 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use hashbrown::HashMap;
-use specs::{Join, WorldExt};
+use specs::{Join, LendJoin, WorldExt};
 use vek::*;
 
 pub struct TetherMgr {
@@ -53,7 +53,9 @@ impl TetherMgr {
         for (interp, is_follower, body, scale) in
             (&interpolated, &is_followers, bodies.maybe(), scales.maybe()).join()
         {
-            let Some(leader) = id_maps.uid_entity(is_follower.leader) else { continue };
+            let Some(leader) = id_maps.uid_entity(is_follower.leader) else {
+                continue;
+            };
             let pos_a = interpolated.get(leader).map_or(Vec3::zero(), |i| i.pos)
                 + interpolated.get(leader).zip(bodies.get(leader)).map_or(
                     Vec3::zero(),
