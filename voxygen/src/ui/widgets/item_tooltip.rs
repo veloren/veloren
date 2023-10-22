@@ -750,7 +750,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         }
                         if diff.range.abs() > f32::EPSILON {
                             let text = format!("{} {:.1}%", &range_diff.0, &diff.range * 100.0);
-                            diff_text(text, range_diff.1, 4)
+                            diff_text(text, range_diff.1, 3)
                         }
                         if diff.energy_efficiency.abs() > f32::EPSILON {
                             let text = format!(
@@ -758,7 +758,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 &energy_efficiency_diff.0,
                                 &diff.energy_efficiency * 100.0
                             );
-                            diff_text(text, energy_efficiency_diff.1, 5)
+                            diff_text(text, energy_efficiency_diff.1, 4)
                         }
                         if diff.buff_strength.abs() > f32::EPSILON {
                             let text = format!(
@@ -766,7 +766,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 &buff_strength_diff.0,
                                 &diff.buff_strength * 100.0
                             );
-                            diff_text(text, buff_strength_diff.1, 6)
+                            diff_text(text, buff_strength_diff.1, 5)
                         }
                         if tool_durability != equipped_durability && item.has_durability() {
                             let text = format!(
@@ -774,7 +774,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 &durability_diff.0,
                                 tool_durability as i32 - equipped_durability as i32
                             );
-                            diff_text(text, durability_diff.1, 7)
+                            diff_text(text, durability_diff.1, 6)
                         }
                     }
                 }
