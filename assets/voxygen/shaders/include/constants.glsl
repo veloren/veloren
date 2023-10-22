@@ -60,6 +60,7 @@
 
 #define BLOCK_SNOW 0x21
 #define BLOCK_ART_SNOW 0x22
+#define BLOCK_ICE 0x43
 
 // An arbitrary value that represents a very far distance (at least as far as the player should be able to see) without
 // being too far that we end up with precision issues (used in clouds and elsewhere).

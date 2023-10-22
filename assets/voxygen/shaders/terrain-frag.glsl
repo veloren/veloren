@@ -93,6 +93,8 @@ void main() {
     uint f_kind;
     vec3 f_col = greedy_extract_col_light_kind_terrain(t_col_light, s_col_light, t_kind, f_uv_pos, f_light, f_glow, f_ao, f_sky_exposure, f_kind);
 
+    uint f_mat = MAT_BLOCK;
+
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_light), 1);
         return;
@@ -280,6 +282,7 @@ void main() {
                     alpha = mix(1.0, 0.2, puddle);
                     f_col.rgb *= mix(1.0, 0.7, puddle);
                     k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
+                    f_mat = MAT_FLUID;
                 }
             #endif
 
@@ -305,6 +308,12 @@ void main() {
             }
         }
     #endif
+
+    // Reflections on ice
+    if (f_kind == BLOCK_ICE && f_norm.z == 1.0) {
+        f_alpha = min(f_alpha, 0.3);
+        k_s = mix(k_s, vec3(0.7, 0.7, 1.0), 0.5);
+    }
 
     // float sun_light = get_sun_brightness(sun_dir);
     // float moon_light = get_moon_brightness(moon_dir);
@@ -559,6 +568,6 @@ void main() {
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
 
     tgt_color = vec4(surf_color, f_alpha);
-    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_BLOCK);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), f_mat);
     //tgt_color = vec4(f_norm, f_alpha);
 }

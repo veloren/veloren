@@ -128,7 +128,11 @@ void main() {
             //     vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
             //     refr_dir = refract(dir, surf_norm * -sign(dir.z), 1.0 / n2);
             // } else {
-                refr_dir = normalize(dir + vec3(nz * 1.5 / dist, 0.0));
+                if (mat.a == MAT_FLUID) {
+                    refr_dir = normalize(dir + vec3(nz * 1.5 / dist, 0.0));
+                } else {
+                    refr_dir = dir;
+                }
             // }
 
             vec4 clip = (all_mat * vec4(cam_pos.xyz + refr_dir, 1.0));
