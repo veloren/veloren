@@ -15,7 +15,7 @@ use vek::*;
 
 use crate::{
     site::namegen,
-    site2::{gen::PrimitiveTransform, Dir, Fill, Site, Structure},
+    site2::{Dir, Fill, Site, Structure},
     util::{RandomField, Sampler},
     IndexRef, Land,
 };
@@ -317,7 +317,17 @@ impl Tavern {
             .made_valid();
             // Height of the new room
             let room_hgt = rng.gen_range(3..=5);
-            let alt = land.get_alt_approx(max_bounds.center()) as i32;
+            let wanted_alt = land.get_alt_approx(max_bounds.center()) as i32;
+            let max_stair_length = (in_dir.select(if wanted_alt < from_room.bounds.min.z {
+                from_bounds.size()
+            } else {
+                max_bounds.size()
+            }) / 2)
+                .min(5);
+            let alt = wanted_alt.clamp(
+                from_room.bounds.min.z - max_stair_length,
+                from_room.bounds.min.z + max_stair_length,
+            );
             let min_z = from_room.bounds.min.z.min(alt);
             let max_z = from_room.bounds.max.z.max(alt + room_hgt);
 
@@ -325,7 +335,9 @@ impl Tavern {
             // about this room if it's the originating room or at another
             // height.
             for (_, room) in rooms.iter().filter(|(room_id, room)| {
-                *room_id != from_id && room.bounds.min.z <= max_z && room.bounds.max.z >= min_z
+                *room_id != from_id
+                    && room.bounds.min.z + 1 <= max_z
+                    && room.bounds.max.z + 1 >= min_z
             }) {
                 let bounds = to_aabr(room.bounds);
                 let bounds = extend_aabr(bounds, 2);
@@ -998,8 +1010,8 @@ impl Structure for Tavern {
             }
         }
 
-        for (_, wall) in self.walls.iter() {
-            let get_kind = |room| self.rooms.get(room).kind;
+        let get_kind = |room| self.rooms.get(room).kind;
+        for wall in self.walls.values() {
             let wall_aabb = Aabb {
                 min: wall.start.with_z(wall.base_alt),
                 max: wall.end.with_z(wall.top_alt),
@@ -1049,6 +1061,8 @@ impl Structure for Tavern {
                         .fill(color1.clone());
                 },
             }
+        }
+        for wall in self.walls.values() {
             let in_dir_room = if let (Some(room), to @ None) | (None, to @ Some(room)) =
                 (wall.from.map(get_kind), wall.to.map(get_kind))
             {
@@ -1184,7 +1198,7 @@ impl Structure for Tavern {
             }
         }
 
-        for (_, stairs) in self.stairs.iter() {
+        for stairs in self.stairs.values() {
             let down_room = &self.rooms[stairs.in_room];
             let up_room = &self.rooms[stairs.to_room];
 
