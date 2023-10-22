@@ -93,7 +93,6 @@ common-stats-speed = Скорость
 common-stats-range = Дистанция
 common-stats-energy_efficiency = Энергоэффективность
 common-stats-buff_strength = Увеличение силы
-common-stats-crit_chance = Шанс крита
 common-stats-crit_mult = Множитель крита
 common-stats-armor = Броня
 common-stats-poise_res = Оглушение

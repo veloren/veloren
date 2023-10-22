@@ -93,7 +93,6 @@ common-stats-speed = ความเร็ว
 common-stats-range = ระยะโจมตี
 common-stats-energy_efficiency = ประสิทธิภาพพลังงาน
 common-stats-buff_strength = เสริมพลังความแข็งแกร่ง
-common-stats-crit_chance = โอกาสคริติคอล
 common-stats-crit_mult = ความรุนแรงคริติคอล
 common-stats-armor = เกราะ
 common-stats-poise_res = ความคงทน

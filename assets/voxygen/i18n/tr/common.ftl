@@ -83,7 +83,6 @@ common-rand_appearance = Rastgele görünüm
 common-stats-combat_rating = DP
 common-stats-power = Güç
 common-stats-speed = Hız
-common-stats-crit_chance = Kritik Şansı
 common-stats-crit_mult = Kritik Çarpanı
 common-stats-armor = Zırh
 common-stats-energy_max = Maksimum Enerji

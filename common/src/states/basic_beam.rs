@@ -17,6 +17,7 @@ use crate::{
     terrain::Block,
     util::Dir,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::*;
@@ -132,6 +133,7 @@ impl CharacterBehavior for Data {
                         duration: self.static_data.beam_duration,
                         tick_dur: Secs(1.0 / self.static_data.tick_rate as f64),
                         hit_entities: Vec::new(),
+                        hit_durations: HashMap::new(),
                         specifier: self.static_data.specifier,
                         bezier: QuadraticBezier3 {
                             start: data.pos.0,

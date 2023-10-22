@@ -97,7 +97,6 @@ common-stats-effect-power = Сила ефекту
 common-stats-range = Дистанція
 common-stats-energy_efficiency = Енергоощадливість
 common-stats-buff_strength = Сила бафу/дебафу
-common-stats-crit_chance = Крит. шанс
 common-stats-crit_mult = Крит. множник
 common-stats-armor = Броня
 common-stats-poise_res = Супротив приголомшенню

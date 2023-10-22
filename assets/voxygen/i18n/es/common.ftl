@@ -94,7 +94,6 @@ common-stats-effect-power = Potencia de estados alterados
 common-stats-range = Rango
 common-stats-energy_efficiency = Eficiencia de aguante
 common-stats-buff_strength = Potencia de estados beneficiosos
-common-stats-crit_chance = Probabilidad de daño crítico
 common-stats-crit_mult = Multiplicador de crítico
 common-stats-armor = Armadura
 common-stats-poise_res = Resistencia al aturdimiento

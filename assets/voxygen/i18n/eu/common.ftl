@@ -93,7 +93,6 @@ common-stats-speed = Abiadura
 common-stats-range = Maila
 common-stats-energy_efficiency = Energia eraginkortasuna
 common-stats-buff_strength = Buff/Debuff indarra
-common-stats-crit_chance = Kritiko probabilitatea
 common-stats-crit_mult = Kritiko biderkatzailea
 common-stats-armor = Armadura
 common-stats-poise_res = Orekarako gaitasuna

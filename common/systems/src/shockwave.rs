@@ -234,10 +234,13 @@ impl<'a> System<'a> for Sys {
                         shockwave_owner,
                         target,
                     );
+                    // Shockwaves aren't precise, and thus cannot be a precise strike
+                    let precision_mult = None;
                     let attack_options = AttackOptions {
                         target_dodging,
                         may_harm,
                         target_group,
+                        precision_mult,
                     };
 
                     shockwave.properties.attack.apply_attack(

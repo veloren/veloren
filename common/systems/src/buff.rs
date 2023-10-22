@@ -674,9 +674,12 @@ fn execute_effect(
         BuffEffect::AttackDamage(dam) => {
             stat.attack_damage_modifier *= *dam;
         },
-        BuffEffect::CriticalChance { kind, val } => match kind {
-            ModifierKind::Additive => stat.crit_chance_modifier.add_mod += val,
-            ModifierKind::Multiplicative => stat.crit_chance_modifier.mult_mod *= val,
+        BuffEffect::PrecisionOverride(val) => {
+            // Use lower of precision multiplier overrides
+            stat.precision_multiplier_override = stat
+                .precision_multiplier_override
+                .map(|mult| mult.min(*val))
+                .or(Some(*val));
         },
         BuffEffect::BodyChange(b) => {
             // For when an entity is under the effects of multiple de/buffs that change the

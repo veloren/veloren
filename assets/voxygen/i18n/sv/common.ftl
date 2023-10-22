@@ -97,7 +97,6 @@ common-stats-effect-power = Effektstyrka
 common-stats-range = Räckvidd
 common-stats-energy_efficiency = Energieffektivitet
 common-stats-buff_strength = Buff/Debuff-styrka
-common-stats-crit_chance = Kritisk chans
 common-stats-crit_mult = Kritisk multi
 common-stats-armor = Rustning
 common-stats-poise_res = Motståndskraft

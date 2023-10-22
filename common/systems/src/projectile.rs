@@ -157,6 +157,7 @@ impl<'a> System<'a> for Sys {
                         owner,
                         ori: orientations.get(entity),
                         pos,
+                        vel,
                     };
 
                     let target = entity_of(other);
@@ -247,6 +248,7 @@ struct ProjectileInfo<'a> {
     owner: Option<EcsEntity>,
     ori: Option<&'a Ori>,
     pos: &'a Pos,
+    vel: &'a Vel,
 }
 
 struct ProjectileTargetInfo<'a> {
@@ -343,10 +345,76 @@ fn dispatch_hit(
                 .get(target)
                 .and_then(|cs| cs.attack_immunities())
                 .map_or(false, |i| i.projectiles);
+
+            let precision_from_flank = {
+                let angle = target_info.ori.map_or(std::f32::consts::PI, |t_ori| {
+                    t_ori.look_dir().angle_between(*projectile_dir)
+                });
+                if angle < combat::FULL_FLANK_ANGLE {
+                    Some(1.0)
+                } else if angle < combat::PARTIAL_FLANK_ANGLE {
+                    Some(0.5)
+                } else {
+                    None
+                }
+            };
+
+            let precision_from_head = {
+                let curr_pos = projectile_info.pos.0;
+                let last_pos = projectile_info.pos.0 - projectile_info.vel.0 * read_data.dt.0;
+                let vel = projectile_info.vel.0;
+                let (target_height, target_radius) = read_data
+                    .bodies
+                    .get(target)
+                    .map_or((0.0, 0.0), |b| (b.height(), b.max_radius()));
+                let head_top_pos = target_pos.with_z(target_pos.z + target_height);
+                let head_bottom_pos = head_top_pos.with_z(
+                    head_top_pos.z - target_height * combat::PROJECTILE_HEADSHOT_PROPORTION,
+                );
+                let headshot = if (curr_pos.z < head_bottom_pos.z && last_pos.z < head_bottom_pos.z)
+                    || (curr_pos.z > head_top_pos.z && last_pos.z > head_top_pos.z)
+                {
+                    false
+                } else if curr_pos.z > head_top_pos.z
+                    || curr_pos.z < head_bottom_pos.z
+                    || last_pos.z > head_top_pos.z
+                    || last_pos.z < head_bottom_pos.z
+                {
+                    let proj_top_intersection = {
+                        let t = (head_top_pos.z - last_pos.z) / vel.z;
+                        last_pos + vel * t
+                    };
+                    let proj_bottom_intersection = {
+                        let t = (head_bottom_pos.z - last_pos.z) / vel.z;
+                        last_pos + vel * t
+                    };
+                    head_top_pos.distance_squared(proj_top_intersection) < target_radius.powi(2)
+                        || head_bottom_pos.distance_squared(proj_bottom_intersection)
+                            < target_radius.powi(2)
+                } else {
+                    let trajectory = LineSegment3 {
+                        start: last_pos,
+                        end: curr_pos,
+                    };
+                    let head_middle_pos = head_bottom_pos.with_z(
+                        head_bottom_pos.z
+                            + target_height * combat::PROJECTILE_HEADSHOT_PROPORTION * 0.5,
+                    );
+                    trajectory.distance_to_point(head_middle_pos) < target_radius
+                };
+                if headshot { Some(1.0) } else { None }
+            };
+
+            // Is there a more idiomatic way to do this (taking the max of 2 options)?
+            let precision_mult = precision_from_flank
+                .map(|flank| precision_from_head.map_or(flank, |head: f32| head.max(flank)))
+                .or(precision_from_head);
+
             let attack_options = AttackOptions {
                 target_dodging,
                 may_harm,
                 target_group: projectile_target_info.target_group,
+                precision_mult,
             };
 
             attack.apply_attack(

@@ -95,7 +95,6 @@ common-stats-effect-power = 效果威力
 common-stats-range = 范围
 common-stats-energy_efficiency = 耐力消耗
 common-stats-buff_strength = 增幅
-common-stats-crit_chance = 暴击率
 common-stats-crit_mult = 暴击倍率
 common-stats-armor = 护甲
 common-stats-poise_res = 韧性

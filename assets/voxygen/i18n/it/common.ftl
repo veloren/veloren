@@ -97,7 +97,6 @@ common-stats-effect-power = Potenza effetto
 common-stats-range = Intervallo
 common-stats-energy_efficiency = Efficienza energia
 common-stats-buff_strength = Quantità di aumento/diminuzione
-common-stats-crit_chance = Probabilità di critico
 common-stats-crit_mult = Moltiplicatore del critico
 common-stats-armor = Armatura
 common-stats-poise_res = Resistenza allo stordimento

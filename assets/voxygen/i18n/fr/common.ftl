@@ -95,7 +95,6 @@ common-stats-speed = Vitesse
 common-stats-range = Portée
 common-stats-energy_efficiency = Efficacité du coût d'Endurance
 common-stats-buff_strength = Montant de l'augmentation
-common-stats-crit_chance = Chance de Crit
 common-stats-crit_mult = Multiplicateur de Crit
 common-stats-armor = Armure
 common-stats-poise_res = Résistance à l'étourdissement

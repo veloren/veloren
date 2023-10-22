@@ -93,7 +93,6 @@ common-stats-speed = Prędkość
 common-stats-range = Zasięg
 common-stats-energy_efficiency = Efektywność Energii
 common-stats-buff_strength = Siła Efektów Wzmacniających
-common-stats-crit_chance = % na cios kryt.
 common-stats-crit_mult = Mnożnik ciosu kryt.
 common-stats-armor = Obrona
 common-stats-poise_res = Odp. na ogłuszenie

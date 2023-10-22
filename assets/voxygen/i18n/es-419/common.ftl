@@ -93,7 +93,6 @@ common-stats-speed = Velocidad
 common-stats-range = Rango
 common-stats-energy_efficiency = Eficiencia de energía
 common-stats-buff_strength = Fuerza de Mejora/Debilitación
-common-stats-crit_chance = Probabilidad de Crítico
 common-stats-crit_mult = Multiplicador de Crítico
 common-stats-armor = Armadura
 common-stats-poise_res = Resistencia al aturdimiento

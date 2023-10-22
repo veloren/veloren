@@ -333,10 +333,7 @@ impl BuffKind {
             BuffKind::Hastened => vec![
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + data.strength),
-                BuffEffect::CriticalChance {
-                    kind: ModifierKind::Multiplicative,
-                    val: 0.0,
-                },
+                BuffEffect::PrecisionOverride(0.0),
             ],
             BuffKind::Fortitude => vec![
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
@@ -388,10 +385,7 @@ impl BuffKind {
                 AttackEffect::new(None, CombatEffect::Lifesteal(data.strength))
                     .with_requirement(CombatRequirement::TargetHasBuff(BuffKind::Bleeding)),
             )],
-            BuffKind::ImminentCritical => vec![BuffEffect::CriticalChance {
-                kind: ModifierKind::Additive,
-                val: 1.0,
-            }],
+            BuffKind::ImminentCritical => vec![BuffEffect::PrecisionOverride(1.0)],
             BuffKind::Fury => vec![BuffEffect::AttackEffect(
                 AttackEffect::new(None, CombatEffect::Combo(data.strength.round() as i32))
                     .with_requirement(CombatRequirement::AnyDamage),
@@ -558,11 +552,8 @@ pub enum BuffEffect {
     },
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
-    /// Multiplies crit chance of attacks
-    CriticalChance {
-        kind: ModifierKind,
-        val: f32,
-    },
+    /// Overrides the precision multiplier applied to an attack
+    PrecisionOverride(f32),
     /// Changes body.
     BodyChange(Body),
     BuffImmunity(BuffKind),

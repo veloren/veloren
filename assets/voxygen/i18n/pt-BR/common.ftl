@@ -96,7 +96,6 @@ common-stats-effect-power = Poder de Efeito
 common-stats-range = Alcance
 common-stats-energy_efficiency = Eficiência Energética
 common-stats-buff_strength = Buff/Debuff de força
-common-stats-crit_chance = Chance de Crítico
 common-stats-crit_mult = Multiplicador de Crítico
 common-stats-armor = Armadura
 common-stats-poise_res = Resistência a Atordoamento

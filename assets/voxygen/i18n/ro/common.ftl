@@ -90,7 +90,6 @@ common-stats-speed = Viteză
 common-stats-range = Distanță
 common-stats-energy_efficiency = Eficiența energiei
 common-stats-buff_strength = Buff/Debuff Strength
-common-stats-crit_chance = Șansă Crit
 common-stats-crit_mult = Multiplicator Crit
 common-stats-armor = Armură
 common-stats-poise_res = Stun Res

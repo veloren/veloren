@@ -93,7 +93,6 @@ common-stats-speed = Schnelligkeit
 common-stats-range = Reichweite
 common-stats-energy_efficiency = Ausdauereffizienz
 common-stats-buff_strength = Buff/Debuff Stärke
-common-stats-crit_chance = Krit. Trefferchance
 common-stats-crit_mult = Krit. Multiplikator
 common-stats-armor = Rüstung
 common-stats-poise_res = Betäubungsresistenz

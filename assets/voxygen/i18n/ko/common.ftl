@@ -93,7 +93,6 @@ common-stats-speed = 속도
 common-stats-range = 사거리
 common-stats-energy_efficiency = 기력 효율
 common-stats-buff_strength = 힘 버프/디버프
-common-stats-crit_chance = 치명타 확률
 common-stats-crit_mult = 치명타 배수
 common-stats-armor = 방어력
 common-stats-poise_res = 기절 저항

@@ -196,7 +196,7 @@ impl StateExt for State {
                         &msm,
                     ),
                     damage_contributor,
-                    false,
+                    None,
                     0.0,
                     1.0,
                     *time,

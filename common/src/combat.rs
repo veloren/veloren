@@ -44,6 +44,12 @@ pub enum AttackSource {
     Explosion,
 }
 
+pub const FULL_FLANK_ANGLE: f32 = std::f32::consts::PI / 4.0;
+pub const PARTIAL_FLANK_ANGLE: f32 = std::f32::consts::PI * 3.0 / 4.0;
+// NOTE: Do we want to change this to be a configurable parameter on body?
+pub const PROJECTILE_HEADSHOT_PROPORTION: f32 = 0.1;
+pub const BEAM_DURATION_PRECISION: f32 = 2.5;
+
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
@@ -73,6 +79,7 @@ pub struct AttackOptions {
     pub target_dodging: bool,
     pub may_harm: bool,
     pub target_group: GroupTarget,
+    pub precision_mult: Option<f32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)] // TODO: Yeet clone derive
@@ -202,6 +209,7 @@ impl Attack {
             target_dodging,
             may_harm,
             target_group,
+            precision_mult,
         } = options;
 
         // target == OutOfGroup is basic heuristic that this
@@ -217,7 +225,10 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let is_crit = false;
+        let precision_mult = attacker
+            .and_then(|a| a.stats)
+            .and_then(|s| s.precision_multiplier_override)
+            .or(precision_mult);
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
@@ -244,7 +255,7 @@ impl Attack {
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
                 attacker.map(|x| x.into()),
-                is_crit,
+                precision_mult,
                 self.crit_multiplier,
                 strength_modifier * damage_modifier,
                 time,
@@ -273,7 +284,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
-                                    crit: is_crit,
+                                    crit: precision_mult.is_some(),
                                     instance: damage_instance,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -324,7 +335,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     instance: damage_instance,
-                                    crit: is_crit,
+                                    crit: precision_mult.is_some(),
                                     time,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -1014,18 +1025,14 @@ impl Damage {
         self,
         damage_reduction: f32,
         damage_contributor: Option<DamageContributor>,
-        is_crit: bool,
+        precision_mult: Option<f32>,
         crit_mult: f32,
         damage_modifier: f32,
         time: Time,
         instance: u64,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
-        let critdamage = if is_crit {
-            damage * (crit_mult - 1.0)
-        } else {
-            0.0
-        };
+        let critdamage = damage * precision_mult.unwrap_or(0.0) * (crit_mult - 1.0);
         match self.source {
             DamageSource::Melee
             | DamageSource::Projectile
@@ -1042,7 +1049,7 @@ impl Damage {
                     by: damage_contributor,
                     cause: Some(self.source),
                     time,
-                    crit: is_crit,
+                    crit: precision_mult.is_some(),
                     instance,
                 }
             },

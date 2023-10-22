@@ -77,7 +77,6 @@ common-rand_appearance = ランダムに見た目を選択
 common-rand_name = ランダムに名前を選ぶ
 common-stats-power = Power
 common-stats-speed = Speed
-common-stats-crit_chance = Crit Chance
 common-stats-crit_mult = Crit Mult
 common-stats-armor = Armor
 common-stats-poise_res = Poise res

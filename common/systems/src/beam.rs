@@ -73,6 +73,11 @@ impl<'a> System<'a> for Sys {
             .for_each(|(pos, ori, char_state, mut beam)| {
                 // Clear hit entities list if list should be cleared
                 if read_data.time.0 % beam.tick_dur.0 < read_data.dt.0 as f64 {
+                    let (hit_entities, hit_durations) = beam.hit_entities_and_durations();
+                    hit_durations.retain(|e, _| hit_entities.contains(e));
+                    for entity in hit_entities {
+                        *hit_durations.entry(*entity).or_insert(0) += 1;
+                    }
                     beam.hit_entities.clear();
                 }
                 // Update start, end, and control positions of beam bezier
@@ -227,10 +232,45 @@ impl<'a> System<'a> for Sys {
                                 Some(entity),
                                 target,
                             );
+
+                            let precision_from_flank = {
+                                let beam_dir = beam.bezier.ctrl - beam.bezier.start;
+                                let angle = target_info.ori.map_or(std::f32::consts::PI, |t_ori| {
+                                    t_ori.look_dir().angle_between(beam_dir)
+                                });
+                                if angle < combat::FULL_FLANK_ANGLE {
+                                    Some(1.0)
+                                } else if angle < combat::PARTIAL_FLANK_ANGLE {
+                                    Some(0.5)
+                                } else {
+                                    None
+                                }
+                            };
+
+                            let precision_from_time = {
+                                if let Some(ticks) = beam.hit_durations.get(&target) {
+                                    let dur = *ticks as f32 * beam.tick_dur.0 as f32;
+                                    let mult =
+                                        (dur / combat::BEAM_DURATION_PRECISION).clamp(0.0, 1.0);
+                                    Some(mult)
+                                } else {
+                                    None
+                                }
+                            };
+
+                            // Is there a more idiomatic way to do this (taking the max of 2
+                            // options)?
+                            let precision_mult = precision_from_flank
+                                .map(|flank| {
+                                    precision_from_time.map_or(flank, |head: f32| head.max(flank))
+                                })
+                                .or(precision_from_time);
+
                             let attack_options = AttackOptions {
                                 target_dodging,
                                 may_harm,
                                 target_group,
+                                precision_mult,
                             };
 
                             beam.attack.apply_attack(
