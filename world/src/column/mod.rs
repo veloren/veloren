@@ -2,7 +2,7 @@ use crate::{
     all::ForestKind,
     sim::{local_cells, Cave, Path, RiverKind, SimChunk, WorldSim},
     site::SpawnRules,
-    util::{RandomField, Sampler},
+    util::{RandomField, RandomPerm, Sampler},
     IndexRef, CONFIG,
 };
 use common::{
@@ -14,6 +14,7 @@ use common::{
     vol::RectVolSize,
 };
 use noise::NoiseFn;
+use rand::seq::SliceRandom;
 use serde::Deserialize;
 use std::ops::{Add, Div, Mul, Sub};
 use tracing::error;
@@ -47,6 +48,7 @@ pub struct Colors {
 
     pub grass_high: (f32, f32, f32),
     pub tropical_high: (f32, f32, f32),
+    pub mesa_layers: Vec<(f32, f32, f32)>,
 }
 
 /// Generalised power function, pushes values in the range 0-1 to extremes.
@@ -926,25 +928,27 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             warm_stone_high,
             grass_high,
             tropical_high,
-        } = index.colors.column;
+            mesa_layers,
+        } = &index.colors.column;
 
-        let cold_grass = cold_grass.into();
-        let warm_grass = warm_grass.into();
-        let dark_grass = dark_grass.into();
-        let wet_grass = wet_grass.into();
-        let cold_stone = cold_stone.into();
-        let hot_stone = hot_stone.into();
-        let warm_stone: Rgb<f32> = warm_stone.into();
-        let beach_sand = beach_sand.into();
-        let desert_sand = desert_sand.into();
-        let snow = snow.into();
-        let stone_col = stone_col.into();
-        let dirt_low: Rgb<f32> = dirt_low.into();
-        let dirt_high = dirt_high.into();
-        let snow_high = snow_high.into();
-        let warm_stone_high = warm_stone_high.into();
-        let grass_high = grass_high.into();
-        let tropical_high = tropical_high.into();
+        let cold_grass = (*cold_grass).into();
+        let warm_grass = (*warm_grass).into();
+        let dark_grass = (*dark_grass).into();
+        let wet_grass = (*wet_grass).into();
+        let cold_stone = (*cold_stone).into();
+        let hot_stone = (*hot_stone).into();
+        let warm_stone: Rgb<f32> = (*warm_stone).into();
+        let beach_sand = (*beach_sand).into();
+        let desert_sand = (*desert_sand).into();
+        let snow = (*snow).into();
+        let snow_moss = (*snow_moss).into();
+        let stone_col = (*stone_col).into();
+        let dirt_low: Rgb<f32> = (*dirt_low).into();
+        let dirt_high = (*dirt_high).into();
+        let snow_high = (*snow_high).into();
+        let warm_stone_high = (*warm_stone_high).into();
+        let grass_high = (*grass_high).into();
+        let tropical_high = (*tropical_high).into();
 
         let dirt = Lerp::lerp(dirt_low, dirt_high, marble_mixed);
         let tundra = Lerp::lerp(snow, snow_high, 0.4 + marble_mixed * 0.6);
@@ -959,11 +963,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .add(1.0.sub(humidity).mul(0.5))
                 .powf(1.5),
         );
-        let snow_moss = Rgb::lerp(
-            snow_moss.into(),
-            cold_grass,
-            0.4 + marble_mixed.powf(1.5) * 0.6,
-        );
+        let snow_moss = Rgb::lerp(snow_moss, cold_grass, 0.4 + marble_mixed.powf(1.5) * 0.6);
         let moss = Rgb::lerp(dark_grass, cold_grass, marble_mixed.powf(1.5));
         let rainforest = Rgb::lerp(wet_grass, warm_grass, marble_mixed.powf(1.5));
         let sand = Rgb::lerp(beach_sand, desert_sand, marble_mixed);
@@ -1155,19 +1155,23 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 ) * 0.9;
             let alt = Lerp::lerp(alt, mesa_alt, mesa.powf(2.0) * warp_factor);
 
+            let idx = alt * 0.35 + (alt * 0.35 + marble * 10.0).sin();
             let mesa_color = Lerp::lerp(
-                Lerp::lerp(
-                    Rgb::new(0.6, 0.3, 0.2),
-                    Rgb::new(0.4, 0.03, 0.1),
-                    (alt * 0.2).sin() * 0.5 + 0.5,
+                Rgb::from(
+                    mesa_layers
+                        .choose(&mut RandomPerm::new(idx as u32))
+                        .copied()
+                        .unwrap_or_default(),
                 ),
-                Lerp::lerp(
-                    Rgb::new(0.8, 0.5, 0.2),
-                    Rgb::new(0.6, 0.25, 0.25),
-                    (alt * 0.3).sin() * 0.5 + 0.5,
+                Rgb::from(
+                    mesa_layers
+                        .choose(&mut RandomPerm::new(idx as u32 + 1))
+                        .copied()
+                        .unwrap_or_default(),
                 ),
-                (alt * 0.5).sin() * 0.5 + 0.5,
+                idx.fract(),
             );
+
             let sub_surface_color = Lerp::lerp(sub_surface_color, mesa_color, mesa.powf(0.25));
 
             (sub_surface_color, ground, alt)
