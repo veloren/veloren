@@ -123,7 +123,6 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 }
 
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
-#[cfg(feature = "plugins")]
 pub trait AssetCombined: AssetExt {
     fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError>;
 
@@ -140,7 +139,6 @@ pub trait AssetCombined: AssetExt {
 }
 
 /// Extension to AnyCache to combine Ron files from filesystem and plugins
-#[cfg(feature = "plugins")]
 pub trait CacheCombined<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
@@ -201,28 +199,33 @@ impl<T: Compound> AssetExt for T {
     }
 }
 
-#[cfg(feature = "plugins")]
 impl<'a> CacheCombined<'a> for AnyCache<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
         specifier: &str,
     ) -> Result<assets_manager::Handle<'a, A>, BoxedError> {
-        self.get_cached(specifier).map_or_else(
-            || {
-                // only create this combined object if is not yet cached
-                let id_bytes = SharedBytes::from_slice(specifier.as_bytes());
-                // as it was created from UTF8 it needs to be valid UTF8
-                let id = SharedString::from_utf8(id_bytes).unwrap();
-                tracing::info!("combine {specifier}");
-                let data: Result<A, _> = ASSETS.combine(|cache: AnyCache| A::load(cache, &id));
-                data.map(|data| self.get_or_insert(specifier, data))
-            },
-            Ok,
-        )
+        #[cfg(feature = "plugins")]
+        {
+            self.get_cached(specifier).map_or_else(
+                || {
+                    // only create this combined object if is not yet cached
+                    let id_bytes = SharedBytes::from_slice(specifier.as_bytes());
+                    // as it was created from UTF8 it needs to be valid UTF8
+                    let id = SharedString::from_utf8(id_bytes).unwrap();
+                    tracing::info!("combine {specifier}");
+                    let data: Result<A, _> = ASSETS.combine(|cache: AnyCache| A::load(cache, &id));
+                    data.map(|data| self.get_or_insert(specifier, data))
+                },
+                Ok,
+            )
+        }
+        #[cfg(not(feature = "plugins"))]
+        {
+            Ok(self.load(specifier)?)
+        }
     }
 }
 
-#[cfg(feature = "plugins")]
 impl<T: Compound + Concatenate> AssetCombined for T {
     fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError> {
         ASSETS.as_any_cache().load_and_combine(specifier)
