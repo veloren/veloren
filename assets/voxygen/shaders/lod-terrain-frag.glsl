@@ -360,7 +360,10 @@ void main() {
     vec3 surf_color;
     float surf_alpha = 1.0;
     uint mat;
-    if (dot(pow(f_col_raw - vec3(0.02, 0.06, 0.22), uvec3(2)), vec3(1)) < 0.01 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+    // NOTE: On nvidea vulkan drivers a `pow` with negative base results in NaN even if the
+    // exponent is an integer.
+    vec3 water_col_diff = f_col_raw - vec3(0.02, 0.06, 0.22);
+    if (dot(water_col_diff * water_col_diff, vec3(1)) < 0.01 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
         mat = MAT_FLUID;
         vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
         #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
