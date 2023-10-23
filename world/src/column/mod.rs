@@ -1135,7 +1135,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .map(|wd| Lerp::lerp(sub_surface_color, ground, (wd / 3.0).clamped(0.0, 1.0)))
             .unwrap_or(ground);
 
-        let (sub_surface_color, ground, alt) = if mesa > 0.0 {
+        let (sub_surface_color, ground, alt, basement) = if mesa > 0.0 {
             let marble_big = (sim.gen_ctx.hill_nz.get((wposf3d.div(128.0)).into_array()) as f32)
                 .mul(0.75)
                 .add(1.0)
@@ -1174,9 +1174,15 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
             let sub_surface_color = Lerp::lerp(sub_surface_color, mesa_color, mesa.powf(0.25));
 
-            (sub_surface_color, ground, alt)
+            let basement = Lerp::lerp(
+                basement,
+                alt,
+                (mesa * (marble_mixed - 0.35) * 1.5).clamped(0.0, 1.0),
+            );
+
+            (sub_surface_color, ground, alt, basement)
         } else {
-            (sub_surface_color, ground, alt)
+            (sub_surface_color, ground, alt, basement)
         };
 
         // Ground under thick trees should be receive less sunlight and so often become
