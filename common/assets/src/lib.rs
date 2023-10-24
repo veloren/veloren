@@ -245,7 +245,6 @@ impl<V> Concatenate for Vec<V> {
     }
 }
 
-#[cfg(feature = "plugins")]
 impl<K: Eq + Hash, V, S: BuildHasher> Concatenate for hashbrown::HashMap<K, V, S> {
     fn concatenate(mut self, b: Self) -> Self {
         self.extend(b);
@@ -258,6 +257,7 @@ impl<T: Concatenate> Concatenate for Ron<T> {
 }
 
 /// This wrapper combines several RON files from multiple sources
+#[cfg(feature = "plugins")]
 #[derive(Clone)]
 pub struct MultiRon<T>(pub T);
 
@@ -272,6 +272,10 @@ where
             .map(MultiRon)
     }
 }
+
+// fallback
+#[cfg(not(feature = "plugins"))]
+pub use assets_manager::asset::Ron as MultiRon;
 
 /// Return path to repository root by searching 10 directories back
 pub fn find_root() -> Option<PathBuf> {
