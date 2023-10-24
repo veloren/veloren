@@ -698,7 +698,11 @@ void main() {
                     sin(lifetime * 5 + rand2)
                 ) * 0.03,
                 vec3(pow(1.0 - abs(percent() - 0.5) * 2.0, 0.2)),
-                vec4(mix(vec3(0.4, 0.2, 0.8), vec3(5, 2, 10), pow(percent(), 2)), 1),
+                mix(
+                    vec4(mix(vec3(0.4, 0.8, 0.2), vec3(5, 10, 2), pow(percent(), 2)), 1),
+                    vec4(mix(vec3(0.6, 0.2, 0.8), vec3(9, 2, 10), pow(percent(), 2)), 1),
+                    clamp((dot(normalize(focus_pos.xyz - start_pos), inst_dir) - 0.25) * 3.0, 0.0, 1.0)
+                ),
                 /* vec4(vec3(1.8 - percent() * 2, 0.4 + percent() * 2, 5.0 + rand6), 1), */
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
             );
