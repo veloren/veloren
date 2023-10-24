@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Medium and large potions from all loot tables
 - LoD pop-in effect
+- Removed Dullahans from halloween event
 
 ### Fixed
 - Fixed wild roaming cyclop loot table to not drop the quarry key
