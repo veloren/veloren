@@ -45,7 +45,7 @@ gittag:
       if [[ ! "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
         git fetch;
         git tag -a "${SCHEDULE_CADENCE}" -m '' -f;
-        git push origin "${SCHEDULE_CADENCE}" -f;
+        git push origin "${SCHEDULE_CADENCE}" -f || echo "failed pushed, trying again" && sleep 5 && git status && git fsck && git push origin "${SCHEDULE_CADENCE}" -f;
       fi
 
 pages:
