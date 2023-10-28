@@ -163,14 +163,14 @@ vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986
 ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e25796739157c0fce3e0007a7de6eb" }
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
 
-[patch."https://github.com/gfx-rs/gfx"]
-gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-empty = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-vulkan = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-gl = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-dx12 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-dx11 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-metal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# [patch."https://github.com/gfx-rs/gfx"]
+# gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# gfx-backend-empty = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# gfx-backend-vulkan = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# gfx-backend-gl = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# gfx-backend-dx12 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# gfx-backend-dx11 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# gfx-backend-metal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
 
 # # use the latest fixes in naga (remove when updates trickle down to wgpu-rs)
 # naga = { git = "https://github.com/gfx-rs/naga.git", rev = "3a0f0144112ff621dd7f731bf455adf6cab19164" }

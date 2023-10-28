@@ -3646,7 +3646,6 @@ dependencies = [
  "indexmap 2.0.0",
  "log",
  "num-traits",
- "petgraph 0.6.4",
  "pp-rs",
  "rustc-hash",
  "serde",
@@ -5220,15 +5219,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "082f11ffa03bbef6c2c6ea6bea1acafaade2fd9050ae0234ab44a2153742b058"
 
 [[package]]
-name = "roxmltree"
-version = "0.14.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "921904a62e410e37e215c40381b7117f830d9d89ba60ab5236170541dd25646b"
-dependencies = [
- "xmlparser",
-]
-
-[[package]]
 name = "rstar"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5675,25 +5665,6 @@ dependencies = [
  "cfg-if 1.0.0",
  "cpufeatures",
  "digest",
-]
-
-[[package]]
-name = "shaderc"
-version = "0.8.0"
-source = "git+https://github.com/pythonesque/shaderc-rs?rev=f2605a02062834019bedff911aee2fd2998c49f9#f2605a02062834019bedff911aee2fd2998c49f9"
-dependencies = [
- "libc",
- "shaderc-sys",
-]
-
-[[package]]
-name = "shaderc-sys"
-version = "0.8.0"
-source = "git+https://github.com/pythonesque/shaderc-rs?rev=f2605a02062834019bedff911aee2fd2998c49f9#f2605a02062834019bedff911aee2fd2998c49f9"
-dependencies = [
- "cmake",
- "libc",
- "roxmltree",
 ]
 
 [[package]]
@@ -7297,7 +7268,6 @@ dependencies = [
  "rodio",
  "ron",
  "serde",
- "shaderc",
  "slab",
  "specs",
  "strum",
@@ -8486,12 +8456,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47430998a7b5d499ccee752b41567bc3afc57e1327dc855b1a2aa44ce29b5fa1"
 
 [[package]]
-name = "xmlparser"
-version = "0.13.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d25c75bf9ea12c4040a97f829154768bbbce366287e2dc044af160cd79a13fd"
-
-[[package]]
 name = "yasna"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8519,38 +8483,3 @@ dependencies = [
  "quote 1.0.33",
  "syn 2.0.32",
 ]
-
-[[patch.unused]]
-name = "gfx-backend-dx11"
-version = "0.8.0"
-source = "git+https://github.com/Imberflur/gfx.git?tag=veloren-fixes-v1#a8ba0a4859abb5f980b02480cb219030fb64530c"
-
-[[patch.unused]]
-name = "gfx-backend-dx12"
-version = "0.8.0"
-source = "git+https://github.com/Imberflur/gfx.git?tag=veloren-fixes-v1#a8ba0a4859abb5f980b02480cb219030fb64530c"
-
-[[patch.unused]]
-name = "gfx-backend-empty"
-version = "0.8.0"
-source = "git+https://github.com/Imberflur/gfx.git?tag=veloren-fixes-v1#a8ba0a4859abb5f980b02480cb219030fb64530c"
-
-[[patch.unused]]
-name = "gfx-backend-gl"
-version = "0.8.1"
-source = "git+https://github.com/Imberflur/gfx.git?tag=veloren-fixes-v1#a8ba0a4859abb5f980b02480cb219030fb64530c"
-
-[[patch.unused]]
-name = "gfx-backend-metal"
-version = "0.8.1"
-source = "git+https://github.com/Imberflur/gfx.git?tag=veloren-fixes-v1#a8ba0a4859abb5f980b02480cb219030fb64530c"
-
-[[patch.unused]]
-name = "gfx-backend-vulkan"
-version = "0.8.0"
-source = "git+https://github.com/Imberflur/gfx.git?tag=veloren-fixes-v1#a8ba0a4859abb5f980b02480cb219030fb64530c"
-
-[[patch.unused]]
-name = "gfx-hal"
-version = "0.8.0"
-source = "git+https://github.com/Imberflur/gfx.git?tag=veloren-fixes-v1#a8ba0a4859abb5f980b02480cb219030fb64530c"

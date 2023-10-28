@@ -1,4 +1,4 @@
-#version 430 core
+#version 440 core
 
 #define FIGURE_SHADER
 
