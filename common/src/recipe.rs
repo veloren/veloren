@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, AssetExt, AssetHandle},
+    assets::{self, AssetExt, AssetHandle, CacheCombined, Concatenate},
     comp::{
         inventory::slot::{InvSlotId, Slot},
         item::{
@@ -504,6 +504,9 @@ impl assets::Asset for RawRecipeBook {
 
     const EXTENSION: &'static str = "ron";
 }
+impl Concatenate for RawRecipeBook {
+    fn concatenate(self, b: Self) -> Self { RawRecipeBook(self.0.concatenate(b.0)) }
+}
 
 #[derive(Deserialize, Clone)]
 struct ItemList(Vec<String>);
@@ -531,7 +534,7 @@ impl assets::Compound for RecipeBook {
             Ok((def, *amount, *is_mod_comp))
         }
 
-        let raw = cache.load::<RawRecipeBook>(specifier)?.cloned();
+        let raw = cache.load_and_combine::<RawRecipeBook>(specifier)?.cloned();
 
         let recipes = raw
             .0
@@ -595,6 +598,9 @@ impl assets::Asset for RawComponentRecipeBook {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
+}
+impl Concatenate for RawComponentRecipeBook {
+    fn concatenate(self, b: Self) -> Self { RawComponentRecipeBook(self.0.concatenate(b.0)) }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Hash, Eq, PartialEq)]
@@ -884,7 +890,9 @@ impl assets::Compound for ComponentRecipeBook {
             })
         }
 
-        let raw = cache.load::<RawComponentRecipeBook>(specifier)?.cloned();
+        let raw = cache
+            .load_and_combine::<RawComponentRecipeBook>(specifier)?
+            .cloned();
 
         let recipes = raw
             .0

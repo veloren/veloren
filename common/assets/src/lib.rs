@@ -1,6 +1,8 @@
 //#![warn(clippy::pedantic)]
 //! Load assets (images or voxel data) from files
 
+#[cfg(feature = "plugins")]
+use assets_manager::SharedBytes;
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
@@ -120,6 +122,30 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self>;
 }
 
+/// Extension to AssetExt to combine Ron files from filesystem and plugins
+pub trait AssetCombined: AssetExt {
+    fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError>;
+
+    #[track_caller]
+    fn load_expect_combined(specifier: &str) -> AssetHandle<Self> {
+        // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
+        match Self::load_and_combine(specifier) {
+            Ok(handle) => handle,
+            Err(err) => {
+                panic!("Failed loading essential combined asset: {specifier} (error={err:?})")
+            },
+        }
+    }
+}
+
+/// Extension to AnyCache to combine Ron files from filesystem and plugins
+pub trait CacheCombined<'a> {
+    fn load_and_combine<A: Compound + Concatenate>(
+        self,
+        id: &str,
+    ) -> Result<assets_manager::Handle<'a, A>, BoxedError>;
+}
+
 /// Loads directory and all files in it
 ///
 /// # Errors
@@ -170,6 +196,39 @@ impl<T: Compound> AssetExt for T {
 
     fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self> {
         ASSETS.get_or_insert(specifier, default)
+    }
+}
+
+impl<'a> CacheCombined<'a> for AnyCache<'a> {
+    fn load_and_combine<A: Compound + Concatenate>(
+        self,
+        specifier: &str,
+    ) -> Result<assets_manager::Handle<'a, A>, BoxedError> {
+        #[cfg(feature = "plugins")]
+        {
+            self.get_cached(specifier).map_or_else(
+                || {
+                    // only create this combined object if is not yet cached
+                    let id_bytes = SharedBytes::from_slice(specifier.as_bytes());
+                    // as it was created from UTF8 it needs to be valid UTF8
+                    let id = SharedString::from_utf8(id_bytes).unwrap();
+                    tracing::info!("combine {specifier}");
+                    let data: Result<A, _> = ASSETS.combine(|cache: AnyCache| A::load(cache, &id));
+                    data.map(|data| self.get_or_insert(specifier, data))
+                },
+                Ok,
+            )
+        }
+        #[cfg(not(feature = "plugins"))]
+        {
+            Ok(self.load(specifier)?)
+        }
+    }
+}
+
+impl<T: Compound + Concatenate> AssetCombined for T {
+    fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError> {
+        ASSETS.as_any_cache().load_and_combine(specifier)
     }
 }
 
