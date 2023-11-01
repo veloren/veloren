@@ -529,7 +529,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             entity_radius: f32,
             // The entities that should be spawned in the spot, from closest to furthest
             // (count_range, spec)
-            // count_range = number of entities, chosen randomly within this range
+            // count_range = number of entities, chosen randomly within this range (not inclusive!)
             // spec = Manifest spec for the entity kind
             entities: &'a [(Range<i32>, &'a str)],
         }
@@ -576,7 +576,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             Spot::RockCircle => SpotConfig {
                 base_structures: Some("spots.rock-circle"),
                 entity_radius: 20.0,
-                entities: &[(-8..1, "common.entity.wild.aggressive.dullahan")],
+                entities: &[(-8..2, "common.entity.wild.aggressive.dullahan")],
             },
             Spot::MyrmidonTemple => SpotConfig {
                 base_structures: Some("spots.myrmidon-temple"),
@@ -623,7 +623,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 entities: &[
                     (1..2, "common.entity.dungeon.gnarling.mandragora"),
                     (2..6, "common.entity.wild.aggressive.deadwood"),
-                    (0..1, "common.entity.wild.aggressive.mossdrake"),
+                    (0..2, "common.entity.wild.aggressive.mossdrake"),
                 ],
             },
             Spot::TrollCave => SpotConfig {
