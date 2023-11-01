@@ -36,6 +36,9 @@ pub struct StaticData {
     /// This is the amount of combo held by the entity when this character state
     /// was entered
     pub combo_on_use: u32,
+    /// Controls whether `SelfBuff`s that were previously applied should be
+    /// removed
+    pub remove_previous: bool,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -77,6 +80,21 @@ impl CharacterBehavior for Data {
                         entity: data.entity,
                         change: -(combo_consumption as i32),
                     });
+
+                    // Remove previous selfbuffs if we should
+                    if self.static_data.remove_previous {
+                        output_events.emit_server(ServerEvent::Buff {
+                            entity: data.entity,
+                            buff_change: BuffChange::RemoveByCategory {
+                                // TODO: Consider renaming [BuffCategory::RemoveOnLoadoutChange] to
+                                // something more generic?
+                                all_required: vec![BuffCategory::RemoveOnLoadoutChange],
+                                any_required: vec![],
+                                none_required: vec![],
+                            },
+                        });
+                    }
+
                     let scaling_factor = self.static_data.combo_scaling.map_or(1.0, |cs| {
                         cs.factor(
                             self.static_data.combo_on_use as f32,

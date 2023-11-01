@@ -955,6 +955,8 @@ pub enum CharacterAbility {
         buff_strength: f32,
         buff_duration: Option<Secs>,
         energy_cost: f32,
+        #[serde(default = "default_true")]
+        remove_previous: bool,
         #[serde(default)]
         combo_cost: u32,
         combo_scaling: Option<ScalingKind>,
@@ -1604,6 +1606,7 @@ impl CharacterAbility {
                 ref mut buff_strength,
                 buff_duration: _,
                 ref mut energy_cost,
+                remove_previous: _,
                 combo_cost: _,
                 combo_scaling: _,
                 meta: _,
@@ -2255,6 +2258,9 @@ impl CharacterAbility {
     }
 }
 
+/// Small helper for #[serde(default)] booleans
+fn default_true() -> bool { true }
+
 impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
     fn from((ability, ability_info, data): (&CharacterAbility, AbilityInfo, &JoinData)) -> Self {
         match ability {
@@ -2831,6 +2837,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 energy_cost: _,
                 combo_cost,
                 combo_scaling,
+                remove_previous,
                 meta: _,
             } => CharacterState::SelfBuff(self_buff::Data {
                 static_data: self_buff::StaticData {
@@ -2843,6 +2850,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     combo_cost: *combo_cost,
                     combo_scaling: *combo_scaling,
                     combo_on_use: data.combo.map_or(0, |c| c.counter()),
+                    remove_previous: *remove_previous,
                     ability_info,
                 },
                 timer: Duration::default(),
