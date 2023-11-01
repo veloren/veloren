@@ -9,6 +9,7 @@ SpawnEntry (
                 (80, (1, 1, "common.entity.wild.peaceful.eagle")),
                 // Rare
                 (20, (1, 1, "common.entity.wild.aggressive.archaeos")),
+                (20, (1, 1, "common.entity.wild.aggressive.ntouka")),
                 (20, (1, 1, "common.entity.wild.aggressive.tarantula")),
                 (20, (1, 1, "common.entity.wild.aggressive.ogre")),
             ],
