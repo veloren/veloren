@@ -54,6 +54,9 @@ uniform utexture2D t_kind;
 layout(set = 2, binding = 3)
 uniform sampler s_kind;
 
+const uint SNOW = 0x21;
+const uint ART_SNOW = 0x22;
+
 layout (std140, set = 3, binding = 0)
 uniform u_locals {
     mat4 model_mat;
@@ -538,6 +541,19 @@ void main() {
     // vec3 col = /*srgb_to_linear*/(f_col + noise); // Small-scale noise
     // vec3 col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_pos * 3.0 - f_norm * 0.5), 0)) * 0.01); // Small-scale noise
     vec3 surf_color = illuminate(max_light, view_dir, col * emitted_light, col * reflected_light);
+    #ifdef EXPERIMENTAL_SNOWGLITTER
+    if (f_kind == SNOW || f_kind == ART_SNOW) {
+        float cam_distance = distance(cam_pos.xyz, f_pos);
+        vec4 pos = vec4(f_pos + focus_off.xyz, 0.0);
+
+        vec4 dir = vec4(view_dir, 0.0); 
+        float map = max(snoise(pos * 2.0 - dir * 3.0), 0.0);
+
+        float rand = hash(floor(pos * 30.0 + hash(pos * 2.0) + dir * 2.0));
+        float random = max(rand - 0.99, 0.0) * 100.0;
+        surf_color += pow(random, 10) * map * 10.0 / max(1.0, cam_distance * 0.1);
+    }
+    #endif
 
     float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);

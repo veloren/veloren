@@ -545,4 +545,6 @@ pub enum ExperimentalShader {
     ColorDithering,
     /// Cinematic color grading.
     Cinematic,
+    /// Glittering snow.
+    SnowGlitter,
 }
