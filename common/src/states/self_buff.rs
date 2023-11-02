@@ -86,9 +86,7 @@ impl CharacterBehavior for Data {
                         output_events.emit_server(ServerEvent::Buff {
                             entity: data.entity,
                             buff_change: BuffChange::RemoveByCategory {
-                                // TODO: Consider renaming [BuffCategory::RemoveOnLoadoutChange] to
-                                // something more generic?
-                                all_required: vec![BuffCategory::RemoveOnLoadoutChange],
+                                all_required: vec![BuffCategory::SelfBuff],
                                 any_required: vec![],
                                 none_required: vec![],
                             },
@@ -107,9 +105,9 @@ impl CharacterBehavior for Data {
                         .ability
                         .map_or(false, |a| a.ability.is_from_tool())
                     {
-                        vec![BuffCategory::RemoveOnLoadoutChange]
+                        vec![BuffCategory::RemoveOnLoadoutChange, BuffCategory::SelfBuff]
                     } else {
-                        Vec::new()
+                        vec![BuffCategory::SelfBuff]
                     };
                     // Creates buff
                     let buff = Buff::new(
