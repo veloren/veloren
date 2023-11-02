@@ -956,7 +956,7 @@ pub enum CharacterAbility {
         buff_duration: Option<Secs>,
         energy_cost: f32,
         #[serde(default = "default_true")]
-        remove_previous: bool,
+        enforced_limit: bool,
         #[serde(default)]
         combo_cost: u32,
         combo_scaling: Option<ScalingKind>,
@@ -1606,7 +1606,7 @@ impl CharacterAbility {
                 ref mut buff_strength,
                 buff_duration: _,
                 ref mut energy_cost,
-                remove_previous: _,
+                enforced_limit: _,
                 combo_cost: _,
                 combo_scaling: _,
                 meta: _,
@@ -2837,7 +2837,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 energy_cost: _,
                 combo_cost,
                 combo_scaling,
-                remove_previous,
+                enforced_limit,
                 meta: _,
             } => CharacterState::SelfBuff(self_buff::Data {
                 static_data: self_buff::StaticData {
@@ -2850,7 +2850,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     combo_cost: *combo_cost,
                     combo_scaling: *combo_scaling,
                     combo_on_use: data.combo.map_or(0, |c| c.counter()),
-                    remove_previous: *remove_previous,
+                    enforced_limit: *enforced_limit,
                     ability_info,
                 },
                 timer: Duration::default(),
