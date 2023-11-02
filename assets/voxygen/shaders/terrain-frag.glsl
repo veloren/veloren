@@ -538,6 +538,22 @@ void main() {
     // vec3 col = /*srgb_to_linear*/(f_col + noise); // Small-scale noise
     // vec3 col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_pos * 3.0 - f_norm * 0.5), 0)) * 0.01); // Small-scale noise
     vec3 surf_color = illuminate(max_light, view_dir, col * emitted_light, col * reflected_light);
+    #ifdef EXPERIMENTAL_SNOWGLITTER
+    if (f_kind == BLOCK_SNOW || f_kind == BLOCK_ART_SNOW) {
+        float cam_distance = distance(cam_pos.xyz, f_pos);
+        vec3 pos = f_pos + focus_off.xyz;
+
+        float map = max(noise_3d(pos), 0.0);
+
+        vec4 lpos = vec4(floor(pos * 35.0), 0.0);
+        
+        vec3 n = normalize(vec3(hash(lpos + 128), hash(lpos - 435), hash(lpos + 982)));
+
+        float s = pow(abs(dot(n, view_dir)), 4.0);
+
+        surf_color += pow(map * s, 10.0) * 5.0 / max(1.0, cam_distance * 0.5);
+    }
+    #endif
 
     float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);

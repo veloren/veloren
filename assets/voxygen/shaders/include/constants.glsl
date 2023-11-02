@@ -58,6 +58,9 @@
 #define MAT_FIGURE 3
 #define MAT_LOD 4
 
+#define BLOCK_SNOW 0x21
+#define BLOCK_ART_SNOW 0x22
+
 // An arbitrary value that represents a very far distance (at least as far as the player should be able to see) without
 // being too far that we end up with precision issues (used in clouds and elsewhere).
 #define DIST_CAP 50000
