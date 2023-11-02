@@ -1177,7 +1177,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             let basement = Lerp::lerp(
                 basement,
                 alt,
-                (mesa * (marble_mixed - 0.35) * 1.5).clamped(0.0, 1.0),
+                (mesa * (marble_mixed - 0.35) * 1.5).clamped(0.0, 1.0) * warp_factor,
             );
 
             (sub_surface_color, ground, alt, basement)
