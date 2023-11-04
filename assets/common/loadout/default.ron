@@ -5,5 +5,5 @@
     legs: Item("common.items.armor.misc.pants.worker_brown"),
     feet: Item("common.items.armor.misc.foot.sandals"),
     lantern: Item("common.items.lantern.black_0"),
-    glider: Item("common.items.glider.cloverleaf"),
+    glider: Item("common.items.glider.basic_white"),
 )

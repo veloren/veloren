@@ -430,6 +430,16 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+    "cloverleaf_glider": (
+        output: ("common.items.glider.cloverleaf", 1),
+        inputs: [
+            (Item("common.items.log.wood"), 5, false),
+            (Item("common.items.flowers.plant_fiber"), 3, false),
+            (Item("common.items.crafting_ing.sentient_seed"), 1, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     "leaves_glider": (
         output: ("common.items.glider.leaves", 1),
         inputs: [

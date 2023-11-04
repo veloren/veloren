@@ -5,7 +5,7 @@
     ),
     map: {
         "common.items.glider.cloverleaf": (
-            vox_spec: ("glider.starter", (-15.0, -5.0, 0.0)),
+            vox_spec: ("glider.cloverleaf", (-19.0, -5.0, 0.0)),
             color: None
         ),
         "common.items.glider.basic_white": (
