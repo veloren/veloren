@@ -3728,7 +3728,7 @@
     ),
     // Gliders
     Simple("common.items.glider.cloverleaf"): VoxTrans(
-        "voxel.glider.starter",
+        "voxel.glider.cloverleaf",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
     Simple("common.items.glider.basic_white"): VoxTrans(

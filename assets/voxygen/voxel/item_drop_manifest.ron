@@ -955,7 +955,7 @@
     Simple("common.items.keys.quarry_keys.flamekeeper_left"): "element.items.keeper_goggle",
     Simple("common.items.keys.quarry_keys.flamekeeper_right"): "element.items.keeper_goggle",
     // Gliders
-    Simple("common.items.glider.cloverleaf"): "voxel.glider.starter",
+    Simple("common.items.glider.cloverleaf"): "voxel.glider.cloverleaf",
     Simple("common.items.glider.basic_white"): "voxel.glider.basic_white",
     Simple("common.items.glider.basic_red"): "voxel.glider.basic_red",
     Simple("common.items.glider.blue"): "voxel.glider.blue",
