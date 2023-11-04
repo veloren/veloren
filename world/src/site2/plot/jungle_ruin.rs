@@ -42,16 +42,8 @@ impl Structure for JungleRuin {
         let center = self.bounds.center();
         let plot_base = land.get_alt_approx(center) as i32;
         let mut thread_rng = thread_rng();
-        let stone = Fill::Sampling(Arc::new(|center| {
-            Some(match (RandomField::new(0).get(center)) % 52 {
-                0..=8 => Block::new(BlockKind::Rock, Rgb::new(92, 99, 86)),
-                9..=17 => Block::new(BlockKind::Rock, Rgb::new(83, 89, 78)),
-                18..=26 => Block::new(BlockKind::Rock, Rgb::new(75, 89, 66)),
-                27..=35 => Block::new(BlockKind::Rock, Rgb::new(79, 83, 73)),
-                36..=44 => Block::new(BlockKind::Rock, Rgb::new(66, 80, 59)),
-                _ => Block::new(BlockKind::Rock, Rgb::new(88, 94, 83)),
-            })
-        }));
+        let stone = Fill::Sampling(stone_color(BlockKind::Rock));
+        let weak_stone = Fill::Sampling(stone_color(BlockKind::WeakRock));
         let stone_broken = Fill::Sampling(Arc::new(|center| {
             Some(match (RandomField::new(0).get(center)) % 56 {
                 0..=8 => Block::new(BlockKind::Rock, Rgb::new(92, 99, 86)),
@@ -165,7 +157,7 @@ impl Structure for JungleRuin {
                     min: (center - room_size).with_z(plot_base - height_handle - room_size),
                     max: (center + room_size).with_z(plot_base - height_handle - room_size + 1),
                 })
-                .fill(stone);
+                .fill(stone.clone());
             painter
                 .aabb(Aabb {
                     min: (center - room_size).with_z(plot_base - height_handle - room_size + 1),
@@ -218,7 +210,19 @@ impl Structure for JungleRuin {
                     center.y + (chest_radius as f32 * ((n as f32 * phi).sin())) as i32,
                 );
                 if RandomField::new(0).get(chest_pos.with_z(plot_base)) % 2 > 0 {
-                    painter.sprite(chest_pos.with_z(plot_base - 1), SpriteKind::ChestBuried);
+                    for a in 0..8 {
+                        painter
+                            .aabb(Aabb {
+                                min: (chest_pos - 1 - a).with_z(plot_base + 5 - a),
+                                max: (chest_pos + 1 + a).with_z(plot_base + 6 - a),
+                            })
+                            .fill(if a > 1 {
+                                stone.clone()
+                            } else {
+                                weak_stone.clone()
+                            });
+                    }
+                    painter.sprite(chest_pos.with_z(plot_base + 4), SpriteKind::ChestBuried);
                 }
             }
         }
@@ -233,23 +237,36 @@ impl Structure for JungleRuin {
             match RandomField::new(0).get(center.with_z(plot_base)) % 6 {
                 // grave robbers
                 0 => painter.spawn(
-                    EntityInfo::at(npc_pos.with_z(plot_base).as_()).with_asset_expect(
+                    EntityInfo::at(npc_pos.with_z(plot_base + 5).as_()).with_asset_expect(
                         "common.entity.spot.dwarf_grave_robber",
                         &mut thread_rng,
                     ),
                 ),
                 // sauroks
                 1 => painter.spawn(
-                    EntityInfo::at(npc_pos.with_z(plot_base).as_())
+                    EntityInfo::at(npc_pos.with_z(plot_base + 5).as_())
                         .with_asset_expect("common.entity.spot.saurok", &mut thread_rng),
                 ),
                 // grim salvager
                 2 => painter.spawn(
-                    EntityInfo::at(npc_pos.with_z(plot_base).as_())
+                    EntityInfo::at(npc_pos.with_z(plot_base + 5).as_())
                         .with_asset_expect("common.entity.spot.grim_salvager", &mut thread_rng),
                 ),
                 _ => {},
             }
         }
     }
+}
+
+fn stone_color(block: BlockKind) -> Arc<dyn Fn(Vec3<i32>) -> Option<Block>> {
+    Arc::new(move |pos| {
+        Some(match (RandomField::new(0).get(pos)) % 52 {
+            0..=8 => Block::new(block, Rgb::new(92, 99, 86)),
+            9..=17 => Block::new(block, Rgb::new(83, 89, 78)),
+            18..=26 => Block::new(block, Rgb::new(75, 89, 66)),
+            27..=35 => Block::new(block, Rgb::new(79, 83, 73)),
+            36..=44 => Block::new(block, Rgb::new(66, 80, 59)),
+            _ => Block::new(block, Rgb::new(88, 94, 83)),
+        })
+    })
 }
