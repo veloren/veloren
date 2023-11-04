@@ -8,14 +8,17 @@ use common::{
 };
 use enum_map::EnumMap;
 use enumset::EnumSet;
-use hashbrown::HashSet;
-use rand::{seq::IteratorRandom, Rng};
+use hashbrown::{HashMap, HashSet};
+use rand::{
+    seq::{IteratorRandom, SliceRandom},
+    Rng, SeedableRng,
+};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
 use crate::{
     site::namegen,
-    site2::{Dir, Fill, Site, Structure},
+    site2::{gen::PrimitiveTransform, Dir, Fill, Site, Structure},
     util::{RandomField, Sampler},
     IndexRef, Land,
 };
@@ -113,17 +116,9 @@ impl Room {
     }
 }
 
-struct Stairs {
-    end: Vec2<i32>,
-    dir: Dir,
-    in_room: Id<Room>,
-    to_room: Id<Room>,
-}
-
 pub struct Tavern {
     name: String,
     pub rooms: Store<Room>,
-    stairs: Store<Stairs>,
     walls: Store<Wall>,
     /// Tile position of the door tile
     pub door_tile: Vec2<i32>,
@@ -146,7 +141,6 @@ impl Tavern {
 
         let start = std::time::Instant::now();
         let mut rooms = Store::default();
-        let stairs = Store::default();
         let mut walls = Store::default();
         let mut room_counts = EnumMap::<RoomKind, u32>::default();
 
@@ -336,7 +330,7 @@ impl Tavern {
             // height.
             for (_, room) in rooms.iter().filter(|(room_id, room)| {
                 *room_id != from_id
-                    && room.bounds.min.z + 1 <= max_z
+                    && room.bounds.min.z - 1 <= max_z
                     && room.bounds.max.z + 1 >= min_z
             }) {
                 let bounds = to_aabr(room.bounds);
@@ -769,7 +763,6 @@ impl Tavern {
         Self {
             name,
             rooms,
-            stairs,
             walls,
             door_tile,
             door_wpos,
@@ -792,6 +785,8 @@ impl Structure for Tavern {
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &crate::site2::Painter) {
         let field = RandomField::new(740384);
 
+        const DOWN: i32 = 6;
+
         const PALETTES: [[Rgb<u8>; 5]; 2] = [
             [
                 Rgb::new(55, 65, 64),
@@ -809,19 +804,197 @@ impl Structure for Tavern {
             ],
         ];
         let palette = PALETTES[field.get(self.door_wpos) as usize % PALETTES.len()];
-        let detail0 = Fill::Brick(BlockKind::Rock, palette[0], 10);
-        let color0 = Fill::Block(Block::new(BlockKind::Wood, palette[1]));
-        let color1 = Fill::Block(Block::new(BlockKind::Wood, palette[2]));
-        let color2 = Fill::Block(Block::new(BlockKind::Wood, palette[3]));
+        let detail_fill = Fill::Brick(BlockKind::Rock, palette[0], 10);
+        let wall_fill = Fill::Block(Block::new(BlockKind::Wood, palette[1]));
+        let wall_detail_fill = Fill::Block(Block::new(BlockKind::Wood, palette[2]));
+        let floor_fill = Fill::Block(Block::new(BlockKind::Wood, palette[3]));
+        let roof_fill = Fill::Block(Block::new(BlockKind::Wood, palette[4]));
 
-        for (_, room) in self.rooms.iter() {
-            painter.aabb(aabb(room.bounds)).clear();
+        let get_kind = |room| self.rooms.get(room).kind;
+        let get_door_stair = |wall: &Wall, door: Aabr<i32>| {
+            let filter = |room: &Id<Room>| self.rooms[*room].bounds.min.z > wall.base_alt;
+            wall.to
+                .filter(filter)
+                .zip(Some(wall.to_dir))
+                .or(wall.from.filter(filter).zip(Some(-wall.to_dir)))
+                .map(|(room, to_dir)| {
+                    let room = &self.rooms[room];
+
+                    let max = door.max + to_dir.to_vec2() * (room.bounds.min.z - wall.base_alt + 1);
+                    (door.min, max, room, to_dir)
+                })
+        };
+
+        enum RoofStyle {
+            Flat,
+            FlatBars(Dir),
+            LeanTo(Dir),
+            Gable(Dir),
+            Hip,
+        }
+        struct Roof {
+            bounds: Aabb<i32>,
+            style: RoofStyle,
+        }
+        let mut roof = Store::default();
+
+        let s = [field.get(self.door_wpos); 8];
+        let rng = &mut rand_chacha::ChaChaRng::from_seed(unsafe { std::mem::transmute(s) });
+        // let mut room_roofs = HashMap::new();
+
+        for room in self.rooms.values() {
+            match room.kind {
+                RoomKind::Garden => {
+                    let dir = *[Dir::X, Dir::Y].choose(rng).expect("We have 2 elements");
+                    let orth = dir.orthogonal();
+                    roof.insert(Roof {
+                        bounds: Aabb {
+                            min: (room.bounds.min - 1 - orth.to_vec2())
+                                .with_z(room.bounds.max.z + 1),
+                            max: (room.bounds.max + 1 + orth.to_vec2())
+                                .with_z(room.bounds.max.z + 1),
+                        },
+                        style: RoofStyle::FlatBars(dir),
+                    });
+                },
+                _ => {
+                    roof.insert(Roof {
+                        bounds: Aabb {
+                            min: (room.bounds.min - 2).with_z(room.bounds.max.z + 1),
+                            max: (room.bounds.max + 2).with_z(room.bounds.max.z + 5),
+                        },
+                        style: RoofStyle::Hip,
+                    });
+                },
+            }
+        }
+
+        for roof in roof.values() {
+            let roof_aabr = Aabr {
+                min: roof.bounds.min.xy(),
+                max: roof.bounds.max.xy(),
+            };
+            match &roof.style {
+                RoofStyle::Flat => {
+                    painter.aabb(aabb(roof.bounds)).fill(roof_fill.clone());
+                },
+                RoofStyle::FlatBars(dir) => painter
+                    .aabb(aabb(Aabb {
+                        min: dir
+                            .select_aabr_with(roof_aabr, roof_aabr.min)
+                            .with_z(roof.bounds.max.z),
+                        max: dir
+                            .select_aabr_with(roof_aabr, roof_aabr.max)
+                            .with_z(roof.bounds.max.z),
+                    }))
+                    .repeat(
+                        -dir.to_vec3() * 2,
+                        (dir.select(roof_aabr.size()) as u32 + 3) / 2,
+                    )
+                    .fill(roof_fill.clone()),
+                RoofStyle::LeanTo(dir) => {
+                    painter
+                        .ramp(aabb(roof.bounds), *dir)
+                        .fill(roof_fill.clone());
+                },
+                RoofStyle::Gable(dir) => {
+                    painter
+                        .gable(roof.bounds, roof.bounds.size().d, *dir)
+                        .fill(roof_fill.clone());
+                },
+                RoofStyle::Hip => {
+                    painter.pyramid(aabb(roof.bounds)).fill(roof_fill.clone());
+                },
+            }
+        }
+
+        for room in self.rooms.values() {
             painter
                 .aabb(aabb(Aabb {
-                    min: room.bounds.min.with_z(room.bounds.min.z - 1),
+                    min: room.bounds.min.with_z(room.bounds.min.z - DOWN),
                     max: room.bounds.max.with_z(room.bounds.min.z - 1),
                 }))
-                .fill(color2.clone());
+                .fill(floor_fill.clone());
+        }
+        for wall in self.walls.values() {
+            let wall_aabb = Aabb {
+                min: wall.start.with_z(wall.base_alt),
+                max: wall.end.with_z(wall.top_alt),
+            };
+            let wall_dir = Dir::from_vec2(wall.end - wall.start);
+            match (wall.from.map(get_kind), wall.to.map(get_kind)) {
+                (Some(RoomKind::Garden), Some(RoomKind::Garden) | None)
+                | (None, Some(RoomKind::Garden)) => {
+                    let hgt = wall_aabb.min.z..=wall_aabb.max.z;
+                    painter
+                        .column(wall_aabb.min.xy(), hgt.clone())
+                        .fill(wall_detail_fill.clone());
+                    painter
+                        .column(wall_aabb.max.xy(), hgt)
+                        .fill(wall_detail_fill.clone());
+                    let z = (wall.base_alt + wall.top_alt) / 2;
+
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: (wall_aabb.min + wall_dir.to_vec2()).with_z(wall_aabb.min.z + 1),
+                            max: (wall_aabb.max - wall_dir.to_vec2()).with_z(wall_aabb.max.z - 1),
+                        }))
+                        .clear();
+
+                    painter.rotated_sprite(
+                        wall_aabb.min.with_z(z) + wall_dir.to_vec2(),
+                        SpriteKind::WallSconce,
+                        wall_dir.sprite_ori(),
+                    );
+                    painter.rotated_sprite(
+                        wall_aabb.max.with_z(z) - wall_dir.to_vec2(),
+                        SpriteKind::WallSconce,
+                        wall_dir.opposite().sprite_ori(),
+                    );
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: wall_aabb.min.with_z(wall_aabb.min.z - DOWN),
+                            max: wall_aabb.max.with_z(wall_aabb.min.z),
+                        }))
+                        .fill(wall_detail_fill.clone());
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: wall_aabb.min.with_z(wall_aabb.max.z),
+                            max: wall_aabb.max,
+                        }))
+                        .fill(wall_detail_fill.clone());
+                },
+                (None, None) => {},
+                _ => {
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: wall_aabb.min.with_z(wall_aabb.min.z - DOWN),
+                            max: wall_aabb.max,
+                        }))
+                        .fill(wall_fill.clone());
+                    painter
+                        .column(wall.start, wall.base_alt - DOWN..=wall.top_alt)
+                        .fill(wall_detail_fill.clone());
+                    painter
+                        .column(wall.end, wall.base_alt - DOWN..=wall.top_alt)
+                        .fill(wall_detail_fill.clone());
+                },
+            }
+            if let Some(door) = wall.door_bounds() {
+                let orth = wall.to_dir.orthogonal();
+                if let Some((min, max, room, to_dir)) = get_door_stair(wall, door) {
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: (min + to_dir.to_vec2() - orth.to_vec2())
+                                .with_z(wall.base_alt - 1),
+                            max: (max + orth.to_vec2()).with_z(room.bounds.min.z - 1),
+                        }))
+                        .fill(floor_fill.clone());
+                }
+            }
+        }
+        for room in self.rooms.values() {
+            painter.aabb(aabb(room.bounds)).clear();
 
             let room_aabr = Aabr {
                 min: room.bounds.min.xy(),
@@ -830,23 +1003,6 @@ impl Structure for Tavern {
             match room.kind {
                 RoomKind::Garden => {
                     let dir = Dir::from_vec2(room_aabr.size().into());
-
-                    /*
-                    painter
-                        .aabb(aabb(Aabb {
-                            min: dir
-                                .select_aabr_with(room_aabr, room_aabr.min - 2)
-                                .with_z(room.bounds.max.z + 1),
-                            max: dir
-                                .select_aabr_with(room_aabr, room_aabr.max + 2)
-                                .with_z(room.bounds.max.z + 1),
-                        }))
-                        .repeat(
-                            -dir.to_vec3() * 2,
-                            (dir.select(room_aabr.size()) as u32 + 3) / 2,
-                        )
-                        .fill(color1.clone())
-                    */
                 },
                 RoomKind::StageRoom => {
                     for aabr in room.detail_areas.iter().copied() {
@@ -942,13 +1098,13 @@ impl Structure for Tavern {
                                                 .with_z(room.bounds.min.z),
                                             max: max.with_z(room.bounds.min.z),
                                         }))
-                                        .fill(color1.clone());
+                                        .fill(wall_detail_fill.clone());
                                     painter
                                         .aabb(aabb(Aabb {
                                             min: min.with_z(room.bounds.min.z + 3),
                                             max: max.with_z(room.bounds.max.z),
                                         }))
-                                        .fill(color1.clone());
+                                        .fill(wall_detail_fill.clone());
                                 },
                                 (true, true) => {
                                     painter.sprite(
@@ -966,13 +1122,13 @@ impl Structure for Tavern {
                                 min: aabr.min.with_z(room.bounds.min.z),
                                 max: aabr.max.with_z(room.bounds.min.z),
                             }))
-                            .fill(detail0.clone());
+                            .fill(detail_fill.clone());
                         painter
                             .aabb(aabb(Aabb {
                                 min: (aabr.min + 1).with_z(room.bounds.min.z),
                                 max: (aabr.max - 1).with_z(room.bounds.min.z),
                             }))
-                            .fill(color0.clone());
+                            .fill(wall_fill.clone());
                         for dir in Dir::iter().filter(|dir| {
                             dir.select_aabr(aabr) != dir.select_aabr(room_aabr)
                                 && dir.rotated_cw().select_aabr(aabr)
@@ -984,7 +1140,7 @@ impl Structure for Tavern {
                             );
                             painter
                                 .column(pos, room.bounds.min.z..=room.bounds.max.z)
-                                .fill(color1.clone());
+                                .fill(wall_detail_fill.clone());
 
                             for dir in Dir::iter() {
                                 painter.rotated_sprite(
@@ -1010,58 +1166,6 @@ impl Structure for Tavern {
             }
         }
 
-        let get_kind = |room| self.rooms.get(room).kind;
-        for wall in self.walls.values() {
-            let wall_aabb = Aabb {
-                min: wall.start.with_z(wall.base_alt),
-                max: wall.end.with_z(wall.top_alt),
-            };
-            let wall_dir = Dir::from_vec2(wall.end - wall.start);
-            match (wall.from.map(get_kind), wall.to.map(get_kind)) {
-                (Some(RoomKind::Garden), Some(RoomKind::Garden) | None)
-                | (None, Some(RoomKind::Garden)) => {
-                    let hgt = wall_aabb.min.z..=wall_aabb.max.z;
-                    painter
-                        .column(wall_aabb.min.xy(), hgt.clone())
-                        .fill(color1.clone());
-                    painter.column(wall_aabb.max.xy(), hgt).fill(color1.clone());
-                    let z = (wall.base_alt + wall.top_alt) / 2;
-
-                    painter.rotated_sprite(
-                        wall_aabb.min.with_z(z) + wall_dir.to_vec2(),
-                        SpriteKind::WallSconce,
-                        wall_dir.sprite_ori(),
-                    );
-                    painter.rotated_sprite(
-                        wall_aabb.max.with_z(z) - wall_dir.to_vec2(),
-                        SpriteKind::WallSconce,
-                        wall_dir.opposite().sprite_ori(),
-                    );
-                    painter
-                        .aabb(aabb(Aabb {
-                            min: wall_aabb.min,
-                            max: wall_aabb.max.with_z(wall_aabb.min.z),
-                        }))
-                        .fill(color1.clone());
-                    painter
-                        .aabb(aabb(Aabb {
-                            min: wall_aabb.min.with_z(wall_aabb.max.z),
-                            max: wall_aabb.max,
-                        }))
-                        .fill(color1.clone());
-                },
-                (None, None) => {},
-                _ => {
-                    painter.aabb(aabb(wall_aabb)).fill(color0.clone());
-                    painter
-                        .column(wall.start, wall.base_alt..=wall.top_alt)
-                        .fill(color1.clone());
-                    painter
-                        .column(wall.end, wall.base_alt..=wall.top_alt)
-                        .fill(color1.clone());
-                },
-            }
-        }
         for wall in self.walls.values() {
             let in_dir_room = if let (Some(room), to @ None) | (None, to @ Some(room)) =
                 (wall.from.map(get_kind), wall.to.map(get_kind))
@@ -1119,41 +1223,35 @@ impl Structure for Tavern {
                         min: (door.min - orth.to_vec2()).with_z(wall.base_alt - 1),
                         max: (door.max + orth.to_vec2()).with_z(wall.base_alt + 3),
                     }))
-                    .fill(detail0.clone());
+                    .fill(detail_fill.clone());
                 painter
                     .aabb(aabb(Aabb {
                         min: (door.min + wall.to_dir.to_vec2()).with_z(wall.base_alt),
                         max: (door.max - wall.to_dir.to_vec2()).with_z(wall.base_alt + 2),
                     }))
                     .clear();
-                let filter = |room: &Id<Room>| self.rooms[*room].bounds.min.z > wall.base_alt;
-                if let Some((room, to_dir)) = wall
-                    .to
-                    .filter(filter)
-                    .zip(Some(wall.to_dir))
-                    .or(wall.from.filter(filter).zip(Some(-wall.to_dir)))
-                {
-                    let room = &self.rooms[room];
-
-                    let max = door.max + to_dir.to_vec2() * (room.bounds.min.z - wall.base_alt + 1);
+                if let Some((min, max, room, to_dir)) = get_door_stair(wall, door) {
+                    // Place a ramp if the door is lower than the room alt.
                     painter
                         .ramp(
                             aabb(Aabb {
-                                min: (door.min - to_dir.to_vec2() * 3).with_z(wall.base_alt),
+                                min: (min - to_dir.to_vec2() * 3).with_z(wall.base_alt),
                                 max: max.with_z(room.bounds.min.z + 2),
                             }),
                             to_dir,
                         )
-                        .clear();
-                    painter
-                        .ramp(
-                            aabb(Aabb {
-                                min: (door.min + to_dir.to_vec2() * 2).with_z(wall.base_alt),
-                                max: max.with_z(room.bounds.min.z - 1),
-                            }),
-                            to_dir,
+                        // TOOD: For zoomy worldgen, this a sheared aabb.
+                        .without(
+                            painter
+                                .ramp(
+                                    aabb(Aabb {
+                                        min: (min + to_dir.to_vec2() * 2).with_z(wall.base_alt),
+                                        max: max.with_z(room.bounds.min.z - 1),
+                                    }),
+                                    to_dir,
+                                )
                         )
-                        .fill(color2.clone());
+                        .clear();
                 }
                 if let Some((in_dir, _room)) = in_dir_room {
                     let sprite = match in_dir.rotated_cw().select(door.size()) {
@@ -1196,37 +1294,6 @@ impl Structure for Tavern {
                     );
                 }
             }
-        }
-
-        for stairs in self.stairs.values() {
-            let down_room = &self.rooms[stairs.in_room];
-            let up_room = &self.rooms[stairs.to_room];
-
-            let down = -stairs.dir;
-            let right = stairs.dir.rotated_cw();
-
-            let aabr = Aabr {
-                min: stairs.end - right.to_vec2()
-                    + down.to_vec2() * (up_room.bounds.min.z - 1 - down_room.bounds.min.z),
-                max: stairs.end + right.to_vec2(),
-            };
-
-            painter
-                .aabb(aabb(Aabb {
-                    min: aabr.min.with_z(up_room.bounds.min.z - 1),
-                    max: aabr.max.with_z(up_room.bounds.min.z - 1),
-                }))
-                .clear();
-
-            painter
-                .ramp(
-                    aabb(Aabb {
-                        min: aabr.min.with_z(down_room.bounds.min.z),
-                        max: aabr.max.with_z(up_room.bounds.min.z - 1),
-                    }),
-                    stairs.dir,
-                )
-                .fill(color0.clone());
         }
     }
 }
