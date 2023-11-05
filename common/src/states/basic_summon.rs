@@ -194,7 +194,7 @@ impl CharacterBehavior for Data {
                                 rng.gen_range(-1.0..=1.0),
                                 0.0,
                             ))
-                            .map(|dir| comp::Ori::from(dir))
+                            .map(comp::Ori::from)
                             .unwrap_or_default(),
                             npc: NpcBuilder::new(stats, body, comp::Alignment::Owned(*data.uid))
                                 .with_skill_set(skill_set)

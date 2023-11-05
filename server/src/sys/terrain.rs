@@ -218,7 +218,7 @@ impl<'a> System<'a> for Sys {
                                 rng.gen_range(-1.0..=1.0),
                                 0.0,
                             ))
-                            .map(|dir| comp::Ori::from(dir))
+                            .map(comp::Ori::from)
                             .unwrap_or_default(),
                             npc: NpcBuilder::new(stats, body, alignment)
                                 .with_skill_set(skill_set)

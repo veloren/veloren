@@ -790,7 +790,7 @@ impl StateExt for State {
                         rng.gen_range(-1.0..=1.0),
                         0.0,
                     ))
-                    .map(|dir| comp::Ori::from(dir))
+                    .map(comp::Ori::from)
                     .unwrap_or_default();
                     let pet_entity = self
                         .create_npc(

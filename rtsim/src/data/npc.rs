@@ -307,11 +307,10 @@ impl NpcLinks {
         if let Some(riders) = self.mount_map.get_mut(link.mount) {
             if link.is_steering && riders.steerer == Some(id) {
                 riders.steerer = None;
-            } else {
-                if let Some((i, _)) = riders.riders.iter().enumerate().find(|(_, i)| **i == id) {
-                    riders.riders.remove(i);
-                }
+            } else if let Some((i, _)) = riders.riders.iter().enumerate().find(|(_, i)| **i == id) {
+                riders.riders.remove(i);
             }
+            
             if riders.steerer.is_none() && riders.riders.is_empty() {
                 self.mount_map.remove(link.mount);
             }
@@ -457,8 +456,8 @@ impl From<HopSlotMap<MountId, NpcLink>> for NpcLinks {
     }
 }
 
-impl Into<HopSlotMap<MountId, NpcLink>> for NpcLinks {
-    fn into(self) -> HopSlotMap<MountId, NpcLink> { self.links }
+impl From<NpcLinks> for HopSlotMap<MountId, NpcLink> {
+    fn from(other: NpcLinks) -> Self { other.links }
 }
 slotmap::new_key_type! {
     pub struct MountId;
