@@ -476,6 +476,7 @@ pub enum BuffCategory {
     FromActiveAura(Uid, AuraKey),
     RemoveOnAttack,
     RemoveOnLoadoutChange,
+    SelfBuff,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

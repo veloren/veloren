@@ -36,6 +36,9 @@ pub struct StaticData {
     /// This is the amount of combo held by the entity when this character state
     /// was entered
     pub combo_on_use: u32,
+    /// Controls whether `SelfBuff`s that were previously applied should be
+    /// removed
+    pub enforced_limit: bool,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -77,13 +80,15 @@ impl CharacterBehavior for Data {
                         entity: data.entity,
                         change: -(combo_consumption as i32),
                     });
+
                     let scaling_factor = self.static_data.combo_scaling.map_or(1.0, |cs| {
                         cs.factor(
                             self.static_data.combo_on_use as f32,
                             self.static_data.combo_cost as f32,
                         )
                     });
-                    let buff_cat_ids = if self
+
+                    let mut buff_cat_ids = if self
                         .static_data
                         .ability_info
                         .ability
@@ -93,6 +98,21 @@ impl CharacterBehavior for Data {
                     } else {
                         Vec::new()
                     };
+
+                    // Remove previous selfbuffs if we should
+                    if self.static_data.enforced_limit {
+                        buff_cat_ids.push(BuffCategory::SelfBuff);
+
+                        output_events.emit_server(ServerEvent::Buff {
+                            entity: data.entity,
+                            buff_change: BuffChange::RemoveByCategory {
+                                all_required: vec![BuffCategory::SelfBuff],
+                                any_required: vec![],
+                                none_required: vec![],
+                            },
+                        });
+                    }
+
                     // Creates buff
                     let buff = Buff::new(
                         self.static_data.buff_kind,
