@@ -25,7 +25,7 @@ use common::{
     rtsim::{Actor, ChunkResource, NpcInput, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
-    terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
+    terrain::{CoordinateConversions, TerrainChunkSize},
     time::DayPeriod,
     util::Dir,
 };
@@ -1012,27 +1012,35 @@ fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
     // Travel between different towns in a straight line
     now(move |ctx, _| {
         let data = &*ctx.state.data();
-        let site = data
+        let station_wpos = data
             .sites
             .iter()
             .filter(|(id, _)| Some(*id) != ctx.npc.current_site)
-            .filter(|(_, site)| {
-                site.world_site
-                    .and_then(|site| ctx.index.sites.get(site).kind.convert_to_meta())
-                    .map_or(false, |meta| matches!(meta, SiteKindMeta::Settlement(_)))
+            .filter_map(|(_, site)| ctx.index.sites.get(site.world_site?).site2())
+            .flat_map(|site| {
+                site.plots()
+                    .filter(|plot| matches!(plot.kind(), PlotKind::AirshipDock(_)))
+                    .map(|plot| site.tile_center_wpos(plot.root_tile()))
             })
             .choose(&mut ctx.rng);
-        if let Some((_id, site)) = site {
+        if let Some(station_wpos) = station_wpos {
             Either::Right(
                 goto_2d_flying(
-                    site.wpos.as_(),
+                    station_wpos.as_(),
                     1.0,
                     50.0,
                     150.0,
                     110.0,
                     ship.flying_height(),
                 )
-                .then(goto_2d_flying(site.wpos.as_(), 1.0, 10.0, 32.0, 16.0, 10.0)),
+                .then(goto_2d_flying(
+                    station_wpos.as_(),
+                    1.0,
+                    10.0,
+                    32.0,
+                    16.0,
+                    30.0,
+                )),
             )
         } else {
             Either::Left(finish())

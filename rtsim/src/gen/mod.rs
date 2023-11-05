@@ -179,8 +179,14 @@ impl Data {
                 }
             }
 
-            if rng.gen_bool(0.4) {
-                let wpos = rand_wpos(&mut rng, matches_plazas) + Vec3::unit_z() * 50.0;
+            for plot in site2
+                .plots
+                .values()
+                .filter(|plot| matches!(plot.kind(), PlotKind::AirshipDock(_)))
+            {
+                let wpos = site2.tile_center_wpos(plot.root_tile());
+                let wpos = wpos.as_().with_z(world.sim().get_surface_alt_approx(wpos))
+                    + Vec3::unit_z() * 70.0;
                 let vehicle_id = this.npcs.create_npc(Npc::new(
                     rng.gen(),
                     wpos,

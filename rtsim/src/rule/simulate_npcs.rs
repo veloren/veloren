@@ -242,16 +242,15 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
             match activity {
                 // Move NPCs if they have a target destination
                 Some(NpcActivity::Goto(target, speed_factor)) => {
-                    let diff = target.xy() - npc.wpos.xy();
+                    let diff = target - npc.wpos;
                     let dist2 = diff.magnitude_squared();
 
                     if dist2 > 0.5f32.powi(2) {
-                        let new_wpos = npc.wpos
-                            + (diff
-                                * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
-                                    / dist2.sqrt())
-                                .min(1.0))
-                            .with_z(0.0);
+                        let offset = diff
+                            * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
+                                / dist2.sqrt())
+                            .min(1.0);
+                        let new_wpos = npc.wpos + offset;
 
                         let is_valid = match npc.body {
                             // Don't move water bound bodies outside of water.

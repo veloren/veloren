@@ -168,6 +168,19 @@ impl Body {
             },
         }
     }
+
+    /// Max speed in block/s
+    pub fn get_speed(&self) -> f32 {
+        match self {
+            Body::DefaultAirship => 7.0,
+            Body::AirBalloon => 8.0,
+            Body::SailBoat => 5.0,
+            Body::Galleon => 6.0,
+            Body::Skiff => 6.0,
+            Body::Submarine => 4.0,
+            _ => 10.0,
+        }
+    }
 }
 
 /// Terrain is 11.0 scale relative to small-scale voxels,

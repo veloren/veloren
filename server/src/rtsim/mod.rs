@@ -176,15 +176,25 @@ impl RtSim {
             .emit(event::OnBlockChange { changes }, world, index);
     }
 
-    pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
+    pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) -> bool {
         let data = self.state.get_data_mut();
         if data.npcs.mounts.get_mount_link(entity.0).is_none() {
             if let Some(npc) = data.npcs.get_mut(entity.0) {
+                if matches!(npc.mode, SimulationMode::Simulated) {
+                    error!("Unloaded already unloaded entity");
+                }
                 npc.mode = SimulationMode::Simulated;
             }
-            if let Some(steerer) = data.npcs.mounts.get_steerer_link(entity.0) && let Actor::Npc(npc) = steerer.rider && let Some(npc) = data.npcs.get_mut(npc) {
+            if let Some(steerer) = data.npcs.mounts.get_steerer_link(entity.0) && let Actor::Npc(npc) = steerer.rider
+            && let Some(npc) = data.npcs.get_mut(npc) {
+                if matches!(npc.mode, SimulationMode::Simulated) {
+                    error!("Unloaded already unloaded steerer entity");
+                }
                 npc.mode = SimulationMode::Simulated;
             }
+            true
+        } else {
+            false
         }
     }
 

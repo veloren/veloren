@@ -854,11 +854,12 @@ impl Server {
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 !&self.state.ecs().read_storage::<comp::Presence>(),
                 self.state.ecs().read_storage::<Anchor>().maybe(),
+                self.state.ecs().read_storage::<RtSimEntity>().maybe(),
             )
                 .join()
-                .filter(|(_, pos, _, anchor)| {
+                .filter(|(_, pos, _, anchor, rtsim_entity)| {
                     let chunk_key = terrain.pos_key(pos.0.map(|e| e.floor() as i32));
-                    match anchor {
+                    let unload = match anchor {
                         Some(Anchor::Chunk(hc)) => {
                             // Check if both this chunk and the NPCs `home_chunk` is unloaded. If
                             // so, we delete them. We check for
@@ -869,22 +870,27 @@ impl Server {
                         },
                         Some(Anchor::Entity(entity)) => !self.state.ecs().is_alive(*entity),
                         None => terrain.get_key_real(chunk_key).is_none(),
+                    };
+
+                    if unload {
+                        // For rtsim entities we only want to unload if assimilation succeeds
+                        if let Some(rtsim_entity) = rtsim_entity {
+                            #[cfg(feature = "worldgen")]
+                            let res = rtsim.hook_rtsim_entity_unload(**rtsim_entity);
+                            #[cfg(not(feature = "worldgen"))]
+                            let res = true;
+                            res
+                        } else {
+                            true
+                        }
+                    } else {
+                        false
                     }
                 })
-                .map(|(entity, _, _, _)| entity)
+                .map(|(entity, _, _, _, _)| entity)
                 .collect::<Vec<_>>()
         };
 
-        #[cfg(feature = "worldgen")]
-        {
-            let rtsim_entities = self.state.ecs().read_storage::<RtSimEntity>();
-            // Assimilate entities that are part of the real-time world simulation
-            for entity in &to_delete {
-                if let Some(rtsim_entity) = rtsim_entities.get(*entity) {
-                    rtsim.hook_rtsim_entity_unload(*rtsim_entity);
-                }
-            }
-        }
         drop(rtsim);
 
         // Actually perform entity deletion
