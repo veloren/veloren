@@ -310,7 +310,7 @@ impl NpcLinks {
             } else if let Some((i, _)) = riders.riders.iter().enumerate().find(|(_, i)| **i == id) {
                 riders.riders.remove(i);
             }
-            
+
             if riders.steerer.is_none() && riders.riders.is_empty() {
                 self.mount_map.remove(link.mount);
             }
@@ -345,10 +345,10 @@ impl NpcLinks {
             return Err(MountingError::MountSelf);
         }
         if let Actor::Npc(rider) = rider && self.mount_map.contains_key(rider) {
-           return Err(MountingError::RiderIsMounted); 
+           return Err(MountingError::RiderIsMounted);
         }
         if self.rider_map.contains_key(&Actor::Npc(mount)) {
-           return Err(MountingError::MountIsRiding); 
+            return Err(MountingError::MountIsRiding);
         }
         if let Some(mount_entry) = self.mount_map.entry(mount) {
             if let hashbrown::hash_map::Entry::Vacant(rider_entry) = self.rider_map.entry(rider) {
@@ -377,7 +377,7 @@ impl NpcLinks {
                     riders.riders.push(id);
                     rider_entry.insert(id);
                     Ok(id)
-                } 
+                }
             } else {
                 Err(MountingError::AlreadyRiding)
             }
@@ -420,9 +420,7 @@ impl NpcLinks {
 
     pub fn iter(&self) -> impl Iterator<Item = &NpcLink> + '_ { self.links.values() }
 
-    pub fn iter_mounts(&self) -> impl Iterator<Item = NpcId> + '_ {
-        self.mount_map.keys()
-    }
+    pub fn iter_mounts(&self) -> impl Iterator<Item = NpcId> + '_ { self.mount_map.keys() }
 }
 
 impl From<HopSlotMap<MountId, NpcLink>> for NpcLinks {
