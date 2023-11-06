@@ -8,11 +8,8 @@ use common::{
 };
 use enum_map::EnumMap;
 use enumset::EnumSet;
-use hashbrown::{HashMap, HashSet};
-use rand::{
-    seq::{IteratorRandom, SliceRandom},
-    Rng, SeedableRng,
-};
+use hashbrown::HashSet;
+use rand::{seq::IteratorRandom, Rng};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
@@ -59,6 +56,21 @@ impl Wall {
     }
 }
 
+#[derive(Copy, Clone)]
+enum RoofStyle {
+    Flat,
+    FlatBars { dir: Dir },
+    LeanTo { dir: Dir, max_z: i32 },
+    Gable { dir: Dir, max_z: i32 },
+    Hip { max_z: i32 },
+}
+
+struct Roof {
+    bounds: Aabr<i32>,
+    min_z: i32,
+    style: RoofStyle,
+}
+
 #[derive(Clone, Copy, EnumIter, enum_map::Enum)]
 enum RoomKind {
     Garden,
@@ -99,6 +111,7 @@ pub struct Room {
     kind: RoomKind,
     // stairs: Option<Id<Stairs>>,
     walls: EnumMap<Dir, Vec<Id<Wall>>>,
+    roofs: Vec<Id<Roof>>,
     // TODO: Remove this, used for debugging
     detail_areas: Vec<Aabr<i32>>,
     pub details: Vec<Detail>,
@@ -109,10 +122,25 @@ impl Room {
         Self {
             bounds,
             kind,
+            roofs: Default::default(),
             walls: Default::default(),
             detail_areas: Default::default(),
             details: Default::default(),
         }
+    }
+
+    /// Are any of this rooms roofs fully covering it?
+    fn is_covered_by_roof(&self, roofs: &Store<Roof>) -> bool {
+        let aabr = Aabr {
+            min: self.bounds.min.xy(),
+            max: self.bounds.max.xy(),
+        };
+        for roof in self.roofs.iter() {
+            if roofs[*roof].bounds.contains_aabr(aabr) {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -120,6 +148,7 @@ pub struct Tavern {
     name: String,
     pub rooms: Store<Room>,
     walls: Store<Wall>,
+    roofs: Store<Roof>,
     /// Tile position of the door tile
     pub door_tile: Vec2<i32>,
     pub door_wpos: Vec3<i32>,
@@ -130,7 +159,7 @@ pub struct Tavern {
 impl Tavern {
     pub fn generate(
         land: &Land,
-        index: IndexRef,
+        _index: IndexRef,
         rng: &mut impl Rng,
         site: &Site,
         door_tile: Vec2<i32>,
@@ -139,9 +168,9 @@ impl Tavern {
     ) -> Self {
         let name = namegen::NameGen::location(rng).generate_tavern();
 
-        let start = std::time::Instant::now();
         let mut rooms = Store::default();
         let mut walls = Store::default();
+        let mut roofs = Store::default();
         let mut room_counts = EnumMap::<RoomKind, u32>::default();
 
         let bounds = Aabr {
@@ -258,14 +287,7 @@ impl Tavern {
 
             room_metas.push(RoomMeta {
                 id: entrance_id,
-                walls: Dir::iter()
-                .filter(|d| *d != door_dir)
-                // .map(|d| {
-                //     let a = d.rotated_cw().select_aabr(entrance_room_aabr);
-                //     let b = d.rotated_ccw().select_aabr(entrance_room_aabr);
-                //     (d, a.min(b)..=a.max(b))
-                // })
-                .collect(),
+                walls: Dir::iter().filter(|d| *d != door_dir).collect(),
             });
 
             room_counts[entrance_room] += 1;
@@ -281,11 +303,13 @@ impl Tavern {
             max: aabr.max + amount,
         };
         'room_gen: while room_metas.len() > 0 {
+            // Continue extending from a random existing room
             let mut room_meta = room_metas.swap_remove(rng.gen_range(0..room_metas.len()));
             if room_meta.walls.is_empty() {
                 continue 'room_gen;
             }
 
+            // Pick a direction to choose from
             let Some(in_dir) = room_meta.walls.into_iter().choose(rng) else {
                 continue 'room_gen;
             };
@@ -297,6 +321,7 @@ impl Tavern {
             let from_id = room_meta.id;
             let from_room = &rooms[from_id];
 
+            // If there are more directions to continue from, push this room again.
             if !room_meta.walls.is_empty() {
                 room_metas.push(room_meta);
             }
@@ -309,7 +334,7 @@ impl Tavern {
                 max: in_dir.select_aabr_with(ibounds, ibounds.max),
             }
             .made_valid();
-            // Height of the new room
+            // Pick a  height of the new room
             let room_hgt = rng.gen_range(3..=5);
             let wanted_alt = land.get_alt_approx(max_bounds.center()) as i32;
             let max_stair_length = (in_dir.select(if wanted_alt < from_room.bounds.min.z {
@@ -409,7 +434,7 @@ impl Tavern {
 
             // Pick a room.
             let room_lottery = Lottery::from(room_lottery);
-            let room = *room_lottery.choose_seeded(rng.gen());
+            let room_kind = *room_lottery.choose_seeded(rng.gen());
 
             // Select a door position
             let mut min = left
@@ -428,7 +453,8 @@ impl Tavern {
             let in_pos =
                 in_dir.select_aabr_with(from_bounds, Vec2::broadcast(in_pos)) + in_dir.to_vec2();
 
-            let Some(bounds) = place_room_in(room, max_bounds, in_dir, in_pos, rng) else {
+            // Place the room in the given max bounds
+            let Some(bounds) = place_room_in(room_kind, max_bounds, in_dir, in_pos, rng) else {
                 continue 'room_gen;
             };
 
@@ -436,7 +462,7 @@ impl Tavern {
                 min: bounds.min.with_z(alt),
                 max: bounds.max.with_z(alt + room_hgt),
             };
-            let id = rooms.insert(Room::new(bounds3, room));
+            let id = rooms.insert(Room::new(bounds3, room_kind));
 
             let start = in_dir.select_aabr_with(
                 from_bounds,
@@ -476,7 +502,7 @@ impl Tavern {
                 id,
                 walls: Dir::iter().filter(|d| *d != -in_dir).collect(),
             });
-            room_counts[room] += 1;
+            room_counts[room_kind] += 1;
         }
 
         // Place walls where needed.
@@ -643,6 +669,7 @@ impl Tavern {
                 .collect::<Vec<_>>();
 
             let mut x = bounds.min.x;
+            // Basically greedy meshing, but for aabrs
             while x <= bounds.max.x {
                 let mut y = bounds.min.y;
                 'y_loop: while y <= bounds.max.y {
@@ -759,11 +786,139 @@ impl Tavern {
             }
         }
 
-        println!("GENERATION TIME: {}μs", start.elapsed().as_micros());
+        for room_id in rooms.ids() {
+            let room = &rooms[room_id];
+            // If a room is already fully covered by a roof, we skip it.
+            if room.is_covered_by_roof(&roofs) {
+                continue;
+            }
+            let roof_min_z = room.bounds.max.z + 1;
+            let mut roof_bounds = to_aabr(room.bounds);
+            roof_bounds.min -= 2;
+            roof_bounds.max += 2;
+            let mut dirs = Vec::from(Dir::ALL);
+
+            let mut over_rooms = vec![room_id];
+            // Extend roof over adjecent rooms.
+            while !dirs.is_empty() {
+                let dir = dirs.swap_remove(rng.gen_range(0..dirs.len()));
+                let orth = dir.orthogonal();
+                // Check for room intersections in this direction.
+                for (room_id, room) in rooms.iter() {
+                    let room_aabr = to_aabr(room.bounds);
+                    if room.bounds.max.z == roof_min_z
+                        && dir.select_aabr(roof_bounds) + dir.signum()
+                            == (-dir).select_aabr(room_aabr)
+                        && orth.select_aabr(roof_bounds) <= orth.select_aabr(room_aabr) + 2
+                        && (-orth).select_aabr(roof_bounds) >= (-orth).select_aabr(room_aabr) - 2
+                    {
+                        // If the room we found is fully covered by a roof already, we don't go in
+                        // this direction.
+                        if room.is_covered_by_roof(&roofs) {
+                            break;
+                        }
+                        roof_bounds = dir.extend_aabr(roof_bounds, dir.select(room_aabr.size()));
+                        dirs.push(dir);
+                        over_rooms.push(room_id);
+                        break;
+                    }
+                }
+            }
+
+            // Build a lottery of valid roofs to pick from
+            let mut valid_styles = vec![(0.5, RoofStyle::Flat)];
+
+            let gardens = over_rooms
+                .iter()
+                .filter(|id| matches!(rooms[**id].kind, RoomKind::Garden))
+                .count();
+
+            // If we just have gardens, we can use FlatBars style.
+            if gardens == over_rooms.len() {
+                let ratio = Dir::X.select(roof_bounds.size()) as f32
+                    / Dir::Y.select(roof_bounds.size()) as f32;
+                valid_styles.extend([
+                    (5.0 * ratio, RoofStyle::FlatBars { dir: Dir::X }),
+                    (5.0 / ratio, RoofStyle::FlatBars { dir: Dir::Y }),
+                ]);
+            }
+
+            // Find heights of possible adjecent rooms.
+            let mut dir_zs = EnumMap::default();
+            for dir in Dir::iter() {
+                let orth = dir.orthogonal();
+                for room in rooms.values() {
+                    let room_aabr = to_aabr(room.bounds);
+                    if room.bounds.max.z > roof_min_z
+                        && dir.select_aabr(roof_bounds) == (-dir).select_aabr(room_aabr)
+                        && orth.select_aabr(roof_bounds) <= orth.select_aabr(room_aabr) + 2
+                        && (-orth).select_aabr(roof_bounds) >= (-orth).select_aabr(room_aabr) - 2
+                    {
+                        dir_zs[dir] = Some(room.bounds.max.z);
+                        break;
+                    }
+                }
+            }
+
+            for dir in [Dir::X, Dir::Y] {
+                if dir_zs[dir.orthogonal()].is_none() && dir_zs[-dir.orthogonal()].is_none() {
+                    let max_z =
+                        roof_min_z + (dir.orthogonal().select(roof_bounds.size()) / 2 - 1).min(7);
+                    let max_z = match (dir_zs[dir], dir_zs[-dir]) {
+                        (Some(a), Some(b)) => {
+                            if a.min(b) >= roof_min_z + 3 {
+                                max_z.min(a.min(b))
+                            } else {
+                                max_z
+                            }
+                        },
+                        (None, None) => max_z,
+                        _ => continue,
+                    };
+
+                    for max_z in roof_min_z + 3..=max_z {
+                        valid_styles.push((1.0, RoofStyle::Gable { dir, max_z }))
+                    }
+                }
+            }
+
+            for dir in Dir::iter() {
+                if let (Some(h), None) = (dir_zs[dir], dir_zs[-dir]) {
+                    for max_z in roof_min_z + 2..=h {
+                        valid_styles.push((1.0, RoofStyle::LeanTo { dir, max_z }))
+                    }
+                }
+            }
+
+            if Dir::iter().all(|d| dir_zs[d].is_none()) {
+                for max_z in roof_min_z + 3..=roof_min_z + 7 {
+                    valid_styles.push((0.8, RoofStyle::Hip { max_z }))
+                }
+            }
+
+            let style_lottery = Lottery::from(valid_styles);
+
+            debug_assert!(
+                roof_bounds.is_valid(),
+                "Roof bounds aren't valid: {:?}",
+                roof_bounds
+            );
+            let roof_id = roofs.insert(Roof {
+                bounds: roof_bounds,
+                min_z: roof_min_z,
+                style: *style_lottery.choose_seeded(rng.gen()),
+            });
+
+            for room_id in over_rooms {
+                rooms[room_id].roofs.push(roof_id);
+            }
+        }
+
         Self {
             name,
             rooms,
             walls,
+            roofs,
             door_tile,
             door_wpos,
             bounds,
@@ -825,85 +980,124 @@ impl Structure for Tavern {
                 })
         };
 
-        enum RoofStyle {
-            Flat,
-            FlatBars(Dir),
-            LeanTo(Dir),
-            Gable(Dir),
-            Hip,
-        }
-        struct Roof {
-            bounds: Aabb<i32>,
-            style: RoofStyle,
-        }
-        let mut roof = Store::default();
-
-        let s = [field.get(self.door_wpos); 8];
-        let rng = &mut rand_chacha::ChaChaRng::from_seed(unsafe { std::mem::transmute(s) });
-        // let mut room_roofs = HashMap::new();
-
-        for room in self.rooms.values() {
-            match room.kind {
-                RoomKind::Garden => {
-                    let dir = *[Dir::X, Dir::Y].choose(rng).expect("We have 2 elements");
-                    let orth = dir.orthogonal();
-                    roof.insert(Roof {
-                        bounds: Aabb {
-                            min: (room.bounds.min - 1 - orth.to_vec2())
-                                .with_z(room.bounds.max.z + 1),
-                            max: (room.bounds.max + 1 + orth.to_vec2())
-                                .with_z(room.bounds.max.z + 1),
-                        },
-                        style: RoofStyle::FlatBars(dir),
-                    });
-                },
-                _ => {
-                    roof.insert(Roof {
-                        bounds: Aabb {
-                            min: (room.bounds.min - 2).with_z(room.bounds.max.z + 1),
-                            max: (room.bounds.max + 2).with_z(room.bounds.max.z + 5),
-                        },
-                        style: RoofStyle::Hip,
-                    });
-                },
-            }
-        }
-
-        for roof in roof.values() {
-            let roof_aabr = Aabr {
-                min: roof.bounds.min.xy(),
-                max: roof.bounds.max.xy(),
-            };
-            match &roof.style {
+        for roof in self.roofs.values() {
+            match roof.style {
                 RoofStyle::Flat => {
-                    painter.aabb(aabb(roof.bounds)).fill(roof_fill.clone());
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: roof.bounds.min.with_z(roof.min_z),
+                            max: roof.bounds.max.with_z(roof.min_z),
+                        }))
+                        .fill(roof_fill.clone());
                 },
-                RoofStyle::FlatBars(dir) => painter
+                RoofStyle::FlatBars { dir } => painter
                     .aabb(aabb(Aabb {
                         min: dir
-                            .select_aabr_with(roof_aabr, roof_aabr.min)
-                            .with_z(roof.bounds.max.z),
+                            .select_aabr_with(roof.bounds, roof.bounds.min)
+                            .with_z(roof.min_z),
                         max: dir
-                            .select_aabr_with(roof_aabr, roof_aabr.max)
-                            .with_z(roof.bounds.max.z),
+                            .select_aabr_with(roof.bounds, roof.bounds.max)
+                            .with_z(roof.min_z),
                     }))
                     .repeat(
                         -dir.to_vec3() * 2,
-                        (dir.select(roof_aabr.size()) as u32 + 3) / 2,
+                        (dir.select(roof.bounds.size()) as u32 + 3) / 2,
                     )
                     .fill(roof_fill.clone()),
-                RoofStyle::LeanTo(dir) => {
+                RoofStyle::LeanTo { dir, max_z } => {
                     painter
-                        .ramp(aabb(roof.bounds), *dir)
+                        .aabb(aabb(Aabb {
+                            min: roof.bounds.min.with_z(roof.min_z),
+                            max: roof.bounds.max.with_z(roof.min_z),
+                        }))
                         .fill(roof_fill.clone());
-                },
-                RoofStyle::Gable(dir) => {
                     painter
-                        .gable(roof.bounds, roof.bounds.size().d, *dir)
+                        .ramp(
+                            aabb(Aabb {
+                                min: roof.bounds.min.with_z(roof.min_z),
+                                max: roof.bounds.max.with_z(max_z),
+                            }),
+                            dir,
+                        )
                         .fill(roof_fill.clone());
+                    for d in [dir.orthogonal(), -dir.orthogonal()] {
+                        painter
+                            .ramp(
+                                aabb(Aabb {
+                                    min: (d.select_aabr_with(roof.bounds, roof.bounds.min)
+                                        - d.to_vec2())
+                                    .with_z(roof.min_z - 1),
+                                    max: (d.select_aabr_with(roof.bounds, roof.bounds.max)
+                                        - d.to_vec2())
+                                    .with_z(max_z - 1),
+                                }),
+                                dir,
+                            )
+                            .fill(wall_fill.clone());
+                        painter
+                            .ramp(
+                                aabb(Aabb {
+                                    min: d
+                                        .select_aabr_with(roof.bounds, roof.bounds.min)
+                                        .with_z(roof.min_z - 1),
+                                    max: d
+                                        .select_aabr_with(roof.bounds, roof.bounds.max)
+                                        .with_z(max_z - 1),
+                                }),
+                                dir,
+                            )
+                            .clear();
+                    }
                 },
-                RoofStyle::Hip => {
-                    painter.pyramid(aabb(roof.bounds)).fill(roof_fill.clone());
+                RoofStyle::Gable { dir, max_z } => {
+                    painter
+                        .gable(
+                            aabb(Aabb {
+                                min: roof.bounds.min.with_z(roof.min_z),
+                                max: roof.bounds.max.with_z(max_z),
+                            }),
+                            max_z - roof.min_z + 1,
+                            dir,
+                        )
+                        .fill(roof_fill.clone());
+                    for dir in [dir, -dir] {
+                        painter
+                            .gable(
+                                aabb(Aabb {
+                                    min: (dir.select_aabr_with(roof.bounds, roof.bounds.min + 1)
+                                        - dir.to_vec2())
+                                    .with_z(roof.min_z),
+                                    max: (dir.select_aabr_with(roof.bounds, roof.bounds.max - 1)
+                                        - dir.to_vec2())
+                                    .with_z(max_z - 1),
+                                }),
+                                max_z - roof.min_z,
+                                dir,
+                            )
+                            .fill(wall_fill.clone());
+                        painter
+                            .gable(
+                                aabb(Aabb {
+                                    min: dir
+                                        .select_aabr_with(roof.bounds, roof.bounds.min + 1)
+                                        .with_z(roof.min_z),
+                                    max: dir
+                                        .select_aabr_with(roof.bounds, roof.bounds.max - 1)
+                                        .with_z(max_z - 1),
+                                }),
+                                max_z - roof.min_z,
+                                dir,
+                            )
+                            .clear();
+                    }
+                },
+                RoofStyle::Hip { max_z } => {
+                    painter
+                        .pyramid(aabb(Aabb {
+                            min: roof.bounds.min.with_z(roof.min_z),
+                            max: roof.bounds.max.with_z(max_z),
+                        }))
+                        .fill(roof_fill.clone());
                 },
             }
         }
@@ -1001,9 +1195,7 @@ impl Structure for Tavern {
                 max: room.bounds.max.xy(),
             };
             match room.kind {
-                RoomKind::Garden => {
-                    let dir = Dir::from_vec2(room_aabr.size().into());
-                },
+                RoomKind::Garden => {},
                 RoomKind::StageRoom => {
                     for aabr in room.detail_areas.iter().copied() {
                         for dir in Dir::iter().filter(|dir| {
