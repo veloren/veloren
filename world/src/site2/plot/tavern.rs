@@ -1076,6 +1076,58 @@ impl Structure for Tavern {
                             )
                             .fill(wall_fill.clone());
                         painter
+                            .aabb(aabb(Aabb {
+                                min: (dir.select_aabr_with(roof.bounds, roof.bounds.min + 1)
+                                    - dir.to_vec2())
+                                .with_z(roof.min_z),
+                                max: (dir.select_aabr_with(roof.bounds, roof.bounds.max - 1)
+                                    - dir.to_vec2())
+                                .with_z(roof.min_z),
+                            }))
+                            .fill(wall_detail_fill.clone());
+                        let center_bounds = Aabr {
+                            min: (dir.select_aabr_with(roof.bounds, roof.bounds.center())
+                                - dir.to_vec2()),
+                            max: (dir.select_aabr_with(
+                                roof.bounds,
+                                (roof.bounds.min + roof.bounds.max + 1) / 2,
+                            ) - dir.to_vec2()),
+                        };
+                        painter
+                            .aabb(aabb(Aabb {
+                                min: center_bounds.min.with_z(roof.min_z),
+                                max: center_bounds.max.with_z(max_z - 1),
+                            }))
+                            .fill(wall_detail_fill.clone());
+                        for d in [dir.orthogonal(), -dir.orthogonal()] {
+                            let hgt = max_z - roof.min_z;
+                            let half_size = d.select(roof.bounds.size() + 1) / 2;
+                            let e = half_size - hgt + 1;
+                            let e = e - e % 2;
+                            let f = half_size - e;
+                            let hgt = (hgt - 1).min(e - f % 2) - (d.signum() - 1) / 2;
+                            let mut aabr = Aabr {
+                                min: d.select_aabr_with(center_bounds, center_bounds.min),
+                                max: d.select_aabr_with(center_bounds, center_bounds.max)
+                                    + d.to_vec2() * hgt,
+                            }
+                            .made_valid();
+                            aabr.max += 1;
+                            painter
+                                .plane(
+                                    aabr,
+                                    aabr.min
+                                        .with_z(if d.signum() < 0 {
+                                            roof.min_z + hgt
+                                        } else {
+                                            roof.min_z
+                                        })
+                                        .as_(),
+                                    d.to_vec2().as_(),
+                                )
+                                .fill(wall_detail_fill.clone());
+                        }
+                        painter
                             .gable(
                                 aabb(Aabb {
                                     min: dir

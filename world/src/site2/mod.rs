@@ -593,12 +593,12 @@ impl Site {
         site.make_plaza(land, &mut rng);
 
         let build_chance = Lottery::from(vec![
-            // (64.0, 1),
-            // (5.0, 2),
-            // (8.0, 3),
-            // (5.0, 4),
-            // (5.0, 5),
-            // (15.0, 6),
+            (64.0, 1),
+            (5.0, 2),
+            (8.0, 3),
+            (5.0, 4),
+            (5.0, 5),
+            (15.0, 6),
             (15.0, 7),
         ]);
 
@@ -607,6 +607,8 @@ impl Site {
         let mut workshops = 0;
 
         let mut airship_docks = 0;
+
+        let mut taverns = 0;
         for _ in 0..(size * 200.0) as i32 {
             match *build_chance.choose_seeded(rng.gen()) {
                 // Workshop
@@ -924,7 +926,7 @@ impl Site {
                         }
                     }
                 },
-                7 if size > 0.125 => {
+                7 if (size > 0.125 && taverns < 2) => {
                     let size = (3.5 + rng.gen::<f32>().powf(5.0) * 2.0).round() as u32;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -955,7 +957,8 @@ impl Site {
                             plot: Some(plot),
                             hard_alt: Some(tavern_alt),
                         });
-                        workshops += 1;
+
+                        taverns += 1;
                     } else {
                         site.make_plaza(land, &mut rng);
                     }
