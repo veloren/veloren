@@ -302,7 +302,7 @@ impl Tavern {
             min: aabr.min - amount,
             max: aabr.max + amount,
         };
-        'room_gen: while room_metas.len() > 0 {
+        'room_gen: while !room_metas.is_empty() {
             // Continue extending from a random existing room
             let mut room_meta = room_metas.swap_remove(rng.gen_range(0..room_metas.len()));
             if room_meta.walls.is_empty() {
@@ -683,10 +683,8 @@ impl Tavern {
                             continue 'y_loop;
                         }
 
-                        if contains_x && min.y < area.min.y {
-                            if area.min.y - 1 < max_y {
-                                max_y = area.min.y - 1;
-                            }
+                        if contains_x && min.y < area.min.y && area.min.y - 1 < max_y {
+                            max_y = area.min.y - 1;
                         }
                     }
 

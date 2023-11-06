@@ -325,7 +325,9 @@ impl Rule for NpcAi {
     }
 }
 
-fn idle<S: State>() -> impl Action<S> + Clone { just(|ctx, _| ctx.controller.do_idle()).debug(|| "idle") }
+fn idle<S: State>() -> impl Action<S> + Clone {
+    just(|ctx, _| ctx.controller.do_idle()).debug(|| "idle")
+}
 
 /// Try to walk toward a 3D position without caring for obstacles.
 fn goto<S: State>(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action<S> {
@@ -914,9 +916,9 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                             _ => None,
                         })
                     ).choose(&mut ctx.rng).unwrap_or(stage_aabr.center().with_z(stage_z));
-                    
+
                     // Pick a chair that is theirs for the stay
-                    let chair_pos = tavern.rooms.values().flat_map(|room| { 
+                    let chair_pos = tavern.rooms.values().flat_map(|room| {
                         let z = room.bounds.min.z;
                         room.details.iter().filter_map(move |detail| match detail {
                             tavern::Detail::Table { pos, chairs } => Some(chairs.into_iter().map(move |dir| pos.with_z(z) + dir.to_vec2())),
