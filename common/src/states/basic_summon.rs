@@ -15,6 +15,7 @@ use crate::{
         utils::*,
     },
     terrain::Block,
+    util::Dir,
     vol::ReadVol,
 };
 use rand::Rng;
@@ -189,13 +190,7 @@ impl CharacterBehavior for Data {
                         // Send server event to create npc
                         output_events.emit_server(ServerEvent::CreateNpc {
                             pos: comp::Pos(collision_vector - Vec3::unit_z() * obstacle_z),
-                            ori: crate::util::Dir::from_unnormalized(Vec3::new(
-                                rng.gen_range(-1.0..=1.0),
-                                rng.gen_range(-1.0..=1.0),
-                                0.0,
-                            ))
-                            .map(comp::Ori::from)
-                            .unwrap_or_default(),
+                            ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                             npc: NpcBuilder::new(stats, body, comp::Alignment::Owned(*data.uid))
                                 .with_skill_set(skill_set)
                                 .with_health(health)

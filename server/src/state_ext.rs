@@ -32,6 +32,7 @@ use common::{
     rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
     uid::{IdMaps, Uid},
+    util::Dir,
     LoadoutBuilder, ViewDistances,
 };
 use common_net::{
@@ -785,13 +786,7 @@ impl StateExt for State {
                 let mut rng = rand::thread_rng();
 
                 for (pet, body, stats) in pets {
-                    let ori = common::util::Dir::from_unnormalized(Vec3::new(
-                        rng.gen_range(-1.0..=1.0),
-                        rng.gen_range(-1.0..=1.0),
-                        0.0,
-                    ))
-                    .map(comp::Ori::from)
-                    .unwrap_or_default();
+                    let ori = comp::Ori::from(Dir::random_2d(&mut rng));
                     let pet_entity = self
                         .create_npc(
                             player_pos,

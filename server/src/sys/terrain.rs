@@ -2,7 +2,6 @@
 use crate::test_world::{IndexOwned, World};
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
-use rand::Rng;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
@@ -22,6 +21,7 @@ use common::{
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
+    util::Dir,
     SkillSetBuilder,
 };
 
@@ -213,13 +213,7 @@ impl<'a> System<'a> for Sys {
                     } => {
                         server_emitter.emit(ServerEvent::CreateNpc {
                             pos,
-                            ori: common::util::Dir::from_unnormalized(Vec3::new(
-                                rng.gen_range(-1.0..=1.0),
-                                rng.gen_range(-1.0..=1.0),
-                                0.0,
-                            ))
-                            .map(comp::Ori::from)
-                            .unwrap_or_default(),
+                            ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                             npc: NpcBuilder::new(stats, body, alignment)
                                 .with_skill_set(skill_set)
                                 .with_health(health)

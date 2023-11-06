@@ -96,12 +96,6 @@ pub struct Brain {
     pub action: Box<dyn Action<(), !>>,
 }
 
-// #[derive(Serialize, Deserialize, Default, Clone)]
-// pub struct Relations {
-//     #[serde(skip)]
-//     pub driver: Option<Actor>,
-// }
-
 #[derive(Serialize, Deserialize)]
 pub struct Npc {
     pub uid: u64,
@@ -115,7 +109,6 @@ pub struct Npc {
     pub role: Role,
     pub home: Option<SiteId>,
     pub faction: Option<FactionId>,
-    // pub relations: Relations,
     pub is_dead: bool,
 
     /// The [`Report`]s that the NPC is aware of.
@@ -158,7 +151,6 @@ impl Clone for Npc {
             role: self.role.clone(),
             home: self.home,
             faction: self.faction,
-            // relations: self.relations.clone(),
             is_dead: self.is_dead,
             known_reports: self.known_reports.clone(),
             body: self.body,
@@ -192,7 +184,6 @@ impl Npc {
             role,
             home: None,
             faction: None,
-            // relations: Default::default(),
             is_dead: false,
             known_reports: Default::default(),
             chunk_pos: None,

@@ -1,6 +1,6 @@
 use crate::{
     data::{npc::SimulationMode, Npc},
-    event::{EventCtx, OnDeath, OnMountVolume, OnSetup, OnTick},
+    event::{EventCtx, OnDeath, OnMountVolume, OnTick},
     RtState, Rule, RuleError,
 };
 use common::{
@@ -21,38 +21,12 @@ pub struct SimulateNpcs;
 
 impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
-        rtstate.bind(on_setup);
         rtstate.bind(on_death);
         rtstate.bind(on_tick);
         rtstate.bind(on_mount_volume);
 
         Ok(Self)
     }
-}
-
-fn on_setup(_ctx: EventCtx<SimulateNpcs, OnSetup>) {
-    /*
-    let data = &mut *ctx.state.data_mut();
-    // Add riders to vehicles
-    let riders = data
-        .npcs
-        .iter()
-        .filter_map(|(id, npc)| Some((id, npc.relations.riding?)))
-        .collect::<Vec<_>>();
-
-    for (npc_id, ride) in riders {
-        if let Some(mount) = data.npcs.get_mut(ride.npc) {
-            if ride.steering && let Some(actor) = mount.relations.driver.replace(Actor::Npc(npc_id)) {
-                error!("Replaced driver");
-                if let Actor::Npc(npc) = actor && let Some(npc) = data.npcs.get_mut(npc) {
-                    npc.relations.riding = None;
-                }
-            }
-        } else {
-            data.npcs[npc_id].relations.riding = None;
-        }
-    }
-    */
 }
 
 fn on_mount_volume(ctx: EventCtx<SimulateNpcs, OnMountVolume>) {
