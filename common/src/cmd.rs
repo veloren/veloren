@@ -1,10 +1,9 @@
 use crate::{
-    assets,
+    assets::{self, Concatenate, AssetCombined},
     comp::{self, buff::BuffKind, inventory::item::try_all_item_defs, AdminRole as Role, Skill},
     generation::try_all_entity_configs,
     npc, terrain,
 };
-use assets::AssetExt;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -54,6 +53,11 @@ impl assets::Asset for KitManifest {
 
     const EXTENSION: &'static str = "ron";
 }
+impl Concatenate for KitManifest {
+    fn concatenate(self, b: Self) -> Self {
+        KitManifest(self.0.concatenate(b.0))
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct SkillPresetManifest(pub HashMap<String, Vec<(Skill, u8)>>);
@@ -61,6 +65,11 @@ impl assets::Asset for SkillPresetManifest {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
+}
+impl Concatenate for SkillPresetManifest {
+    fn concatenate(self, b: Self) -> Self {
+        SkillPresetManifest(self.0.concatenate(b.0))
+    }
 }
 
 pub const KIT_MANIFEST_PATH: &str = "server.manifests.kits";
@@ -232,7 +241,7 @@ lazy_static! {
     };
 
     pub static ref KITS: Vec<String> = {
-        if let Ok(kits) = KitManifest::load(KIT_MANIFEST_PATH) {
+        if let Ok(kits) = KitManifest::load_and_combine(KIT_MANIFEST_PATH) {
             let mut kits = kits.read().0.keys().cloned().collect::<Vec<String>>();
             kits.sort();
             kits
@@ -242,7 +251,7 @@ lazy_static! {
     };
 
     static ref PRESETS: HashMap<String, Vec<(Skill, u8)>> = {
-        if let Ok(presets) = SkillPresetManifest::load(PRESET_MANIFEST_PATH) {
+        if let Ok(presets) = SkillPresetManifest::load_and_combine(PRESET_MANIFEST_PATH) {
             presets.read().0.clone()
         } else {
             warn!("Error while loading presets");
