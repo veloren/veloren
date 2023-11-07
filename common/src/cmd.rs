@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, Concatenate, AssetCombined},
+    assets::{self, AssetCombined, Concatenate},
     comp::{self, buff::BuffKind, inventory::item::try_all_item_defs, AdminRole as Role, Skill},
     generation::try_all_entity_configs,
     npc, terrain,
@@ -54,9 +54,7 @@ impl assets::Asset for KitManifest {
     const EXTENSION: &'static str = "ron";
 }
 impl Concatenate for KitManifest {
-    fn concatenate(self, b: Self) -> Self {
-        KitManifest(self.0.concatenate(b.0))
-    }
+    fn concatenate(self, b: Self) -> Self { KitManifest(self.0.concatenate(b.0)) }
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
@@ -67,9 +65,7 @@ impl assets::Asset for SkillPresetManifest {
     const EXTENSION: &'static str = "ron";
 }
 impl Concatenate for SkillPresetManifest {
-    fn concatenate(self, b: Self) -> Self {
-        SkillPresetManifest(self.0.concatenate(b.0))
-    }
+    fn concatenate(self, b: Self) -> Self { SkillPresetManifest(self.0.concatenate(b.0)) }
 }
 
 pub const KIT_MANIFEST_PATH: &str = "server.manifests.kits";
@@ -1205,11 +1201,13 @@ mod tests {
     }
 
     #[test]
-    fn test_loading_skill_presets() { SkillPresetManifest::load_expect(PRESET_MANIFEST_PATH); }
+    fn test_loading_skill_presets() {
+        SkillPresetManifest::load_expect_combined(PRESET_MANIFEST_PATH);
+    }
 
     #[test]
     fn test_load_kits() {
-        let kits = KitManifest::load_expect(KIT_MANIFEST_PATH).read();
+        let kits = KitManifest::load_expect_combined(KIT_MANIFEST_PATH).read();
         let mut rng = rand::thread_rng();
         for kit in kits.0.values() {
             for (item_id, _) in kit.iter() {

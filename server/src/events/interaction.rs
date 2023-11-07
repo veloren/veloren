@@ -277,14 +277,14 @@ impl assets::Asset for ResourceExperienceManifest {
     const EXTENSION: &'static str = "ron";
 }
 impl Concatenate for ResourceExperienceManifest {
-    fn concatenate(self, b: Self) -> Self {
-        Self(self.0.concatenate(b.0))
-    }
+    fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }
 }
 
 lazy_static! {
     static ref RESOURCE_EXPERIENCE_MANIFEST: assets::AssetHandle<ResourceExperienceManifest> =
-        assets::AssetCombined::load_expect_combined("server.manifests.resource_experience_manifest");
+        assets::AssetCombined::load_expect_combined(
+            "server.manifests.resource_experience_manifest"
+        );
 }
 
 pub fn handle_mine_block(
