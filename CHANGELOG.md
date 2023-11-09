@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPC's wont pick up recently dropped items (if not hostile towards you)
 - Fixed "low fps" of different shaders caused by low floating point precision when using time.
 - Fixed bug where airship captains would mass generate after using /reload_chunks
+- Fixed french translation "Énergie Consommée" -> "Regain d'Énergie"
 
 ## [0.15.0] - 2023-07-01
 
