@@ -1395,6 +1395,37 @@ impl Site {
         site
     }
 
+    pub fn generate_rock_circle(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: "".to_string(),
+            ..Site::default()
+        };
+        let size = 8.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let rock_circle = plot::RockCircle::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let rock_circle_alt = rock_circle.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::RockCircle(rock_circle),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(rock_circle_alt),
+            });
+        }
+        site
+    }
+
     pub fn generate_bridge(
         land: &Land,
         index: IndexRef,
@@ -1755,6 +1786,7 @@ impl Site {
                 PlotKind::PirateHideout(pirate_hideout) => {
                     pirate_hideout.render_collect(self, canvas)
                 },
+                PlotKind::RockCircle(rock_circle) => rock_circle.render_collect(self, canvas),
                 PlotKind::Plaza | PlotKind::Road(_) => continue,
                 // _ => continue, Avoid using a wildcard here!!
             };

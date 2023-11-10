@@ -38,7 +38,6 @@ use vek::*;
 pub enum Spot {
     DwarvenGrave,
     SaurokAltar,
-    RockCircle,
     MyrmidonTemple,
     GnarlingTotem,
     WitchHouse,
@@ -172,19 +171,6 @@ impl Spot {
                     && !c.path.0.is_way()
                     && c.sites.is_empty()
                     && matches!(c.get_biome(), Jungle | Forest)
-            },
-            false,
-        );
-        Self::generate_spots(
-            Spot::RockCircle,
-            world,
-            0.5,
-            |g, c| {
-                g < 0.1
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
             },
             false,
         );
@@ -572,11 +558,6 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (2..8, "common.entity.wild.aggressive.sly_saurok"),
                     (2..8, "common.entity.wild.aggressive.mighty_saurok"),
                 ],
-            },
-            Spot::RockCircle => SpotConfig {
-                base_structures: Some("spots.rock-circle"),
-                entity_radius: 20.0,
-                entities: &[(-8..2, "common.entity.wild.aggressive.dullahan")],
             },
             Spot::MyrmidonTemple => SpotConfig {
                 base_structures: Some("spots.myrmidon-temple"),
