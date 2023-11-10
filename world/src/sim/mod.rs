@@ -2472,15 +2472,19 @@ impl SimChunk {
         let mut alt = CONFIG.sea_level.add(alt_pre);
         let basement = CONFIG.sea_level.add(basement_pre);
         let water_alt = CONFIG.sea_level.add(water_alt_pre);
-        let downhill = if downhill_pre == -2 {
-            None
+        let (downhill, _gradient) = if downhill_pre == -2 {
+            (None, 0.0)
         } else if downhill_pre < 0 {
             panic!("Uh... shouldn't this never, ever happen?");
         } else {
-            Some(
-                uniform_idx_as_vec2(map_size_lg, downhill_pre as usize)
-                    * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)
-                    + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2),
+            (
+                Some(
+                    uniform_idx_as_vec2(map_size_lg, downhill_pre as usize)
+                        * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)
+                        + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2),
+                ),
+                (alt_pre - gen_cdf.alt[downhill_pre as usize] as f32).abs()
+                    / TerrainChunkSize::RECT_SIZE.x as f32,
             )
         };
 
@@ -2528,10 +2532,12 @@ impl SimChunk {
         let tree_density = if is_underwater {
             0.0
         } else {
-            let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()))
-                .mul(0.75)
-                .add(0.55)
-                .clamp(0.0, 1.0);
+            let tree_density = Lerp::lerp(
+                -1.5,
+                2.5,
+                gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) * 0.5 + 0.5,
+            )
+            .clamp(0.0, 1.0);
             // Tree density should go (by a lot) with humidity.
             if humidity <= 0.0 || tree_density <= 0.0 {
                 0.0
@@ -2546,8 +2552,9 @@ impl SimChunk {
             .add(0.5)
         } as f32;
         const MIN_TREE_HUM: f32 = 0.15;
-        // Tree density increases exponentially with humidity...
-        let tree_density = (tree_density * (humidity - MIN_TREE_HUM).max(0.0).mul(1.0 + MIN_TREE_HUM) / temp.max(0.75))
+        let tree_density = tree_density
+            // Tree density increases exponentially with humidity...
+            .mul((humidity - MIN_TREE_HUM).max(0.0).mul(1.0 + MIN_TREE_HUM) / temp.max(0.75))
             // Places that are *too* wet (like marshes) also get fewer trees because the ground isn't stable enough for
             // them.
             //.mul((1.0 - flux * 0.05/*(humidity - 0.9).max(0.0) / 0.1*/).max(0.0))

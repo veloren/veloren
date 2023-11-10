@@ -27,9 +27,7 @@ impl SavannahPit {
         };
         Self {
             bounds,
-            alt: land.get_alt_approx(site.tile_center_wpos((tile_aabr.max - tile_aabr.min) / 2))
-                as i32
-                + 2,
+            alt: land.get_alt_approx(site.tile_center_wpos(tile_aabr.center())) as i32 + 2,
         }
     }
 }
