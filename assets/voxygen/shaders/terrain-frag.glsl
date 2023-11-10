@@ -309,11 +309,13 @@ void main() {
         }
     #endif
 
+    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
     // Reflections on ice
     if (f_kind == BLOCK_ICE && f_norm.z == 1.0) {
         f_alpha = min(f_alpha, 0.3);
         k_s = mix(k_s, vec3(0.7, 0.7, 1.0), 0.5);
     }
+    #endif
 
     // float sun_light = get_sun_brightness(sun_dir);
     // float moon_light = get_moon_brightness(moon_dir);
