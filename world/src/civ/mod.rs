@@ -276,7 +276,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..79) {
+                let (loc, kind) = match ctx.rng.gen_range(0..85) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -352,7 +352,17 @@ impl Civs {
                         )?,
                         SiteKind::JungleRuin,
                     ),
-                    /*43..=48 => (
+                    43..=49 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.rock_circle_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::RockCircle,
+                        )?,
+                        SiteKind::RockCircle,
+                    ),
+                    /*50..=55 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -362,7 +372,7 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),
-                    49..=54 => (
+                    56..=61 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -373,7 +383,7 @@ impl Civs {
                         )?,
                         SiteKind::Castle,
                     ),
-                    55..=60 => (SiteKind::Citadel, (&castle_enemies, 20)),
+                    62..=67 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     */
                     _ => (
                         find_site_loc(
@@ -422,6 +432,7 @@ impl Civs {
                 SiteKind::Bridge(_, _) => (0, 0.0),
                 SiteKind::Adlet => (16i32, 0.0),
                 SiteKind::PirateHideout => (8i32, 3.0),
+                SiteKind::RockCircle => (8i32, 3.0),
                 //SiteKind::DwarvenMine => (8i32, 3.0),
             };
 
@@ -539,6 +550,9 @@ impl Civs {
                     },
                     SiteKind::JungleRuin => WorldSite::jungle_ruin(
                         site2::Site::generate_jungle_ruin(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
+                    SiteKind::RockCircle => WorldSite::rock_circle(
+                        site2::Site::generate_rock_circle(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
                     SiteKind::DesertCity => WorldSite::desert_city(
                         site2::Site::generate_desert_city(&Land::from_sim(ctx.sim), &mut rng, wpos),
@@ -1510,6 +1524,13 @@ impl Civs {
             _ => Some(s.center),
         })
     }
+
+    fn rock_circle_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
 }
 
 /// Attempt to find a path between two locations
@@ -1842,6 +1863,7 @@ pub enum SiteKind {
     Bridge(Vec2<i32>, Vec2<i32>),
     Adlet,
     PirateHideout,
+    RockCircle,
     //DwarvenMine,
     JungleRuin,
 }
@@ -1922,6 +1944,7 @@ impl SiteKind {
                 SiteKind::JungleRuin => {
                     matches!(chunk.get_biome(), BiomeKind::Jungle)
                 },
+                SiteKind::RockCircle => !chunk.near_cliffs() && !chunk.river.near_water(),
                 SiteKind::DesertCity => {
                     (0.9..1.0).contains(&chunk.temp) && !chunk.near_cliffs() && suitable_for_town()
                 },

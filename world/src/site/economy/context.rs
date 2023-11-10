@@ -136,6 +136,7 @@ impl Environment {
                     SiteKind::DwarvenMine(_) => {},
                     SiteKind::Bridge(_) => {},
                     SiteKind::PirateHideout(_) => {},
+                    SiteKind::RockCircle(_) => {},
                 }
             }
             if towns.valid() {
