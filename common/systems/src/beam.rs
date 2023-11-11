@@ -233,19 +233,10 @@ impl<'a> System<'a> for Sys {
                                 target,
                             );
 
-                            let precision_from_flank = {
-                                let beam_dir = beam.bezier.ctrl - beam.bezier.start;
-                                let angle = target_info.ori.map_or(std::f32::consts::PI, |t_ori| {
-                                    t_ori.look_dir().angle_between(beam_dir)
-                                });
-                                if angle < combat::FULL_FLANK_ANGLE {
-                                    Some(1.0)
-                                } else if angle < combat::PARTIAL_FLANK_ANGLE {
-                                    Some(0.5)
-                                } else {
-                                    None
-                                }
-                            };
+                            let precision_from_flank = combat::precision_mult_from_flank(
+                                beam.bezier.ctrl - beam.bezier.start,
+                                target_info.ori,
+                            );
 
                             let precision_from_time = {
                                 if let Some(ticks) = beam.hit_durations.get(&target) {
@@ -258,8 +249,6 @@ impl<'a> System<'a> for Sys {
                                 }
                             };
 
-                            // Is there a more idiomatic way to do this (taking the max of 2
-                            // options)?
                             let precision_mult = precision_from_flank
                                 .map(|flank| {
                                     precision_from_time.map_or(flank, |head: f32| head.max(flank))

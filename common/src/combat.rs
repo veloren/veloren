@@ -1463,3 +1463,13 @@ pub fn compute_protection(
             .sum::<Option<f32>>()
     })
 }
+
+/// Used to compute the precision multiplier achieved by flanking a target
+pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>) -> Option<f32> {
+    let angle = target_ori.map(|t_ori| t_ori.look_dir().angle_between(attack_dir));
+    match angle {
+        Some(angle) if angle < FULL_FLANK_ANGLE => Some(1.0),
+        Some(angle) if angle < PARTIAL_FLANK_ANGLE => Some(0.5),
+        Some(_) | None => None,
+    }
+}

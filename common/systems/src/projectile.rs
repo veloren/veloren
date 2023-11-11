@@ -346,20 +346,13 @@ fn dispatch_hit(
                 .and_then(|cs| cs.attack_immunities())
                 .map_or(false, |i| i.projectiles);
 
-            let precision_from_flank = {
-                let angle = target_info.ori.map_or(std::f32::consts::PI, |t_ori| {
-                    t_ori.look_dir().angle_between(*projectile_dir)
-                });
-                if angle < combat::FULL_FLANK_ANGLE {
-                    Some(1.0)
-                } else if angle < combat::PARTIAL_FLANK_ANGLE {
-                    Some(0.5)
-                } else {
-                    None
-                }
-            };
+            let precision_from_flank =
+                combat::precision_mult_from_flank(*projectile_dir, target_info.ori);
 
             let precision_from_head = {
+                // This performs a cylinder and line segment intersection check. The cylinder is
+                // the upper 10% of an entity's dimensions. The line segment is from the
+                // projectile's positions on the current and previous tick.
                 let curr_pos = projectile_info.pos.0;
                 let last_pos = projectile_info.pos.0 - projectile_info.vel.0 * read_data.dt.0;
                 let vel = projectile_info.vel.0;
@@ -405,7 +398,6 @@ fn dispatch_hit(
                 if headshot { Some(1.0) } else { None }
             };
 
-            // Is there a more idiomatic way to do this (taking the max of 2 options)?
             let precision_mult = precision_from_flank
                 .map(|flank| precision_from_head.map_or(flank, |head: f32| head.max(flank)))
                 .or(precision_from_head);

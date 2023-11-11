@@ -1139,8 +1139,8 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .down_from(state.ids.stats[3], V_PAD_STATS)
-                        .set(state.ids.stats[4], ui);
+                        .down_from(state.ids.stats[2], V_PAD_STATS)
+                        .set(state.ids.stats[3], ui);
 
                     // Energy Efficiency
                     let energy_eff_text = if is_primary {
@@ -1161,8 +1161,8 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .down_from(state.ids.stats[4], V_PAD_STATS)
-                        .set(state.ids.stats[5], ui);
+                        .down_from(state.ids.stats[3], V_PAD_STATS)
+                        .set(state.ids.stats[4], ui);
 
                     // Buff Strength
                     let buff_str_text = if is_primary {
@@ -1183,8 +1183,8 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .down_from(state.ids.stats[5], V_PAD_STATS)
-                        .set(state.ids.stats[6], ui);
+                        .down_from(state.ids.stats[4], V_PAD_STATS)
+                        .set(state.ids.stats[5], ui);
                 }
             },
             _ => (),
