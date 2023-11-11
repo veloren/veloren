@@ -1380,7 +1380,8 @@ pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
 }
 
 /// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat
-/// attack modifiers and `other_modifiers`, returning None if overflow occurred.
+/// attack modifiers and `otcompute_precision_multeturning None if overflow
+/// occurred.
 pub fn checked_tick_attack(
     data: &JoinData<'_>,
     timer: Duration,

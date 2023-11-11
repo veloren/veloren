@@ -62,12 +62,12 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.1);
 
         let create_melee = |charge_frac: f32| {
-            let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
+            let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
             let tool_stats = get_tool_stats(data, self.static_data.ability_info);
             self.static_data
                 .melee_constructor
                 .handle_scaling(charge_frac)
-                .create_melee(crit_mult, tool_stats)
+                .create_melee(precision_mult, tool_stats)
         };
 
         match self.stage_section {
@@ -208,7 +208,7 @@ impl CharacterBehavior for Data {
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
 
-                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
+                    let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
@@ -216,7 +216,7 @@ impl CharacterBehavior for Data {
                         self.static_data
                             .melee_constructor
                             .handle_scaling(charge_frac)
-                            .create_melee(crit_mult, tool_stats),
+                            .create_melee(precision_mult, tool_stats),
                     );
 
                     update.character = CharacterState::DashMelee(Data {

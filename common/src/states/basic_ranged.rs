@@ -87,11 +87,11 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if !self.exhausted {
                     // Fire
-                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
+                    let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     let projectile = self.static_data.projectile.create_projectile(
                         Some(*data.uid),
-                        crit_mult,
+                        precision_mult,
                         tool_stats,
                         self.static_data.damage_effect,
                     );

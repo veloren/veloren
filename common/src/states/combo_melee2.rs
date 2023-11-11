@@ -158,7 +158,7 @@ impl CharacterBehavior for Data {
                         c.exhausted = true;
                     }
 
-                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
+                    let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
@@ -166,7 +166,7 @@ impl CharacterBehavior for Data {
                         strike_data
                             .melee_constructor
                             .with_combo(1 + strike_data.additional_combo)
-                            .create_melee(crit_mult, tool_stats),
+                            .create_melee(precision_mult, tool_stats),
                     );
                 } else if self.timer < strike_data.swing_duration {
                     // Swings

@@ -6,7 +6,7 @@ ItemDef(
         stats: Direct((
             protection: Some(Normal(8.0)),
             poise_resilience: Some(Normal(3.0)),
-            crit_power: Some(0.06),
+            precision_power: Some(0.06),
         )),
     )),
     quality: Low,

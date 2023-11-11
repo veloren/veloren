@@ -18,8 +18,8 @@ pub struct HealthChange {
     pub cause: Option<DamageSource>,
     /// The time that the health change occurred at
     pub time: Time,
-    /// A boolean that tells you if the change was a crit
-    pub crit: bool,
+    /// A boolean that tells you if the change was a precsie hit
+    pub precise: bool,
     /// A random ID, used to group up health changes from the same attack
     pub instance: u64,
 }
@@ -129,7 +129,7 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
-                crit: false,
+                precise: false,
                 time: Time(0.0),
                 instance: rand::random(),
             },
@@ -211,7 +211,7 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
-                crit: false,
+                precise: false,
                 time: Time(0.0),
                 instance: rand::random(),
             },
@@ -246,7 +246,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
-            crit: false,
+            precise: false,
             instance: rand::random(),
         };
 
@@ -273,7 +273,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
-            crit: false,
+            precise: false,
             instance: rand::random(),
         };
 
@@ -294,7 +294,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
-            crit: false,
+            precise: false,
             instance: rand::random(),
         };
         health.change_by(health_change);
@@ -321,7 +321,7 @@ mod tests {
             time: Time(10.0),
             by: Some(damage_contrib1),
             cause: None,
-            crit: false,
+            precise: false,
             instance: rand::random(),
         };
         health.change_by(health_change);
@@ -332,7 +332,7 @@ mod tests {
             time: Time(100.0),
             by: Some(damage_contrib2),
             cause: None,
-            crit: false,
+            precise: false,
             instance: rand::random(),
         };
         health.change_by(health_change);
@@ -347,7 +347,7 @@ mod tests {
             time: Time(620.0),
             by: Some(damage_contrib2),
             cause: None,
-            crit: false,
+            precise: false,
             instance: rand::random(),
         };
         health.change_by(health_change);

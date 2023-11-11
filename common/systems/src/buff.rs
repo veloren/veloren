@@ -560,7 +560,7 @@ fn execute_effect(
                         by: damage_contributor,
                         cause,
                         time: *read_data.time,
-                        crit: false,
+                        precise: false,
                         instance: *instance,
                     },
                 });

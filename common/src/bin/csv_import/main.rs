@@ -148,17 +148,18 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 None
                             };
 
-                            let crit_power =
-                                if let Some(crit_power_raw) = record.get(headers["Crit Power"]) {
-                                    let value = crit_power_raw.parse().unwrap();
-                                    if value == 0.0 { None } else { Some(value) }
-                                } else {
-                                    eprintln!(
-                                        "Could not unwrap crit power value for {:?}",
-                                        item.item_definition_id()
-                                    );
-                                    None
-                                };
+                            let precision_power = if let Some(precison_power_raw) =
+                                record.get(headers["Precision Power"])
+                            {
+                                let value = precision_power_raw.parse().unwrap();
+                                if value == 0.0 { None } else { Some(value) }
+                            } else {
+                                eprintln!(
+                                    "Could not unwrap precision power value for {:?}",
+                                    item.item_definition_id()
+                                );
+                                None
+                            };
 
                             let stealth = if let Some(stealth_raw) = record.get(headers["Stealth"])
                             {
@@ -178,7 +179,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 poise_resilience,
                                 energy_max,
                                 energy_reward,
-                                crit_power,
+                                precision_power,
                                 stealth,
                                 ground_contact: Default::default(),
                             };

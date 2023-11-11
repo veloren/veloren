@@ -93,9 +93,10 @@ pub enum BuffKind {
     /// Your attacks against bleeding targets have lifesteal
     /// Strength increases the fraction of damage restored as life
     Bloodfeast,
-    /// Guarantees that the next attack is a critical hit. Does this kind of
-    /// hackily by adding 100% to the crit, will need to be adjusted if we ever
-    /// allow double crits instead of treating 100 as a ceiling.
+    /// Guarantees that the next attack is a precise hit. Does this kind of
+    /// hackily by adding 100% to the precision, will need to be adjusted if we
+    /// ever allow double precision hits instead of treating 100 as a
+    /// ceiling.
     ImminentCritical,
     /// Increases combo gain, every 1 strength increases combo per strike by 1,
     /// rounds to nearest integer

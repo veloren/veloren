@@ -73,7 +73,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                 };
                 let max_energy = armor_stats.energy_max.unwrap_or(0.0).to_string();
                 let energy_reward = armor_stats.energy_reward.unwrap_or(0.0).to_string();
-                let crit_power = armor_stats.crit_power.unwrap_or(0.0).to_string();
+                let precision_power = armor_stats.precision_power.unwrap_or(0.0).to_string();
                 let stealth = armor_stats.stealth.unwrap_or(0.0).to_string();
 
                 wtr.write_record([
@@ -87,7 +87,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     &poise_resilience,
                     &max_energy,
                     &energy_reward,
-                    &crit_power,
+                    &precision_power,
                     &stealth,
                     item.description(),
                 ])?;

@@ -8,7 +8,7 @@ use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 
 // How long floaters last (in seconds)
 pub const HP_SHOWTIME: f32 = 3.0;
-pub const CRIT_SHOWTIME: f32 = 0.7;
+pub const PRECISE_SHOWTIME: f32 = 0.7;
 pub const MY_HP_SHOWTIME: f32 = 2.5;
 
 #[derive(Default)]

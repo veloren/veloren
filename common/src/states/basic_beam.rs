@@ -117,10 +117,11 @@ impl CharacterBehavior for Data {
                         if let Some(effect) = self.static_data.damage_effect {
                             damage = damage.with_effect(effect);
                         }
-                        let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
+                        let precision_mult =
+                            combat::compute_precision_mult(data.inventory, data.msm);
                         Attack::default()
                             .with_damage(damage)
-                            .with_crit(crit_mult)
+                            .with_precision(precision_mult)
                             .with_effect(energy)
                             .with_combo_increment()
                     };

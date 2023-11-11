@@ -861,13 +861,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     index += 1;
                 }
 
-                // Crit Power
-                if armor_stats.crit_power.is_some() {
+                // Precision Power
+                if armor_stats.precision_power.is_some() {
                     stat_text(
                         format!(
                             "{} : {:.3}",
-                            i18n.get_msg("common-stats-crit_power"),
-                            armor_stats.crit_power.unwrap_or(0.0)
+                            i18n.get_msg("common-stats-precision_power"),
+                            armor_stats.precision_power.unwrap_or(0.0)
                         ),
                         index,
                     );
@@ -933,9 +933,9 @@ impl<'a> Widget for ItemTooltip<'a> {
                             &armor_stats.energy_reward,
                             &equipped_stats.energy_reward,
                         );
-                        let crit_power_diff = util::option_comparison(
-                            &armor_stats.crit_power,
-                            &equipped_stats.crit_power,
+                        let precision_power_diff = util::option_comparison(
+                            &armor_stats.precision_power,
+                            &equipped_stats.precision_power,
                         );
                         let stealth_diff =
                             util::option_comparison(&armor_stats.stealth, &equipped_stats.stealth);
@@ -957,7 +957,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                         };
 
                         let mut index = 0;
-
                         if let Some(p_diff) = diff.protection {
                             if p_diff != Protection::Normal(0.0) {
                                 let text = format!(
@@ -999,13 +998,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                         }
                         index += armor_stats.energy_reward.is_some() as usize;
 
-                        if let Some(c_p_diff) = diff.crit_power {
-                            if c_p_diff != 0.0_f32 {
-                                let text = format!("{} {:.3}", &crit_power_diff.0, c_p_diff);
-                                diff_text(text, crit_power_diff.1, index);
+                        if let Some(p_p_diff) = diff.precision_power {
+                            if p_p_diff != 0.0_f32 {
+                                let text = format!("{} {:.3}", &precision_power_diff.0, p_p_diff);
+                                diff_text(text, precision_power_diff.1, index);
                             }
                         }
-                        index += armor_stats.crit_power.is_some() as usize;
+                        index += armor_stats.precision_power.is_some() as usize;
 
                         if let Some(s_diff) = diff.stealth {
                             if s_diff != 0.0_f32 {

@@ -1152,7 +1152,7 @@ impl<'a> Widget for Diary<'a> {
                     "Combat-Rating",
                     "Protection",
                     "Stun-Resistance",
-                    "Crit-Power",
+                    "Precision-Power",
                     "Energy Reward",
                     "Stealth",
                     "Weapon Power",
@@ -1244,9 +1244,10 @@ impl<'a> Widget for Diary<'a> {
                             );
                             format!("{:.2}%", stun_res * 100.0)
                         },
-                        "Crit-Power" => {
-                            let critpwr = combat::compute_crit_mult(Some(self.inventory), self.msm);
-                            format!("x{:.2}", critpwr)
+                        "Precision-Power" => {
+                            let precision_power =
+                                combat::compute_precision_mult(Some(self.inventory), self.msm);
+                            format!("x{:.2}", precision_power)
                         },
                         "Energy Reward" => {
                             let energy_rew =

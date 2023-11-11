@@ -91,7 +91,7 @@ pub struct AttackOptions {
 pub struct Attack {
     damages: Vec<AttackDamage>,
     effects: Vec<AttackEffect>,
-    crit_multiplier: f32,
+    precision_multiplier: f32,
 }
 
 impl Default for Attack {
@@ -99,7 +99,7 @@ impl Default for Attack {
         Self {
             damages: Vec::new(),
             effects: Vec::new(),
-            crit_multiplier: 1.0,
+            precision_multiplier: 1.0,
         }
     }
 }
@@ -118,8 +118,8 @@ impl Attack {
     }
 
     #[must_use]
-    pub fn with_crit(mut self, crit_multiplier: f32) -> Self {
-        self.crit_multiplier = crit_multiplier;
+    pub fn with_precision(mut self, precision_multiplier: f32) -> Self {
+        self.precision_multiplier = precision_multiplier;
         self
     }
 
@@ -261,7 +261,7 @@ impl Attack {
                 damage_reduction,
                 attacker.map(|x| x.into()),
                 precision_mult,
-                self.crit_multiplier,
+                self.precision_multiplier,
                 strength_modifier * damage_modifier,
                 time,
                 damage_instance,
@@ -289,7 +289,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
-                                    crit: precision_mult.is_some(),
+                                    precise: precision_mult.is_some(),
                                     instance: damage_instance,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -340,7 +340,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     instance: damage_instance,
-                                    crit: precision_mult.is_some(),
+                                    precise: precision_mult.is_some(),
                                     time,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -405,7 +405,7 @@ impl Attack {
                                     by: attacker.map(|a| a.into()),
                                     cause: None,
                                     time,
-                                    crit: false,
+                                    precise: false,
                                     instance: rand::random(),
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -447,7 +447,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
-                                crit: false,
+                                precise: false,
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -625,7 +625,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
-                                crit: false,
+                                precise: false,
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -667,7 +667,7 @@ impl Attack {
                             by: attacker.map(|a| a.into()),
                             cause: None,
                             time,
-                            crit: false,
+                            precise: false,
                             instance: rand::random(),
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -1031,21 +1031,21 @@ impl Damage {
         damage_reduction: f32,
         damage_contributor: Option<DamageContributor>,
         precision_mult: Option<f32>,
-        crit_mult: f32,
+        precision_power: f32,
         damage_modifier: f32,
         time: Time,
         instance: u64,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
-        let critdamage = damage * precision_mult.unwrap_or(0.0) * (crit_mult - 1.0);
+        let precise_damage = damage * precision_mult.unwrap_or(0.0) * (precision_power - 1.0);
         match self.source {
             DamageSource::Melee
             | DamageSource::Projectile
             | DamageSource::Explosion
             | DamageSource::Shockwave
             | DamageSource::Energy => {
-                // Critical hit
-                damage += critdamage;
+                // Precise hit
+                damage += precise_damage;
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
@@ -1054,7 +1054,7 @@ impl Damage {
                     by: damage_contributor,
                     cause: Some(self.source),
                     time,
-                    crit: precision_mult.is_some(),
+                    precise: precision_mult.is_some(),
                     instance,
                 }
             },
@@ -1068,7 +1068,7 @@ impl Damage {
                     by: None,
                     cause: Some(self.source),
                     time,
-                    crit: false,
+                    precise: false,
                     instance,
                 }
             },
@@ -1077,7 +1077,7 @@ impl Damage {
                 by: None,
                 cause: Some(self.source),
                 time,
-                crit: false,
+                precise: false,
                 instance,
             },
         }
@@ -1305,7 +1305,7 @@ pub fn combat_rating(
     const ENERGY_WEIGHT: f32 = 0.5;
     const SKILLS_WEIGHT: f32 = 1.0;
     const POISE_WEIGHT: f32 = 0.5;
-    const CRIT_WEIGHT: f32 = 0.5;
+    const PRECISION_WEIGHT: f32 = 0.5;
     // Normalized with a standard max health of 100
     let health_rating = health.base_max()
         / 100.0
@@ -1322,8 +1322,8 @@ pub fn combat_rating(
         / (1.0 - Poise::compute_poise_damage_reduction(Some(inventory), msm, None, None))
             .max(0.00001);
 
-    // Normalized with a standard crit multiplier of 1.2
-    let crit_rating = compute_crit_mult(Some(inventory), msm) / 1.2;
+    // Normalized with a standard precision multiplier of 1.2
+    let precision_rating = compute_precision_mult(Some(inventory), msm) / 1.2;
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree
@@ -1336,13 +1336,13 @@ pub fn combat_rating(
     let combined_rating = (health_rating * HEALTH_WEIGHT
         + energy_rating * ENERGY_WEIGHT
         + poise_rating * POISE_WEIGHT
-        + crit_rating * CRIT_WEIGHT
+        + precision_rating * PRECISION_WEIGHT
         + skills_rating * SKILLS_WEIGHT
         + weapon_rating * WEAPON_WEIGHT)
         / (HEALTH_WEIGHT
             + ENERGY_WEIGHT
             + POISE_WEIGHT
-            + CRIT_WEIGHT
+            + PRECISION_WEIGHT
             + SKILLS_WEIGHT
             + WEAPON_WEIGHT);
 
@@ -1351,9 +1351,9 @@ pub fn combat_rating(
     combined_rating * body.combat_multiplier()
 }
 
-pub fn compute_crit_mult(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
+pub fn compute_precision_mult(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
     // Starts with a value of 0.1 when summing the stats from each armor piece, and
-    // defaults to a value of 0.1 if no inventory is equipped. Critical multiplier
+    // defaults to a value of 0.1 if no inventory is equipped. Precision multiplier
     // cannot go below 1
     1.0 + inventory
         .map_or(0.1, |inv| {
@@ -1362,7 +1362,7 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>, msm: &MaterialStatManife
                     if let ItemKind::Armor(armor) = &*item.kind() {
                         armor
                             .stats(msm, item.stats_durability_multiplier())
-                            .crit_power
+                            .precision_power
                     } else {
                         None
                     }

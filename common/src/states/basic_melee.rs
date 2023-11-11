@@ -77,14 +77,14 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
 
-                    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
+                    let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
-                            .create_melee(crit_mult, tool_stats)
+                            .create_melee(precision_mult, tool_stats)
                             .with_block_breaking(
                                 data.inputs
                                     .break_block_pos
