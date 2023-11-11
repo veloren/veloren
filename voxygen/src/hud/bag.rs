@@ -430,6 +430,11 @@ impl<'a> InventoryScroller<'a> {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
             }
 
+            // Highlight in red slots that are overflow
+            if matches!(pos, Slot::Overflow(_)) {
+                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 0.0, 0.0, 1.0));
+            }
+
             if let Some(item) = item {
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
