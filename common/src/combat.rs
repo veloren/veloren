@@ -49,6 +49,11 @@ pub const PARTIAL_FLANK_ANGLE: f32 = std::f32::consts::PI * 3.0 / 4.0;
 // NOTE: Do we want to change this to be a configurable parameter on body?
 pub const PROJECTILE_HEADSHOT_PROPORTION: f32 = 0.1;
 pub const BEAM_DURATION_PRECISION: f32 = 2.5;
+pub const MAX_BACK_FLANK_PRECISION: f32 = 0.75;
+pub const MAX_SIDE_FLANK_PRECISION: f32 = 0.25;
+pub const MAX_HEADSHOT_PRECISION: f32 = 1.0;
+pub const MAX_BEAM_DUR_PRECISION: f32 = 0.25;
+pub const MAX_MELEE_POISE_PRECISION: f32 = 0.5;
 
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
@@ -1347,21 +1352,24 @@ pub fn combat_rating(
 }
 
 pub fn compute_crit_mult(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
-    // Starts with a value of 1.25 when summing the stats from each armor piece, and
-    // defaults to a value of 1.25 if no inventory is equipped
-    inventory.map_or(1.25, |inv| {
-        inv.equipped_items()
-            .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor
-                        .stats(msm, item.stats_durability_multiplier())
-                        .crit_power
-                } else {
-                    None
-                }
-            })
-            .fold(1.25, |a, b| a + b)
-    })
+    // Starts with a value of 0.1 when summing the stats from each armor piece, and
+    // defaults to a value of 0.1 if no inventory is equipped. Critical multiplier
+    // cannot go below 1
+    1.0 + inventory
+        .map_or(0.1, |inv| {
+            inv.equipped_items()
+                .filter_map(|item| {
+                    if let ItemKind::Armor(armor) = &*item.kind() {
+                        armor
+                            .stats(msm, item.stats_durability_multiplier())
+                            .crit_power
+                    } else {
+                        None
+                    }
+                })
+                .fold(0.1, |a, b| a + b)
+        })
+        .max(0.0)
 }
 
 /// Computes the energy reward modifier from worn armor
@@ -1468,8 +1476,8 @@ pub fn compute_protection(
 pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>) -> Option<f32> {
     let angle = target_ori.map(|t_ori| t_ori.look_dir().angle_between(attack_dir));
     match angle {
-        Some(angle) if angle < FULL_FLANK_ANGLE => Some(1.0),
-        Some(angle) if angle < PARTIAL_FLANK_ANGLE => Some(0.5),
+        Some(angle) if angle < FULL_FLANK_ANGLE => Some(MAX_BACK_FLANK_PRECISION),
+        Some(angle) if angle < PARTIAL_FLANK_ANGLE => Some(MAX_SIDE_FLANK_PRECISION),
         Some(_) | None => None,
     }
 }

@@ -225,7 +225,10 @@ impl<'a> System<'a> for Sys {
 
                     let precision_from_poise = {
                         if let Some(CharacterState::Stunned(data)) = target_char_state {
-                            Some(data.static_data.poise_state.damage_multiplier())
+                            Some(
+                                combat::MAX_MELEE_POISE_PRECISION
+                                    * data.static_data.poise_state.damage_multiplier(),
+                            )
                         } else {
                             None
                         }

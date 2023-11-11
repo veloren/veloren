@@ -243,7 +243,7 @@ impl<'a> System<'a> for Sys {
                                     let dur = *ticks as f32 * beam.tick_dur.0 as f32;
                                     let mult =
                                         (dur / combat::BEAM_DURATION_PRECISION).clamp(0.0, 1.0);
-                                    Some(mult)
+                                    Some(combat::MAX_BEAM_DUR_PRECISION * mult)
                                 } else {
                                     None
                                 }

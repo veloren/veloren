@@ -395,7 +395,11 @@ fn dispatch_hit(
                     );
                     trajectory.distance_to_point(head_middle_pos) < target_radius
                 };
-                if headshot { Some(1.0) } else { None }
+                if headshot {
+                    Some(combat::MAX_HEADSHOT_PRECISION)
+                } else {
+                    None
+                }
             };
 
             let precision_mult = precision_from_flank
