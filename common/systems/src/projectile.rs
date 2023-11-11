@@ -364,10 +364,10 @@ fn dispatch_hit(
                 let head_bottom_pos = head_top_pos.with_z(
                     head_top_pos.z - target_height * combat::PROJECTILE_HEADSHOT_PROPORTION,
                 );
-                let headshot = if (curr_pos.z < head_bottom_pos.z && last_pos.z < head_bottom_pos.z)
+                if (curr_pos.z < head_bottom_pos.z && last_pos.z < head_bottom_pos.z)
                     || (curr_pos.z > head_top_pos.z && last_pos.z > head_top_pos.z)
                 {
-                    false
+                    None
                 } else if curr_pos.z > head_top_pos.z
                     || curr_pos.z < head_bottom_pos.z
                     || last_pos.z > head_top_pos.z
@@ -381,9 +381,24 @@ fn dispatch_hit(
                         let t = (head_bottom_pos.z - last_pos.z) / vel.z;
                         last_pos + vel * t
                     };
-                    head_top_pos.distance_squared(proj_top_intersection) < target_radius.powi(2)
-                        || head_bottom_pos.distance_squared(proj_bottom_intersection)
-                            < target_radius.powi(2)
+                    let intersected_bottom = head_bottom_pos
+                        .distance_squared(proj_bottom_intersection)
+                        < target_radius.powi(2);
+                    let intersected_top = head_top_pos.distance_squared(proj_top_intersection)
+                        < target_radius.powi(2);
+                    let hit_head = intersected_bottom || intersected_top;
+                    let hit_from_bottom = last_pos.z < head_bottom_pos.z && intersected_bottom;
+                    let hit_from_top = last_pos.z > head_top_pos.z && intersected_top;
+                    // If projectile from bottom, do not award precision damage because it trivial
+                    // to get from up close If projectile from top, reduce
+                    // precision damage to mitigate cheesing benefits
+                    if !hit_head || hit_from_bottom {
+                        None
+                    } else if hit_from_top {
+                        Some(combat::MAX_TOP_HEADSHOT_PRECISION)
+                    } else {
+                        Some(combat::MAX_HEADSHOT_PRECISION)
+                    }
                 } else {
                     let trajectory = LineSegment3 {
                         start: last_pos,
@@ -393,12 +408,11 @@ fn dispatch_hit(
                         head_bottom_pos.z
                             + target_height * combat::PROJECTILE_HEADSHOT_PROPORTION * 0.5,
                     );
-                    trajectory.distance_to_point(head_middle_pos) < target_radius
-                };
-                if headshot {
-                    Some(combat::MAX_HEADSHOT_PRECISION)
-                } else {
-                    None
+                    if trajectory.distance_to_point(head_middle_pos) < target_radius {
+                        Some(combat::MAX_HEADSHOT_PRECISION)
+                    } else {
+                        None
+                    }
                 }
             };
 
