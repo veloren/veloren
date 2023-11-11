@@ -165,10 +165,15 @@ impl<'a> System<'a> for Sys {
                         // We do this last because it's likely to be the
                         // most expensive operation.
                         let tgt_dist = pos.0.distance(pos_b.0);
+                        let beam_dir = (beam.bezier.ctrl - beam.bezier.start)
+                            / beam.bezier.start.distance(beam.bezier.ctrl).max(0.01);
                         let hit = hit
                             && read_data
                                 .terrain
-                                .ray(pos.0, pos.0 + *ori.look_dir() * (tgt_dist + 1.0))
+                                .ray(
+                                    beam.bezier.start,
+                                    beam.bezier.start + beam_dir * (tgt_dist + 1.0),
+                                )
                                 .until(|b| b.is_filled())
                                 .cast()
                                 .0
