@@ -213,7 +213,7 @@ fn react_if_on_fire(bdata: &mut BehaviorData) -> bool {
         .read_data
         .buffs
         .get(*bdata.agent_data.entity)
-        .map_or(false, |b| b.kinds.contains_key(&BuffKind::Burning));
+        .map_or(false, |b| b.kinds[BuffKind::Burning].is_some());
 
     if is_on_fire
         && bdata.agent_data.body.map_or(false, |b| b.is_humanoid())

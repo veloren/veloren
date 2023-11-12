@@ -57,7 +57,7 @@ pub use self::{
         quadruped_small, ship, theropod, AllBodies, Body, BodyData,
     },
     buff::{
-        Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
+        Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffKey, BuffKind, BuffSource, Buffs,
         ModifierKind,
     },
     character_state::{CharacterActivity, CharacterState, StateUpdate},

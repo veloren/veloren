@@ -32,7 +32,7 @@ pub fn is_dead(entity: EcsEntity, read_data: &ReadData) -> bool {
 pub fn is_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
     let buffs = read_data.buffs.get(entity);
 
-    buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
+    buffs.map_or(false, |b| b.kinds[BuffKind::Invulnerability].is_some())
 }
 
 /// Gets alignment of owner if alignment given is `Owned`.
@@ -204,7 +204,7 @@ impl<'a> AgentData<'a> {
         read_data
             .buffs
             .get(*self.entity)
-            .map_or(false, |b| b.kinds.contains_key(&buff))
+            .map_or(false, |b| b.kinds[buff].is_some())
     }
 
     pub fn extract_ability(&self, input: AbilityInput) -> Option<AbilityData> {
