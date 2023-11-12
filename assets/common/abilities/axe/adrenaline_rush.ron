@@ -8,4 +8,5 @@ SelfBuff(
     combo_cost: 1,
     combo_scaling: Some(Linear),
     energy_cost: 0,
+    enforced_limit: false,
 )

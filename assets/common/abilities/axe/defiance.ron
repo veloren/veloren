@@ -6,4 +6,5 @@ SelfBuff(
     buff_strength: 1.0,
     buff_duration: Some(3.0),
     energy_cost: 20,
+    enforced_limit: false,
 )
