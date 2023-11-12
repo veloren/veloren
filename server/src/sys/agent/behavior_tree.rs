@@ -642,7 +642,7 @@ fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
             .agent_data
             .heal_self(bdata.agent, bdata.controller, false)
     {
-        bdata.agent.action_state.timers
+        bdata.agent.behavior_state.timers
             [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
         return true;
     }
@@ -767,18 +767,18 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
             let aggro_on = *aggro_on;
 
             if agent_data.below_flee_health(agent) {
-                let flee_timer_done = agent.action_state.timers
+                let flee_timer_done = agent.behavior_state.timers
                     [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
                     > FLEE_DURATION;
                 let within_normal_flee_dir_dist = dist_sqrd < NORMAL_FLEE_DIR_DIST.powi(2);
 
                 // FIXME: Using action state timer to see if allowed to speak is a hack.
-                if agent.action_state.timers
+                if agent.behavior_state.timers
                     [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
                     == 0.0
                 {
                     agent_data.cry_out(agent, event_emitter, read_data);
-                    agent.action_state.timers
+                    agent.behavior_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
                     agent.flee_from_pos = {
                         let random = || thread_rng().gen_range(-1.0..1.0);
@@ -795,11 +795,11 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         agent_data.flee(agent, controller, read_data, tgt_pos);
                     }
 
-                    agent.action_state.timers
+                    agent.behavior_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] +=
                         read_data.dt.0;
                 } else {
-                    agent.action_state.timers
+                    agent.behavior_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.0;
                     agent.target = None;
                     agent.flee_from_pos = None;

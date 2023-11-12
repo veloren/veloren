@@ -229,15 +229,15 @@ impl<'a> AgentData<'a> {
                 true
             };
             if attempt_heal && self.heal_self(agent, controller, true) {
-                agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
+                agent.behavior_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
                 return;
             }
         } else {
-            agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
+            agent.behavior_state.timers[ActionTimers::TimerIdle as usize] = 0.01;
             return;
         }
 
-        agent.action_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
+        agent.behavior_state.timers[ActionTimers::TimerIdle as usize] = 0.0;
 
         'activity: {
             match agent.rtsim_controller.activity {
@@ -791,7 +791,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             TimerChooseTarget = 0,
         }
-        agent.action_state.timers[ActionStateTimers::TimerChooseTarget as usize] = 0.0;
+        agent.behavior_state.timers[ActionStateTimers::TimerChooseTarget as usize] = 0.0;
         let mut aggro_on = false;
 
         // Search the area.

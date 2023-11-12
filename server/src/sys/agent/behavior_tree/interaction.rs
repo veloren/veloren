@@ -45,7 +45,7 @@ pub fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
                 Some(_) | None => {},
             }
         } else {
-            bdata.agent.action_state.timers
+            bdata.agent.behavior_state.timers
                 [ActionStateInteractionTimers::TimerInteraction as usize] = 0.1;
         }
     }
@@ -63,9 +63,9 @@ pub fn process_inbox_interaction(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-/// Increment agent's action_state timer
+/// Increment agent's behavior_state timer
 pub fn increment_timer_deltatime(bdata: &mut BehaviorData) -> bool {
-    bdata.agent.action_state.timers[ActionStateInteractionTimers::TimerInteraction as usize] +=
+    bdata.agent.behavior_state.timers[ActionStateInteractionTimers::TimerInteraction as usize] +=
         bdata.read_data.dt.0;
     false
 }
