@@ -416,9 +416,11 @@ fn dispatch_hit(
                 }
             };
 
-            let precision_mult = precision_from_flank
-                .map(|flank| precision_from_head.map_or(flank, |head: f32| head.max(flank)))
-                .or(precision_from_head);
+            let precision_mult = match (precision_from_flank, precision_from_head) {
+                (Some(a), Some(b)) => Some(a.max(b)),
+                (Some(a), None) | (None, Some(a)) => Some(a),
+                (None, None) => None,
+            };
 
             let attack_options = AttackOptions {
                 target_dodging,

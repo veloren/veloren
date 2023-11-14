@@ -234,11 +234,11 @@ impl<'a> System<'a> for Sys {
                         }
                     };
 
-                    let precision_mult = precision_from_flank
-                        .map(|flank| {
-                            precision_from_poise.map_or(flank, |head: f32| head.max(flank))
-                        })
-                        .or(precision_from_poise);
+                    let precision_mult = match (precision_from_flank, precision_from_poise) {
+                        (Some(a), Some(b)) => Some(a.max(b)),
+                        (Some(a), None) | (None, Some(a)) => Some(a),
+                        (None, None) => None,
+                    };
 
                     let attack_options = AttackOptions {
                         target_dodging,
