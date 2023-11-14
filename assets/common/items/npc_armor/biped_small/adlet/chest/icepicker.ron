@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(2.0)),
             energy_max: Some(4.4),
             energy_reward: Some(0.054),
-            crit_power: Some(0.05),
+            precision_power: Some(0.05),
         )),
     )),
     quality: Low,

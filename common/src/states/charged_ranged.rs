@@ -1,5 +1,5 @@
 use crate::{
-    combat::CombatEffect,
+    combat::{self, CombatEffect},
     comp::{
         character_state::OutputEvents, projectile::ProjectileConstructor, Body, CharacterState,
         LightEmitter, Pos, StateUpdate,
@@ -110,8 +110,7 @@ impl CharacterBehavior for Data {
                             + charge_frac * self.static_data.scaled_regen,
                     };
                     // Fire
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
+                    let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     // Gets offsets
                     let body_offsets = data
@@ -120,8 +119,7 @@ impl CharacterBehavior for Data {
                     let pos = Pos(data.pos.0 + body_offsets);
                     let projectile = arrow.create_projectile(
                         Some(*data.uid),
-                        crit_chance,
-                        crit_mult,
+                        precision_mult,
                         tool_stats,
                         self.static_data.damage_effect,
                     );

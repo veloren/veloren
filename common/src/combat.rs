@@ -44,6 +44,18 @@ pub enum AttackSource {
     Explosion,
 }
 
+pub const FULL_FLANK_ANGLE: f32 = std::f32::consts::PI / 4.0;
+pub const PARTIAL_FLANK_ANGLE: f32 = std::f32::consts::PI * 3.0 / 4.0;
+// NOTE: Do we want to change this to be a configurable parameter on body?
+pub const PROJECTILE_HEADSHOT_PROPORTION: f32 = 0.1;
+pub const BEAM_DURATION_PRECISION: f32 = 2.5;
+pub const MAX_BACK_FLANK_PRECISION: f32 = 0.75;
+pub const MAX_SIDE_FLANK_PRECISION: f32 = 0.25;
+pub const MAX_HEADSHOT_PRECISION: f32 = 1.0;
+pub const MAX_TOP_HEADSHOT_PRECISION: f32 = 0.5;
+pub const MAX_BEAM_DUR_PRECISION: f32 = 0.25;
+pub const MAX_MELEE_POISE_PRECISION: f32 = 0.5;
+
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
@@ -73,14 +85,14 @@ pub struct AttackOptions {
     pub target_dodging: bool,
     pub may_harm: bool,
     pub target_group: GroupTarget,
+    pub precision_mult: Option<f32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)] // TODO: Yeet clone derive
 pub struct Attack {
     damages: Vec<AttackDamage>,
     effects: Vec<AttackEffect>,
-    crit_chance: f32,
-    crit_multiplier: f32,
+    precision_multiplier: f32,
 }
 
 impl Default for Attack {
@@ -88,8 +100,7 @@ impl Default for Attack {
         Self {
             damages: Vec::new(),
             effects: Vec::new(),
-            crit_chance: 0.0,
-            crit_multiplier: 1.0,
+            precision_multiplier: 1.0,
         }
     }
 }
@@ -108,9 +119,8 @@ impl Attack {
     }
 
     #[must_use]
-    pub fn with_crit(mut self, crit_chance: f32, crit_multiplier: f32) -> Self {
-        self.crit_chance = crit_chance;
-        self.crit_multiplier = crit_multiplier;
+    pub fn with_precision(mut self, precision_multiplier: f32) -> Self {
+        self.precision_multiplier = precision_multiplier;
         self
     }
 
@@ -205,6 +215,7 @@ impl Attack {
             target_dodging,
             may_harm,
             target_group,
+            precision_mult,
         } = options;
 
         // target == OutOfGroup is basic heuristic that this
@@ -220,14 +231,10 @@ impl Attack {
             matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
                 && (target_dodging || !may_harm)
         };
-        let crit_chance = attacker
+        let precision_mult = attacker
             .and_then(|a| a.stats)
-            .map(|s| s.crit_chance_modifier)
-            .map_or(self.crit_chance, |cc_mod| {
-                self.crit_chance * cc_mod.mult_mod + cc_mod.add_mod
-            })
-            .clamp(0.0, 1.0);
-        let is_crit = rng.gen::<f32>() < crit_chance;
+            .and_then(|s| s.precision_multiplier_override)
+            .or(precision_mult);
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
@@ -254,8 +261,8 @@ impl Attack {
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
                 attacker.map(|x| x.into()),
-                is_crit,
-                self.crit_multiplier,
+                precision_mult,
+                self.precision_multiplier,
                 strength_modifier * damage_modifier,
                 time,
                 damage_instance,
@@ -283,7 +290,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
-                                    crit: is_crit,
+                                    precise: precision_mult.is_some(),
                                     instance: damage_instance,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -334,7 +341,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     instance: damage_instance,
-                                    crit: is_crit,
+                                    precise: precision_mult.is_some(),
                                     time,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -399,7 +406,7 @@ impl Attack {
                                     by: attacker.map(|a| a.into()),
                                     cause: None,
                                     time,
-                                    crit: false,
+                                    precise: false,
                                     instance: rand::random(),
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -441,7 +448,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
-                                crit: false,
+                                precise: false,
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -619,7 +626,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
-                                crit: false,
+                                precise: false,
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -661,7 +668,7 @@ impl Attack {
                             by: attacker.map(|a| a.into()),
                             cause: None,
                             time,
-                            crit: false,
+                            precise: false,
                             instance: rand::random(),
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -1024,26 +1031,22 @@ impl Damage {
         self,
         damage_reduction: f32,
         damage_contributor: Option<DamageContributor>,
-        is_crit: bool,
-        crit_mult: f32,
+        precision_mult: Option<f32>,
+        precision_power: f32,
         damage_modifier: f32,
         time: Time,
         instance: u64,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
-        let critdamage = if is_crit {
-            damage * (crit_mult - 1.0)
-        } else {
-            0.0
-        };
+        let precise_damage = damage * precision_mult.unwrap_or(0.0) * (precision_power - 1.0);
         match self.source {
             DamageSource::Melee
             | DamageSource::Projectile
             | DamageSource::Explosion
             | DamageSource::Shockwave
             | DamageSource::Energy => {
-                // Critical hit
-                damage += critdamage;
+                // Precise hit
+                damage += precise_damage;
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
@@ -1052,7 +1055,7 @@ impl Damage {
                     by: damage_contributor,
                     cause: Some(self.source),
                     time,
-                    crit: is_crit,
+                    precise: precision_mult.is_some(),
                     instance,
                 }
             },
@@ -1066,7 +1069,7 @@ impl Damage {
                     by: None,
                     cause: Some(self.source),
                     time,
-                    crit: false,
+                    precise: false,
                     instance,
                 }
             },
@@ -1075,7 +1078,7 @@ impl Damage {
                 by: None,
                 cause: Some(self.source),
                 time,
-                crit: false,
+                precise: false,
                 instance,
             },
         }
@@ -1224,7 +1227,6 @@ pub fn get_weapon_kinds(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>)
 fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
     const POWER_WEIGHT: f32 = 2.0;
     const SPEED_WEIGHT: f32 = 3.0;
-    const CRIT_CHANCE_WEIGHT: f32 = 1.5;
     const RANGE_WEIGHT: f32 = 0.8;
     const EFFECT_WEIGHT: f32 = 1.5;
     const EQUIP_TIME_WEIGHT: f32 = 0.0;
@@ -1240,7 +1242,6 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
 
         let power_rating = stats.power;
         let speed_rating = stats.speed - 1.0;
-        let crit_chance_rating = (stats.crit_chance - 0.1) * 10.0;
         let range_rating = stats.range - 1.0;
         let effect_rating = stats.effect_power - 1.0;
         let equip_time_rating = 0.5 - stats.equip_time_secs;
@@ -1249,7 +1250,6 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
 
         power_rating * POWER_WEIGHT
             + speed_rating * SPEED_WEIGHT
-            + crit_chance_rating * CRIT_CHANCE_WEIGHT
             + range_rating * RANGE_WEIGHT
             + effect_rating * EFFECT_WEIGHT
             + equip_time_rating * EQUIP_TIME_WEIGHT
@@ -1306,7 +1306,7 @@ pub fn combat_rating(
     const ENERGY_WEIGHT: f32 = 0.5;
     const SKILLS_WEIGHT: f32 = 1.0;
     const POISE_WEIGHT: f32 = 0.5;
-    const CRIT_WEIGHT: f32 = 0.5;
+    const PRECISION_WEIGHT: f32 = 0.5;
     // Normalized with a standard max health of 100
     let health_rating = health.base_max()
         / 100.0
@@ -1323,8 +1323,8 @@ pub fn combat_rating(
         / (1.0 - Poise::compute_poise_damage_reduction(Some(inventory), msm, None, None))
             .max(0.00001);
 
-    // Normalized with a standard crit multiplier of 1.2
-    let crit_rating = compute_crit_mult(Some(inventory), msm) / 1.2;
+    // Normalized with a standard precision multiplier of 1.2
+    let precision_rating = compute_precision_mult(Some(inventory), msm) / 1.2;
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree
@@ -1337,13 +1337,13 @@ pub fn combat_rating(
     let combined_rating = (health_rating * HEALTH_WEIGHT
         + energy_rating * ENERGY_WEIGHT
         + poise_rating * POISE_WEIGHT
-        + crit_rating * CRIT_WEIGHT
+        + precision_rating * PRECISION_WEIGHT
         + skills_rating * SKILLS_WEIGHT
         + weapon_rating * WEAPON_WEIGHT)
         / (HEALTH_WEIGHT
             + ENERGY_WEIGHT
             + POISE_WEIGHT
-            + CRIT_WEIGHT
+            + PRECISION_WEIGHT
             + SKILLS_WEIGHT
             + WEAPON_WEIGHT);
 
@@ -1352,22 +1352,25 @@ pub fn combat_rating(
     combined_rating * body.combat_multiplier()
 }
 
-pub fn compute_crit_mult(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
-    // Starts with a value of 1.25 when summing the stats from each armor piece, and
-    // defaults to a value of 1.25 if no inventory is equipped
-    inventory.map_or(1.25, |inv| {
-        inv.equipped_items()
-            .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor
-                        .stats(msm, item.stats_durability_multiplier())
-                        .crit_power
-                } else {
-                    None
-                }
-            })
-            .fold(1.25, |a, b| a + b)
-    })
+pub fn compute_precision_mult(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
+    // Starts with a value of 0.1 when summing the stats from each armor piece, and
+    // defaults to a value of 0.1 if no inventory is equipped. Precision multiplier
+    // cannot go below 1
+    1.0 + inventory
+        .map_or(0.1, |inv| {
+            inv.equipped_items()
+                .filter_map(|item| {
+                    if let ItemKind::Armor(armor) = &*item.kind() {
+                        armor
+                            .stats(msm, item.stats_durability_multiplier())
+                            .precision_power
+                    } else {
+                        None
+                    }
+                })
+                .fold(0.1, |a, b| a + b)
+        })
+        .max(0.0)
 }
 
 /// Computes the energy reward modifier from worn armor
@@ -1468,4 +1471,14 @@ pub fn compute_protection(
             })
             .sum::<Option<f32>>()
     })
+}
+
+/// Used to compute the precision multiplier achieved by flanking a target
+pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>) -> Option<f32> {
+    let angle = target_ori.map(|t_ori| t_ori.look_dir().angle_between(attack_dir));
+    match angle {
+        Some(angle) if angle < FULL_FLANK_ANGLE => Some(MAX_BACK_FLANK_PRECISION),
+        Some(angle) if angle < PARTIAL_FLANK_ANGLE => Some(MAX_SIDE_FLANK_PRECISION),
+        Some(_) | None => None,
+    }
 }

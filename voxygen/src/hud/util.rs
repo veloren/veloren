@@ -108,12 +108,12 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
             armor_stats.energy_reward.is_some() as usize
                 + armor_stats.energy_max.is_some() as usize
                 + armor_stats.stealth.is_some() as usize
-                + armor_stats.crit_power.is_some() as usize
+                + armor_stats.precision_power.is_some() as usize
                 + armor_stats.poise_resilience.is_some() as usize
                 + armor_stats.protection.is_some() as usize
                 + (item.num_slots() > 0) as usize
         },
-        ItemKind::Tool(_) => 7,
+        ItemKind::Tool(_) => 6,
         ItemKind::Consumable { effects, .. } => match effects {
             Effects::Any(_) | Effects::One(_) => 1,
             Effects::All(effects) => effects.len(),

@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Invincible),
             energy_max: Some(900.0),
             energy_reward: Some(9.0),
-            crit_power: Some(1.0),
+            precision_power: Some(1.0),
             stealth: Some(1000.0),
         )),
     )),

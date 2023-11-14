@@ -148,17 +148,18 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 None
                             };
 
-                            let crit_power =
-                                if let Some(crit_power_raw) = record.get(headers["Crit Power"]) {
-                                    let value = crit_power_raw.parse().unwrap();
-                                    if value == 0.0 { None } else { Some(value) }
-                                } else {
-                                    eprintln!(
-                                        "Could not unwrap crit power value for {:?}",
-                                        item.item_definition_id()
-                                    );
-                                    None
-                                };
+                            let precision_power = if let Some(precision_power_raw) =
+                                record.get(headers["Precision Power"])
+                            {
+                                let value = precision_power_raw.parse().unwrap();
+                                if value == 0.0 { None } else { Some(value) }
+                            } else {
+                                eprintln!(
+                                    "Could not unwrap precision power value for {:?}",
+                                    item.item_definition_id()
+                                );
+                                None
+                            };
 
                             let stealth = if let Some(stealth_raw) = record.get(headers["Stealth"])
                             {
@@ -178,7 +179,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 poise_resilience,
                                 energy_max,
                                 energy_reward,
-                                crit_power,
+                                precision_power,
                                 stealth,
                                 ground_contact: Default::default(),
                             };
@@ -341,15 +342,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             Hands::Two
                         };
 
-                        let crit_chance: f32 = record
-                            .get(headers["Crit Chance"])
-                            .expect(&format!(
-                                "Error unwrapping crit_chance for {:?}",
-                                item.item_definition_id()
-                            ))
-                            .parse()
-                            .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-
                         let range: f32 = record
                             .get(headers["Range"])
                             .expect(&format!(
@@ -382,7 +374,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             power,
                             effect_power,
                             speed,
-                            crit_chance,
                             range,
                             energy_efficiency,
                             buff_strength,

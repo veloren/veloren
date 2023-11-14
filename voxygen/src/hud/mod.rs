@@ -1644,8 +1644,8 @@ impl Hud {
                         .filter(|fl| !fl.floaters.is_empty()),
                     healths.get(me),
                 ) {
-                    let player_font_col = |crit: bool| {
-                        if crit {
+                    let player_font_col = |precise: bool| {
+                        if precise {
                             Rgb::new(1.0, 0.9, 0.0)
                         } else {
                             Rgb::new(1.0, 0.1, 0.0)
@@ -1684,7 +1684,7 @@ impl Hud {
                         } else {
                             format!("{:.1}", floater.info.amount.abs())
                         };
-                        let crit = floater.info.crit;
+                        let precise = floater.info.precise;
 
                         // Timer sets text transparency
                         let hp_fade = calc_fade(floater);
@@ -1692,7 +1692,7 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size =
-                            30 + (if crit {
+                            30 + (if precise {
                                 (max_hp_frac * 10.0) as u32 * 3 + 10
                             } else {
                                 (max_hp_frac * 10.0) as u32 * 3
@@ -1700,12 +1700,12 @@ impl Hud {
                                 FLASH_MAX
                                     * (((1.0 - floater.jump_timer * 10.0)
                                         * 10.0
-                                        * if crit { 1.25 } else { 1.0 })
+                                        * if precise { 1.25 } else { 1.0 })
                                         as u32)
                             } else {
                                 0
                             };
-                        let font_col = player_font_col(crit);
+                        let font_col = player_font_col(precise);
                         // Timer sets the widget offset
                         let y = if floater.info.amount < 0.0 {
                             floater.timer as f64
@@ -2495,8 +2495,9 @@ impl Hud {
                 // Enemy SCT
                 if global_state.settings.interface.sct && !hpfl.floaters.is_empty() {
                     fn calc_fade(floater: &HpFloater) -> f32 {
-                        if floater.info.crit {
-                            ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75) + 0.5
+                        if floater.info.precise {
+                            ((crate::ecs::sys::floater::PRECISE_SHOWTIME - floater.timer) * 0.75)
+                                + 0.5
                         } else {
                             ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25) + 0.2
                         }
@@ -2522,8 +2523,8 @@ impl Hud {
                     ];
                     // Largest value that select the first color is 40, then it shifts colors
                     // every 5
-                    let font_col = |font_size: u32, crit: bool| {
-                        if crit {
+                    let font_col = |font_size: u32, precise: bool| {
+                        if precise {
                             Rgb::new(1.0, 0.9, 0.0)
                         } else {
                             DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
@@ -2552,13 +2553,13 @@ impl Hud {
                         } else {
                             format!("{:.1}", floater.info.amount.abs())
                         };
-                        let crit = floater.info.crit;
+                        let precise = floater.info.precise;
                         // Timer sets text transparency
                         let fade = calc_fade(floater);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size =
-                            30 + (if crit {
+                            30 + (if precise {
                                 (max_hp_frac * 10.0) as u32 * 3 + 10
                             } else {
                                 (max_hp_frac * 10.0) as u32 * 3
@@ -2566,14 +2567,14 @@ impl Hud {
                                 FLASH_MAX
                                     * (((1.0 - floater.jump_timer * 10.0)
                                         * 10.0
-                                        * if crit { 1.25 } else { 1.0 })
+                                        * if precise { 1.25 } else { 1.0 })
                                         as u32)
                             } else {
                                 0
                             };
-                        let font_col = font_col(font_size, crit);
+                        let font_col = font_col(font_size, precise);
                         // Timer sets the widget offset
-                        let y = if crit {
+                        let y = if precise {
                             ui_widgets.win_h * (floater.rand as f64 % 0.075)
                                 + ui_widgets.win_h * 0.05
                         } else {
@@ -2582,7 +2583,7 @@ impl Hud {
                                 + 100.0
                         };
 
-                        let x = if !crit {
+                        let x = if !precise {
                             0.0
                         } else {
                             (floater.rand as f64 - 0.5) * 0.075 * ui_widgets.win_w
@@ -5043,22 +5044,22 @@ impl Hud {
                                     break;
                                 }
                                 if floater.info.instance == info.instance
-                                    // Group up crits and regular attacks for incoming damage
+                                    // Group up precision hits and regular attacks for incoming damage
                                     && (hit_me
-                                        || floater.info.crit
-                                            == info.crit)
+                                        || floater.info.precise
+                                            == info.precise)
                                 {
                                     floater.info.amount += info.amount;
-                                    if info.crit {
-                                        floater.info.crit = info.crit
+                                    if info.precise {
+                                        floater.info.precise = info.precise
                                     }
                                     return;
                                 }
                             }
 
-                            // To separate healing and damage floaters alongside the crit and
-                            // non-crit ones
-                            let last_floater = if !info.crit || hit_me {
+                            // To separate healing and damage floaters alongside the precise and
+                            // non-precise ones
+                            let last_floater = if !info.precise || hit_me {
                                 floater_list.floaters.iter_mut().rev().find(|f| {
                                     (if info.amount < 0.0 {
                                         f.info.amount < 0.0
@@ -5070,8 +5071,8 @@ impl Hud {
                                         } else {
                                             interface.sct_dmg_accum_duration
                                         }
-                                    // Ignore crit floaters, unless the damage is incoming
-                                    && (hit_me || !f.info.crit)
+                                    // Ignore precise floaters, unless the damage is incoming
+                                    && (hit_me || !f.info.precise)
                                 })
                             } else {
                                 None
@@ -5081,7 +5082,7 @@ impl Hud {
                                 Some(f) => {
                                     f.jump_timer = 0.0;
                                     f.info.amount += info.amount;
-                                    f.info.crit = info.crit;
+                                    f.info.precise = info.precise;
                                 },
                                 _ => {
                                     floater_list.floaters.push(HpFloater {

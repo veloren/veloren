@@ -134,7 +134,7 @@ impl PoiseState {
     }
 
     /// Returns the multiplier on poise damage to health damage for when the
-    /// target is in a poise state
+    /// target is in a poise state, also is used for precision
     pub fn damage_multiplier(&self) -> f32 {
         match self {
             Self::Interrupted => 0.1,

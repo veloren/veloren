@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
-        DamageSource, GroupTarget,
+        self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
+        DamageKind, DamageSource, GroupTarget,
     },
     comp::{
         beam, body::biped_large, character_state::OutputEvents, object::Body::Flamethrower, Body,
@@ -17,6 +17,7 @@ use crate::{
     terrain::Block,
     util::Dir,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::*;
@@ -116,11 +117,11 @@ impl CharacterBehavior for Data {
                         if let Some(effect) = self.static_data.damage_effect {
                             damage = damage.with_effect(effect);
                         }
-                        let (crit_chance, crit_mult) =
-                            get_crit_data(data, self.static_data.ability_info);
+                        let precision_mult =
+                            combat::compute_precision_mult(data.inventory, data.msm);
                         Attack::default()
                             .with_damage(damage)
-                            .with_crit(crit_chance, crit_mult)
+                            .with_precision(precision_mult)
                             .with_effect(energy)
                             .with_combo_increment()
                     };
@@ -133,6 +134,7 @@ impl CharacterBehavior for Data {
                         duration: self.static_data.beam_duration,
                         tick_dur: Secs(1.0 / self.static_data.tick_rate as f64),
                         hit_entities: Vec::new(),
+                        hit_durations: HashMap::new(),
                         specifier: self.static_data.specifier,
                         bezier: QuadraticBezier3 {
                             start: data.pos.0,

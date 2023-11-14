@@ -190,7 +190,6 @@ impl WiringAction {
                             body: Body::Object(object::Body::Arrow),
                             projectile: constr.create_projectile(
                                 None,
-                                0.0,
                                 1.0,
                                 tool::Stats::one(),
                                 None,

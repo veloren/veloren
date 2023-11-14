@@ -6,7 +6,7 @@ ItemDef(
         stats: Direct((
             protection: Some(Normal(1.0)),
             energy_reward: Some(-0.0225),
-            crit_power: Some(0.0225),
+            precision_power: Some(0.0225),
         )),
     )),
     quality: Moderate,

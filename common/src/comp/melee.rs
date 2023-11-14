@@ -72,7 +72,7 @@ pub struct MeleeConstructor {
 }
 
 impl MeleeConstructor {
-    pub fn create_melee(self, (crit_chance, crit_mult): (f32, f32), tool_stats: Stats) -> Melee {
+    pub fn create_melee(self, precision_mult: f32, tool_stats: Stats) -> Melee {
         use MeleeConstructorKind::*;
         if self.scaled.is_some() {
             dev_panic!(
@@ -127,7 +127,7 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -178,7 +178,7 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -221,7 +221,7 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -269,7 +269,7 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
                     .with_combo(self.combo_gain)
@@ -308,7 +308,7 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(knockback)
                     .with_combo(self.combo_gain)
             },
@@ -346,7 +346,7 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
                     .with_combo(self.combo_gain)

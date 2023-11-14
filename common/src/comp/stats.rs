@@ -63,7 +63,7 @@ pub struct Stats {
     pub max_energy_modifiers: StatsModifier,
     pub poise_damage_modifier: f32,
     pub attack_damage_modifier: f32,
-    pub crit_chance_modifier: StatsModifier,
+    pub precision_multiplier_override: Option<f32>,
     pub swim_speed_modifier: f32,
     /// This adds effects to any attacks that the entity makes
     pub effects_on_attack: Vec<AttackEffect>,
@@ -90,7 +90,7 @@ impl Stats {
             max_energy_modifiers: StatsModifier::default(),
             poise_damage_modifier: 1.0,
             attack_damage_modifier: 1.0,
-            crit_chance_modifier: StatsModifier::default(),
+            precision_multiplier_override: None,
             swim_speed_modifier: 1.0,
             effects_on_attack: Vec::new(),
             mitigations_penetration: 0.0,

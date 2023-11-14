@@ -1,4 +1,5 @@
 use crate::{combat::Attack, resources::Secs};
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, Entity as EcsEntity};
 use vek::*;
@@ -14,6 +15,16 @@ pub struct Beam {
     pub bezier: QuadraticBezier3<f32>,
     #[serde(skip)]
     pub hit_entities: Vec<EcsEntity>,
+    #[serde(skip)]
+    pub hit_durations: HashMap<EcsEntity, u32>,
+}
+
+impl Beam {
+    pub fn hit_entities_and_durations(
+        &mut self,
+    ) -> (&Vec<EcsEntity>, &mut HashMap<EcsEntity, u32>) {
+        (&self.hit_entities, &mut self.hit_durations)
+    }
 }
 
 impl Component for Beam {

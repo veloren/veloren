@@ -196,6 +196,8 @@ impl<'a> System<'a> for Sys {
                         stats: read_data.stats.get(attacker),
                     });
 
+                    let target_ori = read_data.orientations.get(target);
+                    let target_char_state = read_data.char_states.get(target);
                     let target_info = TargetInfo {
                         entity: target,
                         uid: *uid_b,
@@ -203,8 +205,8 @@ impl<'a> System<'a> for Sys {
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
                         pos: pos_b.0,
-                        ori: read_data.orientations.get(target),
-                        char_state: read_data.char_states.get(target),
+                        ori: target_ori,
+                        char_state: target_char_state,
                         energy: read_data.energies.get(target),
                         buffs: read_data.buffs.get(target),
                     };
@@ -218,10 +220,31 @@ impl<'a> System<'a> for Sys {
                         target,
                     );
 
+                    let precision_from_flank =
+                        combat::precision_mult_from_flank(*ori.look_dir(), target_ori);
+
+                    let precision_from_poise = {
+                        if let Some(CharacterState::Stunned(data)) = target_char_state {
+                            Some(
+                                combat::MAX_MELEE_POISE_PRECISION
+                                    * data.static_data.poise_state.damage_multiplier(),
+                            )
+                        } else {
+                            None
+                        }
+                    };
+
+                    let precision_mult = match (precision_from_flank, precision_from_poise) {
+                        (Some(a), Some(b)) => Some(a.max(b)),
+                        (Some(a), None) | (None, Some(a)) => Some(a),
+                        (None, None) => None,
+                    };
+
                     let attack_options = AttackOptions {
                         target_dodging,
                         may_harm,
                         target_group,
+                        precision_mult,
                     };
 
                     let strength =

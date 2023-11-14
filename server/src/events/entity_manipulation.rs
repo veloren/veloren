@@ -84,7 +84,7 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
                         by: change.by,
                         target: *uid,
                         cause: change.cause,
-                        crit: change.crit,
+                        precise: change.precise,
                         instance: change.instance,
                     },
                 });
@@ -670,7 +670,7 @@ pub fn handle_land_on_ground(
         let change = damage.calculate_health_change(
             damage_reduction,
             None,
-            false,
+            None,
             0.0,
             1.0,
             *time,
@@ -1049,10 +1049,13 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                         // PvP check
                         let may_harm =
                             combat::may_harm(alignments, players, id_maps, owner_entity, entity_b);
+                        // Explosions aren't precise, and thus cannot be a precise strike
+                        let precision_mult = None;
                         let attack_options = combat::AttackOptions {
                             target_dodging,
                             may_harm,
                             target_group,
+                            precision_mult,
                         };
 
                         let time = server.state.ecs().read_resource::<Time>();

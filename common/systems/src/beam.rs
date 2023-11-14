@@ -73,6 +73,11 @@ impl<'a> System<'a> for Sys {
             .for_each(|(pos, ori, char_state, mut beam)| {
                 // Clear hit entities list if list should be cleared
                 if read_data.time.0 % beam.tick_dur.0 < read_data.dt.0 as f64 {
+                    let (hit_entities, hit_durations) = beam.hit_entities_and_durations();
+                    hit_durations.retain(|e, _| hit_entities.contains(e));
+                    for entity in hit_entities {
+                        *hit_durations.entry(*entity).or_insert(0) += 1;
+                    }
                     beam.hit_entities.clear();
                 }
                 // Update start, end, and control positions of beam bezier
@@ -227,10 +232,34 @@ impl<'a> System<'a> for Sys {
                                 Some(entity),
                                 target,
                             );
+
+                            let precision_from_flank = combat::precision_mult_from_flank(
+                                beam.bezier.ctrl - beam.bezier.start,
+                                target_info.ori,
+                            );
+
+                            let precision_from_time = {
+                                if let Some(ticks) = beam.hit_durations.get(&target) {
+                                    let dur = *ticks as f32 * beam.tick_dur.0 as f32;
+                                    let mult =
+                                        (dur / combat::BEAM_DURATION_PRECISION).clamp(0.0, 1.0);
+                                    Some(combat::MAX_BEAM_DUR_PRECISION * mult)
+                                } else {
+                                    None
+                                }
+                            };
+
+                            let precision_mult = match (precision_from_flank, precision_from_time) {
+                                (Some(a), Some(b)) => Some(a.max(b)),
+                                (Some(a), None) | (None, Some(a)) => Some(a),
+                                (None, None) => None,
+                            };
+
                             let attack_options = AttackOptions {
                                 target_dodging,
                                 may_harm,
                                 target_group,
+                                precision_mult,
                             };
 
                             beam.attack.apply_attack(

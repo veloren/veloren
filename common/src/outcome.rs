@@ -7,7 +7,7 @@ use vek::*;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct HealthChangeInfo {
     pub amount: f32,
-    pub crit: bool,
+    pub precise: bool,
     pub target: Uid,
     pub by: Option<DamageContributor>,
     pub cause: Option<DamageSource>,

@@ -140,8 +140,7 @@ impl ProjectileConstructor {
     pub fn create_projectile(
         self,
         owner: Option<Uid>,
-        crit_chance: f32,
-        crit_mult: f32,
+        precision_mult: f32,
         tool_stats: tool::Stats,
         damage_effect: Option<CombatEffect>,
     ) -> Projectile {
@@ -186,7 +185,7 @@ impl ProjectileConstructor {
                 }
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(knockback)
                     .with_combo_increment();
@@ -239,7 +238,7 @@ impl ProjectileConstructor {
                 }
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(knockback)
                     .with_combo_increment();
@@ -281,7 +280,7 @@ impl ProjectileConstructor {
                 .with_effect(buff);
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_combo_increment();
                 let explosion = Explosion {
@@ -319,7 +318,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_combo_increment();
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
@@ -364,7 +363,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(buff);
                 let explosion = Explosion {
                     effects: vec![
@@ -401,7 +400,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_combo_increment();
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
@@ -446,7 +445,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(buff);
                 let explosion = Explosion {
                     effects: vec![
@@ -502,7 +501,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(knockback);
                 let explosion = Explosion {
                     effects: vec![
@@ -550,7 +549,7 @@ impl ProjectileConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(buff)
                     .with_combo_increment();
                 let explosion = Explosion {
@@ -588,7 +587,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult);
+                    .with_precision(precision_mult);
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
@@ -642,7 +641,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(knockback)
                     .with_effect(buff);
                 let explosion = Explosion {
@@ -701,7 +700,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(knockback)
                     .with_effect(buff);
                 let explosion = Explosion {
@@ -759,7 +758,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(knockback)
                     .with_effect(buff);
                 let variation = thread_rng().gen::<f32>();
@@ -815,7 +814,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
+                    .with_precision(precision_mult)
                     .with_effect(knockback);
                 let explosion = Explosion {
                     effects: vec![
@@ -848,7 +847,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult);
+                    .with_precision(precision_mult);
                 Projectile {
                     hit_solid: vec![],
                     hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
@@ -875,7 +874,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult);
+                    .with_precision(precision_mult);
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,

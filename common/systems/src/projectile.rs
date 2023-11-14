@@ -157,6 +157,7 @@ impl<'a> System<'a> for Sys {
                         owner,
                         ori: orientations.get(entity),
                         pos,
+                        vel,
                     };
 
                     let target = entity_of(other);
@@ -247,6 +248,7 @@ struct ProjectileInfo<'a> {
     owner: Option<EcsEntity>,
     ori: Option<&'a Ori>,
     pos: &'a Pos,
+    vel: &'a Vel,
 }
 
 struct ProjectileTargetInfo<'a> {
@@ -343,10 +345,88 @@ fn dispatch_hit(
                 .get(target)
                 .and_then(|cs| cs.attack_immunities())
                 .map_or(false, |i| i.projectiles);
+
+            let precision_from_flank =
+                combat::precision_mult_from_flank(*projectile_dir, target_info.ori);
+
+            let precision_from_head = {
+                // This performs a cylinder and line segment intersection check. The cylinder is
+                // the upper 10% of an entity's dimensions. The line segment is from the
+                // projectile's positions on the current and previous tick.
+                let curr_pos = projectile_info.pos.0;
+                let last_pos = projectile_info.pos.0 - projectile_info.vel.0 * read_data.dt.0;
+                let vel = projectile_info.vel.0;
+                let (target_height, target_radius) = read_data
+                    .bodies
+                    .get(target)
+                    .map_or((0.0, 0.0), |b| (b.height(), b.max_radius()));
+                let head_top_pos = target_pos.with_z(target_pos.z + target_height);
+                let head_bottom_pos = head_top_pos.with_z(
+                    head_top_pos.z - target_height * combat::PROJECTILE_HEADSHOT_PROPORTION,
+                );
+                if (curr_pos.z < head_bottom_pos.z && last_pos.z < head_bottom_pos.z)
+                    || (curr_pos.z > head_top_pos.z && last_pos.z > head_top_pos.z)
+                {
+                    None
+                } else if curr_pos.z > head_top_pos.z
+                    || curr_pos.z < head_bottom_pos.z
+                    || last_pos.z > head_top_pos.z
+                    || last_pos.z < head_bottom_pos.z
+                {
+                    let proj_top_intersection = {
+                        let t = (head_top_pos.z - last_pos.z) / vel.z;
+                        last_pos + vel * t
+                    };
+                    let proj_bottom_intersection = {
+                        let t = (head_bottom_pos.z - last_pos.z) / vel.z;
+                        last_pos + vel * t
+                    };
+                    let intersected_bottom = head_bottom_pos
+                        .distance_squared(proj_bottom_intersection)
+                        < target_radius.powi(2);
+                    let intersected_top = head_top_pos.distance_squared(proj_top_intersection)
+                        < target_radius.powi(2);
+                    let hit_head = intersected_bottom || intersected_top;
+                    let hit_from_bottom = last_pos.z < head_bottom_pos.z && intersected_bottom;
+                    let hit_from_top = last_pos.z > head_top_pos.z && intersected_top;
+                    // If projectile from bottom, do not award precision damage because it trivial
+                    // to get from up close If projectile from top, reduce
+                    // precision damage to mitigate cheesing benefits
+                    if !hit_head || hit_from_bottom {
+                        None
+                    } else if hit_from_top {
+                        Some(combat::MAX_TOP_HEADSHOT_PRECISION)
+                    } else {
+                        Some(combat::MAX_HEADSHOT_PRECISION)
+                    }
+                } else {
+                    let trajectory = LineSegment3 {
+                        start: last_pos,
+                        end: curr_pos,
+                    };
+                    let head_middle_pos = head_bottom_pos.with_z(
+                        head_bottom_pos.z
+                            + target_height * combat::PROJECTILE_HEADSHOT_PROPORTION * 0.5,
+                    );
+                    if trajectory.distance_to_point(head_middle_pos) < target_radius {
+                        Some(combat::MAX_HEADSHOT_PRECISION)
+                    } else {
+                        None
+                    }
+                }
+            };
+
+            let precision_mult = match (precision_from_flank, precision_from_head) {
+                (Some(a), Some(b)) => Some(a.max(b)),
+                (Some(a), None) | (None, Some(a)) => Some(a),
+                (None, None) => None,
+            };
+
             let attack_options = AttackOptions {
                 target_dodging,
                 may_harm,
                 target_group: projectile_target_info.target_group,
+                precision_mult,
             };
 
             attack.apply_attack(
