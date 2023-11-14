@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SnowGlitter` experimental shader.
 - Crafting recipe for Cloverleaf glider.
 - Burning Potion that applies the Burning effect to the user
+- Precision
 
 ### Changed
 
@@ -71,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Medium and large potions from all loot tables
 - LoD pop-in effect
 - Removed Dullahans from halloween event
+- Random critical hits
 
 ### Fixed
 - Fixed wild roaming cyclop loot table to not drop the quarry key

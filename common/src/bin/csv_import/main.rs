@@ -148,7 +148,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 None
                             };
 
-                            let precision_power = if let Some(precison_power_raw) =
+                            let precision_power = if let Some(precision_power_raw) =
                                 record.get(headers["Precision Power"])
                             {
                                 let value = precision_power_raw.parse().unwrap();
