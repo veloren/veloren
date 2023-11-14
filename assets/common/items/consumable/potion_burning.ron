@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Burning Potion",
+    description: "Sets the user ablaze",
+    kind: Consumable(
+        kind: Drink,
+        effects: All([
+            Buff((
+                kind: Burning,
+                data: (
+                    strength: 1.0,
+                    duration: Some(10)
+                ),
+                cat_ids: [Natural],
+            ))
+        ])
+    ),
+    quality: Moderate,
+    tags: [Potion],
+)
