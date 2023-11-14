@@ -4,7 +4,7 @@ use common::{
         aura::Auras,
         body::{object, Body},
         buff::{
-            Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource,
+            Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffKey, BuffKind, BuffSource,
             Buffs,
         },
         fluid_dynamics::{Fluid, LiquidKind},
@@ -281,7 +281,7 @@ impl<'a> System<'a> for Sys {
                         kind: LiquidKind::Water,
                         ..
                     })
-                ) && buff_comp.kinds.contains_key(&BuffKind::Burning)
+                ) && buff_comp.kinds[BuffKind::Burning].is_some()
                 {
                     // If in water fluid and currently burning, remove burning debuffs
                     server_emitter.emit(ServerEvent::Buff {
@@ -291,14 +291,14 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            let mut expired_buffs = Vec::<BuffId>::new();
+            let mut expired_buffs = Vec::<BuffKey>::new();
 
             // Replace buffs from an active aura with a normal buff when out of range of the
             // aura
             buff_comp
                 .buffs
                 .iter()
-                .filter_map(|(id, buff)| {
+                .filter_map(|(buff_key, buff)| {
                     if let Some((uid, aura_key)) = buff.cat_ids.iter().find_map(|cat_id| {
                         if let BuffCategory::FromActiveAura(uid, aura_key) = cat_id {
                             Some((uid, aura_key))
@@ -306,12 +306,12 @@ impl<'a> System<'a> for Sys {
                             None
                         }
                     }) {
-                        Some((id, buff, uid, aura_key))
+                        Some((buff_key, buff, uid, aura_key))
                     } else {
                         None
                     }
                 })
-                .for_each(|(buff_id, buff, uid, aura_key)| {
+                .for_each(|(buff_key, buff, uid, aura_key)| {
                     let replace = if let Some(aura_entity) = read_data.id_maps.uid_entity(*uid) {
                         if let Some(aura) = read_data
                             .auras
@@ -333,7 +333,7 @@ impl<'a> System<'a> for Sys {
                         true
                     };
                     if replace {
-                        expired_buffs.push(*buff_id);
+                        expired_buffs.push(buff_key);
                         server_emitter.emit(ServerEvent::Buff {
                             entity,
                             buff_change: BuffChange::Add(Buff::new(
@@ -355,9 +355,9 @@ impl<'a> System<'a> for Sys {
                     }
                 });
 
-            buff_comp.buffs.iter().for_each(|(id, buff)| {
+            buff_comp.buffs.iter().for_each(|(buff_key, buff)| {
                 if buff.end_time.map_or(false, |end| end.0 < read_data.time.0) {
-                    expired_buffs.push(*id)
+                    expired_buffs.push(buff_key)
                 }
             });
 
@@ -370,9 +370,9 @@ impl<'a> System<'a> for Sys {
                 .abs()
                 < f32::EPSILON;
             if infinite_damage_reduction {
-                for (id, buff) in buff_comp.buffs.iter() {
+                for (key, buff) in buff_comp.buffs.iter() {
                     if !buff.kind.is_buff() {
-                        expired_buffs.push(*id);
+                        expired_buffs.push(key);
                     }
                 }
             }
@@ -386,24 +386,24 @@ impl<'a> System<'a> for Sys {
             let mut buff_kinds = buff_comp
                 .kinds
                 .iter()
-                .map(|(kind, ids)| (*kind, ids.clone()))
-                .collect::<Vec<(BuffKind, (Vec<BuffId>, Time))>>();
+                .filter_map(|(kind, keys)| keys.as_ref().map(|keys| (kind, keys.clone())))
+                .collect::<Vec<(BuffKind, (Vec<BuffKey>, Time))>>();
             buff_kinds.sort_by_key(|(kind, _)| !kind.affects_subsequent_buffs());
-            for (buff_kind, (buff_ids, kind_start_time)) in buff_kinds.into_iter() {
-                let mut active_buff_ids = Vec::new();
+            for (buff_kind, (buff_keys, kind_start_time)) in buff_kinds.into_iter() {
+                let mut active_buff_keys = Vec::new();
                 if infinite_damage_reduction && !buff_kind.is_buff() {
                     continue;
                 }
 
                 if buff_kind.stacks() {
                     // Process all the buffs of this kind
-                    active_buff_ids = buff_ids;
+                    active_buff_keys = buff_keys;
                 } else {
                     // Only process the strongest of this buff kind
-                    active_buff_ids.push(buff_ids[0]);
+                    active_buff_keys.push(buff_keys[0]);
                 }
-                for buff_id in active_buff_ids.into_iter() {
-                    if let Some(buff) = buff_comp.buffs.get(&buff_id) {
+                for buff_key in active_buff_keys.into_iter() {
+                    if let Some(buff) = buff_comp.buffs.get(buff_key) {
                         // Skip the effect of buffs whose start delay hasn't expired.
                         if buff.start_time.0 > read_data.time.0 {
                             continue;
@@ -434,7 +434,7 @@ impl<'a> System<'a> for Sys {
                                 &mut server_emitter,
                                 dt,
                                 *read_data.time,
-                                expired_buffs.contains(&buff_id),
+                                expired_buffs.contains(&buff_key),
                                 buff_comp,
                             );
                         }
@@ -452,7 +452,7 @@ impl<'a> System<'a> for Sys {
             if !expired_buffs.is_empty() {
                 server_emitter.emit(ServerEvent::Buff {
                     entity,
-                    buff_change: BuffChange::RemoveById(expired_buffs),
+                    buff_change: BuffChange::RemoveByKey(expired_buffs),
                 });
             }
 

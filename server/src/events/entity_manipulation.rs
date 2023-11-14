@@ -1226,9 +1226,9 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                     buffs.insert(new_buff, *time);
                 }
             },
-            BuffChange::RemoveById(ids) => {
-                for id in ids {
-                    buffs.remove(id);
+            BuffChange::RemoveByKey(keys) => {
+                for key in keys {
+                    buffs.remove(key);
                 }
             },
             BuffChange::RemoveByKind(kind) => {
@@ -1244,8 +1244,8 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                 any_required,
                 none_required,
             } => {
-                let mut ids_to_remove = Vec::new();
-                for (id, buff) in buffs.buffs.iter() {
+                let mut keys_to_remove = Vec::new();
+                for (key, buff) in buffs.buffs.iter() {
                     let mut required_met = true;
                     for required in &all_required {
                         if !buff.cat_ids.iter().any(|cat| cat == required) {
@@ -1268,11 +1268,11 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
                         }
                     }
                     if required_met && any_met && none_met {
-                        ids_to_remove.push(*id);
+                        keys_to_remove.push(key);
                     }
                 }
-                for id in ids_to_remove {
-                    buffs.remove(id);
+                for key in keys_to_remove {
+                    buffs.remove(key);
                 }
             },
             BuffChange::Refresh(kind) => {

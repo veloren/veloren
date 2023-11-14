@@ -205,7 +205,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Fortitude
                         | BuffKind::Parried
                         | BuffKind::Reckless
-                        | BuffKind::Polymorphed(_)
+                        | BuffKind::Polymorphed
                         | BuffKind::Flame
                         | BuffKind::Frigid
                         | BuffKind::Lifesteal
@@ -233,7 +233,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::IncreaseMaxHealth
                             | BuffKind::Invulnerability
                             | BuffKind::PotionSickness
-                            | BuffKind::Polymorphed(_) => {
+                            | BuffKind::Polymorphed => {
                                 i18n.get_msg_ctx("buff-text-for_seconds", &i18n::fluent_args! {
                                     "dur_secs" => dur_secs
                                 })

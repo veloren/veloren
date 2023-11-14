@@ -10,18 +10,21 @@ use crate::{
 };
 
 use core::cmp::Ordering;
-use hashbrown::HashMap;
+use enum_map::{Enum, EnumMap};
 use itertools::Either;
 use serde::{Deserialize, Serialize};
+use slotmap::{new_key_type, SlotMap};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use strum::EnumIter;
 
 use super::Body;
 
+new_key_type! { pub struct BuffKey; }
+
 /// De/buff Kind.
 /// This is used to determine what effects a buff will have
 #[derive(
-    Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord, EnumIter,
+    Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord, EnumIter, Enum,
 )]
 pub enum BuffKind {
     // Buffs
@@ -157,7 +160,7 @@ pub enum BuffKind {
     /// Decreases the health gained from subsequent potions.
     PotionSickness,
     /// Changed into another body.
-    Polymorphed(Body),
+    Polymorphed,
 }
 
 impl BuffKind {
@@ -197,7 +200,7 @@ impl BuffKind {
             | BuffKind::Poisoned
             | BuffKind::Parried
             | BuffKind::PotionSickness
-            | BuffKind::Polymorphed(_) => false,
+            | BuffKind::Polymorphed => false,
         }
     }
 
@@ -348,7 +351,13 @@ impl BuffKind {
                 BuffEffect::DamageReduction(-data.strength),
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
-            BuffKind::Polymorphed(body) => vec![BuffEffect::BodyChange(*body)],
+            BuffKind::Polymorphed => {
+                let mut effects = Vec::new();
+                if let Some(MiscBuffData::Body(body)) = data.misc_data {
+                    effects.push(BuffEffect::BodyChange(body));
+                }
+                effects
+            },
             BuffKind::Flame => vec![BuffEffect::AttackEffect(AttackEffect::new(
                 None,
                 CombatEffect::Buff(CombatBuff {
@@ -433,6 +442,13 @@ pub struct BuffData {
     pub force_immediate: bool,
     /// Used for buffs that have rider buffs (e.g. Flame, Frigid)
     pub secondary_duration: Option<Secs>,
+    /// Used to add random data to buffs if needed (e.g. polymorphed)
+    pub misc_data: Option<MiscBuffData>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MiscBuffData {
+    Body(Body),
 }
 
 impl BuffData {
@@ -443,6 +459,7 @@ impl BuffData {
             force_immediate: false,
             delay: None,
             secondary_duration: None,
+            misc_data: None,
         }
     }
 
@@ -459,6 +476,11 @@ impl BuffData {
     /// Force the buff effects to be applied each tick, ignoring num_ticks
     pub fn with_force_immediate(mut self, force_immediate: bool) -> Self {
         self.force_immediate = force_immediate;
+        self
+    }
+
+    pub fn with_misc_data(mut self, misc_data: MiscBuffData) -> Self {
+        self.misc_data = Some(misc_data);
         self
     }
 }
@@ -588,9 +610,8 @@ pub enum BuffChange {
     RemoveByKind(BuffKind),
     /// Removes all buffs with this ID, but not debuffs.
     RemoveFromController(BuffKind),
-    /// Removes buffs of these indices (first vec is for active buffs, second is
-    /// for inactive buffs), should only be called when buffs expire
-    RemoveById(Vec<BuffId>),
+    /// Removes buffs of these indices, should only be called when buffs expire
+    RemoveByKey(Vec<BuffKey>),
     /// Removes buffs of these categories (first vec is of categories of which
     /// all are required, second vec is of categories of which at least one is
     /// required, third vec is of categories that will not be removed)
@@ -704,93 +725,88 @@ pub enum BuffSource {
 /// would be probably an undesired effect).
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Buffs {
-    /// Uid used for synchronization
-    id_counter: u64,
-    /// Maps Kinds of buff to Id's of currently applied buffs of that kind and
+    /// Maps kinds of buff to currently applied buffs of that kind and
     /// the time that the first buff was added (time gets reset if entity no
     /// longer has buffs of that kind)
-    pub kinds: HashMap<BuffKind, (Vec<BuffId>, Time)>,
-    // All currently applied buffs stored by Id
-    pub buffs: HashMap<BuffId, Buff>,
+    pub kinds: EnumMap<BuffKind, Option<(Vec<BuffKey>, Time)>>,
+    // All buffs currently present on an entity
+    pub buffs: SlotMap<BuffKey, Buff>,
 }
 
 impl Buffs {
     fn sort_kind(&mut self, kind: BuffKind) {
-        if let Some(buff_order) = self.kinds.get_mut(&kind) {
+        if let Some(buff_order) = self.kinds[kind].as_mut() {
             if buff_order.0.is_empty() {
-                self.kinds.remove(&kind);
+                self.kinds[kind] = None;
             } else {
                 let buffs = &self.buffs;
                 // Intentionally sorted in reverse so that the strongest buffs are earlier in
                 // the vector
                 buff_order
                     .0
-                    .sort_by(|a, b| buffs[b].partial_cmp(&buffs[a]).unwrap_or(Ordering::Equal));
+                    .sort_by(|a, b| buffs[*b].partial_cmp(&buffs[*a]).unwrap_or(Ordering::Equal));
             }
         }
     }
 
     pub fn remove_kind(&mut self, kind: BuffKind) {
-        if let Some(buff_ids) = self.kinds.get_mut(&kind) {
-            for id in &buff_ids.0 {
-                self.buffs.remove(id);
+        if let Some((buff_keys, _)) = self.kinds[kind].as_ref() {
+            for key in buff_keys {
+                self.buffs.remove(*key);
             }
-            self.kinds.remove(&kind);
+            self.kinds[kind] = None;
         }
     }
 
-    fn force_insert(&mut self, id: BuffId, buff: Buff, current_time: Time) -> BuffId {
+    pub fn insert(&mut self, buff: Buff, current_time: Time) -> BuffKey {
         let kind = buff.kind;
-        self.kinds
-            .entry(kind)
-            .or_insert((Vec::new(), current_time))
+        let key = self.buffs.insert(buff);
+        self.kinds[kind]
+            .get_or_insert_with(|| (Vec::new(), current_time))
             .0
-            .push(id);
-        self.buffs.insert(id, buff);
+            .push(key);
         self.sort_kind(kind);
         if kind.queues() {
             self.delay_queueable_buffs(kind, current_time);
         }
-        id
+        key
     }
 
-    pub fn insert(&mut self, buff: Buff, current_time: Time) -> BuffId {
-        self.id_counter += 1;
-        self.force_insert(self.id_counter, buff, current_time)
-    }
-
-    pub fn contains(&self, kind: BuffKind) -> bool { self.kinds.contains_key(&kind) }
+    pub fn contains(&self, kind: BuffKind) -> bool { self.kinds[kind].is_some() }
 
     // Iterate through buffs of a given kind in effect order (most powerful first)
-    pub fn iter_kind(&self, kind: BuffKind) -> impl Iterator<Item = (BuffId, &Buff)> + '_ {
-        self.kinds
-            .get(&kind)
-            .map(|ids| ids.0.iter())
+    pub fn iter_kind(&self, kind: BuffKind) -> impl Iterator<Item = (BuffKey, &Buff)> + '_ {
+        self.kinds[kind]
+            .as_ref()
+            .map(|keys| keys.0.iter())
             .unwrap_or_else(|| [].iter())
-            .map(move |id| (*id, &self.buffs[id]))
+            .map(move |&key| (key, &self.buffs[key]))
     }
 
     // Iterates through all active buffs (the most powerful buff of each
     // non-stacking kind, and all of the stacking ones)
     pub fn iter_active(&self) -> impl Iterator<Item = impl Iterator<Item = &Buff>> + '_ {
-        self.kinds.iter().map(move |(kind, ids)| {
-            if kind.stacks() {
-                // Iterate stackable buffs in reverse order to show the timer of the soonest one
-                // to expire
-                Either::Left(ids.0.iter().filter_map(|id| self.buffs.get(id)).rev())
-            } else {
-                Either::Right(self.buffs.get(&ids.0[0]).into_iter())
-            }
-        })
+        self.kinds
+            .iter()
+            .filter_map(|(kind, keys)| keys.as_ref().map(|keys| (kind, keys)))
+            .map(move |(kind, keys)| {
+                if kind.stacks() {
+                    // Iterate stackable buffs in reverse order to show the timer of the soonest one
+                    // to expire
+                    Either::Left(keys.0.iter().filter_map(|key| self.buffs.get(*key)).rev())
+                } else {
+                    Either::Right(self.buffs.get(keys.0[0]).into_iter())
+                }
+            })
     }
 
     // Gets most powerful buff of a given kind
-    pub fn remove(&mut self, buff_id: BuffId) {
-        if let Some(kind) = self.buffs.remove(&buff_id) {
-            let kind = kind.kind;
-            self.kinds
-                .get_mut(&kind)
-                .map(|ids| ids.0.retain(|id| *id != buff_id));
+    pub fn remove(&mut self, buff_key: BuffKey) {
+        if let Some(buff) = self.buffs.remove(buff_key) {
+            let kind = buff.kind;
+            self.kinds[kind]
+                .as_mut()
+                .map(|keys| keys.0.retain(|key| *key != buff_key));
             self.sort_kind(kind);
         }
     }
@@ -798,9 +814,9 @@ impl Buffs {
     fn delay_queueable_buffs(&mut self, kind: BuffKind, current_time: Time) {
         let mut next_start_time: Option<Time> = None;
         debug_assert!(kind.queues());
-        if let Some(buffs) = self.kinds.get(&kind) {
-            buffs.0.iter().for_each(|id| {
-                if let Some(buff) = self.buffs.get_mut(id) {
+        if let Some(buffs) = self.kinds[kind].as_mut() {
+            buffs.0.iter().for_each(|key| {
+                if let Some(buff) = self.buffs.get_mut(*key) {
                     // End time only being updated when there is some next_start_time will
                     // technically cause buffs to "end early" if they have a weaker strength than a
                     // buff with an infinite duration, but this is fine since those buffs wouldn't
@@ -825,8 +841,6 @@ impl Buffs {
         }
     }
 }
-
-pub type BuffId = u64;
 
 impl Component for Buffs {
     type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;

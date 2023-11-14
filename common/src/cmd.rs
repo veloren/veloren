@@ -172,7 +172,7 @@ lazy_static! {
             BuffKind::Parried => "parried",
             BuffKind::PotionSickness => "potion_sickness",
             BuffKind::Reckless => "reckless",
-            BuffKind::Polymorphed(_) => "polymorphed",
+            BuffKind::Polymorphed => "polymorphed",
             BuffKind::Flame => "flame",
             BuffKind::Frigid => "frigid",
             BuffKind::Lifesteal => "lifesteal",

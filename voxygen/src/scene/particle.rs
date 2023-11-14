@@ -1482,7 +1482,11 @@ impl ParticleMgr {
         {
             let pos = interp.map_or(pos.0, |i| i.pos);
 
-            for (buff_kind, buff_ids) in buffs.kinds.iter() {
+            for (buff_kind, buff_keys) in buffs
+                .kinds
+                .iter()
+                .filter_map(|(kind, keys)| keys.as_ref().map(|keys| (kind, keys)))
+            {
                 use buff::BuffKind;
                 match buff_kind {
                     BuffKind::Cursed | BuffKind::Burning => {
@@ -1519,9 +1523,9 @@ impl ParticleMgr {
                         let mut multiplicity = 0;
                         // Only show particles for potion sickness at the beginning, after the
                         // drinking animation finishes
-                        if buff_ids.0
+                        if buff_keys.0
                             .iter()
-                            .filter_map(|id| buffs.buffs.get(id))
+                            .filter_map(|key| buffs.buffs.get(*key))
                             .any(|buff| {
                                 matches!(buff.elapsed(Time(time)), dur if (1.0..=1.5).contains(&dur.0))
                             })
@@ -1583,13 +1587,13 @@ impl ParticleMgr {
                             },
                         );
                     },
-                    BuffKind::Polymorphed(_) => {
+                    BuffKind::Polymorphed => {
                         let mut multiplicity = 0;
                         // Only show particles for polymorph at the beginning, after the
                         // drinking animation finishes
-                        if buff_ids.0
+                        if buff_keys.0
                             .iter()
-                            .filter_map(|id| buffs.buffs.get(id))
+                            .filter_map(|key| buffs.buffs.get(*key))
                             .any(|buff| {
                                 matches!(buff.elapsed(Time(time)), dur if (0.1..=0.3).contains(&dur.0))
                             })
