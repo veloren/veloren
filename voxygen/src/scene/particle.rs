@@ -855,12 +855,12 @@ impl ParticleMgr {
                         },
                     );
                 },
-                CharacterState::SpinMelee(spin) => {
-                    if let Some(specifier) = spin.static_data.specifier {
+                CharacterState::RapidMelee(c) => {
+                    if let Some(specifier) = c.static_data.frontend_specifier {
                         match specifier {
-                            states::spin_melee::FrontendSpecifier::CultistVortex => {
-                                if matches!(spin.stage_section, StageSection::Action) {
-                                    let range = spin.static_data.melee_constructor.range;
+                            states::rapid_melee::FrontendSpecifier::CultistVortex => {
+                                if matches!(c.stage_section, StageSection::Action) {
+                                    let range = c.static_data.melee_constructor.range;
                                     // Particles for vortex
                                     let heartbeats =
                                         self.scheduler.heartbeats(Duration::from_millis(3));
@@ -931,8 +931,8 @@ impl ParticleMgr {
                                     }
                                 }
                             },
-                            states::spin_melee::FrontendSpecifier::Whirlwind => {
-                                if matches!(spin.stage_section, StageSection::Action) {
+                            states::rapid_melee::FrontendSpecifier::Whirlwind => {
+                                if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
                                     let mut rng = thread_rng();
                                     self.particles.resize_with(

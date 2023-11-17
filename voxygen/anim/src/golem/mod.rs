@@ -4,12 +4,11 @@ pub mod idle;
 pub mod run;
 pub mod shockwave;
 pub mod shoot;
-pub mod spinmelee;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, idle::IdleAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

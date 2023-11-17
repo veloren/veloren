@@ -1,21 +1,19 @@
-SpinMelee(
+RapidMelee(
     buildup_duration: 1.2,
     swing_duration: 0.5,
     recover_duration: 1.2,
     melee_constructor: (
         kind: NecroticVortex(
-            damage: 30.0,
-            pull: 7.0,
-            lifesteal: 2.0,
+            damage: 30,
+            pull: 7,
+            lifesteal: 2,
         ),
         range: 16.0,
         angle: 360.0,
         multi_target: Some(Normal),
     ),
-    energy_cost: 0.0,
-    is_infinite: true,
-    movement_behavior: Stationary,
-    forward_speed: 0.0,
-    num_spins: 1,
-    specifier: Some(CultistVortex),
+    energy_cost: 0,
+    ori_modifier: 1.0,
+    move_modifier: 0.0,
+    frontend_specifier: Some(CultistVortex),
 )

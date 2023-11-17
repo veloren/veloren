@@ -1,4 +1,5 @@
-SpinMelee(
+BasicMelee(
+    energy_cost: 0,
     buildup_duration: 0.25,
     swing_duration: 0.3,
     recover_duration: 1.0,
@@ -7,14 +8,12 @@ SpinMelee(
             damage: 10,
             poise: 100,
             knockback: 20,
+            energy_regen: 0,
         ),
         range: 10,
-        angle: 360.0,
+        angle: 360,
+        multi_target: Some(Normal),
     ),
-    energy_cost: 0.0,
-    is_infinite: false,
-    movement_behavior: Stationary,
-    forward_speed: 0.0,
-    num_spins: 1,
-    specifier: None,
+    ori_modifier: 1.0,
 )
+

@@ -397,13 +397,6 @@
             threshold: 0.7,
             subtitle: "subtitle-hammer-attack",
         ),
-        Attack(SpinMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
         Attack(ComboMelee(Action, 1), Sword): (
             files: [
                 "voxygen.audio.sfx.abilities.swing_sword",
@@ -510,7 +503,7 @@
             threshold: 0.7,
             subtitle: "subtitle-axe_attack",
         ),
-        Attack(SpinMelee(Action), Axe): (
+        Attack(RapidMelee(Action), Axe): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],

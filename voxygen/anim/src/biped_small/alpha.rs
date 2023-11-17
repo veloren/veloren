@@ -232,6 +232,25 @@ impl Animation for AlphaAnimation {
                     next.head.orientation = Quaternion::rotation_z(move1 * -0.8 + move2 * 0.8);
                 },
             },
+            Some(ToolKind::Natural) => {
+                let tension = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time * 10.0).sin(),
+                    Some(StageSection::Action) => 1.0,
+                    Some(StageSection::Recover) => 1.0,
+                    _ => 0.0,
+                };
+                next.chest.orientation =
+                    Quaternion::rotation_x(move1abs * 1.0 + move2abs * -1.5 + tension * 0.2);
+                next.pants.orientation = Quaternion::rotation_x(move1abs * -0.5 + move2abs * 0.5);
+                next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(1.2 + move1abs * 1.5 + move2abs * -1.0)
+                        * Quaternion::rotation_y(tension * 0.5);
+                next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(1.2 + move1abs * 1.5 + move2abs * -1.0)
+                        * Quaternion::rotation_y(tension * -0.5);
+            },
             _ => {
                 next.chest.orientation = Quaternion::rotation_x(move2abs * -1.0)
                     * Quaternion::rotation_z(move1 * 1.2 + move2 * -1.8);

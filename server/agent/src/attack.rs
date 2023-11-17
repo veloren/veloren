@@ -2749,7 +2749,7 @@ impl<'a> AgentData<'a> {
                 {
                     // If already using primary, keep using primary until 10 consecutive seconds
                     controller.push_basic_input(InputKind::Primary);
-                } else if matches!(self.char_state, CharacterState::SpinMelee(c) if c.consecutive_spins < 50 && !matches!(c.stage_section, StageSection::Recover))
+                } else if matches!(self.char_state, CharacterState::RapidMelee(c) if c.current_strike < 50 && !matches!(c.stage_section, StageSection::Recover))
                 {
                     // If already using secondary, keep using secondary until 10 consecutive
                     // seconds
@@ -4289,7 +4289,7 @@ impl<'a> AgentData<'a> {
                 // Long whirlwind attack
                 4 => {
                     controller.push_basic_input(InputKind::Ability(7));
-                    matches!(self.char_state, CharacterState::SpinMelee(c) if matches!(c.stage_section, StageSection::Recover))
+                    matches!(self.char_state, CharacterState::RapidMelee(c) if matches!(c.stage_section, StageSection::Recover))
                 },
                 // Remote ice spikes
                 5 => {
@@ -4992,8 +4992,8 @@ impl<'a> AgentData<'a> {
         }
 
         // After spinning, reset timer
-        if matches!(self.char_state, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Recover)
-        {
+        let current_input = self.char_state.ability_info().map(|ai| ai.input);
+        if matches!(current_input, Some(InputKind::Secondary)) {
             agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize] = 0.0;
         }
 

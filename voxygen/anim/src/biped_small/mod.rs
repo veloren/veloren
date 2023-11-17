@@ -7,7 +7,6 @@ pub mod leapmelee;
 pub mod run;
 pub mod shockwave;
 pub mod shoot;
-pub mod spinmelee;
 pub mod stunned;
 pub mod summon;
 pub mod wield;
@@ -16,8 +15,8 @@ pub mod wield;
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, combomelee::ComboAnimation, dash::DashAnimation,
     idle::IdleAnimation, leapmelee::LeapAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
-    stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation, stunned::StunnedAnimation,
+    summon::SummonAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
