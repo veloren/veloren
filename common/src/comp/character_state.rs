@@ -102,8 +102,6 @@ pub enum CharacterState {
     LeapMelee(leap_melee::Data),
     /// A leap followed by a shockwave
     LeapShockwave(leap_shockwave::Data),
-    /// Spin around, dealing damage to enemies surrounding you
-    SpinMelee(spin_melee::Data),
     /// A charged ranged attack (e.g. bow)
     ChargedRanged(charged_ranged::Data),
     /// A charged melee attack
@@ -161,7 +159,6 @@ impl CharacterState {
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::LeapShockwave(_)
-                | CharacterState::SpinMelee(_)
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
@@ -227,7 +224,6 @@ impl CharacterState {
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::LeapShockwave(_)
-                | CharacterState::SpinMelee(_)
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
@@ -385,7 +381,6 @@ impl CharacterState {
             || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
-            || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::Roll(s) if s.stage_section == StageSection::Movement)
     }
 
@@ -471,7 +466,6 @@ impl CharacterState {
             CharacterState::DashMelee(data) => data.behavior(j, output_events),
             CharacterState::LeapMelee(data) => data.behavior(j, output_events),
             CharacterState::LeapShockwave(data) => data.behavior(j, output_events),
-            CharacterState::SpinMelee(data) => data.behavior(j, output_events),
             CharacterState::ChargedMelee(data) => data.behavior(j, output_events),
             CharacterState::ChargedRanged(data) => data.behavior(j, output_events),
             CharacterState::RepeaterRanged(data) => data.behavior(j, output_events),
@@ -525,7 +519,6 @@ impl CharacterState {
             CharacterState::DashMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::LeapMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::LeapShockwave(data) => data.handle_event(j, output_events, action),
-            CharacterState::SpinMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::ChargedMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::ChargedRanged(data) => data.handle_event(j, output_events, action),
             CharacterState::RepeaterRanged(data) => data.handle_event(j, output_events, action),
@@ -579,7 +572,6 @@ impl CharacterState {
             CharacterState::DashMelee(data) => Some(data.static_data.ability_info),
             CharacterState::LeapMelee(data) => Some(data.static_data.ability_info),
             CharacterState::LeapShockwave(data) => Some(data.static_data.ability_info),
-            CharacterState::SpinMelee(data) => Some(data.static_data.ability_info),
             CharacterState::ChargedMelee(data) => Some(data.static_data.ability_info),
             CharacterState::ChargedRanged(data) => Some(data.static_data.ability_info),
             CharacterState::RepeaterRanged(data) => Some(data.static_data.ability_info),
@@ -624,7 +616,6 @@ impl CharacterState {
             CharacterState::DashMelee(data) => Some(data.stage_section),
             CharacterState::LeapMelee(data) => Some(data.stage_section),
             CharacterState::LeapShockwave(data) => Some(data.stage_section),
-            CharacterState::SpinMelee(data) => Some(data.stage_section),
             CharacterState::ChargedMelee(data) => Some(data.stage_section),
             CharacterState::ChargedRanged(data) => Some(data.stage_section),
             CharacterState::RepeaterRanged(data) => Some(data.stage_section),
@@ -730,12 +721,6 @@ impl CharacterState {
                 action: Some(data.static_data.swing_duration),
                 recover: Some(data.static_data.recover_duration),
                 movement: Some(data.static_data.movement_duration),
-                ..Default::default()
-            }),
-            CharacterState::SpinMelee(data) => Some(DurationsInfo {
-                buildup: Some(data.static_data.buildup_duration),
-                action: Some(data.static_data.swing_duration),
-                recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
             CharacterState::ChargedMelee(data) => Some(DurationsInfo {
@@ -863,7 +848,6 @@ impl CharacterState {
             CharacterState::DashMelee(data) => Some(data.timer),
             CharacterState::LeapMelee(data) => Some(data.timer),
             CharacterState::LeapShockwave(data) => Some(data.timer),
-            CharacterState::SpinMelee(data) => Some(data.timer),
             CharacterState::ChargedMelee(data) => Some(data.timer),
             CharacterState::ChargedRanged(data) => Some(data.timer),
             CharacterState::RepeaterRanged(data) => Some(data.timer),
@@ -913,7 +897,6 @@ impl CharacterState {
             CharacterState::Boost(_) => None,
             CharacterState::DashMelee(_) => Some(AttackSource::Melee),
             CharacterState::LeapMelee(_) => Some(AttackSource::Melee),
-            CharacterState::SpinMelee(_) => Some(AttackSource::Melee),
             CharacterState::ChargedMelee(_) => Some(AttackSource::Melee),
             // TODO: When charged ranged not only arrow make this check projectile type
             CharacterState::ChargedRanged(_) => Some(AttackSource::Projectile),

@@ -5,9 +5,9 @@ use super::{
 use common::{comp::item::ToolKind, states::utils::StageSection};
 use core::f32::consts::{PI, TAU};
 
-pub struct SpinMeleeAnimation;
+pub struct RapidMeleeAnimation;
 
-impl Animation for SpinMeleeAnimation {
+impl Animation for RapidMeleeAnimation {
     type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,
@@ -19,9 +19,9 @@ impl Animation for SpinMeleeAnimation {
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"biped_large_spinmelee\0";
+    const UPDATE_FN: &'static [u8] = b"biped_large_rapidmelee\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_spinmelee")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_rapidmelee")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'_>,

@@ -1,22 +1,19 @@
-SpinMelee(
+RapidMelee(
     buildup_duration: 0.0,
     swing_duration: 0.5,
     recover_duration: 0.0,
     melee_constructor: (
         kind: Slash(
-            damage: 80.0,
-            poise: 0.0,
-            knockback: 50.0,
-            energy_regen: 0.0,
+            damage: 80,
+            poise: 0,
+            knockback: 50,
+            energy_regen: 0,
         ),
         range: 3.5,
-        angle: 360.0,
+        angle: 360,
         multi_target: Some(Normal),
     ),
     energy_cost: 0,
-    is_infinite: true,
-    movement_behavior: ForwardGround,
-    forward_speed: 0.0,
-    num_spins: 1,
-    specifier: None,
+    ori_modifier: 1.0,
+    move_modifier: 1.0,
 )

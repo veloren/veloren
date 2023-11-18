@@ -11,12 +11,12 @@ pub mod idle;
 pub mod jump;
 pub mod leapmelee;
 pub mod leapshockwave;
+pub mod rapidmelee;
 pub mod run;
 pub mod selfbuff;
 pub mod shockwave;
 pub mod shoot;
 pub mod spin;
-pub mod spinmelee;
 pub mod spritesummon;
 pub mod stunned;
 pub mod summon;
@@ -27,9 +27,9 @@ pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, blink::BlinkAnimation,
     charge::ChargeAnimation, chargemelee::ChargeMeleeAnimation, combomelee::ComboAnimation,
     dash::DashAnimation, equip::EquipAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    leapmelee::LeapAnimation, leapshockwave::LeapShockAnimation, run::RunAnimation,
-    selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
-    spin::SpinAnimation, spinmelee::SpinMeleeAnimation, spritesummon::SpriteSummonAnimation,
+    leapmelee::LeapAnimation, leapshockwave::LeapShockAnimation, rapidmelee::RapidMeleeAnimation,
+    run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
+    shoot::ShootAnimation, spin::SpinAnimation, spritesummon::SpriteSummonAnimation,
     stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 

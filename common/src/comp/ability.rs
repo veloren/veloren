@@ -623,7 +623,6 @@ pub enum CharacterAbilityType {
     RapidMelee(StageSection),
     LeapMelee(StageSection),
     LeapShockwave(StageSection),
-    SpinMelee(StageSection),
     Music(StageSection),
     Shockwave,
     BasicBeam,
@@ -649,7 +648,6 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::DiveMelee(data) => Self::DiveMelee(data.stage_section),
             CharacterState::RiposteMelee(data) => Self::RiposteMelee(data.stage_section),
             CharacterState::RapidMelee(data) => Self::RapidMelee(data.stage_section),
-            CharacterState::SpinMelee(data) => Self::SpinMelee(data.stage_section),
             CharacterState::ChargedMelee(data) => Self::ChargedMelee(data.stage_section),
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::Shockwave(_) => Self::Shockwave,
@@ -824,20 +822,6 @@ pub enum CharacterAbility {
         damage_effect: Option<CombatEffect>,
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
-        #[serde(default)]
-        meta: AbilityMeta,
-    },
-    SpinMelee {
-        buildup_duration: f32,
-        swing_duration: f32,
-        recover_duration: f32,
-        energy_cost: f32,
-        is_infinite: bool,
-        movement_behavior: spin_melee::MovementBehavior,
-        forward_speed: f32,
-        num_spins: u32,
-        specifier: Option<spin_melee::FrontendSpecifier>,
-        melee_constructor: MeleeConstructor,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1028,6 +1012,7 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         move_modifier: f32,
         ori_modifier: f32,
+        frontend_specifier: Option<rapid_melee::FrontendSpecifier>,
         #[serde(default)]
         minimum_combo: u32,
         #[serde(default)]
@@ -1087,7 +1072,6 @@ impl CharacterAbility {
                 CharacterAbility::DashMelee { energy_cost, .. }
                 | CharacterAbility::BasicMelee { energy_cost, .. }
                 | CharacterAbility::BasicRanged { energy_cost, .. }
-                | CharacterAbility::SpinMelee { energy_cost, .. }
                 | CharacterAbility::ChargedRanged { energy_cost, .. }
                 | CharacterAbility::ChargedMelee { energy_cost, .. }
                 | CharacterAbility::Shockwave { energy_cost, .. }
@@ -1407,25 +1391,6 @@ impl CharacterAbility {
                     *strength *= stats.buff_strength;
                 }
             },
-            SpinMelee {
-                ref mut buildup_duration,
-                ref mut swing_duration,
-                ref mut recover_duration,
-                ref mut energy_cost,
-                ref mut melee_constructor,
-                is_infinite: _,
-                movement_behavior: _,
-                forward_speed: _,
-                num_spins: _,
-                specifier: _,
-                meta: _,
-            } => {
-                *buildup_duration /= stats.speed;
-                *swing_duration /= stats.speed;
-                *recover_duration /= stats.speed;
-                *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
-            },
             ChargedMelee {
                 ref mut energy_cost,
                 ref mut energy_drain,
@@ -1702,6 +1667,7 @@ impl CharacterAbility {
                 move_modifier: _,
                 ori_modifier: _,
                 minimum_combo: _,
+                frontend_specifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1724,7 +1690,6 @@ impl CharacterAbility {
             | Roll { energy_cost, .. }
             | LeapMelee { energy_cost, .. }
             | LeapShockwave { energy_cost, .. }
-            | SpinMelee { energy_cost, .. }
             | ChargedMelee { energy_cost, .. }
             | ChargedRanged { energy_cost, .. }
             | Shockwave { energy_cost, .. }
@@ -1786,7 +1751,6 @@ impl CharacterAbility {
             | Roll { .. }
             | LeapMelee { .. }
             | LeapShockwave { .. }
-            | SpinMelee { .. }
             | ChargedMelee { .. }
             | ChargedRanged { .. }
             | Shockwave { .. }
@@ -1815,7 +1779,6 @@ impl CharacterAbility {
             | Roll { meta, .. }
             | LeapMelee { meta, .. }
             | LeapShockwave { meta, .. }
-            | SpinMelee { meta, .. }
             | ChargedMelee { meta, .. }
             | ChargedRanged { meta, .. }
             | Shockwave { meta, .. }
@@ -2536,37 +2499,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
-            CharacterAbility::SpinMelee {
-                buildup_duration,
-                swing_duration,
-                recover_duration,
-                melee_constructor,
-                energy_cost,
-                is_infinite,
-                movement_behavior,
-                forward_speed,
-                num_spins,
-                specifier,
-                meta: _,
-            } => CharacterState::SpinMelee(spin_melee::Data {
-                static_data: spin_melee::StaticData {
-                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
-                    swing_duration: Duration::from_secs_f32(*swing_duration),
-                    recover_duration: Duration::from_secs_f32(*recover_duration),
-                    melee_constructor: *melee_constructor,
-                    energy_cost: *energy_cost,
-                    is_infinite: *is_infinite,
-                    movement_behavior: *movement_behavior,
-                    forward_speed: *forward_speed,
-                    num_spins: *num_spins,
-                    ability_info,
-                    specifier: *specifier,
-                },
-                timer: Duration::default(),
-                consecutive_spins: 1,
-                stage_section: StageSection::Buildup,
-                exhausted: false,
-            }),
             CharacterAbility::ChargedMelee {
                 energy_cost,
                 energy_drain,
@@ -2985,6 +2917,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 move_modifier,
                 ori_modifier,
                 minimum_combo,
+                frontend_specifier,
                 meta: _,
             } => CharacterState::RapidMelee(rapid_melee::Data {
                 static_data: rapid_melee::StaticData {
@@ -2997,6 +2930,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     move_modifier: *move_modifier,
                     ori_modifier: *ori_modifier,
                     minimum_combo: *minimum_combo,
+                    frontend_specifier: *frontend_specifier,
                     ability_info,
                 },
                 timer: Duration::default(),

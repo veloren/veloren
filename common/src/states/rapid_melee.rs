@@ -28,6 +28,9 @@ pub struct StaticData {
     pub move_modifier: f32,
     pub ori_modifier: f32,
     pub minimum_combo: u32,
+    /// Used to indicate to the frontend what ability this is for any special
+    /// effects
+    pub frontend_specifier: Option<FrontendSpecifier>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -139,4 +142,10 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FrontendSpecifier {
+    CultistVortex,
+    Whirlwind,
 }

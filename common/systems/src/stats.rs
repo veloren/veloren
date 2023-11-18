@@ -174,7 +174,6 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::DashMelee(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::LeapShockwave(_)
-                | CharacterState::SpinMelee(_)
                 | CharacterState::ComboMelee(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicRanged(_)
