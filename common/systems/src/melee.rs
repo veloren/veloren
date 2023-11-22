@@ -220,8 +220,12 @@ impl<'a> System<'a> for Sys {
                         target,
                     );
 
-                    let precision_from_flank =
-                        combat::precision_mult_from_flank(*ori.look_dir(), target_ori);
+                    // Note: Don't use ori.look_vec() here, it leads to incorrect results for wide
+                    // angle melee attacks
+                    let precision_from_flank = combat::precision_mult_from_flank(
+                        (pos_b.0 - pos.0).try_normalized().unwrap_or(ori.look_vec()),
+                        target_ori,
+                    );
 
                     let precision_from_poise = {
                         if let Some(CharacterState::Stunned(data)) = target_char_state {
