@@ -316,7 +316,9 @@ pub enum ServerChatCommand {
     DebugColumn,
     DebugWays,
     DeleteLocation,
+    DestroyTethers,
     DisconnectAllPlayers,
+    Dismount,
     DropAll,
     Dummy,
     Explosion,
@@ -345,6 +347,7 @@ pub enum ServerChatCommand {
     MakeSprite,
     MakeVolume,
     Motd,
+    Mount,
     Object,
     PermitBuild,
     Players,
@@ -373,6 +376,7 @@ pub enum ServerChatCommand {
     Spawn,
     Sudo,
     Tell,
+    Tether,
     Time,
     TimeScale,
     Tp,
@@ -895,6 +899,22 @@ impl ServerChatCommand {
             ServerChatCommand::RepairEquipment => {
                 cmd(vec![], "Repairs all equipped items", Some(Admin))
             },
+            ServerChatCommand::Tether => cmd(
+                vec![EntityTarget(Required)],
+                "Tether another entity to yourself",
+                Some(Admin),
+            ),
+            ServerChatCommand::DestroyTethers => {
+                cmd(vec![], "Destroy all tethers connected to you", Some(Admin))
+            },
+            ServerChatCommand::Mount => {
+                cmd(vec![EntityTarget(Required)], "Mount an entity", Some(Admin))
+            },
+            ServerChatCommand::Dismount => cmd(
+                vec![EntityTarget(Required)],
+                "Dismount if you are riding, or dismount anything riding you",
+                Some(Admin),
+            ),
         }
     }
 
@@ -985,6 +1005,10 @@ impl ServerChatCommand {
             ServerChatCommand::Lightning => "lightning",
             ServerChatCommand::Scale => "scale",
             ServerChatCommand::RepairEquipment => "repair_equipment",
+            ServerChatCommand::Tether => "tether",
+            ServerChatCommand::DestroyTethers => "destroy_tethers",
+            ServerChatCommand::Mount => "mount",
+            ServerChatCommand::Dismount => "dismount",
         }
     }
 

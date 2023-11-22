@@ -208,6 +208,10 @@ fn do_command(
         ServerChatCommand::Lightning => handle_lightning,
         ServerChatCommand::Scale => handle_scale,
         ServerChatCommand::RepairEquipment => handle_repair_equipment,
+        ServerChatCommand::Tether => handle_tether,
+        ServerChatCommand::DestroyTethers => handle_destroy_tethers,
+        ServerChatCommand::Mount => handle_mount,
+        ServerChatCommand::Dismount => handle_dismount,
     };
 
     handler(server, client, target, args, cmd)
@@ -4538,4 +4542,115 @@ fn handle_repair_equipment(
     } else {
         Err(Content::Plain(action.help_string()))
     }
+}
+
+fn handle_tether(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(entity_target) = parse_cmd_args!(args, EntityTarget) {
+        let entity_target = get_entity_target(entity_target, server)?;
+
+        let tether_leader = server.state.ecs().uid_from_entity(target);
+        let tether_follower = server.state.ecs().uid_from_entity(entity_target);
+
+        if let (Some(leader), Some(follower)) = (tether_leader, tether_follower) {
+            let tether_length = tether_leader
+                .and_then(|uid| server.state.ecs().entity_from_uid(uid))
+                .and_then(|e| server.state.read_component_cloned::<comp::Body>(e))
+                .map(|b| b.dimensions().y * 1.5 + 1.0)
+                .unwrap_or(6.0);
+            server
+                .state
+                .link(Tethered {
+                    leader,
+                    follower,
+                    tether_length,
+                })
+                .map_err(|_| "Failed to tether entities".into())
+        } else {
+            Err("Tether members don't have Uids.".into())
+        }
+    } else {
+        Err(Content::Plain(action.help_string()))
+    }
+}
+
+fn handle_destroy_tethers(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    server
+        .state
+        .ecs()
+        .write_storage::<Is<common::tether::Leader>>()
+        .remove(target);
+    server
+        .state
+        .ecs()
+        .write_storage::<Is<common::tether::Follower>>()
+        .remove(target);
+    Ok(())
+}
+
+fn handle_mount(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(entity_target) = parse_cmd_args!(args, EntityTarget) {
+        let entity_target = get_entity_target(entity_target, server)?;
+
+        let rider = server.state.ecs().uid_from_entity(target);
+        let mount = server.state.ecs().uid_from_entity(entity_target);
+
+        if let (Some(rider), Some(mount)) = (rider, mount) {
+            server
+                .state
+                .link(common::mounting::Mounting { mount, rider })
+                .map_err(|_| "Failed to tether entities".into())
+        } else {
+            Err("Mount and/or rider doesn't have an Uid component.".into())
+        }
+    } else {
+        Err(Content::Plain(action.help_string()))
+    }
+}
+
+fn handle_dismount(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    server
+        .state
+        .ecs()
+        .write_storage::<Is<common::mounting::Rider>>()
+        .remove(target);
+    server
+        .state
+        .ecs()
+        .write_storage::<Is<common::mounting::VolumeRider>>()
+        .remove(target);
+    server
+        .state
+        .ecs()
+        .write_storage::<Is<common::mounting::Mount>>()
+        .remove(target);
+    server
+        .state
+        .ecs()
+        .write_storage::<common::mounting::VolumeRiders>()
+        .remove(target);
+    Ok(())
 }
