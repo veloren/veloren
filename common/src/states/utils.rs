@@ -184,7 +184,10 @@ impl Body {
         // => 1 / (1 - drag).powi(2) - 1 = (dv / 30) / v
         // => 1 / (1 / (1 - drag).powi(2) - 1) = v / (dv / 30)
         // => (dv / 30) / (1 / (1 - drag).powi(2) - 1) = v
-        let v = (-self.base_accel() / 30.0) / ((1.0 - FRIC_GROUND).powi(2) - 1.0);
+        let v = match self {
+            Body::Ship(ship) => ship.get_speed(),
+            _ => (-self.base_accel() / 30.0) / ((1.0 - FRIC_GROUND).powi(2) - 1.0),
+        };
         debug_assert!(v >= 0.0, "Speed must be positive!");
         v
     }

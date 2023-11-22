@@ -4,13 +4,12 @@ pub mod site;
 
 use crate::data::{
     faction::Faction,
-    npc::{Npc, Npcs, Profession, Vehicle},
+    npc::{Npc, Npcs, Profession},
     site::Site,
     Data, Nature, CURRENT_VERSION,
 };
 use common::{
     comp::{self, Body},
-    grid::Grid,
     resources::TimeOfDay,
     rtsim::{Personality, Role, WorldSettings},
     terrain::{BiomeKind, CoordinateConversions, TerrainChunkSize},
@@ -32,12 +31,7 @@ impl Data {
         let mut this = Self {
             version: CURRENT_VERSION,
             nature: Nature::generate(world),
-            npcs: Npcs {
-                npcs: Default::default(),
-                vehicles: Default::default(),
-                npc_grid: Grid::new(Vec2::zero(), Default::default()),
-                character_map: Default::default(),
-            },
+            npcs: Npcs::default(),
             sites: Default::default(),
             factions: Default::default(),
             reports: Default::default(),
@@ -185,13 +179,22 @@ impl Data {
                 }
             }
 
-            if rng.gen_bool(0.4) {
-                let wpos = rand_wpos(&mut rng, matches_plazas) + Vec3::unit_z() * 50.0;
-                let vehicle_id = this
-                    .npcs
-                    .create_vehicle(Vehicle::new(wpos, comp::body::ship::Body::DefaultAirship));
+            for plot in site2
+                .plots
+                .values()
+                .filter(|plot| matches!(plot.kind(), PlotKind::AirshipDock(_)))
+            {
+                let wpos = site2.tile_center_wpos(plot.root_tile());
+                let wpos = wpos.as_().with_z(world.sim().get_surface_alt_approx(wpos))
+                    + Vec3::unit_z() * 70.0;
+                let vehicle_id = this.npcs.create_npc(Npc::new(
+                    rng.gen(),
+                    wpos,
+                    Body::Ship(comp::body::ship::Body::DefaultAirship),
+                    Role::Vehicle,
+                ));
 
-                this.npcs.create_npc(
+                let npc_id = this.npcs.create_npc(
                     Npc::new(
                         rng.gen(),
                         wpos,
@@ -199,9 +202,12 @@ impl Data {
                         Role::Civilised(Some(Profession::Captain)),
                     )
                     .with_home(site_id)
-                    .with_personality(Personality::random_good(&mut rng))
-                    .steering(vehicle_id),
+                    .with_personality(Personality::random_good(&mut rng)),
                 );
+                this.npcs
+                    .mounts
+                    .steer(vehicle_id, npc_id)
+                    .expect("We just created these npcs");
             }
         }
 

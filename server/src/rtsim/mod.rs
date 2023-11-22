@@ -6,7 +6,7 @@ use atomicwrites::{AtomicFile, OverwriteBehavior};
 use common::{
     grid::Grid,
     mounting::VolumePos,
-    rtsim::{Actor, ChunkResource, RtSimEntity, RtSimVehicle, VehicleId, WorldSettings},
+    rtsim::{Actor, ChunkResource, NpcId, RtSimEntity, WorldSettings},
 };
 use common_ecs::{dispatch, System};
 use common_state::BlockDiff;
@@ -151,7 +151,7 @@ impl RtSim {
         &mut self,
         world: &World,
         index: IndexRef,
-        pos: VolumePos<VehicleId>,
+        pos: VolumePos<NpcId>,
         actor: Actor,
     ) {
         self.state.emit(OnMountVolume { actor, pos }, world, index)
@@ -177,32 +177,13 @@ impl RtSim {
     }
 
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
-        if let Some(npc) = self.state.get_data_mut().npcs.get_mut(entity.0) {
-            npc.mode = SimulationMode::Simulated;
-        }
-    }
-
-    pub fn can_unload_entity(&self, entity: RtSimEntity) -> bool {
-        let data = self.state.data();
-        data.npcs
-            .get(entity.0)
-            .and_then(|npc| {
-                let riding = npc.riding.as_ref()?;
-                let vehicle = data.npcs.vehicles.get(riding.vehicle)?;
-                Some(matches!(vehicle.mode, SimulationMode::Simulated))
-            })
-            .unwrap_or(true)
-    }
-
-    pub fn hook_rtsim_vehicle_unload(&mut self, entity: RtSimVehicle) {
         let data = self.state.get_data_mut();
-        if let Some(vehicle) = data.npcs.vehicles.get_mut(entity.0) {
-            vehicle.mode = SimulationMode::Simulated;
-            if let Some(Actor::Npc(npc)) = vehicle.driver {
-                if let Some(npc) = data.npcs.get_mut(npc) {
-                    npc.mode = SimulationMode::Simulated;
-                }
+
+        if let Some(npc) = data.npcs.get_mut(entity.0) {
+            if matches!(npc.mode, SimulationMode::Simulated) {
+                error!("Unloaded already unloaded entity");
             }
+            npc.mode = SimulationMode::Simulated;
         }
     }
 

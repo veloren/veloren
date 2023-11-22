@@ -12,7 +12,7 @@ use crate::{
     lottery::LootSpec,
     mounting::VolumePos,
     outcome::Outcome,
-    rtsim::{RtSimEntity, RtSimVehicle},
+    rtsim::RtSimEntity,
     terrain::SpriteKind,
     trade::{TradeAction, TradeId},
     uid::Uid,
@@ -225,13 +225,15 @@ pub enum ServerEvent {
     // TODO: to avoid breakage when adding new fields, perhaps have an `NpcBuilder` type?
     CreateNpc {
         pos: Pos,
+        ori: Ori,
         npc: NpcBuilder,
+        rider: Option<NpcBuilder>,
     },
     CreateShip {
         pos: Pos,
         ori: Ori,
         ship: comp::ship::Body,
-        rtsim_entity: Option<RtSimVehicle>,
+        rtsim_entity: Option<RtSimEntity>,
         driver: Option<NpcBuilder>,
     },
     CreateWaypoint(Vec3<f32>),

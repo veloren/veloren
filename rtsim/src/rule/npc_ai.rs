@@ -16,6 +16,7 @@ use crate::{
 use common::{
     astar::{Astar, PathResult},
     comp::{
+        self,
         compass::{Direction, Distance},
         dialogue::Subject,
         Content,
@@ -24,7 +25,7 @@ use common::{
     rtsim::{Actor, ChunkResource, NpcInput, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
-    terrain::{CoordinateConversions, SiteKindMeta, TerrainChunkSize},
+    terrain::{CoordinateConversions, TerrainChunkSize},
     time::DayPeriod,
     util::Dir,
 };
@@ -252,7 +253,7 @@ impl Rule for NpcAi {
                 data.npcs
                     .iter_mut()
                     // Don't run AI for dead NPCs
-                    .filter(|(_, npc)| !npc.is_dead)
+                    .filter(|(_, npc)| !npc.is_dead && !matches!(npc.role, Role::Vehicle))
                     // Don't run AI for simulated NPCs every tick
                     .filter(|(_, npc)| matches!(npc.mode, SimulationMode::Loaded) || (npc.seed as u64 + ctx.event.tick) % SIMULATED_TICK_SKIP == 0)
                     .map(|(npc_id, npc)| {
@@ -1011,27 +1012,35 @@ fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
     // Travel between different towns in a straight line
     now(move |ctx, _| {
         let data = &*ctx.state.data();
-        let site = data
+        let station_wpos = data
             .sites
             .iter()
             .filter(|(id, _)| Some(*id) != ctx.npc.current_site)
-            .filter(|(_, site)| {
-                site.world_site
-                    .and_then(|site| ctx.index.sites.get(site).kind.convert_to_meta())
-                    .map_or(false, |meta| matches!(meta, SiteKindMeta::Settlement(_)))
+            .filter_map(|(_, site)| ctx.index.sites.get(site.world_site?).site2())
+            .flat_map(|site| {
+                site.plots()
+                    .filter(|plot| matches!(plot.kind(), PlotKind::AirshipDock(_)))
+                    .map(|plot| site.tile_center_wpos(plot.root_tile()))
             })
             .choose(&mut ctx.rng);
-        if let Some((_id, site)) = site {
+        if let Some(station_wpos) = station_wpos {
             Either::Right(
                 goto_2d_flying(
-                    site.wpos.as_(),
+                    station_wpos.as_(),
                     1.0,
                     50.0,
                     150.0,
                     110.0,
                     ship.flying_height(),
                 )
-                .then(goto_2d_flying(site.wpos.as_(), 1.0, 10.0, 32.0, 16.0, 10.0)),
+                .then(goto_2d_flying(
+                    station_wpos.as_(),
+                    1.0,
+                    10.0,
+                    32.0,
+                    16.0,
+                    30.0,
+                )),
             )
         } else {
             Either::Left(finish())
@@ -1157,15 +1166,17 @@ fn react_to_events<S: State>(ctx: &mut NpcCtx, _: &mut S) -> Option<impl Action<
 
 fn humanoid() -> impl Action<DefaultState> {
     choose(|ctx, _| {
-        if let Some(riding) = &ctx.npc.riding {
-            if riding.steering {
-                if let Some(vehicle) = ctx.state.data().npcs.vehicles.get(riding.vehicle) {
+        if let Some(riding) = &ctx.state.data().npcs.mounts.get_mount_link(ctx.npc_id) {
+            if riding.is_steering {
+                if let Some(vehicle) = ctx.state.data().npcs.get(riding.mount) {
                     match vehicle.body {
-                        common::comp::ship::Body::DefaultAirship
-                        | common::comp::ship::Body::AirBalloon => important(pilot(vehicle.body)),
-                        common::comp::ship::Body::SailBoat | common::comp::ship::Body::Galleon => {
-                            important(captain())
-                        },
+                        comp::Body::Ship(
+                            body @ comp::ship::Body::DefaultAirship
+                            | body @ comp::ship::Body::AirBalloon,
+                        ) => important(pilot(body)),
+                        comp::Body::Ship(
+                            comp::ship::Body::SailBoat | comp::ship::Body::Galleon,
+                        ) => important(captain()),
                         _ => casual(idle()),
                     }
                 } else {
@@ -1310,6 +1321,7 @@ fn think() -> impl Action<DefaultState> {
                 .l(),
             Role::Monster => monster().r().r().l(),
             Role::Wild => idle().r(),
+            Role::Vehicle => idle().r(),
         },
     })
 }

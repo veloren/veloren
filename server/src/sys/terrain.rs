@@ -21,6 +21,7 @@ use common::{
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
+    util::Dir,
     SkillSetBuilder,
 };
 
@@ -137,6 +138,7 @@ impl<'a> System<'a> for Sys {
             )
         });
 
+        let mut rng = rand::thread_rng();
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();
@@ -211,6 +213,7 @@ impl<'a> System<'a> for Sys {
                     } => {
                         server_emitter.emit(ServerEvent::CreateNpc {
                             pos,
+                            ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                             npc: NpcBuilder::new(stats, body, alignment)
                                 .with_skill_set(skill_set)
                                 .with_health(health)
@@ -220,6 +223,7 @@ impl<'a> System<'a> for Sys {
                                 .with_scale(scale)
                                 .with_anchor(comp::Anchor::Chunk(key))
                                 .with_loot(loot),
+                            rider: None,
                         });
                     },
                     NpcData::Teleporter(pos, teleporter) => {

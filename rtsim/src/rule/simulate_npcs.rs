@@ -1,6 +1,6 @@
 use crate::{
     data::{npc::SimulationMode, Npc},
-    event::{EventCtx, OnDeath, OnMountVolume, OnSetup, OnTick},
+    event::{EventCtx, OnDeath, OnMountVolume, OnTick},
     RtState, Rule, RuleError,
 };
 use common::{
@@ -12,6 +12,7 @@ use common::{
 };
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
+use slotmap::SecondaryMap;
 use tracing::{error, warn};
 use vek::{Clamp, Vec2};
 use world::{site::SiteKind, CONFIG};
@@ -20,7 +21,6 @@ pub struct SimulateNpcs;
 
 impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
-        rtstate.bind(on_setup);
         rtstate.bind(on_death);
         rtstate.bind(on_tick);
         rtstate.bind(on_mount_volume);
@@ -29,30 +29,14 @@ impl Rule for SimulateNpcs {
     }
 }
 
-fn on_setup(ctx: EventCtx<SimulateNpcs, OnSetup>) {
-    let data = &mut *ctx.state.data_mut();
-
-    // Add riders to vehicles
-    for (npc_id, npc) in data.npcs.npcs.iter_mut() {
-        if let Some(ride) = &npc.riding {
-            if let Some(vehicle) = data.npcs.vehicles.get_mut(ride.vehicle) {
-                let actor = Actor::Npc(npc_id);
-                if ride.steering && vehicle.driver.replace(actor).is_some() {
-                    error!("Replaced driver");
-                    npc.riding = None;
-                }
-            }
-        }
-    }
-}
-
 fn on_mount_volume(ctx: EventCtx<SimulateNpcs, OnMountVolume>) {
     let data = &mut *ctx.state.data_mut();
 
+    // TODO: Add actor to riders.
     if let VolumePos { kind: Volume::Entity(vehicle), .. } = ctx.event.pos
-        && let Some(vehicle) = data.npcs.vehicles.get(vehicle)
-        && let Some(Actor::Npc(driver)) = vehicle.driver
-        && let Some(driver) = data.npcs.get_mut(driver)  {
+        && let Some(link) = data.npcs.mounts.get_steerer_link(vehicle)
+        && let Actor::Npc(driver) = link.rider
+        && let Some(driver) = data.npcs.get_mut(driver) {
         driver.controller.actions.push(NpcAction::Say(Some(ctx.event.actor), comp::Content::localized("npc-speech-welcome-aboard")))
     }
 }
@@ -71,8 +55,8 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                         .sites
                         .iter()
                         .filter(|(id, site)| {
+                            // Don't respawn in the same town
                             Some(*id) != npc.home
-                                && (npc.faction.is_none() || site.faction == npc.faction)
                                 && site.world_site.map_or(false, |s| {
                                     matches!(
                                         ctx.index.sites.get(s).kind,
@@ -181,112 +165,123 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
 
 fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
     let data = &mut *ctx.state.data_mut();
+
+    // Maintain links
+    let ids = data.npcs.mounts.ids().collect::<Vec<_>>();
+    let mut mount_activity = SecondaryMap::new();
+    for link_id in ids {
+        if let Some(link) = data.npcs.mounts.get(link_id) {
+            if let Some(mount) = data
+                .npcs
+                .npcs
+                .get(link.mount)
+                .filter(|mount| !mount.is_dead)
+            {
+                let wpos = mount.wpos;
+                if let Actor::Npc(rider) = link.rider {
+                    if let Some(rider) =
+                        data.npcs.npcs.get_mut(rider).filter(|rider| !rider.is_dead)
+                    {
+                        rider.wpos = wpos;
+                        mount_activity.insert(link.mount, rider.controller.activity);
+                    } else {
+                        data.npcs.mounts.dismount(link.rider)
+                    }
+                }
+            } else {
+                data.npcs.mounts.remove_mount(link.mount)
+            }
+        }
+    }
+
     for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead) {
         if matches!(npc.mode, SimulationMode::Simulated) {
-            // Simulate NPC movement when riding
-            if let Some(riding) = &npc.riding {
-                if let Some(vehicle) = data.npcs.vehicles.get_mut(riding.vehicle) {
-                    match npc.controller.activity {
-                        // If steering, the NPC controls the vehicle's motion
-                        Some(NpcActivity::Goto(target, speed_factor)) if riding.steering => {
-                            let diff = target - vehicle.wpos;
-                            let dist2 = diff.magnitude_squared();
-
-                            if dist2 > 0.5f32.powi(2) {
-                                let wpos = vehicle.wpos
-                                    + (diff
-                                        * (vehicle.get_speed() * speed_factor * ctx.event.dt
-                                            / dist2.sqrt())
-                                        .min(1.0));
-
-                                let is_valid = match vehicle.body {
-                                    common::comp::ship::Body::DefaultAirship
-                                    | common::comp::ship::Body::AirBalloon => true,
-                                    common::comp::ship::Body::SailBoat
-                                    | common::comp::ship::Body::Galleon => {
-                                        let chunk_pos = wpos.xy().as_().wpos_to_cpos();
-                                        ctx.world
-                                            .sim()
-                                            .get(chunk_pos)
-                                            .map_or(true, |f| f.river.river_kind.is_some())
-                                    },
-                                    _ => false,
-                                };
-
-                                if is_valid {
-                                    vehicle.wpos = wpos;
-                                }
-                                vehicle.dir = (target.xy() - vehicle.wpos.xy())
-                                    .try_normalized()
-                                    .unwrap_or(vehicle.dir);
-                            }
-                        },
-                        // When riding, other actions are disabled
-                        Some(
-                            NpcActivity::Goto(_, _)
-                            | NpcActivity::Gather(_)
-                            | NpcActivity::HuntAnimals
-                            | NpcActivity::Dance(_)
-                            | NpcActivity::Cheer(_)
-                            | NpcActivity::Sit(_),
-                        ) => {},
-                        None => {},
-                    }
-                    npc.wpos = vehicle.wpos;
-                } else {
-                    // Vehicle doens't exist anymore
-                    npc.riding = None;
-                }
-            // If not riding, we assume they're just walking
-            } else {
-                match npc.controller.activity {
-                    // Move NPCs if they have a target destination
-                    Some(NpcActivity::Goto(target, speed_factor)) => {
-                        let diff = target.xy() - npc.wpos.xy();
-                        let dist2 = diff.magnitude_squared();
-
-                        if dist2 > 0.5f32.powi(2) {
-                            npc.wpos += (diff
-                                * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
-                                    / dist2.sqrt())
-                                .min(1.0))
-                            .with_z(0.0);
-                        }
-                    },
-                    Some(
-                        NpcActivity::Gather(_)
-                        | NpcActivity::HuntAnimals
-                        | NpcActivity::Dance(_)
-                        | NpcActivity::Cheer(_)
-                        | NpcActivity::Sit(_),
-                    ) => {
-                        // TODO: Maybe they should walk around randomly
-                        // when gathering resources?
-                    },
-                    None => {},
-                }
-                // Make sure NPCs remain on the surface and within the map
-                npc.wpos = npc
-                    .wpos
-                    .xy()
-                    .clamped(
-                        Vec2::zero(),
-                        (ctx.world.sim().get_size() * TerrainChunkSize::RECT_SIZE).as_(),
-                    )
-                    .with_z(
-                        ctx.world
-                            .sim()
-                            .get_surface_alt_approx(npc.wpos.xy().map(|e| e as i32))
-                            + npc.body.flying_height(),
-                    );
-            }
-
             // Consume NPC actions
             for action in std::mem::take(&mut npc.controller.actions) {
                 match action {
                     NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
                     NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
                 }
+            }
+
+            let activity = if data.npcs.mounts.get_mount_link(npc_id).is_some() {
+                // We are riding, nothing to do.
+                continue;
+            } else if let Some(activity) = mount_activity.get(npc_id) {
+                *activity
+            } else {
+                npc.controller.activity
+            };
+
+            match activity {
+                // Move NPCs if they have a target destination
+                Some(NpcActivity::Goto(target, speed_factor)) => {
+                    let diff = target - npc.wpos;
+                    let dist2 = diff.magnitude_squared();
+
+                    if dist2 > 0.5f32.powi(2) {
+                        let offset = diff
+                            * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
+                                / dist2.sqrt())
+                            .min(1.0);
+                        let new_wpos = npc.wpos + offset;
+
+                        let is_valid = match npc.body {
+                            // Don't move water bound bodies outside of water.
+                            Body::Ship(comp::ship::Body::SailBoat | comp::ship::Body::Galleon)
+                            | Body::FishMedium(_)
+                            | Body::FishSmall(_) => {
+                                let chunk_pos = new_wpos.xy().as_().wpos_to_cpos();
+                                ctx.world
+                                    .sim()
+                                    .get(chunk_pos)
+                                    .map_or(true, |f| f.river.river_kind.is_some())
+                            },
+                            _ => true,
+                        };
+
+                        if is_valid {
+                            npc.wpos = new_wpos;
+                        }
+
+                        npc.dir = (target.xy() - npc.wpos.xy())
+                            .try_normalized()
+                            .unwrap_or(npc.dir);
+                    }
+                },
+                Some(
+                    NpcActivity::Gather(_)
+                    | NpcActivity::HuntAnimals
+                    | NpcActivity::Dance(_)
+                    | NpcActivity::Cheer(_)
+                    | NpcActivity::Sit(_),
+                ) => {
+                    // TODO: Maybe they should walk around randomly
+                    // when gathering resources?
+                },
+                None => {},
+            }
+
+            // Make sure NPCs remain in a valid location
+            let clamped_wpos = npc.wpos.xy().clamped(
+                Vec2::zero(),
+                (ctx.world.sim().get_size() * TerrainChunkSize::RECT_SIZE).as_(),
+            );
+            match npc.body {
+                Body::Ship(comp::ship::Body::DefaultAirship | comp::ship::Body::AirBalloon) => {
+                    npc.wpos = clamped_wpos.with_z(
+                        ctx.world
+                            .sim()
+                            .get_surface_alt_approx(clamped_wpos.as_())
+                            .max(npc.wpos.z),
+                    );
+                },
+                _ => {
+                    npc.wpos = clamped_wpos.with_z(
+                        ctx.world.sim().get_surface_alt_approx(clamped_wpos.as_())
+                            + npc.body.flying_height(),
+                    );
+                },
             }
         }
 
@@ -303,33 +298,6 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 new_home.population.insert(npc_id);
             }
             npc.home = Some(new_home);
-        }
-    }
-
-    for (id, vehicle) in data.npcs.vehicles.iter_mut() {
-        // Try to keep ships above ground and within the map
-        if matches!(vehicle.mode, SimulationMode::Simulated) {
-            vehicle.wpos = vehicle
-                .wpos
-                .xy()
-                .clamped(
-                    Vec2::zero(),
-                    (ctx.world.sim().get_size() * TerrainChunkSize::RECT_SIZE).as_(),
-                )
-                .with_z(
-                    vehicle.wpos.z.max(
-                        ctx.world
-                            .sim()
-                            .get_surface_alt_approx(vehicle.wpos.xy().as_()),
-                    ),
-                );
-        }
-        if let Some(Actor::Npc(driver)) = vehicle.driver
-            && data.npcs.npcs.get(driver).and_then(|driver| {
-               Some(driver.riding.as_ref()?.vehicle != id)
-            }).unwrap_or(true)
-        {
-            vehicle.driver = None;
         }
     }
 }

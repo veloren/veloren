@@ -7,7 +7,7 @@ use common::{
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
-    rtsim::{Actor, RtSimEntity, RtSimVehicle},
+    rtsim::{Actor, NpcId, RtSimEntity},
     slowjob::SlowJobPool,
     terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
@@ -223,7 +223,6 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, SlowJobPool>,
         ReadStorage<'a, comp::Pos>,
         ReadStorage<'a, RtSimEntity>,
-        ReadStorage<'a, RtSimVehicle>,
         WriteStorage<'a, comp::Agent>,
         ReadStorage<'a, Presence>,
     );
@@ -246,7 +245,6 @@ impl<'a> System<'a> for Sys {
             slow_jobs,
             positions,
             rtsim_entities,
-            rtsim_vehicles,
             mut agents,
             presences,
         ): Self::SystemData,
@@ -294,14 +292,67 @@ impl<'a> System<'a> for Sys {
         let chunk_states = rtsim.state.resource::<ChunkStates>();
         let data = &mut *rtsim.state.data_mut();
 
-        // Load in vehicles
-        for (vehicle_id, vehicle) in data.npcs.vehicles.iter_mut() {
-            let chunk = vehicle.wpos.xy().as_::<i32>().wpos_to_cpos();
+        let mut create_event = |id: NpcId, npc: &Npc, steering: Option<NpcBuilder>| match npc.body {
+            Body::Ship(body) => {
+                emitter.emit(ServerEvent::CreateShip {
+                    pos: comp::Pos(npc.wpos),
+                    ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
+                    ship: body,
+                    rtsim_entity: Some(RtSimEntity(id)),
+                    driver: steering,
+                });
+            },
+            _ => {
+                let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
 
-            if matches!(vehicle.mode, SimulationMode::Simulated)
+                emitter.emit(match NpcData::from_entity_info(entity_info) {
+                    NpcData::Data {
+                        pos,
+                        stats,
+                        skill_set,
+                        health,
+                        poise,
+                        inventory,
+                        agent,
+                        body,
+                        alignment,
+                        scale,
+                        loot,
+                    } => ServerEvent::CreateNpc {
+                        pos,
+                        ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
+                        npc: NpcBuilder::new(stats, body, alignment)
+                            .with_skill_set(skill_set)
+                            .with_health(health)
+                            .with_poise(poise)
+                            .with_inventory(inventory)
+                            .with_agent(agent.map(|agent| Agent {
+                                rtsim_outbox: Some(Default::default()),
+                                ..agent
+                            }))
+                            .with_scale(scale)
+                            .with_loot(loot)
+                            .with_rtsim(RtSimEntity(id)),
+                        rider: steering,
+                    },
+                    // EntityConfig can't represent Waypoints at all
+                    // as of now, and if someone will try to spawn
+                    // rtsim waypoint it is definitely error.
+                    NpcData::Waypoint(_) => unimplemented!(),
+                    NpcData::Teleporter(_, _) => unimplemented!(),
+                });
+            },
+        };
+
+        // Load in mounted npcs and their riders
+        for mount in data.npcs.mounts.iter_mounts() {
+            let mount_npc = data.npcs.npcs.get_mut(mount).expect("This should exist");
+            let chunk = mount_npc.wpos.xy().as_::<i32>().wpos_to_cpos();
+
+            if matches!(mount_npc.mode, SimulationMode::Simulated)
                 && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
             {
-                vehicle.mode = SimulationMode::Loaded;
+                mount_npc.mode = SimulationMode::Loaded;
 
                 let mut actor_info = |actor: Actor| {
                     let npc_id = actor.npc()?;
@@ -348,13 +399,14 @@ impl<'a> System<'a> for Sys {
                     }
                 };
 
-                emitter.emit(ServerEvent::CreateShip {
-                    pos: comp::Pos(vehicle.wpos),
-                    ori: comp::Ori::from(Dir::new(vehicle.dir.with_z(0.0))),
-                    ship: vehicle.body,
-                    rtsim_entity: Some(RtSimVehicle(vehicle_id)),
-                    driver: vehicle.driver.and_then(&mut actor_info),
-                });
+                let steerer = data
+                    .npcs
+                    .mounts
+                    .get_steerer_link(mount)
+                    .and_then(|link| actor_info(link.rider));
+
+                let mount_npc = data.npcs.npcs.get(mount).expect("This should exist");
+                create_event(mount, mount_npc, steerer);
             }
         }
 
@@ -367,58 +419,11 @@ impl<'a> System<'a> for Sys {
             if matches!(npc.mode, SimulationMode::Simulated)
                 && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
                 // Riding npcs will be spawned by the vehicle.
-                && npc.riding.is_none()
+                && data.npcs.mounts.get_mount_link(npc_id).is_none()
             {
                 npc.mode = SimulationMode::Loaded;
-                let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
-
-                emitter.emit(match NpcData::from_entity_info(entity_info) {
-                    NpcData::Data {
-                        pos,
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        agent,
-                        body,
-                        alignment,
-                        scale,
-                        loot,
-                    } => ServerEvent::CreateNpc {
-                        pos,
-                        npc: NpcBuilder::new(stats, body, alignment)
-                            .with_skill_set(skill_set)
-                            .with_health(health)
-                            .with_poise(poise)
-                            .with_inventory(inventory)
-                            .with_agent(agent.map(|agent| Agent {
-                                rtsim_outbox: Some(Default::default()),
-                                ..agent
-                            }))
-                            .with_scale(scale)
-                            .with_loot(loot)
-                            .with_rtsim(RtSimEntity(npc_id)),
-                    },
-                    // EntityConfig can't represent Waypoints at all
-                    // as of now, and if someone will try to spawn
-                    // rtsim waypoint it is definitely error.
-                    NpcData::Waypoint(_) => unimplemented!(),
-                    NpcData::Teleporter(_, _) => unimplemented!(),
-                });
+                create_event(npc_id, npc, None);
             }
-        }
-
-        // Synchronise rtsim NPC with entity data
-        for (pos, rtsim_vehicle) in (&positions, &rtsim_vehicles).join() {
-            data.npcs
-                .vehicles
-                .get_mut(rtsim_vehicle.0)
-                .filter(|npc| matches!(npc.mode, SimulationMode::Loaded))
-                .map(|vehicle| {
-                    // Update rtsim NPC state
-                    vehicle.wpos = pos.0;
-                });
         }
 
         let mut emitter = server_event_bus.emitter();

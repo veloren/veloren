@@ -1,4 +1,5 @@
 use super::{Plane, Projection};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 use vek::*;
@@ -77,6 +78,16 @@ impl Dir {
             }
             Self(dir)
         })
+    }
+
+    /// Generates a random direction that has a z component of 0
+    pub fn random_2d(rng: &mut impl Rng) -> Self {
+        Self::from_unnormalized(Vec3::new(
+            rng.gen_range(-1.0..=1.0),
+            rng.gen_range(-1.0..=1.0),
+            0.0,
+        ))
+        .unwrap_or(Self::new(Vec3::unit_x()))
     }
 
     pub fn slerp(from: Self, to: Self, factor: f32) -> Self {

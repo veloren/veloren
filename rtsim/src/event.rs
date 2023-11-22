@@ -2,7 +2,7 @@ use crate::{RtState, Rule};
 use common::{
     mounting::VolumePos,
     resources::{Time, TimeOfDay},
-    rtsim::{Actor, VehicleId},
+    rtsim::{Actor, NpcId},
 };
 use vek::*;
 use world::{IndexRef, World};
@@ -41,6 +41,6 @@ impl Event for OnDeath {}
 #[derive(Clone)]
 pub struct OnMountVolume {
     pub actor: Actor,
-    pub pos: VolumePos<VehicleId>,
+    pub pos: VolumePos<NpcId>,
 }
 impl Event for OnMountVolume {}
