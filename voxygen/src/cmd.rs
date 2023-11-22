@@ -78,6 +78,7 @@ impl ClientChatCommand {
             .iter()
             .map(|arg| match arg {
                 ArgumentSpec::PlayerName(_) => "{}",
+                ArgumentSpec::EntityTarget(_) => "{}",
                 ArgumentSpec::SiteName(_) => "{/.*/}",
                 ArgumentSpec::Float(_, _, _) => "{}",
                 ArgumentSpec::Integer(_, _, _) => "{d}",
@@ -383,6 +384,7 @@ impl TabComplete for ArgumentSpec {
     fn complete(&self, part: &str, client: &Client) -> Vec<String> {
         match self {
             ArgumentSpec::PlayerName(_) => complete_player(part, client),
+            ArgumentSpec::EntityTarget(_) => complete_player(part, client),
             ArgumentSpec::SiteName(_) => complete_site(part, client),
             ArgumentSpec::Float(_, x, _) => {
                 if part.is_empty() {
