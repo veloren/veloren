@@ -90,7 +90,7 @@ enum TickAction {
 
 pub struct SessionState {
     scene: Scene,
-    client: Rc<RefCell<Client>>,
+    pub(crate) client: Rc<RefCell<Client>>,
     metadata: UpdateCharacterMetadata,
     hud: Hud,
     key_state: KeyState,
@@ -104,9 +104,9 @@ pub struct SessionState {
     camera_clamp: bool,
     zoom_lock: bool,
     is_aiming: bool,
-    target_entity: Option<specs::Entity>,
-    selected_entity: Option<(specs::Entity, std::time::Instant)>,
-    viewpoint_entity: Option<specs::Entity>,
+    pub(crate) target_entity: Option<specs::Entity>,
+    pub(crate) selected_entity: Option<(specs::Entity, std::time::Instant)>,
+    pub(crate) viewpoint_entity: Option<specs::Entity>,
     interactable: Option<Interactable>,
     #[cfg(not(target_os = "macos"))]
     mumble_link: SharedLink,
@@ -1530,8 +1530,7 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().send_chat(msg);
                     },
                     HudEvent::SendCommand(name, args) => {
-                        match run_command(&mut self.client.borrow_mut(), global_state, &name, args)
-                        {
+                        match run_command(self, global_state, &name, args) {
                             Ok(Some(info)) => {
                                 // TODO: Localise
                                 self.hud

@@ -1,11 +1,23 @@
 use std::str::FromStr;
 
 use crate::{
-    render::ExperimentalShader, session::settings_change::change_render_mode, GlobalState,
+    render::ExperimentalShader,
+    session::{settings_change::change_render_mode, SessionState},
+    GlobalState,
 };
 use client::Client;
-use common::{cmd::*, comp::Admin, parse_cmd_args, uuid::Uuid};
+use common::{
+    cmd::*,
+    comp::Admin,
+    link::Is,
+    mounting::{Mount, Rider, VolumeRider},
+    parse_cmd_args,
+    resources::PlayerEntity,
+    uuid::Uuid,
+};
+use common_net::sync::WorldSyncExt;
 use levenshtein::levenshtein;
+use specs::WorldExt;
 use strum::IntoEnumIterator;
 
 // Please keep this sorted alphabetically, same as with server commands :-)
@@ -148,12 +160,70 @@ type CommandResult = Result<Option<String>, String>;
 // Note: it's not clear what data future commands will need access to, so the
 // signature of this function might change
 pub fn run_command(
-    client: &mut Client,
+    session_state: &mut SessionState,
     global_state: &mut GlobalState,
     cmd: &str,
-    args: Vec<String>,
+    mut args: Vec<String>,
 ) -> CommandResult {
     let command = ChatCommandKind::from_str(cmd);
+    let client = &mut session_state.client.borrow_mut();
+    let ecs = client.state().ecs();
+    let player = ecs.read_resource::<PlayerEntity>().0;
+
+    for arg in args.iter_mut() {
+        if arg.starts_with('@') {
+            let uid = match arg.trim_start_matches('@') {
+                "target" => session_state
+                    .target_entity
+                    .and_then(|e| ecs.uid_from_entity(e))
+                    .ok_or("Not looking at a valid target".to_string())?,
+                "selected" => session_state
+                    .selected_entity
+                    .and_then(|(e, _)| ecs.uid_from_entity(e))
+                    .ok_or("You don't have a valid target selected".to_string())?,
+                "viewpoint" => session_state
+                    .viewpoint_entity
+                    .and_then(|e| ecs.uid_from_entity(e))
+                    .ok_or("Not viewing from a valid viewpoint entity".to_string())?,
+                "mount" => {
+                    if let Some(player) = player {
+                        ecs.read_storage::<Is<Rider>>()
+                            .get(player)
+                            .map(|is_rider| is_rider.mount)
+                            .or(ecs.read_storage::<Is<VolumeRider>>().get(player).and_then(
+                                |is_rider| match is_rider.pos.kind {
+                                    common::mounting::Volume::Terrain => None,
+                                    common::mounting::Volume::Entity(uid) => Some(uid),
+                                },
+                            ))
+                            .ok_or("Not riding a valid entity".to_string())?
+                    } else {
+                        return Err("No player entity".to_string());
+                    }
+                },
+                "rider" => {
+                    if let Some(player) = player {
+                        ecs.read_storage::<Is<Mount>>()
+                            .get(player)
+                            .map(|is_mount| is_mount.rider)
+                            .ok_or("No valid rider".to_string())?
+                    } else {
+                        return Err("No player entity".to_string());
+                    }
+                },
+                "self" => player
+                    .and_then(|e| ecs.uid_from_entity(e))
+                    .ok_or("No player entity")?,
+                ident => {
+                    return Err(format!(
+                        "Expected target/selected/viewpoint/mount/rider found {ident}"
+                    ));
+                },
+            };
+            let uid = u64::from(uid);
+            *arg = format!("uid@{uid}");
+        }
+    }
 
     match command {
         Ok(ChatCommandKind::Server(cmd)) => {
