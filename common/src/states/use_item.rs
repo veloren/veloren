@@ -53,7 +53,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         match self.static_data.item_kind {
-            ItemUseKind::Consumable(ConsumableKind::Drink) => {
+            ItemUseKind::Consumable(ConsumableKind::Drink | ConsumableKind::Charm) => {
                 handle_orientation(data, &mut update, 1.0, None);
                 handle_move(data, &mut update, 1.0);
             },
@@ -67,7 +67,9 @@ impl CharacterBehavior for Data {
             ItemUseKind::Consumable(ConsumableKind::Drink | ConsumableKind::Food) => {
                 UsePoint::BuildupUse
             },
-            ItemUseKind::Consumable(ConsumableKind::ComplexFood) => UsePoint::UseRecover,
+            ItemUseKind::Consumable(ConsumableKind::ComplexFood | ConsumableKind::Charm) => {
+                UsePoint::UseRecover
+            },
         };
 
         match self.stage_section {
@@ -186,6 +188,11 @@ impl ItemUseKind {
                 Duration::from_secs_f32(1.0),
                 Duration::from_secs_f32(4.5),
                 Duration::from_secs_f32(0.5),
+            ),
+            Self::Consumable(ConsumableKind::Charm) => (
+                Duration::from_secs_f32(0.1),
+                Duration::from_secs_f32(0.8),
+                Duration::from_secs_f32(0.1),
             ),
         }
     }

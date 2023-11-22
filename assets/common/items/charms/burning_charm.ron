@@ -2,7 +2,7 @@ ItemDef(
     legacy_name: "Blazing Charm",
     legacy_description: "Flame is your ally, harness its power to burn your foes.",
     kind: Consumable(
-        kind: Drink,
+        kind: Charm,
         effects: All([
             Buff((
                 kind: Flame,

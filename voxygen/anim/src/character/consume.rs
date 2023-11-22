@@ -56,6 +56,40 @@ impl Animation for ConsumeAnimation {
                 next.hand_l.orientation =
                     Quaternion::rotation_x(move1 * 0.8) * Quaternion::rotation_y(move1 * -0.5);
             },
+            Some(ItemUseKind::Consumable(ConsumableKind::Charm)) => {
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, (anim_time * 6.0).sin(), 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(0.25)),
+                    _ => (0.0, 0.0, 0.0),
+                };
+
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.head.orientation =
+                    Quaternion::rotation_x(move1 * -0.3) * Quaternion::rotation_z((move2) * 0.25);
+                next.chest.orientation = Quaternion::rotation_x(move1 * -0.2);
+                next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 0.7);
+                next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 0.7);
+
+                next.hand_r.position = Vec3::new(
+                    s_a.hand.0 - move1 * 1.5 + move2 * 1.0,
+                    s_a.hand.1 + move1 * 8.0,
+                    s_a.hand.2 + move1 * 4.0,
+                );
+                next.hand_l.position = Vec3::new(
+                    -s_a.hand.0 + move1 * 1.5 + move2 * 1.0,
+                    s_a.hand.1 + move1 * 8.0,
+                    s_a.hand.2 + move1 * 4.0,
+                );
+
+                next.hand_r.orientation =
+                    Quaternion::rotation_z(move1 * 0.4) * Quaternion::rotation_x(move1 * 2.3);
+                next.hand_l.orientation =
+                    Quaternion::rotation_z(move1 * -0.4) * Quaternion::rotation_x(move1 * 2.3);
+            },
             Some(ItemUseKind::Consumable(ConsumableKind::Food | ConsumableKind::ComplexFood)) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
