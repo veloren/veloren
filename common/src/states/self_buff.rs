@@ -4,7 +4,7 @@ use crate::{
         character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
-    event::{LocalEvent, ServerEvent},
+    event::{BuffEvent, ComboChangeEvent, LocalEvent},
     outcome::Outcome,
     resources::Secs,
     states::{
@@ -79,7 +79,7 @@ impl CharacterBehavior for Data {
                     } else {
                         self.static_data.combo_cost
                     };
-                    output_events.emit_server(ServerEvent::ComboChange {
+                    output_events.emit_server(ComboChangeEvent {
                         entity: data.entity,
                         change: -(combo_consumption as i32),
                     });
@@ -106,7 +106,7 @@ impl CharacterBehavior for Data {
                     if self.static_data.enforced_limit {
                         buff_cat_ids.push(BuffCategory::SelfBuff);
 
-                        output_events.emit_server(ServerEvent::Buff {
+                        output_events.emit_server(BuffEvent {
                             entity: data.entity,
                             buff_change: BuffChange::RemoveByCategory {
                                 all_required: vec![BuffCategory::SelfBuff],
@@ -128,7 +128,7 @@ impl CharacterBehavior for Data {
                         *data.time,
                         Some(data.stats),
                     );
-                    output_events.emit_server(ServerEvent::Buff {
+                    output_events.emit_server(BuffEvent {
                         entity: data.entity,
                         buff_change: BuffChange::Add(buff),
                     });

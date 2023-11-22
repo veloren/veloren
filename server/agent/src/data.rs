@@ -17,6 +17,7 @@ use common::{
         Stats, Vel,
     },
     consts::GRAVITY,
+    event, event_emitters,
     link::Is,
     mounting::{Mount, Rider, VolumeRider},
     path::TraversalConfig,
@@ -27,6 +28,14 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use specs::{shred, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData};
+
+event_emitters! {
+    pub struct AgentEvents[AgentEmitters] {
+        chat: event::ChatEvent,
+        sound: event::SoundEvent,
+        process_trade_action: event::ProcessTradeActionEvent,
+    }
+}
 
 // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate
 // crate

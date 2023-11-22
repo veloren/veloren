@@ -5,7 +5,7 @@ use crate::sys::terrain::NpcData;
 use common::{
     calendar::Calendar,
     comp::{self, Agent, Body, Presence, PresenceKind},
-    event::{EventBus, NpcBuilder, ServerEvent},
+    event::{CreateNpcEvent, CreateShipEvent, DeleteEvent, EventBus, NpcBuilder},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Actor, NpcId, RtSimEntity},
@@ -236,7 +236,9 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, Time>,
         Read<'a, TimeOfDay>,
-        Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<CreateShipEvent>>,
+        Read<'a, EventBus<CreateNpcEvent>>,
+        Read<'a, EventBus<DeleteEvent>>,
         WriteExpect<'a, RtSim>,
         ReadExpect<'a, Arc<world::World>>,
         ReadExpect<'a, world::IndexOwned>,
@@ -259,7 +261,9 @@ impl<'a> System<'a> for Sys {
             dt,
             time,
             time_of_day,
-            server_event_bus,
+            create_ship_events,
+            create_npc_events,
+            delete_events,
             mut rtsim,
             world,
             index,
@@ -271,7 +275,9 @@ impl<'a> System<'a> for Sys {
             calendar,
         ): Self::SystemData,
     ) {
-        let mut emitter = server_event_bus.emitter();
+        let mut create_ship_emitter = create_ship_events.emitter();
+        let mut create_npc_emitter = create_npc_events.emitter();
+        let mut delete_emitter = delete_events.emitter();
         let rtsim = &mut *rtsim;
         let calendar_data = (*time_of_day, (*calendar).clone());
 
@@ -317,7 +323,7 @@ impl<'a> System<'a> for Sys {
 
         let mut create_event = |id: NpcId, npc: &Npc, steering: Option<NpcBuilder>| match npc.body {
             Body::Ship(body) => {
-                emitter.emit(ServerEvent::CreateShip {
+                create_ship_emitter.emit(CreateShipEvent {
                     pos: comp::Pos(npc.wpos),
                     ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
                     ship: body,
@@ -333,7 +339,7 @@ impl<'a> System<'a> for Sys {
                     Some(&calendar_data),
                 );
 
-                emitter.emit(match NpcData::from_entity_info(entity_info) {
+                create_npc_emitter.emit(match NpcData::from_entity_info(entity_info) {
                     NpcData::Data {
                         pos,
                         stats,
@@ -346,7 +352,7 @@ impl<'a> System<'a> for Sys {
                         alignment,
                         scale,
                         loot,
-                    } => ServerEvent::CreateNpc {
+                    } => CreateNpcEvent {
                         pos,
                         ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
                         npc: NpcBuilder::new(stats, body, alignment)
@@ -458,7 +464,6 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        let mut emitter = server_event_bus.emitter();
         // Synchronise rtsim NPC with entity data
         for (entity, pos, rtsim_entity, agent) in (
             &entities,
@@ -489,7 +494,7 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     SimulationMode::Simulated => {
-                        emitter.emit(ServerEvent::Delete(entity));
+                        delete_emitter.emit(DeleteEvent(entity));
                     },
                 }
             }

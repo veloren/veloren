@@ -5,13 +5,13 @@ use specs::{
 use common::{
     comp::{
         self,
-        character_state::OutputEvents,
+        character_state::{CharacterStateEvents, OutputEvents},
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, Controller, Density,
         Energy, Health, Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos,
         Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
     },
-    event::{EventBus, LocalEvent, ServerEvent},
+    event::{self, EventBus, KnockbackEvent, LocalEvent},
     link::Is,
     mounting::{Rider, VolumeRider},
     outcome::Outcome,
@@ -28,7 +28,7 @@ use common_ecs::{Job, Origin, Phase, System};
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
+    events: CharacterStateEvents<'a>,
     local_bus: Read<'a, EventBus<LocalEvent>>,
     dt: Read<'a, DeltaTime>,
     time: Read<'a, Time>,
@@ -96,13 +96,12 @@ impl<'a> System<'a> for Sys {
             outcomes,
         ): Self::SystemData,
     ) {
-        let mut server_emitter = read_data.server_bus.emitter();
         let mut local_emitter = read_data.local_bus.emitter();
         let mut outcomes_emitter = outcomes.emitter();
+        let mut emitters = read_data.events.get_emitters();
 
         let mut local_events = Vec::new();
-        let mut server_events = Vec::new();
-        let mut output_events = OutputEvents::new(&mut local_events, &mut server_events);
+        let mut output_events = OutputEvents::new(&mut local_events, &mut emitters);
 
         let join = (
             &read_data.entities,
@@ -179,7 +178,7 @@ impl<'a> System<'a> for Sys {
                         state: poise_state,
                     });
                     if let Some(impulse_strength) = impulse_strength {
-                        server_emitter.emit(ServerEvent::Knockback {
+                        output_events.emit_server(KnockbackEvent {
                             entity,
                             impulse: impulse_strength * *poise.knockback(),
                         });
@@ -255,7 +254,6 @@ impl<'a> System<'a> for Sys {
         });
 
         local_emitter.append_vec(local_events);
-        server_emitter.append_vec(server_events);
     }
 }
 
@@ -297,7 +295,7 @@ impl Sys {
             join.controller.queued_inputs.remove(&input);
         }
         if state_update.swap_equipped_weapons {
-            output_events.emit_server(ServerEvent::InventoryManip(
+            output_events.emit_server(event::InventoryManipEvent(
                 join.entity,
                 InventoryManip::SwapEquippedWeapons,
             ));

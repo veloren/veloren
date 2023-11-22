@@ -6,7 +6,8 @@ use common::{
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Melee,
         Ori, Player, Pos, Scale, Stats,
     },
-    event::{EventBus, ServerEvent},
+    event::{self, EmitExt, EventBus},
+    event_emitters,
     outcome::Outcome,
     resources::Time,
     terrain::TerrainGrid,
@@ -21,6 +22,21 @@ use specs::{
     shred, Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
 };
 use vek::*;
+
+event_emitters! {
+    struct ReadAttackEvents[AttackEmitters] {
+        health_change: event::HealthChangeEvent,
+        energy_change: event::EnergyChangeEvent,
+        poise_change: event::PoiseChangeEvent,
+        sound: event::SoundEvent,
+        mine_block: event::MineBlockEvent,
+        parry_hook: event::ParryHookEvent,
+        kockback: event::KnockbackEvent,
+        entity_attack_hook: event::EntityAttackedHookEvent,
+        combo_change: event::ComboChangeEvent,
+        buff: event::BuffEvent,
+    }
+}
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -40,10 +56,10 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
     groups: ReadStorage<'a, Group>,
     char_states: ReadStorage<'a, CharacterState>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
     buffs: ReadStorage<'a, Buffs>,
+    events: ReadAttackEvents<'a>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -63,7 +79,7 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks, outcomes): Self::SystemData) {
-        let mut server_emitter = read_data.server_bus.emitter();
+        let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
         let mut rng = rand::thread_rng();
 
@@ -82,7 +98,7 @@ impl<'a> System<'a> for Sys {
             if melee_attack.applied {
                 continue;
             }
-            server_emitter.emit(ServerEvent::Sound {
+            emitters.emit(event::SoundEvent {
                 sound: Sound::new(SoundKind::Melee, pos.0, 2.0, read_data.time.0),
             });
             melee_attack.applied = true;
@@ -103,7 +119,7 @@ impl<'a> System<'a> for Sys {
                 if eye_pos.distance_squared(block_pos.map(|e| e as f32 + 0.5))
                     < (rad + scale * melee_attack.range).powi(2)
                 {
-                    server_emitter.emit(ServerEvent::MineBlock {
+                    emitters.emit(event::MineBlockEvent {
                         entity: attacker,
                         pos: block_pos,
                         tool,
@@ -270,7 +286,7 @@ impl<'a> System<'a> for Sys {
                             strength,
                             AttackSource::Melee,
                             *read_data.time,
-                            |e| server_emitter.emit(e),
+                            &mut emitters,
                             |o| outcomes_emitter.emit(o),
                             &mut rng,
                             offset as u64,

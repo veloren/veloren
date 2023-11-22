@@ -1,42 +1,30 @@
-use crate::{
-    events::{
-        entity_creation::handle_create_teleporter,
-        entity_manipulation::{handle_start_teleporting, handle_teleport_to_position},
-        interaction::{handle_mount_volume, handle_tame_pet},
-    },
-    persistence::PersistedComponents,
-    state_ext::StateExt,
-    Server,
-};
-use common::event::{EventBus, ServerEvent, ServerEventDiscriminants};
-use common_base::span;
-use entity_creation::{
-    handle_create_npc, handle_create_ship, handle_create_waypoint, handle_initialize_character,
-    handle_initialize_spectator, handle_loaded_character_data, handle_shockwave, handle_shoot,
-};
-use entity_manipulation::{
-    handle_aura, handle_bonk, handle_buff, handle_change_ability, handle_change_body,
-    handle_combo_change, handle_delete, handle_destroy, handle_energy_change,
-    handle_entity_attacked_hook, handle_explosion, handle_health_change, handle_knockback,
-    handle_land_on_ground, handle_make_admin, handle_parry_hook, handle_poise,
-    handle_remove_light_emitter, handle_respawn, handle_stance_change, handle_teleport_to,
-    handle_update_map_marker,
-};
-use group_manip::handle_group;
-use information::handle_site_info;
-use interaction::{
-    handle_create_sprite, handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction,
-    handle_set_pet_stay, handle_sound, handle_toggle_sprite_light, handle_unmount,
-};
-use inventory_manip::handle_inventory;
-use invite::{handle_invite, handle_invite_response};
-use player::{handle_client_disconnect, handle_exit_ingame, handle_possess};
-use specs::{Builder, Entity as EcsEntity, WorldExt};
-use trade::handle_process_trade_action;
+use std::{marker::PhantomData, sync::Arc};
 
-use crate::events::player::handle_character_delete;
+use crate::{state_ext::StateExt, Server};
+use common::event::{
+    ChatEvent, ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent, CommandEvent,
+    EventBus, ExitIngameEvent,
+};
+use common_base::span;
+use common_ecs::{dispatch, System};
+use specs::{DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt};
+
 pub use group_manip::update_map_markers;
 pub(crate) use trade::cancel_trades_for;
+
+use self::{
+    entity_creation::{
+        handle_create_npc, handle_create_ship, handle_create_teleporter, handle_create_waypoint,
+        handle_initialize_character, handle_initialize_spectator, handle_loaded_character_data,
+        handle_shockwave, handle_shoot,
+    },
+    interaction::handle_tame_pet,
+    mounting::{handle_mount, handle_mount_volume, handle_unmount},
+    player::{
+        handle_character_delete, handle_client_disconnect, handle_exit_ingame, handle_possess,
+    },
+    trade::handle_process_trade_action,
+};
 
 mod entity_creation;
 mod entity_manipulation;
@@ -45,8 +33,55 @@ mod information;
 mod interaction;
 mod inventory_manip;
 mod invite;
+mod mounting;
 mod player;
 mod trade;
+
+pub trait ServerEvent: Send + Sync + 'static {
+    type SystemData<'a>: specs::SystemData<'a>;
+
+    const NAME: &'static str = std::any::type_name::<Self>();
+
+    fn handle(events: impl ExactSizeIterator<Item = Self>, data: Self::SystemData<'_>);
+}
+
+struct EventHandler<T>(PhantomData<T>);
+impl<T> Default for EventHandler<T> {
+    fn default() -> Self { Self(PhantomData) }
+}
+
+impl<'a, T: ServerEvent> System<'a> for EventHandler<T> {
+    type SystemData = (
+        ReadExpect<'a, crate::metrics::ServerEventMetrics>,
+        ReadExpect<'a, EventBus<T>>,
+        T::SystemData<'a>,
+    );
+
+    const NAME: &'static str = T::NAME;
+    const ORIGIN: common_ecs::Origin = common_ecs::Origin::Server;
+    // TODO: Maybe do another phase here?
+    const PHASE: common_ecs::Phase = common_ecs::Phase::Apply;
+
+    fn run(_job: &mut common_ecs::Job<Self>, (metrics, ev, data): Self::SystemData) {
+        let events = ev.recv_all();
+        metrics
+            .event_count
+            .with_label_values(&[Self::NAME])
+            .inc_by(events.len() as u64);
+        T::handle(events, data)
+    }
+}
+
+fn event_dispatch<T: ServerEvent>(builder: &mut DispatcherBuilder) {
+    dispatch::<EventHandler<T>>(builder, &[])
+}
+
+pub fn register_event_systems(builder: &mut DispatcherBuilder) {
+    inventory_manip::register_event_systems(builder);
+    entity_manipulation::register_event_systems(builder);
+    interaction::register_event_systems(builder);
+    invite::register_event_systems(builder);
+}
 
 pub enum Event {
     ClientConnected {
@@ -62,280 +97,91 @@ pub enum Event {
 }
 
 impl Server {
-    pub fn handle_events(&mut self) -> Vec<Event> {
-        span!(_guard, "handle_events", "Server::handle_events");
-        let mut frontend_events = Vec::new();
-
-        let mut commands = Vec::new();
-        let mut chat_messages = Vec::new();
-
-        let events = self
-            .state
-            .ecs()
-            .read_resource::<EventBus<ServerEvent>>()
-            .recv_all();
-
-        use strum::VariantNames;
-        let mut event_counts = vec![0u32; ServerEventDiscriminants::VARIANTS.len()];
-
-        for event in events {
-            // Count events by variant for metrics
-            event_counts[ServerEventDiscriminants::from(&event) as usize] += 1;
-
-            match event {
-                ServerEvent::Explosion {
-                    pos,
-                    explosion,
-                    owner,
-                } => handle_explosion(self, pos, explosion, owner),
-                ServerEvent::Bonk { pos, owner, target } => handle_bonk(self, pos, owner, target),
-                ServerEvent::Shoot {
-                    entity,
-                    pos,
-                    dir,
-                    body,
-                    light,
-                    projectile,
-                    speed,
-                    object,
-                } => handle_shoot(
-                    self, entity, pos, dir, body, light, projectile, speed, object,
-                ),
-                ServerEvent::Shockwave {
-                    properties,
-                    pos,
-                    ori,
-                } => handle_shockwave(self, properties, pos, ori),
-                ServerEvent::Knockback { entity, impulse } => {
-                    handle_knockback(self, entity, impulse)
-                },
-                ServerEvent::HealthChange { entity, change } => {
-                    handle_health_change(self, entity, change)
-                },
-                ServerEvent::PoiseChange { entity, change } => handle_poise(self, entity, change),
-                ServerEvent::Delete(entity) => handle_delete(self, entity),
-                ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
-                ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
-                ServerEvent::GroupManip(entity, manip) => handle_group(self, entity, manip),
-                ServerEvent::Respawn(entity) => handle_respawn(self, entity),
-                ServerEvent::LandOnGround {
-                    entity,
-                    vel,
-                    surface_normal,
-                } => handle_land_on_ground(self, entity, vel, surface_normal),
-                ServerEvent::EnableLantern(entity) => handle_lantern(self, entity, true),
-                ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
-                ServerEvent::NpcInteract(interactor, target, subject) => {
-                    handle_npc_interaction(self, interactor, target, subject)
-                },
-                ServerEvent::InitiateInvite(interactor, target, kind) => {
-                    handle_invite(self, interactor, target, kind)
-                },
-                ServerEvent::InviteResponse(entity, response) => {
-                    handle_invite_response(self, entity, response)
-                },
-                ServerEvent::ProcessTradeAction(entity, trade_id, action) => {
-                    handle_process_trade_action(self, entity, trade_id, action);
-                },
-                ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
-                ServerEvent::MountVolume(mounter, volume) => {
-                    handle_mount_volume(self, mounter, volume)
-                },
-                ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
-                ServerEvent::SetPetStay(command_giver, pet, stay) => {
-                    handle_set_pet_stay(self, command_giver, pet, stay)
-                },
-                ServerEvent::Possess(possessor_uid, possesse_uid) => {
-                    handle_possess(self, possessor_uid, possesse_uid)
-                },
-                ServerEvent::InitCharacterData {
-                    entity,
-                    character_id,
-                    requested_view_distances,
-                } => handle_initialize_character(
-                    self,
-                    entity,
-                    character_id,
-                    requested_view_distances,
-                ),
-                ServerEvent::InitSpectator(entity, requested_view_distances) => {
-                    handle_initialize_spectator(self, entity, requested_view_distances)
-                },
-                ServerEvent::DeleteCharacter {
-                    entity,
-                    requesting_player_uuid,
-                    character_id,
-                } => handle_character_delete(self, entity, requesting_player_uuid, character_id),
-                ServerEvent::UpdateCharacterData {
-                    entity,
-                    components,
-                    metadata,
-                } => {
-                    let (
-                        body,
-                        stats,
-                        skill_set,
-                        inventory,
-                        waypoint,
-                        pets,
-                        active_abilities,
-                        map_marker,
-                    ) = components;
-                    let components = PersistedComponents {
-                        body,
-                        stats,
-                        skill_set,
-                        inventory,
-                        waypoint,
-                        pets,
-                        active_abilities,
-                        map_marker,
-                    };
-                    handle_loaded_character_data(self, entity, components, metadata);
-                },
-                ServerEvent::ExitIngame { entity } => {
-                    handle_exit_ingame(self, entity, false);
-                },
-                ServerEvent::CreateNpc {
-                    pos,
-                    ori,
-                    npc,
-                    rider,
-                } => {
-                    handle_create_npc(self, pos, ori, npc, rider);
-                },
-                ServerEvent::CreateShip {
-                    pos,
-                    ori,
-                    ship,
-                    rtsim_entity,
-                    driver,
-                } => handle_create_ship(self, pos, ori, ship, rtsim_entity, driver, Vec::new()),
-                ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
-                ServerEvent::CreateTeleporter(pos, portal) => {
-                    handle_create_teleporter(self, pos, portal)
-                },
-                ServerEvent::ClientDisconnect(entity, reason) => {
-                    frontend_events.push(handle_client_disconnect(self, entity, reason, false))
-                },
-                ServerEvent::ClientDisconnectWithoutPersistence(entity) => {
-                    frontend_events.push(handle_client_disconnect(
-                        self,
-                        entity,
-                        common::comp::DisconnectReason::Kicked,
-                        true,
-                    ))
-                },
-                ServerEvent::Command(entity, name, args) => {
-                    commands.push((entity, name, args));
-                },
-                ServerEvent::Chat(msg) => {
-                    chat_messages.push(msg);
-                },
-                ServerEvent::Aura {
-                    entity,
-                    aura_change,
-                } => handle_aura(self, entity, aura_change),
-                ServerEvent::Buff {
-                    entity,
-                    buff_change,
-                } => handle_buff(self, entity, buff_change),
-                ServerEvent::EnergyChange { entity, change } => {
-                    handle_energy_change(self, entity, change)
-                },
-                ServerEvent::ComboChange { entity, change } => {
-                    handle_combo_change(self, entity, change)
-                },
-                ServerEvent::ParryHook {
-                    defender,
-                    attacker,
-                    source,
-                } => handle_parry_hook(self, defender, attacker, source),
-                ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(self, entity, id),
-                ServerEvent::MineBlock { entity, pos, tool } => {
-                    handle_mine_block(self, entity, pos, tool)
-                },
-                ServerEvent::TeleportTo {
-                    entity,
-                    target,
-                    max_range,
-                } => handle_teleport_to(self, entity, target, max_range),
-                ServerEvent::CreateSafezone { range, pos } => {
-                    self.state.create_safezone(range, pos).build();
-                },
-                ServerEvent::Sound { sound } => handle_sound(self, &sound),
-                ServerEvent::CreateSprite {
-                    pos,
-                    sprite,
-                    del_timeout,
-                } => handle_create_sprite(self, pos, sprite, del_timeout),
-                ServerEvent::TamePet {
-                    pet_entity,
-                    owner_entity,
-                } => handle_tame_pet(self, pet_entity, owner_entity),
-                ServerEvent::EntityAttackedHook { entity, attacker } => {
-                    handle_entity_attacked_hook(self, entity, attacker)
-                },
-                ServerEvent::ChangeAbility {
-                    entity,
-                    slot,
-                    auxiliary_key,
-                    new_ability,
-                } => handle_change_ability(self, entity, slot, auxiliary_key, new_ability),
-                ServerEvent::UpdateMapMarker { entity, update } => {
-                    handle_update_map_marker(self, entity, update)
-                },
-                ServerEvent::MakeAdmin {
-                    entity,
-                    admin,
-                    uuid,
-                } => handle_make_admin(self, entity, admin, uuid),
-                ServerEvent::ChangeStance { entity, stance } => {
-                    handle_stance_change(self, entity, stance)
-                },
-                ServerEvent::ChangeBody { entity, new_body } => {
-                    handle_change_body(self, entity, new_body)
-                },
-                ServerEvent::RemoveLightEmitter { entity } => {
-                    handle_remove_light_emitter(self, entity)
-                },
-                ServerEvent::TeleportToPosition { entity, position } => {
-                    handle_teleport_to_position(self, entity, position)
-                },
-                ServerEvent::StartTeleporting { entity, portal } => {
-                    handle_start_teleporting(self, entity, portal)
-                },
-                ServerEvent::ToggleSpriteLight {
-                    entity,
-                    pos,
-                    enable,
-                } => handle_toggle_sprite_light(self, entity, pos, enable),
-            }
-        }
-
-        {
+    fn handle_serial_events<T: Send + 'static, F: FnMut(&mut Self, T)>(&mut self, mut f: F) {
+        if let Some(bus) = self.state.ecs_mut().get_mut::<EventBus<T>>() {
+            let events = bus.recv_all_mut();
             let server_event_metrics = self
                 .state
                 .ecs()
                 .read_resource::<crate::metrics::ServerEventMetrics>();
-            event_counts
-                .into_iter()
-                .zip(ServerEventDiscriminants::VARIANTS)
-                .for_each(|(count, event_name)| {
-                    server_event_metrics
-                        .event_count
-                        .with_label_values(&[event_name])
-                        .inc_by(count.into());
-                })
-        }
+            server_event_metrics
+                .event_count
+                .with_label_values(&[std::any::type_name::<T>()])
+                .inc_by(events.len() as u64);
+            drop(server_event_metrics);
 
-        for (entity, name, args) in commands {
-            self.process_command(entity, name, args);
+            for ev in events {
+                f(self, ev)
+            }
         }
+    }
 
-        for msg in chat_messages {
-            self.state.send_chat(msg);
-        }
+    fn handle_all_serial_events(&mut self, frontend_events: &mut Vec<Event>) {
+        self.handle_serial_events(handle_initialize_character);
+        self.handle_serial_events(handle_initialize_spectator);
+        self.handle_serial_events(handle_loaded_character_data);
+        self.handle_serial_events(|this, ev| {
+            handle_create_npc(this, ev);
+        });
+        self.handle_serial_events(handle_create_ship);
+        self.handle_serial_events(handle_shoot);
+        self.handle_serial_events(handle_shockwave);
+        self.handle_serial_events(handle_create_waypoint);
+        self.handle_serial_events(handle_create_teleporter);
+
+        self.handle_serial_events(handle_character_delete);
+        self.handle_serial_events(|this, ev: ExitIngameEvent| {
+            handle_exit_ingame(this, ev.entity, false)
+        });
+        self.handle_serial_events(|this, ev: ClientDisconnectEvent| {
+            handle_client_disconnect(this, ev.0, ev.1, false);
+        });
+        self.handle_serial_events(|this, ev: ClientDisconnectEvent| {
+            frontend_events.push(handle_client_disconnect(this, ev.0, ev.1, false));
+        });
+        self.handle_serial_events(|this, ev: ClientDisconnectWithoutPersistenceEvent| {
+            frontend_events.push(handle_client_disconnect(
+                this,
+                ev.0,
+                common::comp::DisconnectReason::Kicked,
+                true,
+            ));
+        });
+        self.handle_serial_events(handle_possess);
+        self.handle_serial_events(|this, ev: CommandEvent| {
+            this.process_command(ev.0, ev.1, ev.2);
+        });
+        self.handle_serial_events(|this, ev: ChatEvent| {
+            this.state.send_chat(ev.0);
+        });
+        self.handle_serial_events(handle_mount);
+        self.handle_serial_events(handle_mount_volume);
+        self.handle_serial_events(handle_unmount);
+        self.handle_serial_events(handle_tame_pet);
+        self.handle_serial_events(handle_process_trade_action);
+    }
+
+    pub fn handle_events(&mut self) -> Vec<Event> {
+        let mut frontend_events = Vec::new();
+        span!(guard, "create event dispatcher");
+        // Run systems to handle events.
+        // Create and run a dispatcher for ecs systems.
+        let mut dispatch_builder =
+            DispatcherBuilder::new().with_pool(Arc::clone(self.state.thread_pool()));
+        register_event_systems(&mut dispatch_builder);
+        // This dispatches all the systems in parallel.
+        let mut dispatcher = dispatch_builder.build();
+        drop(guard);
+
+        span!(guard, "run event systems");
+        dispatcher.dispatch(self.state.ecs());
+        drop(guard);
+
+        span!(guard, "handle serial events");
+        self.handle_all_serial_events(&mut frontend_events);
+        drop(guard);
+
+        self.state.maintain_ecs();
 
         frontend_events
     }

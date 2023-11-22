@@ -13,7 +13,11 @@ use common::{
         Energy, Group, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState,
         Pos, Stats,
     },
-    event::{Emitter, EventBus, ServerEvent},
+    event::{
+        BuffEvent, ChangeBodyEvent, CreateSpriteEvent, EmitExt, EnergyChangeEvent,
+        HealthChangeEvent, RemoveLightEmitterEvent, SoundEvent,
+    },
+    event_emitters,
     outcome::Outcome,
     resources::{DeltaTime, Secs, Time},
     terrain::SpriteKind,
@@ -29,12 +33,24 @@ use specs::{
 };
 use vek::Vec3;
 
+event_emitters! {
+    struct Events[EventEmitters] {
+        buff: BuffEvent,
+        change_body: ChangeBodyEvent,
+        remove_light: RemoveLightEmitterEvent,
+        health_change: HealthChangeEvent,
+        energy_change: EnergyChangeEvent,
+        sound: SoundEvent,
+        create_sprite: CreateSpriteEvent,
+        outcome: Outcome,
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
-    outcome_bus: Read<'a, EventBus<Outcome>>,
+    events: Events<'a>,
     inventories: ReadStorage<'a, Inventory>,
     healths: ReadStorage<'a, Health>,
     energies: ReadStorage<'a, Energy>,
@@ -60,8 +76,7 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(job: &mut Job<Self>, (read_data, mut stats): Self::SystemData) {
-        let mut server_emitter = read_data.server_bus.emitter();
-        let mut outcome = read_data.outcome_bus.emitter();
+        let mut emitters = read_data.events.get_emitters();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         stats.set_event_emission(false);
@@ -116,11 +131,11 @@ impl<'a> System<'a> for Sys {
             // slower than parallel checking above
             for e in to_put_out_campfires {
                 {
-                    server_emitter.emit(ServerEvent::ChangeBody {
+                    emitters.emit(ChangeBodyEvent {
                         entity: e,
                         new_body: Body::Object(object::Body::Campfire),
                     });
-                    server_emitter.emit(ServerEvent::RemoveLightEmitter { entity: e });
+                    emitters.emit(RemoveLightEmitterEvent { entity: e });
                 }
             }
         }
@@ -144,7 +159,7 @@ impl<'a> System<'a> for Sys {
                     Some(SpriteKind::EnsnaringVines) | Some(SpriteKind::EnsnaringWeb)
                 ) {
                     // If on ensnaring vines, apply ensnared debuff
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
@@ -161,7 +176,7 @@ impl<'a> System<'a> for Sys {
                     Some(SpriteKind::SeaUrchin)
                 ) {
                     // If touching Sea Urchin apply Bleeding buff
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
@@ -181,17 +196,17 @@ impl<'a> System<'a> for Sys {
                     // TODO: Determine a better place to emit sprite change events
                     if let Some(pos) = read_data.positions.get(entity) {
                         // If touching Trap - change sprite and apply Bleeding buff
-                        server_emitter.emit(ServerEvent::CreateSprite {
+                        emitters.emit(CreateSpriteEvent {
                             pos: Vec3::new(pos.0.x as i32, pos.0.y as i32, pos.0.z as i32 - 1),
                             sprite: SpriteKind::HaniwaTrapTriggered,
                             del_timeout: Some((4.0, 1.0)),
                         });
-                        server_emitter.emit(ServerEvent::Sound {
+                        emitters.emit(SoundEvent {
                             sound: Sound::new(SoundKind::Trap, pos.0, 12.0, read_data.time.0),
                         });
-                        outcome.emit(Outcome::Slash { pos: pos.0 });
+                        emitters.emit(Outcome::Slash { pos: pos.0 });
 
-                        server_emitter.emit(ServerEvent::Buff {
+                        emitters.emit(BuffEvent {
                             entity,
                             buff_change: BuffChange::Add(Buff::new(
                                 BuffKind::Bleeding,
@@ -209,7 +224,7 @@ impl<'a> System<'a> for Sys {
                     Some(SpriteKind::IronSpike | SpriteKind::HaniwaTrapTriggered)
                 ) {
                     // If touching Iron Spike apply Bleeding buff
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
@@ -226,7 +241,7 @@ impl<'a> System<'a> for Sys {
                     Some(SpriteKind::HotSurface)
                 ) {
                     // If touching a hot surface apply Burning buff
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
@@ -243,7 +258,7 @@ impl<'a> System<'a> for Sys {
                     Some(SpriteKind::IceSpike)
                 ) {
                     // When standing on IceSpike, apply bleeding
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
@@ -255,7 +270,7 @@ impl<'a> System<'a> for Sys {
                         )),
                     });
                     // When standing on IceSpike also apply Frozen
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Frozen,
@@ -272,7 +287,7 @@ impl<'a> System<'a> for Sys {
                     Some(SpriteKind::FireBlock)
                 ) {
                     // If on FireBlock vines, apply burning buff
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
@@ -293,7 +308,7 @@ impl<'a> System<'a> for Sys {
                     })
                 ) {
                     // If in lava fluid, apply burning debuff
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
@@ -313,7 +328,7 @@ impl<'a> System<'a> for Sys {
                 ) && buff_comp.kinds[BuffKind::Burning].is_some()
                 {
                     // If in water fluid and currently burning, remove burning debuffs
-                    server_emitter.emit(ServerEvent::Buff {
+                    emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
                     });
@@ -363,7 +378,7 @@ impl<'a> System<'a> for Sys {
                     };
                     if replace {
                         expired_buffs.push(buff_key);
-                        server_emitter.emit(ServerEvent::Buff {
+                        emitters.emit(BuffEvent {
                             entity,
                             buff_change: BuffChange::Add(Buff::new(
                                 buff.kind,
@@ -458,7 +473,7 @@ impl<'a> System<'a> for Sys {
                                 energy,
                                 entity,
                                 buff_owner,
-                                &mut server_emitter,
+                                &mut emitters,
                                 dt,
                                 *read_data.time,
                                 expired_buffs.contains(&buff_key),
@@ -472,12 +487,12 @@ impl<'a> System<'a> for Sys {
             // Update body if needed.
             let new_body = body_override.unwrap_or(stat.original_body);
             if new_body != *body {
-                server_emitter.emit(ServerEvent::ChangeBody { entity, new_body });
+                emitters.emit(ChangeBodyEvent { entity, new_body });
             }
 
             // Remove buffs that expire
             if !expired_buffs.is_empty() {
-                server_emitter.emit(ServerEvent::Buff {
+                emitters.emit(BuffEvent {
                     entity,
                     buff_change: BuffChange::RemoveByKey(expired_buffs),
                 });
@@ -485,7 +500,7 @@ impl<'a> System<'a> for Sys {
 
             // Remove buffs that don't persist on death
             if health.is_dead {
-                server_emitter.emit(ServerEvent::Buff {
+                emitters.emit(BuffEvent {
                     entity,
                     buff_change: BuffChange::RemoveByCategory {
                         all_required: vec![],
@@ -515,7 +530,9 @@ fn execute_effect(
     energy: &Energy,
     entity: Entity,
     buff_owner: Option<Uid>,
-    server_emitter: &mut Emitter<ServerEvent>,
+    server_emitter: &mut (
+             impl EmitExt<HealthChangeEvent> + EmitExt<EnergyChangeEvent> + EmitExt<BuffEvent>
+         ),
     dt: f32,
     time: Time,
     buff_will_expire: bool,
@@ -577,7 +594,7 @@ fn execute_effect(
                         DamageContributor::new(uid, read_data.groups.get(entity).cloned())
                     })
                 });
-                server_emitter.emit(ServerEvent::HealthChange {
+                server_emitter.emit(HealthChangeEvent {
                     entity,
                     change: HealthChange {
                         amount,
@@ -602,7 +619,7 @@ fn execute_effect(
                     ModifierKind::Additive => amount,
                     ModifierKind::Multiplicative => energy.maximum() * amount,
                 };
-                server_emitter.emit(ServerEvent::EnergyChange {
+                server_emitter.emit(EnergyChangeEvent {
                     entity,
                     change: amount,
                 });
@@ -718,7 +735,7 @@ fn execute_effect(
         },
         BuffEffect::BuffImmunity(buff_kind) => {
             if buffs_comp.contains(*buff_kind) {
-                server_emitter.emit(ServerEvent::Buff {
+                server_emitter.emit(BuffEvent {
                     entity,
                     buff_change: BuffChange::RemoveByKind(*buff_kind),
                 });

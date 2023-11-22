@@ -217,6 +217,13 @@ impl<G> GenericChatMsg<G> {
         Self { chat_type, content }
     }
 
+    pub fn death(kill_source: KillSource, victim: Uid) -> Self {
+        Self {
+            chat_type: ChatType::Kill(kill_source, victim),
+            content: Content::Plain(String::new()),
+        }
+    }
+
     pub fn map_group<T>(self, mut f: impl FnMut(G) -> T) -> GenericChatMsg<T> {
         let chat_type = match self.chat_type {
             ChatType::Online(a) => ChatType::Online(a),

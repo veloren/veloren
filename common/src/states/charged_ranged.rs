@@ -4,7 +4,7 @@ use crate::{
         character_state::OutputEvents, projectile::ProjectileConstructor, Body, CharacterState,
         LightEmitter, Pos, StateUpdate,
     },
-    event::ServerEvent,
+    event::ShootEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -123,7 +123,7 @@ impl CharacterBehavior for Data {
                         tool_stats,
                         self.static_data.damage_effect,
                     );
-                    output_events.emit_server(ServerEvent::Shoot {
+                    output_events.emit_server(ShootEvent {
                         entity: data.entity,
                         pos,
                         dir: data.inputs.look_dir,

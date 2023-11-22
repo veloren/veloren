@@ -1,6 +1,6 @@
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, StateUpdate},
-    event::{LocalEvent, ServerEvent},
+    event::{CreateSpriteEvent, LocalEvent},
     outcome::Outcome,
     spiral::Spiral2d,
     states::{
@@ -173,7 +173,7 @@ impl CharacterBehavior for Data {
                                 };
                                 for i in 0..layers {
                                     // Send server event to create sprite
-                                    output_events.emit_server(ServerEvent::CreateSprite {
+                                    output_events.emit_server(CreateSpriteEvent {
                                         pos: Vec3::new(sprite_pos.x, sprite_pos.y, z + i),
                                         sprite: self.static_data.sprite,
                                         del_timeout: self.static_data.del_timeout,

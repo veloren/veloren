@@ -1,4 +1,5 @@
 pub mod behavior_tree;
+use server_agent::data::AgentEvents;
 pub use server_agent::{action_nodes, attack, consts, data, util};
 use vek::Vec3;
 
@@ -11,7 +12,6 @@ use common::{
         self, inventory::slot::EquipSlot, item::ItemDesc, Agent, Alignment, Body, CharacterState,
         Controller, Health, InputKind, Scale,
     },
-    event::{EventBus, ServerEvent},
     mounting::Volume,
     path::TraversalConfig,
 };
@@ -19,7 +19,7 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::thread_rng;
 use rayon::iter::ParallelIterator;
-use specs::{LendJoin, ParJoin, Read, WriteStorage};
+use specs::{LendJoin, ParJoin, WriteStorage};
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -27,7 +27,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
-        Read<'a, EventBus<ServerEvent>>,
+        AgentEvents<'a>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
     );
@@ -38,7 +38,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         job: &mut Job<Self>,
-        (read_data, event_bus, mut agents, mut controllers): Self::SystemData,
+        (read_data, events, mut agents, mut controllers): Self::SystemData,
     ) {
         job.cpu_stats.measure(ParMode::Rayon);
 
@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
                     rtsim_entity,
                     (_, is_rider, is_volume_rider),
                 )| {
-                    let mut event_emitter = event_bus.emitter();
+                    let mut emitters = events.get_emitters();
                     let mut rng = thread_rng();
 
                     // The entity that is moving, if riding it's the mount, otherwise it's itself
@@ -263,7 +263,7 @@ impl<'a> System<'a> for Sys {
                         agent,
                         agent_data: data,
                         read_data: &read_data,
-                        event_emitter: &mut event_emitter,
+                        emitters: &mut emitters,
                         controller,
                         rng: &mut rng,
                     };

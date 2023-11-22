@@ -6,19 +6,27 @@ use common::{
         group::Group,
         Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos, Stats,
     },
-    event::{Emitter, EventBus, ServerEvent},
+    event::{AuraEvent, BuffEvent, EmitExt},
+    event_emitters,
     resources::Time,
     uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{shred, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData};
 
+event_emitters! {
+    struct Events[Emitters] {
+        aura: AuraEvent,
+        buff: BuffEvent,
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
     time: Read<'a, Time>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
+    events: Events<'a>,
     id_maps: Read<'a, IdMaps>,
     cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
     positions: ReadStorage<'a, Pos>,
@@ -42,7 +50,7 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(_job: &mut Job<Self>, read_data: Self::SystemData) {
-        let mut server_emitter = read_data.server_bus.emitter();
+        let mut emitters = read_data.events.get_emitters();
 
         // Iterate through all entities with an aura
         for (entity, pos, auras_comp, uid) in (
@@ -118,14 +126,14 @@ impl<'a> System<'a> for Sys {
                                 target_buffs,
                                 stats,
                                 &read_data,
-                                &mut server_emitter,
+                                &mut emitters,
                             );
                         }
                     }
                 });
             }
             if !expired_auras.is_empty() {
-                server_emitter.emit(ServerEvent::Aura {
+                emitters.emit(AuraEvent {
                     entity,
                     aura_change: AuraChange::RemoveByKey(expired_auras),
                 });
@@ -145,7 +153,7 @@ fn activate_aura(
     target_buffs: &Buffs,
     stats: Option<&Stats>,
     read_data: &ReadData,
-    server_emitter: &mut Emitter<ServerEvent>,
+    emitters: &mut impl EmitExt<BuffEvent>,
 ) {
     let should_activate = match aura.aura_kind {
         AuraKind::Buff { kind, source, .. } => {
@@ -223,7 +231,7 @@ fn activate_aura(
                     && buff.data.strength >= data.strength
             });
             if emit_buff {
-                server_emitter.emit(ServerEvent::Buff {
+                emitters.emit(BuffEvent {
                     entity: target,
                     buff_change: BuffChange::Add(Buff::new(
                         kind,

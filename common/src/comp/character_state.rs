@@ -4,7 +4,8 @@ use crate::{
         ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction,
         Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
     },
-    event::{LocalEvent, ServerEvent},
+    event::{self, EmitExt, LocalEvent},
+    event_emitters,
     resources::Time,
     states::{
         self,
@@ -34,19 +35,46 @@ pub struct StateUpdate {
     pub character_activity: CharacterActivity,
 }
 
-pub struct OutputEvents<'a> {
-    local: &'a mut Vec<LocalEvent>,
-    server: &'a mut Vec<ServerEvent>,
+event_emitters! {
+    pub struct CharacterStateEvents[CharacterStateEventEmitters] {
+        combo: event::ComboChangeEvent,
+        event: event::AuraEvent,
+        shoot: event::ShootEvent,
+        teleport_to: event::TeleportToEvent,
+        shockwave: event::ShockwaveEvent,
+        explosion: event::ExplosionEvent,
+        buff: event::BuffEvent,
+        inventory_manip: event::InventoryManipEvent,
+        sprite_summon: event::CreateSpriteEvent,
+        change_stance: event::ChangeStanceEvent,
+        create_npc: event::CreateNpcEvent,
+        energy_change: event::EnergyChangeEvent,
+        knockback: event::KnockbackEvent,
+        sprite_light: event::ToggleSpriteLightEvent,
+    }
 }
 
-impl<'a> OutputEvents<'a> {
-    pub fn new(local: &'a mut Vec<LocalEvent>, server: &'a mut Vec<ServerEvent>) -> Self {
+pub struct OutputEvents<'a, 'b> {
+    local: &'a mut Vec<LocalEvent>,
+    server: &'a mut CharacterStateEventEmitters<'b>,
+}
+
+impl<'a, 'b: 'a> OutputEvents<'a, 'b> {
+    pub fn new(
+        local: &'a mut Vec<LocalEvent>,
+        server: &'a mut CharacterStateEventEmitters<'b>,
+    ) -> Self {
         Self { local, server }
     }
 
     pub fn emit_local(&mut self, event: LocalEvent) { self.local.push(event); }
 
-    pub fn emit_server(&mut self, event: ServerEvent) { self.server.push(event); }
+    pub fn emit_server<E>(&mut self, event: E)
+    where
+        CharacterStateEventEmitters<'b>: EmitExt<E>,
+    {
+        self.server.emit(event);
+    }
 }
 
 impl From<&JoinData<'_>> for StateUpdate {

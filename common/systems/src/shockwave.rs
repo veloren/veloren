@@ -6,7 +6,12 @@ use common::{
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
         PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
-    event::{EventBus, ServerEvent},
+    event::{
+        BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, EnergyChangeEvent,
+        EntityAttackedHookEvent, EventBus, HealthChangeEvent, KnockbackEvent, MineBlockEvent,
+        ParryHookEvent, PoiseChangeEvent, SoundEvent,
+    },
+    event_emitters,
     outcome::Outcome,
     resources::{DeltaTime, Time},
     uid::{IdMaps, Uid},
@@ -18,10 +23,26 @@ use rand::Rng;
 use specs::{shred, Entities, Join, LendJoin, Read, ReadStorage, SystemData, WriteStorage};
 use vek::*;
 
+event_emitters! {
+    struct Events[Emitters] {
+        health_change: HealthChangeEvent,
+        energy_change: EnergyChangeEvent,
+        poise_change: PoiseChangeEvent,
+        sound: SoundEvent,
+        mine_block: MineBlockEvent,
+        parry_hook: ParryHookEvent,
+        kockback: KnockbackEvent,
+        entity_attack_hoow: EntityAttackedHookEvent,
+        combo_change: ComboChangeEvent,
+        buff: BuffEvent,
+        delete: DeleteEvent,
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
+    events: Events<'a>,
     time: Read<'a, Time>,
     players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
@@ -63,7 +84,7 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (read_data, mut shockwaves, mut shockwave_hit_lists, outcomes): Self::SystemData,
     ) {
-        let mut server_emitter = read_data.server_bus.emitter();
+        let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
         let mut rng = rand::thread_rng();
 
@@ -93,7 +114,7 @@ impl<'a> System<'a> for Sys {
                 .and_then(|uid| read_data.id_maps.uid_entity(uid));
 
             if rng.gen_bool(0.05) {
-                server_emitter.emit(ServerEvent::Sound {
+                emitters.emit(SoundEvent {
                     sound: Sound::new(SoundKind::Shockwave, pos.0, 40.0, time),
                 });
             }
@@ -101,7 +122,7 @@ impl<'a> System<'a> for Sys {
             // If shockwave is out of time emit destroy event but still continue since it
             // may have traveled and produced effects a bit before reaching it's end point
             if time > end_time {
-                server_emitter.emit(ServerEvent::Delete(entity));
+                emitters.emit(DeleteEvent(entity));
                 continue;
             }
 
@@ -249,7 +270,7 @@ impl<'a> System<'a> for Sys {
                         1.0,
                         shockwave.dodgeable.to_attack_source(),
                         *read_data.time,
-                        |e| server_emitter.emit(e),
+                        &mut emitters,
                         |o| outcomes_emitter.emit(o),
                         &mut rng,
                         0,

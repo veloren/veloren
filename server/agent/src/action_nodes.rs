@@ -3,7 +3,7 @@ use crate::{
         AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, MAX_PATROL_DIST,
         PARTIAL_PATH_DIST, SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECAY_RATE,
     },
-    data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
+    data::{AgentData, AgentEmitters, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
         aim_projectile, are_our_owners_hostile, entities_have_line_of_sight, get_attacker,
         get_entity_by_id, is_dead_or_invulnerable, is_dressed_as_cultist, is_invulnerable,
@@ -28,7 +28,7 @@ use common::{
     },
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
-    event::{Emitter, ServerEvent},
+    event::{ChatEvent, EmitExt, SoundEvent},
     mounting::VolumePos,
     path::TraversalConfig,
     rtsim::NpcActivity,
@@ -180,7 +180,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        event_emitter: &mut Emitter<ServerEvent>,
+        emitters: &mut AgentEmitters,
         rng: &mut impl Rng,
     ) {
         enum ActionTimers {
@@ -430,7 +430,7 @@ impl<'a> AgentData<'a> {
                             agent,
                             controller,
                             read_data,
-                            event_emitter,
+                            emitters,
                             AgentData::is_hunting_animal,
                         );
                     }
@@ -807,7 +807,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        event_emitter: &mut Emitter<ServerEvent>,
+        emitters: &mut AgentEmitters,
         is_enemy: fn(&Self, EcsEntity, &ReadData) -> bool,
     ) {
         enum ActionStateTimers {
@@ -856,7 +856,7 @@ impl<'a> AgentData<'a> {
                     self.chat_npc_if_allowed_to_speak(
                         Content::localized("npc-speech-ambush"),
                         agent,
-                        event_emitter,
+                        emitters,
                     );
                     aggro_on = true;
                     Some((entity, true))
@@ -1666,13 +1666,13 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        event_emitter: &mut Emitter<ServerEvent>,
+        emitters: &mut AgentEmitters,
         rng: &mut impl Rng,
     ) {
         agent.forget_old_sounds(read_data.time.0);
 
         if is_invulnerable(*self.entity, read_data) {
-            self.idle(agent, controller, read_data, event_emitter, rng);
+            self.idle(agent, controller, read_data, emitters, rng);
             return;
         }
 
@@ -1705,13 +1705,13 @@ impl<'a> AgentData<'a> {
                 } else if self.below_flee_health(agent) || !follows_threatening_sounds {
                     self.flee(agent, controller, read_data, &sound_pos);
                 } else {
-                    self.idle(agent, controller, read_data, event_emitter, rng);
+                    self.idle(agent, controller, read_data, emitters, rng);
                 }
             } else {
-                self.idle(agent, controller, read_data, event_emitter, rng);
+                self.idle(agent, controller, read_data, emitters, rng);
             }
         } else {
-            self.idle(agent, controller, read_data, event_emitter, rng);
+            self.idle(agent, controller, read_data, emitters, rng);
         }
     }
 
@@ -1720,7 +1720,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         read_data: &ReadData,
         controller: &mut Controller,
-        event_emitter: &mut Emitter<ServerEvent>,
+        emitters: &mut AgentEmitters,
         rng: &mut impl Rng,
     ) {
         if let Some(Target { target, .. }) = agent.target {
@@ -1750,7 +1750,7 @@ impl<'a> AgentData<'a> {
                                     Some(tgt_pos.0),
                                 ));
 
-                                self.idle(agent, controller, read_data, event_emitter, rng);
+                                self.idle(agent, controller, read_data, emitters, rng);
                             } else {
                                 let target_data = TargetData::new(tgt_pos, target, read_data);
                                 // TODO: Reimplement this in rtsim
@@ -1774,25 +1774,23 @@ impl<'a> AgentData<'a> {
         &self,
         msg: Content,
         agent: &Agent,
-        event_emitter: &mut Emitter<'_, ServerEvent>,
+        emitters: &mut AgentEmitters,
     ) -> bool {
         if agent.allowed_to_speak() {
-            self.chat_npc(msg, event_emitter);
+            self.chat_npc(msg, emitters);
             true
         } else {
             false
         }
     }
 
-    pub fn chat_npc(&self, content: Content, event_emitter: &mut Emitter<'_, ServerEvent>) {
-        event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
-            *self.uid, content,
-        )));
+    pub fn chat_npc(&self, content: Content, emitters: &mut AgentEmitters) {
+        emitters.emit(ChatEvent(UnresolvedChatMsg::npc(*self.uid, content)));
     }
 
-    fn emit_scream(&self, time: f64, event_emitter: &mut Emitter<'_, ServerEvent>) {
+    fn emit_scream(&self, time: f64, emitters: &mut AgentEmitters) {
         if let Some(body) = self.body {
-            event_emitter.emit(ServerEvent::Sound {
+            emitters.emit(SoundEvent {
                 sound: Sound::new(
                     SoundKind::Utterance(UtteranceKind::Scream, *body),
                     self.pos.0,
@@ -1803,12 +1801,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    pub fn cry_out(
-        &self,
-        agent: &Agent,
-        event_emitter: &mut Emitter<'_, ServerEvent>,
-        read_data: &ReadData,
-    ) {
+    pub fn cry_out(&self, agent: &Agent, emitters: &mut AgentEmitters, read_data: &ReadData) {
         let has_enemy_alignment = matches!(self.alignment, Some(Alignment::Enemy));
 
         if has_enemy_alignment {
@@ -1817,28 +1810,24 @@ impl<'a> AgentData<'a> {
             self.chat_npc_if_allowed_to_speak(
                 Content::localized("npc-speech-cultist_low_health_fleeing"),
                 agent,
-                event_emitter,
+                emitters,
             );
         } else if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
                 Content::localized("npc-speech-villager_under_attack"),
                 agent,
-                event_emitter,
+                emitters,
             );
-            self.emit_scream(read_data.time.0, event_emitter);
+            self.emit_scream(read_data.time.0, emitters);
         }
     }
 
-    pub fn exclaim_relief_about_enemy_dead(
-        &self,
-        agent: &Agent,
-        event_emitter: &mut Emitter<'_, ServerEvent>,
-    ) {
+    pub fn exclaim_relief_about_enemy_dead(&self, agent: &Agent, emitters: &mut AgentEmitters) {
         if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
                 Content::localized("npc-speech-villager_enemy_killed"),
                 agent,
-                event_emitter,
+                emitters,
             );
         }
     }
@@ -2002,7 +1991,7 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         target: EcsEntity,
         read_data: &ReadData,
-        event_emitter: &mut Emitter<ServerEvent>,
+        emitters: &mut AgentEmitters,
         rng: &mut impl Rng,
         remembers_fight_with_target: bool,
     ) {
@@ -2011,7 +2000,7 @@ impl<'a> AgentData<'a> {
         let move_dir_mag = move_dir.magnitude();
         let small_chance = rng.gen::<f32>() < read_data.dt.0 * 0.25;
         let mut chat = |content: Content| {
-            self.chat_npc_if_allowed_to_speak(content, agent, event_emitter);
+            self.chat_npc_if_allowed_to_speak(content, agent, emitters);
         };
         let mut chat_villager_remembers_fighting = || {
             let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());

@@ -8,11 +8,11 @@ use common::{
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, ControlAction,
         ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
     },
-    event::{Emitter, ServerEvent},
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
 };
 use rand::{prelude::ThreadRng, thread_rng, Rng};
+use server_agent::data::AgentEmitters;
 use specs::Entity as EcsEntity;
 use vek::{Vec2, Vec3};
 
@@ -39,7 +39,7 @@ pub struct BehaviorData<'a, 'b, 'c> {
     pub agent: &'a mut Agent,
     pub agent_data: AgentData<'a>,
     pub read_data: &'a ReadData<'a>,
-    pub event_emitter: &'a mut Emitter<'c, ServerEvent>,
+    pub emitters: &'a mut AgentEmitters<'c>,
     pub controller: &'a mut Controller,
     pub rng: &'b mut ThreadRng,
 }
@@ -454,7 +454,7 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
                     bdata.agent,
                     bdata.read_data,
                     bdata.controller,
-                    bdata.event_emitter,
+                    bdata.emitters,
                     bdata.rng,
                 );
                 return true;
@@ -519,7 +519,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                         }
                     }
                     bdata.controller.push_utterance(UtteranceKind::Greeting);
-                    bdata.agent_data.chat_npc(msg, bdata.event_emitter);
+                    bdata.agent_data.chat_npc(msg, bdata.emitters);
                 }
             },
             NpcAction::Attack(target) => {
@@ -574,7 +574,7 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                     bdata.agent,
                     bdata.controller,
                     bdata.read_data,
-                    bdata.event_emitter,
+                    bdata.emitters,
                     AgentData::is_enemy,
                 );
             } else {
@@ -582,7 +582,7 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                     bdata.agent,
                     bdata.controller,
                     bdata.read_data,
-                    bdata.event_emitter,
+                    bdata.emitters,
                     bdata.rng,
                 );
             }
@@ -728,7 +728,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
         agent,
         agent_data,
         read_data,
-        event_emitter,
+        emitters,
         controller,
         rng,
     } = bdata;
@@ -777,7 +777,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
                     == 0.0
                 {
-                    agent_data.cry_out(agent, event_emitter, read_data);
+                    agent_data.cry_out(agent, emitters, read_data);
                     agent.behavior_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
                     agent.flee_from_pos = {
@@ -803,12 +803,12 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.0;
                     agent.target = None;
                     agent.flee_from_pos = None;
-                    agent_data.idle(agent, controller, read_data, event_emitter, rng);
+                    agent_data.idle(agent, controller, read_data, emitters, rng);
                 }
             } else if is_dead(target, read_data) {
-                agent_data.exclaim_relief_about_enemy_dead(agent, event_emitter);
+                agent_data.exclaim_relief_about_enemy_dead(agent, emitters);
                 agent.target = None;
-                agent_data.idle(agent, controller, read_data, event_emitter, rng);
+                agent_data.idle(agent, controller, read_data, emitters, rng);
             } else if is_invulnerable(target, read_data)
                 || stop_pursuing(
                     dist_sqrd,
@@ -820,7 +820,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 )
             {
                 agent.target = None;
-                agent_data.idle(agent, controller, read_data, event_emitter, rng);
+                agent_data.idle(agent, controller, read_data, emitters, rng);
             } else {
                 let is_time_to_retarget =
                     read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
@@ -830,7 +830,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         agent,
                         controller,
                         read_data,
-                        event_emitter,
+                        emitters,
                         AgentData::is_enemy,
                     );
                 }
@@ -849,7 +849,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         controller,
                         target,
                         read_data,
-                        event_emitter,
+                        emitters,
                         rng,
                         remembers_fight_with(agent_data.rtsim_entity, read_data, target),
                     );

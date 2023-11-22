@@ -1,6 +1,6 @@
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, StateUpdate},
-    event::ServerEvent,
+    event::TeleportToEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -52,7 +52,7 @@ impl CharacterBehavior for Data {
                     // provided
                     if let Some(input_attr) = self.static_data.ability_info.input_attr {
                         if let Some(target) = input_attr.target_entity {
-                            output_events.emit_server(ServerEvent::TeleportTo {
+                            output_events.emit_server(TeleportToEvent {
                                 entity: data.entity,
                                 target,
                                 max_range: Some(self.static_data.max_range),

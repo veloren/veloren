@@ -9,7 +9,7 @@ use crate::{
         shockwave::{self, ShockwaveDodgeable},
         CharacterState, StateUpdate,
     },
-    event::{LocalEvent, ServerEvent},
+    event::{ExplosionEvent, LocalEvent, ShockwaveEvent},
     outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -182,7 +182,7 @@ impl CharacterBehavior for Data {
                         owner: Some(*data.uid),
                         specifier: self.static_data.specifier,
                     };
-                    output_events.emit_server(ServerEvent::Shockwave {
+                    output_events.emit_server(ShockwaveEvent {
                         properties,
                         pos: *data.pos,
                         ori: *data.ori,
@@ -214,7 +214,7 @@ impl CharacterBehavior for Data {
                                 reagent: Some(Reagent::White),
                                 min_falloff: 0.5,
                             };
-                            output_events.emit_server(ServerEvent::Explosion {
+                            output_events.emit_server(ExplosionEvent {
                                 pos: data.pos.0,
                                 explosion,
                                 owner: Some(*data.uid),

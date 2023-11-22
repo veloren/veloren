@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     comp::{self, Admin, Player, Stats},
-    event::{EventBus, ServerEvent},
+    event::{ClientDisconnectEvent, EventBus, MakeAdminEvent},
     recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
     resources::TimeOfDay,
     shared_server_config::ServerConstants,
@@ -42,7 +42,8 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     stats: ReadStorage<'a, Stats>,
     uids: ReadStorage<'a, Uid>,
-    server_event_bus: Read<'a, EventBus<ServerEvent>>,
+    client_disconnect_events: Read<'a, EventBus<ClientDisconnectEvent>>,
+    make_admin_events: Read<'a, EventBus<MakeAdminEvent>>,
     login_provider: ReadExpect<'a, LoginProvider>,
     player_metrics: ReadExpect<'a, PlayerMetrics>,
     settings: ReadExpect<'a, Settings>,
@@ -62,7 +63,6 @@ pub struct ReadData<'a> {
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        Read<'a, EventBus<ServerEvent>>,
         ReadData<'a>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Player>,
@@ -75,8 +75,9 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (event_bus, read_data, mut clients, mut players, mut pending_logins): Self::SystemData,
+        (read_data, mut clients, mut players, mut pending_logins): Self::SystemData,
     ) {
+        let mut make_admin_emitter = read_data.make_admin_events.emitter();
         // Player list to send new players, and lookup from UUID to entity (so we don't
         // have to do a linear scan over all entities on each login to see if
         // it's a duplicate).
@@ -165,8 +166,8 @@ impl<'a> System<'a> for Sys {
             // NOTE: Required because Specs has very poor work splitting for sparse joins.
             .par_bridge()
             .for_each_init(
-                || read_data.server_event_bus.emitter(),
-                |server_emitter, (entity, uid, client, _, pending)| {
+                || read_data.client_disconnect_events.emitter(),
+                |client_disconnect_emitter, (entity, uid, client, _, pending)| {
                     prof_span!("msg::register login");
                     if let Err(e) = || -> Result<(), crate::error::Error> {
                         let extra_checks = |username: String, uuid: authc::Uuid| {
@@ -238,7 +239,7 @@ impl<'a> System<'a> for Sys {
                                         // NOTE: Done only on error to avoid doing extra work within
                                         // the lock.
                                         trace!(?e, "pending login returned error");
-                                        server_emitter.emit(ServerEvent::ClientDisconnect(
+                                        client_disconnect_emitter.emit(ClientDisconnectEvent(
                                             entity,
                                             common::comp::DisconnectReason::Kicked,
                                         ));
@@ -302,7 +303,7 @@ impl<'a> System<'a> for Sys {
                                     );
                                 }
                                 // Remove old client
-                                server_emitter.emit(ServerEvent::ClientDisconnect(
+                                client_disconnect_emitter.emit(ClientDisconnectEvent(
                                     old_entity,
                                     common::comp::DisconnectReason::NewerLogin,
                                 ));
@@ -408,7 +409,7 @@ impl<'a> System<'a> for Sys {
                 if let Some(admin) = admin {
                     // We need to defer writing to the Admin storage since it's borrowed immutably
                     // by this system via TrackedStorages.
-                    event_bus.emit_now(ServerEvent::MakeAdmin {
+                    make_admin_emitter.emit(MakeAdminEvent {
                         entity,
                         admin: Admin(admin.role.into()),
                         uuid,

@@ -3,25 +3,24 @@ use crate::{
     presence::RepositionOnChunkLoad, sys, CharacterUpdater, Server, StateExt,
 };
 use common::{
-    character::CharacterId,
     comp::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        misc::PortalData,
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
-        shockwave, Alignment, BehaviorCapability, Body, ItemDrops, LightEmitter, Object, Ori, Pos,
-        Projectile, TradingBehavior, Vel, WaypointArea,
+        Alignment, BehaviorCapability, ItemDrops, LightEmitter, Ori, Pos, TradingBehavior, Vel,
+        WaypointArea,
     },
-    event::{EventBus, NpcBuilder, UpdateCharacterMetadata},
+    event::{
+        CreateNpcEvent, CreateShipEvent, CreateTeleporterEvent, CreateWaypointEvent, EventBus,
+        InitializeCharacterEvent, InitializeSpectatorEvent, ShockwaveEvent, ShootEvent,
+        UpdateCharacterDataEvent,
+    },
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
     outcome::Outcome,
     resources::{Secs, Time},
-    rtsim::RtSimEntity,
     uid::{IdMaps, Uid},
-    util::Dir,
     vol::IntoFullVolIterator,
-    ViewDistances,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
@@ -29,56 +28,57 @@ use vek::{Rgb, Vec3};
 
 use super::group_manip::update_map_markers;
 
-pub fn handle_initialize_character(
-    server: &mut Server,
-    entity: EcsEntity,
-    character_id: CharacterId,
-    requested_view_distances: ViewDistances,
-) {
+pub fn handle_initialize_character(server: &mut Server, ev: InitializeCharacterEvent) {
     let updater = server.state.ecs().fetch::<CharacterUpdater>();
-    let pending_database_action = updater.has_pending_database_action(character_id);
+    let pending_database_action = updater.has_pending_database_action(ev.character_id);
     drop(updater);
 
     if !pending_database_action {
-        let clamped_vds = requested_view_distances.clamp(server.settings().max_view_distance);
+        let clamped_vds = ev
+            .requested_view_distances
+            .clamp(server.settings().max_view_distance);
         server
             .state
-            .initialize_character_data(entity, character_id, clamped_vds);
+            .initialize_character_data(ev.entity, ev.character_id, clamped_vds);
         // Correct client if its requested VD is too high.
-        if requested_view_distances.terrain != clamped_vds.terrain {
-            server.notify_client(entity, ServerGeneral::SetViewDistance(clamped_vds.terrain));
+        if ev.requested_view_distances.terrain != clamped_vds.terrain {
+            server.notify_client(
+                ev.entity,
+                ServerGeneral::SetViewDistance(clamped_vds.terrain),
+            );
         }
     } else {
         // A character delete or update was somehow initiated after the login commenced,
         // so kick the client out of "ingame" without saving any data and abort
         // the character loading process.
-        handle_exit_ingame(server, entity, true);
+        handle_exit_ingame(server, ev.entity, true);
     }
 }
 
-pub fn handle_initialize_spectator(
-    server: &mut Server,
-    entity: EcsEntity,
-    requested_view_distances: ViewDistances,
-) {
-    let clamped_vds = requested_view_distances.clamp(server.settings().max_view_distance);
-    server.state.initialize_spectator_data(entity, clamped_vds);
+pub fn handle_initialize_spectator(server: &mut Server, ev: InitializeSpectatorEvent) {
+    let clamped_vds = ev.1.clamp(server.settings().max_view_distance);
+    server.state.initialize_spectator_data(ev.0, clamped_vds);
     // Correct client if its requested VD is too high.
-    if requested_view_distances.terrain != clamped_vds.terrain {
-        server.notify_client(entity, ServerGeneral::SetViewDistance(clamped_vds.terrain));
+    if ev.1.terrain != clamped_vds.terrain {
+        server.notify_client(ev.0, ServerGeneral::SetViewDistance(clamped_vds.terrain));
     }
-    sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
+    sys::subscription::initialize_region_subscription(server.state.ecs(), ev.0);
 }
 
-pub fn handle_loaded_character_data(
-    server: &mut Server,
-    entity: EcsEntity,
-    loaded_components: PersistedComponents,
-    metadata: UpdateCharacterMetadata,
-) {
+pub fn handle_loaded_character_data(server: &mut Server, ev: UpdateCharacterDataEvent) {
+    let loaded_components = PersistedComponents {
+        body: ev.components.0,
+        stats: ev.components.1,
+        skill_set: ev.components.2,
+        inventory: ev.components.3,
+        waypoint: ev.components.4,
+        pets: ev.components.5,
+        active_abilities: ev.components.6,
+        map_marker: ev.components.7,
+    };
     if let Some(marker) = loaded_components.map_marker {
         server.notify_client(
-            entity,
+            ev.entity,
             ServerGeneral::MapMarker(comp::MapMarkerUpdate::Owned(comp::MapMarkerChange::Update(
                 marker.0,
             ))),
@@ -87,68 +87,62 @@ pub fn handle_loaded_character_data(
 
     let result_msg = if let Err(err) = server
         .state
-        .update_character_data(entity, loaded_components)
+        .update_character_data(ev.entity, loaded_components)
     {
-        handle_exit_ingame(server, entity, false); // remove client from in-game state
+        handle_exit_ingame(server, ev.entity, false); // remove client from in-game state
         ServerGeneral::CharacterDataLoadResult(Err(err))
     } else {
-        sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
+        sys::subscription::initialize_region_subscription(server.state.ecs(), ev.entity);
         // We notify the client with the metadata result from the operation.
-        ServerGeneral::CharacterDataLoadResult(Ok(metadata))
+        ServerGeneral::CharacterDataLoadResult(Ok(ev.metadata))
     };
-    server.notify_client(entity, result_msg);
+    server.notify_client(ev.entity, result_msg);
 }
 
-pub fn handle_create_npc(
-    server: &mut Server,
-    pos: Pos,
-    ori: Ori,
-    mut npc: NpcBuilder,
-    rider: Option<NpcBuilder>,
-) -> EcsEntity {
+pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEntity {
     let entity = server
         .state
         .create_npc(
-            pos,
-            ori,
-            npc.stats,
-            npc.skill_set,
-            npc.health,
-            npc.poise,
-            npc.inventory,
-            npc.body,
+            ev.pos,
+            ev.ori,
+            ev.npc.stats,
+            ev.npc.skill_set,
+            ev.npc.health,
+            ev.npc.poise,
+            ev.npc.inventory,
+            ev.npc.body,
         )
-        .with(npc.scale);
+        .with(ev.npc.scale);
 
-    if let Some(agent) = &mut npc.agent {
-        if let Alignment::Owned(_) = &npc.alignment {
+    if let Some(agent) = &mut ev.npc.agent {
+        if let Alignment::Owned(_) = &ev.npc.alignment {
             agent.behavior.allow(BehaviorCapability::TRADE);
             agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
         }
     }
 
-    let entity = entity.with(npc.alignment);
+    let entity = entity.with(ev.npc.alignment);
 
-    let entity = if let Some(agent) = npc.agent {
+    let entity = if let Some(agent) = ev.npc.agent {
         entity.with(agent)
     } else {
         entity
     };
 
-    let entity = if let Some(drop_items) = npc.loot.to_items() {
+    let entity = if let Some(drop_items) = ev.npc.loot.to_items() {
         entity.with(ItemDrops(drop_items))
     } else {
         entity
     };
 
-    let entity = if let Some(home_chunk) = npc.anchor {
+    let entity = if let Some(home_chunk) = ev.npc.anchor {
         entity.with(home_chunk)
     } else {
         entity
     };
 
     // Rtsim entity added to IdMaps below.
-    let entity = if let Some(rtsim_entity) = npc.rtsim_entity {
+    let entity = if let Some(rtsim_entity) = ev.npc.rtsim_entity {
         entity.with(rtsim_entity).with(RepositionOnChunkLoad {
             needs_ground: false,
         })
@@ -156,7 +150,7 @@ pub fn handle_create_npc(
         entity
     };
 
-    let entity = if let Some(projectile) = npc.projectile {
+    let entity = if let Some(projectile) = ev.npc.projectile {
         entity.with(projectile)
     } else {
         entity
@@ -164,7 +158,7 @@ pub fn handle_create_npc(
 
     let new_entity = entity.build();
 
-    if let Some(rtsim_entity) = npc.rtsim_entity {
+    if let Some(rtsim_entity) = ev.npc.rtsim_entity {
         server
             .state()
             .ecs()
@@ -173,7 +167,7 @@ pub fn handle_create_npc(
     }
 
     // Add to group system if a pet
-    if let comp::Alignment::Owned(owner_uid) = npc.alignment {
+    if let comp::Alignment::Owned(owner_uid) = ev.npc.alignment {
         let state = server.state();
         let uids = state.ecs().read_storage::<Uid>();
         let clients = state.ecs().read_storage::<Client>();
@@ -204,7 +198,7 @@ pub fn handle_create_npc(
                 },
             );
         }
-    } else if let Some(group) = match npc.alignment {
+    } else if let Some(group) = match ev.npc.alignment {
         Alignment::Wild => None,
         Alignment::Passive => None,
         Alignment::Enemy => Some(comp::group::ENEMY),
@@ -214,8 +208,13 @@ pub fn handle_create_npc(
         let _ = server.state.ecs().write_storage().insert(new_entity, group);
     }
 
-    if let Some(rider) = rider {
-        let rider_entity = handle_create_npc(server, pos, Ori::default(), rider, None);
+    if let Some(rider) = ev.rider {
+        let rider_entity = handle_create_npc(server, CreateNpcEvent {
+            pos: ev.pos,
+            ori: Ori::default(),
+            npc: rider,
+            rider: None,
+        });
         let uids = server.state().ecs().read_storage::<Uid>();
         let link = Mounting {
             mount: *uids.get(new_entity).expect("We just created this entity"),
@@ -231,21 +230,13 @@ pub fn handle_create_npc(
     new_entity
 }
 
-pub fn handle_create_ship(
-    server: &mut Server,
-    pos: Pos,
-    ori: Ori,
-    ship: comp::ship::Body,
-    rtsim_entity: Option<RtSimEntity>,
-    driver: Option<NpcBuilder>,
-    passengers: Vec<NpcBuilder>,
-) {
-    let collider = ship.make_collider();
+pub fn handle_create_ship(server: &mut Server, ev: CreateShipEvent) {
+    let collider = ev.ship.make_collider();
     let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
 
     // TODO: Find better solution for this, maybe something like a serverside block
     // of interests.
-    let (mut steering, mut seats) = {
+    let (mut steering, mut _seats) = {
         let mut steering = Vec::new();
         let mut seats = Vec::new();
 
@@ -263,7 +254,9 @@ pub fn handle_create_ship(
         (steering.into_iter(), seats.into_iter())
     };
 
-    let mut entity = server.state.create_ship(pos, ori, ship, |_| collider);
+    let mut entity = server
+        .state
+        .create_ship(ev.pos, ev.ori, ev.ship, |_| collider);
     /*
     if let Some(mut agent) = agent {
         let (kp, ki, kd) = pid_coefficients(&Body::Ship(ship));
@@ -273,13 +266,18 @@ pub fn handle_create_ship(
         entity = entity.with(agent);
     }
     */
-    if let Some(rtsim_vehicle) = rtsim_entity {
+    if let Some(rtsim_vehicle) = ev.rtsim_entity {
         entity = entity.with(rtsim_vehicle);
     }
     let entity = entity.build();
 
-    if let Some(driver) = driver {
-        let npc_entity = handle_create_npc(server, pos, ori, driver, None);
+    if let Some(driver) = ev.driver {
+        let npc_entity = handle_create_npc(server, CreateNpcEvent {
+            pos: ev.pos,
+            ori: ev.ori,
+            npc: driver,
+            rider: None,
+        });
 
         let uids = server.state.ecs().read_storage::<Uid>();
         let (rider_uid, mount_uid) = uids
@@ -312,14 +310,14 @@ pub fn handle_create_ship(
         }
     }
 
-    for passenger in passengers {
-        let npc_entity = handle_create_npc(
-            server,
-            Pos(pos.0 + Vec3::unit_z() * 5.0),
-            ori,
-            passenger,
-            None,
-        );
+    /*
+    for passenger in ev.passengers {
+        let npc_entity = handle_create_npc(server, CreateNpcEvent {
+            pos: Pos(ev.pos.0 + Vec3::unit_z() * 5.0),
+            ori: ev.ori,
+            npc: passenger,
+            rider: None,
+        });
         if let Some((rider_pos, rider_block)) = seats.next() {
             let uids = server.state.ecs().read_storage::<Uid>();
             let (rider_uid, mount_uid) = uids
@@ -342,62 +340,54 @@ pub fn handle_create_ship(
                 .expect("Failed to link passanger to ship");
         }
     }
+    */
 }
 
-pub fn handle_shoot(
-    server: &mut Server,
-    entity: EcsEntity,
-    pos: Pos,
-    dir: Dir,
-    body: Body,
-    light: Option<LightEmitter>,
-    projectile: Projectile,
-    speed: f32,
-    object: Option<Object>,
-) {
+pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
     let state = server.state_mut();
 
-    let pos = pos.0;
+    let pos = ev.pos.0;
 
-    let vel = *dir * speed
+    let vel = *ev.dir * ev.speed
         + state
             .ecs()
             .read_storage::<Vel>()
-            .get(entity)
+            .get(ev.entity)
             .map_or(Vec3::zero(), |v| v.0);
 
     // Add an outcome
     state
         .ecs()
         .read_resource::<EventBus<Outcome>>()
-        .emit_now(Outcome::ProjectileShot { pos, body, vel });
+        .emit_now(Outcome::ProjectileShot {
+            pos,
+            body: ev.body,
+            vel,
+        });
 
-    let mut builder = state.create_projectile(Pos(pos), Vel(vel), body, projectile);
-    if let Some(light) = light {
+    let mut builder = state.create_projectile(Pos(pos), Vel(vel), ev.body, ev.projectile);
+    if let Some(light) = ev.light {
         builder = builder.with(light)
     }
-    if let Some(object) = object {
+    if let Some(object) = ev.object {
         builder = builder.with(object)
     }
 
     builder.build();
 }
 
-pub fn handle_shockwave(
-    server: &mut Server,
-    properties: shockwave::Properties,
-    pos: Pos,
-    ori: Ori,
-) {
+pub fn handle_shockwave(server: &mut Server, ev: ShockwaveEvent) {
     let state = server.state_mut();
-    state.create_shockwave(properties, pos, ori).build();
+    state
+        .create_shockwave(ev.properties, ev.pos, ev.ori)
+        .build();
 }
 
-pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
+pub fn handle_create_waypoint(server: &mut Server, ev: CreateWaypointEvent) {
     let time = server.state.get_time();
     server
         .state
-        .create_object(Pos(pos), comp::object::Body::CampfireLit)
+        .create_object(Pos(ev.0), comp::object::Body::CampfireLit)
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.3, 0.1),
             strength: 5.0,
@@ -435,9 +425,9 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
         .build();
 }
 
-pub fn handle_create_teleporter(server: &mut Server, pos: Vec3<f32>, portal: PortalData) {
+pub fn handle_create_teleporter(server: &mut Server, ev: CreateTeleporterEvent) {
     server
         .state
-        .create_teleporter(comp::Pos(pos), portal)
+        .create_teleporter(comp::Pos(ev.0), ev.1)
         .build();
 }

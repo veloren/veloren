@@ -4,9 +4,9 @@ use crate::{
     state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
-    character::CharacterId,
     comp,
     comp::{group, pet::is_tameable, Presence, PresenceKind},
+    event::{DeleteCharacterEvent, PossessEvent},
     resources::Time,
     uid::{IdMaps, Uid},
 };
@@ -16,12 +16,7 @@ use common_state::State;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use tracing::{debug, error, trace, warn, Instrument};
 
-pub fn handle_character_delete(
-    server: &mut Server,
-    entity: EcsEntity,
-    requesting_player_uuid: String,
-    character_id: CharacterId,
-) {
+pub fn handle_character_delete(server: &mut Server, ev: DeleteCharacterEvent) {
     // Can't process a character delete for a player that has an in-game presence,
     // so kick them out before processing the delete.
     // NOTE: This relies on StateExt::handle_initialize_character adding the
@@ -29,19 +24,19 @@ pub fn handle_character_delete(
     // is in-game.
     let has_presence = {
         let presences = server.state.ecs().read_storage::<Presence>();
-        presences.get(entity).is_some()
+        presences.get(ev.entity).is_some()
     };
     if has_presence {
         warn!(
-            ?requesting_player_uuid,
-            ?character_id,
+            ?ev.requesting_player_uuid,
+            ?ev.character_id,
             "Character delete received while in-game, disconnecting client."
         );
-        handle_exit_ingame(server, entity, true);
+        handle_exit_ingame(server, ev.entity, true);
     }
 
     let mut updater = server.state.ecs().fetch_mut::<CharacterUpdater>();
-    updater.queue_character_deletion(requesting_player_uuid, character_id);
+    updater.queue_character_deletion(ev.requesting_player_uuid, ev.character_id);
 }
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persistence: bool) {
@@ -341,7 +336,10 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
 /// FIXME: This code is dangerous and needs to be refactored.  We can't just
 /// comment it out, but it needs to be fixed for a variety of reasons.  Get rid
 /// of this ASAP!
-pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Uid) {
+pub fn handle_possess(
+    server: &mut Server,
+    PossessEvent(possessor_uid, possessee_uid): PossessEvent,
+) {
     use crate::presence::RegionSubscription;
     use common::{
         comp::{inventory::slot::EquipSlot, item, slot::Slot, Inventory},

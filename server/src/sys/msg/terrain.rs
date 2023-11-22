@@ -4,7 +4,7 @@ use crate::{
 };
 use common::{
     comp::{Pos, Presence},
-    event::{EventBus, ServerEvent},
+    event::{ClientDisconnectEvent, EventBus},
     spiral::Spiral2d,
     terrain::{CoordinateConversions, TerrainChunkSize, TerrainGrid},
     vol::RectVolSize,
@@ -21,7 +21,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<ClientDisconnectEvent>>,
         ReadExpect<'a, EventBus<ChunkSendEntry>>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, Lod>,
@@ -40,7 +40,7 @@ impl<'a> System<'a> for Sys {
         job: &mut Job<Self>,
         (
             entities,
-            server_event_bus,
+            client_disconnect_events,
             chunk_send_bus,
             terrain,
             lod,
@@ -57,8 +57,8 @@ impl<'a> System<'a> for Sys {
             // NOTE: Required because Specs has very poor work splitting for sparse joins.
             .par_bridge()
             .map_init(
-                || (chunk_send_bus.emitter(), server_event_bus.emitter()),
-                |(chunk_send_emitter, server_emitter), (entity, client, maybe_presence)| {
+                || (chunk_send_bus.emitter(), client_disconnect_events.emitter()),
+                |(chunk_send_emitter, client_disconnect_emitter), (entity, client, maybe_presence)| {
                     let mut chunk_requests = Vec::new();
                     let _ = super::try_recv_all(client, 5, |client, msg| {
                         // SPECIAL CASE: LOD zone requests can be sent by non-present players
@@ -112,7 +112,7 @@ impl<'a> System<'a> for Sys {
                                         "Kicking possibly misbehaving client due to invalud terrain \
                                          request"
                                     );
-                                    server_emitter.emit(ServerEvent::ClientDisconnect(
+                                    client_disconnect_emitter.emit(ClientDisconnectEvent(
                                         entity,
                                         common::comp::DisconnectReason::NetworkError,
                                     ));

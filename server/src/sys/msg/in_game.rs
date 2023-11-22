@@ -6,7 +6,8 @@ use common::{
         Admin, AdminRole, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player,
         Pos, Presence, PresenceKind, SkillSet, Vel,
     },
-    event::{EventBus, ServerEvent},
+    event::{self, EmitExt},
+    event_emitters,
     link::Is,
     mounting::{Rider, VolumeRider},
     resources::{DeltaTime, PlayerPhysicsSetting, PlayerPhysicsSettings},
@@ -42,10 +43,19 @@ struct RareWrites<'a, 'b> {
     _terrain_persistence: &'b mut TerrainPersistenceData<'a>,
 }
 
+event_emitters! {
+    struct Events[Emitters] {
+        exit_ingame: event::ExitIngameEvent,
+        request_site_info: event::RequestSiteInfoEvent,
+        update_map_marker: event::UpdateMapMarkerEvent,
+        client_disconnect: event::ClientDisconnectEvent,
+    }
+}
+
 impl Sys {
     #[allow(clippy::too_many_arguments)]
     fn handle_client_in_game_msg(
-        server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
+        emitters: &mut Emitters,
         entity: specs::Entity,
         client: &Client,
         maybe_presence: &mut Option<&mut Presence>,
@@ -78,7 +88,7 @@ impl Sys {
         match msg {
             // Go back to registered state (char selection screen)
             ClientGeneral::ExitInGame => {
-                server_emitter.emit(ServerEvent::ExitIngame { entity });
+                emitters.emit(event::ExitIngameEvent { entity });
                 client.send(ServerGeneral::ExitInGameSuccess)?;
                 *maybe_presence = None;
             },
@@ -212,7 +222,7 @@ impl Sys {
                     .transpose();
             },
             ClientGeneral::RequestSiteInfo(id) => {
-                server_emitter.emit(ServerEvent::RequestSiteInfo { entity, id });
+                emitters.emit(event::RequestSiteInfoEvent { entity, id });
             },
             ClientGeneral::RequestPlayerPhysics {
                 server_authoritative,
@@ -227,7 +237,7 @@ impl Sys {
                 presence.lossy_terrain_compression = lossy_terrain_compression;
             },
             ClientGeneral::UpdateMapMarker(update) => {
-                server_emitter.emit(ServerEvent::UpdateMapMarker { entity, update });
+                emitters.emit(event::UpdateMapMarkerEvent { entity, update });
             },
             ClientGeneral::SpectatePosition(pos) => {
                 if let Some(admin) = maybe_admin
@@ -251,7 +261,7 @@ impl Sys {
             | ClientGeneral::Command(..)
             | ClientGeneral::Terminate => {
                 debug!("Kicking possibly misbehaving client due to invalid client in game request");
-                server_emitter.emit(ServerEvent::ClientDisconnect(
+                emitters.emit(event::ClientDisconnectEvent(
                     entity,
                     common::comp::DisconnectReason::NetworkError,
                 ));
@@ -268,7 +278,7 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
-        Read<'a, EventBus<ServerEvent>>,
+        Events<'a>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, SlowJobPool>,
         ReadStorage<'a, CanBuild>,
@@ -301,7 +311,7 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             entities,
-            server_event_bus,
+            events,
             terrain,
             slow_jobs,
             can_build,
@@ -353,8 +363,8 @@ impl<'a> System<'a> for Sys {
             // NOTE: Required because Specs has very poor work splitting for sparse joins.
             .par_bridge()
             .map_init(
-                || server_event_bus.emitter(),
-                |server_emitter, (
+                || events.get_emitters(),
+                |emitters, (
                     entity,
                     client,
                     mut maybe_presence,
@@ -382,7 +392,7 @@ impl<'a> System<'a> for Sys {
                     let mut player_physics = None;
                     let _ = super::try_recv_all(client, 2, |client, msg| {
                         Self::handle_client_in_game_msg(
-                            server_emitter,
+                            emitters,
                             entity,
                             client,
                             &mut clearable_maybe_presence,

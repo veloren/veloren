@@ -2,7 +2,8 @@ use common::{
     comp::{object, Body, Object, PhysicsState, Pos, Teleporting, Vel},
     consts::TELEPORTER_RADIUS,
     effect::Effect,
-    event::{EventBus, ServerEvent},
+    event::{ChangeBodyEvent, DeleteEvent, EmitExt, EventBus, ExplosionEvent, ShootEvent},
+    event_emitters,
     outcome::Outcome,
     resources::{DeltaTime, Time},
     CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
@@ -11,15 +12,24 @@ use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, LendJoin, Read, ReadStorage};
 use vek::Rgb;
 
+event_emitters! {
+    struct Events[Emitters] {
+        delete: DeleteEvent,
+        explosion: ExplosionEvent,
+        shoot: ShootEvent,
+        change_body: ChangeBodyEvent,
+    }
+}
+
 /// This system is responsible for handling misc object behaviours
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
+        Events<'a>,
         Read<'a, DeltaTime>,
         Read<'a, Time>,
-        Read<'a, EventBus<ServerEvent>>,
         Read<'a, EventBus<Outcome>>,
         Read<'a, CachedSpatialGrid>,
         ReadStorage<'a, Pos>,
@@ -38,9 +48,9 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             entities,
+            events,
             _dt,
             time,
-            server_bus,
             outcome_bus,
             spatial_grid,
             positions,
@@ -51,7 +61,7 @@ impl<'a> System<'a> for Sys {
             teleporting,
         ): Self::SystemData,
     ) {
-        let mut server_emitter = server_bus.emitter();
+        let mut emitters = events.get_emitters();
 
         // Objects
         for (entity, pos, vel, physics, object, body) in (
@@ -67,8 +77,8 @@ impl<'a> System<'a> for Sys {
             match object {
                 Object::Bomb { owner } => {
                     if physics.on_surface().is_some() {
-                        server_emitter.emit(ServerEvent::Delete(entity));
-                        server_emitter.emit(ServerEvent::Explosion {
+                        emitters.emit(DeleteEvent(entity));
+                        emitters.emit(ExplosionEvent {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
@@ -132,7 +142,7 @@ impl<'a> System<'a> for Sys {
                                     phi.sin(),
                                 ))
                                 .expect("nonzero vector should normalize");
-                                server_emitter.emit(ServerEvent::Shoot {
+                                emitters.emit(ShootEvent {
                                     entity,
                                     pos: *pos,
                                     dir,
@@ -160,8 +170,8 @@ impl<'a> System<'a> for Sys {
                                 });
                             }
                         }
-                        server_emitter.emit(ServerEvent::Delete(entity));
-                        server_emitter.emit(ServerEvent::Explosion {
+                        emitters.emit(DeleteEvent(entity));
+                        emitters.emit(ExplosionEvent {
                             pos: pos.0,
                             explosion: Explosion {
                                 effects: vec![
@@ -186,7 +196,7 @@ impl<'a> System<'a> for Sys {
                     timeout,
                 } => {
                     if (time.0 - spawned_at.0).max(0.0) > timeout.as_secs_f64() {
-                        server_emitter.emit(ServerEvent::Delete(entity));
+                        emitters.emit(DeleteEvent(entity));
                     }
                 },
                 Object::Portal { .. } => {
@@ -204,7 +214,7 @@ impl<'a> System<'a> for Sys {
                         });
 
                     if (*body == Body::Object(object::Body::PortalActive)) != is_active {
-                        server_bus.emit_now(ServerEvent::ChangeBody {
+                        emitters.emit(ChangeBodyEvent {
                             entity,
                             new_body: Body::Object(if is_active {
                                 outcome_bus.emit_now(Outcome::PortalActivated { pos: pos.0 });

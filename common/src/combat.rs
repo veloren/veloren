@@ -14,7 +14,10 @@ use crate::{
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, HealthChange,
         Inventory, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
     },
-    event::ServerEvent,
+    event::{
+        BuffEvent, ComboChangeEvent, EmitExt, EnergyChangeEvent, EntityAttackedHookEvent,
+        HealthChangeEvent, KnockbackEvent, ParryHookEvent, PoiseChangeEvent,
+    },
     outcome::Outcome,
     resources::{Secs, Time},
     states::utils::StageSection,
@@ -144,7 +147,7 @@ impl Attack {
         dir: Dir,
         damage: Damage,
         msm: &MaterialStatManifest,
-        mut emit: impl FnMut(ServerEvent),
+        emitters: &mut impl EmitExt<ParryHookEvent>,
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
         if damage.value > 0.0 {
@@ -164,7 +167,7 @@ impl Attack {
                                 pos: target.pos,
                                 uid: target.uid,
                             });
-                            emit(ServerEvent::ParryHook {
+                            emitters.emit(ParryHookEvent {
                                 defender: target.entity,
                                 attacker: attacker.map(|a| a.entity),
                                 source,
@@ -203,7 +206,16 @@ impl Attack {
         strength_modifier: f32,
         attack_source: AttackSource,
         time: Time,
-        mut emit: impl FnMut(ServerEvent),
+        emitters: &mut (
+                 impl EmitExt<HealthChangeEvent>
+                 + EmitExt<EnergyChangeEvent>
+                 + EmitExt<ParryHookEvent>
+                 + EmitExt<KnockbackEvent>
+                 + EmitExt<BuffEvent>
+                 + EmitExt<PoiseChangeEvent>
+                 + EmitExt<ComboChangeEvent>
+                 + EmitExt<EntityAttackedHookEvent>
+             ),
         mut emit_outcome: impl FnMut(Outcome),
         rng: &mut rand::rngs::ThreadRng,
         damage_instance_offset: u64,
@@ -255,7 +267,7 @@ impl Attack {
                 dir,
                 damage.damage,
                 msm,
-                &mut emit,
+                emitters,
                 &mut emit_outcome,
             );
             let change = damage.damage.calculate_health_change(
@@ -271,7 +283,7 @@ impl Attack {
             accumulated_damage += applied_damage;
 
             if change.amount.abs() > Health::HEALTH_EPSILON {
-                emit(ServerEvent::HealthChange {
+                emitters.emit(HealthChangeEvent {
                     entity: target.entity,
                     change,
                 });
@@ -293,12 +305,12 @@ impl Attack {
                                     precise: precision_mult.is_some(),
                                     instance: damage_instance,
                                 };
-                                emit(ServerEvent::HealthChange {
+                                emitters.emit(HealthChangeEvent {
                                     entity: target.entity,
                                     change: health_change,
                                 });
                             }
-                            emit(ServerEvent::EnergyChange {
+                            emitters.emit(EnergyChangeEvent {
                                 entity: target.entity,
                                 change: -energy_change,
                             });
@@ -344,12 +356,12 @@ impl Attack {
                                     precise: precision_mult.is_some(),
                                     time,
                                 };
-                                emit(ServerEvent::HealthChange {
+                                emitters.emit(HealthChangeEvent {
                                     entity: target.entity,
                                     change: health_change,
                                 });
                             } else {
-                                emit(ServerEvent::PoiseChange {
+                                emitters.emit(PoiseChangeEvent {
                                     entity: target.entity,
                                     change: poise_change,
                                 });
@@ -366,7 +378,7 @@ impl Attack {
                             let impulse =
                                 kb.calculate_impulse(dir, target.char_state) * strength_modifier;
                             if !impulse.is_approx_zero() {
-                                emit(ServerEvent::Knockback {
+                                emitters.emit(KnockbackEvent {
                                     entity: target.entity,
                                     impulse,
                                 });
@@ -374,7 +386,7 @@ impl Attack {
                         },
                         CombatEffect::EnergyReward(ec) => {
                             if let Some(attacker) = attacker {
-                                emit(ServerEvent::EnergyChange {
+                                emitters.emit(EnergyChangeEvent {
                                     entity: attacker.entity,
                                     change: *ec
                                         * compute_energy_reward_mod(attacker.inventory, msm)
@@ -385,7 +397,7 @@ impl Attack {
                         },
                         CombatEffect::Buff(b) => {
                             if rng.gen::<f32>() < b.chance {
-                                emit(ServerEvent::Buff {
+                                emitters.emit(BuffEvent {
                                     entity: target.entity,
                                     buff_change: BuffChange::Add(b.to_buff(
                                         time,
@@ -409,7 +421,7 @@ impl Attack {
                                     instance: rand::random(),
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
-                                    emit(ServerEvent::HealthChange {
+                                    emitters.emit(HealthChangeEvent {
                                         entity: attacker_entity,
                                         change,
                                     });
@@ -435,7 +447,7 @@ impl Attack {
                                     cause: Some(damage.damage.source),
                                     time,
                                 };
-                                emit(ServerEvent::PoiseChange {
+                                emitters.emit(PoiseChangeEvent {
                                     entity: target.entity,
                                     change: poise_change,
                                 });
@@ -451,7 +463,7 @@ impl Attack {
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
-                                emit(ServerEvent::HealthChange {
+                                emitters.emit(HealthChangeEvent {
                                     entity: target.entity,
                                     change,
                                 });
@@ -460,7 +472,7 @@ impl Attack {
                         CombatEffect::Combo(c) => {
                             // Not affected by strength modifier as integer
                             if let Some(attacker_entity) = attacker.map(|a| a.entity) {
-                                emit(ServerEvent::ComboChange {
+                                emitters.emit(ComboChangeEvent {
                                     entity: attacker_entity,
                                     change: *c,
                                 });
@@ -476,7 +488,7 @@ impl Attack {
                                     change.amount *= damage;
                                     change
                                 };
-                                emit(ServerEvent::HealthChange {
+                                emitters.emit(HealthChangeEvent {
                                     entity: target.entity,
                                     change,
                                 });
@@ -484,7 +496,7 @@ impl Attack {
                         },
                         CombatEffect::RefreshBuff(chance, b) => {
                             if rng.gen::<f32>() < *chance {
-                                emit(ServerEvent::Buff {
+                                emitters.emit(BuffEvent {
                                     entity: target.entity,
                                     buff_change: BuffChange::Refresh(*b),
                                 });
@@ -497,7 +509,7 @@ impl Attack {
                                     change.amount *= damage;
                                     change
                                 };
-                                emit(ServerEvent::HealthChange {
+                                emitters.emit(HealthChangeEvent {
                                     entity: target.entity,
                                     change,
                                 });
@@ -510,7 +522,7 @@ impl Attack {
                                     change.amount *= damage;
                                     change
                                 };
-                                emit(ServerEvent::HealthChange {
+                                emitters.emit(HealthChangeEvent {
                                     entity: target.entity,
                                     change,
                                 });
@@ -543,7 +555,7 @@ impl Attack {
                     {
                         let sufficient_energy = e.current() >= *r;
                         if sufficient_energy {
-                            emit(ServerEvent::EnergyChange {
+                            emitters.emit(EnergyChangeEvent {
                                 entity,
                                 change: -*r,
                             });
@@ -563,7 +575,7 @@ impl Attack {
                     {
                         let sufficient_combo = c.counter() >= *r;
                         if sufficient_combo {
-                            emit(ServerEvent::ComboChange {
+                            emitters.emit(ComboChangeEvent {
                                 entity,
                                 change: -(*r as i32),
                             });
@@ -585,7 +597,7 @@ impl Attack {
                         let impulse =
                             kb.calculate_impulse(dir, target.char_state) * strength_modifier;
                         if !impulse.is_approx_zero() {
-                            emit(ServerEvent::Knockback {
+                            emitters.emit(KnockbackEvent {
                                 entity: target.entity,
                                 impulse,
                             });
@@ -593,7 +605,7 @@ impl Attack {
                     },
                     CombatEffect::EnergyReward(ec) => {
                         if let Some(attacker) = attacker {
-                            emit(ServerEvent::EnergyChange {
+                            emitters.emit(EnergyChangeEvent {
                                 entity: attacker.entity,
                                 change: ec
                                     * compute_energy_reward_mod(attacker.inventory, msm)
@@ -604,7 +616,7 @@ impl Attack {
                     },
                     CombatEffect::Buff(b) => {
                         if rng.gen::<f32>() < b.chance {
-                            emit(ServerEvent::Buff {
+                            emitters.emit(BuffEvent {
                                 entity: target.entity,
                                 buff_change: BuffChange::Add(b.to_buff(
                                     time,
@@ -628,7 +640,7 @@ impl Attack {
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
-                                emit(ServerEvent::HealthChange {
+                                emitters.emit(HealthChangeEvent {
                                     entity: attacker_entity,
                                     change,
                                 });
@@ -654,7 +666,7 @@ impl Attack {
                                 cause: Some(attack_source.into()),
                                 time,
                             };
-                            emit(ServerEvent::PoiseChange {
+                            emitters.emit(PoiseChangeEvent {
                                 entity: target.entity,
                                 change: poise_change,
                             });
@@ -670,7 +682,7 @@ impl Attack {
                             instance: rand::random(),
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
-                            emit(ServerEvent::HealthChange {
+                            emitters.emit(HealthChangeEvent {
                                 entity: target.entity,
                                 change,
                             });
@@ -679,7 +691,7 @@ impl Attack {
                     CombatEffect::Combo(c) => {
                         // Not affected by strength modifier as integer
                         if let Some(attacker_entity) = attacker.map(|a| a.entity) {
-                            emit(ServerEvent::ComboChange {
+                            emitters.emit(ComboChangeEvent {
                                 entity: attacker_entity,
                                 change: c,
                             });
@@ -689,7 +701,7 @@ impl Attack {
                     CombatEffect::StageVulnerable(_, _) => {},
                     CombatEffect::RefreshBuff(chance, b) => {
                         if rng.gen::<f32>() < chance {
-                            emit(ServerEvent::Buff {
+                            emitters.emit(BuffEvent {
                                 entity: target.entity,
                                 buff_change: BuffChange::Refresh(b),
                             });
@@ -704,7 +716,7 @@ impl Attack {
         // Emits event to handle things that should happen for any successful attack,
         // regardless of if the attack had any damages or effects in it
         if is_applied {
-            emit(ServerEvent::EntityAttackedHook {
+            emitters.emit(EntityAttackedHookEvent {
                 entity: target.entity,
                 attacker: attacker.map(|a| a.entity),
             });

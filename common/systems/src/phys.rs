@@ -7,7 +7,7 @@ use common::{
         PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
-    event::{EventBus, ServerEvent},
+    event::{EventBus, LandOnGroundEvent},
     link::Is,
     mounting::{Rider, VolumeRider},
     outcome::Outcome,
@@ -133,7 +133,7 @@ pub struct PhysicsRead<'a> {
     uids: ReadStorage<'a, Uid>,
     terrain: ReadExpect<'a, TerrainGrid>,
     dt: Read<'a, DeltaTime>,
-    event_bus: Read<'a, EventBus<ServerEvent>>,
+    land_on_ground_event: Read<'a, EventBus<LandOnGroundEvent>>,
     game_mode: ReadExpect<'a, GameMode>,
     scales: ReadStorage<'a, Scale>,
     stickies: ReadStorage<'a, Sticky>,
@@ -1364,11 +1364,11 @@ impl<'a> PhysicsData<'a> {
         }
         drop(guard);
 
-        let mut event_emitter = read.event_bus.emitter();
+        let mut event_emitter = read.land_on_ground_event.emitter();
         land_on_grounds
             .into_iter()
             .for_each(|(entity, vel, surface_normal)| {
-                event_emitter.emit(ServerEvent::LandOnGround {
+                event_emitter.emit(LandOnGroundEvent {
                     entity,
                     vel: vel.0,
                     surface_normal,

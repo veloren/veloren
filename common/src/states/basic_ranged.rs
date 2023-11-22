@@ -5,7 +5,7 @@ use crate::{
         object::Body::{GrenadeClay, LaserBeam},
         Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
     },
-    event::{LocalEvent, ServerEvent},
+    event::{LocalEvent, ShootEvent},
     outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -127,7 +127,7 @@ impl CharacterBehavior for Data {
                         }))
                         .unwrap_or(data.inputs.look_dir);
                         // Tells server to create and shoot the projectile
-                        output_events.emit_server(ServerEvent::Shoot {
+                        output_events.emit_server(ShootEvent {
                             entity: data.entity,
                             pos,
                             dir,

@@ -1,7 +1,8 @@
 use crate::client::Client;
 use common::{
     comp::{ChatMode, ChatType, Content, Group, Player},
-    event::{EventBus, ServerEvent},
+    event::{self, EmitExt},
+    event_emitters,
     resources::ProgramTime,
     uid::Uid,
 };
@@ -11,9 +12,18 @@ use rayon::prelude::*;
 use specs::{Entities, LendJoin, ParJoin, Read, ReadStorage, WriteStorage};
 use tracing::{debug, error, warn};
 
+event_emitters! {
+    struct Events[Emitters] {
+        command: event::CommandEvent,
+        client_disconnect: event::ClientDisconnectEvent,
+        chat: event::ChatEvent,
+
+    }
+}
+
 impl Sys {
     fn handle_general_msg(
-        server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
+        emitters: &mut Emitters,
         entity: specs::Entity,
         client: &Client,
         player: Option<&Player>,
@@ -35,7 +45,7 @@ impl Sys {
                             groups.get(entity).copied(),
                         ) {
                             Ok(message) => {
-                                server_emitter.emit(ServerEvent::Chat(message));
+                                emitters.emit(event::ChatEvent(message));
                             },
                             Err(error) => {
                                 client.send_fallible(ServerGeneral::ChatMsg(
@@ -52,19 +62,19 @@ impl Sys {
             },
             ClientGeneral::Command(name, args) => {
                 if player.is_some() {
-                    server_emitter.emit(ServerEvent::Command(entity, name, args));
+                    emitters.emit(event::CommandEvent(entity, name, args));
                 }
             },
             ClientGeneral::Terminate => {
                 debug!(?entity, "Client send message to terminate session");
-                server_emitter.emit(ServerEvent::ClientDisconnect(
+                emitters.emit(event::ClientDisconnectEvent(
                     entity,
                     common::comp::DisconnectReason::ClientRequested,
                 ));
             },
             _ => {
                 debug!("Kicking possible misbehaving client due to invalid message request");
-                server_emitter.emit(ServerEvent::ClientDisconnect(
+                emitters.emit(event::ClientDisconnectEvent(
                     entity,
                     common::comp::DisconnectReason::NetworkError,
                 ));
@@ -80,7 +90,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        Read<'a, EventBus<ServerEvent>>,
+        Events<'a>,
         Read<'a, ProgramTime>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
@@ -95,16 +105,16 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, server_event_bus, program_time, uids, chat_modes, players, groups, mut clients): Self::SystemData,
+        (entities, events, program_time, uids, chat_modes, players, groups, mut clients): Self::SystemData,
     ) {
         (&entities, &mut clients, players.maybe())
             .par_join()
             .for_each_init(
-                || server_event_bus.emitter(),
-                |server_emitter, (entity, client, player)| {
+                || events.get_emitters(),
+                |emitters, (entity, client, player)| {
                     let res = super::try_recv_all(client, 3, |client, msg| {
                         Self::handle_general_msg(
-                            server_emitter,
+                            emitters,
                             entity,
                             client,
                             player,

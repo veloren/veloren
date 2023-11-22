@@ -1,7 +1,7 @@
 use common::{
     comp::{Agent, Alignment, CharacterState, Object, Pos, Teleporting},
     consts::TELEPORTER_RADIUS,
-    event::{EventBus, ServerEvent},
+    event::{EventBus, TeleportToPositionEvent},
     outcome::Outcome,
     resources::Time,
     uid::Uid,
@@ -33,7 +33,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
         Read<'a, CachedSpatialGrid>,
         Read<'a, Time>,
-        Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<TeleportToPositionEvent>>,
         Read<'a, EventBus<Outcome>>,
     );
 
@@ -54,10 +54,12 @@ impl<'a> System<'a> for Sys {
             character_states,
             spatial_grid,
             time,
-            server_bus,
+            teleport_to_position_events,
             outcome_bus,
         ): Self::SystemData,
     ) {
+        let mut teleport_to_position_emitter = teleport_to_position_events.emitter();
+        let mut outcome_emitter = outcome_bus.emitter();
         let check_aggro = |entity, pos: Vec3<f32>| {
             spatial_grid
                 .0
@@ -126,11 +128,11 @@ impl<'a> System<'a> for Sys {
 
                 for entity in nearby {
                     cancel_teleporting.push(entity);
-                    server_bus.emit_now(ServerEvent::TeleportToPosition {
+                    teleport_to_position_emitter.emit(TeleportToPositionEvent {
                         entity,
                         position: *target,
                     });
-                    outcome_bus.emit_now(Outcome::TeleportedByPortal { pos: *target });
+                    outcome_emitter.emit(Outcome::TeleportedByPortal { pos: *target });
                 }
             }
         }

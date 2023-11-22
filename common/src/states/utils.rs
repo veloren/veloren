@@ -19,7 +19,7 @@ use crate::{
         StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
-    event::{LocalEvent, ServerEvent},
+    event::{BuffEvent, ChangeStanceEvent, ComboChangeEvent, InventoryManipEvent, LocalEvent},
     mounting::Volume,
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
@@ -1058,7 +1058,7 @@ pub fn handle_manipulate_loadout(
             } else {
                 // Else emit inventory action instantaneously
                 let inv_manip = InventoryManip::Use(slot);
-                output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+                output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
             }
         },
         InventoryAction::Collect(sprite_pos) => {
@@ -1137,21 +1137,18 @@ pub fn handle_manipulate_loadout(
         // For inventory actions without a dedicated character state, just do action instantaneously
         InventoryAction::Swap(equip, slot) => {
             let inv_manip = InventoryManip::Swap(Slot::Equip(equip), slot);
-            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+            output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
         },
         InventoryAction::Drop(equip) => {
             let inv_manip = InventoryManip::Drop(Slot::Equip(equip));
-            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+            output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
         },
         InventoryAction::Sort => {
-            output_events.emit_server(ServerEvent::InventoryManip(
-                data.entity,
-                InventoryManip::Sort,
-            ));
+            output_events.emit_server(InventoryManipEvent(data.entity, InventoryManip::Sort));
         },
         InventoryAction::Use(slot @ Slot::Equip(_)) => {
             let inv_manip = InventoryManip::Use(slot);
-            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+            output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
         },
         InventoryAction::Use(Slot::Overflow(_)) => {
             // Items in overflow slots cannot be used until moved to a real slot
@@ -1279,7 +1276,7 @@ fn handle_ability(
             if let Some(init_event) = ability.ability_meta().init_event {
                 match init_event {
                     AbilityInitEvent::EnterStance(stance) => {
-                        output_events.emit_server(ServerEvent::ChangeStance {
+                        output_events.emit_server(ChangeStanceEvent {
                             entity: data.entity,
                             stance,
                         });
@@ -1614,7 +1611,7 @@ impl HandInfo {
 
 pub fn leave_stance(data: &JoinData<'_>, output_events: &mut OutputEvents) {
     if !matches!(data.stance, Some(Stance::None)) {
-        output_events.emit_server(ServerEvent::ChangeStance {
+        output_events.emit_server(ChangeStanceEvent {
             entity: data.entity,
             stance: Stance::None,
         });
@@ -1653,7 +1650,7 @@ impl ComboConsumption {
             Self::All => combo,
             Self::Half => (combo + 1) / 2,
         };
-        output_events.emit_server(ServerEvent::ComboChange {
+        output_events.emit_server(ComboChangeEvent {
             entity: data.entity,
             change: -(to_consume as i32),
         });
@@ -1663,13 +1660,13 @@ impl ComboConsumption {
 fn loadout_change_hook(data: &JoinData<'_>, output_events: &mut OutputEvents, clear_combo: bool) {
     if clear_combo {
         // Reset combo to 0
-        output_events.emit_server(ServerEvent::ComboChange {
+        output_events.emit_server(ComboChangeEvent {
             entity: data.entity,
             change: -data.combo.map_or(0, |c| c.counter() as i32),
         });
     }
     // Clear any buffs from equipped weapons
-    output_events.emit_server(ServerEvent::Buff {
+    output_events.emit_server(BuffEvent {
         entity: data.entity,
         buff_change: BuffChange::RemoveByCategory {
             all_required: vec![BuffCategory::RemoveOnLoadoutChange],
