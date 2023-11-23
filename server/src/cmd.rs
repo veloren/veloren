@@ -4564,18 +4564,46 @@ fn handle_tether(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(entity_target) = parse_cmd_args!(args, EntityTarget) {
+    enum Either<A, B> {
+        Left(A),
+        Right(B),
+    }
+
+    impl<A: FromStr, B: FromStr> FromStr for Either<A, B> {
+        type Err = B::Err;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            match A::from_str(s) {
+                Ok(a) => Ok(Either::Left(a)),
+                Err(_) => match B::from_str(s) {
+                    Ok(b) => Ok(Either::Right(b)),
+                    Err(e) => Err(e),
+                },
+            }
+        }
+    }
+    if let (Some(entity_target), length) = parse_cmd_args!(args, EntityTarget, Either<f32, bool>) {
         let entity_target = get_entity_target(entity_target, server)?;
 
         let tether_leader = server.state.ecs().uid_from_entity(target);
         let tether_follower = server.state.ecs().uid_from_entity(entity_target);
 
         if let (Some(leader), Some(follower)) = (tether_leader, tether_follower) {
-            let tether_length = tether_leader
-                .and_then(|uid| server.state.ecs().entity_from_uid(uid))
-                .and_then(|e| server.state.read_component_cloned::<comp::Body>(e))
+            let base_len = server
+                .state
+                .read_component_cloned::<comp::Body>(target)
                 .map(|b| b.dimensions().y * 1.5 + 1.0)
                 .unwrap_or(6.0);
+            let tether_length = match length {
+                Some(Either::Left(l)) => l.max(0.0) + base_len,
+                Some(Either::Right(true)) => {
+                    let leader_pos = position(server, target, "leader")?;
+                    let follower_pos = position(server, entity_target, "follower")?;
+
+                    leader_pos.0.distance(follower_pos.0) + base_len
+                },
+                _ => base_len,
+            };
             server
                 .state
                 .link(Tethered {

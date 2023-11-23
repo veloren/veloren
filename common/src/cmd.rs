@@ -900,7 +900,10 @@ impl ServerChatCommand {
                 cmd(vec![], "Repairs all equipped items", Some(Admin))
             },
             ServerChatCommand::Tether => cmd(
-                vec![EntityTarget(Required)],
+                vec![
+                    EntityTarget(Required),
+                    Boolean("automatic length", "true".to_string(), Optional),
+                ],
                 "Tether another entity to yourself",
                 Some(Admin),
             ),
