@@ -4581,22 +4581,36 @@ fn handle_tether(
 
 fn handle_destroy_tethers(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    server
+    let mut destroyed = false;
+    destroyed |= server
         .state
         .ecs()
         .write_storage::<Is<common::tether::Leader>>()
-        .remove(target);
-    server
+        .remove(target)
+        .is_some();
+    destroyed |= server
         .state
         .ecs()
         .write_storage::<Is<common::tether::Follower>>()
-        .remove(target);
-    Ok(())
+        .remove(target)
+        .is_some();
+    if destroyed {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized("command-destroyed-tethers"),
+            ),
+        );
+        Ok(())
+    } else {
+        Err(Content::localized("command-destroyed-no-tethers"))
+    }
 }
 
 fn handle_mount(
@@ -4616,7 +4630,7 @@ fn handle_mount(
             server
                 .state
                 .link(common::mounting::Mounting { mount, rider })
-                .map_err(|_| "Failed to tether entities".into())
+                .map_err(|_| "Failed to mount entities".into())
         } else {
             Err("Mount and/or rider doesn't have an Uid component.".into())
         }
@@ -4627,30 +4641,47 @@ fn handle_mount(
 
 fn handle_dismount(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    server
+    let mut destroyed = false;
+    destroyed |= server
         .state
         .ecs()
         .write_storage::<Is<common::mounting::Rider>>()
-        .remove(target);
-    server
+        .remove(target)
+        .is_some();
+    destroyed |= server
         .state
         .ecs()
         .write_storage::<Is<common::mounting::VolumeRider>>()
-        .remove(target);
-    server
+        .remove(target)
+        .is_some();
+    destroyed |= server
         .state
         .ecs()
         .write_storage::<Is<common::mounting::Mount>>()
-        .remove(target);
-    server
+        .remove(target)
+        .is_some();
+    destroyed |= server
         .state
         .ecs()
         .write_storage::<common::mounting::VolumeRiders>()
-        .remove(target);
-    Ok(())
+        .get_mut(target)
+        .map_or(false, |volume_riders| volume_riders.clear());
+
+    if destroyed {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized("command-dismounted"),
+            ),
+        );
+        Ok(())
+    } else {
+        Err(Content::localized("command-no-dismount"))
+    }
 }

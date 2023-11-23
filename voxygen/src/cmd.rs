@@ -216,7 +216,8 @@ pub fn run_command(
                     .ok_or("No player entity")?,
                 ident => {
                     return Err(format!(
-                        "Expected target/selected/viewpoint/mount/rider found {ident}"
+                        "Expected target/selected/viewpoint/mount/rider/self after '@' found \
+                         {ident}"
                     ));
                 },
             };
