@@ -1095,7 +1095,7 @@ impl FromStr for ServerChatCommand {
     }
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum Requirement {
     Required,
     Optional,
@@ -1214,6 +1214,22 @@ impl ArgumentSpec {
                     format!("[{}]", label)
                 }
             },
+        }
+    }
+
+    pub fn requirement(&self) -> Requirement {
+        match self {
+            ArgumentSpec::PlayerName(r)
+            | ArgumentSpec::EntityTarget(r)
+            | ArgumentSpec::SiteName(r)
+            | ArgumentSpec::Float(_, _, r)
+            | ArgumentSpec::Integer(_, _, r)
+            | ArgumentSpec::Any(_, r)
+            | ArgumentSpec::Command(r)
+            | ArgumentSpec::Message(r)
+            | ArgumentSpec::Enum(_, _, r)
+            | ArgumentSpec::Boolean(_, _, r) => *r,
+            ArgumentSpec::SubCommand => Requirement::Required,
         }
     }
 }

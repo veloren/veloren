@@ -3692,6 +3692,8 @@ fn handle_sudo(
                         (entity, player_uuid),
                         "Cannot sudo players with roles higher than your own.",
                     )?;
+                } else if server.entity_admin_role(client) < Some(AdminRole::Admin) {
+                    return Err("You don't have permission to sudo non-players.".into());
                 }
             }
 

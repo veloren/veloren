@@ -13,12 +13,13 @@ use common::{
     mounting::{Mount, Rider, VolumeRider},
     parse_cmd_args,
     resources::PlayerEntity,
+    uid::Uid,
     uuid::Uuid,
 };
 use common_net::sync::WorldSyncExt;
 use levenshtein::levenshtein;
-use specs::WorldExt;
-use strum::IntoEnumIterator;
+use specs::{Join, WorldExt};
+use strum::{EnumIter, IntoEnumIterator};
 
 // Please keep this sorted alphabetically, same as with server commands :-)
 #[derive(Clone, Copy, strum::EnumIter)]
@@ -155,37 +156,93 @@ impl FromStr for ChatCommandKind {
 /// text color
 type CommandResult = Result<Option<String>, String>;
 
-/// Runs a command by either sending it to the server or processing it
-/// locally. Returns a String to be output to the chat.
-// Note: it's not clear what data future commands will need access to, so the
-// signature of this function might change
-pub fn run_command(
+#[derive(EnumIter)]
+enum ClientEntityTarget {
+    Target,
+    Selected,
+    Viewpoint,
+    Mount,
+    Rider,
+    TargetSelf,
+}
+
+impl ClientEntityTarget {
+    const PREFIX: char = '@';
+
+    fn keyword(&self) -> &'static str {
+        match self {
+            ClientEntityTarget::Target => "target",
+            ClientEntityTarget::Selected => "selected",
+            ClientEntityTarget::Viewpoint => "viewpoint",
+            ClientEntityTarget::Mount => "mount",
+            ClientEntityTarget::Rider => "rider",
+            ClientEntityTarget::TargetSelf => "self",
+        }
+    }
+}
+
+fn preproccess_command(
     session_state: &mut SessionState,
-    global_state: &mut GlobalState,
-    cmd: &str,
-    mut args: Vec<String>,
+    command: &ChatCommandKind,
+    args: &mut Vec<String>,
 ) -> CommandResult {
-    let command = ChatCommandKind::from_str(cmd);
+    let mut cmd_args = match command {
+        ChatCommandKind::Client(cmd) => cmd.data().args,
+        ChatCommandKind::Server(cmd) => cmd.data().args,
+    };
     let client = &mut session_state.client.borrow_mut();
     let ecs = client.state().ecs();
     let player = ecs.read_resource::<PlayerEntity>().0;
-
-    for arg in args.iter_mut() {
-        if arg.starts_with('@') {
-            let uid = match arg.trim_start_matches('@') {
-                "target" => session_state
+    let mut command_start = 0;
+    for (i, arg) in args.iter_mut().enumerate() {
+        let mut could_be_entity_target = false;
+        if let Some(post_cmd_args) = cmd_args.get(i - command_start..) {
+            for (j, arg_spec) in post_cmd_args.iter().enumerate() {
+                match arg_spec {
+                    ArgumentSpec::EntityTarget(_) => could_be_entity_target = true,
+                    ArgumentSpec::SubCommand => {
+                        if let Some(sub_command) =
+                            ServerChatCommand::iter().find(|cmd| cmd.keyword() == arg)
+                        {
+                            cmd_args = sub_command.data().args;
+                            command_start = i + j + 1;
+                            break;
+                        }
+                    },
+                    _ => {},
+                }
+                if matches!(arg_spec.requirement(), Requirement::Required) {
+                    break;
+                }
+            }
+        } else if matches!(cmd_args.last(), Some(ArgumentSpec::SubCommand)) {
+            could_be_entity_target = true;
+        }
+        if could_be_entity_target && arg.starts_with(ClientEntityTarget::PREFIX) {
+            let target_str = arg.trim_start_matches(ClientEntityTarget::PREFIX);
+            let target = ClientEntityTarget::iter()
+                .find(|t| t.keyword() == target_str)
+                .ok_or_else(|| {
+                    let help_string = ClientEntityTarget::iter()
+                        .map(|t| t.keyword().to_string())
+                        .reduce(|a, b| format!("{a}/{b}"))
+                        .unwrap_or_default();
+                    format!("Expected {help_string} after '@' found {target_str}")
+                })?;
+            let uid = match target {
+                ClientEntityTarget::Target => session_state
                     .target_entity
                     .and_then(|e| ecs.uid_from_entity(e))
                     .ok_or("Not looking at a valid target".to_string())?,
-                "selected" => session_state
+                ClientEntityTarget::Selected => session_state
                     .selected_entity
                     .and_then(|(e, _)| ecs.uid_from_entity(e))
                     .ok_or("You don't have a valid target selected".to_string())?,
-                "viewpoint" => session_state
+                ClientEntityTarget::Viewpoint => session_state
                     .viewpoint_entity
                     .and_then(|e| ecs.uid_from_entity(e))
                     .ok_or("Not viewing from a valid viewpoint entity".to_string())?,
-                "mount" => {
+                ClientEntityTarget::Mount => {
                     if let Some(player) = player {
                         ecs.read_storage::<Is<Rider>>()
                             .get(player)
@@ -201,7 +258,7 @@ pub fn run_command(
                         return Err("No player entity".to_string());
                     }
                 },
-                "rider" => {
+                ClientEntityTarget::Rider => {
                     if let Some(player) = player {
                         ecs.read_storage::<Is<Mount>>()
                             .get(player)
@@ -211,30 +268,43 @@ pub fn run_command(
                         return Err("No player entity".to_string());
                     }
                 },
-                "self" => player
+                ClientEntityTarget::TargetSelf => player
                     .and_then(|e| ecs.uid_from_entity(e))
                     .ok_or("No player entity")?,
-                ident => {
-                    return Err(format!(
-                        "Expected target/selected/viewpoint/mount/rider/self after '@' found \
-                         {ident}"
-                    ));
-                },
             };
             let uid = u64::from(uid);
             *arg = format!("uid@{uid}");
         }
     }
 
+    Ok(None)
+}
+
+/// Runs a command by either sending it to the server or processing it
+/// locally. Returns a String to be output to the chat.
+// Note: it's not clear what data future commands will need access to, so the
+// signature of this function might change
+pub fn run_command(
+    session_state: &mut SessionState,
+    global_state: &mut GlobalState,
+    cmd: &str,
+    mut args: Vec<String>,
+) -> CommandResult {
+    let command = ChatCommandKind::from_str(cmd)
+        .map_err(|_| invalid_command_message(&session_state.client.borrow(), cmd.to_string()))?;
+
+    preproccess_command(session_state, &command, &mut args)?;
+
+    let client = &mut session_state.client.borrow_mut();
+
     match command {
-        Ok(ChatCommandKind::Server(cmd)) => {
+        ChatCommandKind::Server(cmd) => {
             client.send_command(cmd.keyword().into(), args);
             Ok(None) // The server will provide a response when the command is run
         },
-        Ok(ChatCommandKind::Client(cmd)) => {
+        ChatCommandKind::Client(cmd) => {
             Ok(Some(run_client_command(client, global_state, cmd, args)?))
         },
-        Err(()) => Err(invalid_command_message(client, cmd.to_string())),
     }
 }
 
@@ -455,7 +525,45 @@ impl TabComplete for ArgumentSpec {
     fn complete(&self, part: &str, client: &Client) -> Vec<String> {
         match self {
             ArgumentSpec::PlayerName(_) => complete_player(part, client),
-            ArgumentSpec::EntityTarget(_) => complete_player(part, client),
+            ArgumentSpec::EntityTarget(_) => {
+                if let Some((spec, end)) = part.split_once(ClientEntityTarget::PREFIX) {
+                    match spec {
+                        "" => ClientEntityTarget::iter()
+                            .filter_map(|target| {
+                                let ident = target.keyword();
+                                if ident.starts_with(end) {
+                                    Some(format!("@{ident}"))
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect(),
+                        "uid" => {
+                            if let Ok(end) = u64::from_str(end) {
+                                client
+                                    .state()
+                                    .ecs()
+                                    .read_storage::<Uid>()
+                                    .join()
+                                    .filter_map(|uid| {
+                                        let uid = u64::from(*uid);
+                                        if end < uid {
+                                            Some(format!("uid@{uid}"))
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                    .collect()
+                            } else {
+                                vec![]
+                            }
+                        },
+                        _ => vec![],
+                    }
+                } else {
+                    complete_player(part, client)
+                }
+            },
             ArgumentSpec::SiteName(_) => complete_site(part, client),
             ArgumentSpec::Float(_, x, _) => {
                 if part.is_empty() {
