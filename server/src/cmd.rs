@@ -1586,6 +1586,17 @@ fn handle_spawn(
         ) => {
             let uid = uid(server, target, "target")?;
             let alignment = parse_alignment(uid, &opt_align)?;
+
+            if matches!(alignment, Alignment::Owned(_))
+                && server
+                    .state
+                    .ecs()
+                    .read_storage::<comp::Anchor>()
+                    .contains(target)
+            {
+                return Err("Spawning this pet would create an anchor chain".into());
+            }
+
             let amount = opt_amount.filter(|x| *x > 0).unwrap_or(1).min(50);
 
             let ai = opt_ai.unwrap_or(true);
