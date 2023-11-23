@@ -539,7 +539,9 @@ impl TabComplete for ArgumentSpec {
                             })
                             .collect(),
                         "uid" => {
-                            if let Ok(end) = u64::from_str(end) {
+                            if let Some(end) =
+                                u64::from_str(end).ok().or(end.is_empty().then_some(0))
+                            {
                                 client
                                     .state()
                                     .ecs()
