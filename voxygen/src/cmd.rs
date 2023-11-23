@@ -184,7 +184,7 @@ impl ClientEntityTarget {
 fn preproccess_command(
     session_state: &mut SessionState,
     command: &ChatCommandKind,
-    args: &mut Vec<String>,
+    args: &mut [String],
 ) -> CommandResult {
     let mut cmd_args = match command {
         ChatCommandKind::Client(cmd) => cmd.data().args,
