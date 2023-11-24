@@ -80,6 +80,8 @@ pub enum SiteKind {
     PirateHideout(site2::Site),
     JungleRuin(site2::Site),
     RockCircle(site2::Site),
+    TrollCave(site2::Site),
+    Camp(site2::Site),
 }
 
 impl Site {
@@ -167,6 +169,20 @@ impl Site {
         }
     }
 
+    pub fn troll_cave(tc: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::TrollCave(tc),
+            economy: Economy::default(),
+        }
+    }
+
+    pub fn camp(cp: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Camp(cp),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn desert_city(dc: site2::Site) -> Self {
         Self {
             kind: SiteKind::DesertCity(dc),
@@ -221,6 +237,8 @@ impl Site {
             SiteKind::PirateHideout(ph) => ph.radius(),
             SiteKind::JungleRuin(jr) => jr.radius(),
             SiteKind::RockCircle(rc) => rc.radius(),
+            SiteKind::TrollCave(tc) => tc.radius(),
+            SiteKind::Camp(cp) => cp.radius(),
             SiteKind::DesertCity(dc) => dc.radius(),
             SiteKind::ChapelSite(p) => p.radius(),
             SiteKind::DwarvenMine(dm) => dm.radius(),
@@ -244,6 +262,8 @@ impl Site {
             SiteKind::PirateHideout(ph) => ph.origin,
             SiteKind::JungleRuin(jr) => jr.origin,
             SiteKind::RockCircle(rc) => rc.origin,
+            SiteKind::TrollCave(tc) => tc.origin,
+            SiteKind::Camp(cp) => cp.origin,
             SiteKind::DesertCity(dc) => dc.origin,
             SiteKind::ChapelSite(p) => p.origin,
             SiteKind::DwarvenMine(dm) => dm.origin,
@@ -267,6 +287,8 @@ impl Site {
             SiteKind::PirateHideout(ph) => ph.spawn_rules(wpos),
             SiteKind::JungleRuin(jr) => jr.spawn_rules(wpos),
             SiteKind::RockCircle(rc) => rc.spawn_rules(wpos),
+            SiteKind::TrollCave(tc) => tc.spawn_rules(wpos),
+            SiteKind::Camp(cp) => cp.spawn_rules(wpos),
             SiteKind::DesertCity(dc) => dc.spawn_rules(wpos),
             SiteKind::ChapelSite(p) => p.spawn_rules(wpos),
             SiteKind::DwarvenMine(dm) => dm.spawn_rules(wpos),
@@ -290,6 +312,8 @@ impl Site {
             SiteKind::PirateHideout(ph) => ph.name(),
             SiteKind::JungleRuin(jr) => jr.name(),
             SiteKind::RockCircle(rc) => rc.name(),
+            SiteKind::TrollCave(tc) => tc.name(),
+            SiteKind::Camp(cp) => cp.name(),
             SiteKind::DesertCity(dc) => dc.name(),
             SiteKind::ChapelSite(p) => p.name(),
             SiteKind::DwarvenMine(dm) => dm.name(),
@@ -333,6 +357,8 @@ impl Site {
             SiteKind::PirateHideout(ph) => ph.render(canvas, dynamic_rng),
             SiteKind::JungleRuin(jr) => jr.render(canvas, dynamic_rng),
             SiteKind::RockCircle(rc) => rc.render(canvas, dynamic_rng),
+            SiteKind::TrollCave(tc) => tc.render(canvas, dynamic_rng),
+            SiteKind::Camp(cp) => cp.render(canvas, dynamic_rng),
             SiteKind::DesertCity(dc) => dc.render(canvas, dynamic_rng),
             SiteKind::ChapelSite(p) => p.render(canvas, dynamic_rng),
             SiteKind::DwarvenMine(dm) => dm.render(canvas, dynamic_rng),
@@ -369,6 +395,8 @@ impl Site {
             SiteKind::PirateHideout(_) => {},
             SiteKind::JungleRuin(_) => {},
             SiteKind::RockCircle(_) => {},
+            SiteKind::TrollCave(_) => {},
+            SiteKind::Camp(_) => {},
             SiteKind::DesertCity(_) => {},
             SiteKind::ChapelSite(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::DwarvenMine(dm) => dm.apply_supplement(dynamic_rng, wpos2d, supplement),
@@ -406,6 +434,8 @@ impl Site {
             SiteKind::PirateHideout(site2) => Some(site2),
             SiteKind::JungleRuin(site2) => Some(site2),
             SiteKind::RockCircle(site2) => Some(site2),
+            SiteKind::TrollCave(site2) => Some(site2),
+            SiteKind::Camp(site2) => Some(site2),
             SiteKind::Tree(_) => None,
             SiteKind::DesertCity(site2) => Some(site2),
             SiteKind::ChapelSite(site2) => Some(site2),

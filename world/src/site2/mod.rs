@@ -11,6 +11,7 @@ pub use self::{
     util::Dir,
 };
 use crate::{
+    config::CONFIG,
     sim::Path,
     site::{namegen::NameGen, SpawnRules},
     util::{attempt, DHashSet, Grid, CARDINALS, SQUARE_4, SQUARE_9},
@@ -1426,6 +1427,71 @@ impl Site {
         site
     }
 
+    pub fn generate_troll_cave(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: "".to_string(),
+            ..Site::default()
+        };
+        let size = 2.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        let site_temp = temp_at_wpos(land, origin);
+        {
+            let troll_cave =
+                plot::TrollCave::generate(land, &mut reseed(&mut rng), &site, aabr, site_temp);
+            let troll_cave_alt = troll_cave.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::TrollCave(troll_cave),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(troll_cave_alt),
+            });
+        }
+        site
+    }
+
+    pub fn generate_camp(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: "".to_string(),
+            ..Site::default()
+        };
+        let size = 2.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        let site_temp = temp_at_wpos(land, origin);
+        {
+            let camp = plot::Camp::generate(land, &mut reseed(&mut rng), &site, aabr, site_temp);
+            let camp_alt = camp.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::Camp(camp),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(camp_alt),
+            });
+        }
+        site
+    }
+
     pub fn generate_bridge(
         land: &Land,
         index: IndexRef,
@@ -1787,6 +1853,8 @@ impl Site {
                     pirate_hideout.render_collect(self, canvas)
                 },
                 PlotKind::RockCircle(rock_circle) => rock_circle.render_collect(self, canvas),
+                PlotKind::TrollCave(troll_cave) => troll_cave.render_collect(self, canvas),
+                PlotKind::Camp(camp) => camp.render_collect(self, canvas),
                 PlotKind::Plaza | PlotKind::Road(_) => continue,
                 // _ => continue, Avoid using a wildcard here!!
             };
@@ -1903,6 +1971,12 @@ fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
             .filter(|g| *g > 0.8)
             .map(|gradient| HazardKind::Hill { gradient })
     }
+}
+
+fn temp_at_wpos(land: &Land, wpos: Vec2<i32>) -> f32 {
+    land.get_chunk_wpos(wpos)
+        .map(|c| c.temp)
+        .unwrap_or(CONFIG.temperate_temp)
 }
 
 pub fn aabr_tiles(aabr: Aabr<i32>) -> impl Iterator<Item = Vec2<i32>> {
