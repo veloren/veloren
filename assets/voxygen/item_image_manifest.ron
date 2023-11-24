@@ -3227,8 +3227,8 @@
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Simple("common.items.consumable.curious_potion"): VoxTrans(
-        "voxel.object.curious_potion",
+    Simple("common.items.consumable.potion_curious"): VoxTrans(
+        "voxel.object.potion_curious",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
     Simple("common.items.consumable.potion_combustion"): VoxTrans(
