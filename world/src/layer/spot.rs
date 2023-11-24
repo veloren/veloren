@@ -44,9 +44,6 @@ pub enum Spot {
     GnomeSpring,
     WolfBurrow,
     Igloo,
-    ForestCamp,
-    SnowCamp,
-    PirateCamp,
     //BanditCamp,
     //EnchantedRock,
     //TowerRuin,
@@ -63,9 +60,6 @@ pub enum Spot {
     Shipwreck,
     Shipwreck2,
     FallenTree,
-    TrollCave,
-    TrollCaveMountain,
-    TrollCaveSwamp,
     GraveSmall,
     JungleTemple,
     SaurokTotem,
@@ -216,48 +210,6 @@ impl Spot {
             },
             false,
         );
-        Self::generate_spots(
-            Spot::TrollCave,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Forest | Grassland)
-            },
-            false,
-        );
-        Self::generate_spots(
-            Spot::TrollCaveSwamp,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Jungle)
-            },
-            false,
-        );
-        Self::generate_spots(
-            Spot::TrollCaveMountain,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Snowland | Taiga)
-            },
-            false,
-        );
         // Random World Objects -> Themed to their Biome and the NPCs that regularly
         // spawn there
         Self::generate_spots(
@@ -389,49 +341,6 @@ impl Spot {
                 g < 0.25 && c.is_underwater() && c.sites.is_empty() && c.water_alt > c.alt + 30.0
             },
             true,
-        );
-        Self::generate_spots(
-            Spot::ForestCamp,
-            world,
-            4.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Forest | Taiga | Jungle | Savannah)
-            },
-            false,
-        );
-        Self::generate_spots(
-            Spot::SnowCamp,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Snowland)
-            },
-            false,
-        );
-
-        Self::generate_spots(
-            Spot::PirateCamp,
-            world,
-            1.0,
-            |g, c| {
-                g < 0.25
-                    && !c.near_cliffs()
-                    && !c.river.near_water()
-                    && !c.path.0.is_way()
-                    && c.sites.is_empty()
-                    && matches!(c.get_biome(), Desert | Jungle)
-            },
-            false,
         );
         // Small Grave
         Self::generate_spots(
@@ -607,21 +516,6 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (0..2, "common.entity.wild.aggressive.mossdrake"),
                 ],
             },
-            Spot::TrollCave => SpotConfig {
-                base_structures: Some("spots_general.troll_cave"),
-                entity_radius: 0.0,
-                entities: &[],
-            },
-            Spot::TrollCaveSwamp => SpotConfig {
-                base_structures: Some("spots_general.troll_cave_swamp"),
-                entity_radius: 0.0,
-                entities: &[],
-            },
-            Spot::TrollCaveMountain => SpotConfig {
-                base_structures: Some("spots_general.troll_cave_mountain"),
-                entity_radius: 0.0,
-                entities: &[],
-            },
             // Random World Objects
             Spot::LionRock => SpotConfig {
                 base_structures: Some("spots_savannah.lion_rock"),
@@ -675,31 +569,6 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots.water.shipwreck2"),
                 entity_radius: 20.0,
                 entities: &[(0..3, "common.entity.wild.peaceful.clownfish")],
-            },
-            Spot::ForestCamp => SpotConfig {
-                base_structures: Some("spots.camp_forest"),
-                entity_radius: 2.0,
-                entities: &[
-                    (0..2, "common.entity.village.bowman"),
-                    (0..2, "common.entity.village.skinner"),
-                ],
-            },
-            Spot::SnowCamp => SpotConfig {
-                base_structures: Some("spots.camp_snow"),
-                entity_radius: 2.0,
-                entities: &[
-                    (0..2, "common.entity.village.bowman"),
-                    (0..2, "common.entity.village.skinner"),
-                ],
-            },
-            Spot::PirateCamp => SpotConfig {
-                base_structures: Some("spots.camp_pirate"),
-                entity_radius: 2.0,
-                entities: &[
-                    (1..4, "common.entity.spot.pirate"),
-                    (0..2, "common.entity.wild.peaceful.parrot"),
-                    (0..2, "common.entity.wild.peaceful.rat"),
-                ],
             },
             Spot::GraveSmall => SpotConfig {
                 base_structures: Some("spots.grave_small"),

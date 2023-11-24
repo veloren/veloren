@@ -137,6 +137,8 @@ impl Environment {
                     SiteKind::Bridge(_) => {},
                     SiteKind::PirateHideout(_) => {},
                     SiteKind::RockCircle(_) => {},
+                    SiteKind::TrollCave(_) => {},
+                    SiteKind::Camp(_) => {},
                 }
             }
             if towns.valid() {

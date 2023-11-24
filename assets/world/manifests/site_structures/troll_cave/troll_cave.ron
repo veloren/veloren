@@ -1,0 +1,14 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.troll_cave",
+        center: (23, 25, 17),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            242: Sprite(Mushroom),
+            243: Sprite(CommonLockedChest),
+            244: Sprite(Bones),
+         },
+    ),
+]

@@ -276,7 +276,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..85) {
+                let (loc, kind) = match ctx.rng.gen_range(0..105) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -362,7 +362,27 @@ impl Civs {
                         )?,
                         SiteKind::RockCircle,
                     ),
-                    /*50..=55 => (
+                    50..=59 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.troll_cave_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::TrollCave,
+                        )?,
+                        SiteKind::TrollCave,
+                    ),
+                    60..=69 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.camp_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::Camp,
+                        )?,
+                        SiteKind::Camp,
+                    ),
+                    /*70..=75 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -372,7 +392,7 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),
-                    56..=61 => (
+                    76..=81 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -383,7 +403,7 @@ impl Civs {
                         )?,
                         SiteKind::Castle,
                     ),
-                    62..=67 => (SiteKind::Citadel, (&castle_enemies, 20)),
+                    82..=87 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     */
                     _ => (
                         find_site_loc(
@@ -433,6 +453,8 @@ impl Civs {
                 SiteKind::Adlet => (16i32, 0.0),
                 SiteKind::PirateHideout => (8i32, 3.0),
                 SiteKind::RockCircle => (8i32, 3.0),
+                SiteKind::TrollCave => (4i32, 1.5),
+                SiteKind::Camp => (4i32, 1.5),
                 //SiteKind::DwarvenMine => (8i32, 3.0),
             };
 
@@ -554,6 +576,16 @@ impl Civs {
                     SiteKind::RockCircle => WorldSite::rock_circle(
                         site2::Site::generate_rock_circle(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
+                    SiteKind::TrollCave => WorldSite::troll_cave(site2::Site::generate_troll_cave(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Camp => WorldSite::troll_cave(site2::Site::generate_camp(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
                     SiteKind::DesertCity => WorldSite::desert_city(
                         site2::Site::generate_desert_city(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
@@ -1531,6 +1563,20 @@ impl Civs {
             _ => Some(s.center),
         })
     }
+
+    fn troll_cave_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
+    fn camp_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
 }
 
 /// Attempt to find a path between two locations
@@ -1864,6 +1910,8 @@ pub enum SiteKind {
     Adlet,
     PirateHideout,
     RockCircle,
+    TrollCave,
+    Camp,
     //DwarvenMine,
     JungleRuin,
 }
@@ -1945,6 +1993,15 @@ impl SiteKind {
                     matches!(chunk.get_biome(), BiomeKind::Jungle)
                 },
                 SiteKind::RockCircle => !chunk.near_cliffs() && !chunk.river.near_water(),
+                SiteKind::TrollCave => {
+                    !chunk.near_cliffs()
+                        && on_flat_terrain()
+                        && !chunk.river.near_water()
+                        && chunk.temp < 0.6
+                },
+                SiteKind::Camp => {
+                    !chunk.near_cliffs() && on_flat_terrain() && !chunk.river.near_water()
+                },
                 SiteKind::DesertCity => {
                     (0.9..1.0).contains(&chunk.temp) && !chunk.near_cliffs() && suitable_for_town()
                 },

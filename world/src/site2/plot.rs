@@ -1,6 +1,7 @@
 mod adlet;
 mod airship_dock;
 mod bridge;
+mod camp;
 mod castle;
 mod citadel;
 mod cliff_tower;
@@ -21,10 +22,11 @@ mod savannah_hut;
 mod savannah_pit;
 mod savannah_workshop;
 mod sea_chapel;
+mod troll_cave;
 mod workshop;
 
 pub use self::{
-    adlet::AdletStronghold, airship_dock::AirshipDock, bridge::Bridge, castle::Castle,
+    adlet::AdletStronghold, airship_dock::AirshipDock, bridge::Bridge, camp::Camp, castle::Castle,
     citadel::Citadel, cliff_tower::CliffTower, coastal_house::CoastalHouse,
     coastal_workshop::CoastalWorkshop, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
@@ -32,7 +34,7 @@ pub use self::{
     gnarling::GnarlingFortification, house::House, jungle_ruin::JungleRuin,
     pirate_hideout::PirateHideout, rock_circle::RockCircle, savannah_hut::SavannahHut,
     savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
-    workshop::Workshop,
+    troll_cave::TrollCave, workshop::Workshop,
 };
 
 use super::*;
@@ -98,5 +100,7 @@ pub enum PlotKind {
     Bridge(Bridge),
     PirateHideout(PirateHideout),
     RockCircle(RockCircle),
+    TrollCave(TrollCave),
+    Camp(Camp),
     //DwarvenMine(DwarvenMine),
 }
