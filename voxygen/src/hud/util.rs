@@ -118,7 +118,7 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
             Effects::Any(_) | Effects::One(_) => 1,
             Effects::All(effects) => effects.len(),
         },
-        ItemKind::ModularComponent { .. } => 7,
+        ItemKind::ModularComponent { .. } => 6,
         _ => 0,
     };
     if item.has_durability() {
