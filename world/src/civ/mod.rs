@@ -439,7 +439,7 @@ impl Civs {
                 SiteKind::Dungeon => (8i32, 3.0),
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
-                SiteKind::CliffTown => (64i32, 25.0),
+                SiteKind::CliffTown => (2i32, 1.0),
                 SiteKind::SavannahPit => (48i32, 25.0),
                 SiteKind::CoastalTown => (64i32, 35.0),
                 SiteKind::JungleRuin => (8i32, 3.0),
@@ -546,6 +546,7 @@ impl Civs {
                     },
                     SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
                         &Land::from_sim(ctx.sim),
+                        index_ref,
                         &mut rng,
                         wpos,
                     )),
@@ -1793,6 +1794,7 @@ fn town_attributes_of_site(loc: Vec2<i32>, sim: &WorldSim) -> Option<TownSiteAtt
         let has_lake = lake_chunks > 1;
         let vegetation_implies_potable_water = chunk.tree_density > 0.4
             && !matches!(chunk.get_biome(), common::terrain::BiomeKind::Swamp);
+        let has_many_rocks = chunk.rockiness > 1.2;
         let warm_or_firewood = chunk.temp > CONFIG.snow_temp || tree_chunks > 2;
         let has_potable_water =
             { has_river || (has_lake && chunk.alt > 100.0) || vegetation_implies_potable_water };
@@ -1825,6 +1827,7 @@ fn town_attributes_of_site(loc: Vec2<i32>, sim: &WorldSim) -> Option<TownSiteAtt
             heating: warm_or_firewood,
             potable_water: has_potable_water,
             building_materials: has_building_materials,
+            aquifer: has_many_rocks,
         }
     })
 }
@@ -1837,6 +1840,7 @@ pub struct TownSiteAttributes {
     heating: bool,
     potable_water: bool,
     building_materials: bool,
+    aquifer: bool,
 }
 
 impl TownSiteAttributes {
@@ -1942,7 +1946,8 @@ impl SiteKind {
             let suitable_for_town = || -> bool {
                 let attributes = town_attributes_of_site(loc, sim);
                 attributes.map_or(false, |attributes| {
-                    attributes.potable_water
+                    // aquifer and has_many_rocks was added to make mesa clifftowns suitable for towns
+                    (attributes.potable_water || (attributes.aquifer && matches!(self, SiteKind::CliffTown)))
                         && attributes.building_materials
                         && attributes.heating
                         // Because of how the algorithm for site2 towns work, they have to start on land.
@@ -1971,9 +1976,9 @@ impl SiteKind {
                 },
                 SiteKind::Citadel => true,
                 SiteKind::CliffTown => {
-                    (-0.6..0.4).contains(&chunk.temp)
-                        && chunk.near_cliffs()
-                        && !chunk.river.near_water()
+                    chunk.temp >= CONFIG.desert_temp
+                        && chunk.cliff_height > 40.0
+                        && chunk.rockiness > 1.2
                         && suitable_for_town()
                 },
                 SiteKind::SavannahPit => {

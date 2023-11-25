@@ -924,7 +924,12 @@ impl Site {
         site
     }
 
-    pub fn generate_cliff_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_cliff_town(
+        land: &Land,
+        index: IndexRef,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+    ) -> Self {
         let mut rng = reseed(rng);
         let mut site = Site {
             origin,
@@ -935,13 +940,14 @@ impl Site {
         site.make_plaza(land, &mut rng);
         for _ in 0..30 {
             // CliffTower
-            let size = (8.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+            let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
             let campfire = campfires < 4;
             if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                 site.find_roadside_aabr(&mut rng, 8..(size + 1).pow(2), Extent2::broadcast(size))
             }) {
                 let cliff_tower = plot::CliffTower::generate(
                     land,
+                    index,
                     &mut reseed(&mut rng),
                     &site,
                     door_tile,
