@@ -913,7 +913,6 @@ pub struct Show {
     stats: bool,
     free_look: bool,
     auto_walk: bool,
-    walking_speed: bool,
     zoom_lock: ChangeNotification,
     camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
@@ -1421,7 +1420,6 @@ impl Hud {
                 stats: false,
                 free_look: false,
                 auto_walk: false,
-                walking_speed: false,
                 zoom_lock: ChangeNotification::default(),
                 camera_clamp: false,
                 prompt_dialog: None,
@@ -3822,23 +3820,6 @@ impl Hud {
                 .set(self.ids.auto_walk_txt, ui_widgets);
         }
 
-        // Walking speed indicator
-        if self.show.walking_speed {
-            Text::new(&i18n.get_msg("hud-walking_speed_indicator"))
-                .color(TEXT_BG)
-                .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(20))
-                .set(self.ids.walking_speed_bg, ui_widgets);
-            indicator_offset += 30.0;
-            Text::new(&i18n.get_msg("hud-walking_speed_indicator"))
-                .color(KILL_COLOR)
-                .top_left_with_margins_on(self.ids.walking_speed_bg, -1.0, -1.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(20))
-                .set(self.ids.walking_speed_txt, ui_widgets);
-        }
-
         // Camera zoom lock
         self.show.zoom_lock.update(dt);
 
@@ -4938,10 +4919,6 @@ impl Hud {
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
 
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
-
-    pub fn walking_speed(&mut self, walking_speed: bool) {
-        self.show.walking_speed = walking_speed;
-    }
 
     pub fn camera_clamp(&mut self, camera_clamp: bool) { self.show.camera_clamp = camera_clamp; }
 
