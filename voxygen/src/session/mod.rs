@@ -686,6 +686,8 @@ impl PlayState for SessionState {
             // Throw out distance info, it will be useful in the future
             self.target_entity = entity_target.map(|t| t.kind.0);
 
+            let mut stop_walk = false;
+
             // Handle window events.
             for event in events {
                 // Pass all events to the ui first.
@@ -712,6 +714,7 @@ impl PlayState for SessionState {
                         }
                         match input {
                             GameInput::Primary => {
+                                stop_walk = true;
                                 let mut client = self.client.borrow_mut();
                                 // Mine and build targets can be the same block. make building
                                 // take precedence.
@@ -730,6 +733,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Secondary => {
+                                stop_walk = true;
                                 let mut client = self.client.borrow_mut();
                                 if let Some(build_target) = build_target.filter(|bt| {
                                     state && can_build && nearest_block_dist == Some(bt.distance)
@@ -749,6 +753,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Block => {
+                                stop_walk = true;
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Block,
                                     state,
@@ -757,6 +762,7 @@ impl PlayState for SessionState {
                                 );
                             },
                             GameInput::Roll => {
+                                stop_walk = true;
                                 let mut client = self.client.borrow_mut();
                                 if can_build {
                                     if state {
@@ -781,12 +787,14 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Respawn => {
+                                stop_walk = true;
                                 self.stop_auto_walk();
                                 if state {
                                     self.client.borrow_mut().respawn();
                                 }
                             },
                             GameInput::Jump => {
+                                stop_walk = true;
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Jump,
                                     state,
@@ -849,6 +857,7 @@ impl PlayState for SessionState {
                                 self.key_state.right = state
                             },
                             GameInput::Glide => {
+                                stop_walk = true;
                                 let is_trading = self.client.borrow().is_trading();
                                 if state && !is_trading {
                                     if global_state.settings.gameplay.stop_auto_walk_on_input {
@@ -879,7 +888,11 @@ impl PlayState for SessionState {
                             },
                             GameInput::ToggleWield => {
                                 if state {
-                                    self.client.borrow_mut().toggle_wield();
+                                    let mut client = self.client.borrow_mut();
+                                    if client.is_wielding().is_some_and(|b| !b) {
+                                        stop_walk = true;
+                                    }
+                                    client.toggle_wield();
                                 }
                             },
                             GameInput::SwapLoadout => {
@@ -1439,6 +1452,13 @@ impl PlayState for SessionState {
                         return PlayStateResult::Pop;
                     },
                 }
+            }
+
+            if stop_walk && self.walking_speed {
+                self.walking_speed = false;
+                self.hud.walking_speed(false);
+
+                self.key_state.speed_mul = 1.0;
             }
 
             // Recompute dependents just in case some input modified the camera
