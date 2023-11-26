@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A way to target non-player entities with commands. With rtsim_id: `rtsim@<id>`, with uid: `uid@<id>`.
 - Shorthand in voxygen for specific entities in commands, some examples `@target`, `@mount`, `@viewpoint`.
 - Added hit_timing to BasicMelee abilities
+- A tavern building where npcs go to relax.
+- Toggle for walking instead of running (Default: `I`).
 
 ### Changed
 
