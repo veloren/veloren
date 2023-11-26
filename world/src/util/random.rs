@@ -15,6 +15,16 @@ impl RandomField {
     pub fn get_f32(&self, pos: Vec3<i32>) -> f32 {
         (self.get(pos) % (1 << 16)) as f32 / ((1 << 16) as f32)
     }
+
+    /// # Panics
+    /// Panics if the slice is empty.
+    pub fn choose<'a, T>(&self, pos: Vec3<i32>, slice: &'a [T]) -> &'a T {
+        assert!(!slice.is_empty());
+
+        let i = self.get(pos) as usize;
+
+        &slice[i % slice.len()]
+    }
 }
 
 impl Sampler<'static> for RandomField {

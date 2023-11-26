@@ -4,7 +4,7 @@ use common::{
     comp::Content,
     lottery::Lottery,
     store::{Id, Store},
-    terrain::{Block, BlockKind, SpriteCfg, SpriteKind},
+    terrain::{BlockKind, SpriteCfg, SpriteKind},
 };
 use enum_map::EnumMap;
 use enumset::EnumSet;
@@ -16,7 +16,7 @@ use vek::*;
 use crate::{
     site::namegen,
     site2::{gen::PrimitiveTransform, Dir, Fill, Site, Structure},
-    util::{RandomField, Sampler},
+    util::RandomField,
     IndexRef, Land,
 };
 
@@ -112,7 +112,6 @@ pub struct Room {
     // stairs: Option<Id<Stairs>>,
     walls: EnumMap<Dir, Vec<Id<Wall>>>,
     roofs: Vec<Id<Roof>>,
-    // TODO: Remove this, used for debugging
     detail_areas: Vec<Aabr<i32>>,
     pub details: Vec<Detail>,
 }
@@ -940,28 +939,61 @@ impl Structure for Tavern {
 
         const DOWN: i32 = 6;
 
-        const PALETTES: [[Rgb<u8>; 5]; 2] = [
-            [
+        let mut offset = 0;
+        let mut choose = |slice: &[Rgb<u8>]| -> Rgb<u8> {
+            offset += 1;
+            *field.choose(self.door_wpos + offset, slice)
+        };
+
+        let detail_fill = Fill::Brick(
+            BlockKind::Rock,
+            choose(&[
                 Rgb::new(55, 65, 64),
-                Rgb::new(220, 53, 34),
-                Rgb::new(108, 100, 79),
-                Rgb::new(42, 44, 43),
-                Rgb::new(30, 30, 32),
-            ],
-            [
-                Rgb::new(46, 62, 215),
+                Rgb::new(46, 62, 100),
+                Rgb::new(46, 100, 62),
+                Rgb::new(100, 100, 105),
+            ]),
+            15,
+        );
+        let wall_fill = Fill::Brick(
+            BlockKind::Wood,
+            choose(&[
+                Rgb::new(160, 53, 34),
                 Rgb::new(147, 51, 29),
-                Rgb::new(200, 200, 200),
-                Rgb::new(56, 18, 0),
-                Rgb::new(252, 100, 113),
-            ],
-        ];
-        let palette = PALETTES[field.get(self.door_wpos) as usize % PALETTES.len()];
-        let detail_fill = Fill::Brick(BlockKind::Rock, palette[0], 10);
-        let wall_fill = Fill::Block(Block::new(BlockKind::Wood, palette[1]));
-        let wall_detail_fill = Fill::Block(Block::new(BlockKind::Wood, palette[2]));
-        let floor_fill = Fill::Block(Block::new(BlockKind::Wood, palette[3]));
-        let roof_fill = Fill::Block(Block::new(BlockKind::Wood, palette[4]));
+                Rgb::new(147, 101, 69),
+                Rgb::new(90, 90, 95),
+                Rgb::new(170, 140, 52),
+            ]),
+            20,
+        );
+        let wall_detail_fill = Fill::Brick(
+            BlockKind::Wood,
+            choose(&[Rgb::new(108, 100, 79), Rgb::new(150, 150, 150)]),
+            25,
+        );
+        let floor_fill = Fill::Brick(
+            BlockKind::Wood,
+            choose(&[Rgb::new(42, 44, 43), Rgb::new(56, 18, 10)]),
+            10,
+        );
+        let roof_fill = Fill::Brick(
+            BlockKind::Wood,
+            choose(&[
+                Rgb::new(21, 43, 48),
+                Rgb::new(11, 23, 38),
+                Rgb::new(45, 28, 21),
+                Rgb::new(10, 55, 40),
+                Rgb::new(5, 35, 15),
+                Rgb::new(40, 5, 11),
+                Rgb::new(55, 45, 11),
+            ]),
+            20,
+        );
+        let simple_roof_fill = Fill::Brick(
+            BlockKind::Wood,
+            choose(&[Rgb::new(106, 73, 64), Rgb::new(85, 52, 43)]),
+            20,
+        );
 
         let get_kind = |room| self.rooms.get(room).kind;
         let get_door_stair = |wall: &Wall, door: Aabr<i32>| {
@@ -1001,7 +1033,7 @@ impl Structure for Tavern {
                         -dir.to_vec3() * 2,
                         (dir.select(roof.bounds.size()) as u32 + 3) / 2,
                     )
-                    .fill(roof_fill.clone()),
+                    .fill(simple_roof_fill.clone()),
                 RoofStyle::LeanTo { dir, max_z } => {
                     painter
                         .aabb(aabb(Aabb {
@@ -1462,10 +1494,16 @@ impl Structure for Tavern {
                 let orth = wall.to_dir.orthogonal();
                 painter
                     .aabb(aabb(Aabb {
-                        min: (door.min - orth.to_vec2()).with_z(wall.base_alt - 1),
+                        min: (door.min - orth.to_vec2()).with_z(wall.base_alt),
                         max: (door.max + orth.to_vec2()).with_z(wall.base_alt + 3),
                     }))
                     .fill(detail_fill.clone());
+                painter
+                    .aabb(aabb(Aabb {
+                        min: (door.min - orth.to_vec2()).with_z(wall.base_alt - 1),
+                        max: (door.max + orth.to_vec2()).with_z(wall.base_alt - 1),
+                    }))
+                    .fill(floor_fill.clone());
                 painter
                     .aabb(aabb(Aabb {
                         min: (door.min + wall.to_dir.to_vec2()).with_z(wall.base_alt),
