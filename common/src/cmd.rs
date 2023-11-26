@@ -263,6 +263,39 @@ lazy_static! {
     };
 }
 
+pub enum EntityTarget {
+    Player(String),
+    RtsimNpc(u64),
+    Uid(crate::uid::Uid),
+}
+
+impl FromStr for EntityTarget {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // NOTE: `@` is an invalid character in usernames, so we can use it here.
+        if let Some((spec, data)) = s.split_once('@') {
+            match spec {
+                "rtsim" => Ok(EntityTarget::RtsimNpc(u64::from_str(data).map_err(
+                    |_| format!("Expected a valid number after 'rtsim@' but found {data}."),
+                )?)),
+                "uid" => Ok(EntityTarget::Uid(
+                    u64::from_str(data)
+                        .map_err(|_| {
+                            format!("Expected a valid number after 'uid@' but found {data}.")
+                        })?
+                        .into(),
+                )),
+                _ => Err(format!(
+                    "Expected either 'rtsim' or 'uid' before '@' but found '{spec}'"
+                )),
+            }
+        } else {
+            Ok(EntityTarget::Player(s.to_string()))
+        }
+    }
+}
+
 // Please keep this sorted alphabetically :-)
 #[derive(Copy, Clone, strum::EnumIter)]
 pub enum ServerChatCommand {
@@ -283,7 +316,9 @@ pub enum ServerChatCommand {
     DebugColumn,
     DebugWays,
     DeleteLocation,
+    DestroyTethers,
     DisconnectAllPlayers,
+    Dismount,
     DropAll,
     Dummy,
     Explosion,
@@ -312,6 +347,7 @@ pub enum ServerChatCommand {
     MakeSprite,
     MakeVolume,
     Motd,
+    Mount,
     Object,
     PermitBuild,
     Players,
@@ -340,6 +376,7 @@ pub enum ServerChatCommand {
     Spawn,
     Sudo,
     Tell,
+    Tether,
     Time,
     TimeScale,
     Tp,
@@ -739,8 +776,8 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Sudo => cmd(
-                vec![PlayerName(Required), SubCommand],
-                "Run command as if you were another player",
+                vec![EntityTarget(Required), SubCommand],
+                "Run command as if you were another entity",
                 Some(Moderator),
             ),
             ServerChatCommand::Tell => cmd(
@@ -760,10 +797,10 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::Tp => cmd(
                 vec![
-                    PlayerName(Optional),
+                    EntityTarget(Optional),
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
-                "Teleport to another player",
+                "Teleport to another entity",
                 Some(Moderator),
             ),
             ServerChatCommand::RtsimTp => cmd(
@@ -862,6 +899,25 @@ impl ServerChatCommand {
             ServerChatCommand::RepairEquipment => {
                 cmd(vec![], "Repairs all equipped items", Some(Admin))
             },
+            ServerChatCommand::Tether => cmd(
+                vec![
+                    EntityTarget(Required),
+                    Boolean("automatic length", "true".to_string(), Optional),
+                ],
+                "Tether another entity to yourself",
+                Some(Admin),
+            ),
+            ServerChatCommand::DestroyTethers => {
+                cmd(vec![], "Destroy all tethers connected to you", Some(Admin))
+            },
+            ServerChatCommand::Mount => {
+                cmd(vec![EntityTarget(Required)], "Mount an entity", Some(Admin))
+            },
+            ServerChatCommand::Dismount => cmd(
+                vec![EntityTarget(Required)],
+                "Dismount if you are riding, or dismount anything riding you",
+                Some(Admin),
+            ),
         }
     }
 
@@ -952,6 +1008,10 @@ impl ServerChatCommand {
             ServerChatCommand::Lightning => "lightning",
             ServerChatCommand::Scale => "scale",
             ServerChatCommand::RepairEquipment => "repair_equipment",
+            ServerChatCommand::Tether => "tether",
+            ServerChatCommand::DestroyTethers => "destroy_tethers",
+            ServerChatCommand::Mount => "mount",
+            ServerChatCommand::Dismount => "dismount",
         }
     }
 
@@ -1001,6 +1061,7 @@ impl ServerChatCommand {
             .iter()
             .map(|arg| match arg {
                 ArgumentSpec::PlayerName(_) => "{}",
+                ArgumentSpec::EntityTarget(_) => "{}",
                 ArgumentSpec::SiteName(_) => "{/.*/}",
                 ArgumentSpec::Float(_, _, _) => "{}",
                 ArgumentSpec::Integer(_, _, _) => "{d}",
@@ -1037,7 +1098,7 @@ impl FromStr for ServerChatCommand {
     }
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum Requirement {
     Required,
     Optional,
@@ -1047,6 +1108,8 @@ pub enum Requirement {
 pub enum ArgumentSpec {
     /// The argument refers to a player by alias
     PlayerName(Requirement),
+    /// The arguments refers to an entity in some way.
+    EntityTarget(Requirement),
     // The argument refers to a site, by name.
     SiteName(Requirement),
     /// The argument is a float. The associated values are
@@ -1088,6 +1151,13 @@ impl ArgumentSpec {
                     "<player>".to_string()
                 } else {
                     "[player]".to_string()
+                }
+            },
+            ArgumentSpec::EntityTarget(req) => {
+                if &Requirement::Required == req {
+                    "<entity>".to_string()
+                } else {
+                    "[entity]".to_string()
                 }
             },
             ArgumentSpec::SiteName(req) => {
@@ -1147,6 +1217,22 @@ impl ArgumentSpec {
                     format!("[{}]", label)
                 }
             },
+        }
+    }
+
+    pub fn requirement(&self) -> Requirement {
+        match self {
+            ArgumentSpec::PlayerName(r)
+            | ArgumentSpec::EntityTarget(r)
+            | ArgumentSpec::SiteName(r)
+            | ArgumentSpec::Float(_, _, r)
+            | ArgumentSpec::Integer(_, _, r)
+            | ArgumentSpec::Any(_, r)
+            | ArgumentSpec::Command(r)
+            | ArgumentSpec::Message(r)
+            | ArgumentSpec::Enum(_, _, r)
+            | ArgumentSpec::Boolean(_, _, r) => *r,
+            ArgumentSpec::SubCommand => Requirement::Required,
         }
     }
 }

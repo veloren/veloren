@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crafting recipe for Cloverleaf glider.
 - Burning Potion that applies the Burning effect to the user
 - Precision
+- A few new commands, `/tether`, `/destroy_tethers`, `/mount` and `/dismount`.
+- A way to target non-player entities with commands. With rtsim_id: `rtsim@<id>`, with uid: `uid@<id>`.
+- Shorthand in voxygen for specific entities in commands, some examples `@target`, `@mount`, `@viewpoint`.
 
 ### Changed
 

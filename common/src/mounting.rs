@@ -279,6 +279,14 @@ pub struct VolumeRiders {
     riders: HashSet<Vec3<i32>>,
 }
 
+impl VolumeRiders {
+    pub fn clear(&mut self) -> bool {
+        let res = !self.riders.is_empty();
+        self.riders.clear();
+        res
+    }
+}
+
 impl Component for VolumeRiders {
     type Storage = DenseVecStorage<Self>;
 }
