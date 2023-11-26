@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Regeneration Potion",
+    description: "You must have lost an arm and a leg to need this.",
+    kind: Consumable(
+        kind: Drink,
+        effects: All([
+            Buff((
+                kind: Regeneration,
+                data: (
+                    strength: 2.0,
+                    duration: Some(60),
+                ),
+                cat_ids: [Natural],
+            )),
+        ])
+    ),
+    quality: Moderate,
+    tags: [Potion],
+)

@@ -5,6 +5,14 @@ buff-stat-health = Restores { $str_total } Health
 ## Potion
 buff-title-potion = Potion
 buff-desc-potion = Drinking...
+## Swiftness
+buff-title-swift = Swiftness
+buff-desc-swift = Your movement is faster, but you're more vulnerable to damage and can't get critical hits.
+buff-stat-swift = 
+    Removes chance of getting critical hits.
+    Increases movement speed, 
+    and increases damage taken,
+    by { $strength }%
 ## Saturation
 buff-title-saturation = Saturation
 buff-desc-saturation = Gain health over time from consumables.

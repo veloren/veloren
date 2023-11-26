@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Swiftness Potion",
+    description: "Makes you go faster.",
+    kind: Consumable(
+        kind: Drink,
+        effects: All([
+            Buff((
+                kind: Swiftness,
+                data: (
+                    strength: 0.25,
+                    duration: Some(300),
+                ),
+                cat_ids: [Natural],
+            )),
+        ])
+    ),
+    quality: Moderate,
+    tags: [Potion],
+)

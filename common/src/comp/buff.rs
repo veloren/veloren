@@ -37,6 +37,10 @@ pub enum BuffKind {
     /// Applied when drinking a potion.
     /// Strength should be the healing per second.
     Potion,
+    /// Increases movement speed and vulnerability to damage and removes chance to get critical hits.
+    /// Movement speed and vulnerability to damage increase linearly with strength,
+    /// 1.0 is an 100% increase for both.
+    Swiftness,
     /// Applied when sitting at a campfire.
     /// Strength is fraction of health restored per second.
     CampfireHeal,
@@ -171,6 +175,7 @@ impl BuffKind {
             BuffKind::Regeneration
             | BuffKind::Saturation
             | BuffKind::Potion
+            | BuffKind::Swiftness
             | BuffKind::CampfireHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
@@ -257,6 +262,11 @@ impl BuffKind {
                     tick_dur: Secs(0.1),
                 }]
             },
+            BuffKind::Swiftness => vec![
+                BuffEffect::MovementSpeed(1.0 + data.strength),
+                BuffEffect::DamageReduction(-data.strength),
+                BuffEffect::PrecisionOverride(0.0),
+            ],
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Multiplicative,

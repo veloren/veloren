@@ -40,6 +40,25 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
+    "potion_swiftness": (
+        output: ("common.items.consumable.potion_swiftness", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.empty_vial"), 1, false),
+            (Item("common.items.crafting_ing.honey"), 3, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
+    "potion_regeneration": (
+        output: ("common.items.consumable.potion_regeneration", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.empty_vial"), 1, false),
+            (Item("common.items.consumable.potion_minor"), 1, false),
+            (Item("common.items.crafting_ing.sentient_seed"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
     "potion_s": (
         output: ("common.items.consumable.potion_minor", 1),
         inputs: [
