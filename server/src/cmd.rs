@@ -4573,13 +4573,9 @@ fn handle_tether(
         type Err = B::Err;
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
-            match A::from_str(s) {
-                Ok(a) => Ok(Either::Left(a)),
-                Err(_) => match B::from_str(s) {
-                    Ok(b) => Ok(Either::Right(b)),
-                    Err(e) => Err(e),
-                },
-            }
+            A::from_str(s)
+                .map(Either::Left)
+                .or_else(|_| B::from_str(s).map(Either::Right))
         }
     }
     if let (Some(entity_target), length) = parse_cmd_args!(args, EntityTarget, Either<f32, bool>) {
