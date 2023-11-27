@@ -92,3 +92,7 @@ command-kit-inventory-unavailable = Could not get inventory
 command-inventory-cant-fit-item = Can't fit item to inventory
 # Emitted by /disconnect_all when you dont exist (?)
 command-you-dont-exist = You do not exist, so you cannot use this command
+command-destroyed-tethers = All tethers destroyed! You are now free
+command-destroyed-no-tethers = You're not connected to any tethers
+command-dismounted = Dismounted
+command-no-dismount = You're not riding or being ridden

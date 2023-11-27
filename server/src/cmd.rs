@@ -21,7 +21,7 @@ use common::{
     assets,
     calendar::Calendar,
     cmd::{
-        AreaKind, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS,
+        AreaKind, EntityTarget, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS,
         KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
     },
     comp::{
@@ -208,6 +208,10 @@ fn do_command(
         ServerChatCommand::Lightning => handle_lightning,
         ServerChatCommand::Scale => handle_scale,
         ServerChatCommand::RepairEquipment => handle_repair_equipment,
+        ServerChatCommand::Tether => handle_tether,
+        ServerChatCommand::DestroyTethers => handle_destroy_tethers,
+        ServerChatCommand::Mount => handle_mount,
+        ServerChatCommand::Dismount => handle_dismount,
     };
 
     handler(server, client, target, args, cmd)
@@ -1288,9 +1292,9 @@ fn handle_tp(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let (player, dismount_volume) = parse_cmd_args!(args, String, bool);
-    let player = if let Some(alias) = player {
-        find_alias(server.state.ecs(), &alias)?.0
+    let (entity_target, dismount_volume) = parse_cmd_args!(args, EntityTarget, bool);
+    let player = if let Some(entity_target) = entity_target {
+        get_entity_target(entity_target, server)?
     } else if client != target {
         client
     } else {
@@ -1582,6 +1586,17 @@ fn handle_spawn(
         ) => {
             let uid = uid(server, target, "target")?;
             let alignment = parse_alignment(uid, &opt_align)?;
+
+            if matches!(alignment, Alignment::Owned(_))
+                && server
+                    .state
+                    .ecs()
+                    .read_storage::<comp::Anchor>()
+                    .contains(target)
+            {
+                return Err("Spawning this pet would create an anchor chain".into());
+            }
+
             let amount = opt_amount.filter(|x| *x > 0).unwrap_or(1).min(50);
 
             let ai = opt_ai.unwrap_or(true);
@@ -3527,10 +3542,12 @@ fn handle_skill_point(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(a_skill_tree), Some(sp), a_alias) = parse_cmd_args!(args, String, u16, String) {
+    if let (Some(a_skill_tree), Some(sp), entity_target) =
+        parse_cmd_args!(args, String, u16, EntityTarget)
+    {
         let skill_tree = parse_skill_tree(&a_skill_tree)?;
-        let player = a_alias
-            .map(|alias| find_alias(server.state.ecs(), &alias).map(|(target, _)| target))
+        let player = entity_target
+            .map(|entity_target| get_entity_target(entity_target, server))
             .unwrap_or(Ok(target))?;
 
         if let Some(mut skill_set) = server
@@ -3542,7 +3559,7 @@ fn handle_skill_point(
             skill_set.add_skill_points(skill_tree, sp);
             Ok(())
         } else {
-            Err("Player has no stats!".into())
+            Err("Entity has no stats!".into())
         }
     } else {
         Err(Content::Plain(action.help_string()))
@@ -3629,6 +3646,37 @@ fn handle_remove_lights(
     Ok(())
 }
 
+fn get_entity_target(entity_target: EntityTarget, server: &Server) -> CmdResult<EcsEntity> {
+    match entity_target {
+        EntityTarget::Player(alias) => Ok(find_alias(server.state.ecs(), &alias)?.0),
+        EntityTarget::RtsimNpc(id) => {
+            let (npc_id, _) = server
+                .state
+                .ecs()
+                .read_resource::<crate::rtsim::RtSim>()
+                .state()
+                .data()
+                .npcs
+                .iter()
+                .find(|(_, npc)| npc.uid == id)
+                .ok_or(Content::Plain(format!(
+                    "Could not find rtsim npc with id {id}."
+                )))?;
+            server
+                .state()
+                .ecs()
+                .read_resource::<common::uid::IdMaps>()
+                .rtsim_entity(common::rtsim::RtSimEntity(npc_id))
+                .ok_or(Content::Plain(format!("Npc with id {id} isn't loaded.")))
+        },
+        EntityTarget::Uid(uid) => server
+            .state
+            .ecs()
+            .entity_from_uid(uid)
+            .ok_or(Content::Plain(format!("{uid:?} not found."))),
+    }
+}
+
 fn handle_sudo(
     server: &mut Server,
     client: EcsEntity,
@@ -3636,23 +3684,34 @@ fn handle_sudo(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(player_alias), Some(cmd), cmd_args) =
-        parse_cmd_args!(args, String, String, ..Vec<String>)
+    if let (Some(entity_target), Some(cmd), cmd_args) =
+        parse_cmd_args!(args, EntityTarget, String, ..Vec<String>)
     {
         if let Ok(action) = cmd.parse() {
-            let (player, player_uuid) = find_alias(server.state.ecs(), &player_alias)?;
+            let entity = get_entity_target(entity_target, server)?;
             let client_uuid = uuid(server, client, "client")?;
-            verify_above_role(
-                server,
-                (client, client_uuid),
-                (player, player_uuid),
-                "Cannot sudo players with roles higher than your own.",
-            )?;
+
+            // If the entity target is a player check if client has authority to sudo it.
+            {
+                let players = server.state.ecs().read_storage::<comp::Player>();
+                if let Some(player) = players.get(entity) {
+                    let player_uuid = player.uuid();
+                    drop(players);
+                    verify_above_role(
+                        server,
+                        (client, client_uuid),
+                        (entity, player_uuid),
+                        "Cannot sudo players with roles higher than your own.",
+                    )?;
+                } else if server.entity_admin_role(client) < Some(AdminRole::Admin) {
+                    return Err("You don't have permission to sudo non-players.".into());
+                }
+            }
 
             // TODO: consider making this into a tail call or loop (to avoid the potential
             // stack overflow, although it's less of a risk coming from only mods and
             // admins).
-            do_command(server, client, player, cmd_args, &action)
+            do_command(server, client, entity, cmd_args, &action)
         } else {
             Err(Content::localized("command-unknown"))
         }
@@ -4495,5 +4554,171 @@ fn handle_repair_equipment(
         Ok(())
     } else {
         Err(Content::Plain(action.help_string()))
+    }
+}
+
+fn handle_tether(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    enum Either<A, B> {
+        Left(A),
+        Right(B),
+    }
+
+    impl<A: FromStr, B: FromStr> FromStr for Either<A, B> {
+        type Err = B::Err;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            A::from_str(s)
+                .map(Either::Left)
+                .or_else(|_| B::from_str(s).map(Either::Right))
+        }
+    }
+    if let (Some(entity_target), length) = parse_cmd_args!(args, EntityTarget, Either<f32, bool>) {
+        let entity_target = get_entity_target(entity_target, server)?;
+
+        let tether_leader = server.state.ecs().uid_from_entity(target);
+        let tether_follower = server.state.ecs().uid_from_entity(entity_target);
+
+        if let (Some(leader), Some(follower)) = (tether_leader, tether_follower) {
+            let base_len = server
+                .state
+                .read_component_cloned::<comp::Body>(target)
+                .map(|b| b.dimensions().y * 1.5 + 1.0)
+                .unwrap_or(6.0);
+            let tether_length = match length {
+                Some(Either::Left(l)) => l.max(0.0) + base_len,
+                Some(Either::Right(true)) => {
+                    let leader_pos = position(server, target, "leader")?;
+                    let follower_pos = position(server, entity_target, "follower")?;
+
+                    leader_pos.0.distance(follower_pos.0) + base_len
+                },
+                _ => base_len,
+            };
+            server
+                .state
+                .link(Tethered {
+                    leader,
+                    follower,
+                    tether_length,
+                })
+                .map_err(|_| "Failed to tether entities".into())
+        } else {
+            Err("Tether members don't have Uids.".into())
+        }
+    } else {
+        Err(Content::Plain(action.help_string()))
+    }
+}
+
+fn handle_destroy_tethers(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let mut destroyed = false;
+    destroyed |= server
+        .state
+        .ecs()
+        .write_storage::<Is<common::tether::Leader>>()
+        .remove(target)
+        .is_some();
+    destroyed |= server
+        .state
+        .ecs()
+        .write_storage::<Is<common::tether::Follower>>()
+        .remove(target)
+        .is_some();
+    if destroyed {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized("command-destroyed-tethers"),
+            ),
+        );
+        Ok(())
+    } else {
+        Err(Content::localized("command-destroyed-no-tethers"))
+    }
+}
+
+fn handle_mount(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(entity_target) = parse_cmd_args!(args, EntityTarget) {
+        let entity_target = get_entity_target(entity_target, server)?;
+
+        let rider = server.state.ecs().uid_from_entity(target);
+        let mount = server.state.ecs().uid_from_entity(entity_target);
+
+        if let (Some(rider), Some(mount)) = (rider, mount) {
+            server
+                .state
+                .link(common::mounting::Mounting { mount, rider })
+                .map_err(|_| "Failed to mount entities".into())
+        } else {
+            Err("Mount and/or rider doesn't have an Uid component.".into())
+        }
+    } else {
+        Err(Content::Plain(action.help_string()))
+    }
+}
+
+fn handle_dismount(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let mut destroyed = false;
+    destroyed |= server
+        .state
+        .ecs()
+        .write_storage::<Is<common::mounting::Rider>>()
+        .remove(target)
+        .is_some();
+    destroyed |= server
+        .state
+        .ecs()
+        .write_storage::<Is<common::mounting::VolumeRider>>()
+        .remove(target)
+        .is_some();
+    destroyed |= server
+        .state
+        .ecs()
+        .write_storage::<Is<common::mounting::Mount>>()
+        .remove(target)
+        .is_some();
+    destroyed |= server
+        .state
+        .ecs()
+        .write_storage::<common::mounting::VolumeRiders>()
+        .get_mut(target)
+        .map_or(false, |volume_riders| volume_riders.clear());
+
+    if destroyed {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized("command-dismounted"),
+            ),
+        );
+        Ok(())
+    } else {
+        Err(Content::localized("command-no-dismount"))
     }
 }

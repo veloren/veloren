@@ -31,6 +31,7 @@ use common::{
     resources::{Secs, Time, TimeOfDay},
     rtsim::{Actor, RtSimEntity},
     slowjob::SlowJobPool,
+    tether::Tethered,
     uid::{IdMaps, Uid},
     util::Dir,
     LoadoutBuilder, ViewDistances,
@@ -1164,6 +1165,7 @@ impl StateExt for State {
 
         maintain_link::<Mounting>(self);
         maintain_link::<VolumeMounting>(self);
+        maintain_link::<Tethered>(self);
     }
 
     fn delete_entity_recorded(
