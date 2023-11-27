@@ -11,7 +11,7 @@ use common::{
         item::{self, flatten_counted_items, tool::AbilityMap, MaterialStatManifest},
         loot_owner::LootOwnerKind,
         slot::{self, Slot},
-        InventoryUpdate, LootOwner,
+        InventoryUpdate, LootOwner, Stats,
     },
     consts::MAX_PICKUP_RANGE,
     mounting::VolumePos,
@@ -152,13 +152,19 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .map_or(true, |loot_owner| {
                     let alignments = state.ecs().read_storage::<Alignment>();
                     let bodies = state.ecs().read_storage::<Body>();
+                    let stats = state.ecs().read_storage::<Stats>();
                     let players = state.ecs().read_storage::<Player>();
                     let groups = state.ecs().read_storage::<Group>();
                     let can_pickup = loot_owner.can_pickup(
                         uid,
                         groups.get(entity),
                         alignments.get(entity),
-                        bodies.get(entity),
+                        // The body of an entity can be changed using a buff with the ChangeBody
+                        // effect, attempt using the original body from stats if available
+                        stats
+                            .get(entity)
+                            .map(|stats| &stats.original_body)
+                            .or_else(|| bodies.get(entity)),
                         players.get(entity),
                     );
                     if !can_pickup {
