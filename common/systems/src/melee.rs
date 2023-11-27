@@ -223,7 +223,10 @@ impl<'a> System<'a> for Sys {
                     // Note: Don't use ori.look_vec() here, it leads to incorrect results for wide
                     // angle melee attacks
                     let precision_from_flank = combat::precision_mult_from_flank(
-                        (pos_b.0 - pos.0).try_normalized().unwrap_or(ori.look_vec()),
+                        (pos_b.0 - pos.0)
+                            .with_z(0.0)
+                            .try_normalized()
+                            .unwrap_or(ori.look_vec()),
                         target_ori,
                     );
 
