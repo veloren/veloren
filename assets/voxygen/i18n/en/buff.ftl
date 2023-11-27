@@ -13,6 +13,12 @@ buff-stat-swift =
     Increases movement speed, 
     and increases damage taken,
     by { $strength }%
+## Strength
+buff-title-strength = Strength
+buff-desc-strength = You deal more damage
+buff-stat-strength = 
+    Increases damage dealt by you
+    by { $strength }%
 ## Saturation
 buff-title-saturation = Saturation
 buff-desc-saturation = Gain health over time from consumables.

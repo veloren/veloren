@@ -52,9 +52,18 @@
     "potion_regeneration": (
         output: ("common.items.consumable.potion_regeneration", 1),
         inputs: [
-            (Item("common.items.crafting_ing.empty_vial"), 1, false),
             (Item("common.items.consumable.potion_minor"), 1, false),
             (Item("common.items.crafting_ing.sentient_seed"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
+    "potion_strength": (
+        output: ("common.items.consumable.potion_strength", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.empty_vial"), 1, false),
+            (Item("common.items.mineral.ore.velorite"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.grim_eyeball"), 2, false),
             (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
         ],
         craft_sprite: Some(Cauldron),

@@ -7,13 +7,13 @@ ItemDef(
             Buff((
                 kind: Regeneration,
                 data: (
-                    strength: 2.0,
+                    strength: 1.0,
                     duration: Some(60),
                 ),
                 cat_ids: [Natural],
             )),
         ])
     ),
-    quality: Moderate,
+    quality: Common,
     tags: [Potion],
 )
