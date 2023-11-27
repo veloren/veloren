@@ -10,9 +10,8 @@ buff-title-swift = Swiftness
 buff-desc-swift = Your movement is faster, but you're more vulnerable to damage and can't get critical hits.
 buff-stat-swift = 
     Removes chance of getting critical hits.
-    Increases movement speed, 
-    and increases damage taken,
-    by { $strength }%
+    Increases movement speed,
+    and damage taken, by { $strength }%
 ## Strength
 buff-title-strength = Strength
 buff-desc-strength = You deal more damage

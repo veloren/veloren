@@ -8,7 +8,7 @@ ItemDef(
                 kind: Swiftness,
                 data: (
                     strength: 0.25,
-                    duration: Some(300),
+                    duration: Some(240),
                 ),
                 cat_ids: [Natural],
             )),
