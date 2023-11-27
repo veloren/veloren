@@ -3207,14 +3207,6 @@
         "voxel.object.potion_swiftness",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
     ),
-    Simple("common.items.consumable.potion_regeneration"): VoxTrans(
-        "voxel.object.potion_regeneration",
-        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
-    ),
-    Simple("common.items.consumable.potion_strength"): VoxTrans(
-        "voxel.object.potion_strength",
-        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
-    ),
     Simple("common.items.charms.burning_charm"): VoxTrans(
         "voxel.object.burning_charm",
         (0.0, 0.0, 0.0), (-80.0, 15.0, 15.0), 1.0,

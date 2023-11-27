@@ -110,7 +110,6 @@ pub fn localize_chat_message(
                 | BuffKind::Saturation
                 | BuffKind::Potion
                 | BuffKind::Swiftness
-                | BuffKind::Strength
                 | BuffKind::CampfireHeal
                 | BuffKind::EnergyRegen
                 | BuffKind::IncreaseMaxEnergy

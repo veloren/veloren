@@ -157,7 +157,6 @@ lazy_static! {
             BuffKind::Potion => "potion",
             BuffKind::Swiftness => "swiftness",
             BuffKind::CampfireHeal => "campfire_heal",
-            BuffKind::Strength => "strength",
             BuffKind::EnergyRegen => "energy_regen",
             BuffKind::IncreaseMaxEnergy => "increase_max_energy",
             BuffKind::IncreaseMaxHealth => "increase_max_health",
