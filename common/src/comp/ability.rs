@@ -1027,7 +1027,7 @@ impl Default for CharacterAbility {
             energy_cost: 0.0,
             buildup_duration: 0.25,
             swing_duration: 0.25,
-            hit_timing: 0.0,
+            hit_timing: 0.5,
             recover_duration: 0.5,
             melee_constructor: MeleeConstructor {
                 kind: MeleeConstructorKind::Slash {
@@ -2243,7 +2243,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 static_data: basic_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
-                    hit_timing: hit_timing.min(1.0),
+                    hit_timing: hit_timing.clamp(0.0, 1.0),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: *melee_constructor,
                     ori_modifier: *ori_modifier,
