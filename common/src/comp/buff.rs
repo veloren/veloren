@@ -272,9 +272,7 @@ impl BuffKind {
                 BuffEffect::DamageReduction(-data.strength),
                 BuffEffect::PrecisionOverride(0.0),
             ],
-            BuffKind::Strength => vec![
-                BuffEffect::AttackDamage(1.0 + data.strength),
-            ],
+            BuffKind::Strength => vec![BuffEffect::AttackDamage(1.0 + data.strength)],
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Multiplicative,
