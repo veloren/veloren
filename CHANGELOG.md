@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Strength, swiftness, and regeneration, potions
 - Esperanto translation
 - Item quantity sort in player inventory.
 - Using Block('Alt' by default) in Defensive Stance now feels stronger
