@@ -35,14 +35,17 @@ pub enum BuffKind {
     /// Strength should be the healing per second.
     Saturation,
     /// Applied when drinking a potion.
-    /// Strength should be the healing per second.
-    Potion,
+     /// Strength should be the healing per second.
+     Potion,
     /// Increases movement speed and vulnerability to damage and removes chance to get critical hits.
     /// Movement speed and vulnerability to damage increase linearly with strength,
     /// 1.0 is an 100% increase for both.
+    /// Increases movement speed and vulnerability to damage and removes chance
+    /// to get critical hits. Movement speed and vulnerability to damage
+    /// increase linearly with strength, 1.0 is an 100% increase for both.
     Swiftness,
     /// Increases attack damage.
-    /// Attack damage scales linearly with strength
+     /// Attack damage scales linearly with strength
     /// 1.0 is an 100% increase of attack damage
     Strength,
     /// Applied when sitting at a campfire.
