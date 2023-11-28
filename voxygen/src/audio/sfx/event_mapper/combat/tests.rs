@@ -74,6 +74,7 @@ fn maps_basic_melee() {
             static_data: states::basic_melee::StaticData {
                 buildup_duration: Duration::default(),
                 swing_duration: Duration::default(),
+                hit_timing: 0.0,
                 recover_duration: Duration::default(),
                 melee_constructor: melee::MeleeConstructor {
                     kind: melee::MeleeConstructorKind::Slash {

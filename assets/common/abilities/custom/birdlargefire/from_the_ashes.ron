@@ -1,0 +1,10 @@
+SelfBuff(
+    buildup_duration: 1.25,
+    cast_duration: 1.8,
+    recover_duration: 1.25,
+    buff_kind: Regeneration,
+    buff_strength: 1500.0,
+    buff_duration: Some(3.0),
+    energy_cost: 0,
+    specifier: Some(FromTheAshes),
+)

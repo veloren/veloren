@@ -5195,6 +5195,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Parried => imgs.debuff_parried_0,
         BuffKind::PotionSickness => imgs.debuff_potionsickness_0,
         BuffKind::Polymorphed => imgs.debuff_polymorphed,
+        BuffKind::Heatstroke => imgs.debuff_heatstroke_0,
     }
 }
 
@@ -5237,6 +5238,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Parried => localized_strings.get_msg("buff-title-parried"),
         BuffKind::PotionSickness => localized_strings.get_msg("buff-title-potionsickness"),
         BuffKind::Polymorphed => localized_strings.get_msg("buff-title-polymorphed"),
+        BuffKind::Heatstroke => localized_strings.get_msg("buff-title-heatstroke"),
     }
 }
 
@@ -5283,6 +5285,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Parried => localized_strings.get_msg("buff-desc-parried"),
         BuffKind::PotionSickness => localized_strings.get_msg("buff-desc-potionsickness"),
         BuffKind::Polymorphed => localized_strings.get_msg("buff-desc-polymorphed"),
+        BuffKind::Heatstroke => localized_strings.get_msg("buff-desc-heatstroke"),
     }
 }
 

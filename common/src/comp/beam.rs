@@ -44,4 +44,5 @@ pub enum FrontendSpecifier {
     Poison,
     Ink,
     Lightning,
+    PhoenixLaser,
 }

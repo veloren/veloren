@@ -118,7 +118,7 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
             Effects::Any(_) | Effects::One(_) => 1,
             Effects::All(effects) => effects.len(),
         },
-        ItemKind::ModularComponent { .. } => 7,
+        ItemKind::ModularComponent { .. } => 6,
         _ => 0,
     };
     if item.has_durability() {
@@ -220,7 +220,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Sunderer
                         | BuffKind::Defiance
                         | BuffKind::Bloodfeast
-                        | BuffKind::Berserk => Cow::Borrowed(""),
+                        | BuffKind::Berserk
+                        | BuffKind::Heatstroke => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -269,7 +270,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::Sunderer
                             | BuffKind::Defiance
                             | BuffKind::Bloodfeast
-                            | BuffKind::Berserk => Cow::Borrowed(""),
+                            | BuffKind::Berserk
+                            | BuffKind::Heatstroke => Cow::Borrowed(""),
                         }
                     } else if let BuffKind::Saturation
                     | BuffKind::Regeneration

@@ -23,6 +23,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// At what fraction of swing_duration to make the hit
+    pub hit_timing: f32,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
     /// Adjusts turning rate during the attack
@@ -70,9 +72,13 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Action => {
-                if !self.exhausted {
+                if !self.exhausted
+                    && self.timer.as_secs_f32()
+                        >= self.static_data.swing_duration.as_secs_f32()
+                            * self.static_data.hit_timing
+                {
                     update.character = CharacterState::BasicMelee(Data {
-                        timer: Duration::default(),
+                        timer: tick_attack_or_default(data, self.timer, None),
                         exhausted: true,
                         ..*self
                     });

@@ -687,6 +687,7 @@ pub enum CharacterAbility {
         energy_cost: f32,
         buildup_duration: f32,
         swing_duration: f32,
+        hit_timing: f32,
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
@@ -720,6 +721,8 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
         damage_effect: Option<CombatEffect>,
+        properties_of_aoe: Option<repeater_ranged::ProjectileOffset>,
+        specifier: Option<repeater_ranged::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -905,7 +908,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         targets: combat::GroupTarget,
         auras: Vec<aura::AuraBuffConstructor>,
-        aura_duration: Secs,
+        aura_duration: Option<Secs>,
         range: f32,
         energy_cost: f32,
         scales_with_combo: bool,
@@ -946,6 +949,7 @@ pub enum CharacterAbility {
         combo_scaling: Option<ScalingKind>,
         #[serde(default)]
         meta: AbilityMeta,
+        specifier: Option<self_buff::FrontendSpecifier>,
     },
     SpriteSummon {
         buildup_duration: f32,
@@ -1026,6 +1030,7 @@ impl Default for CharacterAbility {
             energy_cost: 0.0,
             buildup_duration: 0.25,
             swing_duration: 0.25,
+            hit_timing: 0.5,
             recover_duration: 0.5,
             melee_constructor: MeleeConstructor {
                 kind: MeleeConstructorKind::Slash {
@@ -1185,6 +1190,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 ori_modifier: _,
+                hit_timing: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1225,6 +1231,8 @@ impl CharacterAbility {
                 projectile_light: _,
                 ref mut projectile_speed,
                 damage_effect: _,
+                properties_of_aoe: _,
+                specifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1575,6 +1583,7 @@ impl CharacterAbility {
                 combo_cost: _,
                 combo_scaling: _,
                 meta: _,
+                specifier: _,
             } => {
                 *buff_strength *= stats.diminished_buff_strength();
                 *buildup_duration /= stats.speed;
@@ -2230,6 +2239,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::BasicMelee {
                 buildup_duration,
                 swing_duration,
+                hit_timing,
                 recover_duration,
                 melee_constructor,
                 ori_modifier,
@@ -2239,6 +2249,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 static_data: basic_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
+                    hit_timing: hit_timing.clamp(0.0, 1.0),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: *melee_constructor,
                     ori_modifier: *ori_modifier,
@@ -2592,6 +2603,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 projectile_light,
                 projectile_speed,
                 damage_effect,
+                properties_of_aoe,
+                specifier,
                 meta: _,
             } => CharacterState::RepeaterRanged(repeater_ranged::Data {
                 static_data: repeater_ranged::StaticData {
@@ -2608,6 +2621,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     projectile_speed: *projectile_speed,
                     ability_info,
                     damage_effect: *damage_effect,
+                    properties_of_aoe: *properties_of_aoe,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -2771,6 +2786,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 combo_scaling,
                 enforced_limit,
                 meta: _,
+                specifier,
             } => CharacterState::SelfBuff(self_buff::Data {
                 static_data: self_buff::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2784,6 +2800,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     combo_on_use: data.combo.map_or(0, |c| c.counter()),
                     enforced_limit: *enforced_limit,
                     ability_info,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

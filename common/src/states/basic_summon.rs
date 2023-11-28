@@ -3,8 +3,11 @@ use crate::{
         self,
         character_state::OutputEvents,
         inventory::loadout_builder::{self, LoadoutBuilder},
+        object::Body::FieryTornado,
         skillset::skills,
-        Behavior, BehaviorCapability, CharacterState, Projectile, StateUpdate,
+        Behavior, BehaviorCapability,
+        Body::Object,
+        CharacterState, Projectile, StateUpdate,
     },
     event::{LocalEvent, NpcBuilder, ServerEvent},
     npc::NPC_NAMES,
@@ -185,11 +188,19 @@ impl CharacterBehavior for Data {
                             is_sticky: false,
                             is_point: false,
                         });
+                        let extra_height =
+                            if self.static_data.summon_info.body == Object(FieryTornado) {
+                                5.0
+                            } else {
+                                0.0
+                            };
 
                         let mut rng = rand::thread_rng();
                         // Send server event to create npc
                         output_events.emit_server(ServerEvent::CreateNpc {
-                            pos: comp::Pos(collision_vector - Vec3::unit_z() * obstacle_z),
+                            pos: comp::Pos(
+                                collision_vector - Vec3::unit_z() * obstacle_z + extra_height,
+                            ),
                             ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                             npc: NpcBuilder::new(stats, body, comp::Alignment::Owned(*data.uid))
                                 .with_skill_set(skill_set)

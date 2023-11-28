@@ -2678,6 +2678,23 @@ impl<'a> AgentData<'a> {
         controller.push_basic_input(InputKind::Primary);
     }
 
+    pub fn handle_fiery_tornado_attack(&self, agent: &mut Agent, controller: &mut Controller) {
+        enum Conditions {
+            AuraEmited = 0,
+        }
+        if matches!(self.char_state, CharacterState::BasicAura(c) if matches!(c.stage_section, StageSection::Recover))
+        {
+            agent.combat_state.conditions[Conditions::AuraEmited as usize] = true;
+        }
+        // 1 time use of aura
+        if !agent.combat_state.conditions[Conditions::AuraEmited as usize] {
+            controller.push_basic_input(InputKind::Secondary);
+        } else {
+            // Spin
+            controller.push_basic_input(InputKind::Primary);
+        }
+    }
+
     pub fn handle_mindflayer_attack(
         &self,
         agent: &mut Agent,
@@ -2975,106 +2992,141 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         _rng: &mut impl Rng,
     ) {
-        enum ActionStateTimers {
-            AttackTimer = 0,
+        const PHOENIX_HEAL_THRESHOLD: f32 = 0.20;
+
+        enum Conditions {
+            Healed = 0,
         }
-        // Set fly to false
-        controller.push_cancel_input(InputKind::Fly);
-        if attack_data.dist_sqrd > 30.0_f32.powi(2) {
-            if entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                self.scale,
-                tgt_data.pos,
-                tgt_data.body,
-                tgt_data.scale,
-                read_data,
-            ) && attack_data.angle < 15.0
+        enum ActionStateTimers {
+            AttackTimer1,
+            AttackTimer2,
+        }
+
+        let attack_timer_1 =
+            if agent.combat_state.timers[ActionStateTimers::AttackTimer1 as usize] < 2.0 {
+                0
+            } else if agent.combat_state.timers[ActionStateTimers::AttackTimer1 as usize] < 4.0 {
+                1
+            } else if agent.combat_state.timers[ActionStateTimers::AttackTimer1 as usize] < 6.0 {
+                2
+            } else {
+                3
+            };
+        agent.combat_state.timers[ActionStateTimers::AttackTimer1 as usize] += read_data.dt.0;
+        if agent.combat_state.timers[ActionStateTimers::AttackTimer1 as usize] > 8.0 {
+            // Reset timer
+            agent.combat_state.timers[ActionStateTimers::AttackTimer1 as usize] = 0.0;
+        }
+        let (attack_timer_2, speed) =
+            if agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] < 3.0 {
+                // fly high
+                (0, 2.0)
+            } else if agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] < 6.0 {
+                // attack_mid_1
+                (1, 2.0)
+            } else if agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] < 9.0 {
+                // fly high
+                (0, 3.0)
+            } else if agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] < 16.0 {
+                // attack_mid_2
+                (2, 1.0)
+            } else if agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] < 20.0 {
+                // fly low
+                (5, 20.0)
+            } else {
+                // attack_close
+                (3, 1.0)
+            };
+        agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] += read_data.dt.0;
+        if agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] > 28.0 {
+            // Reset timer
+            agent.combat_state.timers[ActionStateTimers::AttackTimer2 as usize] = 0.0;
+        }
+        // Fly to target
+        let dir_to_target = ((tgt_data.pos.0 + Vec3::unit_z() * 1.5) - self.pos.0)
+            .try_normalized()
+            .unwrap_or_else(Vec3::zero);
+        controller.inputs.move_dir = dir_to_target.xy() * speed;
+
+        // Always fly! If the floor can't touch you, it can't hurt you...
+        controller.push_basic_input(InputKind::Fly);
+        // Flee from the ground! The internet told me it was lava!
+        // If on the ground, jump with every last ounce of energy, holding onto
+        // all that is dear in life and straining for the wide open skies.
+        if self.physics_state.on_ground.is_some() {
+            controller.push_basic_input(InputKind::Jump);
+        } else {
+            // Use a proportional controller with a coefficient of 1.0 to
+            // maintain altidude at the the provided set point
+            let mut maintain_altitude = |set_point| {
+                let alt = read_data
+                    .terrain
+                    .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 7.0))
+                    .until(Block::is_solid)
+                    .cast()
+                    .0;
+                let error = set_point - alt;
+                controller.inputs.move_z = error;
+            };
+            // heal once - from_the_ashes
+            let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+            if matches!(self.char_state, CharacterState::SelfBuff(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                controller.push_basic_input(InputKind::Primary);
+                agent.combat_state.conditions[Conditions::Healed as usize] = true;
             }
-            if let Some((bearing, speed)) = agent.chaser.chase(
-                &*read_data.terrain,
-                self.pos.0,
-                self.vel.0,
-                tgt_data.pos.0,
-                TraversalConfig {
-                    min_tgt_dist: 1.25,
-                    ..self.traversal_config
-                },
-            ) {
-                controller.inputs.move_dir =
-                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
-                    controller.push_basic_input(InputKind::Fly);
-                    controller.inputs.move_z = 1.0;
+            if !agent.combat_state.conditions[Conditions::Healed as usize]
+                && PHOENIX_HEAL_THRESHOLD > health_fraction
+            {
+                controller.push_basic_input(InputKind::Ability(4));
+            } else if (tgt_data.pos.0 - self.pos.0).xy().magnitude_squared() > (35.0_f32).powi(2) {
+                // heat laser
+                maintain_altitude(2.0);
+                controller.push_basic_input(InputKind::Ability(3))
+            } else {
+                match attack_timer_2 {
+                    0 => maintain_altitude(3.0),
+                    1 => {
+                        //summontornados
+                        controller.push_basic_input(InputKind::Ability(1));
+                    },
+                    2 => {
+                        // firerain
+                        controller.push_basic_input(InputKind::Ability(2));
+                    },
+                    3 => {
+                        if attack_data.dist_sqrd < 4.0_f32.powi(2) && attack_data.angle < 150.0 {
+                            // close range attack
+                            match attack_timer_1 {
+                                1 => {
+                                    // short strike
+                                    controller.push_basic_input(InputKind::Primary);
+                                },
+                                3 => {
+                                    // long strike
+                                    controller.push_basic_input(InputKind::Secondary)
+                                },
+                                _ => {
+                                    // leg strike
+                                    controller.push_basic_input(InputKind::Ability(0))
+                                },
+                            }
+                        } else {
+                            match attack_timer_1 {
+                                0 | 2 => {
+                                    maintain_altitude(2.0);
+                                },
+                                _ => {
+                                    // heat laser
+                                    controller.push_basic_input(InputKind::Ability(3))
+                                },
+                            }
+                        }
+                    },
+                    _ => {
+                        maintain_altitude(2.0);
+                    },
                 }
             }
-        } else if !read_data
-            .terrain
-            .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
-            .until(Block::is_solid)
-            .cast()
-            .1
-            .map_or(true, |b| b.is_some())
-        {
-            // Do not increment the timer during this movement
-            // The next stage shouldn't trigger until the entity
-            // is on the ground
-            controller.push_basic_input(InputKind::Fly);
-            let move_dir = tgt_data.pos.0 - self.pos.0;
-            controller.inputs.move_dir =
-                move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
-            controller.inputs.move_z = move_dir.z - 0.5;
-            if attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
-                && attack_data.angle < 15.0
-            {
-                controller.push_basic_input(InputKind::Primary);
-            }
-        } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            );
-        } else if self.energy.current() > 60.0
-            && agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 3.0
-            && attack_data.angle < 15.0
-        {
-            // Shockwave
-            controller.push_basic_input(InputKind::Ability(0));
-            // Move towards the target slowly
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                Some(0.5),
-            );
-            agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
-        } else if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 6.0
-            && attack_data.angle < 90.0
-            && attack_data.in_min_range()
-        {
-            // Triple strike
-            controller.push_basic_input(InputKind::Secondary);
-            agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
-        } else {
-            // Reset timer
-            agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
-            // Target is behind us or the timer needs to be reset. Chase target
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            );
         }
     }
 

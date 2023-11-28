@@ -629,6 +629,16 @@
             central: ("armor.empty"),
         )
     ),
+    FireRainDrop: (
+        bone0: (
+            offset: (-2.0, -10.0, -2.0),
+            central: ("weapon.projectile.firerain_droplet1"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     TrainingDummy: (
         bone0: (
             offset: (-7.0, -5.0, 0.0),
@@ -800,6 +810,16 @@
         )
     ),
     Tornado: (
+        bone0: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    FieryTornado: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),

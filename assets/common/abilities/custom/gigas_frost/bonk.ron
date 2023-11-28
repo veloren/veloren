@@ -2,6 +2,7 @@ BasicMelee(
     energy_cost: 0,
     buildup_duration: 0.7,
     swing_duration: 0.15,
+    hit_timing: 0.7,
     recover_duration: 0.6,
     melee_constructor: (
         kind: Bash(

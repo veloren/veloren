@@ -186,6 +186,7 @@ pub enum SfxEvent {
     GroundDig,
     PortalActivated,
     TeleportedByPortal,
+    FromTheAshes,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -219,6 +220,7 @@ pub enum VoiceKind {
     Truffler,
     Wolf,
     Wyvern,
+    Phoenix,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -274,6 +276,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             | bird_large::Species::FrostWyvern
             | bird_large::Species::SeaWyvern
             | bird_large::Species::WealdWyvern => VoiceKind::Wyvern,
+            bird_large::Species::Phoenix => VoiceKind::Phoenix,
             _ => VoiceKind::Bird,
         },
         Body::BipedSmall(body) => match body.species {
@@ -492,6 +495,11 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::DeepLaugh);
                         audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                     },
+                    Body::Object(object::Body::Tornado)
+                    | Body::Object(object::Body::FieryTornado) => {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Swoosh);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                    },
                     _ => { // not mapped to sfx file
                     },
                 }
@@ -522,6 +530,10 @@ impl SfxMgr {
             },
             Outcome::FireShockwave { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
+            Outcome::FromTheAshes { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FromTheAshes);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
             Outcome::ProjectileShot { pos, body, .. } => {
@@ -633,7 +645,9 @@ impl SfxMgr {
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     };
                 },
-                beam::FrontendSpecifier::Flamethrower | beam::FrontendSpecifier::Cultist => {
+                beam::FrontendSpecifier::Flamethrower
+                | beam::FrontendSpecifier::Cultist
+                | beam::FrontendSpecifier::PhoenixLaser => {
                     if thread_rng().gen_bool(0.5) {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
