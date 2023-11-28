@@ -663,11 +663,9 @@ fn execute_effect(
         },
         BuffEffect::HealReduction(red) => {
             stat.heal_multiplier *= 1.0 - *red;
-            print!("heal_multiplier: {}\n", stat.heal_multiplier);
         },
         BuffEffect::MoveSpeedReduction(red) => {
             stat.move_speed_multiplier *= 1.0 - *red;
-            print!("move_speed_multiplier: {}\n", stat.move_speed_multiplier);
         },
         BuffEffect::PoiseDamageFromLostHealth {
             initial_health,

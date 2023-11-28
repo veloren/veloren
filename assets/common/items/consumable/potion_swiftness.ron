@@ -1,6 +1,6 @@
 ItemDef(
     name: "Swiftness Potion",
-    description: "Drinking gives a sudden, short burst of speed.",
+    description: "Watch the walls!",
     kind: Consumable(
         kind: Drink,
         effects: All([
@@ -8,7 +8,7 @@ ItemDef(
                 kind: Swiftness,
                 data: (
                     strength: 1.2,
-                    duration: Some(10),
+                    duration: Some(15),
                 ),
                 cat_ids: [Natural],
             )),
