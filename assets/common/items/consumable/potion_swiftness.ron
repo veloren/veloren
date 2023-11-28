@@ -7,7 +7,7 @@ ItemDef(
             Buff((
                 kind: Swiftness,
                 data: (
-                    strength: 1.2,
+                    strength: 1.25,
                     duration: Some(15),
                 ),
                 cat_ids: [Natural],
