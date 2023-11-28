@@ -519,7 +519,7 @@ impl Body {
                 | bird_large::Species::CloudWyvern
                 | bird_large::Species::SeaWyvern
                 | bird_large::Species::WealdWyvern => Vec3::new(2.5, 9.0, 4.5),
-                _ => Vec3::new(2.0, 6.0, 3.5),
+                _ => Vec3::new(2.0, 6.0, 4.4),
             },
             Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
             Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
@@ -842,6 +842,7 @@ impl Body {
                 | bird_large::Species::FrostWyvern
                 | bird_large::Species::SeaWyvern
                 | bird_large::Species::WealdWyvern => 1000,
+                bird_large::Species::Phoenix => 2000,
                 _ => 300,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -940,7 +941,7 @@ impl Body {
                 quadruped_low::Species::Maneater => 130,
                 quadruped_low::Species::Sandshark => 110,
                 quadruped_low::Species::Hakulaq => 120,
-                quadruped_low::Species::Dagon => 1200,
+                quadruped_low::Species::Dagon => 1500,
                 quadruped_low::Species::Lavadrake => 160,
                 quadruped_low::Species::Basilisk => 200,
                 quadruped_low::Species::Deadwood => 120,

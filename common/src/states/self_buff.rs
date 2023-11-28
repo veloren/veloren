@@ -4,7 +4,8 @@ use crate::{
         character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
-    event::ServerEvent,
+    event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
     resources::Secs,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -41,6 +42,8 @@ pub struct StaticData {
     pub enforced_limit: bool,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Used to specify an outcome for the buff
+    pub specifier: Option<FrontendSpecifier>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -145,6 +148,12 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
+                    if let Some(FrontendSpecifier::FromTheAshes) = self.static_data.specifier {
+                        // Send local event used for frontend shenanigans
+                        output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::FromTheAshes { pos: data.pos.0 },
+                        ));
+                    }
                 } else {
                     update.character = CharacterState::SelfBuff(Data {
                         timer: Duration::default(),
@@ -175,4 +184,9 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+/// Used to specify a particular effect for frontend purposes
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FrontendSpecifier {
+    FromTheAshes,
 }

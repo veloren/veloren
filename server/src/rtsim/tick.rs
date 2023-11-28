@@ -162,7 +162,7 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
     } else {
         let config_asset = match npc.body {
             Body::BirdLarge(body) => match body.species {
-                comp::bird_large::Species::Phoenix => "common.entity.wild.peaceful.phoenix",
+                comp::bird_large::Species::Phoenix => "common.entity.wild.aggressive.phoenix",
                 comp::bird_large::Species::Cockatrice => "common.entity.wild.aggressive.cockatrice",
                 comp::bird_large::Species::Roc => "common.entity.wild.aggressive.roc",
                 comp::bird_large::Species::CloudWyvern => {

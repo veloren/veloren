@@ -211,35 +211,52 @@ impl Data {
             }
         }
 
-        for (site_id, site) in this.sites.iter()
-        // TODO: Stupid
-        .filter(|(_, site)| site.world_site.map_or(false, |ws|
-        matches!(&index.sites.get(ws).kind, SiteKind::Dungeon(_))))
-        {
+        for (site_id, site) in this.sites.iter() {
             let rand_wpos = |rng: &mut SmallRng| {
-                let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
+                // don't spawn in buildings
+                let spread_factor = rng.gen_range(-3..3) * 50;
+                let spread = if spread_factor == 0 {
+                    100
+                } else {
+                    spread_factor
+                };
+                let wpos2d = site.wpos.map(|e| e + spread);
                 wpos2d
                     .map(|e| e as f32 + 0.5)
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
-
-            let species = [
-                comp::body::bird_large::Species::Phoenix,
-                comp::body::bird_large::Species::Cockatrice,
-                comp::body::bird_large::Species::Roc,
-                comp::body::bird_large::Species::FlameWyvern,
-                comp::body::bird_large::Species::CloudWyvern,
-                comp::body::bird_large::Species::FrostWyvern,
-                comp::body::bird_large::Species::SeaWyvern,
-                comp::body::bird_large::Species::WealdWyvern,
+            let site_kind = site.world_site.map(|ws| &index.sites.get(ws).kind);
+            let Some(species) = [
+                Some(comp::body::bird_large::Species::Phoenix)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                Some(comp::body::bird_large::Species::Cockatrice)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                Some(comp::body::bird_large::Species::Roc)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                Some(comp::body::bird_large::Species::FlameWyvern)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                Some(comp::body::bird_large::Species::CloudWyvern)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                Some(comp::body::bird_large::Species::FrostWyvern)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Adlet(_)))),
+                Some(comp::body::bird_large::Species::SeaWyvern)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::ChapelSite(_)))),
+                Some(comp::body::bird_large::Species::WealdWyvern)
+                    .filter(|_| matches!(site_kind, Some(SiteKind::GiantTree(_)))),
             ]
-            .choose(&mut rng)
-            .unwrap();
+            .into_iter()
+            .flatten()
+            .choose(&mut rng) else {
+                continue;
+            };
+
             this.npcs.create_npc(
                 Npc::new(
                     rng.gen(),
                     rand_wpos(&mut rng),
-                    Body::BirdLarge(comp::body::bird_large::Body::random_with(&mut rng, species)),
+                    Body::BirdLarge(comp::body::bird_large::Body::random_with(
+                        &mut rng, &species,
+                    )),
                     Role::Wild,
                 )
                 .with_home(site_id),

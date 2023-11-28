@@ -16,7 +16,7 @@ use crate::{
 use common::{
     astar::{Astar, PathResult},
     comp::{
-        self,
+        self, bird_large,
         compass::{Direction, Distance},
         dialogue::Subject,
         Content,
@@ -1210,15 +1210,21 @@ fn bird_large() -> impl Action<DefaultState> {
             .map(|e| e + ctx.rng.gen_range(-0.1..0.1))
             .try_normalized()
             .unwrap_or_default();
-        let bearing_dist = 24.0;
+        let bearing_dist = 15.0;
         let mut pos = ctx.npc.wpos.xy() + *bearing * bearing_dist;
-        let is_deep_water = ctx
-            .world
-            .sim()
-            .get(pos.as_().wpos_to_cpos())
-            .map_or(true, |c| {
-                c.alt - c.water_alt < -120.0 && (c.river.is_ocean() || c.river.is_lake())
-            });
+        let is_deep_water =
+            matches!(ctx.npc.body, common::comp::Body::BirdLarge(b) if matches!(b.species, bird_large::Species::SeaWyvern))
+                || ctx
+                .world
+                .sim()
+                .get(pos.as_().wpos_to_cpos())
+                .map_or(true, |c| {
+                    c.alt - c.water_alt < -120.0 && (c.river.is_ocean() || c.river.is_lake())
+                });
+        if is_deep_water {
+            *bearing *= -1.0;
+            pos = ctx.npc.wpos.xy() + *bearing * bearing_dist;
+        };
         // when high tree_density fly high, otherwise fly low-mid
         let npc_pos = ctx.npc.wpos.xy();
         let trees = ctx
@@ -1231,44 +1237,65 @@ fn bird_large() -> impl Action<DefaultState> {
         } else {
             ctx.rng.gen_range(0.4..0.9)
         };
-        if !is_deep_water {
-            goto_2d_flying(
-                pos,
-                0.1,
-                bearing_dist,
-                8.0,
-                8.0,
-                ctx.npc.body.flying_height() * height_factor,
-            )
 
-        } else {
-            *bearing *= -1.0;
-
-            pos = ctx.npc.wpos.xy() + *bearing * 24.0;
-
-            goto_2d_flying(
-                pos,
-                0.1,
-                bearing_dist,
-                8.0,
-                8.0,
-                ctx.npc.body.flying_height() * height_factor,
-            )
+        let data = ctx.state.data();
+        // without destination site fly to next waypoint
+        let mut dest_site = pos;
+        if let Some(home) = ctx.npc.home {
+            let is_home = ctx.npc.current_site.map_or(false, |site| home == site);
+            if is_home {
+                if let Some((id, _)) = data
+                    .sites
+                    .iter()
+                    .filter(|(id, site)| {
+                        *id != home
+                            && site.world_site.map_or(false, |site| {
+                            match ctx.npc.body {
+                                common::comp::Body::BirdLarge(b) => match b.species {
+                                    bird_large::Species::SeaWyvern => matches!(&ctx.index.sites.get(site).kind, SiteKind::ChapelSite(_)),
+                                    bird_large::Species::FrostWyvern => matches!(&ctx.index.sites.get(site).kind, SiteKind::Adlet(_)),
+                                    bird_large::Species::WealdWyvern => matches!(&ctx.index.sites.get(site).kind, SiteKind::GiantTree(_)),
+                                    _ => matches!(&ctx.index.sites.get(site).kind, SiteKind::Dungeon(_)),
+                                },
+                                _ => matches!(&ctx.index.sites.get(site).kind, SiteKind::Dungeon(_)),
+                            }
+                        })
+                    })
+                    /*choose closest destination:
+                    .min_by_key(|(_, site)| site.wpos.as_().distance(npc_pos) as i32)*/
+                //choose random destination:
+                .choose(&mut ctx.rng)
+                {
+                    ctx.controller.set_new_home(id)
+                }
+            } else if let Some(site) = data.sites.get(home) {
+                dest_site = site.wpos.as_::<f32>()
+            }
         }
-            // If we are too far away from our goal position we can stop since we aren't going to a specific place.
+        goto_2d_flying(
+            pos,
+            0.2,
+            bearing_dist,
+            8.0,
+            8.0,
+            ctx.npc.body.flying_height() * height_factor,
+        )
+            // If we are too far away from our waypoint position we can stop since we aren't going to a specific place.
+            // If waypoint position is further away from destination site find a new waypoint
             .stop_if(move |ctx: &mut NpcCtx| {
                 ctx.npc.wpos.xy().distance_squared(pos) > (bearing_dist + 5.0).powi(2)
+                    || dest_site.distance_squared(pos) > dest_site.distance_squared(npc_pos)
             })
-            // If goal position wasn't reached within 20 seconds we're probably stuck and need to find a new goal position.
+            // If waypoint position wasn't reached within 10 seconds we're probably stuck and need to find a new waypoint.
             .stop_if(timeout(10.0))
             .debug({
                 let bearing = *bearing;
                 move || format!("Moving with a bearing of {:?}", bearing)
             })
     })
-    .repeat()
-    .with_state(Vec2::<f32>::zero())
-    .map(|_, _| ())
+        .repeat()
+        .with_state(Vec2::<f32>::zero())
+        .map(|_, _| ())
 }
 
 fn monster() -> impl Action<DefaultState> {

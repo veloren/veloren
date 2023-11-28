@@ -111,6 +111,7 @@ subtitle-attack-icy_spikes = Icy spikes
 subtitle-attack-ice_crack = Ice crack
 subtitle-attack-steam = Steam
 subtitle-attack-shovel = Shovel digging
+subtitle-attack-from-the-ashes = Heal Sound
 
 subtitle-consume_potion = Drinking potion
 subtitle-consume_apple = Eating apple
@@ -154,3 +155,5 @@ subtitle-utterance-wolf-angry = Wolf growling
 subtitle-utterance-wolf-hurt = Wolf whining
 subtitle-utterance-wyvern-angry = Wyvern roaring
 subtitle-utterance-wyvern-hurt = Wyvern hurting
+subtitle-utterance-phoenix-angry = Phoenix screaming
+subtitle-utterance-phoenix-hurt = Phoenix hurting

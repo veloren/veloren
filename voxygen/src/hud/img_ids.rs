@@ -795,6 +795,7 @@ image_ids! {
         debuff_parried_0: "voxygen.element.de_buffs.debuff_parried_0",
         debuff_potionsickness_0: "voxygen.element.de_buffs.debuff_potionsickness_0",
         debuff_polymorphed: "voxygen.element.de_buffs.debuff_polymorphed",
+        debuff_heatstroke_0: "voxygen.element.de_buffs.debuff_heatstroke_0",
 
         // Animation Frames
         // Buff Frame

@@ -99,6 +99,16 @@ pub enum ParticleMode {
     PortalFizz = 45,
     Ink = 46,
     Whirlwind = 47,
+    FieryBurst = 48,
+    FieryBurstVortex = 49,
+    FieryBurstSparks = 50,
+    FieryBurstAsh = 51,
+    FieryTornado = 52,
+    PhoenixCloud = 53,
+    FieryDropletTrace = 54,
+    EnergyPhoenix = 55,
+    PhoenixBeam = 56,
+    PhoenixBuildUpAim = 57,
 }
 
 impl ParticleMode {

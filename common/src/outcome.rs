@@ -146,6 +146,9 @@ pub enum Outcome {
     TeleportedByPortal {
         pos: Vec3<f32>,
     },
+    FromTheAshes {
+        pos: Vec3<f32>,
+    },
 }
 
 impl Outcome {
@@ -177,6 +180,7 @@ impl Outcome {
             | Outcome::GroundDig { pos }
             | Outcome::PortalActivated { pos }
             | Outcome::TeleportedByPortal { pos}
+            | Outcome::FromTheAshes { pos }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }

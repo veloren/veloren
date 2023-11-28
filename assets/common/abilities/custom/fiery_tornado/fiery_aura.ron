@@ -1,0 +1,19 @@
+BasicAura(
+    buildup_duration: 0.0,
+    cast_duration: 0.0,
+    recover_duration: 0.0,
+    targets: OutOfGroup,
+    auras: [
+        (
+            kind: Heatstroke,
+            strength: 1.0,
+            duration: Some(5.0),
+            category: Magical,
+        ),
+    ],
+    aura_duration: None,
+    range: 20.0,
+    energy_cost: 0.0,
+    scales_with_combo: false,
+    specifier: Some(FieryAura),
+)

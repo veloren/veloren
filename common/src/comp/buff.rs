@@ -162,6 +162,12 @@ pub enum BuffKind {
     PotionSickness,
     /// Changed into another body.
     Polymorphed,
+    /// Slows movement speed and reduces energy reward.
+    /// Both scales non-linearly to strength, 0.5 lead to movespeed reduction
+    /// by 25% and energy reward reduced by 150%, 1.0 lead to MS reduction by
+    /// 33.3% and energy reward reduced by 200%. Energy reward can't be
+    /// reduced by more than 200%, to a minimum value of -100%.
+    Heatstroke,
 }
 
 impl BuffKind {
@@ -201,7 +207,8 @@ impl BuffKind {
             | BuffKind::Poisoned
             | BuffKind::Parried
             | BuffKind::PotionSickness
-            | BuffKind::Polymorphed => false,
+            | BuffKind::Polymorphed
+            | BuffKind::Heatstroke => false,
         }
     }
 
@@ -408,6 +415,10 @@ impl BuffKind {
                 BuffEffect::AttackDamage(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + nn_scaling(data.strength) / 2.0),
                 BuffEffect::MovementSpeed(1.0 + nn_scaling(data.strength) / 4.0),
+            ],
+            BuffKind::Heatstroke => vec![
+                BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength) * 0.5),
+                BuffEffect::EnergyReward((1.0 - nn_scaling(data.strength) * 3.0).max(-1.0)),
             ],
         }
     }

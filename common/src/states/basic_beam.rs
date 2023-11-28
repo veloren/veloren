@@ -4,8 +4,11 @@ use crate::{
         DamageKind, DamageSource, GroupTarget,
     },
     comp::{
-        beam, body::biped_large, character_state::OutputEvents, object::Body::Flamethrower, Body,
-        CharacterState, Ori, StateUpdate,
+        beam,
+        body::{biped_large, bird_large},
+        character_state::OutputEvents,
+        object::Body::Flamethrower,
+        Body, CharacterState, Ori, StateUpdate,
     },
     event::LocalEvent,
     outcome::Outcome,
@@ -242,8 +245,13 @@ impl CharacterBehavior for Data {
 fn height_offset(body: &Body, look_dir: Dir, velocity: Vec3<f32>, on_ground: Option<Block>) -> f32 {
     match body {
         // Hack to make the beam offset correspond to the animation
-        Body::BirdLarge(_) => {
-            body.height() * 0.3
+        Body::BirdLarge(b) => {
+            let height_factor = match b.species {
+                bird_large::Species::Phoenix => 0.5,
+                bird_large::Species::Cockatrice => 0.4,
+                _ => 0.3,
+            };
+            body.height() * height_factor
                 + if on_ground.is_none() {
                     (2.0 - velocity.xy().magnitude() * 0.25).max(-1.0)
                 } else {

@@ -780,6 +780,9 @@ fn default_main_tool(body: &Body) -> Item {
             object::Body::Tornado => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.tornado",
             )),
+            object::Body::FieryTornado => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.fiery_tornado",
+            )),
             object::Body::GnarlingTotemRed => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.gnarling.redtotem",
             )),
@@ -984,6 +987,7 @@ impl LoadoutBuilder {
                 | bird_large::Species::WealdWyvern => {
                     Some("common.items.npc_armor.bird_large.wyvern")
                 },
+                bird_large::Species::Phoenix => Some("common.items.npc_armor.bird_large.phoenix"),
                 _ => None,
             },
             Body::Golem(body) => match body.species {
