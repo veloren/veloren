@@ -263,8 +263,7 @@ impl BuffKind {
                 }]
             },
             BuffKind::Swiftness => vec![
-                BuffEffect::MovementSpeed(1.0 + data.strength),
-                BuffEffect::DamageReduction(-data.strength),
+                BuffEffect::MovementSpeed(1.0 + data.strength * stats.map_or(1.0, |s| s.move_speed_multiplier)),
                 BuffEffect::PrecisionOverride(0.0),
             ],
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
@@ -354,7 +353,10 @@ impl BuffKind {
                 },
             ],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
-            BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
+            BuffKind::PotionSickness => vec![
+                BuffEffect::HealReduction(data.strength),
+                BuffEffect::MoveSpeedReduction(data.strength),
+            ],
             BuffKind::Reckless => vec![
                 BuffEffect::DamageReduction(-data.strength),
                 BuffEffect::AttackDamage(1.0 + data.strength),
@@ -556,6 +558,8 @@ pub enum BuffEffect {
     PoiseReduction(f32),
     /// Reduces amount healed by consumables
     HealReduction(f32),
+    /// Reduces amount of speed increase by consumables
+    MoveSpeedReduction(f32),
     /// Increases poise damage dealt when health is lost
     PoiseDamageFromLostHealth {
         initial_health: f32,

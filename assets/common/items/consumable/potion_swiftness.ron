@@ -1,19 +1,27 @@
 ItemDef(
     name: "Swiftness Potion",
-    description: "Makes you go faster.",
+    description: "Drinking gives a sudden, short burst of speed.",
     kind: Consumable(
         kind: Drink,
         effects: All([
             Buff((
                 kind: Swiftness,
                 data: (
-                    strength: 0.25,
-                    duration: Some(240),
+                    strength: 1.2,
+                    duration: Some(10),
+                ),
+                cat_ids: [Natural],
+            )),
+            Buff((
+                kind: PotionSickness,
+                data: (
+                    strength: 0.33,
+                    duration: Some(45),
                 ),
                 cat_ids: [Natural],
             )),
         ])
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [Potion],
 )

@@ -7,17 +7,10 @@ buff-title-potion = Potion
 buff-desc-potion = Drinking...
 ## Swiftness
 buff-title-swift = Swiftness
-buff-desc-swift = Your movement is faster, but you're more vulnerable to damage and can't get critical hits.
+buff-desc-swift = Your movement is faster, but you can't get critical hits.
 buff-stat-swift = 
     Removes chance of getting critical hits.
-    Increases movement speed,
-    and damage taken, by { $strength }%
-## Strength
-buff-title-strength = Strength
-buff-desc-strength = You deal more damage
-buff-stat-strength = 
-    Increases damage dealt by you
-    by { $strength }%
+    Increases movement speed by { $strength }%
 ## Saturation
 buff-title-saturation = Saturation
 buff-desc-saturation = Gain health over time from consumables.
@@ -82,9 +75,9 @@ buff-title-parried = Parried
 buff-desc-parried = You were parried and now are slow to recover.
 ## Potion sickness
 buff-title-potionsickness = Potion sickness
-buff-desc-potionsickness = Potions heal you less after recently consuming a potion.
+buff-desc-potionsickness = Potions have less effect on you after recently consuming a potion.
 buff-stat-potionsickness =
-    Decreases the amount you heal from
+    Decreases the positive effects of
     subsequent potions by { $strength }%.
 ## Reckless
 buff-title-reckless = Reckless
