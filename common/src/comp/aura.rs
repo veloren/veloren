@@ -78,6 +78,7 @@ pub enum Specifier {
     WardingAura,
     HealingAura,
     Frozen,
+    FieryAura,
 }
 
 impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {

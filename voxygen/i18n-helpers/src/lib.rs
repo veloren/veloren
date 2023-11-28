@@ -137,7 +137,8 @@ pub fn localize_chat_message(
                 | BuffKind::Poisoned
                 | BuffKind::Parried
                 | BuffKind::PotionSickness
-                | BuffKind::Polymorphed => {
+                | BuffKind::Polymorphed
+                | BuffKind::Heatstroke => {
                     tracing::error!("Player was killed by a debuff that doesn't do damage!");
                     "mysterious"
                 },

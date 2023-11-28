@@ -1,0 +1,32 @@
+RepeaterRanged(
+    energy_cost: 0.0,
+    buildup_duration: 0.2,
+    shoot_duration: 0.3,
+    recover_duration: 0.5,
+    max_speed: 8.0,
+    half_speed_at: 5,
+    projectile: FireDroplet(
+        damage: 30.0,
+        radius: 12.0,
+        min_falloff: 0.5,
+        energy_regen: 0,
+        reagent: Some(Phoenix),
+    ),
+    projectile_body: Object(FireRainDrop),
+    projectile_light: Some(LightEmitter(
+        col: Rgb(
+                r: 1.0,
+                g: 0.8,
+                b: 0.3,
+                ),
+        strength: 10.0,
+        flicker: 5.0,
+        animated: true,
+    )),
+    projectile_speed: 0.0,
+    properties_of_aoe: Some(ProjectileOffset(
+        radius: 30,
+        height: 20,
+    )),
+    specifier: Some(FireRain),
+)

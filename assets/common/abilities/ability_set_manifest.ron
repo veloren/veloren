@@ -716,10 +716,14 @@
         ],
     ),
     Custom("Bird Large Fire"): (
-        primary: Simple(None, "common.abilities.custom.birdlargefire.firebomb"),
-        secondary: Simple(None, "common.abilities.custom.birdlargefire.triplestrike"),
+        primary: Simple(None, "common.abilities.custom.birdlargefire.longstrike"),
+        secondary: Simple(None, "common.abilities.custom.birdlargefire.shortstrike"),
         abilities: [
-            Simple(None, "common.abilities.custom.birdlargefire.fireshockwave"),
+            Simple(None, "common.abilities.custom.birdlargefire.legstrike"),
+            Simple(None, "common.abilities.custom.birdlargefire.summontornadoes"),
+            Simple(None, "common.abilities.custom.birdlargefire.firerain"),
+            Simple(None, "common.abilities.custom.birdlargefire.heat_laser"),
+            Simple(None, "common.abilities.custom.birdlargefire.from_the_ashes"),
         ],
     ),
     Custom("Flame Wyvern"): (
@@ -805,6 +809,11 @@
     Custom("Tornado"): (
         primary: Simple(None, "common.abilities.custom.tornado.spin"),
         secondary: Simple(None, "common.abilities.empty.basic"),
+        abilities: [],
+    ),
+    Custom("FieryTornado"): (
+        primary: Simple(None, "common.abilities.custom.fiery_tornado.fiery_spin"),
+        secondary: Simple(None, "common.abilities.custom.fiery_tornado.fiery_aura"),
         abilities: [],
     ),
     Custom("Golf Club"): (

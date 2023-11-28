@@ -59,6 +59,13 @@ pub enum ProjectileConstructor {
         knockback: f32,
         energy_regen: f32,
     },
+    FireDroplet {
+        damage: f32,
+        radius: f32,
+        energy_regen: f32,
+        min_falloff: f32,
+        reagent: Option<Reagent>,
+    },
     Fireball {
         damage: f32,
         radius: f32,
@@ -247,6 +254,56 @@ impl ProjectileConstructor {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
                     time_left: Duration::from_secs(15),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
+            FireDroplet {
+                damage,
+                radius,
+                energy_regen,
+                min_falloff,
+                reagent,
+            } => {
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let buff = CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Burning,
+                    dur_secs: 4.0,
+                    strength: CombatBuffStrength::DamageFraction(1.0),
+                    chance: 1.0,
+                })
+                .adjusted_by_stats(tool_stats);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                )
+                .with_effect(buff);
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_precision(precision_mult)
+                    .with_effect(energy)
+                    .with_combo_increment();
+                let explosion = Explosion {
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(2.0, Rgb::black()),
+                    ],
+                    radius,
+                    reagent,
+                    min_falloff,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
                     is_sticky: true,
@@ -915,6 +972,16 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *energy_regen *= regen;
             },
+            FireDroplet {
+                ref mut damage,
+                ref mut energy_regen,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
+                *energy_regen *= regen;
+                *radius *= range;
+            },
             Fireball {
                 ref mut damage,
                 ref mut energy_regen,
@@ -1034,6 +1101,7 @@ impl ProjectileConstructor {
         match self {
             Arrow { .. } => false,
             Knife { .. } => false,
+            FireDroplet { .. } => true,
             Fireball { .. } => true,
             Frostball { .. } => true,
             Poisonball { .. } => true,

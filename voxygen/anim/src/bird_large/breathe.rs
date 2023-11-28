@@ -6,7 +6,7 @@ use common::{states::utils::StageSection, util::Dir};
 
 pub struct BreatheAnimation;
 
-type BreatheAnimationDependency = (
+type BreatheAnimationDependency<'a> = (
     Vec3<f32>,
     f32,
     Vec3<f32>,
@@ -15,10 +15,11 @@ type BreatheAnimationDependency = (
     f32,
     Dir,
     bool,
+    Option<&'a str>,
 );
 
 impl Animation for BreatheAnimation {
-    type Dependency<'a> = BreatheAnimationDependency;
+    type Dependency<'a> = BreatheAnimationDependency<'a>;
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -27,7 +28,17 @@ impl Animation for BreatheAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_breathe")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity,global_time, _orientation, _last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency<'_>,
+        (
+            velocity,
+            global_time,
+            _orientation,
+            _last_ori,
+            stage_section,
+            timer,
+            look_dir,
+            on_ground,
+            ability_id,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -106,18 +117,38 @@ impl Animation for BreatheAnimation {
             next.tail_rear.orientation =
                 Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * -0.2);
         } else {
-            next.neck.orientation = Quaternion::rotation_x(
-                movement1abs * -0.4
-                    + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0),
-            );
+            match ability_id {
+                Some("common.abilities.custom.birdlargefire.heat_laser") => {
+                    next.chest.orientation = Quaternion::rotation_x(
+                        movement1abs * 0.2 - movement2abs * 0.5 + twitch2 * 0.03,
+                    );
+                    next.chest.position =
+                        Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement2abs * -3.0);
+                    next.neck.orientation = Quaternion::rotation_x(
+                        movement1abs * -0.4
+                            + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0),
+                    );
 
-            next.head.orientation = Quaternion::rotation_x(
-                movement1abs * 0.5
-                    + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0)
-                    + look_dir.z * 0.4,
-            );
+                    next.head.orientation = Quaternion::rotation_x(
+                        movement1abs * 0.5
+                            + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0)
+                            + look_dir.z * 0.4,
+                    );
+                },
+                _ => {
+                    next.neck.orientation = Quaternion::rotation_x(
+                        movement1abs * -0.4
+                            + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0),
+                    );
+
+                    next.head.orientation = Quaternion::rotation_x(
+                        movement1abs * 0.5
+                            + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0)
+                            + look_dir.z * 0.4,
+                    );
+                },
+            };
         }
-
         next
     }
 }

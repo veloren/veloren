@@ -9,9 +9,11 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
     },
+    util::Dir,
 };
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{f32::consts::TAU, time::Duration};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 /// Separated out to condense update portions of character state
@@ -37,6 +39,19 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Adds an effect onto the main damage of the attack
     pub damage_effect: Option<CombatEffect>,
+    /// Whether ablity should be casted from above as aoe or shoot projectiles
+    /// as normal
+    pub properties_of_aoe: Option<ProjectileOffset>,
+    /// Used to specify the attack to the frontend
+    pub specifier: Option<FrontendSpecifier>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ProjectileOffset {
+    /// Radius of AOE
+    pub radius: f32,
+    /// Height of shooting point for AOE's projectiles
+    pub height: f32,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -94,10 +109,35 @@ impl CharacterBehavior for Data {
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                     // Gets offsets
-                    let body_offsets = data
-                        .body
-                        .projectile_offsets(update.ori.look_vec(), data.scale.map_or(1.0, |s| s.0));
-                    let pos = Pos(data.pos.0 + body_offsets);
+                    let pos: Pos = self.static_data.properties_of_aoe.as_ref().map_or_else(
+                        || {
+                            // Default position
+                            let body_offsets = data.body.projectile_offsets(
+                                update.ori.look_vec(),
+                                data.scale.map_or(1.0, |s| s.0),
+                            );
+                            Pos(data.pos.0 + body_offsets)
+                        },
+                        |aoe_data| {
+                            // Position calculated from aoe_data
+                            let rand_pos = {
+                                let mut rng = thread_rng();
+                                let theta = rng.gen::<f32>() * TAU;
+                                let radius = aoe_data.radius * rng.gen::<f32>().sqrt();
+                                let x = radius * theta.sin();
+                                let y = radius * theta.cos();
+                                vek::Vec2::new(x, y)
+                            };
+                            Pos(data.pos.0 + rand_pos.with_z(aoe_data.height))
+                        },
+                    );
+
+                    let direction: Dir = if self.static_data.properties_of_aoe.is_some() {
+                        Dir::down()
+                    } else {
+                        data.inputs.look_dir
+                    };
+
                     let projectile = self.static_data.projectile.create_projectile(
                         Some(*data.uid),
                         precision_mult,
@@ -107,7 +147,7 @@ impl CharacterBehavior for Data {
                     output_events.emit_server(ServerEvent::Shoot {
                         entity: data.entity,
                         pos,
-                        dir: data.inputs.look_dir,
+                        dir: direction,
                         body: self.static_data.projectile_body,
                         projectile,
                         light: self.static_data.projectile_light,
@@ -166,4 +206,9 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FrontendSpecifier {
+    FireRain,
 }

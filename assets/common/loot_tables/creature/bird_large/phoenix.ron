@@ -1,5 +1,4 @@
 [
-  (1.2, Nothing),
-  (0.4, Item("common.items.glider.monarch")),
+  (1.6, Nothing),
   (0.4, Item("common.items.weapons.bow.sagitta")),
 ]

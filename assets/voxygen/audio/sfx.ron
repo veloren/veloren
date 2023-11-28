@@ -1517,6 +1517,13 @@
             threshold: 0.8,
             subtitle: "subtitle-portal-teleported",
         ),
+        FromTheAshes: (
+            files: [
+                "voxygen.audio.sfx.abilities.heal",
+            ],
+            threshold: 1.8,
+            subtitle: "subtitle-attack-from-the-ashes",
+        ),
 
         // Utterances (NPCs)
 
@@ -1556,6 +1563,14 @@
             ],
             threshold: 1.3,
             subtitle: "subtitle-utterance-wyvern-angry",
+        ),
+        Utterance(Angry, Phoenix): (
+            files: [
+                "voxygen.audio.sfx.utterance.phoenix_angry_0",
+                "voxygen.audio.sfx.utterance.phoenix_angry_1",
+            ],
+            threshold: 3.1,
+            subtitle: "subtitle-utterance-phoenix-angry",
         ),
         Utterance(Angry, Adlet): (
             files: [
@@ -1764,6 +1779,14 @@
             ],
             threshold: 1.2,
             subtitle: "subtitle-utterance-wyvern-hurt",
+        ),
+        Utterance(Hurt, Phoenix): (
+            files: [
+                "voxygen.audio.sfx.utterance.phoenix_hurt_0",
+                "voxygen.audio.sfx.utterance.phoenix_hurt_1",
+            ],
+            threshold: 1.5,
+            subtitle: "subtitle-utterance-phoenix-hurt",
         ),
         Utterance(Angry, Wendigo): (
             files: [

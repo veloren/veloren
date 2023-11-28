@@ -176,6 +176,7 @@ pub enum Tactic {
     FixedTurret,
     RotatingTurret,
     RadialTurret,
+    FieryTornado,
     SimpleDouble,
     // u8s are weights that each ability gets used, if it can be used
     RandomAbilities {

@@ -1075,6 +1075,7 @@ impl<'a> AgentData<'a> {
                             | "Gnarling Totem Red"
                             | "Gnarling Totem Green"
                             | "Gnarling Totem White" => Tactic::RadialTurret,
+                            "FieryTornado" => Tactic::FieryTornado,
                             "Yeti" => Tactic::Yeti,
                             "Harvester" => Tactic::Harvester,
                             "Cardinal" => Tactic::Cardinal,
@@ -1500,6 +1501,7 @@ impl<'a> AgentData<'a> {
                 read_data,
             ),
             Tactic::RadialTurret => self.handle_radial_turret_attack(controller),
+            Tactic::FieryTornado => self.handle_fiery_tornado_attack(agent, controller),
             Tactic::Yeti => {
                 self.handle_yeti_attack(agent, controller, &attack_data, tgt_data, read_data)
             },

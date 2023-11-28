@@ -109,6 +109,9 @@ buff-desc-bloodfeast = You restore life on attacks against bleeding enemies
 ## Berserk
 buff-title-berserk = Berserk
 buff-desc-berserk = You are in a berserking rage, causing your attacks to be more powerful and swift, and increasing your speed. However, as a result your defensive capability is less.
+## Heatstroke
+buff-title-heatstroke = Heatstroke
+buff-desc-heatstroke = You were exposed to heat and now suffer from heatstroke, your energy reward and movement speed are cut down. Chill.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

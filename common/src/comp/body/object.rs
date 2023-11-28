@@ -112,6 +112,8 @@ make_case_elim!(
         SpearIcicle = 97,
         Portal = 98,
         PortalActive = 99,
+        FieryTornado = 100,
+        FireRainDrop = 101,
     }
 );
 
@@ -122,7 +124,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 100] = [
+pub const ALL_OBJECTS: [Body; 102] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -223,6 +225,8 @@ pub const ALL_OBJECTS: [Body; 100] = [
     Body::SpearIcicle,
     Body::Portal,
     Body::PortalActive,
+    Body::FieryTornado,
+    Body::FireRainDrop,
 ];
 
 impl From<Body> for super::Body {
@@ -332,6 +336,8 @@ impl Body {
             Body::SpearIcicle => "spear_icicle",
             Body::Portal => "portal",
             Body::PortalActive => "portal_active",
+            Body::FieryTornado => "fiery_tornado",
+            Body::FireRainDrop => "fire_rain_drop",
         }
     }
 
@@ -343,6 +349,7 @@ impl Body {
             Reagent::Red => Body::FireworkRed,
             Reagent::White => Body::FireworkWhite,
             Reagent::Yellow => Body::FireworkYellow,
+            Reagent::Phoenix => Body::FireRainDrop,
         }
     }
 
@@ -384,7 +391,11 @@ impl Body {
             Body::BedBlue => 50.0,
             Body::Bedroll => 3.0,
             Body::Bench => 100.0,
-            Body::BoltFire | Body::BoltFireBig | Body::BoltNature | Body::BoltIcicle => 1.0,
+            Body::BoltFire
+            | Body::BoltFireBig
+            | Body::BoltNature
+            | Body::BoltIcicle
+            | Body::FireRainDrop => 1.0,
             Body::SpitPoison => 100.0,
             Body::Bomb | Body::DagonBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
@@ -445,7 +456,7 @@ impl Body {
             Body::FishMeat => 10.0,
             Body::BirdMeat => 10.0,
             Body::SmallMeat => 10.0,
-            Body::Tornado => 50.0,
+            Body::Tornado | Body::FieryTornado => 50.0,
             Body::Apple => 2.0,
             Body::Hive => 2.0,
             Body::Coconut => 2.0,
@@ -479,7 +490,7 @@ impl Body {
             Body::HaniwaSentry => Vec3::new(0.8, 0.8, 1.4),
             Body::SeaLantern => Vec3::new(0.8, 0.8, 1.4),
             Body::Snowball => Vec3::broadcast(2.5),
-            Body::Tornado => Vec3::new(2.0, 2.0, 3.4),
+            Body::Tornado | Body::FieryTornado => Vec3::new(2.0, 2.0, 3.4),
             Body::TrainingDummy => Vec3::new(1.5, 1.5, 3.0),
             Body::GnarlingTotemRed | Body::GnarlingTotemGreen | Body::GnarlingTotemWhite => {
                 Vec3::new(0.8, 0.8, 1.4)
@@ -489,6 +500,7 @@ impl Body {
             Body::LaserBeam => Vec3::new(8.0, 8.0, 8.0),
             Body::Mine => Vec3::new(0.8, 0.8, 0.5),
             Body::LightningBolt | Body::SpearIcicle => Vec3::new(1.0, 1.0, 1.0),
+            Body::FireRainDrop => Vec3::new(0.01, 0.01, 0.02),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }
