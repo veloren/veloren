@@ -272,7 +272,7 @@ impl BuffKind {
             },
             BuffKind::Swiftness => vec![
                 BuffEffect::MovementSpeed(
-                    1.0 + data.strength * stats.map_or(1.0, |s| s.move_speed_multiplier)
+                    1.0 + data.strength * stats.map_or(1.0, |s| s.move_speed_multiplier),
                 ),
                 BuffEffect::DamageReduction(-1.0),
                 BuffEffect::AttackDamage(0.0),
