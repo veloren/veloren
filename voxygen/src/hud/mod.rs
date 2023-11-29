@@ -5160,7 +5160,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Regeneration => imgs.buff_plus_0,
         BuffKind::Saturation => imgs.buff_saturation_0,
         BuffKind::Potion => imgs.buff_potion_0,
-        // TODO: Need unique image for Swiftness and Strength
+        // TODO: Need unique image for Swiftness (uses same as regeneration atm)
         BuffKind::Swiftness => imgs.buff_plus_0,
         BuffKind::CampfireHeal => imgs.buff_campfire_heal_0,
         BuffKind::EnergyRegen => imgs.buff_energyplus_0,
