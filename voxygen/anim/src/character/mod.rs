@@ -433,8 +433,8 @@ impl CharacterSkeleton {
             * ((acc_vel * lab * 1.6).sin());
 
         self.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        self.lantern.orientation =
-            Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
+        self.lantern.orientation = Quaternion::rotation_x(shorte * 0.7 * speednorm.powi(2) + 0.4)
+            * Quaternion::rotation_y(shorte * 0.4 * speednorm.powi(2));
         self.lantern.scale = Vec3::one() * 0.65;
         self.hold.scale = Vec3::one() * 0.0;
 
