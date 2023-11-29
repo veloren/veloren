@@ -44,9 +44,9 @@
         output: ("common.items.consumable.potion_swiftness", 1),
         inputs: [
             (Item("common.items.crafting_ing.empty_vial"), 1, false),
-            (Item("common.items.crafting_ing.honey"), 2, false),
-            (Item("common.items.mineral.gem.topaz"), 2, false),
-            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 3, false),
         ],
         craft_sprite: Some(Cauldron),
     ),
