@@ -43,6 +43,8 @@ gittag:
     - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8}
     - |
       if [[ ! "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
+        git reflog expire --expire=now --all;
+        git gc --prune=now;
         git fetch;
         git tag -a "${SCHEDULE_CADENCE}" -m '' -f;
         git push origin "${SCHEDULE_CADENCE}" -f || echo "failed pushed, trying again" && sleep 5 && git status && git fsck && git push origin "${SCHEDULE_CADENCE}" -f;
