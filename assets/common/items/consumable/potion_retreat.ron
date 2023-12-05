@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Swiftness Potion",
-    description: "Makes you faster.",
+    name: "Potion of Retreat",
+    description: "Don't get caught fighting too fierce a foe.",
     kind: Consumable(
         kind: Drink,
         effects: All([
             Buff((
-                kind: Swiftness,
+                kind: Retreating,
                 data: (
                     strength: 0.55,
                     duration: Some(25),

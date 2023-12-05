@@ -5160,8 +5160,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Regeneration => imgs.buff_plus_0,
         BuffKind::Saturation => imgs.buff_saturation_0,
         BuffKind::Potion => imgs.buff_potion_0,
-        // TODO: Need unique image for Swiftness (uses same as regeneration atm)
-        BuffKind::Swiftness => imgs.buff_plus_0,
+        // TODO: Need unique image for Retreating (uses same as regeneration atm)
+        BuffKind::Retreating => imgs.buff_plus_0,
         BuffKind::CampfireHeal => imgs.buff_campfire_heal_0,
         BuffKind::EnergyRegen => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxEnergy => imgs.buff_energyplus_0,
@@ -5205,7 +5205,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::Regeneration => localized_strings.get_msg("buff-title-heal"),
         BuffKind::Saturation => localized_strings.get_msg("buff-title-saturation"),
         BuffKind::Potion => localized_strings.get_msg("buff-title-potion"),
-        BuffKind::Swiftness => localized_strings.get_msg("buff-title-swift"),
+        BuffKind::Retreating => localized_strings.get_msg("buff-title-retreat"),
         BuffKind::CampfireHeal => localized_strings.get_msg("buff-title-campfire_heal"),
         BuffKind::EnergyRegen => localized_strings.get_msg("buff-title-energy_regen"),
         BuffKind::IncreaseMaxHealth => localized_strings.get_msg("buff-title-increase_max_health"),
@@ -5248,7 +5248,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Regeneration => localized_strings.get_msg("buff-desc-heal"),
         BuffKind::Saturation => localized_strings.get_msg("buff-desc-saturation"),
         BuffKind::Potion => localized_strings.get_msg("buff-desc-potion"),
-        BuffKind::Swiftness => localized_strings.get_msg("buff-desc-swift"),
+        BuffKind::Retreating => localized_strings.get_msg("buff-desc-retreat"),
         BuffKind::CampfireHeal => {
             localized_strings.get_msg_ctx("buff-desc-campfire_heal", &i18n::fluent_args! {
                 "rate" => data.strength * 100.0

@@ -5,10 +5,10 @@ buff-stat-health = Restores { $str_total } Health
 ## Potion
 buff-title-potion = Potion
 buff-desc-potion = Drinking...
-## Swiftness
-buff-title-swift = Swiftness
-buff-desc-swift = Your movement is faster, but you deal less damage, and take more damage.
-buff-stat-swift = 
+## Retreating
+buff-title-retreat = Retreating
+buff-desc-retreat = Your movement is faster, but you deal less damage, and take more damage.
+buff-stat-retreat = 
     Increases movement speed by { $strength }%.
     but decreases your damage by 100%,
     and increases your damage vulnerability

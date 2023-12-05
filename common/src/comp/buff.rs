@@ -41,7 +41,7 @@ pub enum BuffKind {
     /// decreases the amount of damage dealt.
     /// Movement speed increases linearly with strength 1.0 is an 100% increase
     /// Damage vulnerability and damage reduction are both hard set to 100%
-    Swiftness,
+    Retreating,
     /// Applied when sitting at a campfire.
     /// Strength is fraction of health restored per second.
     CampfireHeal,
@@ -182,7 +182,7 @@ impl BuffKind {
             BuffKind::Regeneration
             | BuffKind::Saturation
             | BuffKind::Potion
-            | BuffKind::Swiftness
+            | BuffKind::Retreating
             | BuffKind::CampfireHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
@@ -270,7 +270,7 @@ impl BuffKind {
                     tick_dur: Secs(0.1),
                 }]
             },
-            BuffKind::Swiftness => vec![
+            BuffKind::Retreating => vec![
                 BuffEffect::MovementSpeed(
                     1.0 + data.strength * stats.map_or(1.0, |s| s.move_speed_multiplier),
                 ),

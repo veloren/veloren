@@ -40,8 +40,8 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
-    "potion_swiftness": (
-        output: ("common.items.consumable.potion_swiftness", 1),
+    "potion_retreat": (
+        output: ("common.items.consumable.potion_retreat", 1),
         inputs: [
             (Item("common.items.crafting_ing.empty_vial"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 2, false),
