@@ -5,10 +5,10 @@ buff-stat-health = Restores { $str_total } Health
 ## Potion
 buff-title-potion = Potion
 buff-desc-potion = Drinking...
-## Retreating
-buff-title-retreat = Retreating
-buff-desc-retreat = Your movement is faster, but you deal less damage, and take more damage.
-buff-stat-retreat = 
+## Agility
+buff-title-agility = Agility
+buff-desc-agility = Your movement is faster, but you deal less damage, and take more damage.
+buff-stat-agility = 
     Increases movement speed by { $strength }%.
     but decreases your damage by 100%,
     and increases your damage vulnerability

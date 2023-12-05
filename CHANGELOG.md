@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A way to target non-player entities with commands. With rtsim_id: `rtsim@<id>`, with uid: `uid@<id>`.
 - Shorthand in voxygen for specific entities in commands, some examples `@target`, `@mount`, `@viewpoint`.
 - Added hit_timing to BasicMelee abilities
-- Retreating Potion
+- Potion of Agility
 
 ### Changed
 
@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed offset of items carried on backs when wearing cloaks and backpacks
 - Linearize light colors on the CPU rather than in shaders on the GPU
 - You can no longer stack self buffs
+- Renamed "Burning Potion" to "Potion of Combustion"
 
 ### Removed
 - Medium and large potions from all loot tables

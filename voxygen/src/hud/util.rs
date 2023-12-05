@@ -189,8 +189,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                                 "strength" => format_float(strength * 100.0),
                             })
                         },
-                        BuffKind::Retreating => {
-                            i18n.get_msg_ctx("buff-stat-retreat", &i18n::fluent_args! {
+                        BuffKind::Agility => {
+                            i18n.get_msg_ctx("buff-stat-agility", &i18n::fluent_args! {
                                 "strength" => format_float(strength * 100.0),
                             })
                         },
@@ -236,7 +236,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                                 })
                             },
                             BuffKind::IncreaseMaxEnergy
-                            | BuffKind::Retreating
+                            | BuffKind::Agility
                             | BuffKind::IncreaseMaxHealth
                             | BuffKind::Invulnerability
                             | BuffKind::PotionSickness

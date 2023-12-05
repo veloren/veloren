@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Potion of Retreat",
-    description: "Don't get caught fighting too fierce a foe.",
+    name: "Potion of Agility",
+    description: "Fly, you fools!",
     kind: Consumable(
         kind: Drink,
         effects: All([
             Buff((
-                kind: Retreating,
+                kind: Agility,
                 data: (
                     strength: 0.55,
                     duration: Some(25),
