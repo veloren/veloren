@@ -37,6 +37,11 @@ pub enum BuffKind {
     /// Applied when drinking a potion.
     /// Strength should be the healing per second.
     Potion,
+    /// Increases movement speed and vulnerability to damage as well as
+    /// decreases the amount of damage dealt.
+    /// Movement speed increases linearly with strength 1.0 is an 100% increase
+    /// Damage vulnerability and damage reduction are both hard set to 100%
+    Swiftness,
     /// Applied when sitting at a campfire.
     /// Strength is fraction of health restored per second.
     CampfireHeal,
@@ -177,6 +182,7 @@ impl BuffKind {
             BuffKind::Regeneration
             | BuffKind::Saturation
             | BuffKind::Potion
+            | BuffKind::Swiftness
             | BuffKind::CampfireHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
@@ -264,6 +270,13 @@ impl BuffKind {
                     tick_dur: Secs(0.1),
                 }]
             },
+            BuffKind::Swiftness => vec![
+                BuffEffect::MovementSpeed(
+                    1.0 + data.strength * stats.map_or(1.0, |s| s.move_speed_multiplier),
+                ),
+                BuffEffect::DamageReduction(-1.0),
+                BuffEffect::AttackDamage(0.0),
+            ],
             BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Multiplicative,
@@ -351,7 +364,10 @@ impl BuffKind {
                 },
             ],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
-            BuffKind::PotionSickness => vec![BuffEffect::HealReduction(data.strength)],
+            BuffKind::PotionSickness => vec![
+                BuffEffect::HealReduction(data.strength),
+                BuffEffect::MoveSpeedReduction(data.strength),
+            ],
             BuffKind::Reckless => vec![
                 BuffEffect::DamageReduction(-data.strength),
                 BuffEffect::AttackDamage(1.0 + data.strength),
@@ -557,6 +573,8 @@ pub enum BuffEffect {
     PoiseReduction(f32),
     /// Reduces amount healed by consumables
     HealReduction(f32),
+    /// Reduces amount of speed increase by consumables
+    MoveSpeedReduction(f32),
     /// Increases poise damage dealt when health is lost
     PoiseDamageFromLostHealth {
         initial_health: f32,

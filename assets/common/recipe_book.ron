@@ -40,6 +40,16 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
+    "potion_swiftness": (
+        output: ("common.items.consumable.potion_swiftness", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.empty_vial"), 1, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 3, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
     "potion_s": (
         output: ("common.items.consumable.potion_minor", 1),
         inputs: [
