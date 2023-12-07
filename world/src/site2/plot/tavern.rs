@@ -335,7 +335,7 @@ impl Tavern {
             .made_valid();
             // Pick a  height of the new room
             let room_hgt = rng.gen_range(3..=5);
-            let wanted_alt = land.get_alt_approx(max_bounds.center()) as i32;
+            let wanted_alt = land.get_alt_approx(max_bounds.center()) as i32 + 1;
             let max_stair_length = (in_dir.select(if wanted_alt < from_room.bounds.min.z {
                 from_bounds.size()
             } else {
@@ -1199,8 +1199,7 @@ impl Structure for Tavern {
             };
             let wall_dir = Dir::from_vec2(wall.end - wall.start);
             match (wall.from.map(get_kind), wall.to.map(get_kind)) {
-                (Some(RoomKind::Garden), Some(RoomKind::Garden) | None)
-                | (None, Some(RoomKind::Garden)) => {
+                (Some(RoomKind::Garden), None) | (None, Some(RoomKind::Garden)) => {
                     let hgt = wall_aabb.min.z..=wall_aabb.max.z;
                     painter
                         .column(wall_aabb.min.xy(), hgt.clone())
@@ -1239,6 +1238,15 @@ impl Structure for Tavern {
                             max: wall_aabb.max,
                         }))
                         .fill(wall_detail_fill.clone());
+                },
+                (Some(RoomKind::Garden), Some(RoomKind::Garden)) => {
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: wall_aabb.min.with_z(wall_aabb.min.z - DOWN),
+                            max: wall_aabb.max.with_z(wall_aabb.min.z - 1),
+                        }))
+                        .fill(floor_fill.clone());
+                    painter.aabb(aabb(wall_aabb)).clear();
                 },
                 (None, None) => {},
                 _ => {
@@ -1441,9 +1449,8 @@ impl Structure for Tavern {
         }
 
         for wall in self.walls.values() {
-            let in_dir_room = if let (Some(room), to @ None) | (None, to @ Some(room)) =
-                (wall.from.map(get_kind), wall.to.map(get_kind))
-            {
+            let kinds = (wall.from.map(get_kind), wall.to.map(get_kind));
+            let in_dir_room = if let (Some(room), to @ None) | (None, to @ Some(room)) = kinds {
                 let in_dir = if to.is_none() {
                     -wall.to_dir
                 } else {
@@ -1490,7 +1497,7 @@ impl Structure for Tavern {
                     },
                 }
             }
-            if let Some(door) = wall.door_bounds() {
+            if let Some(door) = wall.door_bounds() && !matches!(kinds, (Some(RoomKind::Garden), Some(RoomKind::Garden))) {
                 let orth = wall.to_dir.orthogonal();
                 painter
                     .aabb(aabb(Aabb {
