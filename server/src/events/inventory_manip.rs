@@ -305,18 +305,19 @@ impl ServerEvent for InventoryManipEvent {
                             // If there are items to be reclaimed from the block, add it to the
                             // inventory
                             if let Some(items) = comp::Item::try_reclaim_from_block(block) {
-                                let msm = &MaterialStatManifest::load().read();
-                                let ability_map = &AbilityMap::load().read();
-                                for item in flatten_counted_items(&items, ability_map, msm) {
+                                for item in
+                                    flatten_counted_items(&items, &data.ability_map, &data.msm)
+                                {
                                     // NOTE: We dup the item for message purposes.
-                                    let item_msg = item.duplicate(ability_map, msm);
+                                    let item_msg = item.duplicate(&data.ability_map, &data.msm);
                                     match inventory.push(item) {
                                         Ok(_) => {
                                             if let Some(group_id) = data.groups.get(entity) {
                                                 announce_loot_to_group(
                                                     group_id,
                                                     entity,
-                                                    item_msg.duplicate(ability_map, msm),
+                                                    item_msg
+                                                        .duplicate(&data.ability_map, &data.msm),
                                                     &data.clients,
                                                     &data.uids,
                                                     &data.groups,
