@@ -10,7 +10,7 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_net::msg::ServerGeneral;
-use specs::{world::Entity, Entities, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use specs::{world::Entity, Entities, Read, ReadStorage, Write, WriteStorage};
 
 use super::ServerEvent;
 
@@ -111,8 +111,8 @@ pub fn update_map_markers<'a>(
 impl ServerEvent for GroupManipEvent {
     type SystemData<'a> = (
         Entities<'a>,
-        WriteExpect<'a, GroupManager>,
-        ReadExpect<'a, IdMaps>,
+        Write<'a, GroupManager>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Group>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Uid>,

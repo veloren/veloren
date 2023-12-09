@@ -56,7 +56,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, Option<WeatherJob>>,
         WriteExpect<'a, WeatherGrid>,
         WriteExpect<'a, SlowJobPool>,
-        ReadExpect<'a, EventBus<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
         ReadExpect<'a, Arc<World>>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, comp::Pos>,

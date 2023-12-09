@@ -22,7 +22,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ClientDisconnectEvent>>,
-        ReadExpect<'a, EventBus<ChunkSendEntry>>,
+        Read<'a, EventBus<ChunkSendEntry>>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, Lod>,
         ReadExpect<'a, NetworkRequestMetrics>,

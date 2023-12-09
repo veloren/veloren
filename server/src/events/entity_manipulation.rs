@@ -52,8 +52,8 @@ use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
 use specs::{
-    shred, DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, ReadExpect,
-    ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
+    shred, DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read,
+    ReadExpect, ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
 };
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 use tracing::{debug, warn};
@@ -124,16 +124,16 @@ impl ServerEvent for PoiseChangeEvent {
 impl ServerEvent for HealthChangeEvent {
     type SystemData<'a> = (
         Entities<'a>,
+        Read<'a, EventBus<Outcome>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Uid>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Health>,
-        WriteExpect<'a, EventBus<Outcome>>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (entities, positions, uids, mut agents, mut healths, outcomes): Self::SystemData<'_>,
+        (entities, outcomes, positions, uids, mut agents, mut healths): Self::SystemData<'_>,
     ) {
         let mut outcomes_emitter = outcomes.emitter();
         for ev in events {
@@ -272,17 +272,17 @@ fn handle_exp_gain(
 pub struct DestroyEventData<'a> {
     entities: Entities<'a>,
     rtsim: WriteExpect<'a, RtSim>,
-    id_maps: ReadExpect<'a, IdMaps>,
+    id_maps: Read<'a, IdMaps>,
     msm: ReadExpect<'a, MaterialStatManifest>,
     ability_map: ReadExpect<'a, AbilityMap>,
-    time: ReadExpect<'a, Time>,
+    time: Read<'a, Time>,
     world: ReadExpect<'a, Arc<World>>,
     index: ReadExpect<'a, world::IndexOwned>,
-    areas_container: ReadExpect<'a, AreasContainer<NoDurabilityArea>>,
-    outcomes: ReadExpect<'a, EventBus<Outcome>>,
-    create_item_drop: ReadExpect<'a, EventBus<CreateItemDropEvent>>,
-    delete_event: ReadExpect<'a, EventBus<DeleteEvent>>,
-    chat_events: ReadExpect<'a, EventBus<ChatEvent>>,
+    areas_container: Read<'a, AreasContainer<NoDurabilityArea>>,
+    outcomes: Read<'a, EventBus<Outcome>>,
+    create_item_drop: Read<'a, EventBus<CreateItemDropEvent>>,
+    delete_event: Read<'a, EventBus<DeleteEvent>>,
+    chat_events: Read<'a, EventBus<ChatEvent>>,
     melees: WriteStorage<'a, comp::Melee>,
     beams: WriteStorage<'a, comp::Beam>,
     skill_sets: WriteStorage<'a, SkillSet>,
@@ -745,7 +745,7 @@ impl ServerEvent for DeleteEvent {
         Entities<'a>,
         Write<'a, comp::group::GroupManager>,
         Write<'a, Trades>,
-        ReadExpect<'a, IdMaps>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Group>,
         WriteStorage<'a, Agent>,
         ReadStorage<'a, Uid>,
@@ -819,10 +819,10 @@ impl ServerEvent for DeleteEvent {
 
 impl ServerEvent for LandOnGroundEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, Time>,
+        Read<'a, Time>,
         ReadExpect<'a, MaterialStatManifest>,
-        ReadExpect<'a, EventBus<HealthChangeEvent>>,
-        ReadExpect<'a, EventBus<PoiseChangeEvent>>,
+        Read<'a, EventBus<HealthChangeEvent>>,
+        Read<'a, EventBus<PoiseChangeEvent>>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, CharacterState>,
         ReadStorage<'a, comp::Mass>,
@@ -933,7 +933,7 @@ impl ServerEvent for LandOnGroundEvent {
 
 impl ServerEvent for RespawnEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, SpawnPoint>,
+        Read<'a, SpawnPoint>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, comp::Combo>,
         WriteStorage<'a, Pos>,
@@ -995,15 +995,15 @@ event_emitters! {
 impl ServerEvent for ExplosionEvent {
     type SystemData<'a> = (
         Entities<'a>,
-        WriteExpect<'a, BlockChange>,
-        ReadExpect<'a, Settings>,
-        ReadExpect<'a, Time>,
-        ReadExpect<'a, IdMaps>,
-        ReadExpect<'a, CachedSpatialGrid>,
+        Write<'a, BlockChange>,
+        Read<'a, Settings>,
+        Read<'a, Time>,
+        Read<'a, IdMaps>,
+        Read<'a, CachedSpatialGrid>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, MaterialStatManifest>,
         ReadExplosionEvents<'a>,
-        ReadExpect<'a, EventBus<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
         ReadStorage<'a, Group>,
         ReadStorage<'a, Auras>,
         ReadStorage<'a, Pos>,
@@ -1502,7 +1502,7 @@ impl ServerEvent for BonkEvent {
     type SystemData<'a> = (
         Write<'a, BlockChange>,
         ReadExpect<'a, TerrainGrid>,
-        ReadExpect<'a, EventBus<CreateObjectEvent>>,
+        Read<'a, EventBus<CreateObjectEvent>>,
     );
 
     fn handle(
@@ -1592,7 +1592,7 @@ impl ServerEvent for AuraEvent {
 
 impl ServerEvent for BuffEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, Time>,
+        Read<'a, Time>,
         WriteStorage<'a, comp::Buffs>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Health>,
@@ -1696,8 +1696,8 @@ impl ServerEvent for EnergyChangeEvent {
 
 impl ServerEvent for ComboChangeEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, Time>,
-        ReadExpect<'a, EventBus<Outcome>>,
+        Read<'a, Time>,
+        Read<'a, EventBus<Outcome>>,
         WriteStorage<'a, comp::Combo>,
         ReadStorage<'a, Uid>,
     );
@@ -1723,9 +1723,9 @@ impl ServerEvent for ComboChangeEvent {
 
 impl ServerEvent for ParryHookEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, Time>,
-        ReadExpect<'a, EventBus<EnergyChangeEvent>>,
-        ReadExpect<'a, EventBus<BuffEvent>>,
+        Read<'a, Time>,
+        Read<'a, EventBus<EnergyChangeEvent>>,
+        Read<'a, EventBus<BuffEvent>>,
         WriteStorage<'a, CharacterState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Stats>,
@@ -1792,7 +1792,7 @@ impl ServerEvent for ParryHookEvent {
 
 impl ServerEvent for TeleportToEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, IdMaps>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, comp::ForceUpdate>,
     );
@@ -1826,12 +1826,12 @@ impl ServerEvent for EntityAttackedHookEvent {
     type SystemData<'a> = (
         Entities<'a>,
         Write<'a, Trades>,
-        ReadExpect<'a, IdMaps>,
-        ReadExpect<'a, Time>,
-        ReadExpect<'a, EventBus<BuffEvent>>,
-        ReadExpect<'a, EventBus<ComboChangeEvent>>,
-        ReadExpect<'a, EventBus<KnockbackEvent>>,
-        ReadExpect<'a, EventBus<Outcome>>,
+        Read<'a, IdMaps>,
+        Read<'a, Time>,
+        Read<'a, EventBus<BuffEvent>>,
+        Read<'a, EventBus<ComboChangeEvent>>,
+        Read<'a, EventBus<KnockbackEvent>>,
+        Read<'a, EventBus<Outcome>>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Poise>,
         WriteStorage<'a, Agent>,
@@ -2089,7 +2089,7 @@ impl ServerEvent for RemoveLightEmitterEvent {
 
 impl ServerEvent for TeleportToPositionEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, IdMaps>,
+        Read<'a, IdMaps>,
         WriteStorage<'a, Is<VolumeRider>>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, comp::ForceUpdate>,
@@ -2131,7 +2131,7 @@ impl ServerEvent for TeleportToPositionEvent {
 
 impl ServerEvent for StartTeleportingEvent {
     type SystemData<'a> = (
-        ReadExpect<'a, Time>,
+        Read<'a, Time>,
         WriteStorage<'a, comp::Teleporting>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, comp::Object>,

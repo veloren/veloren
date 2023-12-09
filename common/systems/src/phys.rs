@@ -7,7 +7,8 @@ use common::{
         PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
-    event::{EventBus, LandOnGroundEvent},
+    event::{EmitExt, EventBus, LandOnGroundEvent},
+    event_emitters,
     link::Is,
     mounting::{Rider, VolumeRider},
     outcome::Outcome,
@@ -123,6 +124,12 @@ fn calc_z_limit(char_state_maybe: Option<&CharacterState>, collider: &Collider) 
     collider.get_z_limits(modifier)
 }
 
+event_emitters! {
+    struct Events[Emitters] {
+        land_on_ground: LandOnGroundEvent,
+    }
+}
+
 /// This system applies forces and calculates new positions and velocities.
 #[derive(Default)]
 pub struct Sys;
@@ -130,10 +137,10 @@ pub struct Sys;
 #[derive(SystemData)]
 pub struct PhysicsRead<'a> {
     entities: Entities<'a>,
+    events: Events<'a>,
     uids: ReadStorage<'a, Uid>,
     terrain: ReadExpect<'a, TerrainGrid>,
     dt: Read<'a, DeltaTime>,
-    land_on_ground_event: Read<'a, EventBus<LandOnGroundEvent>>,
     game_mode: ReadExpect<'a, GameMode>,
     scales: ReadStorage<'a, Scale>,
     stickies: ReadStorage<'a, Sticky>,
@@ -1364,16 +1371,16 @@ impl<'a> PhysicsData<'a> {
         }
         drop(guard);
 
-        let mut event_emitter = read.land_on_ground_event.emitter();
-        land_on_grounds
-            .into_iter()
-            .for_each(|(entity, vel, surface_normal)| {
-                event_emitter.emit(LandOnGroundEvent {
+        let mut emitters = read.events.get_emitters();
+        emitters.emit_many(
+            land_on_grounds
+                .into_iter()
+                .map(|(entity, vel, surface_normal)| LandOnGroundEvent {
                     entity,
                     vel: vel.0,
                     surface_normal,
-                });
-            });
+                }),
+        );
     }
 
     fn update_cached_spatial_grid(&mut self) {

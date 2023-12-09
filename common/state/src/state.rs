@@ -8,7 +8,7 @@ use common::uid::IdMaps;
 use common::{
     calendar::Calendar,
     comp,
-    event::{register_event_busses, EventBus, LocalEvent},
+    event::{EventBus, LocalEvent},
     link::Is,
     mounting::{Mount, Rider, VolumeRider, VolumeRiders},
     outcome::Outcome,
@@ -331,7 +331,6 @@ impl State {
         ecs.insert(SlowJobPool::new(slow_limit, 10_000, thread_pool));
 
         // TODO: only register on the server
-        register_event_busses(&mut ecs);
         ecs.insert(comp::group::GroupManager::default());
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());

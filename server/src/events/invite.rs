@@ -19,7 +19,7 @@ use common::{
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
 use specs::{
-    shred, DispatcherBuilder, Entities, Entity, ReadExpect, ReadStorage, SystemData, WriteExpect,
+    shred, DispatcherBuilder, Entities, Entity, Read, ReadExpect, ReadStorage, SystemData, Write,
     WriteStorage,
 };
 use std::time::{Duration, Instant};
@@ -37,10 +37,10 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
 
 impl ServerEvent for InitiateInviteEvent {
     type SystemData<'a> = (
-        WriteExpect<'a, Trades>,
-        ReadExpect<'a, Settings>,
-        ReadExpect<'a, IdMaps>,
-        ReadExpect<'a, GroupManager>,
+        Write<'a, Trades>,
+        Read<'a, Settings>,
+        Read<'a, IdMaps>,
+        Read<'a, GroupManager>,
         WriteStorage<'a, PendingInvites>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Invite>,
@@ -215,10 +215,10 @@ impl ServerEvent for InitiateInviteEvent {
 #[derive(SystemData)]
 pub struct InviteResponseData<'a> {
     entities: Entities<'a>,
-    group_manager: WriteExpect<'a, GroupManager>,
-    trades: WriteExpect<'a, Trades>,
+    group_manager: Write<'a, GroupManager>,
+    trades: Write<'a, Trades>,
     index: ReadExpect<'a, world::IndexOwned>,
-    id_maps: ReadExpect<'a, IdMaps>,
+    id_maps: Read<'a, IdMaps>,
     invites: WriteStorage<'a, Invite>,
     pending_invites: WriteStorage<'a, PendingInvites>,
     groups: WriteStorage<'a, Group>,

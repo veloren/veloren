@@ -328,6 +328,7 @@ impl Server {
                 }
             },
         );
+        register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(battlemode_buffer);
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(editable_settings);

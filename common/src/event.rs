@@ -556,35 +556,35 @@ macro_rules! event_emitters {
             $(
             #[derive(specs::SystemData)]
             pub struct $read_data<'a> {
-                $($ev_ident: specs::Read<'a, $crate::event::EventBus<$ty>>),+
+                $($ev_ident: Option<specs::Read<'a, $crate::event::EventBus<$ty>>>),+
             }
 
             impl<'a> $read_data<'a> {
                 #[allow(unused)]
                 pub fn get_emitters(&self) -> $emitters {
                     $emitters {
-                        $($ev_ident: self.$ev_ident.emitter()),+
+                        $($ev_ident: self.$ev_ident.as_ref().map(|e| e.emitter())),+
                     }
                 }
             }
 
             pub struct $emitters<'a> {
-                $($ev_ident: $crate::event::Emitter<'a, $ty>),+
+                $($ev_ident: Option<$crate::event::Emitter<'a, $ty>>),+
             }
 
             impl<'a> $emitters<'a> {
                 #[allow(unused)]
                 pub fn append(&mut self, mut other: Self) {
                     $(
-                        self.$ev_ident.append(&mut other.$ev_ident.events);
+                        self.$ev_ident.as_mut().zip(other.$ev_ident).map(|(a, mut b)| a.append(&mut b.events));
                     )+
                 }
             }
 
             $(
                 impl<'a> $crate::event::EmitExt<$ty> for $emitters<'a> {
-                    fn emit(&mut self, event: $ty) { self.$ev_ident.emit(event) }
-                    fn emit_many(&mut self, events: impl IntoIterator<Item = $ty>) { self.$ev_ident.emit_many(events) }
+                    fn emit(&mut self, event: $ty) { self.$ev_ident.as_mut().map(|e| e.emit(event)); }
+                    fn emit_many(&mut self, events: impl IntoIterator<Item = $ty>) { self.$ev_ident.as_mut().map(|e| e.emit_many(events)); }
                 }
             )+
             )+

@@ -1,8 +1,8 @@
 use hashbrown::HashSet;
 use rand::{seq::IteratorRandom, Rng};
 use specs::{
-    join::Join, shred, DispatcherBuilder, Entities, Entity as EcsEntity, ReadExpect, ReadStorage,
-    SystemData, WriteExpect, WriteStorage,
+    join::Join, shred, DispatcherBuilder, Entities, Entity as EcsEntity, Read, ReadExpect,
+    ReadStorage, SystemData, Write, WriteStorage,
 };
 use tracing::{debug, error, warn};
 use vek::{Rgb, Vec3};
@@ -77,11 +77,11 @@ event_emitters! {
 pub struct InventoryManipData<'a> {
     entities: Entities<'a>,
     events: Events<'a>,
-    block_change: WriteExpect<'a, common_state::BlockChange>,
-    trades: WriteExpect<'a, Trades>,
+    block_change: Write<'a, common_state::BlockChange>,
+    trades: Write<'a, Trades>,
     terrain: ReadExpect<'a, common::terrain::TerrainGrid>,
-    id_maps: ReadExpect<'a, IdMaps>,
-    time: ReadExpect<'a, Time>,
+    id_maps: Read<'a, IdMaps>,
+    time: Read<'a, Time>,
     ability_map: ReadExpect<'a, AbilityMap>,
     msm: ReadExpect<'a, MaterialStatManifest>,
     inventories: WriteStorage<'a, comp::Inventory>,
