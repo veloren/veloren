@@ -411,6 +411,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "veloren.core.pseudo_abilities.sword.secondary_ability" => imgs.sword_secondary_ability,
         "common.abilities.sword.basic_thrust" => imgs.sword_basic_thrust,
         "common.abilities.sword.heavy_slam" => imgs.sword_heavy_slam,
+        "common.abilities.sword.agile_perforate" => imgs.sword_agile_perforate,
         "common.abilities.sword.agile_dual_perforate" => imgs.sword_agile_perforate,
         "common.abilities.sword.defensive_vital_jab" => imgs.sword_defensive_vital_jab,
         "common.abilities.sword.crippling_deep_rend" => imgs.sword_crippling_deep_rend,

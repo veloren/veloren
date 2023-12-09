@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "low fps" of different shaders caused by low floating point precision when using time.
 - Fixed bug where airship captains would mass generate after using /reload_chunks
 - Fixed french translation "Énergie Consommée" -> "Regain d'Énergie"
+- Fixed Perforate icon not displaying
 
 ## [0.15.0] - 2023-07-01
 
