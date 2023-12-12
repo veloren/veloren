@@ -986,9 +986,10 @@ pub struct CharacterActivity {
     /// `None` means that the look direction should be derived from the
     /// orientation
     pub look_dir: Option<Dir>,
-    /// If the character is using a Helm, this is set to Some, with the y
-    /// direction we're steering.
-    pub steer_dir: Option<f32>,
+    /// If the character is using a Helm, this is the y direction the
+    /// character steering. If the character is not steering this is
+    /// a stale value.
+    pub steer_dir: f32,
     /// If true, the owner has set this pet to stay at a fixed location and
     /// to not engage in combat
     pub is_pet_staying: bool,

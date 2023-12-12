@@ -237,13 +237,8 @@ impl<'a> AgentData<'a> {
         'activity: {
             match agent.rtsim_controller.activity {
                 Some(NpcActivity::Goto(travel_to, speed_factor)) => {
-                    if !read_data
-                        .is_volume_riders
-                        .get(*self.entity)
-                        .map_or(false, |r| r.is_steering_entity())
-                    {
-                        controller.push_event(ControlEvent::Unmount);
-                    }
+                    self.dismount(controller, read_data);
+
                     // If it has an rtsim destination and can fly, then it should.
                     // If it is flying and bumps something above it, then it should move down.
                     if self.traversal_config.can_fly
@@ -1008,14 +1003,7 @@ impl<'a> AgentData<'a> {
         #[cfg(feature = "be-dyn-lib")]
         let rng = &mut thread_rng();
 
-        if read_data.is_riders.contains(*self.entity)
-            || !read_data
-                .is_volume_riders
-                .get(*self.entity)
-                .map_or(false, |r| r.is_steering_entity())
-        {
-            controller.push_event(ControlEvent::Unmount);
-        }
+        self.dismount(controller, read_data);
 
         let tool_tactic = |tool_kind| match tool_kind {
             ToolKind::Bow => Tactic::Bow,
@@ -2022,10 +2010,10 @@ impl<'a> AgentData<'a> {
 
     pub fn dismount(&self, controller: &mut Controller, read_data: &ReadData) {
         if read_data.is_riders.contains(*self.entity)
-            || !read_data
+            || read_data
                 .is_volume_riders
                 .get(*self.entity)
-                .map_or(false, |r| r.is_steering_entity())
+                .map_or(false, |r| !r.is_steering_entity())
         {
             controller.push_event(ControlEvent::Unmount);
         }

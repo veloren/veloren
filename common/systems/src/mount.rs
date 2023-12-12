@@ -179,8 +179,11 @@ impl<'a> System<'a> for Sys {
 
             if is_volume_rider.block.is_controller() {
                 if let Some((actions, inputs)) = inputs {
-                    if let Some(mut character_activity) = character_activity.get_mut(entity) {
-                        character_activity.steer_dir = Some(inputs.move_dir.y);
+                    if let Some(mut character_activity) = character_activity
+                        .get_mut(entity)
+                        .filter(|c| c.steer_dir != inputs.move_dir.y)
+                    {
+                        character_activity.steer_dir = inputs.move_dir.y;
                     }
                     match is_volume_rider.pos.kind {
                         common::mounting::Volume::Entity(uid) => {
