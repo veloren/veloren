@@ -711,7 +711,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "Sad",
             "Glad",
             "Scared",
-            "Emberrassed",
+            "Embarrassed",
             "Goofy",
             "Spicy",
             "Salty",
@@ -765,6 +765,11 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "Zesty",
             "Fancy",
             "Stylish",
+            "Thirsty",
+            "Dry",
+            "Dancing",
+            "Singing",
+            "Drunken",
         ];
         let tavern_synonyms = ["Tavern", "Bar", "Pub"];
         let subjectives = [
