@@ -942,7 +942,9 @@ impl Structure for Tavern {
         let mut offset = 0;
         let mut choose = |slice: &[Rgb<u8>]| -> Rgb<u8> {
             offset += 1;
-            *field.choose(self.door_wpos + offset, slice).unwrap()
+            *field
+                .choose(self.door_wpos + offset, slice)
+                .expect("Color slice should not be empty.")
         };
 
         let detail_fill = Fill::Brick(
