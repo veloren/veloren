@@ -2146,7 +2146,7 @@ impl FigureMgr {
                                                 active_tool_kind,
                                                 second_tool_kind,
                                                 character_activity
-                                                    .and_then(|a| a.steer_dir)
+                                                    .map(|a| a.steer_dir)
                                                     .unwrap_or(0.0),
                                                 time,
                                             ),

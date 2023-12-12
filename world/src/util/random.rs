@@ -16,14 +16,13 @@ impl RandomField {
         (self.get(pos) % (1 << 16)) as f32 / ((1 << 16) as f32)
     }
 
-    /// # Panics
-    /// Panics if the slice is empty.
-    pub fn choose<'a, T>(&self, pos: Vec3<i32>, slice: &'a [T]) -> &'a T {
-        assert!(!slice.is_empty());
+    pub fn choose<'a, T>(&self, pos: Vec3<i32>, slice: &'a [T]) -> Option<&'a T> {
+        if slice.is_empty() {
+            return None;
+        }
 
         let i = self.get(pos) as usize;
-
-        &slice[i % slice.len()]
+        slice.get(i % slice.len())
     }
 }
 
