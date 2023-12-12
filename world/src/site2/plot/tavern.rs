@@ -1390,7 +1390,7 @@ impl Structure for Tavern {
                                 },
                                 (true, true) => {
                                     painter.sprite(
-                                        dir.vec2(edge, rot_edge).with_z(room.bounds.min.z),
+                                        dir.abs().vec2(edge, rot_edge).with_z(room.bounds.min.z),
                                         SpriteKind::CookingPot,
                                     );
                                 },

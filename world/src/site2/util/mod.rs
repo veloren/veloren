@@ -110,12 +110,14 @@ impl Dir {
         }
     }
 
+    /// Create a vec2 where x is in the direction of `self`, and y is anti
+    /// clockwise of `self`.
     pub fn vec2(self, x: i32, y: i32) -> Vec2<i32> {
         match self {
             Dir::X => Vec2::new(x, y),
-            Dir::NegX => Vec2::new(x, y),
+            Dir::NegX => Vec2::new(-x, -y),
             Dir::Y => Vec2::new(y, x),
-            Dir::NegY => Vec2::new(y, x),
+            Dir::NegY => Vec2::new(-y, -x),
         }
     }
 
