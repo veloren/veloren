@@ -254,7 +254,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     | NpcActivity::HuntAnimals
                     | NpcActivity::Dance(_)
                     | NpcActivity::Cheer(_)
-                    | NpcActivity::Sit(_),
+                    | NpcActivity::Sit(..),
                 ) => {
                     // TODO: Maybe they should walk around randomly
                     // when gathering resources?

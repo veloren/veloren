@@ -6,7 +6,7 @@ use rand::Rng;
 use vek::*;
 
 /// A 2d direction.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Debug, enum_map::Enum, strum::EnumIter, enumset::EnumSetType)]
 pub enum Dir {
     X,
     Y,
@@ -26,7 +26,7 @@ impl Dir {
         }
     }
 
-    pub fn from_vector(vec: Vec2<i32>) -> Dir {
+    pub fn from_vec2(vec: Vec2<i32>) -> Dir {
         if vec.x.abs() > vec.y.abs() {
             if vec.x > 0 { Dir::X } else { Dir::NegX }
         } else if vec.y > 0 {
@@ -107,6 +107,17 @@ impl Dir {
             Dir::NegX => Vec3::new(-1, 0, 0),
             Dir::Y => Vec3::new(0, 1, 0),
             Dir::NegY => Vec3::new(0, -1, 0),
+        }
+    }
+
+    /// Create a vec2 where x is in the direction of `self`, and y is anti
+    /// clockwise of `self`.
+    pub fn vec2(self, x: i32, y: i32) -> Vec2<i32> {
+        match self {
+            Dir::X => Vec2::new(x, y),
+            Dir::NegX => Vec2::new(-x, -y),
+            Dir::Y => Vec2::new(y, x),
+            Dir::NegY => Vec2::new(-y, -x),
         }
     }
 
@@ -223,7 +234,7 @@ impl Dir {
         }
     }
 
-    pub fn split_aabr<T>(self, aabr: Aabr<T>, offset: T) -> [Aabr<T>; 2]
+    pub fn split_aabr_offset<T>(self, aabr: Aabr<T>, offset: T) -> [Aabr<T>; 2]
     where
         T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T>,
     {
@@ -237,6 +248,29 @@ impl Dir {
             Dir::NegY => {
                 let res = aabr.split_at_y(aabr.max.y - offset);
                 [res[1], res[0]]
+            },
+        }
+    }
+
+    /// Try to split an aabr in a certain direction
+    pub fn try_split_aabr<T>(self, aabr: Aabr<T>, sp: T) -> Option<[Aabr<T>; 2]>
+    where
+        T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T>,
+    {
+        match self {
+            Dir::NegX | Dir::X => {
+                if aabr.min.x <= sp && sp <= aabr.max.x {
+                    Some(aabr.split_at_x(sp))
+                } else {
+                    None
+                }
+            },
+            Dir::NegY | Dir::Y => {
+                if aabr.min.y <= sp && sp <= aabr.max.y {
+                    Some(aabr.split_at_y(sp))
+                } else {
+                    None
+                }
             },
         }
     }

@@ -101,6 +101,7 @@ pub struct SessionState {
     walk_right_dir: Vec2<f32>,
     free_look: bool,
     auto_walk: bool,
+    walking_speed: bool,
     camera_clamp: bool,
     zoom_lock: bool,
     is_aiming: bool,
@@ -171,6 +172,7 @@ impl SessionState {
             walk_right_dir,
             free_look: false,
             auto_walk: false,
+            walking_speed: false,
             camera_clamp: false,
             zoom_lock: false,
             is_aiming: false,
@@ -710,6 +712,7 @@ impl PlayState for SessionState {
                         }
                         match input {
                             GameInput::Primary => {
+                                self.walking_speed = false;
                                 let mut client = self.client.borrow_mut();
                                 // Mine and build targets can be the same block. make building
                                 // take precedence.
@@ -728,6 +731,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Secondary => {
+                                self.walking_speed = false;
                                 let mut client = self.client.borrow_mut();
                                 if let Some(build_target) = build_target.filter(|bt| {
                                     state && can_build && nearest_block_dist == Some(bt.distance)
@@ -747,6 +751,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Block => {
+                                self.walking_speed = false;
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Block,
                                     state,
@@ -755,6 +760,7 @@ impl PlayState for SessionState {
                                 );
                             },
                             GameInput::Roll => {
+                                self.walking_speed = false;
                                 let mut client = self.client.borrow_mut();
                                 if can_build {
                                     if state {
@@ -779,12 +785,14 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Respawn => {
+                                self.walking_speed = false;
                                 self.stop_auto_walk();
                                 if state {
                                     self.client.borrow_mut().respawn();
                                 }
                             },
                             GameInput::Jump => {
+                                self.walking_speed = false;
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Jump,
                                     state,
@@ -847,6 +855,7 @@ impl PlayState for SessionState {
                                 self.key_state.right = state
                             },
                             GameInput::Glide => {
+                                self.walking_speed = false;
                                 let is_trading = self.client.borrow().is_trading();
                                 if state && !is_trading {
                                     if global_state.settings.gameplay.stop_auto_walk_on_input {
@@ -877,7 +886,11 @@ impl PlayState for SessionState {
                             },
                             GameInput::ToggleWield => {
                                 if state {
-                                    self.client.borrow_mut().toggle_wield();
+                                    let mut client = self.client.borrow_mut();
+                                    if client.is_wielding().is_some_and(|b| !b) {
+                                        self.walking_speed = false;
+                                    }
+                                    client.toggle_wield();
                                 }
                             },
                             GameInput::SwapLoadout => {
@@ -1214,6 +1227,13 @@ impl PlayState for SessionState {
                                     }
                                 }
                             },
+                            GameInput::ToggleWalk if state => {
+                                global_state
+                                    .settings
+                                    .gameplay
+                                    .walking_speed_behavior
+                                    .update(state, &mut self.walking_speed, |_| {});
+                            },
                             _ => {},
                         }
                     },
@@ -1421,6 +1441,12 @@ impl PlayState for SessionState {
                         return PlayStateResult::Pop;
                     },
                 }
+            }
+
+            if self.walking_speed {
+                self.key_state.speed_mul = global_state.settings.gameplay.walking_speed;
+            } else {
+                self.key_state.speed_mul = 1.0;
             }
 
             // Recompute dependents just in case some input modified the camera

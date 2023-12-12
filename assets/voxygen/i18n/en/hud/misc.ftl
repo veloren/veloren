@@ -59,6 +59,7 @@ hud-follow = Follow
 hud-stay= Stay
 hud-sit = Sit
 hud-steer = Steer
+hud-lay = Lay
 hud-portal = Portal
 
 -server = Server

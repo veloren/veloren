@@ -21,6 +21,7 @@ common-dynlib = {package = "veloren-common-dynlib", path = "../common/dynlib", o
 bincode = { workspace = true }
 bitvec = "1.0.1"
 enum-map = { workspace = true }
+enumset = "1.1.3"
 fxhash = { workspace = true }
 image = { workspace = true }
 itertools = { workspace = true }

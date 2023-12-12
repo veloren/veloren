@@ -29,6 +29,7 @@ use common::{
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
     event::{Emitter, ServerEvent},
+    mounting::VolumePos,
     path::TraversalConfig,
     rtsim::NpcActivity,
     states::basic_beam,
@@ -51,9 +52,7 @@ impl<'a> AgentData<'a> {
     ////////////////////////////////////////
 
     pub fn glider_fall(&self, controller: &mut Controller, read_data: &ReadData) {
-        if read_data.is_riders.contains(*self.entity) {
-            controller.push_event(ControlEvent::Unmount);
-        }
+        self.dismount(controller, read_data);
 
         controller.push_action(ControlAction::GlideWield);
 
@@ -73,9 +72,7 @@ impl<'a> AgentData<'a> {
     }
 
     pub fn fly_upward(&self, controller: &mut Controller, read_data: &ReadData) {
-        if read_data.is_riders.contains(*self.entity) {
-            controller.push_event(ControlEvent::Unmount);
-        }
+        self.dismount(controller, read_data);
 
         controller.push_basic_input(InputKind::Fly);
         controller.inputs.move_z = 1.0;
@@ -96,9 +93,7 @@ impl<'a> AgentData<'a> {
         path: Path,
         speed_multiplier: Option<f32>,
     ) -> bool {
-        if read_data.is_riders.contains(*self.entity) {
-            controller.push_event(ControlEvent::Unmount);
-        }
+        self.dismount(controller, read_data);
 
         let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
             self.pos.0
@@ -242,6 +237,14 @@ impl<'a> AgentData<'a> {
         'activity: {
             match agent.rtsim_controller.activity {
                 Some(NpcActivity::Goto(travel_to, speed_factor)) => {
+                    if read_data
+                        .is_volume_riders
+                        .get(*self.entity)
+                        .map_or(false, |r| !r.is_steering_entity())
+                    {
+                        controller.push_event(ControlEvent::Unmount);
+                    }
+
                     // If it has an rtsim destination and can fly, then it should.
                     // If it is flying and bumps something above it, then it should move down.
                     if self.traversal_config.can_fly
@@ -399,17 +402,26 @@ impl<'a> AgentData<'a> {
                     controller.push_action(ControlAction::Talk);
                     break 'activity; // Don't fall through to idle wandering
                 },
-                Some(NpcActivity::Sit(dir)) => {
-                    if let Some(look_dir) = dir {
-                        controller.inputs.look_dir = look_dir;
-                        if self.ori.look_dir().dot(look_dir.to_vec()) < 0.95 {
-                            controller.inputs.move_dir = look_dir.to_vec().xy() * 0.01;
-                            break 'activity;
-                        } else {
-                            controller.inputs.move_dir = Vec2::zero();
+                Some(NpcActivity::Sit(dir, pos)) => {
+                    if let Some(pos) =
+                        pos.filter(|p| read_data.terrain.get(*p).is_ok_and(|b| b.is_mountable()))
+                    {
+                        if !read_data.is_volume_riders.contains(*self.entity) {
+                            controller
+                                .push_event(ControlEvent::MountVolume(VolumePos::terrain(pos)));
                         }
+                    } else {
+                        if let Some(look_dir) = dir {
+                            controller.inputs.look_dir = look_dir;
+                            if self.ori.look_dir().dot(look_dir.to_vec()) < 0.95 {
+                                controller.inputs.move_dir = look_dir.to_vec().xy() * 0.01;
+                                break 'activity;
+                            } else {
+                                controller.inputs.move_dir = Vec2::zero();
+                            }
+                        }
+                        controller.push_action(ControlAction::Sit);
                     }
-                    controller.push_action(ControlAction::Sit);
                     break 'activity; // Don't fall through to idle wandering
                 },
                 Some(NpcActivity::HuntAnimals) => {
@@ -581,7 +593,9 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         tgt_pos: &Pos,
     ) {
-        if read_data.is_riders.contains(*self.entity) {
+        if read_data.is_riders.contains(*self.entity)
+            || read_data.is_volume_riders.contains(*self.entity)
+        {
             controller.push_event(ControlEvent::Unmount);
         }
 
@@ -637,7 +651,9 @@ impl<'a> AgentData<'a> {
         // Proportion of full speed
         const MAX_FLEE_SPEED: f32 = 0.65;
 
-        if read_data.is_riders.contains(*self.entity) {
+        if read_data.is_riders.contains(*self.entity)
+            || read_data.is_volume_riders.contains(*self.entity)
+        {
             controller.push_event(ControlEvent::Unmount);
         }
 
@@ -993,9 +1009,7 @@ impl<'a> AgentData<'a> {
         #[cfg(feature = "be-dyn-lib")]
         let rng = &mut thread_rng();
 
-        if read_data.is_riders.contains(*self.entity) {
-            controller.push_event(ControlEvent::Unmount);
-        }
+        self.dismount(controller, read_data);
 
         let tool_tactic = |tool_kind| match tool_kind {
             ToolKind::Bow => Tactic::Bow,
@@ -1997,6 +2011,17 @@ impl<'a> AgentData<'a> {
             } else {
                 chat(Content::localized("npc-speech-menacing"));
             }
+        }
+    }
+
+    pub fn dismount(&self, controller: &mut Controller, read_data: &ReadData) {
+        if read_data.is_riders.contains(*self.entity)
+            || read_data
+                .is_volume_riders
+                .get(*self.entity)
+                .map_or(false, |r| !r.is_steering_entity())
+        {
+            controller.push_event(ControlEvent::Unmount);
         }
     }
 }

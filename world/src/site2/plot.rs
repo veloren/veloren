@@ -22,6 +22,7 @@ mod savannah_hut;
 mod savannah_pit;
 mod savannah_workshop;
 mod sea_chapel;
+pub mod tavern;
 mod troll_cave;
 mod workshop;
 
@@ -34,7 +35,7 @@ pub use self::{
     gnarling::GnarlingFortification, house::House, jungle_ruin::JungleRuin,
     pirate_hideout::PirateHideout, rock_circle::RockCircle, savannah_hut::SavannahHut,
     savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
-    troll_cave::TrollCave, workshop::Workshop,
+    tavern::Tavern, troll_cave::TrollCave, workshop::Workshop,
 };
 
 use super::*;
@@ -77,6 +78,7 @@ impl Plot {
 pub enum PlotKind {
     House(House),
     AirshipDock(AirshipDock),
+    Tavern(Tavern),
     CoastalHouse(CoastalHouse),
     CoastalWorkshop(CoastalWorkshop),
     Workshop(Workshop),

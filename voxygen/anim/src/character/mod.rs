@@ -28,11 +28,13 @@ pub mod selfbuff;
 pub mod shockwave;
 pub mod shoot;
 pub mod sit;
+pub mod sleep;
 pub mod sneak;
 pub mod sneakequip;
 pub mod sneakwield;
 pub mod staggered;
 pub mod stand;
+pub mod steer;
 pub mod stunned;
 pub mod swim;
 pub mod swimwield;
@@ -51,11 +53,11 @@ pub use self::{
     mount::MountAnimation, music::MusicAnimation, rapidmelee::RapidMeleeAnimation,
     repeater::RepeaterAnimation, ripostemelee::RiposteMeleeAnimation, roll::RollAnimation,
     run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
-    shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
+    shoot::ShootAnimation, sit::SitAnimation, sleep::SleepAnimation, sneak::SneakAnimation,
     sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation,
-    staggered::StaggeredAnimation, stand::StandAnimation, stunned::StunnedAnimation,
-    swim::SwimAnimation, swimwield::SwimWieldAnimation, talk::TalkAnimation,
-    wallrun::WallrunAnimation, wield::WieldAnimation,
+    staggered::StaggeredAnimation, stand::StandAnimation, steer::SteerAnimation,
+    stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
+    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp::{
@@ -431,8 +433,8 @@ impl CharacterSkeleton {
             * ((acc_vel * lab * 1.6).sin());
 
         self.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        self.lantern.orientation =
-            Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
+        self.lantern.orientation = Quaternion::rotation_x(shorte * 0.7 * speednorm.powi(2) + 0.4)
+            * Quaternion::rotation_y(shorte * 0.4 * speednorm.powi(2));
         self.lantern.scale = Vec3::one() * 0.65;
         self.hold.scale = Vec3::one() * 0.0;
 

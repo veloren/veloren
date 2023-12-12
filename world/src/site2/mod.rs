@@ -573,7 +573,13 @@ impl Site {
     }
 
     // Size is 0..1
-    pub fn generate_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, size: f32) -> Self {
+    pub fn generate_city(
+        land: &Land,
+        index: IndexRef,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        size: f32,
+    ) -> Self {
         let mut rng = reseed(rng);
 
         let mut site = Site {
@@ -593,6 +599,7 @@ impl Site {
             (5.0, 4),
             (5.0, 5),
             (15.0, 6),
+            (15.0, 7),
         ]);
 
         let mut castles = 0;
@@ -600,6 +607,8 @@ impl Site {
         let mut workshops = 0;
 
         let mut airship_docks = 0;
+
+        let mut taverns = 0;
         for _ in 0..(size * 200.0) as i32 {
             match *build_chance.choose_seeded(rng.gen()) {
                 // Workshop
@@ -915,6 +924,43 @@ impl Site {
                         } else {
                             site.make_plaza(land, &mut rng);
                         }
+                    }
+                },
+                7 if (size > 0.125 && taverns < 2) => {
+                    let size = (3.5 + rng.gen::<f32>().powf(5.0) * 2.0).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            7..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let tavern = plot::Tavern::generate(
+                            land,
+                            index,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            Dir::from_vec2(door_dir),
+                            aabr,
+                        );
+                        let tavern_alt = tavern.door_wpos.z;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::Tavern(tavern),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(tavern_alt),
+                        });
+
+                        taverns += 1;
+                    } else {
+                        site.make_plaza(land, &mut rng);
                     }
                 },
                 _ => {},
@@ -1824,6 +1870,7 @@ impl Site {
             let (prim_tree, fills, mut entities) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self, canvas),
                 PlotKind::AirshipDock(airship_dock) => airship_dock.render_collect(self, canvas),
+                PlotKind::Tavern(tavern) => tavern.render_collect(self, canvas),
                 PlotKind::CoastalHouse(coastal_house) => coastal_house.render_collect(self, canvas),
                 PlotKind::CoastalWorkshop(coastal_workshop) => {
                     coastal_workshop.render_collect(self, canvas)
@@ -1963,7 +2010,19 @@ impl Site {
 }
 
 pub fn test_site() -> Site {
-    Site::generate_city(&Land::empty(), &mut thread_rng(), Vec2::zero(), 0.5)
+    let index = crate::index::Index::new(0);
+    let index_ref = IndexRef {
+        colors: &index.colors(),
+        features: &index.features(),
+        index: &index,
+    };
+    Site::generate_city(
+        &Land::empty(),
+        index_ref,
+        &mut thread_rng(),
+        Vec2::zero(),
+        0.5,
+    )
 }
 
 fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {

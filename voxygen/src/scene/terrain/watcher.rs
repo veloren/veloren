@@ -207,7 +207,9 @@ impl BlocksOfInterest {
                             )
                             .with_z(0.0),
                     )),
-                    Some(SpriteKind::Sign) => interactables.push((pos, Interaction::Read)),
+                    Some(SpriteKind::Sign | SpriteKind::HangingSign) => {
+                        interactables.push((pos, Interaction::Read))
+                    },
                     _ if block.is_mountable() => interactables.push((pos, Interaction::Mount)),
                     _ => {},
                 },
