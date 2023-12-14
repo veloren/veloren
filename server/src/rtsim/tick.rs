@@ -149,7 +149,12 @@ fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent:
     }
 }
 
-fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef, time: Option<&(TimeOfDay, Calendar)>) -> EntityInfo {
+fn get_npc_entity_info(
+    npc: &Npc,
+    sites: &Sites,
+    index: IndexRef,
+    time: Option<&(TimeOfDay, Calendar)>,
+) -> EntityInfo {
     let pos = comp::Pos(npc.wpos);
 
     let mut rng = npc.rng(Npc::PERM_ENTITY_CONFIG);
@@ -321,7 +326,12 @@ impl<'a> System<'a> for Sys {
                 });
             },
             _ => {
-                let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref(), Some(&calendar_data));
+                let entity_info = get_npc_entity_info(
+                    npc,
+                    &data.sites,
+                    index.as_index_ref(),
+                    Some(&calendar_data),
+                );
 
                 emitter.emit(match NpcData::from_entity_info(entity_info) {
                     NpcData::Data {
@@ -377,8 +387,12 @@ impl<'a> System<'a> for Sys {
                     let npc = data.npcs.npcs.get_mut(npc_id)?;
                     if matches!(npc.mode, SimulationMode::Simulated) {
                         npc.mode = SimulationMode::Loaded;
-                        let entity_info =
-                            get_npc_entity_info(npc, &data.sites, index.as_index_ref(), Some(&calendar_data));
+                        let entity_info = get_npc_entity_info(
+                            npc,
+                            &data.sites,
+                            index.as_index_ref(),
+                            Some(&calendar_data),
+                        );
 
                         Some(match NpcData::from_entity_info(entity_info) {
                             NpcData::Data {

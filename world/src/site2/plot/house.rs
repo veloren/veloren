@@ -4,7 +4,10 @@ use crate::{
     util::{RandomField, Sampler, DIRS},
     Land,
 };
-use common::terrain::{Block, BlockKind, SpriteKind};
+use common::{
+    calendar::{Calendar, CalendarEvent},
+    terrain::{Block, BlockKind, SpriteKind},
+};
 use rand::prelude::*;
 use vek::*;
 
@@ -25,6 +28,7 @@ pub struct House {
     /// Color of the roof
     roof_color: Rgb<u8>,
     front: u8,
+    christmas_decorations: bool,
 }
 
 impl House {
@@ -35,6 +39,7 @@ impl House {
         door_tile: Vec2<i32>,
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
+        calendar: Option<&Calendar>,
     ) -> Self {
         let levels = rng.gen_range(1..2 + (tile_aabr.max - tile_aabr.min).product() / 6) as u32;
         let door_tile_pos = site.tile_center_wpos(door_tile);
@@ -52,6 +57,8 @@ impl House {
         } else {
             1
         };
+        let christmas_decorations =
+            calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas));
 
         Self {
             door_tile: door_tile_pos,
@@ -83,6 +90,7 @@ impl House {
                 *colors.choose(rng).unwrap_or(&Rgb::new(21, 43, 48))
             },
             front,
+            christmas_decorations,
         }
     }
 
@@ -2041,6 +2049,52 @@ impl Structure for House {
             painter.prim(Primitive::Aabb(fire_embers)),
             Fill::Block(Block::air(SpriteKind::Ember)),
         );
+        if self.christmas_decorations {
+            let (wreath_pos, wreath_ori) = match self.front {
+                0 => (
+                    Aabb {
+                        min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 3)
+                            .with_z(alt + 2),
+                        max: Vec2::new(fireplace_origin.x + 2, fireplace_origin.y + 4)
+                            .with_z(alt + 3),
+                    },
+                    4,
+                ),
+                1 => (
+                    Aabb {
+                        min: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 1)
+                            .with_z(alt + 2),
+                        max: Vec2::new(fireplace_origin.x + 4, fireplace_origin.y + 2)
+                            .with_z(alt + 3),
+                    },
+                    2,
+                ),
+                2 => (
+                    Aabb {
+                        min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y - 1)
+                            .with_z(alt + 2),
+                        max: Vec2::new(fireplace_origin.x + 2, fireplace_origin.y).with_z(alt + 3),
+                    },
+                    0,
+                ),
+                _ => (
+                    Aabb {
+                        min: Vec2::new(fireplace_origin.x - 1, fireplace_origin.y + 1)
+                            .with_z(alt + 2),
+                        max: Vec2::new(fireplace_origin.x, fireplace_origin.y + 2).with_z(alt + 3),
+                    },
+                    6,
+                ),
+            };
+            painter.fill(
+                painter.prim(Primitive::Aabb(wreath_pos)),
+                Fill::Block(
+                    Block::air(SpriteKind::ChristmasWreath)
+                        .with_ori(wreath_ori)
+                        .unwrap(),
+                ),
+            );
+        }
 
         // Door
         // Fill around the door with wall

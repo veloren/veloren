@@ -19,6 +19,7 @@ use crate::{
 };
 use common::{
     astar::Astar,
+    calendar::Calendar,
     comp::Alignment,
     generation::EntityInfo,
     lottery::Lottery,
@@ -579,6 +580,7 @@ impl Site {
         rng: &mut impl Rng,
         origin: Vec2<i32>,
         size: f32,
+        calendar: Option<&Calendar>,
     ) -> Self {
         let mut rng = reseed(rng);
 
@@ -664,6 +666,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            calendar,
                         );
                         let house_alt = house.alt;
                         let plot = site.create_plot(Plot {
@@ -2023,6 +2026,7 @@ pub fn test_site() -> Site {
         &mut thread_rng(),
         Vec2::zero(),
         0.5,
+        None,
     )
 }
 
