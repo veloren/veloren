@@ -2224,5 +2224,45 @@ impl Structure for House {
             painter.prim(Primitive::Aabb(door2)),
             Fill::Block(Block::air(SpriteKind::Door).with_ori(door2_ori).unwrap()),
         );
+        if self.christmas_decorations {
+            let (door_light_pos, door_light_ori) = match self.front {
+                0 => (
+                    Aabb {
+                        min: Vec2::new(self.door_tile.x, self.bounds.max.y + 1).with_z(alt + 3),
+                        max: Vec2::new(self.door_tile.x + 1, self.bounds.max.y + 2).with_z(alt + 4),
+                    },
+                    4,
+                ),
+                1 => (
+                    Aabb {
+                        min: Vec2::new(self.bounds.max.x + 1, self.door_tile.y).with_z(alt + 3),
+                        max: Vec2::new(self.bounds.max.x + 2, self.door_tile.y + 1).with_z(alt + 4),
+                    },
+                    2,
+                ),
+                2 => (
+                    Aabb {
+                        min: Vec2::new(self.door_tile.x, self.bounds.min.y - 1).with_z(alt + 3),
+                        max: Vec2::new(self.door_tile.x + 1, self.bounds.min.y).with_z(alt + 4),
+                    },
+                    0,
+                ),
+                _ => (
+                    Aabb {
+                        min: Vec2::new(self.bounds.min.x - 1, self.door_tile.y).with_z(alt + 3),
+                        max: Vec2::new(self.bounds.min.x, self.door_tile.y + 1).with_z(alt + 4),
+                    },
+                    6,
+                ),
+            };
+            painter.fill(
+                painter.prim(Primitive::Aabb(door_light_pos)),
+                Fill::Block(
+                    Block::air(SpriteKind::ChristmasOrnament)
+                        .with_ori(door_light_ori)
+                        .unwrap(),
+                ),
+            );
+        }
     }
 }
