@@ -1874,18 +1874,27 @@ impl Structure for GnarlingFortification {
 }
 
 fn gnarling_mugger<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.mugger", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.gnarling.mugger",
+        rng,
+        None,
+    )
 }
 
 fn gnarling_stalker<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.stalker", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.gnarling.stalker",
+        rng,
+        None,
+    )
 }
 
 fn gnarling_logger<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.logger", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.gnarling.logger",
+        rng,
+        None,
+    )
 }
 
 fn random_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
@@ -1898,28 +1907,40 @@ fn random_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 
 fn gnarling_chieftain<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.chieftain", rng)
+        .with_asset_expect("common.entity.dungeon.gnarling.chieftain", rng, None)
         .with_no_flee()
 }
 
 fn deadwood<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.wild.aggressive.deadwood", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.aggressive.deadwood",
+        rng,
+        None,
+    )
 }
 
 fn mandragora<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.mandragora", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.gnarling.mandragora",
+        rng,
+        None,
+    )
 }
 
 fn wood_golem<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.woodgolem", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.gnarling.woodgolem",
+        rng,
+        None,
+    )
 }
 
 fn harvester_boss<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.harvester", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.gnarling.harvester",
+        rng,
+        None,
+    )
 }
 
 #[derive(Default)]

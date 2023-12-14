@@ -15,6 +15,7 @@ use crate::{
 };
 use common::{
     astar::Astar,
+    calendar::Calendar,
     comp::{
         self, agent, bird_medium,
         inventory::{
@@ -24,6 +25,7 @@ use common::{
     },
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
+    resources::TimeOfDay,
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
@@ -853,6 +855,7 @@ impl Settlement {
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
         economy: SiteInformation,
+        time: Option<&(TimeOfDay, Calendar)>,
     ) {
         // let economy: HashMap<Good, (f32, f32)> = SiteInformation::economy
         //     .values
@@ -893,12 +896,12 @@ impl Settlement {
                     let entity = if is_dummy {
                         EntityInfo::at(entity_wpos)
                             .with_agency(false)
-                            .with_asset_expect("common.entity.village.dummy", dynamic_rng)
+                            .with_asset_expect("common.entity.village.dummy", dynamic_rng, time)
                     } else {
                         match dynamic_rng.gen_range(0..=4) {
                             0 => barnyard(entity_wpos, dynamic_rng),
                             1 => bird(entity_wpos, dynamic_rng),
-                            _ => humanoid(entity_wpos, &economy, dynamic_rng),
+                            _ => humanoid(entity_wpos, &economy, dynamic_rng, time),
                         }
                     };
 
@@ -993,27 +996,37 @@ fn bird(pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
         .with_automatic_name(None)
 }
 
-fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rng) -> EntityInfo {
+fn humanoid(
+    pos: Vec3<f32>,
+    economy: &SiteInformation,
+    dynamic_rng: &mut impl Rng,
+    time: Option<&(TimeOfDay, Calendar)>,
+) -> EntityInfo {
     let entity = EntityInfo::at(pos);
     match dynamic_rng.gen_range(0..8) {
         0 | 1 => entity
             .with_agent_mark(agent::Mark::Guard)
-            .with_asset_expect("common.entity.village.guard", dynamic_rng),
+            .with_asset_expect("common.entity.village.guard", dynamic_rng, time),
         2 => entity
             .with_agent_mark(agent::Mark::Merchant)
             .with_economy(economy)
             .with_lazy_loadout(merchant_loadout)
-            .with_asset_expect("common.entity.village.merchant", dynamic_rng),
-        _ => entity.with_asset_expect("common.entity.village.villager", dynamic_rng),
+            .with_asset_expect("common.entity.village.merchant", dynamic_rng, time),
+        _ => entity.with_asset_expect("common.entity.village.villager", dynamic_rng, time),
     }
 }
 
 pub fn merchant_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
+    time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(
-        loadout_builder.with_asset_expect("common.loadout.village.merchant", &mut thread_rng()),
+        loadout_builder.with_asset_expect(
+            "common.loadout.village.merchant",
+            &mut thread_rng(),
+            time,
+        ),
         economy,
         |_| true,
     )

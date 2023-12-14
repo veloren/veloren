@@ -1,5 +1,6 @@
 use crate::{
     assets::{self, AssetExt},
+    calendar::{Calendar, CalendarEvent},
     comp::{
         arthropod, biped_large, biped_small, bird_large, bird_medium, golem,
         inventory::{
@@ -9,7 +10,7 @@ use crate::{
         item::{self, Item},
         object, quadruped_low, quadruped_medium, quadruped_small, theropod, Body,
     },
-    resources::Time,
+    resources::{Time, TimeOfDay},
     trade::SiteInformation,
 };
 use rand::{self, distributions::WeightedError, seq::SliceRandom, Rng};
@@ -48,10 +49,15 @@ enum ItemSpec {
         hands: Option<item::tool::Hands>,
     },
     Choice(Vec<(Weight, Option<ItemSpec>)>),
+    Seasonal(Vec<(Option<CalendarEvent>, ItemSpec)>),
 }
 
 impl ItemSpec {
-    fn try_to_item(&self, rng: &mut impl Rng) -> Result<Option<Item>, SpecError> {
+    fn try_to_item(
+        &self,
+        rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Result<Option<Item>, SpecError> {
         match self {
             ItemSpec::Item(item_asset) => {
                 let item = Item::new_from_asset(item_asset).map_err(SpecError::ItemAssetError)?;
@@ -63,7 +69,7 @@ impl ItemSpec {
                     .map_err(SpecError::ItemChoiceError)?;
 
                 let item = if let Some(item_spec) = item_spec {
-                    item_spec.try_to_item(rng)?
+                    item_spec.try_to_item(rng, time)?
                 } else {
                     None
                 };
@@ -76,12 +82,28 @@ impl ItemSpec {
             } => item::modular::random_weapon(*tool, *material, *hands, rng)
                 .map(Some)
                 .map_err(SpecError::ModularWeaponCreationError),
+            ItemSpec::Seasonal(specs) => specs
+                .iter()
+                .find_map(|(season, spec)| match (season, time) {
+                    (Some(season), Some((_time, calendar))) => {
+                        if calendar.is_event(*season) {
+                            Some(spec.try_to_item(rng, time))
+                        } else {
+                            None
+                        }
+                    },
+                    (Some(_season), None) => None,
+                    (None, _) => Some(spec.try_to_item(rng, time)),
+                })
+                .unwrap_or(Ok(None)),
         }
     }
 
     // Check if ItemSpec is valid and can be turned into Item
     #[cfg(test)]
     fn validate(&self) -> Result<(), ValidationError> {
+        use itertools::Itertools;
+
         let mut rng = rand::thread_rng();
         match self {
             ItemSpec::Item(item_asset) => Item::new_from_asset(item_asset)
@@ -103,6 +125,9 @@ impl ItemSpec {
             } => item::modular::random_weapon(*tool, *material, *hands, &mut rng)
                 .map(drop)
                 .map_err(ValidationError::ModularWeaponCreationError),
+            ItemSpec::Seasonal(specs) => {
+                specs.iter().try_for_each(|(_season, spec)| spec.validate())
+            },
         }
     }
 }
@@ -116,10 +141,14 @@ enum Hands {
 }
 
 impl Hands {
-    fn try_to_pair(&self, rng: &mut impl Rng) -> Result<(Option<Item>, Option<Item>), SpecError> {
+    fn try_to_pair(
+        &self,
+        rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Result<(Option<Item>, Option<Item>), SpecError> {
         match self {
             Hands::InHands((mainhand, offhand)) => {
-                let mut from_spec = |i: &ItemSpec| i.try_to_item(rng);
+                let mut from_spec = |i: &ItemSpec| i.try_to_item(rng, time);
 
                 let mainhand = mainhand.as_ref().map(&mut from_spec).transpose()?.flatten();
                 let offhand = offhand.as_ref().map(&mut from_spec).transpose()?.flatten();
@@ -130,7 +159,7 @@ impl Hands {
                     .choose_weighted(rng, |(weight, _)| *weight)
                     .map_err(SpecError::ItemChoiceError)?;
 
-                pair_spec.try_to_pair(rng)
+                pair_spec.try_to_pair(rng, time)
             },
         }
     }
@@ -893,14 +922,22 @@ impl LoadoutBuilder {
     #[must_use]
     /// Construct new `LoadoutBuilder` from `asset_specifier`
     /// Will panic if asset is broken
-    pub fn from_asset_expect(asset_specifier: &str, rng: &mut impl Rng) -> Self {
-        Self::from_asset(asset_specifier, rng).expect("failed to load loadut config")
+    pub fn from_asset_expect(
+        asset_specifier: &str,
+        rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Self {
+        Self::from_asset(asset_specifier, rng, time).expect("failed to load loadut config")
     }
 
     /// Construct new `LoadoutBuilder` from `asset_specifier`
-    pub fn from_asset(asset_specifier: &str, rng: &mut impl Rng) -> Result<Self, SpecError> {
+    pub fn from_asset(
+        asset_specifier: &str,
+        rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Result<Self, SpecError> {
         let loadout = Self::empty();
-        loadout.with_asset(asset_specifier, rng)
+        loadout.with_asset(asset_specifier, rng, time)
     }
 
     #[must_use]
@@ -919,17 +956,22 @@ impl LoadoutBuilder {
     pub fn from_loadout_spec(
         loadout_spec: LoadoutSpec,
         rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
     ) -> Result<Self, SpecError> {
         let loadout = Self::empty();
-        loadout.with_loadout_spec(loadout_spec, rng)
+        loadout.with_loadout_spec(loadout_spec, rng, time)
     }
 
     #[must_use]
     /// Construct new `LoadoutBuilder` from `asset_specifier`
     ///
     /// Will panic if asset is broken
-    pub fn from_loadout_spec_expect(loadout_spec: LoadoutSpec, rng: &mut impl Rng) -> Self {
-        Self::from_loadout_spec(loadout_spec, rng).expect("failed to load loadout spec")
+    pub fn from_loadout_spec_expect(
+        loadout_spec: LoadoutSpec,
+        rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Self {
+        Self::from_loadout_spec(loadout_spec, rng, time).expect("failed to load loadout spec")
     }
 
     #[must_use = "Method consumes builder and returns updated builder."]
@@ -1045,14 +1087,18 @@ impl LoadoutBuilder {
         let rng = &mut rand::thread_rng();
         match preset {
             Preset::HuskSummon => {
-                self = self.with_asset_expect("common.loadout.dungeon.cultist.husk", rng);
+                self = self.with_asset_expect("common.loadout.dungeon.cultist.husk", rng, None);
             },
             Preset::BorealSummon => {
-                self = self.with_asset_expect("common.loadout.world.boreal.boreal_warrior", rng);
+                self =
+                    self.with_asset_expect("common.loadout.world.boreal.boreal_warrior", rng, None);
             },
             Preset::ClockworkSummon => {
-                self =
-                    self.with_asset_expect("common.loadout.dungeon.dwarven_quarry.clockwork", rng);
+                self = self.with_asset_expect(
+                    "common.loadout.dungeon.dwarven_quarry.clockwork",
+                    rng,
+                    None,
+                );
             },
         }
 
@@ -1062,10 +1108,15 @@ impl LoadoutBuilder {
     #[must_use = "Method consumes builder and returns updated builder."]
     pub fn with_creator(
         mut self,
-        creator: fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder,
+        creator: fn(
+            LoadoutBuilder,
+            Option<&SiteInformation>,
+            time: Option<&(TimeOfDay, Calendar)>,
+        ) -> LoadoutBuilder,
         economy: Option<&SiteInformation>,
+        time: Option<&(TimeOfDay, Calendar)>,
     ) -> LoadoutBuilder {
-        self = creator(self, economy);
+        self = creator(self, economy, time);
 
         self
     }
@@ -1075,6 +1126,7 @@ impl LoadoutBuilder {
         mut self,
         spec: LoadoutSpec,
         rng: &mut R,
+        time: Option<&(TimeOfDay, Calendar)>,
     ) -> Result<Self, SpecError> {
         // Include any inheritance
         let spec = spec.eval(rng)?;
@@ -1082,7 +1134,7 @@ impl LoadoutBuilder {
         // Utility function to unwrap our itemspec
         let mut to_item = |maybe_item: Option<ItemSpec>| {
             if let Some(item) = maybe_item {
-                item.try_to_item(rng)
+                item.try_to_item(rng, time)
             } else {
                 Ok(None)
             }
@@ -1090,7 +1142,7 @@ impl LoadoutBuilder {
 
         let to_pair = |maybe_hands: Option<Hands>, rng: &mut R| {
             if let Some(hands) = maybe_hands {
-                hands.try_to_pair(rng)
+                hands.try_to_pair(rng, time)
             } else {
                 Ok((None, None))
             }
@@ -1170,10 +1222,15 @@ impl LoadoutBuilder {
     }
 
     #[must_use = "Method consumes builder and returns updated builder."]
-    pub fn with_asset(self, asset_specifier: &str, rng: &mut impl Rng) -> Result<Self, SpecError> {
+    pub fn with_asset(
+        self,
+        asset_specifier: &str,
+        rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Result<Self, SpecError> {
         let spec =
             LoadoutSpec::load_cloned(asset_specifier).map_err(SpecError::LoadoutAssetError)?;
-        self.with_loadout_spec(spec, rng)
+        self.with_loadout_spec(spec, rng, time)
     }
 
     /// # Usage
@@ -1184,8 +1241,13 @@ impl LoadoutBuilder {
     /// 1) Will panic if there is no asset with such `asset_specifier`
     /// 2) Will panic if path to item specified in loadout file doesn't exist
     #[must_use = "Method consumes builder and returns updated builder."]
-    pub fn with_asset_expect(self, asset_specifier: &str, rng: &mut impl Rng) -> Self {
-        self.with_asset(asset_specifier, rng)
+    pub fn with_asset_expect(
+        self,
+        asset_specifier: &str,
+        rng: &mut impl Rng,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Self {
+        self.with_asset(asset_specifier, rng, time)
             .expect("failed loading loadout config")
     }
 
@@ -1194,7 +1256,7 @@ impl LoadoutBuilder {
     #[must_use = "Method consumes builder and returns updated builder."]
     pub fn defaults(self) -> Self {
         let rng = &mut rand::thread_rng();
-        self.with_asset_expect("common.loadout.default", rng)
+        self.with_asset_expect("common.loadout.default", rng, None)
     }
 
     #[must_use = "Method consumes builder and returns updated builder."]

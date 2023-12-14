@@ -1,14 +1,11 @@
-// Christmas event
-//(1.0, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
-// Christmas event
-//(1.0, Some(Item("common.items.lantern.blue_0"))),
-//(1.0, Some(Item("common.items.lantern.polaris"))),
-//(2.0, Some(Item("common.items.lantern.red_0"))),
-//(2.0, Some(Item("common.items.lantern.green_0"))),
 #![enable(implicit_some)]
 (
-    head: Choice([
-        (1, Item("common.items.armor.misc.head.helmet")),
+    head: Seasonal([
+        (Some(Christmas), Choice([
+                (1, Some(Item("common.items.armor.misc.head.helmet"))),
+                (1, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
+            ])),
+        (None, Item("common.items.armor.misc.head.helmet")),
     ]),
     shoulders: Item("common.items.armor.leather_plate.shoulder"),
     chest: Item("common.items.armor.leather_plate.chest"),
@@ -16,8 +13,18 @@
     belt: Item("common.items.armor.leather_plate.belt"),
     legs: Item("common.items.armor.leather_plate.pants"),
     feet: Item("common.items.armor.leather_plate.foot"),
-    lantern: Choice([
-        (1, Item("common.items.lantern.black_0")),
-        (2, None),
-    ]),
+    lantern: Seasonal([
+        (Some(Christmas), Choice([
+            (1, Some(Item("common.items.lantern.blue_0"))),
+            (1, Some(Item("common.items.lantern.polaris"))),
+            (2, Some(Item("common.items.lantern.red_0"))),
+            (2, Some(Item("common.items.lantern.green_0"))),
+            (1, Item("common.items.lantern.black_0")),
+            (2, None),
+        ])),
+        (None, Choice([
+            (1, Item("common.items.lantern.black_0")),
+            (2, None),
+        ])),
+    ])
 )

@@ -476,7 +476,8 @@ impl NpcData {
         let inventory = {
             // Evaluate lazy function for loadout creation
             if let Some(make_loadout) = make_loadout {
-                loadout_builder = loadout_builder.with_creator(make_loadout, economy.as_ref());
+                loadout_builder =
+                    loadout_builder.with_creator(make_loadout, economy.as_ref(), None);
             }
             let loadout = loadout_builder.build();
             let mut inventory = comp::inventory::Inventory::with_loadout(loadout, body);

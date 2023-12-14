@@ -1639,6 +1639,7 @@ impl Site {
             (-border..TILE_SIZE as i32 + border)
                 .map(move |x| (twpos + Vec2::new(x, y), Vec2::new(x, y)))
         });
+        let calendar = None;
 
         #[allow(clippy::single_match)]
         match &tile.kind {
@@ -1693,7 +1694,7 @@ impl Site {
                             .unwrap();
                             canvas.spawn(
                                 EntityInfo::at(Vec3::new(wpos2d.x, wpos2d.y, alt).as_())
-                                    .with_asset_expect(spec, dynamic_rng)
+                                    .with_asset_expect(spec, dynamic_rng, calendar)
                                     .with_alignment(Alignment::Tame),
                             );
                         }

@@ -618,7 +618,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 {
                     canvas.spawn(
                         EntityInfo::at(wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0))
-                            .with_asset_expect(spec, &mut rng),
+                            .with_asset_expect(spec, &mut rng, None),
                     );
                 }
             }

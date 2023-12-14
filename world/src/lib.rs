@@ -542,6 +542,7 @@ impl World {
                 sample_get,
                 &mut supplement,
                 site.id(),
+                time.as_ref(),
             )
         });
 

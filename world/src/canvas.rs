@@ -305,7 +305,7 @@ impl<'a> Canvas<'a> {
             }
         });
         for (pos, spec) in entities.drain(..) {
-            self.spawn(EntityInfo::at(pos).with_asset_expect(&spec, &mut rng));
+            self.spawn(EntityInfo::at(pos).with_asset_expect(&spec, &mut rng, None));
         }
     }
 
