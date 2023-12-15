@@ -270,9 +270,21 @@ pub fn get_sprite_instances<'a, I: 'a>(
             .overflowing_add((wpos.x as u64).overflowing_mul(wpos.y as u64).0)
             .0; // Awful PRNG
 
-        let ori = (block.get_ori().unwrap_or((seed % 4) as u8 * 2)) & 0b111;
+        // % 4 is non uniform, take 7 and combine two where >0
+        let ori = (block.get_ori().unwrap_or((((seed % 7) + 1) / 2) as u8 * 2)) & 0b111;
         if !cfg.variations.is_empty() {
-            let variation = seed as usize % cfg.variations.len();
+            let variation = match cfg.variations.len() {
+                // try to make the variation more uniform as the PRNG is unfair
+                1 => 0,
+                2 => (seed as usize % 4) / 3,
+                3 => (seed as usize % 5) / 2,
+                4 => ((seed as usize % 7) + 1) / 2,
+                _ => seed as usize % cfg.variations.len(),
+            };
+            //            let variation = seed as usize % cfg.variations.len();
+            if sprite == SpriteKind::ChristmasOrnament {
+                println!("{sprite:?} {variation} {wpos:?} {seed}");
+            }
             let key = (sprite, variation);
 
             // NOTE: Safe because we called sprite_config_for already.
