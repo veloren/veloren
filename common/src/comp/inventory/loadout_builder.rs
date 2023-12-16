@@ -102,8 +102,6 @@ impl ItemSpec {
     // Check if ItemSpec is valid and can be turned into Item
     #[cfg(test)]
     fn validate(&self) -> Result<(), ValidationError> {
-        use itertools::Itertools;
-
         let mut rng = rand::thread_rng();
         match self {
             ItemSpec::Item(item_asset) => Item::new_from_asset(item_asset)

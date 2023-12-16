@@ -326,8 +326,11 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
         asset_path: &str,
     ) -> Result<(), Box<dyn Error>> {
         let entity_config = EntityConfig::load_expect(asset_path).read();
-        let entity_info = EntityInfo::at(Vec3::new(0.0, 0.0, 0.0))
-            .with_asset_expect(asset_path, &mut rand::thread_rng());
+        let entity_info = EntityInfo::at(Vec3::new(0.0, 0.0, 0.0)).with_asset_expect(
+            asset_path,
+            &mut rand::thread_rng(),
+            None,
+        );
         let name = entity_info.name.unwrap_or_default();
 
         // Create initial entry in drop table
