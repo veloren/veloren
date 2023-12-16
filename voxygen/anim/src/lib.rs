@@ -53,6 +53,7 @@ pub mod biped_small;
 pub mod bird_large;
 pub mod bird_medium;
 pub mod character;
+pub mod crustacean;
 pub mod dragon;
 pub mod fish_medium;
 pub mod fish_small;

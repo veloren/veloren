@@ -3,6 +3,7 @@ pub mod biped_large;
 pub mod biped_small;
 pub mod bird_large;
 pub mod bird_medium;
+pub mod crustacean;
 pub mod dragon;
 pub mod fish_medium;
 pub mod fish_small;
@@ -52,6 +53,7 @@ make_case_elim!(
         Ship(body: ship::Body) = 14,
         Arthropod(body: arthropod::Body) = 15,
         ItemDrop(body: item_drop::Body) = 16,
+        Crustacean(body: crustacean::Body) = 17,
     }
 );
 
@@ -101,6 +103,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
     pub ship: BodyData<BodyMeta, ()>,
     pub arthropod: BodyData<BodyMeta, arthropod::AllSpecies<SpeciesMeta>>,
+    pub crustacean: BodyData<BodyMeta, crustacean::AllSpecies<SpeciesMeta>>,
 }
 
 impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
@@ -124,6 +127,7 @@ impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
             Body::Theropod(b) => &self.theropod.species[&b.species],
             Body::QuadrupedLow(b) => &self.quadruped_low.species[&b.species],
             Body::Arthropod(b) => &self.arthropod.species[&b.species],
+            Body::Crustacean(b) => &self.crustacean.species[&b.species],
             _ => return None,
         })
     }
@@ -150,6 +154,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Reddragon => &self.dragon.body,
             NpcKind::Crocodile => &self.quadruped_low.body,
             NpcKind::Tarantula => &self.arthropod.body,
+            NpcKind::Crab => &self.crustacean.body,
         }
     }
 }
@@ -178,6 +183,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::QuadrupedLow(_) => &self.quadruped_low.body,
             Body::Arthropod(_) => &self.arthropod.body,
             Body::Ship(_) => &self.ship.body,
+            Body::Crustacean(_) => &self.crustacean.body,
         }
     }
 }
@@ -254,6 +260,10 @@ impl Body {
                 _ => false,
             },
             Body::Ship(_) => false,
+            Body::Crustacean(b1) => match other {
+                Body::Crustacean(b2) => b1.species == b2.species,
+                _ => false,
+            },
         }
     }
 
@@ -469,6 +479,8 @@ impl Body {
             },
             Body::Ship(ship) => ship.mass().0,
             Body::Arthropod(_) => 200.0,
+            // TODO: mass
+            Body::Crustacean(_) => 50.0,
         };
         Mass(m)
     }
@@ -641,6 +653,7 @@ impl Body {
                 bird_medium::Species::Puffin => Vec3::new(1.0, 1.0, 1.0),
                 bird_medium::Species::Toucan => Vec3::new(2.1, 1.1, 1.2),
             },
+            Body::Crustacean(_) => Vec3::new(1.2, 1.2, 0.7),
         }
     }
 
@@ -965,6 +978,7 @@ impl Body {
                 _ => 70,
             },
             Body::Ship(_) => 1000,
+            Body::Crustacean(_) => 40,
         }
     }
 
@@ -1135,7 +1149,13 @@ impl Body {
     pub fn can_strafe(&self) -> bool {
         matches!(
             self,
-            Body::Humanoid(_) | Body::BipedSmall(_) | Body::BipedLarge(_)
+            Body::Humanoid(_)
+                | Body::BipedSmall(_)
+                | Body::BipedLarge(_)
+                | Body::Crustacean(crustacean::Body {
+                    species: crustacean::Species::Crab,
+                    ..
+                })
         )
     }
 

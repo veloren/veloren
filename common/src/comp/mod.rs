@@ -52,9 +52,9 @@ pub use self::{
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::Beam,
     body::{
-        arthropod, biped_large, biped_small, bird_large, bird_medium, dragon, fish_medium,
-        fish_small, golem, humanoid, item_drop, object, quadruped_low, quadruped_medium,
-        quadruped_small, ship, theropod, AllBodies, Body, BodyData,
+        arthropod, biped_large, biped_small, bird_large, bird_medium, crustacean, dragon,
+        fish_medium, fish_small, golem, humanoid, item_drop, object, quadruped_low,
+        quadruped_medium, quadruped_small, ship, theropod, AllBodies, Body, BodyData,
     },
     buff::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffKey, BuffKind, BuffSource, Buffs,

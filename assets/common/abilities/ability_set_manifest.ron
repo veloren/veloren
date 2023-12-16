@@ -565,6 +565,12 @@
             Simple(None, "common.abilities.custom.arthropods.dagonite.leapshockwave"),
         ],
     ),
+    // Crustaceans
+    Custom("Crab"): (
+        primary: Simple(None, "common.abilities.custom.crab.triplestrike"),
+        secondary: Simple(None, "common.abilities.custom.crab.triplestrike"),
+        abilities: [],
+    ),
     /// TODO: Organize the rest into further catagories and give purple tier droppers+ custom skillsets
     Custom("Turret"): (
         primary: Simple(None, "common.abilities.custom.turret.arrows"),
