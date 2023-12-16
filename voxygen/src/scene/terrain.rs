@@ -282,9 +282,6 @@ pub fn get_sprite_instances<'a, I: 'a>(
                 4 => (((seed.overflowing_add(wpos.x as u64).0) as usize % 7) + 1) / 2,
                 _ => seed as usize % cfg.variations.len(),
             };
-            if sprite == SpriteKind::ChristmasOrnament {
-                println!("{sprite:?} {variation} {wpos:?} {seed}");
-            }
             let key = (sprite, variation);
 
             // NOTE: Safe because we called sprite_config_for already.
