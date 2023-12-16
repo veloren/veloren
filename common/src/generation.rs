@@ -99,8 +99,11 @@ pub enum Meta {
 /// let dummy_position = Vec3::new(0.0, 0.0, 0.0);
 /// // rng is required because some elements may be randomly generated
 /// let mut dummy_rng = rand::thread_rng();
-/// let entity =
-///     EntityInfo::at(dummy_position).with_asset_expect("common.entity.template", &mut dummy_rng);
+/// let entity = EntityInfo::at(dummy_position).with_asset_expect(
+///     "common.entity.template",
+///     &mut dummy_rng,
+///     None,
+/// );
 /// ```
 #[derive(Debug, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
