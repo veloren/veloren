@@ -1417,4 +1417,16 @@
             ),
         )
     ),
+    crustacean: (
+        body: (
+            keyword: "crustacean",
+            names_0: ["Ferris"],
+        ),
+        species: (
+            crab: (
+                keyword: "crab",
+                generic: "Crab",
+            ),
+        )
+    ),
 )

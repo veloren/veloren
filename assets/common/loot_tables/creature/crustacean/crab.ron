@@ -1,0 +1,4 @@
+[
+    (1.0, Item("common.items.crafting_ing.animal_misc.viscous_ooze")),
+    (2.0, MultiDrop(Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, 2)),
+]

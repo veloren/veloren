@@ -166,6 +166,7 @@ impl Body {
                 arthropod::Species::Dagonite => 70.0,
                 arthropod::Species::Emberfly => 75.0,
             },
+            Body::Crustacean(_) => 80.0,
         }
     }
 
@@ -232,6 +233,7 @@ impl Body {
             Body::Ship(ship) if ship.has_water_thrust() => 5.0 / self.dimensions().y,
             Body::Ship(_) => 6.0 / self.dimensions().y,
             Body::Arthropod(_) => 3.5,
+            Body::Crustacean(_) => 3.5,
         }
     }
 
@@ -276,6 +278,7 @@ impl Body {
                 },
                 Body::QuadrupedSmall(_) => 1500.0 * self.mass().0,
                 Body::Arthropod(_) => 500.0 * self.mass().0,
+                Body::Crustacean(_) => 400.0 * self.mass().0,
             } * front_profile,
         )
     }

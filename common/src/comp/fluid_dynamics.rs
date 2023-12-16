@@ -263,7 +263,7 @@ impl Body {
             },
 
             // Cross-section, zero-lift angle; exclude the fins (width * 0.2)
-            Body::FishMedium(_) | Body::FishSmall(_) => {
+            Body::FishMedium(_) | Body::FishSmall(_) | Body::Crustacean(_) => {
                 let dim = self.dimensions().map(|a| a * 0.5 * scale);
                 // "A Simple Method to Determine Drag Coefficients in Aquatic Animals",
                 // D. Bilo and W. Nachtigall, 1980

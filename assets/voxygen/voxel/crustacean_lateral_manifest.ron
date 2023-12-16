@@ -1,0 +1,127 @@
+
+({
+    (Crab, Male): (
+        arm_l: (
+            offset: (-6.0, 0.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 1,
+        ),
+        pincer_l0: (
+            offset: (-9.0, 2.5, 1.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 5,
+        ),
+        pincer_l1: (
+            offset: (-5.0, 4.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 6,
+        ),
+        arm_r: (
+            offset: (3.0, 0.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 1,
+        ),
+        pincer_r0: (
+            offset: (2.0, 2.5, 1.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 5,
+        ),
+        pincer_r1: (
+            offset: (2.0, 4.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 6,
+        ),
+        leg_fl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 4,
+        ),
+        leg_cl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 3,
+        ),
+        leg_bl: (
+            offset: (-7.5, -3.0, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 2,
+        ),
+        leg_fr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 4,
+        ),
+        leg_cr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 3,
+        ),
+        leg_br: (
+            offset: (2.5, -3.0, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 2,
+        ),
+    ),
+    (Crab, Female): (
+        arm_l: (
+            offset: (-6.0, 0.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 1,
+        ),
+        pincer_l0: (
+            offset: (-9.0, 2.5, 1.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 5,
+        ),
+        pincer_l1: (
+            offset: (-5.0, 4.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 6,
+        ),
+        arm_r: (
+            offset: (3.0, 0.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 1,
+        ),
+        pincer_r0: (
+            offset: (2.0, 2.5, 1.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 5,
+        ),
+        pincer_r1: (
+            offset: (2.0, 4.5, 2.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 6,
+        ),
+        leg_fl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 4,
+        ),
+        leg_cl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 3,
+        ),
+        leg_bl: (
+            offset: (-7.5, -3.0, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 2,
+        ),
+        leg_fr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 4,
+        ),
+        leg_cr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 3,
+        ),
+        leg_br: (
+            offset: (2.5, -3.0, 0.0),
+            lateral: ("npc.crab.crab"),
+            model_index: 2,
+        ),
+    ),
+})

@@ -28,11 +28,11 @@ use crate::{
 use anim::{
     arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
     bird_large::BirdLargeSkeleton, bird_medium::BirdMediumSkeleton, character::CharacterSkeleton,
-    dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-    golem::GolemSkeleton, item_drop::ItemDropSkeleton, object::ObjectSkeleton,
-    quadruped_low::QuadrupedLowSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-    quadruped_small::QuadrupedSmallSkeleton, ship::ShipSkeleton, theropod::TheropodSkeleton,
-    Animation, Skeleton,
+    crustacean::CrustaceanSkeleton, dragon::DragonSkeleton, fish_medium::FishMediumSkeleton,
+    fish_small::FishSmallSkeleton, golem::GolemSkeleton, item_drop::ItemDropSkeleton,
+    object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
+    quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
+    ship::ShipSkeleton, theropod::TheropodSkeleton, Animation, Skeleton,
 };
 use common::{
     comp::{
@@ -213,6 +213,7 @@ struct FigureMgrStates {
     ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton, BoundTerrainLocals>>,
     volume_states: HashMap<EcsEntity, FigureState<VolumeKey, BoundTerrainLocals>>,
     arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
+    crustacean_states: HashMap<EcsEntity, FigureState<CrustaceanSkeleton>>,
 }
 
 impl FigureMgrStates {
@@ -236,6 +237,7 @@ impl FigureMgrStates {
             ship_states: HashMap::new(),
             volume_states: HashMap::new(),
             arthropod_states: HashMap::new(),
+            crustacean_states: HashMap::new(),
         }
     }
 
@@ -311,6 +313,10 @@ impl FigureMgrStates {
                 .arthropod_states
                 .get_mut(entity)
                 .map(DerefMut::deref_mut),
+            Body::Crustacean(_) => self
+                .crustacean_states
+                .get_mut(entity)
+                .map(DerefMut::deref_mut),
         }
     }
 
@@ -345,6 +351,7 @@ impl FigureMgrStates {
                 }
             },
             Body::Arthropod(_) => self.arthropod_states.remove(entity).map(|e| e.meta),
+            Body::Crustacean(_) => self.crustacean_states.remove(entity).map(|e| e.meta),
         }
     }
 
@@ -368,6 +375,7 @@ impl FigureMgrStates {
         self.ship_states.retain(|k, v| f(k, &mut *v));
         self.volume_states.retain(|k, v| f(k, &mut *v));
         self.arthropod_states.retain(|k, v| f(k, &mut *v));
+        self.crustacean_states.retain(|k, v| f(k, &mut *v));
     }
 
     fn count(&self) -> usize {
@@ -390,6 +398,7 @@ impl FigureMgrStates {
             + self.ship_states.len()
             + self.volume_states.len()
             + self.arthropod_states.len()
+            + self.crustacean_states.len()
     }
 
     fn count_visible(&self) -> usize {
@@ -472,6 +481,11 @@ impl FigureMgrStates {
                 .iter()
                 .filter(|(_, c)| c.visible())
                 .count()
+            + self
+                .crustacean_states
+                .iter()
+                .filter(|(_, c)| c.visible())
+                .count()
             + self.ship_states.iter().filter(|(_, c)| c.visible()).count()
             + self
                 .volume_states
@@ -524,6 +538,7 @@ pub struct FigureMgr {
     golem_model_cache: FigureModelCache<GolemSkeleton>,
     volume_model_cache: FigureModelCache<VolumeKey>,
     arthropod_model_cache: FigureModelCache<ArthropodSkeleton>,
+    crustacean_model_cache: FigureModelCache<CrustaceanSkeleton>,
     states: FigureMgrStates,
 }
 
@@ -549,6 +564,7 @@ impl FigureMgr {
             golem_model_cache: FigureModelCache::new(),
             volume_model_cache: FigureModelCache::new(),
             arthropod_model_cache: FigureModelCache::new(),
+            crustacean_model_cache: FigureModelCache::new(),
             states: FigureMgrStates::default(),
         }
     }
@@ -574,6 +590,7 @@ impl FigureMgr {
             || self.golem_model_cache.watcher_reloaded()
             || self.volume_model_cache.watcher_reloaded()
             || self.arthropod_model_cache.watcher_reloaded()
+            || self.crustacean_model_cache.watcher_reloaded()
     }
 
     pub fn clean(&mut self, tick: u64) {
@@ -600,6 +617,7 @@ impl FigureMgr {
             self.golem_model_cache.clear_models();
             self.volume_model_cache.clear_models();
             self.arthropod_model_cache.clear_models();
+            self.crustacean_model_cache.clear_models();
         }
 
         self.model_cache.clean(&mut self.atlas, tick);
@@ -622,6 +640,7 @@ impl FigureMgr {
         self.golem_model_cache.clean(&mut self.atlas, tick);
         self.volume_model_cache.clean(&mut self.atlas, tick);
         self.arthropod_model_cache.clean(&mut self.atlas, tick);
+        self.crustacean_model_cache.clean(&mut self.atlas, tick);
     }
 
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
@@ -4828,6 +4847,182 @@ impl FigureMgr {
                         body,
                     );
                 },
+                Body::Crustacean(body) => {
+                    let (model, skeleton_attr) = self.crustacean_model_cache.get_or_create_model(
+                        renderer,
+                        &mut self.atlas,
+                        body,
+                        inventory,
+                        (),
+                        tick,
+                        viewpoint_camera_mode,
+                        viewpoint_character_state,
+                        &slow_jobs,
+                        None,
+                    );
+
+                    let state = self
+                        .states
+                        .crustacean_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, CrustaceanSkeleton::default(), body)
+                        });
+
+                    // Average velocity relative to the current ground
+                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.same_variant(&last_character.0) {
+                        state.state_time = 0.0;
+                    }
+
+                    let target_base = match (
+                        physics.on_ground.is_some(),
+                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_liquid().is_some(),                      // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::crustacean::IdleAnimation::update_skeleton(
+                            &CrustaceanSkeleton::default(),
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // Running
+                        (true, true, false) => anim::crustacean::RunAnimation::update_skeleton(
+                            &CrustaceanSkeleton::default(),
+                            (
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        // In air
+                        (false, _, false) => anim::crustacean::JumpAnimation::update_skeleton(
+                            &CrustaceanSkeleton::default(),
+                            (
+                                rel_vel.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        //Swimming
+                        (_, _, true) => anim::crustacean::SwimAnimation::update_skeleton(
+                            &CrustaceanSkeleton::default(),
+                            (
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+                    let target_bones = match &character {
+                        CharacterState::ComboMelee2(s) => {
+                            let timer = s.timer.as_secs_f32();
+                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                            let strike_data = s.static_data.strikes[current_strike];
+                            let progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    timer / strike_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    timer / strike_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    timer / strike_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::crustacean::ComboAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    ability_id,
+                                    Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
+                                    current_strike,
+                                    time,
+                                    rel_avg_vel,
+                                    state.state_time,
+                                ),
+                                progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Stunned(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Interrupted
+                                | PoiseState::Stunned
+                                | PoiseState::Dazed
+                                | PoiseState::KnockedDown => {
+                                    anim::crustacean::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            rel_vel.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                            }
+                        },
+                        // TODO!
+                        _ => target_base,
+                    };
+
+                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.update(
+                        renderer,
+                        trail_mgr,
+                        &mut update_buf,
+                        &common_params,
+                        state_animation_rate,
+                        model,
+                        body,
+                    );
+                },
                 Body::BirdLarge(body) => {
                     let (model, skeleton_attr) = self.bird_large_model_cache.get_or_create_model(
                         renderer,
@@ -6876,6 +7071,7 @@ impl FigureMgr {
             golem_model_cache,
             volume_model_cache,
             arthropod_model_cache,
+            crustacean_model_cache,
             states:
                 FigureMgrStates {
                     character_states,
@@ -6896,6 +7092,7 @@ impl FigureMgr {
                     ship_states,
                     volume_states,
                     arthropod_states,
+                    crustacean_states,
                 },
         } = self;
         let atlas = atlas_;
@@ -7166,6 +7363,25 @@ impl FigureMgr {
                             .map(ModelEntryRef::Figure),
                     )
                 }),
+            Body::Crustacean(body) => crustacean_states
+                .get(&entity)
+                .filter(|state| filter_state(state))
+                .map(move |state| {
+                    (
+                        state.bound(),
+                        crustacean_model_cache
+                            .get_model(
+                                atlas,
+                                body,
+                                inventory,
+                                tick,
+                                viewpoint_camera_mode,
+                                character_state,
+                                None,
+                            )
+                            .map(ModelEntryRef::Figure),
+                    )
+                }),
             Body::Object(body) => object_states
                 .get(&entity)
                 .filter(|state| filter_state(state))
@@ -7420,6 +7636,11 @@ impl FigureMgr {
                 Body::ItemDrop(_) => self
                     .states
                     .item_drop_states
+                    .get(&entity)
+                    .and_then(|state| state.viewpoint_offset),
+                Body::Crustacean(_) => self
+                    .states
+                    .crustacean_states
                     .get(&entity)
                     .and_then(|state| state.viewpoint_offset),
             })

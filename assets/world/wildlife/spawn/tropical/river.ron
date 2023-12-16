@@ -14,6 +14,7 @@ SpawnEntry (
         Pack(
             groups: [
                 (2, (1, 1, "common.entity.wild.peaceful.kelpie")),
+                (2, (8, 16, "common.entity.wild.peaceful.crab")),
                 (2, (1, 1, "common.entity.wild.aggressive.crocodile")),
             ],
             spawn_mode: Land,

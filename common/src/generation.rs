@@ -469,6 +469,7 @@ impl EntityInfo {
             Body::Golem(body) => Some(get_npc_name(&npc_names.golem, body.species)),
             Body::BipedLarge(body) => Some(get_npc_name(&npc_names.biped_large, body.species)),
             Body::Arthropod(body) => Some(get_npc_name(&npc_names.arthropod, body.species)),
+            Body::Crustacean(body) => Some(get_npc_name(&npc_names.crustacean, body.species)),
             _ => None,
         };
         self.name = name.map(|name| {
