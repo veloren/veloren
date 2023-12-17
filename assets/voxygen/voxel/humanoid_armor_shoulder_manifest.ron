@@ -293,11 +293,11 @@
         ),
         "common.items.armor.hide.scale.shoulder": (
             left: (
-                vox_spec: ("armor.hide.scale.shoulder", (-3.2, -3.5 , 0.0)),
+                vox_spec: ("armor.hide.scale.shoulder", (-6.2, -3.5 , -0.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.scale.shoulder", (-1.4, -3.5, -0.5)),
+                vox_spec: ("armor.hide.scale.shoulder", (0.4, -3.5, -0.5)),
                 color: None
             )
         ),
