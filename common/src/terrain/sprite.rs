@@ -268,6 +268,8 @@ make_case_elim!(
         Quench0 = 0xEF,
         IronSpike = 0xF0,
         HotSurface = 0xF1,
+        Barrel = 0xF2,
+        CrateBlock = 0xF3,
     }
 );
 
@@ -419,6 +421,8 @@ impl SpriteKind {
             SpriteKind::GearWheel0 => 3.0 / 11.0,
             SpriteKind::Quench0 => 8.0 / 11.0,
             SpriteKind::HotSurface => 0.01,
+            SpriteKind::Barrel => 1.0,
+            SpriteKind::CrateBlock => 1.0,
             _ => return None,
         })
     }

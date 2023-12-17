@@ -1,5 +1,9 @@
 use super::*;
-use crate::{site2::gen::PrimitiveTransform, Land};
+use crate::{
+    site2::gen::PrimitiveTransform,
+    util::{RandomField, Sampler},
+    Land,
+};
 use common::terrain::{Block, BlockKind, SpriteKind};
 use rand::prelude::*;
 use std::f32::consts::PI;
@@ -694,5 +698,31 @@ impl Structure for AirshipDock {
             })
             .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .fill(sprite_fill.clone());
+
+        // crate and barrel sprites
+        let mut sprite_positions = vec![];
+        for a in 0..5 {
+            sprite_positions.push(Vec2::new(center.x + 1 + a, center.y + 2));
+        }
+        for b in 0..=1 {
+            sprite_positions.push(Vec2::new(center.x, center.y + 3 + b));
+        }
+        for sprite_pos in sprite_positions {
+            let rows = (RandomField::new(0).get(sprite_pos.with_z(base)) % 3) as i32;
+            for r in 0..rows {
+                painter
+                    .aabb(Aabb {
+                        min: sprite_pos.with_z(height + 10 + r),
+                        max: (sprite_pos + 1).with_z(height + 11 + r),
+                    })
+                    .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
+                    .fill(Fill::Block(Block::air(
+                        match (RandomField::new(0).get(sprite_pos.with_z(base + r)) % 2) as i32 {
+                            0 => SpriteKind::Barrel,
+                            _ => SpriteKind::CrateBlock,
+                        },
+                    )));
+            }
+        }
     }
 }
