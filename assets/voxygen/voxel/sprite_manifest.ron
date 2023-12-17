@@ -4609,4 +4609,24 @@ HotSurface: Some((
     variations: [],
     wind_sway: 0.0,
 )),
+Barrel: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.barrel",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CrateBlock: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.crate_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 }
