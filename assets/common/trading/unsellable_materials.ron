@@ -37,6 +37,11 @@
     (0.15, Item("common.items.crafting_ing.animal_misc.lively_vine")),
     (0.225, Item("common.items.crafting_ing.sticky_thread")),
 
+    // Miscellaneous Materials
+    (0.75, Item("common.items.crafting_ing.resin")),
+    (1.0, Item("common.items.crafting_ing.sentient_seed")),
+    (2.0, Item("common.items.crafting_ing.living_embers")),
+
     // Ultra Rare drops
     (0.0005, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
 ]
