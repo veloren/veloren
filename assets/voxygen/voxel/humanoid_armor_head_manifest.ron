@@ -818,7 +818,7 @@
             vox_spec: ("armor.misc.head.bandana.thief", (-2.0, -2.0, -8.0)),
             color: None
         ),
-        (Danari, Female, "Thicommon.items.armor.misc.head.bandana.thiefef"): (
+        (Danari, Female, "common.items.armor.misc.head.bandana.thief"): (
             vox_spec: ("armor.misc.head.bandana.thief", (-2.0, -2.0, -8.0)),
             color: None
         ),
@@ -834,7 +834,7 @@
             vox_spec: ("armor.misc.head.bandana.thief", (-4.0, -2.0, -10.0)),
             color: None
         ),
-        (Human, Female, "Thcommon.items.armor.misc.head.bandana.thiefief"): (
+        (Human, Female, "common.items.armor.misc.head.bandana.thief"): (
             vox_spec: ("armor.misc.head.bandana.thief", (-4.0, -2.0, -10.0)),
             color: None
         ),
@@ -1231,11 +1231,11 @@
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.winged_coronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -3.0, 0.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -4.0, 0.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.winged_coronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -3.0, 0.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -4.0, 0.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.winged_coronet"): (
