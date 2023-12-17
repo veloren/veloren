@@ -1130,7 +1130,83 @@ impl Body {
                 biped_small::Species::Flamekeeper => 250,
                 _ => 100,
             },
+            Body::BirdLarge(b) => match b.species {
+                bird_large::Species::FlameWyvern
+                | bird_large::Species::FrostWyvern
+                | bird_large::Species::CloudWyvern
+                | bird_large::Species::SeaWyvern
+                | bird_large::Species::WealdWyvern => 185,
+                _ => 140,
+            },
             Body::Golem(_) => 300,
+            Body::QuadrupedMedium(b) => match b.species {
+                quadruped_medium::Species::Bear | quadruped_medium::Species::Grolgar => 165,
+                quadruped_medium::Species::Cattle
+                | quadruped_medium::Species::Llama
+                | quadruped_medium::Species::Alpaca
+                | quadruped_medium::Species::Camel
+                | quadruped_medium::Species::Zebra
+                | quadruped_medium::Species::Donkey
+                | quadruped_medium::Species::Highland
+                | quadruped_medium::Species::Horse
+                | quadruped_medium::Species::Kelpie
+                | quadruped_medium::Species::Hirdrasil
+                | quadruped_medium::Species::Antelope => 140,
+                quadruped_medium::Species::Deer => 120,
+                quadruped_medium::Species::Wolf
+                | quadruped_medium::Species::Tiger
+                | quadruped_medium::Species::Barghest
+                | quadruped_medium::Species::Bonerattler
+                | quadruped_medium::Species::Darkhound
+                | quadruped_medium::Species::Moose
+                | quadruped_medium::Species::Snowleopard
+                | quadruped_medium::Species::Akhlut
+                | quadruped_medium::Species::Bristleback
+                | quadruped_medium::Species::Catoblepas
+                | quadruped_medium::Species::Lion => 160,
+                quadruped_medium::Species::Panda => 130,
+                quadruped_medium::Species::Saber
+                | quadruped_medium::Species::Yak
+                | quadruped_medium::Species::Frostfang
+                | quadruped_medium::Species::Tarasque
+                | quadruped_medium::Species::Tuskram
+                | quadruped_medium::Species::Mouflon
+                | quadruped_medium::Species::Roshwalr
+                | quadruped_medium::Species::Dreadhorn => 175,
+                quadruped_medium::Species::Mammoth | quadruped_medium::Species::Ngoubou => 195,
+            },
+            Body::QuadrupedLow(b) => match b.species {
+                quadruped_low::Species::Dagon => 225,
+                quadruped_low::Species::Crocodile
+                | quadruped_low::Species::Deadwood
+                | quadruped_low::Species::SeaCrocodile
+                | quadruped_low::Species::Alligator
+                | quadruped_low::Species::Sandshark
+                | quadruped_low::Species::HermitAlligator
+                | quadruped_low::Species::Asp => 160,
+                quadruped_low::Species::Tortoise
+                | quadruped_low::Species::Rocksnapper
+                | quadruped_low::Species::Rootsnapper
+                | quadruped_low::Species::Reefsnapper
+                | quadruped_low::Species::Maneater
+                | quadruped_low::Species::Hakulaq
+                | quadruped_low::Species::Lavadrake
+                | quadruped_low::Species::Icedrake
+                | quadruped_low::Species::Basilisk
+                | quadruped_low::Species::Mossdrake => 175,
+                quadruped_low::Species::Elbst
+                | quadruped_low::Species::Salamander
+                | quadruped_low::Species::Monitor
+                | quadruped_low::Species::Pangolin
+                | quadruped_low::Species::Driggle => 115,
+            },
+            Body::Theropod(b) => match b.species {
+                theropod::Species::Archaeos
+                | theropod::Species::Ntouka
+                | theropod::Species::Odonto => 200,
+                theropod::Species::Yale => 185,
+                _ => 165,
+            },
             _ => 100,
         }
     }
