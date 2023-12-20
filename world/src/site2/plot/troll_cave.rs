@@ -73,13 +73,19 @@ impl Structure for TrollCave {
 
         // troll
         painter.spawn(
-            EntityInfo::at(center.with_z(base - 15).as_())
-                .with_asset_expect(troll, &mut thread_rng),
+            EntityInfo::at(center.with_z(base - 15).as_()).with_asset_expect(
+                troll,
+                &mut thread_rng,
+                None,
+            ),
         );
         // bat
         painter.spawn(
-            EntityInfo::at((center - 2).with_z(base + 5).as_())
-                .with_asset_expect("common.entity.wild.aggressive.bat", &mut thread_rng),
+            EntityInfo::at((center - 2).with_z(base + 5).as_()).with_asset_expect(
+                "common.entity.wild.aggressive.bat",
+                &mut thread_rng,
+                None,
+            ),
         )
     }
 }

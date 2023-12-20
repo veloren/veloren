@@ -13,6 +13,7 @@ use crate::{
 };
 use common::{
     astar::Astar,
+    calendar::Calendar,
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
@@ -236,6 +237,7 @@ impl Civs {
         seed: u32,
         sim: &mut WorldSim,
         index: &mut Index,
+        calendar: Option<&Calendar>,
         report_stage: &dyn Fn(WorldCivStage),
     ) -> Self {
         prof_span!("Civs::generate");
@@ -543,6 +545,7 @@ impl Civs {
                             &mut rng,
                             wpos,
                             size,
+                            calendar,
                         ))
                     },
                     SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(

@@ -240,17 +240,24 @@ impl Structure for JungleRuin {
                     EntityInfo::at(npc_pos.with_z(plot_base + 5).as_()).with_asset_expect(
                         "common.entity.spot.dwarf_grave_robber",
                         &mut thread_rng,
+                        None,
                     ),
                 ),
                 // sauroks
                 1 => painter.spawn(
-                    EntityInfo::at(npc_pos.with_z(plot_base + 5).as_())
-                        .with_asset_expect("common.entity.spot.saurok", &mut thread_rng),
+                    EntityInfo::at(npc_pos.with_z(plot_base + 5).as_()).with_asset_expect(
+                        "common.entity.spot.saurok",
+                        &mut thread_rng,
+                        None,
+                    ),
                 ),
                 // grim salvager
                 2 => painter.spawn(
-                    EntityInfo::at(npc_pos.with_z(plot_base + 5).as_())
-                        .with_asset_expect("common.entity.spot.grim_salvager", &mut thread_rng),
+                    EntityInfo::at(npc_pos.with_z(plot_base + 5).as_()).with_asset_expect(
+                        "common.entity.spot.grim_salvager",
+                        &mut thread_rng,
+                        None,
+                    ),
                 ),
                 _ => {},
             }

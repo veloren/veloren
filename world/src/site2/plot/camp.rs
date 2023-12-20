@@ -88,8 +88,11 @@ impl Structure for Camp {
             CampType::Pirate => {
                 for p in 0..npc_rng {
                     painter.spawn(
-                        EntityInfo::at((center + p).with_z(base + 2).as_())
-                            .with_asset_expect("common.entity.spot.pirate", &mut thread_rng),
+                        EntityInfo::at((center + p).with_z(base + 2).as_()).with_asset_expect(
+                            "common.entity.spot.pirate",
+                            &mut thread_rng,
+                            None,
+                        ),
                     )
                 }
                 let pet = if npc_rng < 3 {
@@ -98,21 +101,30 @@ impl Structure for Camp {
                     "common.entity.wild.peaceful.rat"
                 };
                 painter.spawn(
-                    EntityInfo::at(center.with_z(base + 2).as_())
-                        .with_asset_expect(pet, &mut thread_rng),
+                    EntityInfo::at(center.with_z(base + 2).as_()).with_asset_expect(
+                        pet,
+                        &mut thread_rng,
+                        None,
+                    ),
                 )
             },
             _ => {
                 if npc_rng > 2 {
                     painter.spawn(
-                        EntityInfo::at((center - 1).with_z(base + 2).as_())
-                            .with_asset_expect("common.entity.village.bowman", &mut thread_rng),
+                        EntityInfo::at((center - 1).with_z(base + 2).as_()).with_asset_expect(
+                            "common.entity.village.bowman",
+                            &mut thread_rng,
+                            None,
+                        ),
                     );
                 }
                 if npc_rng < 4 {
                     painter.spawn(
-                        EntityInfo::at((center + 1).with_z(base + 2).as_())
-                            .with_asset_expect("common.entity.village.skinner", &mut thread_rng),
+                        EntityInfo::at((center + 1).with_z(base + 2).as_()).with_asset_expect(
+                            "common.entity.village.skinner",
+                            &mut thread_rng,
+                            None,
+                        ),
                     )
                 }
             },

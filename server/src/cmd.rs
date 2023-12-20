@@ -654,6 +654,7 @@ fn handle_make_npc(
             config.clone(),
             Some(&entity_config),
             &mut loadout_rng,
+            None,
         );
 
         match NpcData::from_entity_info(entity_info) {

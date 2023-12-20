@@ -128,14 +128,16 @@ impl World {
         // is broken.
         threadpool.install(|| {
             let mut index = Index::new(seed);
+            let calendar = opts.calendar.clone();
 
             let mut sim = sim::WorldSim::generate(seed, opts, threadpool, &|stage| {
                 report_stage(WorldGenerateStage::WorldSimGenerate(stage))
             });
 
-            let civs = civ::Civs::generate(seed, &mut sim, &mut index, &|stage| {
-                report_stage(WorldGenerateStage::WorldCivGenerate(stage))
-            });
+            let civs =
+                civ::Civs::generate(seed, &mut sim, &mut index, calendar.as_ref(), &|stage| {
+                    report_stage(WorldGenerateStage::WorldCivGenerate(stage))
+                });
 
             report_stage(WorldGenerateStage::EconomySimulation);
             sim2::simulate(&mut index, &mut sim);
@@ -542,6 +544,7 @@ impl World {
                 sample_get,
                 &mut supplement,
                 site.id(),
+                time.as_ref(),
             )
         });
 

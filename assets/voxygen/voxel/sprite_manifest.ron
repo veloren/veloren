@@ -2241,6 +2241,16 @@ ChristmasOrnament: Some((
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
+            model: "voxygen.voxel.sprite.furniture.hirdrasil-antler",
+            offset: (-10.5, -2.5, -3.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.hirdrasil-antler-1",
+            offset: (-6.5, -2.5, -3.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
             model: "voxygen.voxel.sprite.furniture.moravian-star-orange",
             offset: (-5.5, -7.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
