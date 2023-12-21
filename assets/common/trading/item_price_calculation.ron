@@ -19,7 +19,7 @@ loot_tables: [
 
     // Ingredients
     (72.5, true, "common.trading.sellable_materials"),
-    (2.774, false, "common.trading.unsellable_materials"),
+    (3.1548, false, "common.trading.unsellable_materials"),
 
     // Food Ingredients
     (20.375, true, "common.trading.food"),
