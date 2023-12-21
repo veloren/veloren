@@ -36,9 +36,10 @@ gittag:
   image: bitnami/git:latest
   dependencies: []
   tags: ["veloren/veloren", "publish", "trusted"]
+  before_script:
+    - git --version
+    - git lfs --version
   script:
-    # Show git and git lfs version for debugging
-    - git version && git lfs --version
     - git config --global user.email "gitlab-veloren-bot@veloren.net"
     - git config --global user.name "veloren-bot"
     - git config --global http.postBuffer 52428800
