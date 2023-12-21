@@ -12,6 +12,7 @@ loot_tables: [
     (6.0, true, "common.loot_tables.armor.twigs"),
     (6.0, true, "common.loot_tables.armor.twigsflowers"),
     (6.0, true, "common.loot_tables.armor.twigsleaves"),
+    (2.0, false, "common.loot_tables.armor.salvager"),
     (0.09, false, "common.loot_tables.armor.cultist"),
     (0.08, false, "common.loot_tables.armor.boreal"),
 

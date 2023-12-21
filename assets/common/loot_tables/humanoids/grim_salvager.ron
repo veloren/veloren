@@ -10,8 +10,5 @@
     // Necklace
     (0.05, Item("common.items.armor.misc.neck.gold")),
     // Armor
-    (0.4, Item("common.items.armor.misc.head.bandana.thief")),
-    (0.4, Item("common.items.armor.misc.head.bandana.red")),
-    (0.4, Item("common.items.armor.misc.head.hood")),
-    (0.4, Item("common.items.armor.misc.head.hood_dark")),
+    (1.6, LootTable("common.loot_tables.armor.salvager")),
 ]
