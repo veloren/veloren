@@ -33,10 +33,12 @@ gittag:
   extends: .publish
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
-  image: registry.gitlab.com/veloren/veloren-docker-ci/base/common:${CACHE_IMAGE_TAG}
+  image: bitnami/git:latest
   dependencies: []
   tags: ["veloren/veloren", "publish", "trusted"]
   script:
+    # Show git and git lfs version for debugging
+    - git version && git lfs --version
     - git config --global user.email "gitlab-veloren-bot@veloren.net"
     - git config --global user.name "veloren-bot"
     - git config --global http.postBuffer 52428800
