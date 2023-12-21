@@ -1,0 +1,51 @@
+// Loot table that exists purely for price rationalisation
+//
+// For miscellaneous un-craftable armor pieces
+//
+// This loot table should be marked as un-sellable.
+// If you want to add something that merchants can buy and sell,
+// add another loot table
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+    // Basic
+    (5.0, Item("common.items.armor.misc.head.straw")),
+    (5.0, Item("common.items.armor.misc.head.bamboo_twig")),
+    (5.0, Item("common.items.armor.misc.foot.sandals")),
+
+    // General humanoid
+    (0.4, Item("common.items.armor.misc.ring.gold")),
+    (0.4, Item("common.items.armor.misc.neck.gold")),
+
+    // Pirate
+    (0.05, Item("common.items.armor.misc.head.crown")),
+    (0.05, Item("common.items.armor.pirate.hat")),
+
+    // Witch
+    (0.05, Item("common.items.armor.witch.hat")),
+
+    // Gnarling
+    (1.0, Item("common.items.armor.misc.head.gnarling_mask")),
+    (1.5, Item("common.items.armor.misc.head.wanderers_hat")),
+    (2.0, Item("common.items.armor.misc.neck.scratched")),
+
+    // Adlet
+    (0.4, Item("common.items.armor.misc.head.bear_bonnet")),
+    (0.4, Item("common.items.armor.misc.head.howl_cowl")),
+    (0.5, Item("common.items.armor.misc.head.hog_hood")),
+    (0.75, Item("common.items.armor.misc.neck.pendant_of_protection")),
+
+    // Sahagin
+    (0.2, Item("common.items.armor.misc.neck.gem_of_resilience")),
+
+    // Haniwa
+    (0.1, Item("common.items.armor.misc.neck.haniwa_talisman")),
+
+    // Myrmidon
+    (0.05, Item("common.items.armor.misc.head.spikeguard")),
+    (0.05, Item("common.items.armor.misc.neck.carcanet_of_wrath")),
+    (0.05, Item("common.items.armor.misc.head.mitre")),
+
+    // Cultist
+    (0.005, Item("common.items.armor.misc.neck.ankh_of_life")),
+]
