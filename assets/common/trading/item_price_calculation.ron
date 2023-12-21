@@ -12,7 +12,8 @@ loot_tables: [
     (6.0, true, "common.loot_tables.armor.twigs"),
     (6.0, true, "common.loot_tables.armor.twigsflowers"),
     (6.0, true, "common.loot_tables.armor.twigsleaves"),
-    (0.02, false, "common.trading.jewellery"),
+    (0.09, false, "common.loot_tables.armor.cultist"),
+    (0.08, false, "common.loot_tables.armor.boreal"),
 
     // Ingredients
     (72.5, true, "common.trading.sellable_materials"),
