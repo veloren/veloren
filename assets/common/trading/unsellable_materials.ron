@@ -38,7 +38,7 @@
     (0.225, Item("common.items.crafting_ing.sticky_thread")),
 
     // Sea Materials
-    (0.03, Item("common.items.crafting_ing.abyssal_heart")),
+    (0.05, Item("common.items.crafting_ing.abyssal_heart")),
     (0.075, Item("common.items.crafting_ing.pearl")),
     (0.25, Item("common.items.crafting_ing.brinestone")),
     (1.0, Item("common.items.crafting_ing.coral_branch")),
