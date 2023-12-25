@@ -53,7 +53,7 @@
             color: None
         ),
         "common.items.armor.misc.foot.jackalope_slippers": (
-            vox_spec: ("armor.misc.foot.jackalope", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.misc.foot.jackalope", (-2.5, -4.5, -2.0)),
             color: None
         ),
         "common.items.armor.twigs.foot": (
@@ -185,7 +185,7 @@
             color: None
         ),
         "common.items.armor.misc.foot.iceskate": (
-            vox_spec: ("armor.misc.foot.iceskate", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.misc.foot.iceskate", (-2.5, -4.5, -2.0)),
             color: None
         ),
     },

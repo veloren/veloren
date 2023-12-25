@@ -53,7 +53,7 @@
             color: None
         ),
         "common.items.armor.leather_plate.belt": (
-            vox_spec: ("armor.leather_plate.belt", (-4.0, -4.5, 2.0)),
+            vox_spec: ("armor.leather_plate.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.twigs.belt": (
@@ -113,7 +113,7 @@
             color: None
         ),
         "common.items.armor.savage.belt":(
-            vox_spec: ("armor.savage.belt", (-4.0, -4.0, 1.0)),
+            vox_spec: ("armor.savage.belt", (-4.0, -4.5, 2.0)),
             color: None
         ),
         "common.items.armor.witch.belt":(
@@ -121,19 +121,19 @@
             color: None
         ),
         "common.items.armor.pirate.belt":(
-            vox_spec: ("armor.pirate.belt", (-4.0, -4.0, 2.5)),
+            vox_spec: ("armor.pirate.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.alchemist.belt":(
-            vox_spec: ("armor.alchemist", (-4.0, -4.0, 2.5), 2),
+            vox_spec: ("armor.alchemist", (-4.0, -3.5, 2.0), 2),
             color: None
         ),
         "common.items.armor.blacksmith.belt":(
-            vox_spec: ("armor.blacksmith.belt", (-4.0, -4.0, 2.0)),
+            vox_spec: ("armor.blacksmith.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.chef.belt":(
-            vox_spec: ("armor.chef.belt", (-4.0, -4.0, 2.0)),
+            vox_spec: ("armor.chef.belt", (-4.0, -4.5, 2.0)),
             color: None
         ),
         "common.items.armor.cloth.linen.belt":(
@@ -173,7 +173,7 @@
             color: None
         ),
         "common.items.armor.mail.cobalt.belt":(
-            vox_spec: ("armor.mail.cobalt.belt", (-5.0, -4.5, 2.0)),
+            vox_spec: ("armor.mail.cobalt.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.mail.bloodsteel.belt":(
@@ -185,11 +185,11 @@
             color: None
         ),
         "common.items.armor.cardinal.belt": (
-            vox_spec: ("armor.cardinal.belt", (-4.0, -3.8, 1.3)),
+            vox_spec: ("armor.cardinal.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.merchant.belt": (
-            vox_spec: ("armor.merchant.belt", (-5.0, -4.0, 2.0)),
+            vox_spec: ("armor.merchant.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
     },
