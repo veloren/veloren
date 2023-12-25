@@ -8,7 +8,7 @@ ItemDef(
     quality: Common,
     tags: [
         Bag,
-        SalvageInto(Leather, 1),
+        SalvageInto(Rawhide, 1),
     ],
     slots: 6,
 )
