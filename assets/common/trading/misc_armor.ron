@@ -8,6 +8,10 @@
 //
 // Please keep it sorted by rarity so it's easier to reason about things
 [
+    // Bags
+    (0.1, Item("common.items.armor.misc.bag.heavy_seabag")),
+    (0.2, Item("common.items.armor.misc.bag.liana_kit")),
+
     // Basic
     (5.0, Item("common.items.armor.misc.head.straw")),
     (5.0, Item("common.items.armor.misc.head.bamboo_twig")),
