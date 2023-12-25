@@ -135,7 +135,7 @@
             color: Some((30, 0, 64))
         ),
         "common.items.armor.leather_plate.chest": (
-            vox_spec: ("armor.leather_plate.chest", (-8.0, -5.5, 2.0)),
+            vox_spec: ("armor.leather_plate.chest", (-8.0, -4.5, 2.0)),
             color: None
         ),
         "common.items.armor.tarasque.chest":(
@@ -147,11 +147,11 @@
             color: None
         ),
         "common.items.armor.velorite_mage.chest": (
-            vox_spec: ("armor.velorite_battlemage.chest", (-7.0, -3.5, 0.5)),
+            vox_spec: ("armor.velorite_battlemage.chest", (-7.0, -3.5, 1.0)),
             color: None
         ),
         "common.items.debug.cultist_chest_blue": (
-          vox_spec: ("armor.velorite_battlemage.chest", (-7.0, -3.5, 0.5)),
+          vox_spec: ("armor.velorite_battlemage.chest", (-7.0, -3.5, 1.0)),
           color: None
         ),
         "common.items.armor.hide.rawhide.chest": (
@@ -187,23 +187,23 @@
             color: None
         ),
         "common.items.armor.witch.chest": (
-            vox_spec: ("armor.witch.chest", (-7.0, -4.0, 2.0)),
+            vox_spec: ("armor.witch.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.pirate.chest": (
-            vox_spec: ("armor.pirate.chest", (-7.0, -4.0, 2.0)),
+            vox_spec: ("armor.pirate.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.alchemist.chest": (
-            vox_spec: ("armor.alchemist", (-7.0, -4.0, 2.0), 1),
+            vox_spec: ("armor.alchemist", (-7.0, -3.5, 2.0), 1),
             color: None
         ),
         "common.items.armor.blacksmith.chest": (
-            vox_spec: ("armor.blacksmith.chest", (-7.0, -4.0, 2.0)),
+            vox_spec: ("armor.blacksmith.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.chef.chest": (
-            vox_spec: ("armor.chef.chest", (-7.0, -4.0, 2.0)),
+            vox_spec: ("armor.chef.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.cloth.linen.chest": (
@@ -255,11 +255,11 @@
             color: None
         ),
         "common.items.armor.cardinal.chest": (
-            vox_spec: ("armor.cardinal.chest", (-7.0, -4.0, 1.0)),
+            vox_spec: ("armor.cardinal.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
         "common.items.armor.merchant.chest": (
-            vox_spec: ("armor.merchant.chest", (-7.0, -4.0, 1.0)),
+            vox_spec: ("armor.merchant.chest", (-7.0, -3.5, 1.0)),
             color: None
         ),
     },

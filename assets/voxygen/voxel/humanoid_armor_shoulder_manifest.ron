@@ -23,11 +23,11 @@
         ),
         "common.items.armor.assassin.shoulder": (
             left: (
-                vox_spec: ("armor.assassin.shoulder", (-4.0, -3.5, 1.0)),
+                vox_spec: ("armor.assassin.shoulder", (-5.0, -3.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.assassin.shoulder", (-2.0, -3.5, 1.0)),
+                vox_spec: ("armor.assassin.shoulder", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
@@ -53,71 +53,71 @@
         ),
         "common.items.armor.boreal.shoulder": (
             left: (
-                vox_spec: ("armor.boreal.shoulder", (-4.0, -3.5, -2.0)),
+                vox_spec: ("armor.boreal.shoulder", (-4.0, -3.5, -1.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.boreal.shoulder", (-1.0, -3.5, -2.0)),
+                vox_spec: ("armor.boreal.shoulder", (-1.0, -3.5, -1.0)),
                 color: None
             )
         ),
         "common.items.armor.brinestone.shoulder": (
             left: (
-                vox_spec: ("armor.brinestone.shoulder", (-6.0, -3.5, -2.0)),
+                vox_spec: ("armor.brinestone.shoulder", (-6.0, -3.5, -1.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.brinestone.shoulder", (-2.0, -3.5, -2.0)),
+                vox_spec: ("armor.brinestone.shoulder", (-2.0, -3.5, -1.0)),
                 color: None
             )
         ),
         "common.items.armor.cloth_purple.shoulder": (
             left: (
-                vox_spec: ("armor.cloth_purple.shoulder", (-4.0, -3.5, -1.0)),
+                vox_spec: ("armor.cloth_purple.shoulder", (-4.0, -3.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth_purple.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.cloth_purple.shoulder", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
         "common.items.armor.cloth_blue.shoulder_0": (
             left: (
-                vox_spec: ("armor.cloth_blue.shoulder_0", (-4.0, -3.5, -1.0)),
+                vox_spec: ("armor.cloth_blue.shoulder_0", (-4.0, -3.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth_blue.shoulder_0", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.cloth_blue.shoulder_0", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
         "common.items.armor.cloth_green.shoulder": (
             left: (
-                vox_spec: ("armor.cloth_green.shoulder", (-4.0, -3.5, -1.0)),
+                vox_spec: ("armor.cloth_green.shoulder", (-4.0, -3.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth_green.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.cloth_green.shoulder", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
         "common.items.armor.cultist.shoulder": (
             left: (
-                vox_spec: ("armor.cultist.shoulder", (-3.0, -3.5, -2.0)),
+                vox_spec: ("armor.cultist.shoulder", (-3.0, -3.5, -1.0)),
                 color: Some((30, 0, 64))
             ),
             right: (
-                 vox_spec: ("armor.cultist.shoulder", (-2.0, -3.5, -2.0)),
+                 vox_spec: ("armor.cultist.shoulder", (-2.0, -3.5, -1.0)),
                 color: Some((30, 0, 64))
             )
         ),
         "common.items.armor.leather_plate.shoulder": (
             left: (
-                vox_spec: ("armor.leather_plate.shoulder", (-4.0, -4.5 , 0.0)),
+                vox_spec: ("armor.leather_plate.shoulder", (-4.0, -3.5 , 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.leather_plate.shoulder", (-0.9, -4.5, 0.0)),
+                vox_spec: ("armor.leather_plate.shoulder", (-0.9, -3.5, 0.0)),
                 color: None
             )
         ),
@@ -153,21 +153,21 @@
         ),
         "common.items.armor.cloth_blue.shoulder_1": (
             left: (
-                vox_spec: ("armor.cloth_blue.shoulder_1", (-4.0, -2.5, -0.5)),
+                vox_spec: ("armor.cloth_blue.shoulder_1", (-4.0, -2.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth_blue.shoulder_1", (-1.0, -2.5, -0.5)),
+                vox_spec: ("armor.cloth_blue.shoulder_1", (-1.0, -2.5, 0.0)),
                 color: None
             )
         ),
         "common.items.armor.misc.shoulder.iron_spikes": (
             left: (
-                vox_spec: ("armor.misc.shoulder.iron_spikes", (-5.5, -3.8, -2.0)),
+                vox_spec: ("armor.misc.shoulder.iron_spikes", (-6.0, -3.5, -2.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.misc.shoulder.iron_spikes", (-1.5, -3.8, -2.0)),
+                vox_spec: ("armor.misc.shoulder.iron_spikes", (-1.0, -3.5, -2.0)),
                 color: None
             )
         ),
@@ -183,31 +183,31 @@
         ),
         "common.items.armor.misc.shoulder.leather_iron_2": (
             left: (
-                vox_spec: ("armor.misc.shoulder.leather_iron_2", (-5.0, -2.5, -0.5)),
+                vox_spec: ("armor.misc.shoulder.leather_iron_2", (-5.0, -2.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.misc.shoulder.leather_iron_2", (-2.0, -2.5, -0.5)),
+                vox_spec: ("armor.misc.shoulder.leather_iron_2", (-2.0, -2.5, 0.0)),
                 color: None
             )
         ),
         "common.items.armor.misc.shoulder.leather_iron_1": (
             left: (
-                vox_spec: ("armor.misc.shoulder.leather_iron_1", (-5.0, -2.5, -0.5)),
+                vox_spec: ("armor.misc.shoulder.leather_iron_1", (-5.0, -2.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.misc.shoulder.leather_iron_1", (-2.0, -2.5, -0.5)),
+                vox_spec: ("armor.misc.shoulder.leather_iron_1", (-2.0, -2.5, 0.0)),
                 color: None
             )
         ),
         "common.items.armor.misc.shoulder.leather_iron_0": (
             left: (
-                vox_spec: ("armor.misc.shoulder.leather_iron_0", (-6.0, -2.5, -0.5)),
+                vox_spec: ("armor.misc.shoulder.leather_iron_0", (-6.0, -2.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.misc.shoulder.leather_iron_0", (-2.0, -2.5, -0.5)),
+                vox_spec: ("armor.misc.shoulder.leather_iron_0", (-2.0, -2.5, 0.0)),
                 color: None
             )
         ),
@@ -223,21 +223,21 @@
         ),
         "common.items.armor.tarasque.shoulder": (
             left: (
-                vox_spec: ("armor.tarasque.shoulder", (-5.0, -3.5 , 0.0)),
+                vox_spec: ("armor.tarasque.shoulder", (-4.0, -3.5 , -1.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.tarasque.shoulder", (-0.0, -3.5, 0.0)),
+                vox_spec: ("armor.tarasque.shoulder", (-1.0, -3.5, -1.0)),
                 color: None
             )
         ),
         "common.items.armor.bonerattler.shoulder": (
             left: (
-                vox_spec: ("armor.bonerattler.shoulder", (-4.0, -3.5 , 1.0)),
+                vox_spec: ("armor.bonerattler.shoulder", (-4.0, -3.5 , 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.bonerattler.shoulder", (-1.0, -3.5, 1.0)),
+                vox_spec: ("armor.bonerattler.shoulder", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
@@ -263,11 +263,11 @@
         ),
         "common.items.armor.hide.rawhide.shoulder": (
             left: (
-                vox_spec: ("armor.hide.rawhide.shoulder", (-4.0, -3.5, -1.0)),
+                vox_spec: ("armor.hide.rawhide.shoulder", (-4.0, -3.5, 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.rawhide.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.hide.rawhide.shoulder", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
@@ -323,37 +323,37 @@
         ),
         "common.items.armor.hide.dragonscale.shoulder": (
             left: (
-                vox_spec: ("armor.hide.dragonscale.shoulder", (-8.0, -3.5 , -1.0)),
+                vox_spec: ("armor.hide.dragonscale.shoulder", (-8.0, -3.5 , -2.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.dragonscale.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.hide.dragonscale.shoulder", (-1.0, -3.5, -2.0)),
                 color: None
             )
         ),
         "common.items.armor.savage.shoulder": (
             left: (
-                vox_spec: ("armor.savage.shoulder", (-5.5, -4.0 , -2.0)),
+                vox_spec: ("armor.savage.shoulder", (-5.0, -3.5 , -2.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.savage.shoulder", (-0.5, -4.0, -2.0)),
+                vox_spec: ("armor.savage.shoulder", (-1.0, -3.5, -2.0)),
                 color: None
             )
         ),
         "common.items.armor.witch.shoulder": (
             left: (
-                vox_spec: ("armor.witch.shoulder", (-5.0, -4.0 , -2.0)),
+                vox_spec: ("armor.witch.shoulder", (-5.0, -3.5, -1.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.witch.shoulder", (-1.0, -4.0 , -2.0)),
+                vox_spec: ("armor.witch.shoulder", (-1.0, -3.5, -1.0)),
             color: None
             )
         ),
         "common.items.armor.pirate.shoulder": (
             left: (
-                vox_spec: ("armor.pirate.shoulder", (-5.0, -4.0 , -2.0)),
+                vox_spec: ("armor.pirate.shoulder", (-5.0, -3.5 , -1.0)),
                 color: None
             ),
             right: (
@@ -363,21 +363,21 @@
         ),
         "common.items.armor.cloth.linen.shoulder": (
             left: (
-                vox_spec: ("armor.cloth.linen.shoulder", (-3.0, -3.5 , -1.0)),
+                vox_spec: ("armor.cloth.linen.shoulder", (-3.0, -3.5 , 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.linen.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.cloth.linen.shoulder", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
         "common.items.armor.cloth.woolen.shoulder": (
             left: (
-                vox_spec: ("armor.cloth.woolen.shoulder", (-5.0, -3.5, -3.0)),
+                vox_spec: ("armor.cloth.woolen.shoulder", (-5.0, -3.5, -2.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.woolen.shoulder", (-1.0, -3.5, -3.0)),
+                vox_spec: ("armor.cloth.woolen.shoulder", (-1.0, -3.5, -2.0)),
                 color: None
             )
         ),
@@ -423,11 +423,11 @@
         ),
         "common.items.armor.mail.bronze.shoulder": (
             left: (
-                vox_spec: ("armor.mail.bronze.shoulder", (-5.0, -3.5 , -1.0)),
+                vox_spec: ("armor.mail.bronze.shoulder", (-5.0, -3.5 , 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bronze.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.mail.bronze.shoulder", (-1.0, -3.5, 0.0)),
                 color: None
             )
         ),
@@ -463,11 +463,11 @@
         ),
         "common.items.armor.mail.bloodsteel.shoulder": (
             left: (
-                vox_spec: ("armor.mail.bloodsteel.shoulder", (-8.0, -5.5, -2.0)),
+                vox_spec: ("armor.mail.bloodsteel.shoulder", (-8.0, -5.5, -3.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bloodsteel.shoulder", (-1.0, -5.5, -2.0)),
+                vox_spec: ("armor.mail.bloodsteel.shoulder", (-1.0, -5.5, -3.0)),
                 color: None
             )
         ),
@@ -483,7 +483,7 @@
         ),
         "common.items.armor.cardinal.shoulder": (
             left: (
-                vox_spec: ("armor.cardinal.shoulder", (-5.0, -4.0, -2.0)),
+                vox_spec: ("armor.cardinal.shoulder", (-5.0, -2.5, -1.0)),
                 color: None
             ),
             right: (

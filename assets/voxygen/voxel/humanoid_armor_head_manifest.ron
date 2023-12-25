@@ -872,7 +872,7 @@
             color: None
         ),
         (Dwarf, Male, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-5.0, -2.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-5.0, -1.0, -10.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.cultist.bandana"): (

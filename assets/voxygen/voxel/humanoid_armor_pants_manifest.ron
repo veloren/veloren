@@ -77,7 +77,7 @@
             color: Some((30, 0, 64))
         ),
         "common.items.armor.leather_plate.pants": (
-            vox_spec: ("armor.leather_plate.pants", (-5.0, -4.5, 1.0)),
+            vox_spec: ("armor.leather_plate.pants", (-5.0, -3.5, 1.0)),
             color: None
         ),
         "common.items.armor.twigs.pants": (
@@ -141,23 +141,23 @@
             color: None
         ),
         "common.items.armor.savage.pants": (
-            vox_spec: ("armor.savage.pants", (-5.0, -4.0, 0.5)),
+            vox_spec: ("armor.savage.pants", (-5.0, -3.5, 1.0)),
             color: None
         ),
         "common.items.armor.witch.pants": (
-            vox_spec: ("armor.witch.pants", (-5.0, -4.0, 0.5)),
+            vox_spec: ("armor.witch.pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
         "common.items.armor.pirate.pants": (
-            vox_spec: ("armor.pirate.pants", (-5.0, -4.0, 1.5)),
+            vox_spec: ("armor.pirate.pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
         "common.items.armor.alchemist.pants": (
-            vox_spec: ("armor.alchemist", (-5.0, -4.0, 0.5), 3),
+            vox_spec: ("armor.alchemist", (-5.0, -3.5, 0.0), 3),
             color: None
         ),
         "common.items.armor.blacksmith.pants": (
-            vox_spec: ("armor.blacksmith.pants", (-5.0, -4.0, 0.5)),
+            vox_spec: ("armor.blacksmith.pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
         "common.items.armor.chef.pants": (
@@ -213,11 +213,11 @@
             color: None
         ),
         "common.items.armor.cardinal.pants": (
-            vox_spec: ("armor.cardinal.pants", (-5.0, -4.0, -0.4)),
+            vox_spec: ("armor.cardinal.pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
         "common.items.armor.merchant.pants": (
-            vox_spec: ("armor.merchant.pants", (-6.0, -4.0, 0.5)),
+            vox_spec: ("armor.merchant.pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
     },
