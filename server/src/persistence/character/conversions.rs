@@ -220,6 +220,10 @@ pub fn convert_body_to_database_json(
             "bird_medium",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
+        Body::Crustacean(body) => (
+            "crustacean",
+            serde_json::to_string(&GenericBody::from(body))?,
+        ),
         _ => {
             return Err(PersistenceError::ConversionError(format!(
                 "Unsupported body type for persistence: {:?}",
@@ -596,6 +600,9 @@ pub fn convert_body_from_database(
         },
         "bird_medium" => {
             deserialize_body!(body_data, BirdMedium, bird_medium)
+        },
+        "crustacean" => {
+            deserialize_body!(body_data, Crustacean, crustacean)
         },
         _ => {
             return Err(PersistenceError::ConversionError(format!(
