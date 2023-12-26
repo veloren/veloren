@@ -717,7 +717,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: Mud,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     MUSH_FACT
@@ -735,7 +735,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: GrassBlue,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Grass),
+            permit: |b| matches!(b, BlockKind::Grass | BlockKind::Sand),
             f: |_, col| {
                 (
                     MUSH_FACT
@@ -753,7 +753,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: Seagrass,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Grass),
+            permit: |b| matches!(b, BlockKind::Grass | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, CONFIG.temperate_temp, 0.8)
@@ -774,7 +774,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: Seagrass,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Grass),
+            permit: |b| matches!(b, BlockKind::Grass | BlockKind::Sand),
             f: |_, col| {
                 (
                     MUSH_FACT
@@ -794,7 +794,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: SeaweedTemperate,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Grass),
+            permit: |b| matches!(b, BlockKind::Grass | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, CONFIG.temperate_temp, 0.8)
@@ -815,7 +815,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: SeaweedTropical,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Grass),
+            permit: |b| matches!(b, BlockKind::Grass | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, 1.0, 0.95)
@@ -836,7 +836,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: SeaGrapes,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     MUSH_FACT
@@ -856,7 +856,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: WavyAlgae,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     MUSH_FACT
@@ -876,7 +876,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: MermaidsFan,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, 1.0, 0.95)
@@ -897,7 +897,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: SeaAnemone,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, CONFIG.temperate_temp, 0.8)
@@ -918,7 +918,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: GiantKelp,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, CONFIG.temperate_temp, 0.8)
@@ -939,7 +939,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: BullKelp,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, CONFIG.temperate_temp, 0.7)
@@ -960,7 +960,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: StonyCoral,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, 1.0, 0.9)
@@ -981,7 +981,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: SoftCoral,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |_, col| {
                 (
                     close(col.temp, 1.0, 0.9)
@@ -1002,7 +1002,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: Seashells,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |c, col| {
                 (
                     (c.rockiness - 0.5).max(0.0)
@@ -1021,7 +1021,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: Stones,
             water_mode: Underwater,
-            permit: |b| matches!(b, BlockKind::Earth),
+            permit: |b| matches!(b, BlockKind::Earth | BlockKind::Sand),
             f: |c, col| {
                 (
                     (c.rockiness - 0.5).max(0.0)
