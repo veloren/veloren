@@ -60,6 +60,7 @@ generic_body_from_impl!(comp::quadruped_low::Body);
 generic_body_from_impl!(comp::quadruped_medium::Body);
 generic_body_from_impl!(comp::quadruped_small::Body);
 generic_body_from_impl!(comp::bird_medium::Body);
+generic_body_from_impl!(comp::crustacean::Body);
 
 #[derive(Serialize, Deserialize)]
 pub struct CharacterPosition {
