@@ -1,5 +1,4 @@
-pub mod alpha;
-pub mod beta;
+pub mod combomelee;
 pub mod dash;
 pub mod idle;
 pub mod jump;
@@ -7,8 +6,8 @@ pub mod run;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, dash::DashAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, run::RunAnimation,
+    combomelee::ComboAnimation, dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    run::RunAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

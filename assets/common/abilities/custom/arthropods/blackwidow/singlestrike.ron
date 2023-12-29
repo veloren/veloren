@@ -1,33 +1,31 @@
-ComboMelee(
-    stage_data: [
+ComboMelee2(
+    strikes: [
         (
-            stage: 1,
-            base_damage: 50,
-            damage_increase: 0,
-            base_poise_damage: 16,
-            poise_damage_increase: 0,
-            knockback: 2.0,
-            range: 3.0,
-            angle: 60.0,
-            base_buildup_duration: 0.8,
-            base_swing_duration: 0.1,
+            melee_constructor: (
+                kind: Stab(
+                    damage: 50,
+                    poise: 16,
+                    knockback: 2,
+                    energy_regen: 0,
+                ),
+                range: 3.0,
+                angle: 60.0,
+                damage_effect: Some(Buff((
+                    kind: Poisoned,
+                    dur_secs: 7.0,
+                    strength: DamageFraction(0.6),
+                    chance: 0.4,
+                ))),
+            ),
+            buildup_duration: 0.8,
+            swing_duration: 0.1,
             hit_timing: 0.5,
-            base_recover_duration: 0.8,
-            forward_movement: 1.0,
-            damage_kind: Piercing,
-            damage_effect: Some(Buff((
-                kind: Poisoned,
-                dur_secs: 7.0,
-                strength: DamageFraction(0.6),
-                chance: 0.4,
-            ))),
+            recover_duration: 0.8,
+            movement: (
+                swing: Some(Forward(1.0)),
+            ),
+            ori_modifier: 0.8,
         ),
     ],
-    initial_energy_gain: 0,
-    max_energy_gain: 0,
-    energy_increase: 0,
-    speed_increase: 0.0,
-    max_speed_increase: 0.0,
-    scales_from_combo: 0,
-    ori_modifier: 0.8,
+    energy_cost_per_strike: 0,
 )

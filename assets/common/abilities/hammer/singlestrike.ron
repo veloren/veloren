@@ -1,4 +1,4 @@
-ComboMelee(
+ComboMeleeDeprecated(
     stage_data: [(
         stage: 1,
         base_damage: 15.0,

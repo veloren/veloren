@@ -1,18 +1,14 @@
 use super::{
     super::{vek::*, Animation},
-    BipedSmallSkeleton, SkeletonAttr,
+    biped_small_alpha_axe, biped_small_alpha_dagger, biped_small_alpha_spear,
+    init_biped_small_alpha, BipedSmallSkeleton, SkeletonAttr,
 };
-use common::states::utils::{AbilityInfo, StageSection};
+use common::states::utils::StageSection;
+use std::f32::consts::PI;
 
 pub struct ComboAnimation;
 impl Animation for ComboAnimation {
-    type Dependency<'a> = (
-        Option<&'a str>,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-        usize,
-        Vec2<f32>,
-    );
+    type Dependency<'a> = (Option<&'a str>, StageSection, usize, Vec3<f32>, f32, f32);
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -21,7 +17,7 @@ impl Animation for ComboAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_combo")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, _ability_info, current_strike, _move_dir): Self::Dependency<'_>,
+        (ability_id, stage_section, current_strike, velocity, _global_time, _timer): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -32,7 +28,7 @@ impl Animation for ComboAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
         let multi_strike_pullback = 1.0
-            - if matches!(stage_section, Some(StageSection::Recover)) {
+            - if matches!(stage_section, StageSection::Recover) {
                 anim_time.powi(4)
             } else {
                 0.0
@@ -50,11 +46,11 @@ impl Animation for ComboAnimation {
                 ) => {
                     let (move1, move2) = if strike == current_strike {
                         match stage_section {
-                            Some(StageSection::Buildup) => {
+                            StageSection::Buildup => {
                                 (((anim_time.max(0.4) - 0.4) * 1.5).powf(0.5), 0.0)
                             },
-                            Some(StageSection::Action) => (1.0, (anim_time.min(0.4) * 2.5).powi(2)),
-                            Some(StageSection::Recover) => (1.0, 1.0),
+                            StageSection::Action => (1.0, (anim_time.min(0.4) * 2.5).powi(2)),
+                            StageSection::Recover => (1.0, 1.0),
                             _ => (0.0, 0.0),
                         }
                     } else {
@@ -80,6 +76,68 @@ impl Animation for ComboAnimation {
                         },
                         _ => {},
                     }
+                },
+                Some(
+                    "common.abilities.axesimple.doublestrike"
+                    | "common.abilities.custom.boreal_warrior.hammer",
+                ) => {
+                    let anim_time = anim_time.min(1.0);
+                    let (move1base, move2base, move3) = match stage_section {
+                        StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time.powi(4), 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    let move2abs = move2base * pullback;
+
+                    init_biped_small_alpha(&mut next, s_a);
+                    biped_small_alpha_axe(&mut next, s_a, move1abs, move2abs);
+                },
+                Some("common.abilities.daggersimple.singlestrike") => {
+                    let anim_time = anim_time.min(1.0);
+                    let (move1base, move2base, move3) = match stage_section {
+                        StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time.powi(4), 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    let move2abs = move2base * pullback;
+
+                    init_biped_small_alpha(&mut next, s_a);
+                    biped_small_alpha_dagger(&mut next, s_a, move1abs, move2abs);
+                },
+                Some("common.abilities.spear.doublestrike") => {
+                    let anim_time = anim_time.min(1.0);
+                    let speed = Vec2::<f32>::from(velocity).magnitude();
+                    let speednorm = speed / 9.4;
+                    let speednormcancel = 1.0 - speednorm;
+                    let fast = (anim_time * 10.0).sin();
+                    let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
+
+                    let (move1base, move2base, move3) = match stage_section {
+                        StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time.powi(4), 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    let move2abs = move2base * pullback;
+
+                    init_biped_small_alpha(&mut next, s_a);
+                    biped_small_alpha_spear(
+                        &mut next,
+                        s_a,
+                        move1abs,
+                        move2abs,
+                        fast,
+                        fastalt,
+                        speednormcancel,
+                    );
                 },
                 _ => {},
             }
