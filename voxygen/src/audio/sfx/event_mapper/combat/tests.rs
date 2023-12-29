@@ -1,7 +1,6 @@
 use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
-    combat::DamageKind,
     comp::{
         controller::InputKind, inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind,
         melee, CharacterAbilityType, CharacterState, Item,
