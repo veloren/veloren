@@ -202,7 +202,6 @@ fn maps_roll() {
             was_wielded: true,
             prev_aimed_dir: None,
             is_sneaking: false,
-            was_combo: None,
         }),
         &PhysicsState {
             on_ground: Some(Block::empty()),

@@ -3410,7 +3410,7 @@ impl<'a> AgentData<'a> {
         {
             // If already in dash, keep dashing if not in recover
             controller.push_basic_input(InputKind::Ability(0));
-        } else if matches!(self.char_state, CharacterState::ComboMelee(c) if matches!(c.stage_section, StageSection::Recover))
+        } else if matches!(self.char_state, CharacterState::ComboMelee2(c) if matches!(c.stage_section, StageSection::Recover))
         {
             // If already in combo keep comboing if not in recover
             controller.push_basic_input(InputKind::Primary);

@@ -8,7 +8,7 @@ use common::states::utils::StageSection;
 pub struct AlphaAnimation;
 
 impl Animation for AlphaAnimation {
-    type Dependency<'a> = (f32, f32, Option<StageSection>, f32);
+    type Dependency<'a> = (f32, StageSection, f32);
     type Skeleton = QuadrupedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +17,7 @@ impl Animation for AlphaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_small_alpha")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, stage_section, timer): Self::Dependency<'_>,
+        (global_time, stage_section, timer): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         _s_a: &SkeletonAttr,
@@ -25,9 +25,9 @@ impl Animation for AlphaAnimation {
         let mut next = (*skeleton).clone();
 
         let (movement1base, movement2base, movement3) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0),
-            Some(StageSection::Action) => (1.0, anim_time.powi(4), 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+            StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
+            StageSection::Action => (1.0, anim_time.powi(4), 0.0),
+            StageSection::Recover => (1.0, 1.0, anim_time),
             _ => (0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - movement3;

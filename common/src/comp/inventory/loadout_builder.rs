@@ -705,7 +705,7 @@ fn default_main_tool(body: &Body) -> Item {
             arthropod::Species::Dagonite => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropods.dagonite",
             )),
-            _ => Some(Item::new_from_asset_expect(
+            arthropod::Species::Leafbeetle => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropods.leafbeetle",
             )),
         },

@@ -170,14 +170,14 @@ impl CharacterBehavior for Data {
                     );
 
                     // Build up
-                    update.character = CharacterState::ComboMelee(Data {
+                    update.character = CharacterState::ComboMeleeDeprecated(Data {
                         static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, Some(speed_modifier)),
                         ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
-                    update.character = CharacterState::ComboMelee(Data {
+                    update.character = CharacterState::ComboMeleeDeprecated(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Action,
@@ -194,7 +194,7 @@ impl CharacterBehavior for Data {
                     && !self.exhausted
                 {
                     // Swing
-                    update.character = CharacterState::ComboMelee(Data {
+                    update.character = CharacterState::ComboMeleeDeprecated(Data {
                         static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, None),
                         exhausted: true,
@@ -304,14 +304,14 @@ impl CharacterBehavior for Data {
                     );
 
                     // Swings
-                    update.character = CharacterState::ComboMelee(Data {
+                    update.character = CharacterState::ComboMeleeDeprecated(Data {
                         static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, Some(speed_modifier)),
                         ..*self
                     });
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::ComboMelee(Data {
+                    update.character = CharacterState::ComboMeleeDeprecated(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
@@ -328,7 +328,7 @@ impl CharacterBehavior for Data {
                         None,
                     );
                     // Recovers
-                    update.character = CharacterState::ComboMelee(Data {
+                    update.character = CharacterState::ComboMeleeDeprecated(Data {
                         static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, Some(speed_modifier)),
                         ..*self
@@ -380,7 +380,7 @@ fn reset_state(
         data.static_data.ability_info.input,
     );
 
-    if let CharacterState::ComboMelee(c) = &mut update.character {
+    if let CharacterState::ComboMeleeDeprecated(c) = &mut update.character {
         c.stage = (data.stage % data.static_data.num_stages) + 1;
     }
 }
