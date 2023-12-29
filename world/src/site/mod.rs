@@ -467,6 +467,7 @@ impl SiteKind {
             },
             SiteKind::Dungeon(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Old)),
             SiteKind::Gnarling(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Gnarling)),
+            SiteKind::Adlet(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Adlet)),
             _ => None,
         }
     }

@@ -378,7 +378,18 @@ impl World {
             sim_chunk
                 .sites
                 .iter()
-                .find_map(|site| index.sites[*site].kind.convert_to_meta()),
+                .filter(|id| {
+                    index.sites[**id]
+                        .get_origin()
+                        .distance_squared(chunk_center_wpos2d) as f32
+                        <= index.sites[**id].radius().powi(2)
+                })
+                .min_by_key(|id| {
+                    index.sites[**id]
+                        .get_origin()
+                        .distance_squared(chunk_center_wpos2d)
+                })
+                .map(|id| index.sites[*id].kind.convert_to_meta().unwrap_or_default()),
         );
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);

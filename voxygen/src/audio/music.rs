@@ -165,8 +165,8 @@ pub struct MusicMgr {
     /// The previous track's activity kind, for transitions
     last_activity: MusicState,
     // For debug menu
-    pub current_track: String,
-    pub current_artist: String,
+    current_track: String,
+    current_artist: String,
     track_length: f32,
 }
 
@@ -491,6 +491,17 @@ impl MusicMgr {
         } else {
             DayPeriod::Day
         }
+    }
+
+    pub fn current_track(&self) -> String { self.current_track.clone() }
+
+    pub fn current_artist(&self) -> String { self.current_artist.clone() }
+
+    pub fn reset_track(&mut self) {
+        self.began_playing = Instant::now();
+        self.next_track_change = 0.0;
+        self.current_artist = String::from("None");
+        self.current_track = String::from("None");
     }
 
     /// Loads default soundtrack if no events are active. Otherwise, attempts to

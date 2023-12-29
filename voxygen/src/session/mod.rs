@@ -412,7 +412,7 @@ impl SessionState {
                 client::Event::CharacterCreated(_) => {},
                 client::Event::CharacterEdited(_) => {},
                 client::Event::CharacterError(_) => {},
-                client::Event::CharacterJoined(_) => {},
+                client::Event::CharacterJoined(_) => self.scene.music_mgr.reset_track(),
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
@@ -1493,8 +1493,8 @@ impl PlayState for SessionState {
                     num_particles: self.scene.particle_mgr().particle_count() as u32,
                     num_particles_visible: self.scene.particle_mgr().particle_count_visible()
                         as u32,
-                    current_track: self.scene.music_mgr().current_track.clone(),
-                    current_artist: self.scene.music_mgr().current_artist.clone(),
+                    current_track: self.scene.music_mgr().current_track(),
+                    current_artist: self.scene.music_mgr().current_artist(),
                 }
             });
 

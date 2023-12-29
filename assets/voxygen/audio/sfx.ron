@@ -549,13 +549,6 @@
             threshold: 0.5,
             subtitle: "subtitle-unwield_staff",
         ),
-        Attack(BasicBeam, Staff): (
-            files: [
-                "voxygen.audio.sfx.abilities.flame_thrower",
-            ],
-            threshold: 0.2,
-            subtitle: "subtitle-staff_attack",
-        ),
         //Attack(BasicRanged, Staff): (
         //    files: [
         //        "voxygen.audio.sfx.abilities.staff_channeling",
