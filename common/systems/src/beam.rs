@@ -121,6 +121,10 @@ impl<'a> System<'a> for Sys {
                             sound: Sound::new(SoundKind::Beam, pos.0, 13.0, read_data.time.0),
                         });
                     }
+                    outcomes.push(Outcome::Beam {
+                        pos: pos.0,
+                        specifier: beam.specifier,
+                    });
 
                     // Group to ignore collisions with
                     // Might make this more nuanced if beams are used for non damage effects
