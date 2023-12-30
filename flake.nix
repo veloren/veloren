@@ -49,7 +49,6 @@
       };
   in
     inp.parts.lib.mkFlake {inputs = inp;} {
-      debug = true;
       imports = [inp.nci.flakeModule];
       systems = ["x86_64-linux"];
       perSystem = {
