@@ -124,6 +124,8 @@
             if [ $? -ne 0 ]; then
               exit 1
             fi
+            export VELOREN_GIT_VERSION="${git.prettyRev}"
+            export VELOREN_GIT_TAG="${git.tag}"
           '';
         });
 
