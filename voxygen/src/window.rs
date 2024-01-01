@@ -1360,7 +1360,7 @@ impl Window {
                     .unwrap_or(0)
             ));
             // Try to save the image
-            if let Err(e) = image.into_rgba8().save(&path) {
+            if let Err(e) = image.into_rgb8().save(&path) {
                 warn!(?e, "Couldn't save screenshot");
                 let _result = sender.send(String::from("Couldn't save screenshot"));
             } else {
