@@ -331,6 +331,7 @@ pub enum ServerChatCommand {
     GroupKick,
     GroupLeave,
     GroupPromote,
+    Heal,
     Health,
     Help,
     JoinFaction,
@@ -563,6 +564,11 @@ impl ServerChatCommand {
                 vec![PlayerName(Required)],
                 "Promote a player to group leader",
                 None,
+            ),
+            ServerChatCommand::Heal => cmd(
+                vec![], // 参数
+                "Heal the player to full health", // 描述
+                Some(Admin), // 权限要求
             ),
             ServerChatCommand::Health => cmd(
                 vec![Integer("hp", 100, Required)],
@@ -952,6 +958,7 @@ impl ServerChatCommand {
             ServerChatCommand::GroupKick => "group_kick",
             ServerChatCommand::GroupPromote => "group_promote",
             ServerChatCommand::GroupLeave => "group_leave",
+            ServerChatCommand::Heal => "heal",
             ServerChatCommand::Health => "health",
             ServerChatCommand::Help => "help",
             ServerChatCommand::Respawn => "respawn",

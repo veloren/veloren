@@ -70,6 +70,7 @@ use world::util::{Sampler, LOCALITY};
 
 use common::comp::Alignment;
 use tracing::{error, info, warn};
+use common::comp::item::ItemDesc;
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: Vec<String>);
@@ -151,6 +152,7 @@ fn do_command(
         ServerChatCommand::GroupKick => handle_group_kick,
         ServerChatCommand::GroupLeave => handle_group_leave,
         ServerChatCommand::GroupPromote => handle_group_promote,
+        ServerChatCommand::Heal => handle_heal,
         ServerChatCommand::Health => handle_health,
         ServerChatCommand::Help => handle_help,
         ServerChatCommand::Respawn => handle_respawn,
@@ -1199,6 +1201,36 @@ fn handle_time_scale(
         );
     }
     Ok(())
+}
+
+fn handle_heal(
+    server: &mut Server,
+    entity: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    // 在这里实现命令的逻辑
+    if let Some(mut health) = server
+        .state
+        .ecs()
+        .write_storage::<comp::Health>()
+        .get_mut(target)
+    {
+        let time = server.state.ecs().read_resource::<Time>();
+        let change = comp::HealthChange {
+            amount: 100.0 - health.current(),
+            by: None,
+            cause: None,
+            precise: false,
+            time: *time,
+            instance: rand::random(),
+        };
+        health.change_by(change);
+        Ok(())
+    } else {
+        Err("You have no health".into())
+    }
 }
 
 fn handle_health(
