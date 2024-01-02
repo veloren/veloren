@@ -26,8 +26,7 @@ use common::{
     },
     comp::{
         self,
-        aura::{Aura, AuraKind, AuraTarget},
-        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffData, BuffKind, BuffSource},
         inventory::{
             item::{tool::AbilityMap, MaterialStatManifest, Quality},
             slot::Slot,
@@ -1941,44 +1940,11 @@ fn handle_spawn_campfire(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
-    let time = server.state.get_time();
     server
         .state
-        .create_object(pos, comp::object::Body::CampfireLit)
-        .with(LightEmitter {
-            col: Rgb::new(1.0, 0.65, 0.2),
-            strength: 2.0,
-            flicker: 1.0,
-            animated: true,
-        })
-        .with(WaypointArea::default())
-        .with(comp::Auras::new(vec![
-            Aura::new(
-                AuraKind::Buff {
-                    kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(Secs(1.0))),
-                    category: BuffCategory::Natural,
-                    source: BuffSource::World,
-                },
-                5.0,
-                None,
-                AuraTarget::All,
-                Time(time),
-            ),
-            Aura::new(
-                AuraKind::Buff {
-                    kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(Secs(10.0))),
-                    category: BuffCategory::Natural,
-                    source: BuffSource::World,
-                },
-                0.7,
-                None,
-                AuraTarget::All,
-                Time(time),
-            ),
-        ]))
-        .build();
+        .ecs()
+        .read_resource::<EventBus<ServerEvent>>()
+        .emit_now(ServerEvent::CreateWaypoint(pos.0));
 
     server.notify_client(
         client,

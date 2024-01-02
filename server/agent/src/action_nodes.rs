@@ -594,7 +594,10 @@ impl<'a> AgentData<'a> {
         tgt_pos: &Pos,
     ) {
         if read_data.is_riders.contains(*self.entity)
-            || read_data.is_volume_riders.contains(*self.entity)
+            || read_data
+                .is_volume_riders
+                .get(*self.entity)
+                .map_or(false, |r| !r.is_steering_entity())
         {
             controller.push_event(ControlEvent::Unmount);
         }
@@ -652,7 +655,10 @@ impl<'a> AgentData<'a> {
         const MAX_FLEE_SPEED: f32 = 0.65;
 
         if read_data.is_riders.contains(*self.entity)
-            || read_data.is_volume_riders.contains(*self.entity)
+            || read_data
+                .is_volume_riders
+                .get(*self.entity)
+                .map_or(false, |r| !r.is_steering_entity())
         {
             controller.push_event(ControlEvent::Unmount);
         }
