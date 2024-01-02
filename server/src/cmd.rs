@@ -26,8 +26,7 @@ use common::{
     },
     comp::{
         self,
-        aura::{Aura, AuraKind, AuraTarget},
-        buff::{Buff, BuffCategory, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffData, BuffKind, BuffSource},
         inventory::{
             item::{tool::AbilityMap, MaterialStatManifest, Quality},
             slot::Slot,
