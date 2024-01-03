@@ -16,6 +16,7 @@ pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};
 use chrono::Utc;
 use common::{
     calendar::{Calendar, CalendarEvent},
+    consts::DAY_LENGTH_DEFAULT,
     resources::BattleMode,
     rtsim::WorldSettings,
 };
@@ -205,7 +206,7 @@ impl Default for Settings {
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Server".into(),
             max_players: 100,
-            day_length: 30.0,
+            day_length: DAY_LENGTH_DEFAULT,
             start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),

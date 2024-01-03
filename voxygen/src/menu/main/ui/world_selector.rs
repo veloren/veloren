@@ -47,6 +47,7 @@ pub struct Screen {
 
     world_name: text_input::State,
     map_seed: text_input::State,
+    day_length: slider::State,
     random_seed_button: button::State,
     world_size_x: slider::State,
     world_size_y: slider::State,
@@ -196,6 +197,9 @@ impl Screen {
             const SLIDER_BAR_PAD: u16 = 0;
             // Height of interactable area
             const SLIDER_HEIGHT: u16 = 30;
+            // Day length slider values
+            pub const DAY_LENGTH_MIN: f64 = 10.0;
+            pub const DAY_LENGTH_MAX: f64 = 60.0;
 
             let mut gen_content = vec![
                 BackgroundContainer::new(
@@ -288,6 +292,42 @@ impl Screen {
             gen_content.push(Row::with_children(seed_content).into());
 
             if let Some(gen_opts) = world.gen_opts.as_ref() {
+                // Day length setting label
+                gen_content.push(
+                    Text::new(format!(
+                        "{}: {}",
+                        i18n.get_msg("main-singleplayer-day_length"),
+                        world.day_length
+                    ))
+                    .size(SLIDER_TEXT_SIZE)
+                    .horizontal_alignment(iced::HorizontalAlignment::Center)
+                    .into(),
+                );
+
+                // Day length setting slider
+                if can_edit {
+                    gen_content.push(
+                        Row::with_children(vec![
+                            Slider::new(
+                                &mut self.day_length,
+                                DAY_LENGTH_MIN..=DAY_LENGTH_MAX,
+                                world.day_length,
+                                move |d| message(WorldChange::DayLength(d)),
+                            )
+                            .height(SLIDER_HEIGHT)
+                            .style(style::slider::Style::images(
+                                imgs.slider_indicator,
+                                imgs.slider_range,
+                                SLIDER_BAR_PAD,
+                                SLIDER_CURSOR_SIZE,
+                                SLIDER_BAR_HEIGHT,
+                            ))
+                            .into(),
+                        ])
+                        .into(),
+                    )
+                }
+
                 gen_content.push(
                     Text::new(format!(
                         "{}: x: {}, y: {}",

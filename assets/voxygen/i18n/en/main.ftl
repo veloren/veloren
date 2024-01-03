@@ -7,30 +7,30 @@ main-tip = Tip:
 main-unbound_key_tip = unbound
 main-notice =
     Welcome to the alpha version of Veloren!
-    
+
     Before you dive into the fun, please keep a few things in mind:
-    
+
     - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
-    
+
     - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
-    
+
     - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
      you wish (provided derived work is also under GPL 3).
-    
+
     - Veloren is a non-profit community project, and everybody working on it is a volunteer.
     If you like what you see, you're welcome to join the development or art teams!
-    
+
     Thanks for taking the time to read this notice, we hope you enjoy the game!
-    
+
     ~ The Veloren Devs
 main-login_process =
     Information on the Login Process:
-    
+
     Please note that you need an account
     to play on auth-enabled servers.
-    
+
     You can create an account over at
-    
+
     https://veloren.net/account/.
 main-singleplayer-new = New
 main-singleplayer-delete = Delete
@@ -38,6 +38,7 @@ main-singleplayer-regenerate = Regenerate
 main-singleplayer-create_custom = Create Custom
 main-singleplayer-invalid_name = Error: Invalid name
 main-singleplayer-seed = Seed
+main-singleplayer-day_length = Day duration
 main-singleplayer-random_seed = Random
 main-singleplayer-size_lg = Logarithmic size
 main-singleplayer-map_large_warning = Warning: Large worlds will take a long time to start for the first time
