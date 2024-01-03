@@ -364,6 +364,7 @@ impl BuffKind {
                 },
             ],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
+            //TODO: Handle potion sickness in a more general way.
             BuffKind::PotionSickness => vec![
                 BuffEffect::HealReduction(data.strength),
                 BuffEffect::MoveSpeedReduction(data.strength),
