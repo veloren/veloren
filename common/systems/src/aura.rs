@@ -12,7 +12,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData, World,
+    shred, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData,
 };
 
 #[derive(SystemData)]

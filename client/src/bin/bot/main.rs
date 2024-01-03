@@ -73,6 +73,7 @@ pub fn make_client(
             password,
             |_| true,
             &|_| {},
+            |_| {},
         ))
         .ok()
 }
@@ -99,7 +100,7 @@ impl BotClient {
         for (username, client) in self.bot_clients.iter_mut() {
             trace!(?username, "tick");
             let _msgs: Result<Vec<veloren_client::Event>, veloren_client::Error> =
-                client.tick(comp::ControllerInputs::default(), self.clock.dt(), |_| {});
+                client.tick(comp::ControllerInputs::default(), self.clock.dt());
         }
     }
 

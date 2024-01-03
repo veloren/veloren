@@ -35,13 +35,14 @@ const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
         panic!("Default world chunk size does not satisfy required invariants.");
     };
 
-pub fn setup() -> State {
+pub fn setup(add_systems: impl Fn(&mut specs::DispatcherBuilder)) -> State {
     let pools = State::pools(GameMode::Server);
     let mut state = State::new(
         GameMode::Server,
         pools,
         DEFAULT_WORLD_CHUNKS_LG,
         Arc::new(TerrainChunk::water(0)),
+        add_systems,
     );
     state.ecs_mut().insert(MaterialStatManifest::with_empty());
     state.ecs_mut().insert(AbilityMap::load().cloned());
@@ -55,14 +56,14 @@ pub fn setup() -> State {
 
     state
 }
+pub fn add_char_and_phys_systems(dispatch_builder: &mut specs::DispatcherBuilder) {
+    dispatch::<character_behavior::Sys>(dispatch_builder, &[]);
+    dispatch::<phys::Sys>(dispatch_builder, &[&character_behavior::Sys::sys_name()]);
+}
 
 pub fn tick(state: &mut State, dt: Duration) {
     state.tick(
         dt,
-        |dispatch_builder| {
-            dispatch::<character_behavior::Sys>(dispatch_builder, &[]);
-            dispatch::<phys::Sys>(dispatch_builder, &[&character_behavior::Sys::sys_name()]);
-        },
         false,
         None,
         &ServerConstants {

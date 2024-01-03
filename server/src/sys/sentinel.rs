@@ -11,10 +11,7 @@ use common_net::{
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, NetSync, SyncFrom, UpdateTracker},
 };
 use hashbrown::HashMap;
-use specs::{
-    shred::ResourceId, Entity as EcsEntity, Join, ReadExpect, ReadStorage, SystemData, World,
-    WriteExpect,
-};
+use specs::{shred, Entity as EcsEntity, Join, ReadExpect, ReadStorage, SystemData, WriteExpect};
 use vek::*;
 
 /// Always watching

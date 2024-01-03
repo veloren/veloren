@@ -27,8 +27,8 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use specs::{
-    shred::ResourceId, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
-    World,
+    shred, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage,
+    SystemData,
 };
 
 // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate

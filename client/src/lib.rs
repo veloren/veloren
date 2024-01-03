@@ -307,6 +307,7 @@ impl Client {
         password: &str,
         auth_trusted: impl FnMut(&str) -> bool,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
+        add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), &runtime);
 
@@ -409,7 +410,13 @@ impl Client {
 
             // Initialize `State`
             let pools = State::pools(GameMode::Client);
-            let mut state = State::client(pools, map_size_lg, world_map.default_chunk);
+            let mut state = State::client(pools, map_size_lg, world_map.default_chunk,
+                // TODO: Add frontend systems
+                |dispatch_builder| {
+                    add_local_systems(dispatch_builder);
+                    add_foreign_systems(dispatch_builder);
+                },
+            );
             // Client-only components
             state.ecs_mut().register::<comp::Last<CharacterState>>();
             let entity = state.ecs_mut().apply_entity_package(entity_package);
@@ -1800,7 +1807,6 @@ impl Client {
         &mut self,
         inputs: ControllerInputs,
         dt: Duration,
-        add_foreign_systems: impl Fn(&mut DispatcherBuilder),
     ) -> Result<Vec<Event>, Error> {
         span!(_guard, "tick", "Client::tick");
         // This tick function is the centre of the Veloren universe. Most client-side
@@ -1902,10 +1908,6 @@ impl Client {
         // 4) Tick the client's LocalState
         self.state.tick(
             Duration::from_secs_f64(dt.as_secs_f64() * self.dt_adjustment),
-            |dispatch_builder| {
-                add_local_systems(dispatch_builder);
-                add_foreign_systems(dispatch_builder);
-            },
             true,
             None,
             &self.connected_server_constants,
@@ -3011,6 +3013,7 @@ mod tests {
             password,
             |suggestion: &str| suggestion == auth_server,
             &|_| {},
+            |_| {},
         ));
         let localisation = LocalizationHandle::load_expect("en");
 
@@ -3020,7 +3023,7 @@ mod tests {
 
             //tick
             let events_result: Result<Vec<Event>, Error> =
-                client.tick(ControllerInputs::default(), clock.dt(), |_| {});
+                client.tick(ControllerInputs::default(), clock.dt());
 
             //chat functionality
             client.send_chat("foobar".to_string());

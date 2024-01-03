@@ -306,6 +306,16 @@ impl Server {
             pools,
             world.sim().map_size_lg(),
             Arc::clone(&map.default_chunk),
+            |dispatcher_builder| {
+                add_local_systems(dispatcher_builder);
+                sys::msg::add_server_systems(dispatcher_builder);
+                sys::add_server_systems(dispatcher_builder);
+                #[cfg(feature = "worldgen")]
+                {
+                    rtsim::add_server_systems(dispatcher_builder);
+                    weather::add_server_systems(dispatcher_builder);
+                }
+            },
         );
         state.ecs_mut().insert(battlemode_buffer);
         state.ecs_mut().insert(settings.clone());
@@ -752,6 +762,7 @@ impl Server {
         let mut state_tick_metrics = Default::default();
         self.state.tick(
             dt,
+            /*
             |dispatcher_builder| {
                 add_local_systems(dispatcher_builder);
                 sys::msg::add_server_systems(dispatcher_builder);
@@ -762,6 +773,7 @@ impl Server {
                     weather::add_server_systems(dispatcher_builder);
                 }
             },
+            */
             false,
             Some(&mut state_tick_metrics),
             &self.server_constants,

@@ -10,7 +10,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World,
+    shred, Entities, Join, Read, ReadExpect, ReadStorage, SystemData,
     WriteStorage,
 };
 use vek::*;
