@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A tavern building where npcs go to relax.
 - Toggle for walking instead of running (Default: `I`).
 - Added day duration slider configuration on map creation UI.
+- Potion of Agility
 
 ### Changed
 
