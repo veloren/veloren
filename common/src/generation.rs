@@ -1,5 +1,6 @@
 use crate::{
     assets::{self, AssetExt, Error},
+    calendar::Calendar,
     comp::{
         self, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
@@ -8,6 +9,7 @@ use crate::{
     },
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
+    resources::TimeOfDay,
     rtsim,
     trade::SiteInformation,
 };
@@ -97,8 +99,11 @@ pub enum Meta {
 /// let dummy_position = Vec3::new(0.0, 0.0, 0.0);
 /// // rng is required because some elements may be randomly generated
 /// let mut dummy_rng = rand::thread_rng();
-/// let entity =
-///     EntityInfo::at(dummy_position).with_asset_expect("common.entity.template", &mut dummy_rng);
+/// let entity = EntityInfo::at(dummy_position).with_asset_expect(
+///     "common.entity.template",
+///     &mut dummy_rng,
+///     None,
+/// );
 /// ```
 #[derive(Debug, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
@@ -189,7 +194,13 @@ pub struct EntityInfo {
     // Loadout
     pub inventory: Vec<(u32, Item)>,
     pub loadout: LoadoutBuilder,
-    pub make_loadout: Option<fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder>,
+    pub make_loadout: Option<
+        fn(
+            LoadoutBuilder,
+            Option<&SiteInformation>,
+            time: Option<&(TimeOfDay, Calendar)>,
+        ) -> LoadoutBuilder,
+    >,
     // Skills
     pub skillset_asset: Option<String>,
 
@@ -234,13 +245,18 @@ impl EntityInfo {
     /// Helper function for applying config from asset
     /// with specified Rng for managing loadout.
     #[must_use]
-    pub fn with_asset_expect<R>(self, asset_specifier: &str, loadout_rng: &mut R) -> Self
+    pub fn with_asset_expect<R>(
+        self,
+        asset_specifier: &str,
+        loadout_rng: &mut R,
+        time: Option<&(TimeOfDay, Calendar)>,
+    ) -> Self
     where
         R: rand::Rng,
     {
         let config = EntityConfig::load_expect_cloned(asset_specifier);
 
-        self.with_entity_config(config, Some(asset_specifier), loadout_rng)
+        self.with_entity_config(config, Some(asset_specifier), loadout_rng, time)
     }
 
     /// Evaluate and apply EntityConfig
@@ -250,6 +266,7 @@ impl EntityInfo {
         config: EntityConfig,
         config_asset: Option<&str>,
         loadout_rng: &mut R,
+        time: Option<&(TimeOfDay, Calendar)>,
     ) -> Self
     where
         R: rand::Rng,
@@ -297,7 +314,7 @@ impl EntityInfo {
         self = self.with_loot_drop(loot);
 
         // NOTE: set loadout after body, as it's used with default equipement
-        self = self.with_inventory(inventory, config_asset, loadout_rng);
+        self = self.with_inventory(inventory, config_asset, loadout_rng, time);
 
         // Prefer the new configuration, if possible
         let AgentConfig {
@@ -330,6 +347,7 @@ impl EntityInfo {
         inventory: InventorySpec,
         config_asset: Option<&str>,
         rng: &mut R,
+        time: Option<&(TimeOfDay, Calendar)>,
     ) -> Self
     where
         R: rand::Rng,
@@ -350,14 +368,14 @@ impl EntityInfo {
                 self = self.with_default_equip();
             },
             LoadoutKind::Asset(loadout) => {
-                let loadout = LoadoutBuilder::from_asset(&loadout, rng).unwrap_or_else(|e| {
+                let loadout = LoadoutBuilder::from_asset(&loadout, rng, time).unwrap_or_else(|e| {
                     panic!("failed to load loadout for {config_asset}: {e:?}");
                 });
                 self.loadout = loadout;
             },
             LoadoutKind::Inline(loadout_spec) => {
-                let loadout =
-                    LoadoutBuilder::from_loadout_spec(*loadout_spec, rng).unwrap_or_else(|e| {
+                let loadout = LoadoutBuilder::from_loadout_spec(*loadout_spec, rng, time)
+                    .unwrap_or_else(|e| {
                         panic!("failed to load loadout for {config_asset}: {e:?}");
                     });
                 self.loadout = loadout;
@@ -436,7 +454,11 @@ impl EntityInfo {
     #[must_use]
     pub fn with_lazy_loadout(
         mut self,
-        creator: fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder,
+        creator: fn(
+            LoadoutBuilder,
+            Option<&SiteInformation>,
+            time: Option<&(TimeOfDay, Calendar)>,
+        ) -> LoadoutBuilder,
     ) -> Self {
         self.make_loadout = Some(creator);
         self
@@ -469,6 +491,7 @@ impl EntityInfo {
             Body::Golem(body) => Some(get_npc_name(&npc_names.golem, body.species)),
             Body::BipedLarge(body) => Some(get_npc_name(&npc_names.biped_large, body.species)),
             Body::Arthropod(body) => Some(get_npc_name(&npc_names.arthropod, body.species)),
+            Body::Crustacean(body) => Some(get_npc_name(&npc_names.crustacean, body.species)),
             _ => None,
         };
         self.name = name.map(|name| {

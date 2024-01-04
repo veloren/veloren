@@ -95,7 +95,7 @@ pub enum CharacterState {
     DashMelee(dash_melee::Data),
     /// A three-stage attack where each attack pushes player forward
     /// and successive attacks increase in damage, while player holds button.
-    ComboMelee(combo_melee::Data),
+    ComboMeleeDeprecated(combo_melee::Data),
     /// A state where you progress through multiple melee attacks
     ComboMelee2(combo_melee2::Data),
     /// A leap followed by a small aoe ground attack
@@ -154,7 +154,7 @@ impl CharacterState {
                 | CharacterState::BasicMelee(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
-                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMeleeDeprecated(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
@@ -220,7 +220,7 @@ impl CharacterState {
             CharacterState::BasicMelee(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
-                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMeleeDeprecated(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::LeapShockwave(_)
@@ -247,7 +247,7 @@ impl CharacterState {
             CharacterState::BasicMelee(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
-                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMeleeDeprecated(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
@@ -377,7 +377,7 @@ impl CharacterState {
 
     pub fn is_forced_movement(&self) -> bool {
         matches!(self,
-            CharacterState::ComboMelee(s) if s.stage_section == StageSection::Action)
+            CharacterState::ComboMeleeDeprecated(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
@@ -403,7 +403,7 @@ impl CharacterState {
                 | CharacterState::Wielding(_)
                 | CharacterState::BasicMelee(_)
                 | CharacterState::BasicRanged(_)
-                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMeleeDeprecated(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
@@ -458,7 +458,7 @@ impl CharacterState {
             CharacterState::Roll(data) => data.behavior(j, output_events),
             CharacterState::Wielding(data) => data.behavior(j, output_events),
             CharacterState::Equipping(data) => data.behavior(j, output_events),
-            CharacterState::ComboMelee(data) => data.behavior(j, output_events),
+            CharacterState::ComboMeleeDeprecated(data) => data.behavior(j, output_events),
             CharacterState::ComboMelee2(data) => data.behavior(j, output_events),
             CharacterState::BasicMelee(data) => data.behavior(j, output_events),
             CharacterState::BasicRanged(data) => data.behavior(j, output_events),
@@ -511,7 +511,9 @@ impl CharacterState {
             CharacterState::Roll(data) => data.handle_event(j, output_events, action),
             CharacterState::Wielding(data) => data.handle_event(j, output_events, action),
             CharacterState::Equipping(data) => data.handle_event(j, output_events, action),
-            CharacterState::ComboMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::ComboMeleeDeprecated(data) => {
+                data.handle_event(j, output_events, action)
+            },
             CharacterState::ComboMelee2(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicRanged(data) => data.handle_event(j, output_events, action),
@@ -564,7 +566,7 @@ impl CharacterState {
             CharacterState::Roll(data) => Some(data.static_data.ability_info),
             CharacterState::Wielding(_) => None,
             CharacterState::Equipping(_) => None,
-            CharacterState::ComboMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::ComboMeleeDeprecated(data) => Some(data.static_data.ability_info),
             CharacterState::ComboMelee2(data) => Some(data.static_data.ability_info),
             CharacterState::BasicMelee(data) => Some(data.static_data.ability_info),
             CharacterState::BasicRanged(data) => Some(data.static_data.ability_info),
@@ -608,7 +610,7 @@ impl CharacterState {
             CharacterState::Roll(data) => Some(data.stage_section),
             CharacterState::Equipping(_) => Some(StageSection::Buildup),
             CharacterState::Wielding(_) => None,
-            CharacterState::ComboMelee(data) => Some(data.stage_section),
+            CharacterState::ComboMeleeDeprecated(data) => Some(data.stage_section),
             CharacterState::ComboMelee2(data) => Some(data.stage_section),
             CharacterState::BasicMelee(data) => Some(data.stage_section),
             CharacterState::BasicRanged(data) => Some(data.stage_section),
@@ -668,7 +670,7 @@ impl CharacterState {
                 buildup: Some(data.static_data.buildup_duration),
                 ..Default::default()
             }),
-            CharacterState::ComboMelee(data) => {
+            CharacterState::ComboMeleeDeprecated(data) => {
                 let stage_index = data.stage_index();
                 let stage = data.static_data.stage_data[stage_index];
                 Some(DurationsInfo {
@@ -840,7 +842,7 @@ impl CharacterState {
             CharacterState::Roll(data) => Some(data.timer),
             CharacterState::Wielding(_) => None,
             CharacterState::Equipping(data) => Some(data.timer),
-            CharacterState::ComboMelee(data) => Some(data.timer),
+            CharacterState::ComboMeleeDeprecated(data) => Some(data.timer),
             CharacterState::ComboMelee2(data) => Some(data.timer),
             CharacterState::BasicMelee(data) => Some(data.timer),
             CharacterState::BasicRanged(data) => Some(data.timer),
@@ -884,7 +886,7 @@ impl CharacterState {
             CharacterState::Roll(_) => None,
             CharacterState::Wielding(_) => None,
             CharacterState::Equipping(_) => None,
-            CharacterState::ComboMelee(_) => Some(AttackSource::Melee),
+            CharacterState::ComboMeleeDeprecated(_) => Some(AttackSource::Melee),
             CharacterState::ComboMelee2(_) => Some(AttackSource::Melee),
             CharacterState::BasicMelee(_) => Some(AttackSource::Melee),
             CharacterState::BasicRanged(data) => {
@@ -986,6 +988,10 @@ pub struct CharacterActivity {
     /// `None` means that the look direction should be derived from the
     /// orientation
     pub look_dir: Option<Dir>,
+    /// If the character is using a Helm, this is the y direction the
+    /// character steering. If the character is not steering this is
+    /// a stale value.
+    pub steer_dir: f32,
     /// If true, the owner has set this pet to stay at a fixed location and
     /// to not engage in combat
     pub is_pet_staying: bool,

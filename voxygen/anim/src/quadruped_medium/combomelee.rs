@@ -1,19 +1,12 @@
 use super::{
     super::{vek::*, Animation},
-    QuadrupedMediumSkeleton, SkeletonAttr,
+    quadruped_medium_alpha, quadruped_medium_beta, QuadrupedMediumSkeleton, SkeletonAttr,
 };
-use common::states::utils::{AbilityInfo, StageSection};
+use common::states::utils::StageSection;
 
 pub struct ComboAnimation;
 impl Animation for ComboAnimation {
-    type Dependency<'a> = (
-        Option<&'a str>,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-        usize,
-        f32,
-        f32,
-    );
+    type Dependency<'a> = (Option<&'a str>, StageSection, usize, f32, f32, f32);
     type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -22,16 +15,18 @@ impl Animation for ComboAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_combo")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, _ability_info, current_strike, global_time, timer): Self::Dependency<'_>,
+        (ability_id, stage_section, current_strike, speed, global_time, timer): Self::Dependency<
+            '_,
+        >,
         anim_time: f32,
         rate: &mut f32,
-        _s_a: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
         let _multi_strike_pullback = 1.0
-            - if matches!(stage_section, Some(StageSection::Recover)) {
+            - if matches!(stage_section, StageSection::Recover) {
                 anim_time.powi(4)
             } else {
                 0.0
@@ -44,9 +39,9 @@ impl Animation for ComboAnimation {
                     | "common.abilities.custom.frostfang.triplestrike",
                 ) => {
                     let (movement1base, movement2base, movement3) = match stage_section {
-                        Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0),
-                        Some(StageSection::Action) => (1.0, anim_time.powi(4), 0.0),
-                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time.powi(4), 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time),
                         _ => (0.0, 0.0, 0.0),
                     };
                     let pullback = 1.0 - movement3;
@@ -100,6 +95,77 @@ impl Animation for ComboAnimation {
                         },
                         _ => {},
                     }
+                },
+                Some("common.abilities.custom.quadmedbasic.singlestrike") => match strike {
+                    0 => {
+                        quadruped_medium_alpha(
+                            &mut next,
+                            s_a,
+                            speed,
+                            stage_section,
+                            anim_time,
+                            global_time,
+                            timer,
+                        );
+                    },
+                    _ => {},
+                },
+                Some(
+                    "common.abilities.custom.quadmedbasic.triplestrike"
+                    | "common.abilities.custom.quadmedquick.triplestrike",
+                ) => match strike {
+                    0 | 2 => {
+                        quadruped_medium_alpha(
+                            &mut next,
+                            s_a,
+                            speed,
+                            stage_section,
+                            anim_time,
+                            global_time,
+                            timer,
+                        );
+                    },
+                    1 => {
+                        quadruped_medium_beta(
+                            &mut next,
+                            s_a,
+                            speed,
+                            stage_section,
+                            anim_time,
+                            global_time,
+                            timer,
+                        );
+                    },
+                    _ => {},
+                },
+                Some(
+                    "common.abilities.custom.quadmedcharge.doublestrike"
+                    | "common.abilities.custom.quadmedjump.doublestrike"
+                    | "common.abilities.custom.roshwalr.doublehusk",
+                ) => match strike {
+                    0 => {
+                        quadruped_medium_alpha(
+                            &mut next,
+                            s_a,
+                            speed,
+                            stage_section,
+                            anim_time,
+                            global_time,
+                            timer,
+                        );
+                    },
+                    1 => {
+                        quadruped_medium_beta(
+                            &mut next,
+                            s_a,
+                            speed,
+                            stage_section,
+                            anim_time,
+                            global_time,
+                            timer,
+                        );
+                    },
+                    _ => {},
                 },
                 _ => {},
             }

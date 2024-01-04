@@ -59,6 +59,7 @@ pub enum Gameplay {
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
     AdjustCameraClamp(u32),
+    AdjustWalkingSpeed(f32),
 
     ToggleControllerYInvert(bool),
     ToggleMouseYInvert(bool),
@@ -68,6 +69,7 @@ pub enum Gameplay {
 
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
+    ChangeWalkingSpeedBehavior(PressBehavior),
     ChangeCameraClampBehavior(PressBehavior),
     ChangeZoomLockBehavior(AutoPressBehavior),
     ChangeStopAutoWalkOnInput(bool),
@@ -379,6 +381,9 @@ impl SettingsChange {
                     Gameplay::AdjustCameraClamp(angle) => {
                         settings.gameplay.camera_clamp_angle = angle;
                     },
+                    Gameplay::AdjustWalkingSpeed(speed) => {
+                        settings.gameplay.walking_speed = speed;
+                    },
                     Gameplay::ToggleControllerYInvert(controller_y_inverted) => {
                         window.controller_settings.pan_invert_y = controller_y_inverted;
                         settings.controller.pan_invert_y = controller_y_inverted;
@@ -399,6 +404,9 @@ impl SettingsChange {
                     },
                     Gameplay::ChangeAutoWalkBehavior(behavior) => {
                         settings.gameplay.auto_walk_behavior = behavior;
+                    },
+                    Gameplay::ChangeWalkingSpeedBehavior(behavior) => {
+                        settings.gameplay.walking_speed_behavior = behavior;
                     },
                     Gameplay::ChangeCameraClampBehavior(behavior) => {
                         settings.gameplay.camera_clamp_behavior = behavior;

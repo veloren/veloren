@@ -2,7 +2,7 @@ use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
         character_state::{AttackFilters, OutputEvents},
-        CharacterState, InputKind, StateUpdate,
+        CharacterState, StateUpdate,
     },
     event::ServerEvent,
     states::{
@@ -46,8 +46,6 @@ pub struct Data {
     pub prev_aimed_dir: Option<Dir>,
     /// Is sneaking, true if previous state was also considered sneaking
     pub is_sneaking: bool,
-    /// Was in state with combo
-    pub was_combo: Option<(InputKind, u32)>,
 }
 
 impl CharacterBehavior for Data {
@@ -126,20 +124,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if let Some((input, stage)) = self.was_combo {
-                        if input_is_pressed(data, input) {
-                            handle_input(data, output_events, &mut update, input);
-                            // If other states are introduced that progress through stages, add them
-                            // here
-                            if let CharacterState::ComboMelee(c) = &mut update.character {
-                                c.stage = stage;
-                            }
-                        } else {
-                            end_ability(data, &mut update);
-                        }
-                    } else {
-                        end_ability(data, &mut update);
-                    }
+                    end_ability(data, &mut update);
                 }
             },
             _ => {

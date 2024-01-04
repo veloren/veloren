@@ -1,5 +1,3 @@
-pub mod alpha;
-pub mod beta;
 pub mod combomelee;
 pub mod dash;
 pub mod feed;
@@ -13,14 +11,16 @@ pub mod stunned;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, combomelee::ComboAnimation, dash::DashAnimation,
-    feed::FeedAnimation, hoof::HoofAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    leapmelee::LeapMeleeAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
-    stunned::StunnedAnimation,
+    combomelee::ComboAnimation, dash::DashAnimation, feed::FeedAnimation, hoof::HoofAnimation,
+    idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation, run::RunAnimation,
+    shockwave::ShockwaveAnimation, stunned::StunnedAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
-use common::comp::{self};
+use common::{
+    comp::{self},
+    states::utils::StageSection,
+};
 use core::convert::TryFrom;
 
 pub type Body = comp::quadruped_medium::Body;
@@ -512,7 +512,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Highland, _) => (5.5, -2.5, 0.0),
                 (Yak, _) => (4.5, -2.0, -1.5),
                 (Panda, _) => (7.5, -5.5, -2.0),
-                (Bear, _) => (3.5, -4.5, -3.5),
+                (Bear, _) => (5.5, -4.5, -3.5),
                 (Dreadhorn, _) => (8.5, -7.0, -0.5),
                 (Moose, _) => (5.5, -4.0, 1.0),
                 (Snowleopard, _) => (6.5, -4.0, -2.5),
@@ -796,4 +796,160 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Bristleback, _) => (0.0, -9.0, 3.0),
     }
     .into()
+}
+
+pub fn quadruped_medium_alpha(
+    next: &mut QuadrupedMediumSkeleton,
+    s_a: &SkeletonAttr,
+    speed: f32,
+    stage_section: StageSection,
+    anim_time: f32,
+    global_time: f32,
+    timer: f32,
+) {
+    let speed = (Vec2::<f32>::from(speed).magnitude()).min(24.0);
+
+    let (movement1base, movement2base, movement3) = match stage_section {
+        StageSection::Buildup => (anim_time.powf(0.25), 0.0, 0.0),
+        StageSection::Action => (1.0, anim_time.powf(0.25), 0.0),
+        StageSection::Recover => (1.0, 1.0, anim_time.powi(4)),
+        _ => (0.0, 0.0, 0.0),
+    };
+    let pullback = 1.0 - movement3;
+    let subtract = global_time - timer;
+    let check = subtract - subtract.trunc();
+    let mirror = (check - 0.5).signum();
+    let movement1 = movement1base * mirror * pullback;
+    let movement1abs = movement1base * pullback;
+    let movement2 = movement2base * mirror * pullback;
+    let movement2abs = movement2base * pullback;
+    let twitch1 = (movement1 * 10.0).sin() * pullback;
+    let twitch2 = (movement3 * 5.0).sin() * pullback;
+    let twitchmovement = twitch1 + twitch2;
+
+    next.head.orientation = Quaternion::rotation_x(movement1abs * -0.3 + movement2abs * 0.6)
+        * Quaternion::rotation_y(movement1 * 0.35 + movement2 * -0.15)
+        * Quaternion::rotation_z(movement1 * 0.15 + movement2 * -0.5);
+
+    next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * -0.2)
+        * Quaternion::rotation_y(movement1 * 0.0)
+        * Quaternion::rotation_z(movement1 * 0.10 + movement1 * -0.15);
+
+    next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 0.4);
+
+    next.tail.orientation =
+        Quaternion::rotation_z(movement1 * 0.5 + movement2 * -0.8 + twitchmovement * 0.2 * mirror);
+    next.torso_front.position = Vec3::new(
+        0.0,
+        s_a.torso_front.0 + movement1abs * -4.0,
+        s_a.torso_front.1,
+    );
+    next.torso_front.orientation = Quaternion::rotation_y(movement1 * -0.25 * movement2 * 0.25)
+        * Quaternion::rotation_z(movement1 * 0.35 + movement2 * -0.45);
+
+    next.torso_back.orientation = Quaternion::rotation_y(movement1 * 0.25 + movement1 * -0.25)
+        * Quaternion::rotation_z(movement1 * -0.4 + movement2 * 0.65);
+
+    next.ears.orientation = Quaternion::rotation_x(twitchmovement * 0.2);
+    if speed < 0.5 {
+        next.leg_fl.orientation = Quaternion::rotation_x(movement1abs * 0.8 + movement2abs * -0.6)
+            * Quaternion::rotation_y(movement1 * -0.3 + movement2 * 0.3)
+            * Quaternion::rotation_z(movement1 * -0.35 + movement2 * 0.45);
+
+        next.leg_fr.orientation = Quaternion::rotation_x(movement1abs * 0.8 + movement2abs * -0.6)
+            * Quaternion::rotation_y(movement1 * -0.3 + movement2 * 0.3)
+            * Quaternion::rotation_z(movement1 * -0.35 + movement2 * 0.45);
+
+        next.leg_bl.orientation = Quaternion::rotation_x(movement1 * 0.1 + movement2 * -0.3);
+
+        next.leg_br.orientation = Quaternion::rotation_x(movement1 * -0.1 + movement2 * 0.3);
+
+        next.foot_fl.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.6);
+
+        next.foot_fr.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.6);
+
+        next.foot_bl.orientation =
+            Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * -0.3);
+
+        next.foot_br.orientation =
+            Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * -0.3);
+    };
+}
+
+pub fn quadruped_medium_beta(
+    next: &mut QuadrupedMediumSkeleton,
+    s_a: &SkeletonAttr,
+    speed: f32,
+    stage_section: StageSection,
+    anim_time: f32,
+    global_time: f32,
+    timer: f32,
+) {
+    let speed = (Vec2::<f32>::from(speed).magnitude()).min(24.0);
+
+    let (movement1base, movement2base, movement3) = match stage_section {
+        StageSection::Buildup => (anim_time.powf(0.25), 0.0, 0.0),
+        StageSection::Action => (1.0, anim_time.sqrt(), 0.0),
+        StageSection::Recover => (1.0, 1.0, anim_time.powi(4)),
+        _ => (0.0, 0.0, 0.0),
+    };
+    let pullback = 1.0 - movement3;
+    let subtract = global_time - timer;
+    let check = subtract - subtract.trunc();
+    let mirror = (check - 0.5).signum();
+    let movement1 = movement1base * mirror * pullback;
+    let movement1abs = movement1base * pullback;
+    let movement2 = movement2base * mirror * pullback;
+    let movement2abs = movement2base * pullback;
+    let twitch1 = (movement1 * 10.0).sin() * pullback;
+    let twitch2 = (movement2abs * -8.0).sin();
+    let twitchmovement = twitch1 + twitch2;
+
+    next.head.orientation = Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 1.1)
+        * Quaternion::rotation_y(movement1 * -0.35 + movement2 * 0.25)
+        * Quaternion::rotation_z(movement1 * -0.25 + movement2 * 0.5);
+
+    next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.0 + movement2abs * -0.2)
+        * Quaternion::rotation_y(movement1 * 0.0)
+        * Quaternion::rotation_z(movement1 * -0.10 + movement1 * 0.15);
+
+    next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.5 + twitch2 * -0.4);
+
+    next.tail.orientation =
+        Quaternion::rotation_z(movement1 * 0.5 + movement2 * -0.8 + twitchmovement * 0.2 * mirror);
+    next.torso_front.position = Vec3::new(
+        0.0,
+        s_a.torso_front.0 + movement1abs * -4.0,
+        s_a.torso_front.1,
+    );
+    next.torso_front.orientation = Quaternion::rotation_y(movement1 * -0.25 * movement2 * 0.25)
+        * Quaternion::rotation_z(movement1 * 0.35 + movement2 * -0.45);
+
+    next.torso_back.orientation = Quaternion::rotation_y(movement1 * 0.25 + movement1 * -0.25)
+        * Quaternion::rotation_z(movement1 * -0.4 + movement2 * 0.65);
+
+    next.ears.orientation = Quaternion::rotation_x(twitchmovement * 0.2);
+    if speed < 0.5 {
+        next.leg_fl.orientation = Quaternion::rotation_x(movement1abs * 0.8 + movement2abs * -0.6)
+            * Quaternion::rotation_y(movement1 * -0.3 + movement2 * 0.3)
+            * Quaternion::rotation_z(movement1 * -0.35 + movement2 * 0.45);
+
+        next.leg_fr.orientation = Quaternion::rotation_x(movement1abs * 0.8 + movement2abs * -0.6)
+            * Quaternion::rotation_y(movement1 * -0.3 + movement2 * 0.3)
+            * Quaternion::rotation_z(movement1 * -0.35 + movement2 * 0.45);
+
+        next.leg_bl.orientation = Quaternion::rotation_x(movement1 * 0.1 + movement2 * -0.3);
+
+        next.leg_br.orientation = Quaternion::rotation_x(movement1 * -0.1 + movement2 * 0.3);
+
+        next.foot_fl.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.6);
+
+        next.foot_fr.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.6);
+
+        next.foot_bl.orientation =
+            Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * -0.3);
+
+        next.foot_br.orientation =
+            Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * -0.3);
+    };
 }

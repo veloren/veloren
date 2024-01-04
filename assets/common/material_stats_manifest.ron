@@ -127,11 +127,11 @@
             poise_resilience: Some(Normal(30.0)),
         ),
         "Cobalt": (
-            protection: Some(Normal(122.0)),
+            protection: Some(Normal(132.0)),
             poise_resilience: Some(Normal(40.0)),
         ),
         "Bloodsteel": (
-            protection: Some(Normal(146.0)),
+            protection: Some(Normal(156.0)),
             poise_resilience: Some(Normal(50.0)),
         ),
         "Orichalcum": (

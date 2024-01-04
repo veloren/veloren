@@ -129,7 +129,7 @@ impl AdletStronghold {
 
         let mut outer_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
 
-        let entrance_dir = Dir::from_vector(entrance - cavern_center);
+        let entrance_dir = Dir::from_vec2(entrance - cavern_center);
         outer_structures.push((AdletStructure::TunnelEntrance, Vec2::zero(), entrance_dir));
 
         let desired_structures = surface_radius.pow(2) / 100;
@@ -176,7 +176,7 @@ impl AdletStronghold {
                     Some((structure_center, structure_kind))
                 }
             }) {
-                let dir_to_wall = Dir::from_vector(rpos);
+                let dir_to_wall = Dir::from_vec2(rpos);
                 let door_rng: u32 = rng.gen_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_wall,
@@ -352,7 +352,7 @@ impl AdletStronghold {
                     .then_some((structure, rpos))
             }) {
                 // Direction facing the central bonfire
-                let dir = Dir::from_vector(rpos).opposite();
+                let dir = Dir::from_vec2(rpos).opposite();
                 cavern_structures.push((structure, rpos, dir));
             }
         }
@@ -493,7 +493,7 @@ impl Structure for AdletStronghold {
 
         // Tunnel
         let dist: f32 = self.cavern_center.as_().distance(self.entrance.as_());
-        let dir = Dir::from_vector(self.entrance - self.cavern_center);
+        let dir = Dir::from_vec2(self.entrance - self.cavern_center);
         let tunnel_start: Vec3<f32> = match dir {
             Dir::X => Vec2::new(self.entrance.x + 7, self.entrance.y),
             Dir::Y => Vec2::new(self.entrance.x, self.entrance.y + 7),
@@ -2290,18 +2290,27 @@ impl RibCageGenerator {
 }
 
 fn adlet_hunter<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.adlet.hunter", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.adlet.hunter",
+        rng,
+        None,
+    )
 }
 
 fn adlet_icepicker<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.adlet.icepicker", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.adlet.icepicker",
+        rng,
+        None,
+    )
 }
 
 fn adlet_tracker<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.adlet.tracker", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.adlet.tracker",
+        rng,
+        None,
+    )
 }
 
 fn random_adlet<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
@@ -2313,42 +2322,67 @@ fn random_adlet<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 }
 
 fn adlet_elder<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.adlet.elder", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.adlet.elder",
+        rng,
+        None,
+    )
 }
 
 fn rat<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect("common.entity.wild.peaceful.rat", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.peaceful.rat",
+        rng,
+        None,
+    )
 }
 
 fn wolf<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.wild.aggressive.wolf", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.aggressive.wolf",
+        rng,
+        None,
+    )
 }
 
 fn bear<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.wild.aggressive.bear", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.aggressive.bear",
+        rng,
+        None,
+    )
 }
 
 fn frostfang<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.wild.aggressive.frostfang", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.aggressive.frostfang",
+        rng,
+        None,
+    )
 }
 
 fn roshwalr<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.wild.aggressive.roshwalr", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.aggressive.roshwalr",
+        rng,
+        None,
+    )
 }
 
 fn icedrake<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.wild.aggressive.icedrake", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.aggressive.icedrake",
+        rng,
+        None,
+    )
 }
 
 fn tursus<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.wild.aggressive.tursus", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.wild.aggressive.tursus",
+        rng,
+        None,
+    )
 }
 
 fn random_yetipit_mob<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
@@ -2361,7 +2395,11 @@ fn random_yetipit_mob<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 }
 
 fn yeti<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect("common.entity.dungeon.adlet.yeti", rng)
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect(
+        "common.entity.dungeon.adlet.yeti",
+        rng,
+        None,
+    )
 }
 
 #[cfg(test)]

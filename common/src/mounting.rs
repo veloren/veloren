@@ -298,6 +298,12 @@ pub struct VolumeMounting {
     pub rider: Uid,
 }
 
+impl VolumeMounting {
+    pub fn is_steering_entity(&self) -> bool {
+        matches!(self.pos.kind, Volume::Entity(..)) && self.block.is_controller()
+    }
+}
+
 impl Link for VolumeMounting {
     type CreateData<'a> = (
         Write<'a, VolumeRiders>,

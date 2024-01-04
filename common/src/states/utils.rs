@@ -166,6 +166,7 @@ impl Body {
                 arthropod::Species::Dagonite => 70.0,
                 arthropod::Species::Emberfly => 75.0,
             },
+            Body::Crustacean(_) => 80.0,
         }
     }
 
@@ -232,6 +233,7 @@ impl Body {
             Body::Ship(ship) if ship.has_water_thrust() => 5.0 / self.dimensions().y,
             Body::Ship(_) => 6.0 / self.dimensions().y,
             Body::Arthropod(_) => 3.5,
+            Body::Crustacean(_) => 3.5,
         }
     }
 
@@ -276,6 +278,7 @@ impl Body {
                 },
                 Body::QuadrupedSmall(_) => 1500.0 * self.mass().0,
                 Body::Arthropod(_) => 500.0 * self.mass().0,
+                Body::Crustacean(_) => 400.0 * self.mass().0,
             } * front_profile,
         )
     }
@@ -1240,16 +1243,11 @@ fn handle_ability(
                 }
             }
             if let CharacterState::Roll(roll) = &mut update.character {
-                if let CharacterState::ComboMelee(c) = data.character {
-                    roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
+                if data.character.is_wield() || data.character.was_wielded() {
                     roll.was_wielded = true;
-                } else {
-                    if data.character.is_wield() || data.character.was_wielded() {
-                        roll.was_wielded = true;
-                    }
-                    if data.character.is_stealthy() {
-                        roll.is_sneaking = true;
-                    }
+                }
+                if data.character.is_stealthy() {
+                    roll.is_sneaking = true;
                 }
                 if data.character.is_aimed() {
                     roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);

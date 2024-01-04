@@ -52,7 +52,10 @@ pub fn is_tameable(body: &Body) -> bool {
                     | quadruped_medium::Species::Hirdrasil
             )
         },
-        Body::QuadrupedLow(_) | Body::QuadrupedSmall(_) | Body::BirdMedium(_) => true,
+        Body::QuadrupedLow(_)
+        | Body::QuadrupedSmall(_)
+        | Body::BirdMedium(_)
+        | Body::Crustacean(_) => true,
         _ => false,
     }
 }

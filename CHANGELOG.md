@@ -38,7 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A way to target non-player entities with commands. With rtsim_id: `rtsim@<id>`, with uid: `uid@<id>`.
 - Shorthand in voxygen for specific entities in commands, some examples `@target`, `@mount`, `@viewpoint`.
 - Added hit_timing to BasicMelee abilities
-- Potion of Agility
+- A tavern building where npcs go to relax.
+- Toggle for walking instead of running (Default: `I`).
+- Added day duration slider configuration on map creation UI.
 
 ### Changed
 
@@ -90,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "low fps" of different shaders caused by low floating point precision when using time.
 - Fixed bug where airship captains would mass generate after using /reload_chunks
 - Fixed french translation "Énergie Consommée" -> "Regain d'Énergie"
+- Fixed Perforate icon not displaying
 
 ## [0.15.0] - 2023-07-01
 

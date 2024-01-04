@@ -92,6 +92,7 @@ const BG_IMGS: [&str; 14] = [
 pub enum WorldChange {
     Name(String),
     Seed(u32),
+    DayLength(f64),
     SizeX(u32),
     SizeY(u32),
     Scale(f64),
@@ -108,6 +109,7 @@ impl WorldChange {
         match self {
             WorldChange::Name(name) => world.name = name,
             WorldChange::Seed(seed) => world.seed = seed,
+            WorldChange::DayLength(d) => world.day_length = d,
             WorldChange::SizeX(s) => gen_opts.x_lg = s,
             WorldChange::SizeY(s) => gen_opts.y_lg = s,
             WorldChange::Scale(scale) => gen_opts.scale = scale,

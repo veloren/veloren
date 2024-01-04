@@ -637,7 +637,7 @@ fn spawn_entity(pos: Vec3<f32>, painter: &Painter, entity_path: &str) {
     let mut rng = thread_rng();
     painter.spawn(
         EntityInfo::at(pos)
-            .with_asset_expect(entity_path, &mut rng)
+            .with_asset_expect(entity_path, &mut rng, None)
             .with_no_flee(),
     );
 }
@@ -668,7 +668,7 @@ fn spawn_entities(
 
         let spawn_pos = pos + Vec3::new(x_offset, y_offset, 0.0);
 
-        painter.spawn(EntityInfo::at(spawn_pos).with_asset_expect(entity_path, &mut rng));
+        painter.spawn(EntityInfo::at(spawn_pos).with_asset_expect(entity_path, &mut rng, None));
     }
 }
 

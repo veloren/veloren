@@ -615,7 +615,7 @@ pub enum CharacterAbilityType {
     ChargedRanged,
     DashMelee(StageSection),
     BasicBlock,
-    ComboMelee(StageSection, u32),
+    ComboMeleeDeprecated(StageSection, u32),
     ComboMelee2(StageSection),
     FinisherMelee(StageSection),
     DiveMelee(StageSection),
@@ -642,7 +642,9 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::BasicBlock(_) => Self::BasicBlock,
             CharacterState::LeapMelee(data) => Self::LeapMelee(data.stage_section),
             CharacterState::LeapShockwave(data) => Self::LeapShockwave(data.stage_section),
-            CharacterState::ComboMelee(data) => Self::ComboMelee(data.stage_section, data.stage),
+            CharacterState::ComboMeleeDeprecated(data) => {
+                Self::ComboMeleeDeprecated(data.stage_section, data.stage)
+            },
             CharacterState::ComboMelee2(data) => Self::ComboMelee2(data.stage_section),
             CharacterState::FinisherMelee(data) => Self::FinisherMelee(data.stage_section),
             CharacterState::DiveMelee(data) => Self::DiveMelee(data.stage_section),
@@ -771,7 +773,7 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
-    ComboMelee {
+    ComboMeleeDeprecated {
         stage_data: Vec<combo_melee::Stage<f32>>,
         initial_energy_gain: f32,
         max_energy_gain: f32,
@@ -1071,7 +1073,6 @@ impl CharacterAbility {
             && match self {
                 CharacterAbility::Roll { energy_cost, .. } => {
                     data.physics.on_ground.is_some()
-                        && data.inputs.move_dir.magnitude_squared() > 0.25
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::DashMelee { energy_cost, .. }
@@ -1135,7 +1136,7 @@ impl CharacterAbility {
                     (data.physics.on_ground.is_none() || buildup_duration.is_some())
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
-                CharacterAbility::ComboMelee { .. }
+                CharacterAbility::ComboMeleeDeprecated { .. }
                 | CharacterAbility::Boost { .. }
                 | CharacterAbility::BasicBeam { .. }
                 | CharacterAbility::Blink { .. }
@@ -1304,7 +1305,7 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
             },
-            ComboMelee {
+            ComboMeleeDeprecated {
                 ref mut stage_data,
                 initial_energy_gain: _,
                 max_energy_gain: _,
@@ -1721,7 +1722,7 @@ impl CharacterAbility {
                 }
             },
             Boost { .. }
-            | ComboMelee { .. }
+            | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
@@ -1769,7 +1770,7 @@ impl CharacterAbility {
             | RiposteMelee { .. }
             | BasicBeam { .. }
             | Boost { .. }
-            | ComboMelee { .. }
+            | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
@@ -1796,7 +1797,7 @@ impl CharacterAbility {
             | SelfBuff { meta, .. }
             | BasicBeam { meta, .. }
             | Boost { meta, .. }
-            | ComboMelee { meta, .. }
+            | ComboMeleeDeprecated { meta, .. }
             | ComboMelee2 { meta, .. }
             | Blink { meta, .. }
             | BasicSummon { meta, .. }
@@ -1873,7 +1874,7 @@ impl CharacterAbility {
         use skills::{HammerSkill::*, Skill::Hammer};
 
         match self {
-            CharacterAbility::ComboMelee {
+            CharacterAbility::ComboMeleeDeprecated {
                 ref mut speed_increase,
                 ref mut max_speed_increase,
                 ref mut stage_data,
@@ -2386,9 +2387,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 was_wielded: false, // false by default. utils might set it to true
                 prev_aimed_dir: None,
                 is_sneaking: false,
-                was_combo: None,
             }),
-            CharacterAbility::ComboMelee {
+            CharacterAbility::ComboMeleeDeprecated {
                 stage_data,
                 initial_energy_gain,
                 max_energy_gain,
@@ -2398,7 +2398,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 scales_from_combo,
                 ori_modifier,
                 meta: _,
-            } => CharacterState::ComboMelee(combo_melee::Data {
+            } => CharacterState::ComboMeleeDeprecated(combo_melee::Data {
                 static_data: combo_melee::StaticData {
                     num_stages: stage_data.len() as u32,
                     stage_data: stage_data.iter().map(|stage| stage.to_duration()).collect(),

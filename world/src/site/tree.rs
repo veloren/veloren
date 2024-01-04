@@ -44,6 +44,7 @@ impl Tree {
 
     pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
         let nz = FastNoise::new(self.seed);
+        let calendar = None;
 
         canvas.foreach_col(|canvas, wpos2d, col| {
             let rpos2d = wpos2d - self.origin;
@@ -81,6 +82,7 @@ impl Tree {
                                         _ => "common.entity.wild.aggressive.maneater",
                                     },
                                     dynamic_rng,
+                                    calendar,
                                 ),
                         );
                     } else if above && dynamic_rng.gen_bool(0.0001) {
@@ -89,6 +91,7 @@ impl Tree {
                                 .with_asset_expect(
                                     "common.entity.wild.aggressive.swamp_troll",
                                     dynamic_rng,
+                                    calendar,
                                 ),
                         );
                     }

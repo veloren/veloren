@@ -13,7 +13,7 @@ pub use self::{
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta, SiteKindMeta};
 
 use crate::{column::ColumnSample, site2, Canvas};
-use common::generation::ChunkSupplement;
+use common::{calendar::Calendar, generation::ChunkSupplement, resources::TimeOfDay};
 use rand::Rng;
 use serde::Deserialize;
 use vek::*;
@@ -378,13 +378,14 @@ impl Site {
         get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
         site_id: common::trade::SiteId,
+        time: Option<&(TimeOfDay, Calendar)>,
     ) {
         match &self.kind {
             SiteKind::Settlement(s) => {
                 let economy = self
                     .trade_information(site_id)
                     .expect("Settlement has no economy");
-                s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy)
+                s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy, time)
             },
             SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
@@ -466,6 +467,7 @@ impl SiteKind {
             },
             SiteKind::Dungeon(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Old)),
             SiteKind::Gnarling(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Gnarling)),
+            SiteKind::Adlet(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Adlet)),
             _ => None,
         }
     }

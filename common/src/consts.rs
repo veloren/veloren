@@ -35,3 +35,6 @@ pub const ENERGY_PER_LEVEL: u16 = 5;
 pub const HP_PER_LEVEL: u16 = 5;
 
 pub const TELEPORTER_RADIUS: f32 = 3.;
+
+// Map settings
+pub const DAY_LENGTH_DEFAULT: f64 = 30.0;

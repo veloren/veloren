@@ -380,6 +380,7 @@ impl<'a> From<&'a Body> for Psyche {
                     arthropod::Species::Dagonite => 0.2,
                     arthropod::Species::Emberfly => 0.1,
                 },
+                Body::Crustacean(_) => 0.0,
             },
             sight_dist: match body {
                 Body::BirdLarge(_) => 250.0,

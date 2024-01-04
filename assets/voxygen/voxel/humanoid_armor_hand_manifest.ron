@@ -32,31 +32,31 @@
         ),
         "common.items.armor.ferocious.hand": (
             left: (
-                vox_spec: ("armor.ferocious.hand", (-1.5, -1.5, -3.0)),
+                vox_spec: ("armor.ferocious.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.ferocious.hand", (-1.5, -1.5, -3.0)),
+                vox_spec: ("armor.ferocious.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.boreal.hand": (
             left: (
-                vox_spec: ("armor.boreal.hand", (-2.0, -1.5, -3.0)),
+                vox_spec: ("armor.boreal.hand", (-2.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.boreal.hand", (-2.0, -1.5, -3.0)),
+                vox_spec: ("armor.boreal.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.brinestone.hand": (
             left: (
-                vox_spec: ("armor.brinestone.hand", (-3.5, -1.5, -4.0)),
+                vox_spec: ("armor.brinestone.hand", (-3.5, -1.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.brinestone.hand", (-1.5, -1.5, -4.0)),
+                vox_spec: ("armor.brinestone.hand", (-1.5, -1.5, -3.5)),
                 color: None
             )
         ),
@@ -92,11 +92,11 @@
         ),
         "common.items.armor.cultist.hand": (
             left: (
-                vox_spec: ("armor.cultist.hand", (-3.0, -1.5, -2.5)),
+                vox_spec: ("armor.cultist.hand", (-2.5, -2.5, -2.5)),
                 color: Some((30, 0, 64))
             ),
             right: (
-                 vox_spec: ("armor.cultist.hand", (-2.0, -1.5, -2.5)),
+                 vox_spec: ("armor.cultist.hand", (-2.2, -2.5, -2.5)),
                 color: Some((30, 0, 64))
             )
         ),
@@ -122,7 +122,7 @@
         ),
         "common.items.armor.twigsleaves.hand": (
             left: (
-                vox_spec: ("armor.twigsleaves.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.twigsleaves.hand", (-2.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
@@ -132,7 +132,7 @@
         ),
         "common.items.armor.twigsflowers.hand": (
             left: (
-                vox_spec: ("armor.twigsflowers.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.twigsflowers.hand", (-2.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
@@ -162,21 +162,21 @@
         ),
         "common.items.armor.velorite_mage.hand": (
             left: (
-                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -1.5, -2.5)),
+                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -2.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -1.5, -2.5)),
+                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -2.5, -2.5)),
                 color: None
             )
         ),
         "common.items.debug.cultist_hands_blue": (
             left: (
-                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -1.5, -2.5)),
+                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -2.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -1.5, -2.5)),
+                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -2.5, -2.5)),
                 color: None
             )
         ),
@@ -202,11 +202,11 @@
         ),
         "common.items.armor.miner.hand": (
             left: (
-                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.0, -3.0)),
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.0, -3.0)),
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
@@ -222,211 +222,211 @@
         ),
         "common.items.armor.hide.carapace.hand": (
             left: (
-                vox_spec: ("armor.hide.carapace.hand", (-3.5, -2.5, -3.0)),
+                vox_spec: ("armor.hide.carapace.hand", (-3.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.carapace.hand", (-1.5, -2.5, -3.0)),
+                vox_spec: ("armor.hide.carapace.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.hide.primal.hand": (
             left: (
-                vox_spec: ("armor.hide.primal.hand", (-3.5, -3.5, -4.0)),
+                vox_spec: ("armor.hide.primal.hand", (-3.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.primal.hand", (-1.5, -3.5, -4.0)),
+                vox_spec: ("armor.hide.primal.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.hide.dragonscale.hand": (
             left: (
-                vox_spec: ("armor.hide.dragonscale.hand", (-5.0, -1.5, -3.5)),
+                vox_spec: ("armor.hide.dragonscale.hand", (-5.5, -1.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.dragonscale.hand", (-2.0, -1.5, -3.5)),
+                vox_spec: ("armor.hide.dragonscale.hand", (-1.5, -1.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.savage.hand": (
             left: (
-                vox_spec: ("armor.savage.hand", (-2.5, -3.0, -4.0)),
+                vox_spec: ("armor.savage.hand", (-2.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.savage.hand", (-1.5, -3.0, -4.0)),
+                vox_spec: ("armor.savage.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.witch.hand": (
             left: (
-                vox_spec: ("armor.witch.hand", (-2.5, -2.5, -4.0)),
+                vox_spec: ("armor.witch.hand", (-2.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.witch.hand", (-1.5, -2.5, -4.0)),
+                vox_spec: ("armor.witch.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.pirate.hand": (
             left: (
-                vox_spec: ("armor.pirate.hand", (-2.5, -2.5, -4.0)),
+                vox_spec: ("armor.pirate.hand", (-2.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.pirate.hand", (-1.5, -2.5, -4.0)),
+                vox_spec: ("armor.pirate.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.blacksmith.hand": (
             left: (
-                vox_spec: ("armor.blacksmith.hand", (-1.5, -2.5, -4.0)),
+                vox_spec: ("armor.blacksmith.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.blacksmith.hand", (-1.5, -2.5, -4.0)),
+                vox_spec: ("armor.blacksmith.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.cloth.linen.hand": (
             left: (
-                vox_spec: ("armor.cloth.linen.hand", (-1.5, -2.0, -3.0)),
+                vox_spec: ("armor.cloth.linen.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.linen.hand", (-1.5, -2.0, -3.0)),
+                vox_spec: ("armor.cloth.linen.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.cloth.woolen.hand": (
             left: (
-                vox_spec: ("armor.cloth.woolen.hand", (-2.5, -2.5, -3.5)),
+                vox_spec: ("armor.cloth.woolen.hand", (-2.5, -2.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.woolen.hand", (-2.5, -2.5, -3.5)),
+                vox_spec: ("armor.cloth.woolen.hand", (-2.5, -2.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.cloth.silken.hand": (
             left: (
-                vox_spec: ("armor.cloth.silken.hand", (-2.5, -2.5, -4.0)),
+                vox_spec: ("armor.cloth.silken.hand", (-2.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.silken.hand", (-1.5, -2.5, -4.0)),
+                vox_spec: ("armor.cloth.silken.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.cloth.druid.hand": (
             left: (
-                vox_spec: ("armor.cloth.druid.hand", (-2.5, -1.0, -3.0)),
+                vox_spec: ("armor.cloth.druid.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.druid.hand", (-1.5, -1.0, -3.0)),
+                vox_spec: ("armor.cloth.druid.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.cloth.moonweave.hand": (
             left: (
-                vox_spec: ("armor.cloth.moonweave.hand", (-2.5, -2.0, -4.0)),
+                vox_spec: ("armor.cloth.moonweave.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.moonweave.hand", (-1.5, -2.0, -4.0)),
+                vox_spec: ("armor.cloth.moonweave.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.cloth.sunsilk.hand": (
             left: (
-                vox_spec: ("armor.cloth.sunsilk.hand", (-2.5, -2.5, -4.0)),
+                vox_spec: ("armor.cloth.sunsilk.hand", (-2.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.sunsilk.hand", (-1.5, -2.5, -4.0)),
+                vox_spec: ("armor.cloth.sunsilk.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.mail.bronze.hand": (
             left: (
-                vox_spec: ("armor.mail.bronze.hand", (-2.5, -2.0, -3.0)),
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bronze.hand", (-1.5, -2.0, -3.0)),
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.mail.iron.hand": (
             left: (
-                vox_spec: ("armor.mail.iron.hand", (-1.5, -1.5, -3.0)),
+                vox_spec: ("armor.mail.iron.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.iron.hand", (-1.5, -1.5, -3.0)),
+                vox_spec: ("armor.mail.iron.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.mail.steel.hand": (
             left: (
-                vox_spec: ("armor.mail.steel.hand", (-2.5, -1.0, -4.0)),
+                vox_spec: ("armor.mail.steel.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.steel.hand", (-1.5, -1.0, -4.0)),
+                vox_spec: ("armor.mail.steel.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.mail.cobalt.hand": (
             left: (
-                vox_spec: ("armor.mail.cobalt.hand", (-2.5, -2.0, -4.0)),
+                vox_spec: ("armor.mail.cobalt.hand", (-3.5, -2.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.cobalt.hand", (-1.5, -2.0, -4.0)),
+                vox_spec: ("armor.mail.cobalt.hand", (-1.5, -2.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.mail.bloodsteel.hand": (
             left: (
-                vox_spec: ("armor.mail.bloodsteel.hand", (-5.0, -1.0, -4.0)),
+                vox_spec: ("armor.mail.bloodsteel.hand", (-4.5, -2.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bloodsteel.hand", (-1.0, -1.0, -4.0)),
+                vox_spec: ("armor.mail.bloodsteel.hand", (-1.5, -2.5, -2.5)),
                 color: None
             )
         ),
         "common.items.armor.mail.orichalcum.hand": (
             left: (
-                vox_spec: ("armor.mail.orichalcum", (-4.5, -2.0, -4.0), 4),
+                vox_spec: ("armor.mail.orichalcum", (-4.5, -2.5, -3.5), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.orichalcum", (-1.5, -2.0, -4.0), 4),
+                vox_spec: ("armor.mail.orichalcum", (-1.5, -2.5, -3.5), 4),
                 color: None
             )
         ),
         "common.items.armor.cardinal.hand": (
             left: (
-                vox_spec: ("armor.cardinal.hand", (-2.5, -2.5, -4.0)),
+                vox_spec: ("armor.cardinal.hand", (-2.5, -2.5, -3.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cardinal.hand", (-1.5, -2.5, -4.0)),
+                vox_spec: ("armor.cardinal.hand", (-1.5, -2.5, -3.5)),
                 color: None
             )
         ),
         "common.items.armor.merchant.hand": (
             left: (
-                vox_spec: ("armor.merchant.hand", (-2.5, -2.0, -4.0)),
+                vox_spec: ("armor.merchant.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right:(
-                vox_spec: ("armor.merchant.hand", (-1.5, -2.0, -4.0)),
+                vox_spec: ("armor.merchant.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),

@@ -3,6 +3,7 @@
 use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
+    calendar::Calendar,
     comp::{self, Agent, Body, Presence, PresenceKind},
     event::{EventBus, NpcBuilder, ServerEvent},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
@@ -53,13 +54,18 @@ fn humanoid_config(profession: &Profession) -> &'static str {
     }
 }
 
-fn loadout_default(loadout: LoadoutBuilder, _economy: Option<&SiteInformation>) -> LoadoutBuilder {
+fn loadout_default(
+    loadout: LoadoutBuilder,
+    _economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
+) -> LoadoutBuilder {
     loadout
 }
 
 fn merchant_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |_| true)
 }
@@ -67,6 +73,7 @@ fn merchant_loadout(
 fn farmer_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
 }
@@ -74,6 +81,7 @@ fn farmer_loadout(
 fn herbalist_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |good| {
         matches!(good, Good::Ingredients)
@@ -83,6 +91,7 @@ fn herbalist_loadout(
 fn chef_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
 }
@@ -90,6 +99,7 @@ fn chef_loadout(
 fn blacksmith_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |good| {
         matches!(good, Good::Tools | Good::Armor)
@@ -99,6 +109,7 @@ fn blacksmith_loadout(
 fn alchemist_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |good| {
         matches!(good, Good::Potions)
@@ -107,7 +118,11 @@ fn alchemist_loadout(
 
 fn profession_extra_loadout(
     profession: Option<&Profession>,
-) -> fn(LoadoutBuilder, Option<&SiteInformation>) -> LoadoutBuilder {
+) -> fn(
+    LoadoutBuilder,
+    Option<&SiteInformation>,
+    time: Option<&(TimeOfDay, Calendar)>,
+) -> LoadoutBuilder {
     match profession {
         Some(Profession::Merchant) => merchant_loadout,
         Some(Profession::Farmer) => farmer_loadout,
@@ -134,7 +149,12 @@ fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent:
     }
 }
 
-fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo {
+fn get_npc_entity_info(
+    npc: &Npc,
+    sites: &Sites,
+    index: IndexRef,
+    time: Option<&(TimeOfDay, Calendar)>,
+) -> EntityInfo {
     let pos = comp::Pos(npc.wpos);
 
     let mut rng = npc.rng(Npc::PERM_ENTITY_CONFIG);
@@ -149,7 +169,7 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
         let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
             .with_body(BodyBuilder::Exact(npc.body));
         EntityInfo::at(pos.0)
-            .with_entity_config(entity_config, Some(config_asset), &mut rng)
+            .with_entity_config(entity_config, Some(config_asset), &mut rng, time)
             .with_alignment(if matches!(profession, Profession::Cultist) {
                 comp::Alignment::Enemy
             } else {
@@ -204,7 +224,7 @@ fn get_npc_entity_info(npc: &Npc, sites: &Sites, index: IndexRef) -> EntityInfo 
         let entity_config = EntityConfig::from_asset_expect_owned(config_asset)
             .with_body(BodyBuilder::Exact(npc.body));
 
-        EntityInfo::at(pos.0).with_entity_config(entity_config, Some(config_asset), &mut rng)
+        EntityInfo::at(pos.0).with_entity_config(entity_config, Some(config_asset), &mut rng, time)
     }
 }
 
@@ -225,6 +245,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, RtSimEntity>,
         WriteStorage<'a, comp::Agent>,
         ReadStorage<'a, Presence>,
+        ReadExpect<'a, Calendar>,
     );
 
     const NAME: &'static str = "rtsim::tick";
@@ -247,10 +268,12 @@ impl<'a> System<'a> for Sys {
             rtsim_entities,
             mut agents,
             presences,
+            calendar,
         ): Self::SystemData,
     ) {
         let mut emitter = server_event_bus.emitter();
         let rtsim = &mut *rtsim;
+        let calendar_data = (*time_of_day, (*calendar).clone());
 
         // Set up rtsim inputs
         {
@@ -303,7 +326,12 @@ impl<'a> System<'a> for Sys {
                 });
             },
             _ => {
-                let entity_info = get_npc_entity_info(npc, &data.sites, index.as_index_ref());
+                let entity_info = get_npc_entity_info(
+                    npc,
+                    &data.sites,
+                    index.as_index_ref(),
+                    Some(&calendar_data),
+                );
 
                 emitter.emit(match NpcData::from_entity_info(entity_info) {
                     NpcData::Data {
@@ -359,8 +387,12 @@ impl<'a> System<'a> for Sys {
                     let npc = data.npcs.npcs.get_mut(npc_id)?;
                     if matches!(npc.mode, SimulationMode::Simulated) {
                         npc.mode = SimulationMode::Loaded;
-                        let entity_info =
-                            get_npc_entity_info(npc, &data.sites, index.as_index_ref());
+                        let entity_info = get_npc_entity_info(
+                            npc,
+                            &data.sites,
+                            index.as_index_ref(),
+                            Some(&calendar_data),
+                        );
 
                         Some(match NpcData::from_entity_info(entity_info) {
                             NpcData::Data {

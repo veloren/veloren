@@ -342,6 +342,10 @@ widget_ids! {
         auto_walk_txt,
         auto_walk_bg,
 
+        // Walking speed indicator
+        walking_speed_txt,
+        walking_speed_bg,
+
         // Temporal (fading) camera zoom lock indicator
         zoom_lock_txt,
         zoom_lock_bg,
@@ -2149,6 +2153,7 @@ impl Hud {
                     BlockInteraction::Mount => {
                         let key = match block.get_sprite() {
                             Some(SpriteKind::Helm) => "hud-steer",
+                            Some(SpriteKind::Bed | SpriteKind::Bedroll | SpriteKind::BedrollSnow | SpriteKind::BedrollPirate) => "hud-lay",
                             _ => "hud-sit",
                         };
                         vec![(Some(GameInput::Mount), i18n.get_msg(key).to_string())]

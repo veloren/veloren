@@ -9,6 +9,7 @@ use common::{
         biped_small,
         bird_large::{self, BodyType as BLABodyType, Species as BLASpecies},
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
+        crustacean::{self, BodyType as CBodyType, Species as CSpecies},
         dragon::{self, BodyType as DBodyType, Species as DSpecies},
         fish_medium::{self, BodyType as FMBodyType, Species as FMSpecies},
         fish_small::{self, BodyType as FSBodyType, Species as FSSpecies},
@@ -2688,6 +2689,385 @@ impl ArthropodLateralSpec {
     }
 }
 //////
+#[derive(Deserialize)]
+struct CrustaceanCentralSpec(HashMap<(CSpecies, CBodyType), CrustCentralVoxSpec>);
+impl_concatenate_for_wrapper!(CrustaceanCentralSpec);
+
+#[derive(Deserialize)]
+struct CrustCentralVoxSpec {
+    chest: CrustaceanCentralSubSpec,
+    tail_f: CrustaceanCentralSubSpec,
+    tail_b: CrustaceanCentralSubSpec,
+}
+#[derive(Deserialize)]
+struct CrustaceanCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
+}
+#[derive(Deserialize)]
+struct CrustaceanLateralSpec(HashMap<(CSpecies, CBodyType), CrustLateralVoxSpec>);
+impl_concatenate_for_wrapper!(CrustaceanLateralSpec);
+
+#[derive(Deserialize)]
+struct CrustLateralVoxSpec {
+    arm_l: CrustaceanLateralSubSpec,
+    pincer_l0: CrustaceanLateralSubSpec,
+    pincer_l1: CrustaceanLateralSubSpec,
+    arm_r: CrustaceanLateralSubSpec,
+    pincer_r0: CrustaceanLateralSubSpec,
+    pincer_r1: CrustaceanLateralSubSpec,
+    leg_fl: CrustaceanLateralSubSpec,
+    leg_cl: CrustaceanLateralSubSpec,
+    leg_bl: CrustaceanLateralSubSpec,
+    leg_fr: CrustaceanLateralSubSpec,
+    leg_cr: CrustaceanLateralSubSpec,
+    leg_br: CrustaceanLateralSubSpec,
+}
+#[derive(Deserialize)]
+struct CrustaceanLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
+    #[serde(default)]
+    model_index: u32,
+}
+make_vox_spec!(
+    crustacean::Body,
+    struct CrustaceanSpec {
+        central: CrustaceanCentralSpec = "voxygen.voxel.crustacean_central_manifest",
+        lateral: CrustaceanLateralSpec = "voxygen.voxel.crustacean_lateral_manifest",
+    },
+    |FigureKey { body, extra, .. }, spec| {
+        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+
+        [
+            third_person.map(|_| {
+                spec.central.read().0.mesh_chest(
+                    body.species,
+                    body.body_type,
+                )
+            }),
+            Some(spec.central.read().0.mesh_tail_f(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_tail_b(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_arm_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_pincer_l0(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_pincer_l1(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_arm_r(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_pincer_r0(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_pincer_r1(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_fl(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_cl(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_bl(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_fr(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_cr(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_br(
+                body.species,
+                body.body_type,
+            )),
+            None,
+        ]
+    },
+);
+
+impl CrustaceanCentralSpec {
+    fn mesh_chest(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.chest.central.0, spec.chest.model_index);
+
+        (central, Vec3::from(spec.chest.offset))
+    }
+
+    fn mesh_tail_f(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No front tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail_f.central.0, spec.tail_f.model_index);
+
+        (central, Vec3::from(spec.tail_f.offset))
+    }
+
+    fn mesh_tail_b(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No back tail specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail_b.central.0, spec.tail_b.model_index);
+
+        (central, Vec3::from(spec.tail_b.offset))
+    }
+}
+impl CrustaceanLateralSpec {
+    fn mesh_arm_l(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No left arm specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral =
+            graceful_load_segment_flipped(&spec.arm_l.lateral.0, true, spec.arm_l.model_index);
+
+        (lateral, Vec3::from(spec.arm_l.offset))
+    }
+
+    fn mesh_pincer_l0(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No left major pincer specification exists for the combination of {:?} and \
+                     {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment_flipped(
+            &spec.pincer_l0.lateral.0,
+            true,
+            spec.pincer_l0.model_index,
+        );
+
+        (lateral, Vec3::from(spec.pincer_l0.offset))
+    }
+
+    fn mesh_pincer_l1(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No left minor pincer specification exists for the combination of {:?} and \
+                     {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment_flipped(
+            &spec.pincer_l1.lateral.0,
+            true,
+            spec.pincer_l1.model_index,
+        );
+
+        (lateral, Vec3::from(spec.pincer_l1.offset))
+    }
+
+    fn mesh_arm_r(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No right arm specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.arm_r.lateral.0, spec.arm_r.model_index);
+
+        (lateral, Vec3::from(spec.arm_r.offset))
+    }
+
+    fn mesh_pincer_r0(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No right major pincer specification exists for the combination of {:?} and \
+                     {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.pincer_r0.lateral.0, spec.pincer_r0.model_index);
+
+        (lateral, Vec3::from(spec.pincer_r0.offset))
+    }
+
+    fn mesh_pincer_r1(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No right minor pincer specification exists for the combination of {:?} and \
+                     {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.pincer_r1.lateral.0, spec.pincer_r1.model_index);
+
+        (lateral, Vec3::from(spec.pincer_r1.offset))
+    }
+
+    fn mesh_leg_fl(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No front left leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true, spec.leg_fl.model_index);
+
+        (lateral, Vec3::from(spec.leg_fl.offset))
+    }
+
+    fn mesh_leg_cl(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No center left leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_cl.lateral.0, true, spec.leg_cl.model_index);
+
+        (lateral, Vec3::from(spec.leg_cl.offset))
+    }
+
+    fn mesh_leg_bl(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No back left leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral =
+            graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true, spec.leg_bl.model_index);
+
+        (lateral, Vec3::from(spec.leg_bl.offset))
+    }
+
+    fn mesh_leg_fr(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No front right leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_fr.lateral.0, spec.leg_fr.model_index);
+
+        (lateral, Vec3::from(spec.leg_fr.offset))
+    }
+
+    fn mesh_leg_cr(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No center right leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_cr.lateral.0, spec.leg_cr.model_index);
+
+        (lateral, Vec3::from(spec.leg_cr.offset))
+    }
+
+    fn mesh_leg_br(&self, species: CSpecies, body_type: CBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No back right leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_br.lateral.0, spec.leg_br.model_index);
+
+        (lateral, Vec3::from(spec.leg_br.offset))
+    }
+}
+
 #[derive(Deserialize)]
 struct FishMediumCentralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMCentralVoxSpec>);
 impl_concatenate_for_wrapper!(FishMediumCentralSpec);

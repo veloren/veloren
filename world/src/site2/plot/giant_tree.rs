@@ -49,27 +49,31 @@ impl GiantTree {
         if above_block.kind() == BlockKind::Leaves && dynamic_rng.gen_bool(0.001) {
             let entity = EntityInfo::at(pos.as_());
             match dynamic_rng.gen_range(0..=4) {
-                0 => {
-                    Some(entity.with_asset_expect(
-                        "common.entity.wild.aggressive.horn_beetle",
-                        dynamic_rng,
-                    ))
-                },
-                1 => {
-                    Some(entity.with_asset_expect(
-                        "common.entity.wild.aggressive.stag_beetle",
-                        dynamic_rng,
-                    ))
-                },
-                2 => Some(
-                    entity.with_asset_expect("common.entity.wild.aggressive.deadwood", dynamic_rng),
-                ),
-                3 => Some(
-                    entity.with_asset_expect("common.entity.wild.aggressive.maneater", dynamic_rng),
-                ),
-                4 => Some(
-                    entity.with_asset_expect("common.entity.wild.peaceful.parrot", dynamic_rng),
-                ),
+                0 => Some(entity.with_asset_expect(
+                    "common.entity.wild.aggressive.horn_beetle",
+                    dynamic_rng,
+                    None,
+                )),
+                1 => Some(entity.with_asset_expect(
+                    "common.entity.wild.aggressive.stag_beetle",
+                    dynamic_rng,
+                    None,
+                )),
+                2 => Some(entity.with_asset_expect(
+                    "common.entity.wild.aggressive.deadwood",
+                    dynamic_rng,
+                    None,
+                )),
+                3 => Some(entity.with_asset_expect(
+                    "common.entity.wild.aggressive.maneater",
+                    dynamic_rng,
+                    None,
+                )),
+                4 => Some(entity.with_asset_expect(
+                    "common.entity.wild.peaceful.parrot",
+                    dynamic_rng,
+                    None,
+                )),
                 _ => None,
             }
         } else {

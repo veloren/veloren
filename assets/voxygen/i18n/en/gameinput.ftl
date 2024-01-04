@@ -75,3 +75,4 @@ gameinput-muteinactivemaster = Mute master volume (inactive window)
 gameinput-mutemusic = Mute music volume
 gameinput-mutesfx = Mute SFX volume
 gameinput-muteambience = Mute ambience volume
+gameinput-togglewalk = Toggle Walking

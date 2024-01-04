@@ -668,7 +668,7 @@ pub fn apply_caves_supplement<'a>(
                                     _ => "common.entity.wild.aggressive.cave_troll",
                                 }
                             };
-                            entity.with_asset_expect(asset, dynamic_rng)
+                            entity.with_asset_expect(asset, dynamic_rng, None)
                         };
 
                         supplement.add_entity(entity);

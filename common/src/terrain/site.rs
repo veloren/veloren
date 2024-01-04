@@ -14,6 +14,7 @@ pub enum SiteKindMeta {
 pub enum DungeonKindMeta {
     Old,
     Gnarling,
+    Adlet,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]

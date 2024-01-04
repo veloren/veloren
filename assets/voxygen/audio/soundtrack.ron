@@ -17,6 +17,20 @@
         // Overworld exploration tracks
 
         Individual((
+            title: "Graceful Journey",
+            path: "voxygen.audio.soundtrack.overworld.graceful_journey",
+            length: 240.0,
+            timing: Day,
+            weather: None,
+            biomes: [
+                (Lake, 1),
+                (Grassland, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("Tobias Thy - (Thy SFX)", "https://soundcloud.com/thyofficial"),
+        )),
+        Individual((
             title: "A Cold Breeze Blows",
             path: "voxygen.audio.soundtrack.overworld.a_cold_breeze_blows",
             length: 123.0,
@@ -745,6 +759,19 @@
         // Dungeon music
 
         Individual((
+            title: "A Heart's Ice-Cold Protection",
+            path: "voxygen.audio.soundtrack.dungeon.a_hearts_ice-cold_protection",
+            length: 205.0,
+            timing: None,
+            weather: None,
+            biomes:[],
+            sites: [
+                Dungeon(Adlet),
+            ],
+            music_state: Activity(Explore),
+            artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
+        )),
+        Individual((
             title: "Mysty Temple",
             path: "voxygen.audio.soundtrack.dungeon.mysty_temple",
             length: 183.0,
@@ -753,6 +780,7 @@
             biomes:[],
             sites: [
                 Dungeon(Old),
+                Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
             artist: ("Tiny", None),
@@ -779,6 +807,7 @@
             biomes: [],
             sites: [
                 Dungeon(Old),
+                Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -792,6 +821,7 @@
             biomes: [],
             sites: [
                 Dungeon(Old),
+                Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -873,8 +903,8 @@
                 Dungeon(Old),
             ],
             segments: [
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 56.0, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 61.818, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.545, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
             ],
             artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
@@ -888,11 +918,26 @@
                 Dungeon(Old),
             ],
             segments: [
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 60.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 61.666, Transition(Explore, Combat(High)), Some(Combat(High))),
                 ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 4.0, Transition(Combat(High), Explore), None),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 3.666, Transition(Combat(High), Explore), None),
             ],
             artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
+        ),
+        Segmented(
+            title: "Clash",
+            timing: None,
+            weather: None,
+            biomes: [],
+            sites: [
+                Dungeon(Old),
+            ],
+            segments: [
+                ("voxygen.audio.soundtrack.combat.clash.clash-start", 121.5, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.clash.clash-loop", 81.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.clash.clash-end", 1.5, Transition(Combat(High), Explore), None),
+            ],
+            artist: ("Alfredo Pompa D & Rodriogo Plata", None),
         ),
     ]
 )

@@ -87,6 +87,7 @@ impl SingleplayerState {
 
             settings.map_file = Some(file_opts);
             settings.world_seed = world.seed;
+            settings.day_length = world.day_length;
 
             let (stop_server_s, stop_server_r) = unbounded();
 

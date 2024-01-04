@@ -1,5 +1,8 @@
 use common::{
-    comp::{Body, Collider, ControlAction, Controller, InputKind, Ori, Pos, Scale, Vel},
+    comp::{
+        Body, CharacterActivity, Collider, ControlAction, Controller, InputKind, Ori, Pos, Scale,
+        Vel,
+    },
     link::Is,
     mounting::{Mount, VolumeRider},
     terrain::TerrainGrid,
@@ -24,6 +27,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        WriteStorage<'a, CharacterActivity>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Collider>,
@@ -45,6 +49,7 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            mut character_activity,
             bodies,
             scales,
             colliders,
@@ -174,6 +179,12 @@ impl<'a> System<'a> for Sys {
 
             if is_volume_rider.block.is_controller() {
                 if let Some((actions, inputs)) = inputs {
+                    if let Some(mut character_activity) = character_activity
+                        .get_mut(entity)
+                        .filter(|c| c.steer_dir != inputs.move_dir.y)
+                    {
+                        character_activity.steer_dir = inputs.move_dir.y;
+                    }
                     match is_volume_rider.pos.kind {
                         common::mounting::Volume::Entity(uid) => {
                             if let Some(controller) =

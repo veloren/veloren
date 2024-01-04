@@ -252,7 +252,7 @@ pub enum NpcActivity {
     HuntAnimals,
     Dance(Option<Dir>),
     Cheer(Option<Dir>),
-    Sit(Option<Dir>),
+    Sit(Option<Dir>, Option<Vec3<i32>>),
 }
 
 /// Represents event-like actions that rtsim NPCs can perform to interact with

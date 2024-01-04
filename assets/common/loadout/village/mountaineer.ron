@@ -1,10 +1,15 @@
-// Christmas event
-//(1.0, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
 #![enable(implicit_some)]
 (
-    head: Choice([
-        (1, Item("common.items.armor.misc.head.headband")),
-        (2, None),
+    head: Seasonal([
+        (Some(Christmas), Choice([
+            (3, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
+            (2, None),
+            (1, Item("common.items.armor.misc.head.headband")),
+        ])),
+        (None, Choice([
+            (2, None),
+            (1, Item("common.items.armor.misc.head.headband")),
+        ])),
     ]),
     shoulders: Choice([
         (1, Item("common.items.armor.cloth_blue.shoulder_0")),

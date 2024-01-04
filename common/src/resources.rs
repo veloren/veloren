@@ -7,6 +7,10 @@ use std::ops::{Mul, MulAssign};
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Default)]
 pub struct TimeOfDay(pub f64);
 
+impl TimeOfDay {
+    pub fn day(&self) -> f64 { self.0.rem_euclid(24.0 * 3600.0) }
+}
+
 /// A resource that stores the tick (i.e: physics) time.
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Time(pub f64);

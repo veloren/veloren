@@ -1,27 +1,18 @@
-ComboMelee(
-    stage_data: [
-        (
-            stage: 1,
-            base_damage: 40.0,
-            damage_increase: 0,
-            base_poise_damage: 12,
-            poise_damage_increase: 0,
-            knockback: 5.0,
-            range: 3.5,
-            angle: 60.0,
-            base_buildup_duration: 1.0,
-            base_swing_duration: 0.2,
-            hit_timing: 0.5,
-            base_recover_duration: 1.0,
-            forward_movement: 0.5,
-            damage_kind: Crushing,
+BasicMelee(
+    energy_cost: 0,
+    buildup_duration: 1.0,
+    swing_duration: 0.2,
+    hit_timing: 0.5,
+    recover_duration: 1.0,
+    melee_constructor: (
+        kind: Bash(
+            damage: 40,
+            poise: 12,
+            knockback: 5,
+            energy_regen: 0,
         ),
-    ],
-    initial_energy_gain: 0,
-    max_energy_gain: 0,
-    energy_increase: 0,
-    speed_increase: 0.0,
-    max_speed_increase: 0.0,
-    scales_from_combo: 0,
+        range: 3.5,
+        angle: 60.0,
+    ),
     ori_modifier: 0.6,
 )

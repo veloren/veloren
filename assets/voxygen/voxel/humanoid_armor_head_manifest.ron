@@ -549,7 +549,7 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.straw"): (
-            vox_spec: ("armor.misc.head.straw", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.misc.head.straw", (-2.0, -6.0, 7.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.straw"): (
@@ -647,7 +647,7 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.mitre"): (
-            vox_spec: ("armor.misc.head.mitre", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.misc.head.mitre", (-2.0, -4.0, 7.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.mitre"): (
@@ -757,11 +757,11 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-2.0, -5.0, 1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-2.0, -6.0, 1.0)),
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-2.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-2.0, -6.0, 1.0)),
             color: None
         ),
         //
@@ -786,7 +786,7 @@
             color: None
         ),
         (Human, Female, "common.items.armor.misc.head.bandana.red"): (
-            vox_spec: ("armor.misc.head.bandana.red", (-4.0, -2.0, -10.0)),
+            vox_spec: ("armor.misc.head.bandana.red", (-4.0, -1.0, -10.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.bandana.red"): (
@@ -806,7 +806,7 @@
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.bandana.red"): (
-            vox_spec: ("armor.misc.head.bandana.red", (-3.0, 0.0, -8.0)),
+            vox_spec: ("armor.misc.head.bandana.red", (-3.0, 0.0, -7.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.bandana.red"): (
@@ -818,7 +818,7 @@
             vox_spec: ("armor.misc.head.bandana.thief", (-2.0, -2.0, -8.0)),
             color: None
         ),
-        (Danari, Female, "Thicommon.items.armor.misc.head.bandana.thiefef"): (
+        (Danari, Female, "common.items.armor.misc.head.bandana.thief"): (
             vox_spec: ("armor.misc.head.bandana.thief", (-2.0, -2.0, -8.0)),
             color: None
         ),
@@ -834,8 +834,8 @@
             vox_spec: ("armor.misc.head.bandana.thief", (-4.0, -2.0, -10.0)),
             color: None
         ),
-        (Human, Female, "Thcommon.items.armor.misc.head.bandana.thiefief"): (
-            vox_spec: ("armor.misc.head.bandana.thief", (-4.0, -2.0, -10.0)),
+        (Human, Female, "common.items.armor.misc.head.bandana.thief"): (
+            vox_spec: ("armor.misc.head.bandana.thief", (-4.0, -1.0, -10.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.bandana.thief"): (
@@ -855,7 +855,7 @@
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.bandana.thief"): (
-            vox_spec: ("armor.misc.head.bandana.thief", (-3.0, 0.0, -8.0)),
+            vox_spec: ("armor.misc.head.bandana.thief", (-3.0, 0.0, -7.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.bandana.thief"): (
@@ -864,43 +864,43 @@
         ),
 //
         (Danari, Male, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-2.0, -1.0, -8.0)),
+            vox_spec: ("armor.cultist.bandana", (-2.0, -2.0, -8.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-2.0, -1.0, -8.0)),
+            vox_spec: ("armor.cultist.bandana", (-2.0, -2.0, -8.0)),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-5.0, 0.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-5.0, -1.0, -10.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-5.0, 0.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-5.0, -1.0, -10.0)),
             color: None
         ),
         (Human, Male, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-4.0, -1.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-4.0, -2.0, -10.0)),
             color: None
         ),
         (Human, Female, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-4.0, 0.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-4.0, -1.0, -10.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-6.0, -1.0, -8.0)),
+            vox_spec: ("armor.cultist.bandana", (-6.0, -2.0, -8.0)),
             color: None
         ),
         (Draugr, Female, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-6.0, -1.0, -9.0)),
+            vox_spec: ("armor.cultist.bandana", (-6.0, -2.0, -9.0)),
             color: None
         ),
         (Elf, Male, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-3.0, -1.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-3.0, -2.0, -10.0)),
             color: None
         ),
         (Elf, Female, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-3.0, -1.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-3.0, -2.0, -10.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.cultist.bandana"): (
@@ -908,7 +908,7 @@
             color: None
         ),
         (Orc, Female, "common.items.armor.cultist.bandana"): (
-            vox_spec: ("armor.cultist.bandana", (-3.0, -2.0, -10.0)),
+            vox_spec: ("armor.cultist.bandana", (-3.0, -3.0, -10.0)),
             color: None
         ),
         //
@@ -941,7 +941,7 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.hood"): (
-            vox_spec: ("armor.misc.head.hood", (-2.0, -6.0, -2.0)),
+            vox_spec: ("armor.misc.head.hood", (-2.0, -5.0, -2.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.hood"): (
@@ -990,7 +990,7 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.hood_dark"): (
-            vox_spec: ("armor.misc.head.hood_dark", (-2.0, -7.0, -3.0)),
+            vox_spec: ("armor.misc.head.hood_dark", (-2.0, -6.0, -3.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.hood_dark"): (
@@ -1035,15 +1035,15 @@
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -4.0, 8.5)),
+            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, 8.5)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -4.0, 9.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, 9.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -4.0, 7.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -4.0, 8.0)),
             color: None
         ),
         (Draugr, Female, "common.items.armor.misc.head.spikeguard"): (
@@ -1137,7 +1137,7 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.cardinal.mitre"): (
-            vox_spec: ("armor.cardinal.mitre", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.cardinal.mitre", (-2.0, -4.0, 7.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.cardinal.mitre"): (
@@ -1231,11 +1231,11 @@
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.winged_coronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -3.0, 0.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -4.0, 0.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.winged_coronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -3.0, 0.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -4.0, 0.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.winged_coronet"): (
@@ -1337,7 +1337,7 @@
             color: None
         ),
         (Draugr, Male, "common.items.armor.brinestone.crown"): (
-            vox_spec: ("armor.brinestone.crown", (-6.0, -4.0, 2.0)),
+            vox_spec: ("armor.brinestone.crown", (-6.0, -4.0, 0.0)),
             color: None
         ),
         (Draugr, Female, "common.items.armor.brinestone.crown"): (
@@ -1345,7 +1345,7 @@
             color: None
         ),
         (Orc, Male, "common.items.armor.brinestone.crown"): (
-            vox_spec: ("armor.brinestone.crown", (-3.0, -2.0, 2.0)),
+            vox_spec: ("armor.brinestone.crown", (-3.0, -2.0, 1.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.brinestone.crown"): (

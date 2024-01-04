@@ -942,8 +942,11 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
         .ok()
         .and_then(|s| s.0)
         {
-            canvas
-                .spawn(EntityInfo::at(wpos.map(|e| e as f32)).with_asset_expect(entity_asset, rng));
+            canvas.spawn(EntityInfo::at(wpos.map(|e| e as f32)).with_asset_expect(
+                entity_asset,
+                rng,
+                None,
+            ));
         }
     }
 

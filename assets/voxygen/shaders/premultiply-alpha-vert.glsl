@@ -13,17 +13,14 @@ layout(push_constant) uniform Params {
 
 layout(location = 0) out vec2 source_coords;
 
-uvec2 unpack(uint xy) {
-    return uvec2(
-        bitfieldExtract(xy,  0, 16),
-        bitfieldExtract(xy, 16, 16)
-    );
+vec2 unpack(uint xy) {
+    return vec2(xy & 0xFFFF, (xy >> 16) & 0xFFFF);
 }
 
 void main() {
-    vec2 source_size = vec2(unpack(source_size_xy));
-    vec2 target_offset = vec2(unpack(target_offset_xy));
-    vec2 target_size = vec2(unpack(target_size_xy));
+    vec2 source_size = unpack(source_size_xy);
+    vec2 target_offset = unpack(target_offset_xy);
+    vec2 target_size = unpack(target_size_xy);
 
     // Generate rectangle (counter clockwise triangles)
     //

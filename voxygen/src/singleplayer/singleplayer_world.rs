@@ -1,9 +1,10 @@
 use std::{
     fs,
+    io::Read,
     path::{Path, PathBuf},
 };
 
-use common::assets::ASSETS_PATH;
+use common::{assets::ASSETS_PATH, consts::DAY_LENGTH_DEFAULT};
 use serde::{Deserialize, Serialize};
 use server::{FileOpts, GenOpts, DEFAULT_WORLD_MAP};
 use tracing::error;
@@ -18,6 +19,7 @@ struct World0 {
 pub struct SingleplayerWorld {
     pub name: String,
     pub gen_opts: Option<GenOpts>,
+    pub day_length: f64,
     pub seed: u32,
     pub is_generated: bool,
     pub path: PathBuf,
@@ -40,7 +42,12 @@ fn load_map(path: &Path) -> Option<SingleplayerWorld> {
         return None;
     };
 
-    version::try_load(&f, path)
+    let Ok(bytes) = f.bytes().collect::<Result<Vec<u8>, _>>() else {
+        error!("Failed to read {}", meta_path.to_string_lossy());
+        return None;
+    };
+
+    version::try_load(std::io::Cursor::new(bytes), path)
 }
 
 fn write_world_meta(world: &SingleplayerWorld) {
@@ -78,11 +85,13 @@ fn migrate_old_singleplayer(from: &Path, to: &Path) {
         }
 
         let mut seed = 0;
+        let mut day_length = DAY_LENGTH_DEFAULT;
         let (map_file, gen_opts) = fs::read_to_string(to.join("server_config/settings.ron"))
             .ok()
             .and_then(|settings| {
                 let settings: server::Settings = ron::from_str(&settings).ok()?;
                 seed = settings.world_seed;
+                day_length = settings.day_length;
                 Some(match settings.map_file? {
                     FileOpts::LoadOrGenerate { name, opts, .. } => {
                         (Some(PathBuf::from(name)), Some(opts))
@@ -107,6 +116,7 @@ fn migrate_old_singleplayer(from: &Path, to: &Path) {
             name: "singleplayer world".to_string(),
             gen_opts,
             seed,
+            day_length,
             path: to.to_path_buf(),
             // Isn't persisted so doesn't matter what it's set to.
             is_generated: false,
@@ -226,6 +236,7 @@ impl SingleplayerWorlds {
         let new_world = SingleplayerWorld {
             name: "New World".to_string(),
             gen_opts: None,
+            day_length: DAY_LENGTH_DEFAULT,
             seed: 0,
             is_generated: false,
             map_path: path.join("map.bin"),
@@ -251,13 +262,13 @@ mod version {
 
     use super::*;
 
-    pub type Current = V1;
+    pub type Current = V2;
 
     type LoadWorldFn<R> =
         fn(R, &Path) -> Result<SingleplayerWorld, (&'static str, ron::de::SpannedError)>;
     fn loaders<'a, R: std::io::Read + Clone>() -> &'a [LoadWorldFn<R>] {
         // Step [4]
-        &[load_raw::<V1, _>]
+        &[load_raw::<V2, _>, load_raw::<V1, _>]
     }
 
     #[derive(Deserialize, Serialize)]
@@ -269,18 +280,6 @@ mod version {
         seed: u32,
     }
 
-    impl V1 {
-        /// This function is only needed for the current version
-        pub fn from_world(world: &SingleplayerWorld) -> Self {
-            V1 {
-                version: 1,
-                name: world.name.clone(),
-                gen_opts: world.gen_opts.clone(),
-                seed: world.seed,
-            }
-        }
-    }
-
     impl ToWorld for V1 {
         fn to_world(self, path: PathBuf) -> SingleplayerWorld {
             let map_path = path.join("map.bin");
@@ -290,6 +289,46 @@ mod version {
                 name: self.name,
                 gen_opts: self.gen_opts,
                 seed: self.seed,
+                day_length: DAY_LENGTH_DEFAULT,
+                is_generated,
+                path,
+                map_path,
+            }
+        }
+    }
+
+    #[derive(Deserialize, Serialize)]
+    pub struct V2 {
+        #[serde(deserialize_with = "version::<_, 2>")]
+        version: u64,
+        name: String,
+        gen_opts: Option<GenOpts>,
+        seed: u32,
+        day_length: f64,
+    }
+
+    impl V2 {
+        pub fn from_world(world: &SingleplayerWorld) -> Self {
+            V2 {
+                version: 2,
+                name: world.name.clone(),
+                gen_opts: world.gen_opts.clone(),
+                seed: world.seed,
+                day_length: world.day_length,
+            }
+        }
+    }
+
+    impl ToWorld for V2 {
+        fn to_world(self, path: PathBuf) -> SingleplayerWorld {
+            let map_path = path.join("map.bin");
+            let is_generated = fs::metadata(&map_path).is_ok_and(|f| f.is_file());
+
+            SingleplayerWorld {
+                name: self.name,
+                gen_opts: self.gen_opts,
+                seed: self.seed,
+                day_length: self.day_length,
                 is_generated,
                 path,
                 map_path,

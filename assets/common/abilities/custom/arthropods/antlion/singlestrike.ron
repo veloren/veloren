@@ -1,33 +1,31 @@
-ComboMelee(
-    stage_data: [
+ComboMelee2(
+    strikes: [
         (
-            stage: 1,
-            base_damage: 74,
-            damage_increase: 0,
-            base_poise_damage: 27.5,
-            poise_damage_increase: 0,
-            knockback: 9.0,
-            range: 3.0,
-            angle: 60.0,
-            base_buildup_duration: 1.4,
-            base_swing_duration: 0.1,
+            melee_constructor: (
+                kind: Bash(
+                    damage: 74,
+                    poise: 27.5,
+                    knockback: 9,
+                    energy_regen: 0,
+                ),
+                range: 3.0,
+                angle: 60.0,
+                damage_effect: Some(Buff((
+                    kind: Ensnared,
+                    dur_secs: 6.0,
+                    strength: Value(0.5),
+                    chance: 0.6,
+                ))),
+            ),
+            buildup_duration: 1.4,
+            swing_duration: 0.1,
             hit_timing: 0.5,
-            base_recover_duration: 0.8,
-            forward_movement: 1.0,
-            damage_kind: Crushing,
-            damage_effect: Some(Buff((
-                kind: Ensnared,
-                dur_secs: 6.0,
-                strength: DamageFraction(0.1),
-                chance: 0.6,
-            ))),
+            recover_duration: 0.8,
+            movement: (
+                swing: Some(Forward(1.0)),
+            ),
+            ori_modifier: 0.8,
         ),
     ],
-    initial_energy_gain: 0,
-    max_energy_gain: 0,
-    energy_increase: 0,
-    speed_increase: 0.0,
-    max_speed_increase: 0.0,
-    scales_from_combo: 0,
-    ori_modifier: 0.8,
+    energy_cost_per_strike: 0,
 )
