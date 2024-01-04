@@ -5,6 +5,14 @@ buff-stat-health = Restores { $str_total } Health
 ## Potion
 buff-title-potion = Potion
 buff-desc-potion = Drinking...
+## Agility
+buff-title-agility = Agility
+buff-desc-agility = Your movement is faster, but you deal less damage, and take more damage.
+buff-stat-agility = 
+    Increases movement speed by { $strength }%.
+    but decreases your damage by 100%,
+    and increases your damage vulnerability
+    by 100%.
 ## Saturation
 buff-title-saturation = Saturation
 buff-desc-saturation = Gain health over time from consumables.
@@ -69,9 +77,9 @@ buff-title-parried = Parried
 buff-desc-parried = You were parried and now are slow to recover.
 ## Potion sickness
 buff-title-potionsickness = Potion sickness
-buff-desc-potionsickness = Potions heal you less after recently consuming a potion.
+buff-desc-potionsickness = Potions have less positive effect on you after recently consuming a potion.
 buff-stat-potionsickness =
-    Decreases the amount you heal from
+    Decreases the positive effects of
     subsequent potions by { $strength }%.
 ## Reckless
 buff-title-reckless = Reckless

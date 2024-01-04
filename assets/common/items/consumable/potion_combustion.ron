@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Burning Potion",
+    name: "Potion of Combustion",
     description: "Sets the user ablaze",
     kind: Consumable(
         kind: Drink,

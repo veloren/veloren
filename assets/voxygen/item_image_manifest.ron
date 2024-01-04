@@ -3199,8 +3199,12 @@
         "voxel.object.curious_potion",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Simple("common.items.consumable.potion_burning"): VoxTrans(
-        "voxel.object.potion_burning",
+    Simple("common.items.consumable.potion_combustion"): VoxTrans(
+        "voxel.object.potion_combustion",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
+    Simple("common.items.consumable.potion_agility"): VoxTrans(
+        "voxel.object.potion_agility",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
     Simple("common.items.charms.burning_charm"): VoxTrans(

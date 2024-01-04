@@ -1193,7 +1193,7 @@ pub fn handle_jump(
                 data.entity,
                 strength * impulse / data.mass.0
                     * data.scale.map_or(1.0, |s| s.0.powf(13.0).powf(0.25))
-                    * data.stats.move_speed_modifier,
+                    * data.stats.jump_modifier,
             ));
         })
         .is_some()
