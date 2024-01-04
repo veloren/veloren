@@ -194,7 +194,6 @@ impl State {
             DispatcherBuilder::<'static, 'static>::new().with_pool(Arc::clone(&pools));
         // TODO: Consider alternative ways to do this
         add_systems(&mut dispatch_builder);
-        // This dispatches all the systems in parallel.
         let dispatcher = dispatch_builder
             .build()
             .try_into_sendable()
@@ -682,6 +681,7 @@ impl State {
             (dt.as_secs_f32() * time_scale as f32).min(MAX_DELTA_TIME);
 
         section_span!(guard, "run systems");
+        // This dispatches all the systems in parallel.
         self.dispatcher.dispatch(&self.ecs);
         drop(guard);
 

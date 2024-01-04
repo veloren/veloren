@@ -5768,7 +5768,7 @@ checksum = "43b2853a4d09f215c24cc5489c992ce46052d359b5109343cbafbf26bc62f8a3"
 [[package]]
 name = "shred"
 version = "0.15.0"
-source = "git+https://github.com/Imberflur/shred.git?rev=5d52c6fc390dd04c12158633e77591f6523d1f85#5d52c6fc390dd04c12158633e77591f6523d1f85"
+source = "git+https://github.com/amethyst/shred.git?rev=5d52c6fc390dd04c12158633e77591f6523d1f85#5d52c6fc390dd04c12158633e77591f6523d1f85"
 dependencies = [
  "ahash 0.8.7",
  "arrayvec 0.7.4",
@@ -5782,7 +5782,7 @@ dependencies = [
 [[package]]
 name = "shred-derive"
 version = "0.6.3"
-source = "git+https://github.com/Imberflur/shred.git?rev=5d52c6fc390dd04c12158633e77591f6523d1f85#5d52c6fc390dd04c12158633e77591f6523d1f85"
+source = "git+https://github.com/amethyst/shred.git?rev=5d52c6fc390dd04c12158633e77591f6523d1f85#5d52c6fc390dd04c12158633e77591f6523d1f85"
 dependencies = [
  "proc-macro2 1.0.66",
  "quote 1.0.33",
