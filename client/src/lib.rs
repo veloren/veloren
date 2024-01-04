@@ -410,7 +410,10 @@ impl Client {
 
             // Initialize `State`
             let pools = State::pools(GameMode::Client);
-            let mut state = State::client(pools, map_size_lg, world_map.default_chunk,
+            let mut state = State::client(
+                pools,
+                map_size_lg,
+                world_map.default_chunk,
                 // TODO: Add frontend systems
                 |dispatch_builder| {
                     add_local_systems(dispatch_builder);
@@ -1803,11 +1806,7 @@ impl Client {
 
     /// Execute a single client tick, handle input and update the game state by
     /// the given duration.
-    pub fn tick(
-        &mut self,
-        inputs: ControllerInputs,
-        dt: Duration,
-    ) -> Result<Vec<Event>, Error> {
+    pub fn tick(&mut self, inputs: ControllerInputs, dt: Duration) -> Result<Vec<Event>, Error> {
         span!(_guard, "tick", "Client::tick");
         // This tick function is the centre of the Veloren universe. Most client-side
         // things are managed from here, and as such it's important that it
