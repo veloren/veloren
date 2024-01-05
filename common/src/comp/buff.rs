@@ -175,6 +175,21 @@ pub enum BuffKind {
     Heatstroke,
 }
 
+/// Tells how buffs influence the target
+enum BuffDescriptor {
+    /// Simple positive buffs, like `BuffKind::Saturation`
+    SimplePositive,
+    /// Simple negative buffs, like `BuffKind::Bleeding`
+    SimpleNegative,
+    /// Buffs that require unusual data that can't be governed just by strength
+    /// and duration, like `BuffKind::Polymorhped`
+    Complex,
+    // For future additions, we may want to tell about non-obvious buffs,
+    // like Agility.
+    // Also maybe extend Complex to differentiate between Positive, Negative
+    // and Neutral buffs?
+}
+
 impl BuffKind {
     /// Checks if buff is buff or debuff.
     pub fn is_buff(self) -> bool {
