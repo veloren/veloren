@@ -245,6 +245,13 @@ impl BuffKind {
         }
     }
 
+    pub fn is_simple(self) -> bool {
+        match self.differentiate() {
+            BuffDescriptor::SimplePositive | BuffDescriptor::SimpleNegative => true,
+            BuffDescriptor::Complex => false,
+        }
+    }
+
     /// Checks if buff should queue.
     pub fn queues(self) -> bool { matches!(self, BuffKind::Saturation) }
 

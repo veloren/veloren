@@ -64,6 +64,7 @@ command-battlemode-available-modes = Available modes: pvp, pve
 command-battlemode-same = Attempted to set the same battlemode
 command-battlemode-updated = New battlemode: { $battlemode }
 command-buff-unknown = Unknown buff: { $buff }
+command-buff-complex = /buff doesn't work with this buff, use /buff_complex
 command-skillpreset-load-error = Error while loading presets
 command-skillpreset-broken = Skill preset is broken
 command-skillpreset-missing = Preset does not exist: { $preset }

@@ -4145,10 +4145,30 @@ fn handle_buff(
         let duration = duration.unwrap_or(1.0);
         let buffdata = BuffData::new(strength, Some(Secs(duration)));
         if buff != "all" {
-            cast_buff(&buff, buffdata, server, target)
+            let buffkind = parse_buffkind(&buff).ok_or_else(|| {
+                Content::localized_with_args("command-buff-unknown", [("buff", buff.clone())])
+            })?;
+
+            if buffkind.is_simple() {
+                cast_buff(buffkind, buffdata, server, target)
+            } else {
+                return Err(Content::localized_with_args("command-buff-complex", [(
+                    "buff", buff,
+                )]));
+            }
         } else {
-            for kind in BUFF_PACK.iter() {
-                cast_buff(kind, buffdata, server, target)?;
+            for kind_key in BUFF_PACK.iter() {
+                let buffkind = parse_buffkind(kind_key).ok_or_else(|| {
+                    Content::localized_with_args("command-buff-unknown", [(
+                        "buff",
+                        kind_key.to_owned(),
+                    )])
+                })?;
+
+                // Execute only simple buffs, ignore complex
+                if buffkind.is_simple() {
+                    cast_buff(buffkind, buffdata, server, target)?;
+                }
             }
             Ok(())
         }
@@ -4157,33 +4177,33 @@ fn handle_buff(
     }
 }
 
-fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity) -> CmdResult<()> {
-    if let Some(buffkind) = parse_buffkind(kind) {
-        let ecs = &server.state.ecs();
-        let mut buffs_all = ecs.write_storage::<comp::Buffs>();
-        let stats = ecs.read_storage::<comp::Stats>();
-        let healths = ecs.read_storage::<comp::Health>();
-        let time = ecs.read_resource::<Time>();
-        if let Some(mut buffs) = buffs_all.get_mut(target) {
-            buffs.insert(
-                Buff::new(
-                    buffkind,
-                    data,
-                    vec![],
-                    BuffSource::Command,
-                    *time,
-                    stats.get(target),
-                    healths.get(target),
-                ),
+fn cast_buff(
+    buffkind: BuffKind,
+    data: BuffData,
+    server: &mut Server,
+    target: EcsEntity,
+) -> CmdResult<()> {
+    let ecs = &server.state.ecs();
+    let mut buffs_all = ecs.write_storage::<comp::Buffs>();
+    let stats = ecs.read_storage::<comp::Stats>();
+    let healths = ecs.read_storage::<comp::Health>();
+    let time = ecs.read_resource::<Time>();
+    if let Some(mut buffs) = buffs_all.get_mut(target) {
+        buffs.insert(
+            Buff::new(
+                buffkind,
+                data,
+                vec![],
+                BuffSource::Command,
                 *time,
-            );
-        }
-        Ok(())
-    } else {
-        Err(Content::localized_with_args("command-buff-unknown", [(
-            "buff", kind,
-        )]))
+                stats.get(target),
+                healths.get(target),
+            ),
+            *time,
+        );
     }
+
+    Ok(())
 }
 
 fn parse_buffkind(buff: &str) -> Option<BuffKind> { BUFF_PARSER.get(buff).copied() }
