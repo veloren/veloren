@@ -7088,6 +7088,7 @@ dependencies = [
  "tracing",
  "vek 0.15.8",
  "veloren-common",
+ "veloren-common-assets",
  "veloren-common-base",
  "veloren-common-ecs",
  "veloren-common-net",
