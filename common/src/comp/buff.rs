@@ -165,18 +165,19 @@ pub enum BuffKind {
     /// Results from drinking a potion.
     /// Decreases the health gained from subsequent potions.
     PotionSickness,
-    /// Changed into another body.
-    Polymorphed,
     /// Slows movement speed and reduces energy reward.
     /// Both scales non-linearly to strength, 0.5 lead to movespeed reduction
     /// by 25% and energy reward reduced by 150%, 1.0 lead to MS reduction by
     /// 33.3% and energy reward reduced by 200%. Energy reward can't be
     /// reduced by more than 200%, to a minimum value of -100%.
     Heatstroke,
+    // Complex, non-obvious buffs
+    /// Changed into another body.
+    Polymorphed,
 }
 
-/// Tells how buffs influence the target
-enum BuffDescriptor {
+/// Tells a little more about the buff kind than simple buff/debuff
+pub enum BuffDescriptor {
     /// Simple positive buffs, like `BuffKind::Saturation`
     SimplePositive,
     /// Simple negative buffs, like `BuffKind::Bleeding`
@@ -188,11 +189,14 @@ enum BuffDescriptor {
     // like Agility.
     // Also maybe extend Complex to differentiate between Positive, Negative
     // and Neutral buffs?
+    // For now, Complex is assumed to be neutral/non-obvious.
 }
 
 impl BuffKind {
-    /// Checks if buff is buff or debuff.
-    pub fn is_buff(self) -> bool {
+    /// Tells a little more about buff kind than simple buff/debuff
+    ///
+    /// Read more in [BuffDescriptor].
+    pub fn differentiate(self) -> BuffDescriptor {
         match self {
             BuffKind::Regeneration
             | BuffKind::Saturation
@@ -217,7 +221,7 @@ impl BuffKind {
             | BuffKind::Sunderer
             | BuffKind::Defiance
             | BuffKind::Bloodfeast
-            | BuffKind::Berserk => true,
+            | BuffKind::Berserk => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -228,8 +232,16 @@ impl BuffKind {
             | BuffKind::Poisoned
             | BuffKind::Parried
             | BuffKind::PotionSickness
-            | BuffKind::Polymorphed
-            | BuffKind::Heatstroke => false,
+            | BuffKind::Heatstroke => BuffDescriptor::SimpleNegative,
+            BuffKind::Polymorphed => BuffDescriptor::Complex,
+        }
+    }
+
+    /// Checks if buff is buff or debuff.
+    pub fn is_buff(self) -> bool {
+        match self.differentiate() {
+            BuffDescriptor::SimplePositive => true,
+            BuffDescriptor::SimpleNegative | BuffDescriptor::Complex => false,
         }
     }
 
