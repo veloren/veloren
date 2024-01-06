@@ -6,8 +6,10 @@ use common::event::{
     EventBus, ExitIngameEvent,
 };
 use common_base::span;
-use common_ecs::{dispatch, System};
-use specs::{shred::SendDispatcher, DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt};
+use specs::{
+    shred::SendDispatcher, DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt,
+    WriteExpect,
+};
 
 pub use group_manip::update_map_markers;
 pub(crate) use trade::cancel_trades_for;
@@ -50,32 +52,36 @@ impl<T> Default for EventHandler<T> {
     fn default() -> Self { Self(PhantomData) }
 }
 
-impl<'a, T: ServerEvent> System<'a> for EventHandler<T> {
+impl<'a, T: ServerEvent> specs::System<'a> for EventHandler<T> {
     type SystemData = (
         ReadExpect<'a, crate::metrics::ServerEventMetrics>,
-        ReadExpect<'a, EventBus<T>>,
+        WriteExpect<'a, EventBus<T>>,
         T::SystemData<'a>,
     );
 
-    const NAME: &'static str = T::NAME;
-    const ORIGIN: common_ecs::Origin = common_ecs::Origin::Server;
-    // TODO: Maybe do another phase here?
-    const PHASE: common_ecs::Phase = common_ecs::Phase::Apply;
+    fn run(&mut self, (metrics, mut ev, data): Self::SystemData) {
+        span!(_guard, "Run event system {}", T::NAME);
+        span!(guard, "Recv events");
+        let events = ev.recv_all_mut();
+        drop(guard);
 
-    fn run(_job: &mut common_ecs::Job<Self>, (metrics, ev, data): Self::SystemData) {
-        let events = ev.recv_all();
+        span!(guard, "Add metrics for event");
         metrics
             .event_count
-            .with_label_values(&[Self::NAME])
+            .with_label_values(&[T::NAME])
             .inc_by(events.len() as u64);
-        T::handle(events, data)
+        drop(guard);
+
+        span!(guard, "Handle events");
+        T::handle(events, data);
+        drop(guard);
     }
 }
 
 fn event_dispatch<T: ServerEvent>(builder: &mut DispatcherBuilder) {
     // TODO: We currently don't consider the order of these event. But as
     //       some events produce other events that might be worth doing.
-    dispatch::<EventHandler<T>>(builder, &[])
+    builder.add(EventHandler::<T>::default(), T::NAME, &[]);
 }
 
 pub fn register_event_systems(builder: &mut DispatcherBuilder) {
