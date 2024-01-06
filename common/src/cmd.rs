@@ -200,12 +200,22 @@ lazy_static! {
         buff_pack
     };
 
-    static ref BUFFS: Vec<String> = {
-        let mut buff_pack: Vec<_> = BUFF_PARSER.keys().cloned().collect();
-        // Add all as valid command
+    static ref BUFFS_SIMPLE: Vec<String> = {
+        let mut buff_pack: Vec<String> = BUFF_PARSER
+            .iter()
+            .filter_map(|(key, kind)| kind.is_simple().then_some(key.clone()))
+            .collect();
+
+        // Add `all` as valid command
         buff_pack.push("all".to_string());
         buff_pack
     };
+
+    static ref BUFFS_COMPLEX: Vec<String> =
+        BUFF_PARSER
+            .iter()
+            .filter_map(|(key, kind)| (!kind.is_simple()).then_some(key.clone()))
+            .collect();
 
     static ref BLOCK_KINDS: Vec<String> = terrain::block::BlockKind::iter()
         .map(|bk| bk.to_string())
@@ -312,6 +322,7 @@ pub enum ServerChatCommand {
     BattleModeForce,
     Body,
     Buff,
+    BuffComplex,
     Build,
     Campfire,
     CreateLocation,
@@ -426,11 +437,21 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::Buff => cmd(
                 vec![
-                    Enum("buff", BUFFS.clone(), Required),
+                    Enum("buff", BUFFS_SIMPLE.clone(), Required),
                     Float("strength", 0.01, Optional),
                     Float("duration", 10.0, Optional),
                 ],
                 "Cast a buff on player",
+                Some(Admin),
+            ),
+            ServerChatCommand::BuffComplex => cmd(
+                vec![
+                    Enum("buff", BUFFS_COMPLEX.clone(), Required),
+                    Any("buff data spec", Required),
+                    Float("strength", 0.01, Optional),
+                    Float("duration", 10.0, Optional),
+                ],
+                "Cast a complex buff on player",
                 Some(Admin),
             ),
             ServerChatCommand::Ban => cmd(
@@ -934,6 +955,7 @@ impl ServerChatCommand {
             ServerChatCommand::BattleModeForce => "battlemode_force",
             ServerChatCommand::Body => "body",
             ServerChatCommand::Buff => "buff",
+            ServerChatCommand::BuffComplex => "buff_complex",
             ServerChatCommand::Build => "build",
             ServerChatCommand::AreaAdd => "area_add",
             ServerChatCommand::AreaList => "area_list",
