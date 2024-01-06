@@ -251,11 +251,7 @@ impl PlayState for MainMenuState {
 
         // Tick the client to keep the connection alive if we are waiting on pipelines
         if let InitState::Pipeline(client) = &mut self.init {
-            match client.tick(
-                comp::ControllerInputs::default(),
-                global_state.clock.dt(),
-                |_| {},
-            ) {
+            match client.tick(comp::ControllerInputs::default(), global_state.clock.dt()) {
                 Ok(events) => {
                     for event in events {
                         match event {

@@ -1,6 +1,5 @@
 use specs::{
-    shred::ResourceId, Entities, LazyUpdate, LendJoin, Read, ReadExpect, ReadStorage, SystemData,
-    World, WriteStorage,
+    shred, Entities, LazyUpdate, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
 };
 
 use common::{

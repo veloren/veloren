@@ -11,9 +11,7 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{
-    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData, World,
-};
+use specs::{shred, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData};
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {

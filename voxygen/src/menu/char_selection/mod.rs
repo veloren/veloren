@@ -206,11 +206,10 @@ impl PlayState for CharSelectionState {
             // Tick the client (currently only to keep the connection alive).
             let localized_strings = &global_state.i18n.read();
 
-            let res = self.client.borrow_mut().tick(
-                comp::ControllerInputs::default(),
-                global_state.clock.dt(),
-                |_| {},
-            );
+            let res = self
+                .client
+                .borrow_mut()
+                .tick(comp::ControllerInputs::default(), global_state.clock.dt());
             match res {
                 Ok(events) => {
                     for event in events {

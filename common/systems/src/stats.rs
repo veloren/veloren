@@ -12,8 +12,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, World, Write,
-    WriteStorage,
+    shred, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteStorage,
 };
 
 const ENERGY_REGEN_ACCEL: f32 = 1.0;

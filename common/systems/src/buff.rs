@@ -22,8 +22,8 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred::ResourceId, Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage,
-    SystemData, World, WriteStorage,
+    shred, Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
+    WriteStorage,
 };
 
 #[derive(SystemData)]

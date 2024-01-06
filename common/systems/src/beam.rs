@@ -17,8 +17,7 @@ use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::Rng;
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred::ResourceId, Entities, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
-    World, WriteStorage,
+    shred, Entities, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
 };
 use vek::*;
 

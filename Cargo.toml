@@ -165,6 +165,7 @@ winit = { git = "https://github.com/Imberflur/winit.git", tag = "raw-window-hand
 wgpu = { git = "https://github.com/pythonesque/wgpu.git", rev = "179ea209374a92837cde252f1d9ee01f628cae08" }
 # ntapi 3.7 fails to compile under windows due to the bug https://github.com/MSxDOS/ntapi/pull/12
 ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e25796739157c0fce3e0007a7de6eb" }
+shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
 
 [patch."https://github.com/gfx-rs/gfx"]
 gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
