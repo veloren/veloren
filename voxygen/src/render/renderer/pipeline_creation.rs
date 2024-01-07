@@ -164,6 +164,7 @@ impl ShaderModules {
         has_shadow_views: bool,
     ) -> Result<Self, RenderError> {
         prof_span!(_guard, "ShaderModules::new");
+        use shaderc::{CompileOptions, Compiler, OptimizationLevel, ResolvedInclude, ShaderKind};
 
         let constants = shaders.get("include.constants").unwrap();
         let globals = shaders.get("include.globals").unwrap();
@@ -279,32 +280,45 @@ impl ShaderModules {
             })
             .unwrap();
 
-        let defines = wgpu::naga::FastHashMap::from_iter([
-            ("constants.glsl".to_string(), constants.clone()),
-            ("globals.glsl".to_string(), globals.0.to_owned()),
-            ("shadows.glsl".to_string(), shadows.0.to_owned()),
-            (
-                "rain_occlusion.glsl".to_string(),
-                rain_occlusion.0.to_owned(),
-            ),
-            ("sky.glsl".to_string(), sky.0.to_owned()),
-            ("light.glsl".to_string(), light.0.to_owned()),
-            ("srgb.glsl".to_string(), srgb.0.to_owned()),
-            ("random.glsl".to_string(), random.0.to_owned()),
-            ("lod.glsl".to_string(), lod.0.to_owned()),
-            ("anti-aliasing.glsl".to_string(), anti_alias.0.to_owned()),
-            ("cloud.glsl".to_string(), cloud.0.to_owned()),
-            ("point_glow.glsl".to_string(), point_glow.0.to_owned()),
-            ("fxaa.glsl".to_string(), fxaa.0.to_owned()),
-        ]);
+        let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+        let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+        options.set_optimization_level(OptimizationLevel::Zero);
+        options.set_forced_version_profile(430, shaderc::GlslProfile::Core);
+        // options.set_generate_debug_info();
+        options.set_include_callback(move |name, _, shader_name, _| {
+            Ok(ResolvedInclude {
+                resolved_name: name.to_string(),
+                content: match name {
+                    "constants.glsl" => constants.clone(),
+                    "globals.glsl" => globals.0.to_owned(),
+                    "shadows.glsl" => shadows.0.to_owned(),
+                    "rain_occlusion.glsl" => rain_occlusion.0.to_owned(),
+                    "sky.glsl" => sky.0.to_owned(),
+                    "light.glsl" => light.0.to_owned(),
+                    "srgb.glsl" => srgb.0.to_owned(),
+                    "random.glsl" => random.0.to_owned(),
+                    "lod.glsl" => lod.0.to_owned(),
+                    "anti-aliasing.glsl" => anti_alias.0.to_owned(),
+                    "cloud.glsl" => cloud.0.to_owned(),
+                    "point_glow.glsl" => point_glow.0.to_owned(),
+                    "fxaa.glsl" => fxaa.0.to_owned(),
+                    other => {
+                        return Err(format!(
+                            "Include {} in {} is not defined",
+                            other, shader_name
+                        ));
+                    },
+                },
+            })
+        });
 
-        let create_shader = |name, stage| {
+        let mut create_shader = |name, kind| {
             let glsl = &shaders
                 .get(name)
                 .unwrap_or_else(|| panic!("Can't retrieve shader: {}", name))
                 .0;
             let file_name = format!("{}.glsl", name);
-            create_shader_module(device, defines.clone(), glsl, stage, &file_name)
+            create_shader_module(device, &mut compiler, glsl, kind, &file_name, &options)
         };
 
         let selected_fluid_shader = ["fluid-frag.", match pipeline_modes.fluid {
@@ -313,69 +327,68 @@ impl ShaderModules {
         }]
         .concat();
 
-        use wgpu::naga::ShaderStage;
         Ok(Self {
-            skybox_vert: create_shader("skybox-vert", ShaderStage::Vertex)?,
-            skybox_frag: create_shader("skybox-frag", ShaderStage::Fragment)?,
-            debug_vert: create_shader("debug-vert", ShaderStage::Vertex)?,
-            debug_frag: create_shader("debug-frag", ShaderStage::Fragment)?,
-            figure_vert: create_shader("figure-vert", ShaderStage::Vertex)?,
-            figure_frag: create_shader("figure-frag", ShaderStage::Fragment)?,
-            terrain_vert: create_shader("terrain-vert", ShaderStage::Vertex)?,
-            terrain_frag: create_shader("terrain-frag", ShaderStage::Fragment)?,
-            fluid_vert: create_shader("fluid-vert", ShaderStage::Vertex)?,
-            fluid_frag: create_shader(&selected_fluid_shader, ShaderStage::Fragment)?,
-            sprite_vert: create_shader("sprite-vert", ShaderStage::Vertex)?,
-            sprite_frag: create_shader("sprite-frag", ShaderStage::Fragment)?,
-            lod_object_vert: create_shader("lod-object-vert", ShaderStage::Vertex)?,
-            lod_object_frag: create_shader("lod-object-frag", ShaderStage::Fragment)?,
-            particle_vert: create_shader("particle-vert", ShaderStage::Vertex)?,
-            particle_frag: create_shader("particle-frag", ShaderStage::Fragment)?,
-            rope_vert: create_shader("rope-vert", ShaderStage::Vertex)?,
-            rope_frag: create_shader("rope-frag", ShaderStage::Fragment)?,
-            trail_vert: create_shader("trail-vert", ShaderStage::Vertex)?,
-            trail_frag: create_shader("trail-frag", ShaderStage::Fragment)?,
-            ui_vert: create_shader("ui-vert", ShaderStage::Vertex)?,
-            ui_frag: create_shader("ui-frag", ShaderStage::Fragment)?,
-            premultiply_alpha_vert: create_shader("premultiply-alpha-vert", ShaderStage::Vertex)?,
-            premultiply_alpha_frag: create_shader("premultiply-alpha-frag", ShaderStage::Fragment)?,
-            lod_terrain_vert: create_shader("lod-terrain-vert", ShaderStage::Vertex)?,
-            lod_terrain_frag: create_shader("lod-terrain-frag", ShaderStage::Fragment)?,
-            clouds_vert: create_shader("clouds-vert", ShaderStage::Vertex)?,
-            clouds_frag: create_shader("clouds-frag", ShaderStage::Fragment)?,
+            skybox_vert: create_shader("skybox-vert", ShaderKind::Vertex)?,
+            skybox_frag: create_shader("skybox-frag", ShaderKind::Fragment)?,
+            debug_vert: create_shader("debug-vert", ShaderKind::Vertex)?,
+            debug_frag: create_shader("debug-frag", ShaderKind::Fragment)?,
+            figure_vert: create_shader("figure-vert", ShaderKind::Vertex)?,
+            figure_frag: create_shader("figure-frag", ShaderKind::Fragment)?,
+            terrain_vert: create_shader("terrain-vert", ShaderKind::Vertex)?,
+            terrain_frag: create_shader("terrain-frag", ShaderKind::Fragment)?,
+            fluid_vert: create_shader("fluid-vert", ShaderKind::Vertex)?,
+            fluid_frag: create_shader(&selected_fluid_shader, ShaderKind::Fragment)?,
+            sprite_vert: create_shader("sprite-vert", ShaderKind::Vertex)?,
+            sprite_frag: create_shader("sprite-frag", ShaderKind::Fragment)?,
+            lod_object_vert: create_shader("lod-object-vert", ShaderKind::Vertex)?,
+            lod_object_frag: create_shader("lod-object-frag", ShaderKind::Fragment)?,
+            particle_vert: create_shader("particle-vert", ShaderKind::Vertex)?,
+            particle_frag: create_shader("particle-frag", ShaderKind::Fragment)?,
+            rope_vert: create_shader("rope-vert", ShaderKind::Vertex)?,
+            rope_frag: create_shader("rope-frag", ShaderKind::Fragment)?,
+            trail_vert: create_shader("trail-vert", ShaderKind::Vertex)?,
+            trail_frag: create_shader("trail-frag", ShaderKind::Fragment)?,
+            ui_vert: create_shader("ui-vert", ShaderKind::Vertex)?,
+            ui_frag: create_shader("ui-frag", ShaderKind::Fragment)?,
+            premultiply_alpha_vert: create_shader("premultiply-alpha-vert", ShaderKind::Vertex)?,
+            premultiply_alpha_frag: create_shader("premultiply-alpha-frag", ShaderKind::Fragment)?,
+            lod_terrain_vert: create_shader("lod-terrain-vert", ShaderKind::Vertex)?,
+            lod_terrain_frag: create_shader("lod-terrain-frag", ShaderKind::Fragment)?,
+            clouds_vert: create_shader("clouds-vert", ShaderKind::Vertex)?,
+            clouds_frag: create_shader("clouds-frag", ShaderKind::Fragment)?,
             dual_downsample_filtered_frag: create_shader(
                 "dual-downsample-filtered-frag",
-                ShaderStage::Fragment,
+                ShaderKind::Fragment,
             )?,
-            dual_downsample_frag: create_shader("dual-downsample-frag", ShaderStage::Fragment)?,
-            dual_upsample_frag: create_shader("dual-upsample-frag", ShaderStage::Fragment)?,
-            postprocess_vert: create_shader("postprocess-vert", ShaderStage::Vertex)?,
-            postprocess_frag: create_shader("postprocess-frag", ShaderStage::Fragment)?,
-            blit_vert: create_shader("blit-vert", ShaderStage::Vertex)?,
-            blit_frag: create_shader("blit-frag", ShaderStage::Fragment)?,
+            dual_downsample_frag: create_shader("dual-downsample-frag", ShaderKind::Fragment)?,
+            dual_upsample_frag: create_shader("dual-upsample-frag", ShaderKind::Fragment)?,
+            postprocess_vert: create_shader("postprocess-vert", ShaderKind::Vertex)?,
+            postprocess_frag: create_shader("postprocess-frag", ShaderKind::Fragment)?,
+            blit_vert: create_shader("blit-vert", ShaderKind::Vertex)?,
+            blit_frag: create_shader("blit-frag", ShaderKind::Fragment)?,
             point_light_shadows_vert: create_shader(
                 "point-light-shadows-vert",
-                ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
             light_shadows_directed_vert: create_shader(
                 "light-shadows-directed-vert",
-                ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
             light_shadows_figure_vert: create_shader(
                 "light-shadows-figure-vert",
-                ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
             light_shadows_debug_vert: create_shader(
                 "light-shadows-debug-vert",
-                ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
             rain_occlusion_directed_vert: create_shader(
                 "rain-occlusion-directed-vert",
-                ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
             rain_occlusion_figure_vert: create_shader(
                 "rain-occlusion-figure-vert",
-                ShaderStage::Vertex,
+                ShaderKind::Vertex,
             )?,
         })
     }
@@ -383,13 +396,18 @@ impl ShaderModules {
 
 fn create_shader_module(
     device: &wgpu::Device,
-    defines: wgpu::naga::FastHashMap<String, String>,
+    compiler: &mut shaderc::Compiler,
     source: &str,
-    stage: wgpu::naga::ShaderStage,
+    kind: shaderc::ShaderKind,
     file_name: &str,
+    options: &shaderc::CompileOptions,
 ) -> Result<wgpu::ShaderModule, RenderError> {
     prof_span!(_guard, "create_shader_modules");
     use std::borrow::Cow;
+
+    let spv = compiler
+        .compile_into_spirv(source, kind, file_name, "main", Some(options))
+        .map_err(|e| (file_name, e))?;
 
     // Uncomment me to dump shaders to files
     //
@@ -405,14 +423,13 @@ fn create_shader_module(
     //     .expect("Couldn't write shader out");
 
     // let label = [file_name, "\n\n", source].concat();
-    Ok(device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some(file_name),
-        source: wgpu::ShaderSource::Glsl {
-            shader: Cow::Borrowed(source),
-            stage,
-            defines,
-        },
-    }))
+    #[allow(unsafe_code)]
+    Ok(unsafe {
+        device.create_shader_module_unchecked(wgpu::ShaderModuleDescriptor {
+            label: Some(file_name),
+            source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
+        })
+    })
 }
 
 /// Things needed to create a pipeline

@@ -29,13 +29,14 @@ tracy = ["common-frontend/tracy", "client/tracy"]
 tracy-memory = ["tracy"] # enables heap profiling with tracy
 plugins = ["client/plugins", "common-assets/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
+shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
 bin_img-export = ["common-assets"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
 default-publish = ["singleplayer", "native-dialog", "plugins", "discord", "simd"]
 # Temp for bug on current wgpu version that has access violation in vulkan when constructing egui pipeline
-default-no-egui = ["default-publish", "hot-reloading"]
+default-no-egui = ["default-publish", "hot-reloading", "shaderc-from-source"]
 default = ["default-no-egui", "egui-ui"]
 
 [dependencies]
@@ -56,9 +57,13 @@ voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true
 
 # Graphics
 winit = {version = "0.28.6", features = ["serde"]}
-wgpu = { version = "=0.18.0", features = ["trace", "glsl"] }
+# naga has an issue for spirv in wgpu 18.0
+wgpu = { version = "=0.18.0", default-features = false, features = ["trace", "spirv", "glsl"] }
 wgpu-profiler = "0.15.0"
 bytemuck = { version="1.7", features=["derive"] }
+# shaderc = "0.8.0"
+# Working around a current bug in shaderc that causes it to use the system installation even if we specify compile from source
+shaderc = { git = "https://github.com/pythonesque/shaderc-rs", rev = "f2605a02062834019bedff911aee2fd2998c49f9" }
 # cmake crate used by shaderc, newer version 0.1.46 uses a new cmake command that is not available in our CI cmake version
 # see https://github.com/alexcrichton/cmake-rs/issues/131
 cmake = "=0.1.45"

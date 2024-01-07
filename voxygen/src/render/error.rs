@@ -7,7 +7,7 @@ pub enum RenderError {
     CustomError(String),
     CouldNotFindAdapter,
     ErrorInitializingCompiler,
-    // ShaderError(String, shaderc::Error),
+    ShaderError(String, shaderc::Error),
     ProfilerCreationError(wgpu_profiler::CreationError),
 }
 
@@ -27,10 +27,10 @@ impl fmt::Debug for RenderError {
             Self::CustomError(err) => f.debug_tuple("CustomError").field(err).finish(),
             Self::CouldNotFindAdapter => f.debug_tuple("CouldNotFindAdapter").finish(),
             Self::ErrorInitializingCompiler => f.debug_tuple("ErrorInitializingCompiler").finish(),
-            // Self::ShaderError(shader_name, err) => write!(
-            //     f,
-            //     "\"{shader_name}\" shader failed to compile due to the following error: {err}",
-            // ),
+            Self::ShaderError(shader_name, err) => write!(
+                f,
+                "\"{shader_name}\" shader failed to compile due to the following error: {err}",
+            ),
             RenderError::ProfilerCreationError(err) => write!(f, "Profiler creation error: {err}"),
         }
     }
@@ -46,4 +46,9 @@ impl From<wgpu::BufferAsyncError> for RenderError {
 
 impl From<wgpu::SurfaceError> for RenderError {
     fn from(err: wgpu::SurfaceError) -> Self { Self::SurfaceError(err) }
+}
+impl From<(&str, shaderc::Error)> for RenderError {
+    fn from((shader_name, err): (&str, shaderc::Error)) -> Self {
+        Self::ShaderError(shader_name.into(), err)
+    }
 }

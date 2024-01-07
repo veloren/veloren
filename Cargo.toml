@@ -162,6 +162,7 @@ vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986
 # ntapi 3.7 fails to compile under windows due to the bug https://github.com/MSxDOS/ntapi/pull/12
 ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e25796739157c0fce3e0007a7de6eb" }
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
+wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "daedf03f0617aab6b3ab7380132dc9cb07f62d32" }
 
 # [patch."https://github.com/gfx-rs/gfx"]
 # gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }

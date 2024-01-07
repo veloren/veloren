@@ -550,7 +550,7 @@ impl Renderer {
         .map_err(RenderError::ProfilerCreationError)?;
 
         #[cfg(feature = "egui-ui")]
-        let egui_renderpass = egui_wgpu_backend::RenderPass::new(&*device, format, 1);
+        let egui_renderpass = egui_wgpu_backend::RenderPass::new(&device, format, 1);
 
         Ok(Self {
             device,

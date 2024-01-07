@@ -195,7 +195,7 @@ impl Texture {
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
     pub fn update(&self, queue: &wgpu::Queue, offset: [u32; 2], size: [u32; 2], data: &[u8]) {
-        let bytes_per_pixel = self.format.block_size(None).unwrap() as u32;
+        let bytes_per_pixel = self.format.block_size(None).unwrap();
 
         debug_assert_eq!(
             data.len(),
