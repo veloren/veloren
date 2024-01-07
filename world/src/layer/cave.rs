@@ -124,11 +124,12 @@ impl Tunnel {
                         * 96.0
                         * ((1.0 - (t - 0.5).abs() * 2.0) * 8.0).min(1.0);
                     let alt_here = info.land().get_alt_approx(closest.map(|e| e as i32));
-                    let base = Lerp::lerp(
+                    let base = (Lerp::lerp(
                         alt_here as f64 - self.a.depth as f64,
                         alt_here as f64 - self.b.depth as f64,
                         t,
-                    ) + z_offs;
+                    ) + z_offs)
+                        .min(alt_here as f64);
                     Some((
                         (base - height_here * 0.3) as i32..(base + height_here * 1.35) as i32,
                         radius,
