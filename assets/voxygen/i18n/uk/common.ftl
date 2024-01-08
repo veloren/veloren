@@ -115,3 +115,4 @@ common-sprite-chest = Скриня
 common-sprite-chair = Стілець
 common-sprite-mud = Грязь
 common-sprite-grave = Могила
+common-sprite-crate = Ящик

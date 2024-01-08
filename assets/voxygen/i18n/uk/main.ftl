@@ -1,4 +1,4 @@
-main-username = Ім'я користовуча
+main-username = Ім'я користувача
 main-server = Сервер
 main-password = Пароль
 main-connecting = З'єднання
@@ -32,9 +32,26 @@ main-login_process =
     Створити обліковий запис можна тут:
     
     https://veloren.net/account/.
+main-singleplayer-new = Нова
+main-singleplayer-delete = Видалити
+main-singleplayer-regenerate = Перегенерувати
+main-singleplayer-create_custom = Налаштувати
+main-singleplayer-invalid_name = Помилка: неприпустиме ім'я
+main-singleplayer-seed = Зерно
+main-singleplayer-random_seed = Випадкова
+main-singleplayer-size_lg = Логарифмічний розмір
+main-singleplayer-map_large_warning = Увага: Перший запуск великих світів може зайняти багато часу
+main-singleplayer-world_name = Назва світу
+main-singleplayer-map_scale = Вертикальне масштабування
+main-singleplayer-map_erosion_quality = Якість ерозії
+main-singleplayer-map_shape = Форма
+main-singleplayer-play = Грати
+main-singleplayer-generate_and_play = Згенерувати і Грати
+menu-singleplayer-confirm_delete = Ви дійсно хочте видалити "{ $world_name }"
+menu-singleplayer-confirm_regenerate = Ви дійсно хочете перегенерувати "{ $world_name }"
 main-login-server_not_found = Сервер не знайдено
 main-login-authentication_error = Помилка авторизації на сервері
-main-login-internal_error = Внутріння помилка у кліента (скоріше за все, персонаж був видалений)
+main-login-internal_error = Внутрішня помилка у кліента (скоріше за все, персонаж був видалений)
 main-login-failed_auth_server_url_invalid = Не вдалося з'єднатися з сервером аутентифікації
 main-login-insecure_auth_scheme = HTTP схема аутентифікації НЕ підтримується. Це небезпечно! Для розробки це дозволено для 'localhost' або дебажних збірок
 main-login-server_full = Сервер переповнено
@@ -58,11 +75,11 @@ main-login-username_bad_characters = Ім'я персонажа містить �
 main-login-username_too_long = Ім'я персонажа занадто довге! Максимальна довжина: { $max_len }
 main-servers-select_server = Виберіть сервер
 main-servers-singleplayer_error = Помилка підключення до внутрішьного серверу: { $sp_error }
-main-servers-network_error = Помилка сокету/мережі серверов: { $raw_error }
+main-servers-network_error = Помилка сокету/мережі серверів: { $raw_error }
 main-servers-participant_error = Від'єднання учасника/помилка протоколу: { $raw_error }
 main-servers-stream_error = Помилка данних клієнто під час підключення: { $raw_error }
 main-servers-database_error = Помилка данних серверу: { $raw_error }
-main-servers-persistence_error = Помилка постійності сервера (Можливо, пов'язано з ресурсами гри або данними про персонажа): { $raw_error }
+main-servers-persistence_error = Помилка зберігання (Можливо, пов'язано з ресурсами гри або данними про персонажа): { $raw_error }
 main-servers-other_error = Помилка сервера: { $raw_error }
 main-credits = Подяки
 main-credits-created_by = зроблено
