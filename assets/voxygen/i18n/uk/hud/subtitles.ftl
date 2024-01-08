@@ -4,6 +4,8 @@ subtitle-bees = Дзижчання бджіл
 subtitle-owl = Укання сови
 subtitle-running_water = Булькання води
 subtitle-lightning = Грім
+subtitle-portal-activated = Портал активовано
+subtitle-portal-teleported = Телепортовано
 
 subtitle-footsteps_grass = Ходьба по траві
 subtitle-footsteps_earth = Ходьба по землі
@@ -107,8 +109,9 @@ subtitle-deep_laugh = Глибокий сміх
 subtitle-attack-flash_freeze = Миттєве заморожування
 subtitle-attack-icy_spikes = Крижані шипи
 subtitle-attack-ice_crack = Крижана тріщина
-subtitle-attack-steam = Пар
+subtitle-attack-steam = Пара
 subtitle-attack-shovel = Копання Лопатою
+subtitle-attack-from-the-ashes = Звук зцілення
 
 subtitle-consume_potion = Пиття зілля
 subtitle-consume_apple = Споживання яблука
@@ -152,3 +155,5 @@ subtitle-utterance-wolf-angry = Вовк гарчить
 subtitle-utterance-wolf-hurt = Вовк скиглить
 subtitle-utterance-wyvern-angry = Рев Виверни
 subtitle-utterance-wyvern-hurt = Виверні боляче
+subtitle-utterance-phoenix-angry = Крик Фенікса
+subtitle-utterance-phoenix-hurt = Феніксу боляче
