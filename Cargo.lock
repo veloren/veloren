@@ -904,16 +904,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "clipboard_macos"
-version = "0.1.0"
-source = "git+https://github.com/TobTobXX/window_clipboard.git?rev=1392da8339c8aebb9849d00eb7383a73ed076f1d#1392da8339c8aebb9849d00eb7383a73ed076f1d"
-dependencies = [
- "objc",
- "objc-foundation",
- "objc_id",
-]
-
-[[package]]
 name = "clipboard_wayland"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -923,27 +913,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "clipboard_wayland"
-version = "0.2.0"
-source = "git+https://github.com/TobTobXX/window_clipboard.git?rev=1392da8339c8aebb9849d00eb7383a73ed076f1d#1392da8339c8aebb9849d00eb7383a73ed076f1d"
-dependencies = [
- "smithay-clipboard",
-]
-
-[[package]]
 name = "clipboard_x11"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "983a7010836ecd04dde2c6d27a0cb56ec5d21572177e782bdcb24a600124e921"
-dependencies = [
- "thiserror",
- "x11rb 0.9.0",
-]
-
-[[package]]
-name = "clipboard_x11"
-version = "0.4.0"
-source = "git+https://github.com/TobTobXX/window_clipboard.git?rev=1392da8339c8aebb9849d00eb7383a73ed076f1d#1392da8339c8aebb9849d00eb7383a73ed076f1d"
 dependencies = [
  "thiserror",
  "x11rb 0.9.0",
@@ -2871,12 +2844,12 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.4.0"
-source = "git+https://github.com/JCapucho/iced?branch=winit-updates#40184db6ff7d197cb40243c51284276e52de5070"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 
 [[package]]
 name = "iced_futures"
 version = "0.3.0"
-source = "git+https://github.com/JCapucho/iced?branch=winit-updates#40184db6ff7d197cb40243c51284276e52de5070"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "futures",
  "log",
@@ -2886,7 +2859,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.2.0"
-source = "git+https://github.com/JCapucho/iced?branch=winit-updates#40184db6ff7d197cb40243c51284276e52de5070"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "bytemuck",
  "glam",
@@ -2899,7 +2872,7 @@ dependencies = [
 [[package]]
 name = "iced_native"
 version = "0.4.0"
-source = "git+https://github.com/JCapucho/iced?branch=winit-updates#40184db6ff7d197cb40243c51284276e52de5070"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -2911,7 +2884,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.3.0"
-source = "git+https://github.com/JCapucho/iced?branch=winit-updates#40184db6ff7d197cb40243c51284276e52de5070"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "iced_core",
 ]
@@ -2919,7 +2892,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.3.0"
-source = "git+https://github.com/JCapucho/iced?branch=winit-updates#40184db6ff7d197cb40243c51284276e52de5070"
+source = "git+https://github.com/Imberflur/iced?tag=veloren-winit-0.28#47243c257c8b8dd6c506b060804cb00b618aa0aa"
 dependencies = [
  "iced_futures",
  "iced_graphics",
@@ -2927,7 +2900,7 @@ dependencies = [
  "log",
  "thiserror",
  "winapi",
- "window_clipboard 0.2.3",
+ "window_clipboard 0.3.0",
  "winit",
 ]
 
@@ -8066,28 +8039,29 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "window_clipboard"
-version = "0.2.3"
-source = "git+https://github.com/TobTobXX/window_clipboard.git?rev=1392da8339c8aebb9849d00eb7383a73ed076f1d#1392da8339c8aebb9849d00eb7383a73ed076f1d"
-dependencies = [
- "clipboard-win 4.5.0",
- "clipboard_macos 0.1.0 (git+https://github.com/TobTobXX/window_clipboard.git?rev=1392da8339c8aebb9849d00eb7383a73ed076f1d)",
- "clipboard_wayland 0.2.0 (git+https://github.com/TobTobXX/window_clipboard.git?rev=1392da8339c8aebb9849d00eb7383a73ed076f1d)",
- "clipboard_x11 0.4.0 (git+https://github.com/TobTobXX/window_clipboard.git?rev=1392da8339c8aebb9849d00eb7383a73ed076f1d)",
- "raw-window-handle 0.5.2",
- "thiserror",
-]
-
-[[package]]
-name = "window_clipboard"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "015dd4474dc6aa96fe19aae3a24587a088bd90331dba5a5cc60fb3a180234c4d"
 dependencies = [
  "clipboard-win 4.5.0",
- "clipboard_macos 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clipboard_wayland 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clipboard_x11 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clipboard_macos",
+ "clipboard_wayland",
+ "clipboard_x11",
  "raw-window-handle 0.3.4",
+ "thiserror",
+]
+
+[[package]]
+name = "window_clipboard"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63287c9c4396ccf5346d035a9b0fcaead9e18377637f5eaa78b7ac65c873ff7d"
+dependencies = [
+ "clipboard-win 4.5.0",
+ "clipboard_macos",
+ "clipboard_wayland",
+ "clipboard_x11",
+ "raw-window-handle 0.5.2",
  "thiserror",
 ]
 

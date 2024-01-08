@@ -72,8 +72,8 @@ cmake = "=0.1.45"
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 euc = "0.5.0"
-iced = {package = "iced_native", git = "https://github.com/JCapucho/iced", branch = "winit-updates"}
-iced_winit = {git = "https://github.com/JCapucho/iced", branch = "winit-updates"}
+iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
+iced_winit = {git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
 window_clipboard = "0.2"
 glyph_brush = "0.7.0"
 # https://gitlab.com/Frinksy/keyboard-keynames/-/merge_requests/8
