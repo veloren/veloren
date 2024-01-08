@@ -131,7 +131,6 @@ fn do_command(
         ServerChatCommand::BattleModeForce => handle_battlemode_force,
         ServerChatCommand::Body => handle_body,
         ServerChatCommand::Buff => handle_buff,
-        ServerChatCommand::BuffComplex => handle_buff_complex,
         ServerChatCommand::Build => handle_build,
         ServerChatCommand::AreaAdd => handle_area_add,
         ServerChatCommand::AreaList => handle_area_list,
@@ -4141,60 +4140,57 @@ fn handle_buff(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let (Some(buff), strength, duration) = parse_cmd_args!(args, String, f32, f64) else {
+    let (Some(buff), strength, duration, misc_data_spec) =
+        parse_cmd_args!(args, String, f32, f64, String)
+    else {
         return Err(Content::Plain(action.help_string()));
     };
 
     let strength = strength.unwrap_or(0.01);
-    let duration = duration.unwrap_or(1.0);
-    let buffdata = BuffData::new(strength, Some(Secs(duration)));
 
     if buff == "all" {
+        let duration = duration.unwrap_or(5.0);
+        let buffdata = BuffData::new(strength, Some(Secs(duration)));
+
+        // apply every(*) non-complex buff
+        //
+        // (*) BUFF_PACK contains all buffs except
+        // invulnerability
         BUFF_PACK
             .iter()
             .filter_map(|kind_key| parse_buffkind(kind_key))
             .filter(|buffkind| buffkind.is_simple())
             .for_each(|buffkind| cast_buff(buffkind, buffdata, server, target));
+        Ok(())
     } else {
         let buffkind = parse_buffkind(&buff).ok_or_else(|| {
             Content::localized_with_args("command-buff-unknown", [("buff", buff.clone())])
         })?;
 
-        if !buffkind.is_simple() {
-            return Err(Content::localized_with_args("command-buff-complex", [(
-                "buff", buff,
-            )]));
+        if buffkind.is_simple() {
+            let duration = duration.unwrap_or(10.0);
+            let buffdata = BuffData::new(strength, Some(Secs(duration)));
+            cast_buff(buffkind, buffdata, server, target);
+            Ok(())
+        } else {
+            // default duration is longer for complex buffs
+            let duration = duration.unwrap_or(20.0);
+            let spec = misc_data_spec.ok_or_else(|| {
+                Content::localized_with_args("command-buff-data", [("buff", buff.clone())])
+            })?;
+            cast_buff_complex(buffkind, server, target, spec, strength, duration)
         }
-
-        cast_buff(buffkind, buffdata, server, target);
     }
-
-    Ok(())
 }
 
-fn handle_buff_complex(
+fn cast_buff_complex(
+    buffkind: BuffKind,
     server: &mut Server,
-    _client: EcsEntity,
     target: EcsEntity,
-    args: Vec<String>,
-    action: &ServerChatCommand,
+    spec: String,
+    strength: f32,
+    duration: f64,
 ) -> CmdResult<()> {
-    let (Some(buff), Some(spec), strength, duration) =
-        parse_cmd_args!(args, String, String, f32, f64)
-    else {
-        return Err(Content::Plain(action.help_string()));
-    };
-
-    let buffkind = parse_buffkind(&buff).ok_or_else(|| {
-        Content::localized_with_args("command-buff-unknown", [("buff", buff.clone())])
-    })?;
-
-    if buffkind.is_simple() {
-        return Err(Content::localized_with_args("command-buff-simple", [(
-            "buff", buff,
-        )]));
-    }
-
     // explicit match to remember that this function exists
     let misc_data = match buffkind {
         BuffKind::Polymorphed => {
@@ -4240,9 +4236,6 @@ fn handle_buff_complex(
         | BuffKind::PotionSickness
         | BuffKind::Heatstroke => unreachable!("is_simple() above"),
     };
-
-    let strength = strength.unwrap_or(0.01);
-    let duration = duration.unwrap_or(20.0);
 
     let buffdata = BuffData::new(strength, Some(Secs(duration))).with_misc_data(misc_data);
 
