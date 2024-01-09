@@ -95,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed french translation "Énergie Consommée" -> "Regain d'Énergie"
 - Fixed Perforate icon not displaying
 - Make cave entrances easier to follow
+- Renamed Twiggy Shoulders to match the Twig Armor set 
 
 ## [0.15.0] - 2023-07-01
 
