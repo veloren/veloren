@@ -1,4 +1,4 @@
-use super::Content;
+use common_i18n::Content;
 use vek::Vec2;
 // TODO: Move this to common/src/, it's not a component
 

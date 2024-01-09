@@ -2,12 +2,12 @@ use crate::{
     comp::{
         item::{ItemDefinitionId, ItemDefinitionIdOwned},
         tool::ToolKind,
-        Content,
     },
     lottery::LootSpec,
     make_case_elim,
     terrain::Block,
 };
+use common_i18n::Content;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;

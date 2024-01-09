@@ -6946,8 +6946,8 @@ dependencies = [
  "serde",
  "tracing",
  "unic-langid",
- "veloren-common",
  "veloren-common-assets",
+ "veloren-common-i18n",
 ]
 
 [[package]]
@@ -6994,6 +6994,7 @@ dependencies = [
  "vek 0.15.8",
  "veloren-common-assets",
  "veloren-common-base",
+ "veloren-common-i18n",
 ]
 
 [[package]]
@@ -7052,6 +7053,15 @@ dependencies = [
  "tracing-subscriber",
  "tracing-tracy",
  "veloren-common-base",
+]
+
+[[package]]
+name = "veloren-common-i18n"
+version = "0.1.0"
+dependencies = [
+ "hashbrown 0.13.2",
+ "rand 0.8.5",
+ "serde",
 ]
 
 [[package]]

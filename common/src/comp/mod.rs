@@ -62,8 +62,7 @@ pub use self::{
     },
     character_state::{CharacterActivity, CharacterState, StateUpdate},
     chat::{
-        ChatMode, ChatMsg, ChatType, Content, Faction, LocalizationArg, SpeechBubble,
-        SpeechBubbleType, UnresolvedChatMsg,
+        ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
     },
     combo::Combo,
     controller::{
@@ -107,5 +106,6 @@ pub use self::{
     teleport::Teleporting,
     visual::{LightAnimation, LightEmitter},
 };
+pub use common_i18n::{Content, LocalizationArg};
 
 pub use health::{Health, HealthChange};

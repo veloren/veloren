@@ -19,11 +19,11 @@ pub mod theropod;
 
 use crate::{
     assets::{self, Asset},
-    comp::Content,
     consts::{HUMAN_DENSITY, WATER_DENSITY},
     make_case_elim,
     npc::NpcKind,
 };
+use common_i18n::Content;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use strum::Display;

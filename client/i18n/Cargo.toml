@@ -7,8 +7,8 @@ version = "0.13.0"
 
 [dependencies]
 # Assets
-common = {package = "veloren-common", path = "../../common"}
 common-assets = {package = "veloren-common-assets", path = "../../common/assets"}
+common-i18n = { package = "veloren-common-i18n", path = "../../common/i18n" }
 serde = { workspace = true }
 # Localization
 unic-langid = { version = "0.9"}

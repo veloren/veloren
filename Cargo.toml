@@ -5,6 +5,7 @@ resolver = "2"
 members = [
     "common",
     "common/assets",
+    "common/i18n",
     "common/base",
     "common/dynlib",
     "common/ecs",

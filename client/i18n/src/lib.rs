@@ -19,8 +19,8 @@ use std::{borrow::Cow, io};
 use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher, SharedString};
 use tracing::warn;
 // Re-export because I don't like prefix
-use common::comp::{Content, LocalizationArg};
 use common_assets as assets;
+use common_i18n::{Content, LocalizationArg};
 
 // Re-export for argument creation
 pub use fluent::{fluent_args, FluentValue};
