@@ -11,8 +11,8 @@ use crate::{
         body::Body,
         inventory::{
             item::{
-                tool::AbilityMap, ItemDef, ItemDefinitionIdOwned, ItemKind, MaterialStatManifest,
-                TagExampleInfo,
+                item_key::ItemKey, tool::AbilityMap, ItemDef, ItemDefinitionIdOwned, ItemKind,
+                MaterialStatManifest, TagExampleInfo,
             },
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
@@ -974,7 +974,7 @@ pub enum CollectFailedReason {
 pub enum InventoryUpdateEvent {
     Init,
     Used,
-    Consumed(String),
+    Consumed(ItemKey),
     Gave,
     Given,
     Swapped,

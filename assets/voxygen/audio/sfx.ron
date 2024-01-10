@@ -986,231 +986,231 @@
         //
         // Consumables
         //
-        Inventory(Consumed("Minor Potion")): (
+        Inventory(Consumed(Simple("common.items.consumable.potion_minor"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_potion",
         ),
-        Inventory(Consumed("Medium Potion")): (
+        Inventory(Consumed(Simple("common.items.consumable.potion_med"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_potion",
         ),
-        Inventory(Consumed("Large Potion")): (
+        Inventory(Consumed(Simple("common.items.consumable.potion_big"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_potion",
         ),
-        Inventory(Consumed("Apple")): (
+        Inventory(Consumed(Simple("common.items.food.apple"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.apple",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_apple",
         ),
-        Inventory(Consumed("Mushroom")): (
+        Inventory(Consumed(Simple("common.items.food.mushroom"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Dwarven Cheese")): (
+        Inventory(Consumed(Simple("common.items.food.cheese"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_cheese",
         ),
-        Inventory(Consumed("Sunflower Ice Tea")): (
+        Inventory(Consumed(Simple("common.items.food.sunflower_icetea"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_liquid",
         ),
-        Inventory(Consumed("Mushroom Curry")): (
+        Inventory(Consumed(Simple("common.items.food.apple_mushroom_curry"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Apple Stick")): (
+        Inventory(Consumed(Simple("common.items.food.apple_stick"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Coconut")): (
+        Inventory(Consumed(Simple("common.items.food.coconut"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Mushroom Stick")): (
+        Inventory(Consumed(Simple("common.items.food.mushroom_stick"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Tomato")): (
+        Inventory(Consumed(Simple("common.items.food.tomato"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Carrot")): (
+        Inventory(Consumed(Simple("common.items.food.carrot"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Lettuce")): (
+        Inventory(Consumed(Simple("common.items.food.lettuce"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Plain Salad")): (
+        Inventory(Consumed(Simple("common.items.food.plainsalad"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Tomato Salad")): (
+        Inventory(Consumed(Simple("common.items.food.tomatosalad"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_food",
         ),
-        Inventory(Consumed("Cactus Colada")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_liquid",
-        ),
-        Inventory(Consumed("Raw Bird Meat")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Cooked Bird Meat")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Raw Fish")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Cooked Fish")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Raw Meat Slab")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Cooked Meat Slab")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Raw Meat Sliver")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Cooked Meat Sliver")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Raw Tough Meat")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Cooked Tough Meat")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Huge Raw Drumstick")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Huge Cooked Drumstick")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Honeycorn")): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed("Pumpkin Spice Brew")): (
+        Inventory(Consumed(Simple("common.items.food.cactus_colada"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.liquid",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_liquid",
         ),
-        Inventory(Consumed("Blue Cheese")): (
+        Inventory(Consumed(Simple("common.items.food.meat.bird_raw"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.bird_cooked"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.fish_raw"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.fish_cooked"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.beast_large_raw"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.beast_large_cooked"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.beast_small_raw"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.beast_small_cooked"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.tough_raw"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.tough_cooked"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.bird_large_raw"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.meat.bird_large_cooked"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.honeycorn"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_food",
+        ),
+        Inventory(Consumed(Simple("common.items.food.pumpkin_spice_brew"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_liquid",
+        ),
+        Inventory(Consumed(Simple("common.items.food.blue_cheese"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
             threshold: 0.3,
             subtitle: "subtitle-consume_cheese",
         ),
-        Inventory(Consumed("Golden Cheese")): (
+        Inventory(Consumed(Simple("common.items.debug.golden_cheese"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
