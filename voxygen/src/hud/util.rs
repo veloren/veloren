@@ -5,7 +5,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            Effects, Item, ItemDefinitionId, ItemDesc, ItemKind, MaterialKind,
+            Effects, Item, ItemDefinitionId, ItemDesc, ItemKind, ItemL10n, MaterialKind,
             MaterialStatManifest,
         },
         BuffKind,
@@ -15,7 +15,7 @@ use common::{
 };
 use conrod_core::image;
 use i18n::{fluent_args, Localization};
-use std::{borrow::Cow, fmt::Write};
+use std::{borrow::Cow, fmt::Write, num::NonZeroU32};
 
 pub fn price_desc<'a>(
     prices: &Option<SitePrices>,
@@ -59,6 +59,31 @@ pub fn price_desc<'a>(
         _ => 1.0,
     };
     Some((buy_string, sell_string, deal_goodness))
+}
+
+pub fn item_text<'a, I: ItemDesc + ?Sized>(
+    item: &I,
+    i18n: &'a Localization,
+    l10n_spec: &'a ItemL10n,
+) -> (String, String) {
+    let (title, desc) = item.l10n(l10n_spec);
+
+    (i18n.get_content(&title), i18n.get_content(&desc))
+}
+
+pub fn describe<'a, I: ItemDesc + ?Sized>(
+    item: &I,
+    i18n: &'a Localization,
+    l10n_spec: &'a ItemL10n,
+) -> String {
+    let (title, _) = item_text(item, i18n, l10n_spec);
+    let amount = item.amount();
+
+    if amount > NonZeroU32::new(1).unwrap() {
+        format!("{amount} x {title}")
+    } else {
+        title
+    }
 }
 
 pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {

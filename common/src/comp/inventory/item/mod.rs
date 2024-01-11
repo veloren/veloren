@@ -14,13 +14,15 @@ use crate::{
     recipe::RecipeInput,
     terrain::Block,
 };
+use common_i18n::Content;
 use core::{
     convert::TryFrom,
     mem,
     num::{NonZeroU32, NonZeroU64},
 };
 use crossbeam_utils::atomic::AtomicCell;
-use hashbrown::Equivalent;
+use hashbrown::{Equivalent, HashMap};
+use item_key::ItemKey;
 use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
@@ -342,6 +344,7 @@ pub enum ItemKind {
     },
     Ingredient {
         /// Used to generate names for modular items composed of this ingredient
+        #[deprecated]
         descriptor: String,
     },
     TagExamples {
@@ -383,6 +386,7 @@ impl ItemKind {
             },
             ItemKind::Throwable { kind } => format!("Throwable: {:?}", kind),
             ItemKind::Utility { kind } => format!("Utility: {:?}", kind),
+            #[allow(deprecated)]
             ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
             ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
         }
@@ -466,11 +470,28 @@ impl Hash for Item {
     }
 }
 
+// at the time of writing, we use Fluent, which supports attributes
+// and we can get both name and description using them
+type I18nId = String;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum ItemName {
-    Direct(String),
-    Modular,
-    Component(String),
+// TODO: probably make a Resource if used outside of voxygen
+// TODO: add hot-reloading similar to how ItemImgs does it?
+// TODO: make it work with plugins (via Concatenate?)
+/// To be used with ItemDesc::l10n
+pub struct ItemL10n {
+    /// maps ItemKey to i18n identifier
+    map: HashMap<ItemKey, I18nId>,
+}
+
+impl assets::Asset for ItemL10n {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+impl ItemL10n {
+    pub fn new_expect() -> Self { ItemL10n::load_expect("common.item_l10n").read().clone() }
 }
 
 #[derive(Clone, Debug)]
@@ -1147,16 +1168,6 @@ impl Item {
         })
     }
 
-    /// Generate a human-readable description of the item and amount.
-    #[deprecated]
-    pub fn describe(&self) -> String {
-        if self.amount() > 1 {
-            format!("{} x {}", self.amount(), self.name())
-        } else {
-            self.name().to_string()
-        }
-    }
-
     #[deprecated]
     pub fn name(&self) -> Cow<str> {
         match &self.item_base {
@@ -1400,6 +1411,7 @@ pub fn flatten_counted_items<'a>(
 pub trait ItemDesc {
     #[deprecated]
     fn description(&self) -> &str;
+    #[deprecated]
     fn name(&self) -> Cow<str>;
     fn kind(&self) -> Cow<ItemKind>;
     fn amount(&self) -> NonZeroU32;
@@ -1419,6 +1431,18 @@ pub trait ItemDesc {
         } else {
             None
         }
+    }
+
+    /// Return name's and description's localization descriptors
+    fn l10n(&self, l10n: &ItemL10n) -> (Content, Content) {
+        let item_key: ItemKey = self.into();
+
+        let _key = l10n.map.get(&item_key);
+        (
+            // construct smth like Content::Attr
+            todo!(),
+            todo!(),
+        )
     }
 }
 

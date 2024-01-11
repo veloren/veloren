@@ -14,7 +14,7 @@ pub enum ItemKey {
     Empty,
 }
 
-impl<T: ItemDesc> From<&T> for ItemKey {
+impl<T: ItemDesc + ?Sized> From<&T> for ItemKey {
     fn from(item_desc: &T) -> Self {
         let item_definition_id = item_desc.item_definition_id();
 
