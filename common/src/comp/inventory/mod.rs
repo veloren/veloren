@@ -184,6 +184,7 @@ impl Inventory {
                     )
                 },
                 Some(CustomOrder::Quality) => cmp = Ord::cmp(&b_quality, &a_quality),
+                #[allow(deprecated)]
                 Some(CustomOrder::Name) => cmp = Ord::cmp(&a.name(), &b.name()),
                 Some(CustomOrder::Tag) => {
                     cmp = Ord::cmp(
@@ -203,6 +204,7 @@ impl Inventory {
         let mut items: Vec<Item> = self.slots_mut().filter_map(mem::take).collect();
 
         items.sort_by(|a, b| match sort_order {
+            #[allow(deprecated)]
             InventorySortOrder::Name => Ord::cmp(&a.name(), &b.name()),
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),

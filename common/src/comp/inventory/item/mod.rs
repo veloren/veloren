@@ -1148,6 +1148,7 @@ impl Item {
     }
 
     /// Generate a human-readable description of the item and amount.
+    #[deprecated]
     pub fn describe(&self) -> String {
         if self.amount() > 1 {
             format!("{} x {}", self.amount(), self.name())
@@ -1156,6 +1157,7 @@ impl Item {
         }
     }
 
+    #[deprecated]
     pub fn name(&self) -> Cow<str> {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
@@ -1169,6 +1171,7 @@ impl Item {
         }
     }
 
+    #[deprecated]
     pub fn description(&self) -> &str {
         match &self.item_base {
             ItemBase::Simple(item_def) => &item_def.description,
@@ -1395,6 +1398,7 @@ pub fn flatten_counted_items<'a>(
 /// Provides common methods providing details about an item definition
 /// for either an `Item` containing the definition, or the actual `ItemDef`
 pub trait ItemDesc {
+    #[deprecated]
     fn description(&self) -> &str;
     fn name(&self) -> Cow<str>;
     fn kind(&self) -> Cow<ItemKind>;

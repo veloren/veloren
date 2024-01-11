@@ -1131,7 +1131,7 @@ fn sort_wares(bag: &mut [Item]) {
             )
         )
         // sort by name
-        .then(Ord::cmp(&a.name(), &b.name()))
+        .then(#[allow(deprecated)] Ord::cmp(&a.name(), &b.name()))
     });
 }
 
