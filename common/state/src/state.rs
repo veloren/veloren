@@ -33,7 +33,7 @@ use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
     prelude::Resource,
-    shred::{Fetch, FetchMut},
+    shred::{Fetch, FetchMut, SendDispatcher},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
@@ -128,6 +128,7 @@ pub struct State {
     ecs: specs::World,
     // Avoid lifetime annotation by storing a thread pool instead of the whole dispatcher
     thread_pool: Arc<ThreadPool>,
+    dispatcher: SendDispatcher<'static>,
 }
 
 pub type Pools = Arc<ThreadPool>;
@@ -150,13 +151,35 @@ impl State {
     }
 
     /// Create a new `State` in client mode.
-    pub fn client(pools: Pools, map_size_lg: MapSizeLg, default_chunk: Arc<TerrainChunk>) -> Self {
-        Self::new(GameMode::Client, pools, map_size_lg, default_chunk)
+    pub fn client(
+        pools: Pools,
+        map_size_lg: MapSizeLg,
+        default_chunk: Arc<TerrainChunk>,
+        add_systems: impl Fn(&mut DispatcherBuilder),
+    ) -> Self {
+        Self::new(
+            GameMode::Client,
+            pools,
+            map_size_lg,
+            default_chunk,
+            add_systems,
+        )
     }
 
     /// Create a new `State` in server mode.
-    pub fn server(pools: Pools, map_size_lg: MapSizeLg, default_chunk: Arc<TerrainChunk>) -> Self {
-        Self::new(GameMode::Server, pools, map_size_lg, default_chunk)
+    pub fn server(
+        pools: Pools,
+        map_size_lg: MapSizeLg,
+        default_chunk: Arc<TerrainChunk>,
+        add_systems: impl Fn(&mut DispatcherBuilder),
+    ) -> Self {
+        Self::new(
+            GameMode::Server,
+            pools,
+            map_size_lg,
+            default_chunk,
+            add_systems,
+        )
     }
 
     pub fn new(
@@ -164,10 +187,23 @@ impl State {
         pools: Pools,
         map_size_lg: MapSizeLg,
         default_chunk: Arc<TerrainChunk>,
+        add_systems: impl Fn(&mut DispatcherBuilder),
     ) -> Self {
+        prof_span!(guard, "create dispatcher");
+        let mut dispatch_builder =
+            DispatcherBuilder::<'static, 'static>::new().with_pool(Arc::clone(&pools));
+        // TODO: Consider alternative ways to do this
+        add_systems(&mut dispatch_builder);
+        let dispatcher = dispatch_builder
+            .build()
+            .try_into_sendable()
+            .unwrap_or_else(|_| panic!("Thread local systems not allowed"));
+        drop(guard);
+
         Self {
             ecs: Self::setup_ecs_world(game_mode, Arc::clone(&pools), map_size_lg, default_chunk),
             thread_pool: pools,
+            dispatcher,
         }
     }
 
@@ -615,7 +651,6 @@ impl State {
     pub fn tick(
         &mut self,
         dt: Duration,
-        add_systems: impl Fn(&mut DispatcherBuilder),
         update_terrain: bool,
         mut metrics: Option<&mut StateTickMetrics>,
         server_constants: &ServerConstants,
@@ -645,19 +680,9 @@ impl State {
         self.ecs.write_resource::<DeltaTime>().0 =
             (dt.as_secs_f32() * time_scale as f32).min(MAX_DELTA_TIME);
 
-        section_span!(guard, "create dispatcher");
-        // Run systems to update the world.
-        // Create and run a dispatcher for ecs systems.
-        let mut dispatch_builder =
-            DispatcherBuilder::new().with_pool(Arc::clone(&self.thread_pool));
-        // TODO: Consider alternative ways to do this
-        add_systems(&mut dispatch_builder);
-        // This dispatches all the systems in parallel.
-        let mut dispatcher = dispatch_builder.build();
-        drop(guard);
-
         section_span!(guard, "run systems");
-        dispatcher.dispatch(&self.ecs);
+        // This dispatches all the systems in parallel.
+        self.dispatcher.dispatch(&self.ecs);
         drop(guard);
 
         section_span!(guard, "maintain ecs");

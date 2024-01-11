@@ -1193,7 +1193,7 @@ pub fn handle_jump(
                 data.entity,
                 strength * impulse / data.mass.0
                     * data.scale.map_or(1.0, |s| s.0.powf(13.0).powf(0.25))
-                    * data.stats.move_speed_modifier,
+                    * data.stats.jump_modifier,
             ));
         })
         .is_some()
@@ -1243,16 +1243,11 @@ fn handle_ability(
                 }
             }
             if let CharacterState::Roll(roll) = &mut update.character {
-                if let CharacterState::ComboMelee(c) = data.character {
-                    roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
+                if data.character.is_wield() || data.character.was_wielded() {
                     roll.was_wielded = true;
-                } else {
-                    if data.character.is_wield() || data.character.was_wielded() {
-                        roll.was_wielded = true;
-                    }
-                    if data.character.is_stealthy() {
-                        roll.is_sneaking = true;
-                    }
+                }
+                if data.character.is_stealthy() {
+                    roll.is_sneaking = true;
                 }
                 if data.character.is_aimed() {
                     roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);

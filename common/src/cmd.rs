@@ -155,6 +155,7 @@ lazy_static! {
             BuffKind::Bleeding => "bleeding",
             BuffKind::Cursed => "cursed",
             BuffKind::Potion => "potion",
+            BuffKind::Agility => "agility",
             BuffKind::CampfireHeal => "campfire_heal",
             BuffKind::EnergyRegen => "energy_regen",
             BuffKind::IncreaseMaxEnergy => "increase_max_energy",

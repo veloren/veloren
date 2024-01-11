@@ -17,8 +17,8 @@ use common::vol::ReadVol;
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
 use specs::{
-    shred::ResourceId, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage,
-    SystemData, World, WriteStorage,
+    shred, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, SystemData,
+    WriteStorage,
 };
 use std::time::Duration;
 use vek::*;

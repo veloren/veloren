@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Twiggy Shoulders",
+    name: "Twig Shoulders",
     description: "Spaulders made from tightly tied twigs.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Twigs"),
     )),
-    quality: Common,
+    quality: Moderate,
     tags: [
         SalvageInto(Twig, 1),
     ],

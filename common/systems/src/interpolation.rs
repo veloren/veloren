@@ -6,8 +6,8 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::sync::InterpolatableComponent;
 use specs::{
-    prelude::ParallelIterator, shred::ResourceId, Entities, ParJoin, Read, ReadStorage, SystemData,
-    World, WriteStorage,
+    prelude::ParallelIterator, shred, Entities, ParJoin, Read, ReadStorage, SystemData,
+    WriteStorage,
 };
 
 #[derive(SystemData)]

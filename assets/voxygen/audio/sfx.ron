@@ -397,27 +397,6 @@
             threshold: 0.7,
             subtitle: "subtitle-hammer-attack",
         ),
-        Attack(ComboMelee(Action, 1), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(ComboMelee(Action, 2), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.separated_second_swing",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(ComboMelee(Action, 3), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.separated_third_swing",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
         Inventory(CollectedTool(Sword)): (
             files: [
                 "voxygen.audio.sfx.inventory.pickup_sword",
@@ -443,7 +422,7 @@
             threshold: 0.5,
             subtitle: "subtitle-unwield_hammer",
         ),
-        Attack(ComboMelee(Action, 1), Hammer): (
+        Attack(ComboMeleeDeprecated(Action, 1), Hammer): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],
@@ -488,20 +467,6 @@
             ],
             threshold: 0.5,
             subtitle: "subtitle-unwield_axe",
-        ),
-        Attack(ComboMelee(Action, 1), Axe): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-axe_attack",
-        ),
-        Attack(ComboMelee(Action, 2), Axe): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-axe_attack",
         ),
         Attack(RapidMelee(Action), Axe): (
             files: [
@@ -548,13 +513,6 @@
             ],
             threshold: 0.5,
             subtitle: "subtitle-unwield_staff",
-        ),
-        Attack(BasicBeam, Staff): (
-            files: [
-                "voxygen.audio.sfx.abilities.flame_thrower",
-            ],
-            threshold: 0.2,
-            subtitle: "subtitle-staff_attack",
         ),
         //Attack(BasicRanged, Staff): (
         //    files: [

@@ -75,3 +75,4 @@ gameinput-muteinactivemaster = Вимкнути всі звуки (В неакт
 gameinput-mutemusic = Вимкнути музику
 gameinput-mutesfx = Вимкнути звуки спец. ефектів
 gameinput-muteambience = Вимкнути довколишню музику
+gameinput-togglewalk = Перемкнути режим ходьби

@@ -12,8 +12,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, World, Write,
-    WriteStorage,
+    shred, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteStorage,
 };
 
 const ENERGY_REGEN_ACCEL: f32 = 1.0;
@@ -174,7 +173,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::DashMelee(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::LeapShockwave(_)
-                | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMeleeDeprecated(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::Music(_)

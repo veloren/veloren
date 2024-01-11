@@ -22,9 +22,8 @@ use common_base::{prof_span, span};
 use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred::{ResourceId, World},
-    Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write,
-    WriteExpect, WriteStorage,
+    shred, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
+    Write, WriteExpect, WriteStorage,
 };
 use std::ops::Range;
 use vek::*;
@@ -562,10 +561,11 @@ impl<'a> PhysicsData<'a> {
         let radius_cutoff = 64;
         let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
         // TODO: give voxel colliders their own component type
-        for (entity, pos, collider, ori) in (
+        for (entity, pos, collider, scale, ori) in (
             &read.entities,
             &write.positions,
             &read.colliders,
+            read.scales.maybe(),
             &write.orientations,
         )
             .join()
@@ -573,7 +573,7 @@ impl<'a> PhysicsData<'a> {
             let vol = collider.get_vol(&voxel_colliders_manifest);
 
             if let Some(vol) = vol {
-                let sphere = voxel_collider_bounding_sphere(vol, pos, ori);
+                let sphere = voxel_collider_bounding_sphere(vol, pos, ori, scale);
                 let radius = sphere.radius.ceil() as u32;
                 let pos_2d = sphere.center.xy().map(|e| e as i32);
                 const POS_TRUNCATION_ERROR: u32 = 1;
@@ -1084,15 +1084,17 @@ impl<'a> PhysicsData<'a> {
                     voxel_collider_spatial_grid
                         .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
-                            positions
-                                .get(entity)
-                                .and_then(|l| velocities.get(entity).map(|r| (l, r)))
-                                .and_then(|l| previous_phys_cache.get(entity).map(|r| (l, r)))
-                                .and_then(|l| read.colliders.get(entity).map(|r| (l, r)))
-                                .and_then(|l| orientations.get(entity).map(|r| (l, r)))
-                                .map(|((((pos, vel), previous_cache), collider), ori)| {
-                                    (entity, pos, vel, previous_cache, collider, ori)
-                                })
+                            positions.get(entity).and_then(|pos| {
+                                Some((
+                                    entity,
+                                    pos,
+                                    velocities.get(entity)?,
+                                    previous_phys_cache.get(entity)?,
+                                    read.colliders.get(entity)?,
+                                    read.scales.get(entity),
+                                    orientations.get(entity)?,
+                                ))
+                            })
                         })
                         .for_each(
                             |(
@@ -1101,6 +1103,7 @@ impl<'a> PhysicsData<'a> {
                                 vel_other,
                                 previous_cache_other,
                                 collider_other,
+                                scale_other,
                                 ori_other,
                             )| {
                                 if entity == entity_other {
@@ -1126,6 +1129,7 @@ impl<'a> PhysicsData<'a> {
                                         voxel_collider,
                                         pos_other,
                                         ori_other,
+                                        scale_other,
                                     );
                                     // Early check
                                     if voxel_sphere.center.distance_squared(path_sphere.center)
@@ -1942,6 +1946,7 @@ fn voxel_collider_bounding_sphere(
     voxel_collider: &VoxelCollider,
     pos: &Pos,
     ori: &Ori,
+    scale: Option<&Scale>,
 ) -> Sphere<f32, f32> {
     let origin_offset = voxel_collider.translation;
     use common::vol::SizedVol;
@@ -1964,7 +1969,7 @@ fn voxel_collider_bounding_sphere(
 
     Sphere {
         center: wpos_center,
-        radius,
+        radius: radius * scale.map_or(1.0, |s| s.0),
     }
 }
 

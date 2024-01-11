@@ -85,6 +85,7 @@ impl ClientInit {
                     &|stage| {
                         let _ = init_stage_tx.send(stage);
                     },
+                    crate::ecs::sys::add_local_systems,
                 )
                 .await
                 {

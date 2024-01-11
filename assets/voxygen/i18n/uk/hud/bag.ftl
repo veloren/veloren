@@ -14,6 +14,7 @@ hud-bag-glider = Дельтаплан
 hud-bag-belt = Пояс
 hud-bag-ring = Кільце
 hud-bag-back = Спина
+hud-bag-backpack = Наплічник
 hud-bag-legs = Ноги
 hud-bag-feet = Ступні
 hud-bag-mainhand = Основна рука

@@ -123,6 +123,7 @@ fn run_client(
             &username,
             "",
             |_| false,
+            |_| {},
         )) {
             Err(e) => tracing::warn!(?e, "Client {} disconnected", index),
             Ok(client) => break client,

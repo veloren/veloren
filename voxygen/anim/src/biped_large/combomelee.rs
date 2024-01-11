@@ -1,5 +1,7 @@
 use super::{
     super::{vek::*, Animation},
+    biped_large_alpha_axe, biped_large_alpha_hammer, biped_large_alpha_sword, biped_large_beta_axe,
+    biped_large_beta_hammer, biped_large_beta_sword, init_biped_large_alpha, init_biped_large_beta,
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
@@ -13,6 +15,8 @@ impl Animation for ComboAnimation {
         Option<AbilityInfo>,
         usize,
         Vec2<f32>,
+        Vec3<f32>,
+        f32,
     );
     type Skeleton = BipedLargeSkeleton;
 
@@ -22,7 +26,7 @@ impl Animation for ComboAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_combo")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, _ability_info, current_strike, _move_dir): Self::Dependency<'_>,
+        (ability_id, stage_section, _ability_info, current_strike, _move_dir, velocity, acc_vel): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -104,6 +108,114 @@ impl Animation for ComboAnimation {
                             next.shoulder_r.orientation =
                                 Quaternion::rotation_x(move1 * 1.0 * move2 * 1.0)
                                     * Quaternion::rotation_y(move1 * -0.9 + move2 * 0.7);
+                        },
+                        _ => {},
+                    }
+                },
+                Some(
+                    "common.abilities.custom.cyclops.doublestrike"
+                    | "common.abilities.hammersimple.doublestrike",
+                ) => {
+                    let speed = Vec2::<f32>::from(velocity).magnitude();
+                    match strike {
+                        0 => {
+                            let (move1base, move2base, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            let pullback = 1.0 - move3;
+                            let move1 = move1base * pullback;
+                            let move2 = move2base * pullback;
+
+                            init_biped_large_alpha(&mut next, s_a, speed, acc_vel, move1);
+                            biped_large_alpha_hammer(&mut next, s_a, move1, move2);
+                        },
+                        1 => {
+                            let (move1base, move2base, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(6)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            let pullback = 1.0 - move3;
+                            let move1 = move1base * pullback;
+                            let move2 = move2base * pullback;
+
+                            init_biped_large_beta(&mut next, s_a, speed, acc_vel, move1);
+                            biped_large_beta_hammer(&mut next, s_a, move1, move2);
+                        },
+                        _ => {},
+                    }
+                },
+                Some(
+                    "common.abilities.custom.dullahan.melee"
+                    | "common.abilities.swordsimple.doublestrike",
+                ) => {
+                    let speed = Vec2::<f32>::from(velocity).magnitude();
+                    match strike {
+                        0 => {
+                            let (move1base, move2base, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            let pullback = 1.0 - move3;
+                            let move1 = move1base * pullback;
+                            let move2 = move2base * pullback;
+
+                            init_biped_large_alpha(&mut next, s_a, speed, acc_vel, move1);
+                            biped_large_alpha_sword(&mut next, s_a, move1, move2);
+                        },
+                        1 => {
+                            let (move1base, move2base, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(6)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            let pullback = 1.0 - move3;
+                            let move1 = move1base * pullback;
+                            let move2 = move2base * pullback;
+
+                            init_biped_large_beta(&mut next, s_a, speed, acc_vel, move1);
+                            biped_large_beta_sword(&mut next, s_a, move1base, move1, move2);
+                        },
+                        _ => {},
+                    }
+                },
+                Some("common.abilities.custom.oni.doublestrike") => {
+                    let speed = Vec2::<f32>::from(velocity).magnitude();
+                    match strike {
+                        0 => {
+                            let (move1base, move2base, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            let pullback = 1.0 - move3;
+                            let move1 = move1base * pullback;
+                            let move2 = move2base * pullback;
+
+                            init_biped_large_alpha(&mut next, s_a, speed, acc_vel, move1);
+                            biped_large_alpha_axe(&mut next, s_a, move1, move2);
+                        },
+                        1 => {
+                            let (move1base, move2base, move3) = match stage_section {
+                                Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                                Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                                Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(6)),
+                                _ => (0.0, 0.0, 0.0),
+                            };
+                            let pullback = 1.0 - move3;
+                            let move1 = move1base * pullback;
+                            let move2 = move2base * pullback;
+
+                            init_biped_large_beta(&mut next, s_a, speed, acc_vel, move1);
+                            biped_large_beta_axe(&mut next, s_a, move1, move2);
                         },
                         _ => {},
                     }

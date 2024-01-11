@@ -34,6 +34,9 @@ mod tests {
             pools,
             DEFAULT_WORLD_CHUNKS_LG,
             Arc::new(TerrainChunk::water(0)),
+            |dispatch_builder| {
+                dispatch::<character_behavior::Sys>(dispatch_builder, &[]);
+            },
         );
         let msm = MaterialStatManifest::load().cloned();
         state.ecs_mut().insert(msm);
@@ -78,9 +81,6 @@ mod tests {
     fn tick(state: &mut State, dt: Duration) {
         state.tick(
             dt,
-            |dispatch_builder| {
-                dispatch::<character_behavior::Sys>(dispatch_builder, &[]);
-            },
             false,
             None,
             &ServerConstants {

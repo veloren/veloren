@@ -15,9 +15,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
-use specs::{
-    shred::ResourceId, Entities, Join, LendJoin, Read, ReadStorage, SystemData, World, WriteStorage,
-};
+use specs::{shred, Entities, Join, LendJoin, Read, ReadStorage, SystemData, WriteStorage};
 use vek::*;
 
 #[derive(SystemData)]

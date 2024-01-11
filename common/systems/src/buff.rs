@@ -22,8 +22,8 @@ use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred::ResourceId, Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage,
-    SystemData, World, WriteStorage,
+    shred, Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
+    WriteStorage,
 };
 
 #[derive(SystemData)]
@@ -663,6 +663,9 @@ fn execute_effect(
         },
         BuffEffect::HealReduction(red) => {
             stat.heal_multiplier *= 1.0 - *red;
+        },
+        BuffEffect::MoveSpeedReduction(red) => {
+            stat.move_speed_multiplier *= 1.0 - *red;
         },
         BuffEffect::PoiseDamageFromLostHealth {
             initial_health,

@@ -71,13 +71,6 @@
 //!     ],
 //!     threshold: 1.2,
 //! ),
-//! // A multi-stage attack ability which depends on the weapon
-//! Attack(ComboMelee(Swing, 1), Sword): (
-//!     files: [
-//!         "voxygen.audio.sfx.abilities.swing_sword",
-//!     ],
-//!     threshold: 0.5,
-//! ),
 //! ```
 
 mod event_mapper;

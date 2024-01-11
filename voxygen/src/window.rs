@@ -1347,7 +1347,7 @@ impl Window {
             // Check if folder exists and create it if it does not
             if !path.exists() {
                 if let Err(e) = std::fs::create_dir_all(&path) {
-                    warn!(?e, "Couldn't create folder for screenshot");
+                    warn!(?e, ?path, "Couldn't create folder for screenshot");
                     let _result =
                         sender.send(String::from("Couldn't create folder for screenshot"));
                 }
@@ -1360,8 +1360,8 @@ impl Window {
                     .unwrap_or(0)
             ));
             // Try to save the image
-            if let Err(e) = image.into_rgba8().save(&path) {
-                warn!(?e, "Couldn't save screenshot");
+            if let Err(e) = image.save(&path) {
+                warn!(?e, ?path, "Couldn't save screenshot");
                 let _result = sender.send(String::from("Couldn't save screenshot"));
             } else {
                 let _result =

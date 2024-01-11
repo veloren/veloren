@@ -5,17 +5,13 @@ use specs::WorldExt;
 use std::error::Error;
 use utils::{DT, DT_F64, EPSILON};
 use vek::{approx, Vec2, Vec3};
-use veloren_common_systems::add_local_systems;
 
 #[test]
 fn simple_run() {
-    let mut state = utils::setup();
+    let mut state = utils::setup(veloren_common_systems::add_local_systems);
     utils::create_player(&mut state);
     state.tick(
         DT,
-        |dispatcher_builder| {
-            add_local_systems(dispatcher_builder);
-        },
         false,
         None,
         &ServerConstants {
@@ -27,7 +23,7 @@ fn simple_run() {
 
 #[test]
 fn dont_fall_outside_world() -> Result<(), Box<dyn Error>> {
-    let mut state = utils::setup();
+    let mut state = utils::setup(utils::add_char_and_phys_systems);
     let p1 = utils::create_player(&mut state);
 
     {
@@ -54,7 +50,7 @@ fn dont_fall_outside_world() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn fall_simple() -> Result<(), Box<dyn Error>> {
-    let mut state = utils::setup();
+    let mut state = utils::setup(utils::add_char_and_phys_systems);
     let p1 = utils::create_player(&mut state);
 
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
@@ -93,8 +89,8 @@ fn fall_simple() -> Result<(), Box<dyn Error>> {
 /// will fall in 20 x DT and 2 x 10*DT steps. compare the end result and make
 /// log the "error" between both calculations
 fn fall_dt_speed_diff() -> Result<(), Box<dyn Error>> {
-    let mut sstate = utils::setup();
-    let mut fstate = utils::setup();
+    let mut sstate = utils::setup(utils::add_char_and_phys_systems);
+    let mut fstate = utils::setup(utils::add_char_and_phys_systems);
     let sp1 = utils::create_player(&mut sstate);
     let fp1 = utils::create_player(&mut fstate);
 
@@ -142,7 +138,7 @@ fn fall_dt_speed_diff() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn walk_simple() -> Result<(), Box<dyn Error>> {
-    let mut state = utils::setup();
+    let mut state = utils::setup(utils::add_char_and_phys_systems);
     let p1 = utils::create_player(&mut state);
 
     for _ in 0..100 {
@@ -187,7 +183,7 @@ fn walk_simple() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn walk_max() -> Result<(), Box<dyn Error>> {
-    let mut state = utils::setup();
+    let mut state = utils::setup(utils::add_char_and_phys_systems);
     for x in 2..30 {
         utils::generate_chunk(&mut state, Vec2::new(x, 0));
     }
@@ -220,8 +216,8 @@ fn walk_max() -> Result<(), Box<dyn Error>> {
 /// will run in 20 x DT and 2 x 10*DT steps. compare the end result and make
 /// log the "error" between both calculations
 fn walk_dt_speed_diff() -> Result<(), Box<dyn Error>> {
-    let mut sstate = utils::setup();
-    let mut fstate = utils::setup();
+    let mut sstate = utils::setup(utils::add_char_and_phys_systems);
+    let mut fstate = utils::setup(utils::add_char_and_phys_systems);
     let sp1 = utils::create_player(&mut sstate);
     let fp1 = utils::create_player(&mut fstate);
 
@@ -275,7 +271,7 @@ fn walk_dt_speed_diff() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
-    let mut state = utils::setup();
+    let mut state = utils::setup(utils::add_char_and_phys_systems);
     let p1 = utils::create_player(&mut state);
 
     let mut actions = Controller::default();

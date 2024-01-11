@@ -1,4 +1,4 @@
-pub mod alpha;
+pub mod combomelee;
 pub mod dash;
 pub mod idle;
 pub mod jump;
@@ -11,7 +11,7 @@ pub mod summon;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    combomelee::ComboAnimation, dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation,
     leapmelee::LeapMeleeAnimation, leapshockwave::LeapShockAnimation, run::RunAnimation,
     shoot::ShootAnimation, stunned::StunnedAnimation, summon::SummonAnimation,
 };

@@ -86,7 +86,6 @@
           pkgs.runCommand
           old.name
           {
-            inherit (old) pname version;
             meta = old.meta or {};
             passthru =
               (old.passthru or {})
@@ -102,12 +101,13 @@
               --set VELOREN_GIT_VERSION "${git.prettyRev}" \
               --set VELOREN_GIT_TAG "${git.tag}"
           '';
-        veloren-common-ov = {
+        veloren-common-env = {
           # We don't add in any information here because otherwise anything
           # that depends on common will be recompiled. We will set these in
           # our wrapper instead.
           NIX_GIT_HASH = "";
           NIX_GIT_TAG = "";
+          VELOREN_USERDATA_STRATEGY = "system";
         };
         voxygenOut = config.nci.outputs."veloren-voxygen";
         serverCliOut = config.nci.outputs."veloren-server-cli";
@@ -124,62 +124,35 @@
             if [ $? -ne 0 ]; then
               exit 1
             fi
+            export VELOREN_GIT_VERSION="${git.prettyRev}"
+            export VELOREN_GIT_TAG="${git.tag}"
           '';
         });
 
-        nci.projects."veloren".relPath = "";
-        nci.crates."veloren-server-cli" = let
-          veloren-server-cli-deps-ov = _: {
-            doCheck = false;
-            dontCheck = true;
-          };
-        in {
+        nci.projects."veloren" = {
+          export = false;
+          path = ./.;
+        };
+        nci.crates."veloren-server-cli" = {
           profiles = {
             release.features = ["default-publish"];
+            release.runTests = false;
             dev.features = ["default-publish"];
+            dev.runTests = false;
           };
-          depsOverrides.fix-build.overrideAttrs = veloren-server-cli-deps-ov;
-          overrides = {
-            fix-veloren-common = veloren-common-ov;
-            add-deps-reqs.overrideAttrs = veloren-server-cli-deps-ov;
-            fix-build.override = _: {
+          drvConfig = {
+            mkDerivation = {
               src = filteredSource;
-              VELOREN_USERDATA_STRATEGY = "system";
             };
+            env = veloren-common-env;
           };
         };
-        nci.crates."veloren-voxygen" = let
-          veloren-voxygen-deps-ov = prev: {
-            buildInputs =
-              (prev.buildInputs or [])
-              ++ (
-                with pkgs; [
-                  alsa-lib
-                  libxkbcommon
-                  udev
-                  xorg.libxcb
-                ]
-              );
-            nativeBuildInputs =
-              (prev.nativeBuildInputs or [])
-              ++ (
-                with pkgs; [
-                  python3
-                  pkg-config
-                  cmake
-                  gnumake
-                ]
-              );
-
-            SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
-            VELOREN_ASSETS = "${assets}";
-
-            checkPhase = ":";
-          };
-        in {
+        nci.crates."veloren-voxygen" = {
           profiles = {
             release.features = ["default-publish"];
+            release.runTests = false;
             dev.features = ["default-publish"];
+            dev.runTests = false;
           };
           runtimeLibs = with pkgs; [
             xorg.libX11
@@ -194,25 +167,47 @@
             vulkan-loader
             stdenv.cc.cc.lib
           ];
-          depsOverrides.fix-build.overrideAttrs = veloren-voxygen-deps-ov;
-          overrides = {
-            fix-veloren-common = veloren-common-ov;
-            add-deps-reqs.overrideAttrs = veloren-voxygen-deps-ov;
-            fix-build.overrideAttrs = prev: {
-              src = filteredSource;
-
-              VELOREN_USERDATA_STRATEGY = "system";
-
-              dontUseCmakeConfigure = true;
-
-              preConfigure = ''
-                ${prev.preConfigure or ""}
-                substituteInPlace voxygen/src/audio/soundcache.rs \
-                  --replace \
-                  "../../../assets/voxygen/audio/null.ogg" \
-                  "${./assets/voxygen/audio/null.ogg}"
-              '';
+          depsDrvConfig = {
+            env =
+              veloren-common-env
+              // {
+                SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
+                VELOREN_ASSETS = "${assets}";
+              };
+            mkDerivation = {
+              buildInputs = with pkgs; [
+                alsa-lib
+                libxkbcommon
+                udev
+                xorg.libxcb
+              ];
+              nativeBuildInputs = with pkgs; [
+                python3
+                pkg-config
+                cmake
+                gnumake
+              ];
             };
+          };
+          drvConfig = let
+            depsConf = config.nci.crates."veloren-voxygen".depsDrvConfig;
+          in {
+            env =
+              depsConf.env
+              // {
+                dontUseCmakeConfigure = true;
+              };
+            mkDerivation =
+              depsConf.mkDerivation
+              // {
+                src = filteredSource;
+                preConfigure = ''
+                  substituteInPlace voxygen/src/audio/soundcache.rs \
+                    --replace \
+                    "../../../assets/voxygen/audio/null.ogg" \
+                    "${./assets/voxygen/audio/null.ogg}"
+                '';
+              };
           };
         };
       };

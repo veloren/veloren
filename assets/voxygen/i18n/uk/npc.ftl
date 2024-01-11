@@ -287,3 +287,4 @@ npc-speech-dist_far = далеко
 npc-speech-dist_ahead = трохи подалі
 npc-speech-dist_near = поблизу
 npc-speech-dist_near_to = дуже близько
+npc-speech-arena = Давайте присядемо тут!

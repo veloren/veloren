@@ -1,7 +1,8 @@
 use super::super::pipelines::blit;
+use common_base::prof_span;
 use tracing::error;
 
-pub type ScreenshotFn = Box<dyn FnOnce(Result<image::DynamicImage, String>) + Send>;
+pub type ScreenshotFn = Box<dyn FnOnce(Result<image::RgbImage, String>) + Send>;
 
 pub struct TakeScreenshot {
     bind_group: blit::BindGroup,
@@ -132,6 +133,7 @@ impl TakeScreenshot {
     }
 
     fn download_and_handle_internal(self) {
+        prof_span!("download_and_handle_internal");
         // Calculate padded bytes per row
         let padded_bytes_per_row = padded_bytes_per_row(self.width, self.bytes_per_pixel);
         let singlethread_rt = match tokio::runtime::Builder::new_current_thread().build() {
@@ -145,21 +147,19 @@ impl TakeScreenshot {
         // Map buffer
         let buffer_slice = self.buffer.slice(..);
         let buffer_map_future = buffer_slice.map_async(wgpu::MapMode::Read);
+        let padded_buffer;
 
         // Wait on buffer mapping
-        let mut pixel_bytes = match singlethread_rt.block_on(buffer_map_future) {
+        let rows = match singlethread_rt.block_on(buffer_map_future) {
             // Buffer is mapped and we can read it
             Ok(()) => {
                 // Copy to a Vec
-                let padded_buffer = buffer_slice.get_mapped_range();
-                let mut pixel_bytes = Vec::new();
+                padded_buffer = buffer_slice.get_mapped_range();
                 padded_buffer
                     .chunks(padded_bytes_per_row as usize)
                     .map(|padded_chunk| {
                         &padded_chunk[..self.width as usize * self.bytes_per_pixel as usize]
                     })
-                    .for_each(|row| pixel_bytes.extend_from_slice(row));
-                pixel_bytes
             },
             // Error
             Err(err) => {
@@ -171,36 +171,54 @@ impl TakeScreenshot {
             },
         };
 
+        // Note: we don't use bytes_per_pixel here since we expect only certain formats
+        // below.
+        let bytes_per_rgb = 3;
+        let mut pixel_bytes =
+            Vec::with_capacity(self.width as usize * self.height as usize * bytes_per_rgb);
         // Construct image
         let image = match self.tex_format {
             wgpu::TextureFormat::Bgra8UnormSrgb => {
-                let (pixels, rest) = pixel_bytes.as_chunks_mut();
-                assert!(
-                    rest.is_empty(),
-                    "Always valid because each pixel uses four bytes"
-                );
-                // Swap blue and red components to get a RGBA texture.
-                for [b, _g, r, _a] in pixels {
-                    std::mem::swap(b, r);
-                }
+                prof_span!("copy image");
+                rows.for_each(|row| {
+                    let (pixels, rest) = row.as_chunks();
+                    assert!(
+                        rest.is_empty(),
+                        "Always valid because each pixel uses four bytes"
+                    );
+                    // Swap blue and red components and drop alpha to get a RGB texture.
+                    for &[b, g, r, _a] in pixels {
+                        pixel_bytes.extend_from_slice(&[r, g, b])
+                    }
+                });
+
                 Ok(pixel_bytes)
             },
-            wgpu::TextureFormat::Rgba8UnormSrgb => Ok(pixel_bytes),
+            wgpu::TextureFormat::Rgba8UnormSrgb => {
+                prof_span!("copy image");
+                rows.for_each(|row| {
+                    let (pixels, rest) = row.as_chunks();
+                    assert!(
+                        rest.is_empty(),
+                        "Always valid because each pixel uses four bytes"
+                    );
+                    // Drop alpha to get a RGB texture.
+                    for &[r, g, b, _a] in pixels {
+                        pixel_bytes.extend_from_slice(&[r, g, b])
+                    }
+                });
+
+                Ok(pixel_bytes)
+            },
             format => Err(format!(
                 "Unhandled format for screenshot texture: {:?}",
                 format,
             )),
         }
         .map(|pixel_bytes| {
-            let image = image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(
-                self.width,
-                self.height,
-                pixel_bytes,
-            )
-            .expect(
+            image::RgbImage::from_vec(self.width, self.height, pixel_bytes).expect(
                 "Failed to create ImageBuffer! Buffer was not large enough. This should not occur",
-            );
-            image::DynamicImage::ImageRgba8(image)
+            )
         });
 
         // Call supplied handler

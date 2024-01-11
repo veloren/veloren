@@ -109,6 +109,7 @@ pub fn localize_chat_message(
                 BuffKind::Regeneration
                 | BuffKind::Saturation
                 | BuffKind::Potion
+                | BuffKind::Agility
                 | BuffKind::CampfireHeal
                 | BuffKind::EnergyRegen
                 | BuffKind::IncreaseMaxEnergy
