@@ -21,6 +21,10 @@ pub enum Content {
     /// verbatim.
     Plain(String),
     /// The content is a localizable message with the given arguments.
+    // TODO: reduce usages of random i18n as much as possible
+    //
+    // It's ok to have random messages, just not at i18n step.
+    // Look for issue on `get_vartion` at Gitlab for more.
     Localized {
         /// i18n key
         key: String,
