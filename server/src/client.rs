@@ -213,7 +213,8 @@ impl Client {
                     | ServerGeneral::CreateEntity(_)
                     | ServerGeneral::DeleteEntity(_)
                     | ServerGeneral::Disconnect(_)
-                    | ServerGeneral::Notification(_) => {
+                    | ServerGeneral::Notification(_)
+                    | ServerGeneral::PluginData(_) => {
                         PreparedMsg::new(3, &g, &self.general_stream_params)
                     },
                 }

@@ -75,6 +75,7 @@ pub fn make_client(
             |_| true,
             &|_| {},
             |_| {},
+            Default::default(),
         ))
         .ok()
 }

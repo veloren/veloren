@@ -6,7 +6,7 @@ version = "0.10.0"
 
 [features]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tar", "bincode", "serde"]
+plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tar", "bincode", "serde", "dep:sha2", "dep:hex"]
 
 default = ["simd"]
 
@@ -40,6 +40,8 @@ wasmtime-wasi = { version = "17.0.0", optional = true }
 async-trait = { workspace = true }
 bytes = "^1"
 futures = "0.3.30"
+sha2 = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
 
 # Tweak running code
 #inline_tweak = { version = "1.0.8", features = ["release_tweak"] }

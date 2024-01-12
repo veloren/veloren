@@ -1,5 +1,8 @@
 use super::{world_msg::SiteId, PingMsg};
-use common::{character::CharacterId, comp, comp::Skill, terrain::block::Block, ViewDistances};
+use common::{
+    character::CharacterId, comp, comp::Skill, event::PluginHash, terrain::block::Block,
+    ViewDistances,
+};
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -95,6 +98,7 @@ pub enum ClientGeneral {
     RequestLossyTerrainCompression {
         lossy_terrain_compression: bool,
     },
+    RequestPlugins(Vec<PluginHash>),
 }
 
 impl ClientMsg {
@@ -143,6 +147,7 @@ impl ClientMsg {
                         | ClientGeneral::Terminate
                         // LodZoneRequest is required by the char select screen
                         | ClientGeneral::LodZoneRequest { .. } => true,
+                        | ClientGeneral::RequestPlugins(_) => true,
                     }
             },
             ClientMsg::Ping(_) => true,

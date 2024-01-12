@@ -3,12 +3,12 @@ pub mod memory_manager;
 pub mod module;
 
 use bincode::ErrorKind;
-use common::{assets::ASSETS_PATH, uid::Uid};
+use common::{assets::ASSETS_PATH, event::PluginHash, uid::Uid};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     fs,
-    io::Read,
+    io::{Read, Write},
     path::{Path, PathBuf},
 };
 use tracing::{error, info};
@@ -19,6 +19,8 @@ use self::{
     module::PluginModule,
 };
 
+use sha2::Digest;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginData {
     name: String,
@@ -26,17 +28,62 @@ pub struct PluginData {
     dependencies: HashSet<String>,
 }
 
+fn compute_hash(data: &[u8]) -> PluginHash {
+    let shasum = sha2::Sha256::digest(data);
+    let mut shasum_iter = shasum.iter();
+    // a newer generic-array supports into_array ...
+    let shasum: PluginHash = std::array::from_fn(|_| *shasum_iter.next().unwrap());
+    shasum
+}
+
+fn cache_file_name(
+    mut base_dir: PathBuf,
+    hash: &PluginHash,
+    create_dir: bool,
+) -> Result<PathBuf, std::io::Error> {
+    base_dir.push("server-plugins");
+    if create_dir {
+        std::fs::create_dir_all(base_dir.as_path())?;
+    }
+    let name = hex::encode(hash);
+    base_dir.push(name);
+    base_dir.set_extension("plugin.tar");
+    Ok(base_dir)
+}
+
+// write received plugin to disk cache
+pub fn store_server_plugin(base_dir: &Path, data: Vec<u8>) -> Result<PathBuf, std::io::Error> {
+    let shasum = compute_hash(data.as_slice());
+    let result = cache_file_name(base_dir.to_path_buf(), &shasum, true)?;
+    let mut file = std::fs::File::create(result.as_path())?;
+    file.write_all(data.as_slice())?;
+    Ok(result)
+}
+
+pub fn find_cached(base_dir: &Path, hash: &PluginHash) -> Result<PathBuf, std::io::Error> {
+    let local_path = cache_file_name(base_dir.to_path_buf(), hash, false)?;
+    if local_path.as_path().exists() {
+        Ok(local_path)
+    } else {
+        Err(std::io::Error::from(std::io::ErrorKind::NotFound))
+    }
+}
+
 pub struct Plugin {
     data: PluginData,
     modules: Vec<PluginModule>,
     #[allow(dead_code)]
-    files: HashMap<PathBuf, Vec<u8>>,
+    hash: PluginHash,
+    #[allow(dead_code)]
+    path: PathBuf,
 }
 
 impl Plugin {
-    pub fn from_reader<R: Read>(mut reader: R) -> Result<Self, PluginError> {
+    pub fn from_path(path_buf: PathBuf) -> Result<Self, PluginError> {
+        let mut reader = fs::File::open(path_buf.as_path()).map_err(PluginError::Io)?;
         let mut buf = Vec::new();
         reader.read_to_end(&mut buf).map_err(PluginError::Io)?;
+        let shasum = compute_hash(buf.as_slice());
 
         let mut files = tar::Archive::new(&*buf)
             .entries()
@@ -76,7 +123,8 @@ impl Plugin {
         Ok(Plugin {
             data,
             modules,
-            files,
+            hash: shasum,
+            path: path_buf,
         })
     }
 
@@ -111,6 +159,9 @@ impl Plugin {
         });
         result
     }
+
+    /// get the path to the plugin file
+    pub fn path(&self) -> &Path { return self.path.as_path() }
 }
 
 #[derive(Default)]
@@ -140,14 +191,12 @@ impl PluginMgr {
                         .unwrap_or(false)
                 {
                     info!("Loading plugin at {:?}", entry.path());
-                    Plugin::from_reader(fs::File::open(entry.path()).map_err(PluginError::Io)?).map(
-                        |plugin| {
-                            if let Err(e) = common::assets::register_tar(entry.path()) {
-                                error!("Plugin {:?} tar error {e:?}", entry.path());
-                            }
-                            Some(plugin)
-                        },
-                    )
+                    Plugin::from_path(entry.path()).map(|plugin| {
+                        if let Err(e) = common::assets::register_tar(entry.path()) {
+                            error!("Plugin {:?} tar error {e:?}", entry.path());
+                        }
+                        Some(plugin)
+                    })
                 } else {
                     Ok(None)
                 }
@@ -167,6 +216,36 @@ impl PluginMgr {
         }
 
         Ok(Self { plugins })
+    }
+
+    /// Add a plugin received from the server
+    pub fn load_server_plugin(&mut self, path: PathBuf) {
+        let _ = Plugin::from_path(path.clone()).map(|plugin| {
+            if let Err(e) = common::assets::register_tar(path.clone()) {
+                error!("Plugin {:?} tar error {e:?}", path.as_path());
+            }
+            self.plugins.push(plugin);
+        });
+    }
+
+    pub fn cache_server_plugin(
+        &mut self,
+        base_dir: &Path,
+        data: Vec<u8>,
+    ) -> Result<(), std::io::Error> {
+        let path = store_server_plugin(base_dir, data)?;
+        self.load_server_plugin(path);
+        Ok(())
+    }
+
+    /// list all registered plugins
+    pub fn plugin_list(&self) -> Vec<PluginHash> {
+        self.plugins.iter().map(|plugin| plugin.hash).collect()
+    }
+
+    /// retrieve a specific plugin
+    pub fn find(&self, hash: &PluginHash) -> Option<&Plugin> {
+        self.plugins.iter().find(|plugin| &plugin.hash == hash)
     }
 
     pub fn load_event(

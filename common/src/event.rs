@@ -27,6 +27,8 @@ use uuid::Uuid;
 use vek::*;
 
 pub type SiteId = u64;
+/// Plugin identifier (sha256)
+pub type PluginHash = [u8; 32];
 
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
@@ -424,6 +426,10 @@ pub struct ToggleSpriteLightEvent {
     pub pos: Vec3<i32>,
     pub enable: bool,
 }
+pub struct RequestPluginsEvent {
+    pub entity: EcsEntity,
+    pub plugins: Vec<PluginHash>,
+}
 
 pub struct EventBus<E> {
     queue: Mutex<VecDeque<E>>,
@@ -548,6 +554,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<StartTeleportingEvent>::default());
     ecs.insert(EventBus::<ToggleSpriteLightEvent>::default());
     ecs.insert(EventBus::<TransformEvent>::default());
+    ecs.insert(EventBus::<RequestPluginsEvent>::default());
 }
 
 /// Define ecs read data for event busses. And a way to convert them all to

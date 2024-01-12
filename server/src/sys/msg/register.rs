@@ -11,7 +11,7 @@ use common::{
     recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
     resources::TimeOfDay,
     shared_server_config::ServerConstants,
-    uid::{IdMaps, Uid},
+    uid::Uid,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
@@ -52,9 +52,8 @@ pub struct ReadData<'a> {
     ability_map: ReadExpect<'a, comp::item::tool::AbilityMap>,
     map: ReadExpect<'a, WorldMapMsg>,
     trackers: TrackedStorages<'a>,
-    _healths: ReadStorage<'a, Health>, // used by plugin feature
-    _plugin_mgr: ReadPlugin<'a>,       // used by plugin feature
-    _id_maps: Read<'a, IdMaps>,        // used by plugin feature
+    #[allow(dead_code)]
+    plugin_mgr: ReadPlugin<'a>, // only used by plugins feature
 }
 
 /// This system will handle new messages from clients
@@ -330,6 +329,10 @@ impl<'a> System<'a> for Sys {
                         // Tell the client its request was successful.
                         client.send(Ok(()))?;
 
+                        #[cfg(feature = "plugins")]
+                        let active_plugins = read_data.plugin_mgr.plugin_list();
+                        #[cfg(not(feature = "plugins"))]
+                        let active_plugins = Vec::default();
 
                         let server_descriptions = &read_data.editable_settings.server_description;
                         let description = ServerDescription {
@@ -358,6 +361,7 @@ impl<'a> System<'a> for Sys {
                                 day_cycle_coefficient: read_data.settings.day_cycle_coefficient()
                             },
                             description,
+                            active_plugins,
                         })?;
                         debug!("Done initial sync with client.");
 

@@ -117,12 +117,15 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-#[cfg(not(feature = "worldgen"))]
-use test_world::{IndexOwned, World};
 use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
 pub use world::{civ::WorldCivStage, sim::WorldSimStage, WorldGenerateStage};
+#[cfg(not(feature = "worldgen"))]
+use {
+    common_net::msg::WorldMapMsg,
+    test_world::{IndexOwned, World},
+};
 
 use crate::{
     persistence::{DatabaseSettings, SqlLogMode},
@@ -308,6 +311,7 @@ impl Server {
             horizons: [(vec![0], vec![0]), (vec![0], vec![0])],
             alt: Grid::new(Vec2::new(1, 1), 1),
             sites: Vec::new(),
+            possible_starting_sites: Vec::new(),
             pois: Vec::new(),
             default_chunk: Arc::new(world.generate_oob_chunk()),
         };
@@ -318,7 +322,10 @@ impl Server {
 
         let mut state = State::server(
             Arc::clone(&pools),
+            #[cfg(feature = "worldgen")]
             world.sim().map_size_lg(),
+            #[cfg(not(feature = "worldgen"))]
+            common::terrain::map::MapSizeLg::new(Vec2::one()).unwrap(),
             Arc::clone(&map.default_chunk),
             |dispatcher_builder| {
                 add_local_systems(dispatcher_builder);

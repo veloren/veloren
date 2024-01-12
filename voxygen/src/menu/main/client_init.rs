@@ -5,6 +5,7 @@ use client::{
 };
 use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
+    path::Path,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -50,6 +51,7 @@ impl ClientInit {
         password: String,
         runtime: Arc<runtime::Runtime>,
         locale: Option<String>,
+        config_dir: &Path,
     ) -> Self {
         let (tx, rx) = unbounded();
         let (trust_tx, trust_rx) = unbounded();
@@ -58,6 +60,7 @@ impl ClientInit {
         let cancel2 = Arc::clone(&cancel);
 
         let runtime2 = Arc::clone(&runtime);
+        let config_dir = config_dir.to_path_buf();
 
         runtime.spawn(async move {
             let trust_fn = |auth_server: &str| {
@@ -89,6 +92,7 @@ impl ClientInit {
                         let _ = init_stage_tx.send(stage);
                     },
                     crate::ecs::sys::add_local_systems,
+                    config_dir.clone(),
                 )
                 .await
                 {
