@@ -1,25 +1,27 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
+// TODO: expose convinience macros ala 'fluent_args!'?
+
 /// The type to represent generic localization request, to be sent from server
 /// to client and then localized (or internationalized) there.
-// TODO: This could be generalised to *any* in-game text, not just chat messages (hence it not being
-// called `ChatContent`). A few examples:
-//
-// - Signposts, both those appearing as overhead messages and those displayed 'in-world' on a shop
-//   sign
-// - UI elements
-// - In-game notes/books (we could add a variant that allows structuring complex, novel textual
-//   information as a syntax tree or some other intermediate format that can be localised by the
-//   client)
-// TODO: We probably want to have this type be able to represent similar things to
-// `fluent::FluentValue`, such as numeric values, so that they can be properly localised in whatever
-// manner is required.
+// TODO: Ideally we would need to fully cover API of our `i18n::Language`, including
+// Fluent values.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Content {
+    /// Plain(text)
+    ///
     /// The content is a plaintext string that should be shown to the user
     /// verbatim.
     Plain(String),
+    /// Key(i18n_key)
+    ///
+    /// The content is defined just by the key
+    Key(String),
+    /// Attr(i18n_key, attr)
+    ///
+    /// The content is the attribute of the key
+    Attr(String, String),
     /// The content is a localizable message with the given arguments.
     // TODO: reduce usages of random i18n as much as possible
     //
@@ -49,6 +51,8 @@ impl<'a> From<&'a str> for Content {
 }
 
 /// A localisation argument for localised content (see [`Content::Localized`]).
+// TODO: Do we want it to be Enum or just wrapper around Content, to add
+// additional `impl From<T>` for our arguments?
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum LocalizationArg {
     /// The localisation argument is itself a section of content.
@@ -74,18 +78,20 @@ impl From<Content> for LocalizationArg {
 
 // TODO: Remove impl and make use of `Content(Plain(...))` explicit (to
 // discourage it)
+//
+// Or not?
 impl From<String> for LocalizationArg {
     fn from(text: String) -> Self { Self::Content(Content::Plain(text)) }
 }
 
 // TODO: Remove impl and make use of `Content(Plain(...))` explicit (to
 // discourage it)
+//
+// Or not?
 impl<'a> From<&'a str> for LocalizationArg {
     fn from(text: &'a str) -> Self { Self::Content(Content::Plain(text.to_string())) }
 }
 
-// TODO: Remove impl and make use of `Content(Plain(...))` explicit (to
-// discourage it)
 impl From<u64> for LocalizationArg {
     fn from(n: u64) -> Self { Self::Nat(n) }
 }
@@ -118,7 +124,7 @@ impl Content {
     pub fn as_plain(&self) -> Option<&str> {
         match self {
             Self::Plain(text) => Some(text.as_str()),
-            Self::Localized { .. } => None,
+            Self::Localized { .. } | Self::Attr { .. } | Self::Key { .. } => None,
         }
     }
 }

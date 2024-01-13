@@ -778,9 +778,11 @@ pub enum UnlockKind {
     Free,
     /// The sprite requires that the opening character has a given item in their
     /// inventory
+    // TODO: use ItemKey here?
     Requires(ItemDefinitionIdOwned),
     /// The sprite will consume the given item from the opening character's
     /// inventory
+    // TODO: use ItemKey here?
     Consumes(ItemDefinitionIdOwned),
 }
 

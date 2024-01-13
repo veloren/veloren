@@ -378,6 +378,8 @@ impl LocalizationGuard {
     /// 3) Otherwise, return result from (1).
     // NOTE: it's important that we only use one language at the time, because
     // otherwise we will get partially-translated message.
+    //
+    // TODO: return Cow<str>?
     pub fn get_content(&self, content: &Content) -> String {
         // Function to localize content for given language.
         //
@@ -389,6 +391,16 @@ impl LocalizationGuard {
         fn get_content_for_lang(lang: &Language, content: &Content) -> Result<String, String> {
             match content {
                 Content::Plain(text) => Ok(text.clone()),
+                Content::Key(key) => {
+                    lang.try_msg(key, None)
+                        .map(Cow::into_owned)
+                        .ok_or_else(|| format!("{key}"))
+                },
+                Content::Attr(key, attr) => {
+                    lang.try_attr(key, attr, None)
+                        .map(Cow::into_owned)
+                        .ok_or_else(|| format!("{key}.{attr}"))
+                },
                 Content::Localized { key, seed, args } => {
                     // flag to detect failure down the chain
                     let mut is_arg_failure = false;

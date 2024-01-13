@@ -26,7 +26,7 @@ use item_key::ItemKey;
 use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
-use strum::{EnumString, IntoStaticStr};
+use strum::{EnumIter, EnumString, IntoEnumIterator, IntoStaticStr};
 use tracing::error;
 use vek::Rgb;
 
@@ -105,7 +105,17 @@ pub enum MaterialKind {
 }
 
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr, EnumString,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    IntoStaticStr,
+    EnumString,
+    EnumIter,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum Material {
@@ -479,6 +489,17 @@ type I18nId = String;
 // TODO: add hot-reloading similar to how ItemImgs does it?
 // TODO: make it work with plugins (via Concatenate?)
 /// To be used with ItemDesc::l10n
+///
+/// NOTE: there is a limitation to this manifest, as it uses ItemKey and
+/// ItemKey isn't uniquely identifies Item, when it comes to modular items.
+///
+/// If modular weapon has the same primary component and the same hand-ness,
+/// we use the same model EVEN IF it has different secondary components, like
+/// Staff with Heavy core or Light core.
+///
+/// Translations currently do the same, but *maybe* they shouldn't in which case
+/// we should either extend ItemKey or use new identifier. We could use
+/// ItemDefinitionId, but it's very generic and cumbersome.
 pub struct ItemL10n {
     /// maps ItemKey to i18n identifier
     map: HashMap<ItemKey, I18nId>,
@@ -492,6 +513,24 @@ impl assets::Asset for ItemL10n {
 
 impl ItemL10n {
     pub fn new_expect() -> Self { ItemL10n::load_expect("common.item_l10n").read().clone() }
+
+    /// Returns (name, description) in Content form.
+    // TODO: after we remove legacy text from ItemDef, consider making this
+    // function non-fallible?
+    fn item_text_opt(&self, mut item_key: ItemKey) -> Option<(Content, Content)> {
+        // we don't put TagExamples into manifest
+        if let ItemKey::TagExamples(_, id) = item_key {
+            item_key = ItemKey::Simple(id.to_string());
+        }
+
+        let key = self.map.get(&item_key);
+        key.map(|key| {
+            (
+                Content::Key(key.to_owned()),
+                Content::Attr(key.to_owned(), "desc".to_owned()),
+            )
+        })
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -1437,12 +1476,12 @@ pub trait ItemDesc {
     fn l10n(&self, l10n: &ItemL10n) -> (Content, Content) {
         let item_key: ItemKey = self.into();
 
-        let _key = l10n.map.get(&item_key);
-        (
-            // construct smth like Content::Attr
-            todo!(),
-            todo!(),
-        )
+        l10n.item_text_opt(item_key).unwrap_or_else(|| {
+            (
+                Content::Plain(self.name().to_string()),
+                Content::Plain(self.name().to_string()),
+            )
+        })
     }
 }
 
@@ -1565,6 +1604,67 @@ pub fn try_all_item_defs() -> Result<Vec<String>, Error> {
     Ok(defs.ids().map(|id| id.to_string()).collect())
 }
 
+/// Designed to return all possible items, including modulars.
+/// And some impossible too, like ItemKind::TagExamples.
+pub fn all_items_expect() -> Vec<Item> {
+    let defs = assets::load_dir::<RawItemDef>("common.items", true)
+        .expect("failed to load item asset directory");
+
+    // Grab all items from assets
+    let mut asset_items: Vec<Item> = defs
+        .ids()
+        .map(|id| Item::new_from_asset_expect(id))
+        .collect();
+
+    let mut material_parse_table = HashMap::new();
+    for mat in Material::iter() {
+        if let Some(id) = mat.asset_identifier() {
+            material_parse_table.insert(id.to_owned(), mat);
+        }
+    }
+
+    let primary_comp_pool = modular::PRIMARY_COMPONENT_POOL.clone();
+
+    // Grab weapon primary components
+    let mut primary_comps: Vec<Item> = primary_comp_pool
+        .values()
+        .flatten()
+        .map(|(item, _hand_rules)| item.clone())
+        .collect();
+
+    // Grab modular weapons
+    let mut modular_items: Vec<Item> = primary_comp_pool
+        .keys()
+        .map(|(tool, mat_id)| {
+            let mat = material_parse_table
+                .get(mat_id)
+                .expect("unexpected material ident");
+
+            // get all weapons without imposing additional hand restrictions
+            let its = modular::generate_weapons(*tool, *mat, None)
+                .expect("failure during modular weapon generation");
+
+            its
+        })
+        .flatten()
+        .collect();
+
+    // 1. Append asset items, that should include pretty much everything,
+    // except modular items
+    // 2. Append primary weapon components, which are modular as well.
+    // 3. Finally append modular weapons that are made from (1) and (2)
+    // extend when we get some new exotic stuff
+    //
+    // P. s. I still can't wrap my head around the idea that you can put
+    // tag example into your inventory.
+    let mut all = Vec::new();
+    all.append(&mut asset_items);
+    all.append(&mut primary_comps);
+    all.append(&mut modular_items);
+
+    all
+}
+
 impl PartialEq<ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
     fn eq(&self, other: &ItemDefinitionId<'_>) -> bool {
         use ItemDefinitionId as DefId;
@@ -1614,6 +1714,25 @@ mod tests {
         let ids = all_item_defs_expect();
         for item in ids.iter().map(|id| Item::new_from_asset_expect(id)) {
             drop(item)
+        }
+    }
+
+    #[test]
+    fn test_item_l10n() { let _ = ItemL10n::new_expect(); }
+
+    #[test]
+    // Probably can't fail, but better safe than crashing production server
+    fn test_all_items() { let _ = all_items_expect(); }
+
+    #[test]
+    // All items in Veloren should have localization.
+    // If no, add some common dummy i18n id.
+    fn ensure_item_localization() {
+        let manifest = ItemL10n::new_expect();
+        let items = all_items_expect();
+        for item in items {
+            let item_key: ItemKey = (&item).into();
+            let _ = manifest.item_text_opt(item_key).unwrap();
         }
     }
 }

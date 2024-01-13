@@ -219,7 +219,9 @@ lazy_static! {
 
     static ref ROLES: Vec<String> = ["admin", "moderator"].iter().copied().map(Into::into).collect();
 
-    /// List of item specifiers. Useful for tab completing
+    /// List of item's asset specifiers. Useful for tab completing.
+    /// Doesn't cover all items (like modulars), includes "fake" items like
+    /// TagExamples.
     pub static ref ITEM_SPECS: Vec<String> = {
         let mut items = try_all_item_defs()
             .unwrap_or_else(|e| {

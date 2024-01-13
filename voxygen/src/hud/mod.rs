@@ -2096,6 +2096,7 @@ impl Hud {
                     },
                     BlockInteraction::Unlock(kind) => {
                         let item_name = |item_id: &ItemDefinitionIdOwned| {
+                            // TODO: get ItemKey and use it with l10n?
                             item_id
                                 .as_ref()
                                 .itemdef_id()

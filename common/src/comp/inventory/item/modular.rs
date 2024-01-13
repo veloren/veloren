@@ -323,7 +323,7 @@ type PrimaryComponentPool = HashMap<(ToolKind, String), Vec<(Item, Option<Hands>
 type SecondaryComponentPool = HashMap<ToolKind, Vec<(Arc<ItemDef>, Option<Hands>)>>;
 
 lazy_static! {
-    static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
+    pub static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
         let mut component_pool = HashMap::new();
 
         // Load recipe book
@@ -509,12 +509,13 @@ pub fn generate_weapons(
                 ability_map,
                 msm,
             );
-            weapons.push(Item::new_from_item_base(
+            let it = Item::new_from_item_base(
                 ItemBase::Modular(ModularBase::Tool),
                 vec![comp.duplicate(ability_map, msm), secondary],
                 ability_map,
                 msm,
-            ));
+            );
+            weapons.push(it);
         }
     }
 
