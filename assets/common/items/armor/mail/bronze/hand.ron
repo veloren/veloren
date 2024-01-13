@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bronze Gauntlets",
-    description: "'Heavy and dull, but it can take a punch.'",
+    legacy_name: "Bronze Gauntlets",
+    legacy_description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Bronze"),

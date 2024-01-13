@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Scratched Necklace",
-    description: "A shoddy necklace with a string about to snap...",
+    legacy_name: "Scratched Necklace",
+    legacy_description: "A shoddy necklace with a string about to snap...",
     kind: Armor((
         kind: Neck,
         stats: Direct((

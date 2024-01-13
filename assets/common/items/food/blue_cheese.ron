@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Cheese",
-    description: "Pungent and filling",
+    legacy_name: "Blue Cheese",
+    legacy_description: "Pungent and filling",
     kind: Consumable(
         kind: Food,
         effects: One(

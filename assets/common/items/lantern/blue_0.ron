@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cool Blue Lantern",
-    description: "This lantern is surprisingly cold when lit.",
+    legacy_name: "Cool Blue Lantern",
+    legacy_description: "This lantern is surprisingly cold when lit.",
     kind: Lantern(
         (
             color: (r: 55, g: 100, b: 255),

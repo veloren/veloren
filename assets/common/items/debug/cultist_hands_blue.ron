@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Gloves",
-    description: "",
+    legacy_name: "Velorite Gloves",
+    legacy_description: "",
     kind: Armor((
         kind: Hand,
         stats: Direct(()),

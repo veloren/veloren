@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bear Bonnet",
-    description: "Wearing the guise of a ferocious bear, its fury becomes your own.",
+    legacy_name: "Bear Bonnet",
+    legacy_description: "Wearing the guise of a ferocious bear, its fury becomes your own.",
     kind: Armor((
         kind: Head,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Horizon",
-    description: "It isn't high noon.",
+    legacy_name: "Horizon",
+    legacy_description: "It isn't high noon.",
     kind: Glider,
     quality: Epic,
     tags: [

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leafy Belt",
-    description: "Dried leaves cover over the standard twig belt, providing a slightly different texture.",
+    legacy_name: "Leafy Belt",
+    legacy_description: "Dried leaves cover over the standard twig belt, providing a slightly different texture.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Twigs Leaves"),

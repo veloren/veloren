@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bird Large Basic",
-    description: "testing123",
+    legacy_name: "Bird Large Basic",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

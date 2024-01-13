@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Shortbow Limbs",
-    description: "",
+    legacy_name: "Shortbow Limbs",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Bow,

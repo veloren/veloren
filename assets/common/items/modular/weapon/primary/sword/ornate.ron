@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ornate Sword Blade",
-    description: "",
+    legacy_name: "Ornate Sword Blade",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Sword,

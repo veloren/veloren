@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Twigs",
-    description: "Found near trees, a squirrel must've knocked it down.",
+    legacy_name: "Twigs",
+    legacy_description: "Found near trees, a squirrel must've knocked it down.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

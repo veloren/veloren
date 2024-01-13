@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Hood",
-    description: "Become one with the treetops.",
+    legacy_name: "Hood",
+    legacy_description: "Become one with the treetops.",
     kind: Armor((
         kind: Head,
         stats: Direct((

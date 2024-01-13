@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Viscous Ooze",
-    description: "A measure of viscous ooze from a slimy creature.",
+    legacy_name: "Viscous Ooze",
+    legacy_description: "A measure of viscous ooze from a slimy creature.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

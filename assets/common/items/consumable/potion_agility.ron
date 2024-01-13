@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Potion of Agility",
-    description: "Fly, you fools!",
+    legacy_name: "Potion of Agility",
+    legacy_description: "Fly, you fools!",
     kind: Consumable(
         kind: Drink,
         effects: All([

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Merchant Belt",
-    description: "",
+    legacy_name: "Merchant Belt",
+    legacy_description: "",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Merchant"),

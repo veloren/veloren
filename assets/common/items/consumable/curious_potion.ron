@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Curious Potion",
-    description: "Wonder what this does...",
+    legacy_name: "Curious Potion",
+    legacy_description: "Wonder what this does...",
     kind: Consumable(
         kind: Drink,
         effects: Any([

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Wrappings",
-    description: "The blistering cold makes it hard to move.",
+    legacy_name: "Boreal Wrappings",
+    legacy_description: "The blistering cold makes it hard to move.",
     kind: Armor((
         kind: Foot,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Pickaxe",
-    description: "",
+    legacy_name: "Velorite Pickaxe",
+    legacy_description: "",
     kind: Tool((
         kind: Sword,
         hands: Two,

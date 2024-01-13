@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Yeti Hammer",
-    description: "Placeholder",
+    legacy_name: "Yeti Hammer",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Natural,
         hands: Two,

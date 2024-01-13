@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dragonscale Leggings",
-    description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
+    legacy_name: "Dragonscale Leggings",
+    legacy_description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Dragonscale"),

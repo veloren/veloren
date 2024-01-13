@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunflower",
-    description: "Smells like summer.",
+    legacy_name: "Sunflower",
+    legacy_description: "Smells like summer.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

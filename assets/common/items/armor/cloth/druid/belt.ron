@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Druid Sash",
-    description: "Incredibly light, with the essence of nature.",
+    legacy_name: "Druid Sash",
+    legacy_description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Lifecloth"),

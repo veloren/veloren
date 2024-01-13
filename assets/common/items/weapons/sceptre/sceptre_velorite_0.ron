@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Sceptre",
-    description: "Heals your allies with the mystical Velorite aura.",
+    legacy_name: "Velorite Sceptre",
+    legacy_description: "Heals your allies with the mystical Velorite aura.",
     kind: Tool((
         kind: Sceptre,
         hands: Two,

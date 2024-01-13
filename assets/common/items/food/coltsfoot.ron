@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Coltsfoot",
-    description: "A daisy-like flower often used in herbal teas.",
+    legacy_name: "Coltsfoot",
+    legacy_description: "A daisy-like flower often used in herbal teas.",
     kind: Consumable(
         kind: Food,
         effects: One(

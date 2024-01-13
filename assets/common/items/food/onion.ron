@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Onion",
-    description: "A vegetable that's made the toughest men cry.",
+    legacy_name: "Onion",
+    legacy_description: "A vegetable that's made the toughest men cry.",
     kind: Consumable(
         kind: Food,
         effects: One(

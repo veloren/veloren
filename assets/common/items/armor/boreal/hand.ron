@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Gauntlets",
-    description: "Colder than the touch of death.",
+    legacy_name: "Boreal Gauntlets",
+    legacy_description: "Colder than the touch of death.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Boreal"),

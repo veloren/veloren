@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flamekeeper Foot",
-    description: "Flamekeeper Foot.",
+    legacy_name: "Flamekeeper Foot",
+    legacy_description: "Flamekeeper Foot.",
     kind: Armor((
         kind: Foot,
         stats: Direct((

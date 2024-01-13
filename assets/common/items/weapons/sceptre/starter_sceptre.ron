@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Naturalist Walking Stick",
-    description: "Heals your allies with the power of nature.",
+    legacy_name: "Naturalist Walking Stick",
+    legacy_description: "Heals your allies with the power of nature.",
     kind: Tool((
         kind: Sceptre,
         hands: Two,

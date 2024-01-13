@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Druid Kickers",
-    description: "Incredibly light, with the essence of nature.",
+    legacy_name: "Druid Kickers",
+    legacy_description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Lifecloth"),

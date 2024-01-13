@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leafy Shirt",
-    description: "Leaves cover the magically imbued twig shirt, providing a more natural appearance.",
+    legacy_name: "Leafy Shirt",
+    legacy_description: "Leaves cover the magically imbued twig shirt, providing a more natural appearance.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Twigs Leaves"),

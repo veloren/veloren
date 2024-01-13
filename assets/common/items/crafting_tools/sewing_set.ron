@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sewing Set",
-    description: "Used to craft various items.",
+    legacy_name: "Sewing Set",
+    legacy_description: "Used to craft various items.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

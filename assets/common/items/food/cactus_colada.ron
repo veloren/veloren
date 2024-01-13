@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cactus Colada",
-    description: "Giving you that special prickle.",
+    legacy_name: "Cactus Colada",
+    legacy_description: "Giving you that special prickle.",
     kind: Consumable(
         kind: Drink,
         effects: One(

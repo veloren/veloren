@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bronze Ingot",
-    description: "A sturdy alloy made from combining copper and tin.\n\nThis can be used when crafting metal weapons.",
+    legacy_name: "Bronze Ingot",
+    legacy_description: "A sturdy alloy made from combining copper and tin.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
         descriptor: "Bronze",
     ),

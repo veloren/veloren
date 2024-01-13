@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dark Guitar",
-    description: "Sounds edgy.",
+    legacy_name: "Dark Guitar",
+    legacy_description: "Sounds edgy.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

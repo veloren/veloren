@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dandelion",
-    description: "A small, yellow flower. Uses the wind to spread its seeds.",
+    legacy_name: "Dandelion",
+    legacy_description: "A small, yellow flower. Uses the wind to spread its seeds.",
     kind: Consumable(
         kind: Food,
         effects: One(

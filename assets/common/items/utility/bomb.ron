@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bomb",
-    description: "A highly explosive device, demolitionists adore them!",
+    legacy_name: "Bomb",
+    legacy_description: "A highly explosive device, demolitionists adore them!",
     kind: Throwable(
         kind: Bomb,
     ),

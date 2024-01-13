@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Plate Chausses",
-    description: "Leather adorned with steel for better protection.",
+    legacy_name: "Leather Plate Chausses",
+    legacy_description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Leather Plate"),

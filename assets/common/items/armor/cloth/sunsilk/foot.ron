@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk Footwraps",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    legacy_name: "Sunsilk Footwraps",
+    legacy_description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Sunsilk"),

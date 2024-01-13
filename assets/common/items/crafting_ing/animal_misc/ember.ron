@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ember",
-    description: "A flicking ember left by a fiery creature.",
+    legacy_name: "Ember",
+    legacy_description: "A flicking ember left by a fiery creature.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

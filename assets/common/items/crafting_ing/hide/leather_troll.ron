@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Troll Hide",
-    description: "Looted from cave trolls.",
+    legacy_name: "Troll Hide",
+    legacy_description: "Looted from cave trolls.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk Handwraps",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    legacy_name: "Sunsilk Handwraps",
+    legacy_description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Sunsilk"),

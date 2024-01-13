@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Abyssal Gorget",
-    description: "Harnessed vigour of the tides",
+    legacy_name: "Abyssal Gorget",
+    legacy_description: "Harnessed vigour of the tides",
     kind: Armor((
         kind: Neck,
         stats: Direct((

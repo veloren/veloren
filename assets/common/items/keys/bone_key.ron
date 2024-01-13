@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bone Key",
-    description: "Used to open bone locks. Will break after use.",
+    legacy_name: "Bone Key",
+    legacy_description: "Used to open bone locks. Will break after use.",
     kind: Utility(
         kind: Key,
     ),

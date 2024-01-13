@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Chef Hat",
-    description: "",
+    legacy_name: "Chef Hat",
+    legacy_description: "",
     kind: Armor((
         kind: Head,
         stats: FromSet("Chef"),

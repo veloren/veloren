@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Copper Ore",
-    description: "A brown metal. Key part of bronze.",
+    legacy_name: "Copper Ore",
+    legacy_description: "A brown metal. Key part of bronze.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Magical Cultist Dagger",
-    description: "This belonged to an evil Cult Leader.",
+    legacy_name: "Magical Cultist Dagger",
+    legacy_description: "This belonged to an evil Cult Leader.",
     kind: Tool((
         kind: Dagger,
         hands: One,

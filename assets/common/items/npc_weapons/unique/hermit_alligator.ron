@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Hermit Alligator Teeth",
-    description: "Grrr!",
+    legacy_name: "Hermit Alligator Teeth",
+    legacy_description: "Grrr!",
     kind: Tool((
         kind: Natural,
         hands: Two,

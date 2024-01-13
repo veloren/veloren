@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Crude Mallet",
-    description: "Breaks bones like sticks and stones.",
+    legacy_name: "Crude Mallet",
+    legacy_description: "Breaks bones like sticks and stones.",
     kind: Tool((
         kind: Hammer,
         hands: Two,

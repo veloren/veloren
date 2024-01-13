@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Abyssal Heart",
-    description: "Source of Dagons Power.",
+    legacy_name: "Abyssal Heart",
+    legacy_description: "Source of Dagons Power.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",    ),

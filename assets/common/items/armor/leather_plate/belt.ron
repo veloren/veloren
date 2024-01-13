@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Plate Belt",
-    description: "Leather adorned with steel for better protection.",
+    legacy_name: "Leather Plate Belt",
+    legacy_description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Leather Plate"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Copper Ingot",
-    description: "An ingot with a unique brown color.",
+    legacy_name: "Copper Ingot",
+    legacy_description: "An ingot with a unique brown color.",
     kind: Ingredient(
         descriptor: "Copper",
     ),

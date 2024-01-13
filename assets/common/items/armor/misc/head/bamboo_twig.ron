@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bamboo Twig",
-    description: "A tiny stray shoot from a larger bamboo shaft.",
+    legacy_name: "Bamboo Twig",
+    legacy_description: "A tiny stray shoot from a larger bamboo shaft.",
 	kind: Armor((
         kind: Head,
         stats: Direct((

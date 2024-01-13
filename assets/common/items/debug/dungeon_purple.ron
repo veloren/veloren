@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Admin Cape",
-    description: "Where did I put my banhammer again?",
+    legacy_name: "Velorite Admin Cape",
+    legacy_description: "Where did I put my banhammer again?",
     kind: Armor((
         kind: Back,
         stats: Direct(()),

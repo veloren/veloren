@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rigid Leather",
-    description: "Light but layered, perfect for protection.",
+    legacy_name: "Rigid Leather",
+    legacy_description: "Light but layered, perfect for protection.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bloodsteel Gauntlets",
-    description: "Forged to preserve life, at the cost of another.",
+    legacy_name: "Bloodsteel Gauntlets",
+    legacy_description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Bloodsteel"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Potent Potion",
-    description: "A potent healing potion.",
+    legacy_name: "Potent Potion",
+    legacy_description: "A potent healing potion.",
     kind: Consumable(
         kind: Drink,
         effects: All([

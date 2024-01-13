@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Scale Girdle",
-    description: "Each embedded scale provides additional protection.",
+    legacy_name: "Scale Girdle",
+    legacy_description: "Each embedded scale provides additional protection.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Scale"),

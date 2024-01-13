@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Malachite Axe",
-    description: "Etched axe head decorated with malachite on the blades to provide magical properties.",
+    legacy_name: "Malachite Axe",
+    legacy_description: "Etched axe head decorated with malachite on the blades to provide magical properties.",
     kind: Tool((
         kind: Axe,
         hands: Two,

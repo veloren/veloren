@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Potion of Combustion",
-    description: "Sets the user ablaze",
+    legacy_name: "Potion of Combustion",
+    legacy_description: "Sets the user ablaze",
     kind: Consumable(
         kind: Drink,
         effects: All([

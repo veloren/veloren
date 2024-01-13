@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Stones",
-    description: "Pebbles from the ground, nothing out of the ordinary.",
+    legacy_name: "Stones",
+    legacy_description: "Pebbles from the ground, nothing out of the ordinary.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

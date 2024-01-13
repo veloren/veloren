@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Empty Vial",
-    description: "A simple glass vial used for holding various fluids.",
+    legacy_name: "Empty Vial",
+    legacy_description: "A simple glass vial used for holding various fluids.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

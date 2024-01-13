@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Geode",
-    description: "Emits a calming glow, helps to calm your nerves.",
+    legacy_name: "Purple Geode",
+    legacy_description: "Emits a calming glow, helps to calm your nerves.",
     kind: Lantern(
         (
             color: (r: 144, g: 88, b: 181),

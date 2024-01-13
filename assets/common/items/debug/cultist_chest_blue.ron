@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Chest",
-    description: "",
+    legacy_name: "Velorite Chest",
+    legacy_description: "",
     kind: Armor((
         kind: Chest,
         stats: Direct(()),

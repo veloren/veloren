@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Venom Sac",
-    description: "A venomous sac from a poisonous creature.",
+    legacy_name: "Venom Sac",
+    legacy_description: "A venomous sac from a poisonous creature.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

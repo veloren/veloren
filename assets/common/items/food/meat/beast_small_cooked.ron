@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cooked Meat Sliver",
-    description: "Medium Rare.",
+    legacy_name: "Cooked Meat Sliver",
+    legacy_description: "Medium Rare.",
     kind: Consumable(
         kind: Food,
         effects: One(

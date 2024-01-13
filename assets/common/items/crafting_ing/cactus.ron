@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cactus",
-    description: "Grows in warm and dry places. Very prickly!",
+    legacy_name: "Cactus",
+    legacy_description: "Grows in warm and dry places. Very prickly!",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

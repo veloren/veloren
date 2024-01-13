@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flute",
-    description: "Wooden Flute.",
+    legacy_name: "Flute",
+    legacy_description: "Wooden Flute.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

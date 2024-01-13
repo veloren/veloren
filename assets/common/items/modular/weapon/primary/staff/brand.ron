@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Brand Shaft",
-    description: "",
+    legacy_name: "Brand Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Staff,

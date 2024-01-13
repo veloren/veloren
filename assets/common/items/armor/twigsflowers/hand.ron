@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flowery Wraps",
-    description: "Wrapped and intertwined twigs held together with magic and flowers with their stems, providing peace and protection for the wearer.",
+    legacy_name: "Flowery Wraps",
+    legacy_description: "Wrapped and intertwined twigs held together with magic and flowers with their stems, providing peace and protection for the wearer.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Twigs Flowers"),

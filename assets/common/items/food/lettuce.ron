@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lettuce",
-    description: "A vibrant green leafy vegetable. Lettuce make some salads!",
+    legacy_name: "Lettuce",
+    legacy_description: "A vibrant green leafy vegetable. Lettuce make some salads!",
     kind: Consumable(
         kind: Food,
         effects: One(

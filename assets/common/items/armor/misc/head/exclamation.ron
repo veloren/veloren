@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Exclamation hat",
-    description: "You feel like bestowing quests.",
+    legacy_name: "Exclamation hat",
+    legacy_description: "You feel like bestowing quests.",
     kind: Armor((
         kind: Head,
         stats: Direct((

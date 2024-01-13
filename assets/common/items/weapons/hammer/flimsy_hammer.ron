@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flimsy Hammer",
-    description: "The head is barely secured.",
+    legacy_name: "Flimsy Hammer",
+    legacy_description: "The head is barely secured.",
     kind: Tool((
         kind: Hammer,
         hands: Two,

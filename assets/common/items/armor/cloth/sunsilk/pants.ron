@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk Kilt",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    legacy_name: "Sunsilk Kilt",
+    legacy_description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Sunsilk"),

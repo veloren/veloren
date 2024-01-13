@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Husk",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Husk",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Head,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wildskin Drum",
-    description: "one, two, you know what to do!",
+    legacy_name: "Wildskin Drum",
+    legacy_description: "one, two, you know what to do!",
     kind: Tool((
         kind: Instrument,
         hands: Two,

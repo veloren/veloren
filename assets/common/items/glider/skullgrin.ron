@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Skullgrin",
-    description: "Death from above.",
+    legacy_name: "Skullgrin",
+    legacy_description: "Death from above.",
     kind: Glider,
     quality: Legendary,
     tags: [],

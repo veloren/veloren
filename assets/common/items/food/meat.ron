@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Meat",
-    description: "Meat. The lifeblood of mankind.",
+    legacy_name: "Meat",
+    legacy_description: "Meat. The lifeblood of mankind.",
     kind: Consumable(
         kind: Food,
         effects: One(

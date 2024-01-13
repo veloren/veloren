@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst Staff",
-    description: "Its stone is the closest thing from perfection",
+    legacy_name: "Amethyst Staff",
+    legacy_description: "Its stone is the closest thing from perfection",
     kind: Tool((
         kind: Sceptre,
         hands: Two,

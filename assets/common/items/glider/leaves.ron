@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leaves Glider",
-    description: "Soar among the trees",
+    legacy_name: "Leaves Glider",
+    legacy_description: "Soar among the trees",
     kind: Glider,
     quality: Moderate,
     tags: [

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rugged Backpack",
-    description: "Keeps all your stuff together.",
+    legacy_name: "Rugged Backpack",
+    legacy_description: "Keeps all your stuff together.",
     kind: Armor((
         kind: Backpack,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cardinal's Cloak",
-    description: "A part of the cardinal's exquisite cloak.",
+    legacy_name: "Cardinal's Cloak",
+    legacy_description: "A part of the cardinal's exquisite cloak.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Cardinal"),

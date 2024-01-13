@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cultist Staff",
-    description: "The fire gives off no heat.",
+    legacy_name: "Cultist Staff",
+    legacy_description: "The fire gives off no heat.",
     kind: Tool((
         kind: Staff,
         hands: Two,

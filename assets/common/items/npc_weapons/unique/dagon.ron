@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dagon Kit",
-    description: "Ocean Power!",
+    legacy_name: "Dagon Kit",
+    legacy_description: "Ocean Power!",
     kind: Tool((
         kind: Natural,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk Sash",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    legacy_name: "Sunsilk Sash",
+    legacy_description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Sunsilk"),

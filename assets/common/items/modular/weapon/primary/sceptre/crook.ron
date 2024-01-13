@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Crook Shaft",
-    description: "",
+    legacy_name: "Crook Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Sceptre,

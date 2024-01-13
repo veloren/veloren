@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Lantern",
-    description: "Caution: contents hot",
+    legacy_name: "Red Lantern",
+    legacy_description: "Caution: contents hot",
     kind: Lantern(
         (
             color: (r: 255, g: 70, b: 70),

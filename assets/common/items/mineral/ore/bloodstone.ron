@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bloodstone Ore",
-    description: "A deep red ore, it reminds you of blood.",
+    legacy_name: "Bloodstone Ore",
+    legacy_description: "A deep red ore, it reminds you of blood.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

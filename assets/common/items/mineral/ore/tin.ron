@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tin Ore",
-    description: "A silvery metal. One of the components of bronze.",
+    legacy_name: "Tin Ore",
+    legacy_description: "A silvery metal. One of the components of bronze.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

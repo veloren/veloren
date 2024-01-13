@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Double Bass",
-    description: "Wooden Bass.",
+    legacy_name: "Double Bass",
+    legacy_description: "Wooden Bass.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Spiked Crown",
-    description: "Resembling some sort of thorny crown.",
+    legacy_name: "Spiked Crown",
+    legacy_description: "Resembling some sort of thorny crown.",
     kind: Armor((
         kind: Head,
         stats: Direct((

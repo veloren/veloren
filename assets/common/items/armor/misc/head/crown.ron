@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Crown",
-    description: "A crown fit for royal stature.",
+    legacy_name: "Crown",
+    legacy_description: "A crown fit for royal stature.",
     kind: Armor((
         kind: Head,
         stats: Direct((

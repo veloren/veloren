@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mjolnir",
-    description: "It's crackling with lightning.",
+    legacy_name: "Mjolnir",
+    legacy_description: "It's crackling with lightning.",
     kind: Tool((
         kind: Hammer,
         hands: Two,

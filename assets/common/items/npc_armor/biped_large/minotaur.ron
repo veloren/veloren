@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Minotaur Armor",
-    description: "The best defense is a good offense.",
+    legacy_name: "Minotaur Armor",
+    legacy_description: "The best defense is a good offense.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

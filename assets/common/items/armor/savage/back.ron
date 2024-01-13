@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Savage Cape",
-    description: "Brings the fury of the barbarians.",
+    legacy_name: "Savage Cape",
+    legacy_description: "Brings the fury of the barbarians.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Savage"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Woolly Wintercap",
-    description: "Simple, stylish, and festive.",
+    legacy_name: "Woolly Wintercap",
+    legacy_description: "Simple, stylish, and festive.",
     kind: Armor((
         kind: Head,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Test 9 slot bag",
-    description: "Used for unit tests do not delete",
+    legacy_name: "Test 9 slot bag",
+    legacy_description: "Used for unit tests do not delete",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

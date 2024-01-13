@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Battlemage Gauntlets",
-    description: "",
+    legacy_name: "Velorite Battlemage Gauntlets",
+    legacy_description: "",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Velorite Battlemage"),

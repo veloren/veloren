@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Raw Fish",
-    description: "A steak chopped from a fish, best after cooking.",
+    legacy_name: "Raw Fish",
+    legacy_description: "A steak chopped from a fish, best after cooking.",
     kind: Consumable(
         kind: Food,
         effects: One(

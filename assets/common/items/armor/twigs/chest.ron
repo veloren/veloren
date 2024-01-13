@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Twig Shirt",
-    description: "Small sticks magically imbued to hold together to form a shirt.",
+    legacy_name: "Twig Shirt",
+    legacy_description: "Small sticks magically imbued to hold together to form a shirt.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Twigs"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Animal Hide",
-    description: "A common pelt from most animals. Becomes leather.",
+    legacy_name: "Animal Hide",
+    legacy_description: "A common pelt from most animals. Becomes leather.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

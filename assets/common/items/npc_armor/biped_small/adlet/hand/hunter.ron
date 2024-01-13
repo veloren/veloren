@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Adlet Hunter",
-    description: "Ceremonial attire used by members..",
+    legacy_name: "Adlet Hunter",
+    legacy_description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Hand,
         stats: Direct((

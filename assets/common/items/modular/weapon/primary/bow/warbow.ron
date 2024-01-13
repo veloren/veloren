@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Warbow Limbs",
-    description: "",
+    legacy_name: "Warbow Limbs",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Bow,

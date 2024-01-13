@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ruby Necklace",
-    description: "An ornate silver necklace, embedded with beautiful rubies.",
+    legacy_name: "Ruby Necklace",
+    legacy_description: "An ornate silver necklace, embedded with beautiful rubies.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Traveler Coat",
-    description: "",
+    legacy_name: "Blue Traveler Coat",
+    legacy_description: "",
     kind: Armor((
         kind: Back,
         stats: Direct((

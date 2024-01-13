@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Long Sword Hilt",
-    description: "",
+    legacy_name: "Long Sword Hilt",
+    legacy_description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
             toolkind: Sword,

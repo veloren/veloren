@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Carapace Treads",
-    description: "Made from the shell that once shielded a beast.",
+    legacy_name: "Carapace Treads",
+    legacy_description: "Made from the shell that once shielded a beast.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Carapace"),

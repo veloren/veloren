@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Belt",
-    description: "It's cold.",
+    legacy_name: "Boreal Belt",
+    legacy_description: "It's cold.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Boreal"),

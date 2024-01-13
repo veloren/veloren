@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gem of Resilience",
-    description: "Surrounded by a discrete magical glow.",
+    legacy_name: "Gem of Resilience",
+    legacy_description: "Surrounded by a discrete magical glow.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

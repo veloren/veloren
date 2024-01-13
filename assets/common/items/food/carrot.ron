@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Carrot",
-    description: "An orange root vegetable. They say it'll improve your vision!",
+    legacy_name: "Carrot",
+    legacy_description: "An orange root vegetable. They say it'll improve your vision!",
     kind: Consumable(
         kind: Food,
         effects: One(

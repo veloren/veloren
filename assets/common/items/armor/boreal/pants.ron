@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Tunic",
-    description: "Colder than the climate it protects you from.",
+    legacy_name: "Boreal Tunic",
+    legacy_description: "Colder than the climate it protects you from.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Boreal"),

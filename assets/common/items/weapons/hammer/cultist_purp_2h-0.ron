@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Magical Cultist Warhammer",
-    description: "This belonged to an evil Cult Leader.",
+    legacy_name: "Magical Cultist Warhammer",
+    legacy_description: "This belonged to an evil Cult Leader.",
     kind: Tool((
         kind: Hammer,
         hands: Two,

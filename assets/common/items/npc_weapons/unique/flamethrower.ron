@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flamethrower",
-    description: "Throwing Flames",
+    legacy_name: "Flamethrower",
+    legacy_description: "Throwing Flames",
     kind: Tool((
         kind: Natural,
         hands: Two,

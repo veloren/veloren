@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Antlion",
-    description: "testing123",
+    legacy_name: "Antlion",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

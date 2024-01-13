@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sturdy Red Saddlebag",
-    description: "A truly reliable and sizeable bag, embroidered with amethyst and thick leather.",
+    legacy_name: "Sturdy Red Saddlebag",
+    legacy_description: "A truly reliable and sizeable bag, embroidered with amethyst and thick leather.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ogre Staff",
-    description: "Placeholder",
+    legacy_name: "Ogre Staff",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Staff,
         hands: Two,

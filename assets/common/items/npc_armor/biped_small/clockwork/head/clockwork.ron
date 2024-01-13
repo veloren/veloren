@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Clockwork Head",
-    description: "Clockwork Head",
+    legacy_name: "Clockwork Head",
+    legacy_description: "Clockwork Head",
     kind: Armor((
         kind: Head,
         stats: Direct((

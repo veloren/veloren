@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Haniwa Guard",
-    description: "Ceremonial attire used by members..",
+    legacy_name: "Haniwa Guard",
+    legacy_description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Pants,
         stats: Direct((

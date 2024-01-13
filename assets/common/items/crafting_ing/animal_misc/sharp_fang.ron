@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sharp Fang",
-    description: "Incredibly sharp tooth from a predatory animal.\n\nThis can be used when crafting weapons.",
+    legacy_name: "Sharp Fang",
+    legacy_description: "Incredibly sharp tooth from a predatory animal.\n\nThis can be used when crafting weapons.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

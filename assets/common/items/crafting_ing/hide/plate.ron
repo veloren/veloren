@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Plate",
-    description: "Durable plate from an armored animal.",
+    legacy_name: "Plate",
+    legacy_description: "Durable plate from an armored animal.",
     kind: Ingredient(
         descriptor: "Plate",
     ),

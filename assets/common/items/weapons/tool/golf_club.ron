@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Golf Club",
-    description: "Peasant swatter. Fiercely anti-urbanist. Climate crisis? What climate crisis?",
+    legacy_name: "Golf Club",
+    legacy_description: "Peasant swatter. Fiercely anti-urbanist. Climate crisis? What climate crisis?",
     kind: Tool((
         kind: Hammer,
         hands: Two,

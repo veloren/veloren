@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Facegourd",
-    description: "Pumpkin Head.",
+    legacy_name: "Facegourd",
+    legacy_description: "Pumpkin Head.",
     kind: Armor((
         kind: Head,
         stats: Direct((

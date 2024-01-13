@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Bow",
-    description: "Infused with Velorite power.",
+    legacy_name: "Velorite Bow",
+    legacy_description: "Infused with Velorite power.",
     kind: Tool((
         kind: Bow,
         hands: Two,

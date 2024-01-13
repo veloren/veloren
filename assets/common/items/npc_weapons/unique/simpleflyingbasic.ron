@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Simple Flying Melee",
-    description: "I believe I can fly!!!!!",
+    legacy_name: "Simple Flying Melee",
+    legacy_description: "I believe I can fly!!!!!",
     kind: Tool((
         kind: Natural,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cooked Tough Meat",
-    description: "Tastes exotic.",
+    legacy_name: "Cooked Tough Meat",
+    legacy_description: "Tastes exotic.",
     kind: Consumable(
         kind: Food,
         effects: One(

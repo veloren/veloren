@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Glacial Crystal",
-    description: "The purest form of ice, cold enough to cool lava.",
+    legacy_name: "Glacial Crystal",
+    legacy_description: "The purest form of ice, cold enough to cool lava.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",    ),

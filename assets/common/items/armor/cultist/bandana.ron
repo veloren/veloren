@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cultist Bandana",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Cultist Bandana",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Head,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Golden Cheese",
-    description: "They say gods eat it to get eternal youth.",
+    legacy_name: "Golden Cheese",
+    legacy_description: "They say gods eat it to get eternal youth.",
     kind: Consumable(
         kind: Drink,
         effects: All([

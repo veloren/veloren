@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Stone Pickaxe",
-    description: "Strike the earth!",
+    legacy_name: "Stone Pickaxe",
+    legacy_description: "Strike the earth!",
     kind: Tool((
         kind: Pick,
         hands: Two,

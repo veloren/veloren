@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Oni Axe",
-    description: "Placeholder",
+    legacy_name: "Blue Oni Axe",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Axe,
         hands: Two,

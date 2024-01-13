@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Druid Leggings",
-    description: "Incredibly light, with the essence of nature.",
+    legacy_name: "Druid Leggings",
+    legacy_description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Lifecloth"),

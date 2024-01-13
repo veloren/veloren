@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Snow Raptor Wings",
-    description: "Take flight with the wings of a cold-blooded predator",
+    legacy_name: "Snow Raptor Wings",
+    legacy_description: "Take flight with the wings of a cold-blooded predator",
     kind: Glider,
     quality: High,
     tags: [],

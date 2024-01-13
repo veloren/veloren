@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ornate Staff Shaft",
-    description: "",
+    legacy_name: "Ornate Staff Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Staff,

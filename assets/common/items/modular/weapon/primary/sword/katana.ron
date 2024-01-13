@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Katana Blade",
-    description: "",
+    legacy_name: "Katana Blade",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Sword,

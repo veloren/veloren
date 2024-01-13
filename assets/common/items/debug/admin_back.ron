@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Admin's Cape",
-    description: "With great power comes\ngreat responsibility.",
+    legacy_name: "Admin's Cape",
+    legacy_description: "With great power comes\ngreat responsibility.",
     kind: Armor((
         kind: Back,
         stats: Direct(()),

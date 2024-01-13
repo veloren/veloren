@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Shovel",
-    description: "It's been recently cleaned.",
+    legacy_name: "Shovel",
+    legacy_description: "It's been recently cleaned.",
     kind: Tool((
         kind: Shovel,
         hands: Two,

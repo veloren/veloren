@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pink Flower",
-    description: "Looks like a lollipop.",
+    legacy_name: "Pink Flower",
+    legacy_description: "Looks like a lollipop.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

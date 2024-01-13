@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Helmet",
-    description: "yep.",
+    legacy_name: "Helmet",
+    legacy_description: "yep.",
     kind: Armor((
         kind: Head,
         stats: Direct((

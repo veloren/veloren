@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Adlet Elder Sword",
-    description: "Placeholder",
+    legacy_name: "Adlet Elder Sword",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Sword,
         hands: One,

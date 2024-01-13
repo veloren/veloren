@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moonweave Gloves",
-    description: "The fabric dances silently, like moonlight.",
+    legacy_name: "Moonweave Gloves",
+    legacy_description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Moonweave"),

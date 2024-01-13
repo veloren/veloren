@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Seashell Necklace",
-    description: "Contains the guardian aura of the ocean",
+    legacy_name: "Seashell Necklace",
+    legacy_description: "Contains the guardian aura of the ocean",
     kind: Armor((
         kind: Neck,
         stats: Direct((

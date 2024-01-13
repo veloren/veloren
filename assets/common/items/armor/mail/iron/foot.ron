@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Footguards",
-    description: "Sturdy and unyielding, across ages of war.",
+    legacy_name: "Iron Footguards",
+    legacy_description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Iron"),

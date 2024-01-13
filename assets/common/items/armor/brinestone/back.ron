@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Brinestone Cloak",
-    description: "It's not weak.",
+    legacy_name: "Brinestone Cloak",
+    legacy_description: "It's not weak.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Brinestone"),

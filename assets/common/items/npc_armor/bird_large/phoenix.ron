@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Phoenix Armor",
-    description: "The thickest feather you have ever seen!",
+    legacy_name: "Phoenix Armor",
+    legacy_description: "The thickest feather you have ever seen!",
     kind: Armor((
         kind: Chest,
         stats: Direct((

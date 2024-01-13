@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Spore of Corruption",
-    description: "You feel an evil force pulsating within.\n\nIt may be unwise to hold on to it for too long...",
+    legacy_name: "Spore of Corruption",
+    legacy_description: "You feel an evil force pulsating within.\n\nIt may be unwise to hold on to it for too long...",
     kind: Consumable(
         kind: ComplexFood,
         effects: All([

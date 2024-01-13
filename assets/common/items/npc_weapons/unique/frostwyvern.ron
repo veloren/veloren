@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frost Wyvern",
-    description: "testing123",
+    legacy_name: "Frost Wyvern",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

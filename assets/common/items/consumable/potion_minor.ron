@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Minor Potion",
-    description: "A small potion concocted from apples and honey.",
+    legacy_name: "Minor Potion",
+    legacy_description: "A small potion concocted from apples and honey.",
     kind: Consumable(
         kind: Drink,
         effects: All([

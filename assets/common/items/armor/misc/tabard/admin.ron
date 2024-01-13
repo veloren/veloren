@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Admin's Tabard",
-    description: "With great power comes great responsibility.",
+    legacy_name: "Admin's Tabard",
+    legacy_description: "With great power comes great responsibility.",
     kind: Armor((
         kind: Tabard,
         stats: Direct((

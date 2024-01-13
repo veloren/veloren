@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ferocious Sash",
-    description: "The dark side of nature",
+    legacy_name: "Ferocious Sash",
+    legacy_description: "The dark side of nature",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Ferocious"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Linen Handwraps",
-    description: "Roughly stitched, but it seems to hold.",
+    legacy_name: "Linen Handwraps",
+    legacy_description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Linen"),

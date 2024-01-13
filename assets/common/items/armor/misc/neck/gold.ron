@@ -1,7 +1,7 @@
 // Note: Will be used to craft other necklaces, acting as the base.
 ItemDef(
-    name: "Gold Necklace",
-    description: "An expensive gold necklace... looks stolen.",
+    legacy_name: "Gold Necklace",
+    legacy_description: "An expensive gold necklace... looks stolen.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

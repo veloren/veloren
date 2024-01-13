@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Left Goggle-Glass",
-    description: "Looks like it could open a door...",
+    legacy_name: "Left Goggle-Glass",
+    legacy_description: "Looks like it could open a door...",
     kind: Utility(
         kind: Key,
     ),

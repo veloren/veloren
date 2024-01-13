@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Light Pyrocore",
-    description: "",
+    legacy_name: "Light Pyrocore",
+    legacy_description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
             toolkind: Staff,

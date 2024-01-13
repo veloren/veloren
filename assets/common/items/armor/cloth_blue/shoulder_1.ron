@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Cloth Pads",
-    description: "Simple shoulderpads made from blue cloth.",
+    legacy_name: "Blue Cloth Pads",
+    legacy_description: "Simple shoulderpads made from blue cloth.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Cloth Blue"),

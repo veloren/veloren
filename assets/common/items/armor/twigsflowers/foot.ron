@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flowery Boots",
-    description: "Woven and magically imbued, these boots of twigs and flowers provide simple protection and peace to the wearer.",
+    legacy_name: "Flowery Boots",
+    legacy_description: "Woven and magically imbued, these boots of twigs and flowers provide simple protection and peace to the wearer.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Twigs Flowers"),

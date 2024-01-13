@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Primal Sash",
-    description: "Smithed from hide tougher than steel.",
+    legacy_name: "Primal Sash",
+    legacy_description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Plate"),

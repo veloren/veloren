@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flowery Shoulders",
-    description: "Flowers join the tied twigs to provide protection and peace to the wearer.",
+    legacy_name: "Flowery Shoulders",
+    legacy_description: "Flowers join the tied twigs to provide protection and peace to the wearer.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Twigs Flowers"),

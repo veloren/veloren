@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pirate Hat",
-    description: "It seems like a parrot was perched up here.",
+    legacy_name: "Pirate Hat",
+    legacy_description: "It seems like a parrot was perched up here.",
     kind: Armor((
         kind: Head,
         stats: Direct((

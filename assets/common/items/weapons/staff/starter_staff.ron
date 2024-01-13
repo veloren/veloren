@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnarled Rod",
-    description: "Smells like resin and magic.",
+    legacy_name: "Gnarled Rod",
+    legacy_description: "Smells like resin and magic.",
     kind: Tool((
         kind: Staff,
         hands: Two,

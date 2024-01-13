@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Basilisk",
-    description: "testing123",
+    legacy_name: "Basilisk",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

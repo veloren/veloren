@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Haniwa Archer",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Haniwa Archer",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

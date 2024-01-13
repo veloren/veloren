@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Training Dummy",
-    description: "His name is William. Fire at will.",
+    legacy_name: "Training Dummy",
+    legacy_description: "His name is William. Fire at will.",
     kind: Throwable(
         kind: TrainingDummy,
     ),

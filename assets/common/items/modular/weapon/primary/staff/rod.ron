@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rod Shaft",
-    description: "",
+    legacy_name: "Rod Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Staff,

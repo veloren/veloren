@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Diamond",
-    description: "A sparkling silver gem.",
+    legacy_name: "Diamond",
+    legacy_description: "A sparkling silver gem.",
     kind: Ingredient(
         descriptor: "Diamond",
     ),

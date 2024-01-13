@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dragonscale Chestplate",
-    description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
+    legacy_name: "Dragonscale Chestplate",
+    legacy_description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Dragonscale"),

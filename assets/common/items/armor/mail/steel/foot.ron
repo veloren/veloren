@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Boots",
-    description: "Metal alloy boots providing a more comfortable and durable protection.",
+    legacy_name: "Steel Boots",
+    legacy_description: "Metal alloy boots providing a more comfortable and durable protection.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Steel"),

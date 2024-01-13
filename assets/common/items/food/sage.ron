@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sage",
-    description: "A herb commonly used in tea.",
+    legacy_name: "Sage",
+    legacy_description: "A herb commonly used in tea.",
     kind: Consumable(
         kind: Food,
         effects: One(

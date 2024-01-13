@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Parashu",
-    description: "Said to be able to cleave the heavens.",
+    legacy_name: "Parashu",
+    legacy_description: "Said to be able to cleave the heavens.",
     kind: Tool((
         kind: Axe,
         hands: Two,

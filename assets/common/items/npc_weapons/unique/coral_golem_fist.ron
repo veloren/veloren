@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Coral Golem Fists",
-    description: "Yeet",
+    legacy_name: "Coral Golem Fists",
+    legacy_description: "Yeet",
     kind: Tool((
         kind: Natural,
         hands: Two,

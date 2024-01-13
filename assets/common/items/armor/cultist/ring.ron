@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cultist Signet Ring",
-    description: "Once belonged to a cultist.",
+    legacy_name: "Cultist Signet Ring",
+    legacy_description: "Once belonged to a cultist.",
     kind: Armor((
         kind: Ring,
         stats: Direct((

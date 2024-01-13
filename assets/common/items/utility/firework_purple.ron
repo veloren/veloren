@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework Purple",
-    description: "Cult favourite.",
+    legacy_name: "Firework Purple",
+    legacy_description: "Cult favourite.",
     kind: Throwable(
         kind: Firework(Purple),
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Yeti Hide",
-    description: "Strong as Yeti itself.",
+    legacy_name: "Yeti Hide",
+    legacy_description: "Strong as Yeti itself.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

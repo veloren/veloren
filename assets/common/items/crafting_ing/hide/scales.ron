@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Scale",
-    description: "Shiny scales found off of an animal.",
+    legacy_name: "Scale",
+    legacy_description: "Shiny scales found off of an animal.",
     kind: Ingredient(
         descriptor: "Scale",
     ),

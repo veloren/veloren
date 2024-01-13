@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Flower",
-    description: "Can be used as a dying ingredient.",
+    legacy_name: "Red Flower",
+    legacy_description: "Can be used as a dying ingredient.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

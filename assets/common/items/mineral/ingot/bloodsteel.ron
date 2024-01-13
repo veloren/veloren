@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bloodsteel Ingot",
-    description: "An alloy of bloodstone and iron, with a dark red color.\n\nThis can be used when crafting metal weapons.",
+    legacy_name: "Bloodsteel Ingot",
+    legacy_description: "An alloy of bloodstone and iron, with a dark red color.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
         descriptor: "Bloodsteel",
     ),

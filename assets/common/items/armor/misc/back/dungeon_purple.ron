@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Cultist Cape",
-    description: "Smells like dark magic and candles.",
+    legacy_name: "Purple Cultist Cape",
+    legacy_description: "Smells like dark magic and candles.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Cultist"),

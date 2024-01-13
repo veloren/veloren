@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk Cape",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    legacy_name: "Sunsilk Cape",
+    legacy_description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Sunsilk"),

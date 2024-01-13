@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Alchemist Hat",
-    description: "It seems like a parrot was perched up here.",
+    legacy_name: "Alchemist Hat",
+    legacy_description: "It seems like a parrot was perched up here.",
     kind: Armor((
         kind: Head,
         stats: FromSet("Alchemist"),

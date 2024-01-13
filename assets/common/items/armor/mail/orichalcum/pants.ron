@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orichalcum Legplates",
-    description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
+    legacy_name: "Orichalcum Legplates",
+    legacy_description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Orichalcum"),

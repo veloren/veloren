@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moonbell",
-    description: "It glistens brilliantly under the moonlight.",
+    legacy_name: "Moonbell",
+    legacy_description: "It glistens brilliantly under the moonlight.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

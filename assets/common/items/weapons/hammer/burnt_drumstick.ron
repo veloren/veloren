@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Burnt Drumstick",
-    description: "Might need more practice...",
+    legacy_name: "Burnt Drumstick",
+    legacy_description: "Might need more practice...",
     kind: Tool((
         kind: Hammer,
         hands: Two,

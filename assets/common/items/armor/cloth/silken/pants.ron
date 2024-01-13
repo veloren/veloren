@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Silken Skirt",
-    description: "Weaved with care by a skilled tailor.",
+    legacy_name: "Silken Skirt",
+    legacy_description: "Weaved with care by a skilled tailor.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Silk"),

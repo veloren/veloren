@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Diamond Necklace",
-    description: "An expensive gold necklace, ornate with exquisite diamonds.",
+    legacy_name: "Diamond Necklace",
+    legacy_description: "An expensive gold necklace, ornate with exquisite diamonds.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

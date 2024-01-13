@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cooked Meat Slab",
-    description: "Medium Rare.",
+    legacy_name: "Cooked Meat Slab",
+    legacy_description: "Medium Rare.",
     kind: Consumable(
         kind: Food,
         effects: One(

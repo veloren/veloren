@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Icepicker Pick",
-    description: "",
+    legacy_name: "Icepicker Pick",
+    legacy_description: "",
     kind: Tool((
         kind: Pick,
         hands: Two,

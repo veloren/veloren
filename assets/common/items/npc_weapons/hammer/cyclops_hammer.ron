@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cyclops Hammer",
-    description: "Placeholder",
+    legacy_name: "Cyclops Hammer",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Hammer,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cardinal Mitre",
-    description: "Induces respect.",
+    legacy_name: "Cardinal Mitre",
+    legacy_description: "Induces respect.",
     kind: Armor((
         kind: Head,
         stats: FromSet("Cardinal"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Medium Potion",
-    description: "An innovative invention from an apothecary, better than its smaller precursors.",
+    legacy_name: "Medium Potion",
+    legacy_description: "An innovative invention from an apothecary, better than its smaller precursors.",
     kind: Consumable(
         kind: Drink,
         effects: All([

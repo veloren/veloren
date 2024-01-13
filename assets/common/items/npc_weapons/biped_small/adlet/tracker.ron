@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tracker Bow",
-    description: "",
+    legacy_name: "Tracker Bow",
+    legacy_description: "",
     kind: Tool((
         kind: Bow,
         hands: Two,

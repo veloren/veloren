@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wood Golem Armor",
-    description: "Yeet",
+    legacy_name: "Wood Golem Armor",
+    legacy_description: "Yeet",
     kind: Armor((
         kind: Chest,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Chieftain Staff",
-    description: "",
+    legacy_name: "Chieftain Staff",
+    legacy_description: "",
     kind: Tool((
         kind: Staff,
         hands: Two,

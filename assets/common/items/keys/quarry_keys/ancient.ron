@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ancient Key",
-    description: "If you are lucky it works one more time before breaking.",
+    legacy_name: "Ancient Key",
+    legacy_description: "If you are lucky it works one more time before breaking.",
     kind: Utility(
         kind: Key,
     ),

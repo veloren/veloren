@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Strategian Axe",
-    description: "",
+    legacy_name: "Strategian Axe",
+    legacy_description: "",
     kind: Tool((
         kind: Axe,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Testing Boots",
-    description: "Hopefully this test doesn't break!",
+    legacy_name: "Testing Boots",
+    legacy_description: "Hopefully this test doesn't break!",
     kind: Armor((
         kind: Foot,
         stats: Direct(()),

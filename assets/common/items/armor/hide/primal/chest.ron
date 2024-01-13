@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Primal Cuirass",
-    description: "Smithed from hide tougher than steel.",
+    legacy_name: "Primal Cuirass",
+    legacy_description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Plate"),

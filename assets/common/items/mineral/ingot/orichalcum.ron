@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orichalcum Ingot",
-    description: "An ingot made of refined orichalcum.\n\nThis can be used when crafting metal weapons.",
+    legacy_name: "Orichalcum Ingot",
+    legacy_description: "An ingot made of refined orichalcum.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
         descriptor: "Orichalcum",
     ),

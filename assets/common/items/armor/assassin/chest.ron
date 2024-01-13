@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Assassin Chest",
-    description: "Only the best for a member of the creed.",
+    legacy_name: "Assassin Chest",
+    legacy_description: "Only the best for a member of the creed.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Assassin"),

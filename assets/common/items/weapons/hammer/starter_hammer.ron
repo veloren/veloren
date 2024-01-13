@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sturdy Old Hammer",
-    description: "'Property of...' The rest is missing.",
+    legacy_name: "Sturdy Old Hammer",
+    legacy_description: "'Property of...' The rest is missing.",
     kind: Tool((
         kind: Hammer,
         hands: Two,

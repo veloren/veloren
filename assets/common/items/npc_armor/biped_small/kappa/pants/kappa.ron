@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Kappa",
-    description: "Ceremonial attire used by members..",
+    legacy_name: "Kappa",
+    legacy_description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Pants,
         stats: Direct((

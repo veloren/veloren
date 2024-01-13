@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mindflayer Armor",
-    description: "Worn by mindflayer.",
+    legacy_name: "Mindflayer Armor",
+    legacy_description: "Worn by mindflayer.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

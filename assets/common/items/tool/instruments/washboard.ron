@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Washboard",
-    description: "Washboard.",
+    legacy_name: "Washboard",
+    legacy_description: "Washboard.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

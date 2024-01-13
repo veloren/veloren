@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Stalker Blowgun",
-    description: "",
+    legacy_name: "Stalker Blowgun",
+    legacy_description: "",
     kind: Tool((
         kind: Blowgun,
         hands: Two,

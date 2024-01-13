@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Ingot",
-    description: "An incredibly commonplace metal.\n\nThis can be used when crafting metal weapons.",
+    legacy_name: "Iron Ingot",
+    legacy_description: "An incredibly commonplace metal.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
         descriptor: "Iron",
     ),

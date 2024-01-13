@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Oni Hammer",
-    description: "Placeholder",
+    legacy_name: "Red Oni Hammer",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Hammer,
         hands: Two,

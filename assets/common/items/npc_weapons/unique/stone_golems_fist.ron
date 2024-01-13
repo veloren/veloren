@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Stone Golem's Fist",
-    description: "Was attached to a mighty stone golem.",
+    legacy_name: "Stone Golem's Fist",
+    legacy_description: "Was attached to a mighty stone golem.",
     kind: Tool((
         kind: Natural,
         hands: Two,

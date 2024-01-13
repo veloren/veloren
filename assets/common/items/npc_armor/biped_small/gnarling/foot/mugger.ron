@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnarling",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Gnarling",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Foot,
         stats: Direct((

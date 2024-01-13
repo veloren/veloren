@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Jagged Axe Head",
-    description: "",
+    legacy_name: "Jagged Axe Head",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Axe,

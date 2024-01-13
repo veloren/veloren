@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pole Shaft",
-    description: "",
+    legacy_name: "Pole Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Staff,

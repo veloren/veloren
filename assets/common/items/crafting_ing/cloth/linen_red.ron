@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Linen",
-    description: "A flax fiber textile, dyed to stand out.",
+    legacy_name: "Red Linen",
+    legacy_description: "A flax fiber textile, dyed to stand out.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

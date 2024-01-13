@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sapphire Necklace",
-    description: "A sturdy iron necklace, with polished sapphire gems embedded into it.",
+    legacy_name: "Sapphire Necklace",
+    legacy_description: "A sturdy iron necklace, with polished sapphire gems embedded into it.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

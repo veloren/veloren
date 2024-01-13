@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Trollhide Pack",
-    description: "Trolls were definitely hurt in the making of this.",
+    legacy_name: "Trollhide Pack",
+    legacy_description: "Trolls were definitely hurt in the making of this.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

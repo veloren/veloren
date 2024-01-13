@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Heavy Biocore",
-    description: "",
+    legacy_name: "Heavy Biocore",
+    legacy_description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
             toolkind: Sceptre,

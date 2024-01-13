@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pickaxe",
-    description: "It has a chipped edge.",
+    legacy_name: "Pickaxe",
+    legacy_description: "It has a chipped edge.",
     kind: Tool((
         kind: Farming,
         hands: Two,

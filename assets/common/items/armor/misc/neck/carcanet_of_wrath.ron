@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Carcanet of Wrath",
-    description: "A necklace that gives even the most feeble beings immense amounts of power.",
+    legacy_name: "Carcanet of Wrath",
+    legacy_description: "A necklace that gives even the most feeble beings immense amounts of power.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

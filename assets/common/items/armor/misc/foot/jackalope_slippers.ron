@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Fluffy Jackalope Slippers",
-    description: "So warm and cozy!",
+    legacy_name: "Fluffy Jackalope Slippers",
+    legacy_description: "So warm and cozy!",
     kind: Armor((
         kind: Foot,
         stats: Direct((

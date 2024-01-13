@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Primal Gauntlets",
-    description: "Smithed from hide tougher than steel.",
+    legacy_name: "Primal Gauntlets",
+    legacy_description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Plate"),

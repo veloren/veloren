@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cardinal's Boots",
-    description: "The boots with millions of steps.",
+    legacy_name: "Cardinal's Boots",
+    legacy_description: "The boots with millions of steps.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Cardinal"),

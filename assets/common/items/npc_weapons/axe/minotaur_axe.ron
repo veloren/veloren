@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Minotaur Axe",
-    description: "Placeholder",
+    legacy_name: "Minotaur Axe",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Natural,
         hands: Two,

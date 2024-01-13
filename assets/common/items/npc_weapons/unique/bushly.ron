@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Starter Grace",
-    description: "Fret not, newbies shant cry.",
+    legacy_name: "Starter Grace",
+    legacy_description: "Fret not, newbies shant cry.",
     kind: Tool((
         kind: Natural,
         hands: Two,

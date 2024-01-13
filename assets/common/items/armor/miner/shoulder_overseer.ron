@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Overseer's Pauldrons.",
-    description: "",
+    legacy_name: "Overseer's Pauldrons.",
+    legacy_description: "",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Miner"),

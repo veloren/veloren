@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ice Skates",
-    description: "Best used on a frozen lake.",
+    legacy_name: "Ice Skates",
+    legacy_description: "Best used on a frozen lake.",
     kind: Armor((
         kind: Foot,
         stats: Direct((

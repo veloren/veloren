@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Generic Biped Large",
-    description: "Worn by bipeds.",
+    legacy_name: "Generic Biped Large",
+    legacy_description: "Worn by bipeds.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

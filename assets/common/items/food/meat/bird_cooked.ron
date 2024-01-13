@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cooked Bird Meat",
-    description: "Best enjoyed with one in each hand.",
+    legacy_name: "Cooked Bird Meat",
+    legacy_description: "Best enjoyed with one in each hand.",
     kind: Consumable(
         kind: Food,
         effects: One(

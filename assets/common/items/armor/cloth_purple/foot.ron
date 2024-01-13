@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Linen Boots",
-    description: "Cobbled rough fabric boots, dyed purple.",
+    legacy_name: "Purple Linen Boots",
+    legacy_description: "Cobbled rough fabric boots, dyed purple.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Cloth Purple"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mortar and Pestle",
-    description: "Crushes and grinds things into a fine powder or paste. Needed to craft various items.",
+    legacy_name: "Mortar and Pestle",
+    legacy_description: "Crushes and grinds things into a fine powder or paste. Needed to craft various items.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

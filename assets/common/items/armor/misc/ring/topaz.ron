@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Topaz Ring",
-    description: "A copper ring with a topaz gem.",
+    legacy_name: "Topaz Ring",
+    legacy_description: "A copper ring with a topaz gem.",
     kind: Armor((
         kind: Ring,
         stats: Direct((

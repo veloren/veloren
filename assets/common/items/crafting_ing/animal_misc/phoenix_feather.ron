@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Phoenix Feather",
-    description: "Said to have magical properties.",
+    legacy_name: "Phoenix Feather",
+    legacy_description: "Said to have magical properties.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

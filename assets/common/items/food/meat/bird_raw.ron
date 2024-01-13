@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Raw Bird Meat",
-    description: "A hefty drumstick.",
+    legacy_name: "Raw Bird Meat",
+    legacy_description: "A hefty drumstick.",
     kind: Consumable(
         kind: Food,
         effects: One(

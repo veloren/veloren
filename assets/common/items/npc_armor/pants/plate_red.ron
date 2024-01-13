@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Legguards",
-    description: "Greaves forged from iron.",
+    legacy_name: "Iron Legguards",
+    legacy_description: "Greaves forged from iron.",
     kind: Armor((
         kind: Pants,
         stats: Direct((

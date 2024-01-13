@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bowl",
-    description: "A simple bowl for preparing meals.",
+    legacy_name: "Bowl",
+    legacy_description: "A simple bowl for preparing meals.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

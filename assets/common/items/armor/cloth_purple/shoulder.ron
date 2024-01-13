@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Linen Coat",
-    description: "A rough fabric coat, dyed purple.",
+    legacy_name: "Purple Linen Coat",
+    legacy_description: "A rough fabric coat, dyed purple.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Cloth Purple"),

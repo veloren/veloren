@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cardinal's Gloves",
-    description: "Bloodstained and rugged.",
+    legacy_name: "Cardinal's Gloves",
+    legacy_description: "Bloodstained and rugged.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Cardinal"),

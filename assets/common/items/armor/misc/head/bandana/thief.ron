@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Thief Bandana",
-    description: "Common bandit's mask.",
+    legacy_name: "Thief Bandana",
+    legacy_description: "Common bandit's mask.",
     kind: Armor((
         kind: Head,
         stats: Direct((

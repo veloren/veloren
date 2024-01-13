@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flamekeeper Head",
-    description: "Flamekeeper Head",
+    legacy_name: "Flamekeeper Head",
+    legacy_description: "Flamekeeper Head",
     kind: Armor((
         kind: Head,
         stats: Direct((

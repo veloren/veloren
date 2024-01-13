@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leaf Beetle",
-    description: "testing123",
+    legacy_name: "Leaf Beetle",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

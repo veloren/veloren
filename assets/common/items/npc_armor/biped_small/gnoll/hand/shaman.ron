@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnoll Shaman",
-    description: "Ceremonial attire used by members..",
+    legacy_name: "Gnoll Shaman",
+    legacy_description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Hand,
         stats: Direct((

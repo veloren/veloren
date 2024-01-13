@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leafy Wraps",
-    description: "Leaves help hide the magic-interlocking twigs, and provide mild protection from the elements.",
+    legacy_name: "Leafy Wraps",
+    legacy_description: "Leaves help hide the magic-interlocking twigs, and provide mild protection from the elements.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Twigs Leaves"),

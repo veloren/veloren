@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bronze Girdle",
-    description: "'Heavy and dull, but it can take a punch.'",
+    legacy_name: "Bronze Girdle",
+    legacy_description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Bronze"),

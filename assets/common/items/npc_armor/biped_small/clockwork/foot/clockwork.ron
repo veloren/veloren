@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Clockwork Foot",
-    description: "Clockwork Foot.",
+    legacy_name: "Clockwork Foot",
+    legacy_description: "Clockwork Foot.",
     kind: Armor((
         kind: Foot,
         stats: Direct((

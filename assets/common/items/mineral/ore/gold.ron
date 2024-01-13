@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gold Ore",
-    description: "A precious yellow metal.",
+    legacy_name: "Gold Ore",
+    legacy_description: "A precious yellow metal.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

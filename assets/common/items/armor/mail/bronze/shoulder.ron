@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bronze Guards",
-    description: "Heavy and dull, but it can take a punch.",
+    legacy_name: "Bronze Guards",
+    legacy_description: "Heavy and dull, but it can take a punch.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Bronze"),

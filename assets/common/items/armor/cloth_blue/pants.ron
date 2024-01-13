@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Linen Skirt",
-    description: "A stylish, rough fabric skirt, dyed blue.",
+    legacy_name: "Blue Linen Skirt",
+    legacy_description: "A stylish, rough fabric skirt, dyed blue.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Cloth Blue"),

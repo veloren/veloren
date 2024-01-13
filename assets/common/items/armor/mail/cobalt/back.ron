@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Cape",
-    description: "Ornamental and impenetrable, the metal will never dull.",
+    legacy_name: "Cobalt Cape",
+    legacy_description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Cobalt"),

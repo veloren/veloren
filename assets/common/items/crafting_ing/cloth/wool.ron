@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Soft Wool",
-    description: "Soft wool from an animal.",
+    legacy_name: "Soft Wool",
+    legacy_description: "Soft wool from an animal.",
     kind: Ingredient(
         descriptor: "Woolen",
     ),

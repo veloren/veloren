@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wood Raptor Wings",
-    description: "Take flight with the wings of a stealthy predator",
+    legacy_name: "Wood Raptor Wings",
+    legacy_description: "Take flight with the wings of a stealthy predator",
     kind: Glider,
     quality: High,
     tags: [],

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Elegant Crest",
-    description: "A flawless crest from some majestic creature.\n\nThis can be used when crafting weapons.",
+    legacy_name: "Elegant Crest",
+    legacy_description: "A flawless crest from some majestic creature.\n\nThis can be used when crafting weapons.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",
