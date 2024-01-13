@@ -119,11 +119,11 @@ impl MoodContext {
                 quantity: _,
             } => {
                 // format!("I need {} {}!", quantity, item.name())
-                format!("I need some item, not just any item!")
+                "I need some item, not just any item!".to_string()
             },
             &MoodContext::MissingItem { item: _ } => {
                 // format!("Someone robbed my {}!", item.name())
-                format!("Someone robbed me of my item!")
+                "Someone robbed me of my item!".to_string()
             },
         }
     }

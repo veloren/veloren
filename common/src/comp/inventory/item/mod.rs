@@ -780,6 +780,7 @@ impl ItemDef {
         tags: Vec<ItemTag>,
         slots: u16,
     ) -> Self {
+        #[allow(deprecated)]
         Self {
             item_definition_id,
             name: "test item name".to_owned(),
@@ -794,6 +795,7 @@ impl ItemDef {
 
     #[cfg(test)]
     pub fn create_test_itemdef_from_kind(kind: ItemKind) -> Self {
+        #[allow(deprecated)]
         Self {
             item_definition_id: "test.item".to_string(),
             name: "test item name".to_owned(),
@@ -1661,18 +1663,15 @@ pub fn all_items_expect() -> Vec<Item> {
     // Grab modular weapons
     let mut modular_items: Vec<Item> = primary_comp_pool
         .keys()
-        .map(|(tool, mat_id)| {
+        .flat_map(|(tool, mat_id)| {
             let mat = material_parse_table
                 .get(mat_id)
                 .expect("unexpected material ident");
 
             // get all weapons without imposing additional hand restrictions
-            let its = modular::generate_weapons(*tool, *mat, None)
-                .expect("failure during modular weapon generation");
-
-            its
+            modular::generate_weapons(*tool, *mat, None)
+                .expect("failure during modular weapon generation")
         })
-        .flatten()
         .collect();
 
     // 1. Append asset items, that should include pretty much everything,
