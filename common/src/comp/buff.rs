@@ -772,18 +772,26 @@ impl Buffs {
 
     pub fn insert(&mut self, buff: Buff, current_time: Time) -> BuffKey {
         let kind = buff.kind;
-        // Try to find another buff with same data, cat_ids and source
-        let other_key = self.kinds[kind].as_ref().and_then(|(keys, _)| {
-            keys.iter()
-                .find(|key| {
-                    self.buffs.get(**key).map_or(false, |other_buff| {
-                        other_buff.data == buff.data
-                            && other_buff.cat_ids == buff.cat_ids
-                            && other_buff.source == buff.source
+        // Try to find another overlaping non-queueable buff with same data, cat_ids and
+        // source.
+        let other_key = if kind.queues() {
+            None
+        } else {
+            self.kinds[kind].as_ref().and_then(|(keys, _)| {
+                keys.iter()
+                    .find(|key| {
+                        self.buffs.get(**key).map_or(false, |other_buff| {
+                            other_buff.data == buff.data
+                                && other_buff.cat_ids == buff.cat_ids
+                                && other_buff.source == buff.source
+                                && other_buff
+                                    .end_time
+                                    .map_or(true, |end_time| end_time.0 >= buff.start_time.0)
+                        })
                     })
-                })
-                .copied()
-        });
+                    .copied()
+            })
+        };
 
         // If another buff with the same fields is found, update end_time and effects
         let key = if let Some((other_buff, key)) =
