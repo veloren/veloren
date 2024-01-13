@@ -548,6 +548,8 @@ impl<'a> Widget for Crafting<'a> {
         let metal_comp_recipe = make_pseudo_recipe(SpriteKind::Anvil);
         let wood_comp_recipe = make_pseudo_recipe(SpriteKind::CraftingBench);
         let repair_recipe = make_pseudo_recipe(SpriteKind::RepairBench);
+
+        // TODO: localize
         let pseudo_entries = {
             // A BTreeMap is used over a HashMap as when a HashMap is used, the UI shuffles
             // the positions of these every tick, so a BTreeMap is necessary to keep it
@@ -735,11 +737,18 @@ impl<'a> Widget for Crafting<'a> {
             .press_image(self.imgs.selection_press)
             .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
 
+            let borrow_check;
             let recipe_name =
                 if let Some((_recipe, pseudo_name, _filter_tab)) = pseudo_entries.get(name) {
                     *pseudo_name
                 } else {
-                    &recipe.output.0.name
+                    let (title, _) = util::item_text(
+                        recipe.output.0.as_ref(),
+                        self.localized_strings,
+                        self.item_l10n,
+                    );
+                    borrow_check = title;
+                    &borrow_check
                 };
 
             let text = Text::new(recipe_name)
@@ -856,12 +865,19 @@ impl<'a> Widget for Crafting<'a> {
             None => None,
         } {
             let recipe_name = String::from(recipe_name);
+            let borrow_check;
             let title = if let Some((_recipe, pseudo_name, _filter_tab)) =
                 pseudo_entries.get(&recipe_name)
             {
                 *pseudo_name
             } else {
-                &recipe.output.0.name
+                let (title, _) = util::item_text(
+                    recipe.output.0.as_ref(),
+                    self.localized_strings,
+                    self.item_l10n,
+                );
+                borrow_check = title;
+                &borrow_check
             };
             // Title
             Text::new(title)

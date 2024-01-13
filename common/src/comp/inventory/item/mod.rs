@@ -354,7 +354,8 @@ pub enum ItemKind {
     },
     Ingredient {
         /// Used to generate names for modular items composed of this ingredient
-        #[deprecated]
+        // I think we can actually remove it now?
+        #[deprecated = "part of non-localized name generation"]
         descriptor: String,
     },
     TagExamples {
@@ -685,8 +686,10 @@ pub struct ItemDef {
     /// assets folder, which the ItemDef is loaded from. The name space
     /// prepended with `veloren.core` is reserved for veloren functions.
     item_definition_id: String,
-    pub name: String,
-    pub description: String,
+    #[deprecated = "since item i18n"]
+    name: String,
+    #[deprecated = "since item i18n"]
+    description: String,
     pub kind: ItemKind,
     pub quality: Quality,
     pub tags: Vec<ItemTag>,
@@ -835,8 +838,8 @@ impl assets::Compound for ItemDef {
         }
 
         let RawItemDef {
-            name,
-            description,
+            legacy_name,
+            legacy_description,
             kind,
             quality,
             tags,
@@ -850,10 +853,11 @@ impl assets::Compound for ItemDef {
         // TODO: This probably does not belong here
         let item_definition_id = specifier.replace('\\', ".");
 
+        #[allow(deprecated)]
         Ok(ItemDef {
             item_definition_id,
-            name,
-            description,
+            name: legacy_name,
+            description: legacy_description,
             kind,
             quality,
             tags,
@@ -866,8 +870,8 @@ impl assets::Compound for ItemDef {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "ItemDef")]
 struct RawItemDef {
-    name: String,
-    description: String,
+    legacy_name: String,
+    legacy_description: String,
     kind: ItemKind,
     quality: Quality,
     tags: Vec<ItemTag>,
@@ -1207,13 +1211,15 @@ impl Item {
         })
     }
 
-    #[deprecated]
+    #[deprecated = "since item i18n"]
     pub fn name(&self) -> Cow<str> {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
                 if self.components.is_empty() {
+                    #[allow(deprecated)]
                     Cow::Borrowed(&item_def.name)
                 } else {
+                    #[allow(deprecated)]
                     modular::modify_name(&item_def.name, self)
                 }
             },
@@ -1221,9 +1227,10 @@ impl Item {
         }
     }
 
-    #[deprecated]
+    #[deprecated = "since item i18n"]
     pub fn description(&self) -> &str {
         match &self.item_base {
+            #[allow(deprecated)]
             ItemBase::Simple(item_def) => &item_def.description,
             // TODO: See if James wanted to make description, else leave with none
             ItemBase::Modular(_) => "",
@@ -1448,9 +1455,9 @@ pub fn flatten_counted_items<'a>(
 /// Provides common methods providing details about an item definition
 /// for either an `Item` containing the definition, or the actual `ItemDef`
 pub trait ItemDesc {
-    #[deprecated]
+    #[deprecated = "since item i18n"]
     fn description(&self) -> &str;
-    #[deprecated]
+    #[deprecated = "since item i18n"]
     fn name(&self) -> Cow<str>;
     fn kind(&self) -> Cow<ItemKind>;
     fn amount(&self) -> NonZeroU32;
@@ -1476,19 +1483,26 @@ pub trait ItemDesc {
     fn l10n(&self, l10n: &ItemL10n) -> (Content, Content) {
         let item_key: ItemKey = self.into();
 
+        #[allow(deprecated)]
         l10n.item_text_opt(item_key).unwrap_or_else(|| {
             (
                 Content::Plain(self.name().to_string()),
-                Content::Plain(self.name().to_string()),
+                Content::Plain(self.description().to_string()),
             )
         })
     }
 }
 
 impl ItemDesc for Item {
-    fn description(&self) -> &str { self.description() }
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        self.description()
+    }
 
-    fn name(&self) -> Cow<str> { self.name() }
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        self.name()
+    }
 
     fn kind(&self) -> Cow<ItemKind> { self.kind() }
 
@@ -1516,9 +1530,15 @@ impl ItemDesc for Item {
 }
 
 impl ItemDesc for ItemDef {
-    fn description(&self) -> &str { &self.description }
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        &self.description
+    }
 
-    fn name(&self) -> Cow<str> { Cow::Borrowed(&self.name) }
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        Cow::Borrowed(&self.name)
+    }
 
     fn kind(&self) -> Cow<ItemKind> { Cow::Borrowed(&self.kind) }
 
@@ -1562,9 +1582,15 @@ impl Component for ItemDrops {
 pub struct DurabilityMultiplier(pub f32);
 
 impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
-    fn description(&self) -> &str { (*self).description() }
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        (*self).description()
+    }
 
-    fn name(&self) -> Cow<str> { (*self).name() }
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        (*self).name()
+    }
 
     fn kind(&self) -> Cow<ItemKind> { (*self).kind() }
 

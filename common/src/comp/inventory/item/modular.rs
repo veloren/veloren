@@ -155,9 +155,11 @@ impl ModularBase {
                                 .components()
                                 .iter()
                                 .find_map(|mat| match mat.kind() {
+                                    #[allow(deprecated)]
                                     Cow::Owned(ItemKind::Ingredient { descriptor, .. }) => {
                                         Some(Cow::Owned(descriptor))
                                     },
+                                    #[allow(deprecated)]
                                     Cow::Borrowed(ItemKind::Ingredient { descriptor, .. }) => {
                                         Some(Cow::Borrowed(descriptor.as_str()))
                                     },
@@ -583,6 +585,7 @@ pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
             .components()
             .iter()
             .find_map(|comp| match &*comp.kind() {
+                #[allow(deprecated)]
                 ItemKind::Ingredient { descriptor, .. } => Some(descriptor.to_owned()),
                 _ => None,
             })
