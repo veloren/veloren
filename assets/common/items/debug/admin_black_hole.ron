@@ -1,6 +1,6 @@
 ItemDef(
     name: "Admin's Black Hole",
-    description: "It just works.",
+    description: "They say it will fit anything.",
     kind: Armor(
         (
             kind: Bag,
@@ -9,5 +9,5 @@ ItemDef(
     ),
     quality: Debug,
     tags: [],
-    slots: 900,
+    slots: 2500,
 )

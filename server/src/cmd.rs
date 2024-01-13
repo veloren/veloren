@@ -21,14 +21,14 @@ use common::{
     assets,
     calendar::Calendar,
     cmd::{
-        AreaKind, EntityTarget, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS,
+        AreaKind, EntityTarget, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER,
         KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
     },
     comp::{
         self,
         buff::{Buff, BuffData, BuffKind, BuffSource, MiscBuffData},
         inventory::{
-            item::{tool::AbilityMap, MaterialStatManifest, Quality},
+            item::{all_items_expect, tool::AbilityMap, MaterialStatManifest, Quality},
             slot::Slot,
         },
         invite::InviteKind,
@@ -2434,6 +2434,15 @@ fn handle_kill_npcs(
     Ok(())
 }
 
+enum KitEntry {
+    Spec(KitSpec),
+    Item(Item),
+}
+
+impl From<KitSpec> for KitEntry {
+    fn from(spec: KitSpec) -> Self { Self::Spec(spec) }
+}
+
 fn handle_kit(
     server: &mut Server,
     client: EcsEntity,
@@ -2453,13 +2462,13 @@ fn handle_kit(
 
     match name.as_str() {
         "all" => {
-            // TODO: we will probably want to handle modular items here too
-            let items = &ITEM_SPECS;
+            // This can't fail, we have tests
+            let items = all_items_expect();
+            let total = items.len();
+
             let res = push_kit(
-                items
-                    .iter()
-                    .map(|item_id| (KitSpec::Item(item_id.to_string()), 1)),
-                items.len(),
+                items.into_iter().map(|item| (KitEntry::Item(item), 1)),
+                total,
                 server,
                 target,
             );
@@ -2480,7 +2489,7 @@ fn handle_kit(
 
             let res = push_kit(
                 kit.iter()
-                    .map(|(item_id, quantity)| (item_id.clone(), *quantity)),
+                    .map(|(item_id, quantity)| (item_id.clone().into(), *quantity)),
                 kit.len(),
                 server,
                 target,
@@ -2495,7 +2504,7 @@ fn handle_kit(
 
 fn push_kit<I>(kit: I, count: usize, server: &mut Server, target: EcsEntity) -> CmdResult<()>
 where
-    I: Iterator<Item = (KitSpec, u32)>,
+    I: Iterator<Item = (KitEntry, u32)>,
 {
     if let (Some(mut target_inventory), mut target_inv_update) = (
         server
@@ -2529,19 +2538,20 @@ where
 }
 
 fn push_item(
-    item_id: KitSpec,
+    item_id: KitEntry,
     quantity: u32,
     server: &Server,
     push: &mut dyn FnMut(Item) -> Result<(), Item>,
 ) -> CmdResult<()> {
-    let items = match &item_id {
-        KitSpec::Item(item_id) => vec![
-            Item::new_from_asset(item_id).map_err(|_| format!("Unknown item: {:#?}", item_id))?,
+    let items = match item_id {
+        KitEntry::Spec(KitSpec::Item(item_id)) => vec![
+            Item::new_from_asset(&item_id).map_err(|_| format!("Unknown item: {:#?}", item_id))?,
         ],
-        KitSpec::ModularWeapon { tool, material } => {
-            comp::item::modular::generate_weapons(*tool, *material, None)
+        KitEntry::Spec(KitSpec::ModularWeapon { tool, material }) => {
+            comp::item::modular::generate_weapons(tool, material, None)
                 .map_err(|err| format!("{:#?}", err))?
         },
+        KitEntry::Item(item) => vec![item],
     };
 
     let mut res = Ok(());

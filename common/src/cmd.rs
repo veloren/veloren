@@ -242,13 +242,16 @@ lazy_static! {
     };
 
     pub static ref KITS: Vec<String> = {
-        if let Ok(kits) = KitManifest::load_and_combine(KIT_MANIFEST_PATH) {
+        let mut kits = if let Ok(kits) = KitManifest::load_and_combine(KIT_MANIFEST_PATH) {
             let mut kits = kits.read().0.keys().cloned().collect::<Vec<String>>();
             kits.sort();
             kits
         } else {
             Vec::new()
-        }
+        };
+        kits.push("all".to_owned());
+
+        kits
     };
 
     static ref PRESETS: HashMap<String, Vec<(Skill, u8)>> = {
