@@ -791,7 +791,7 @@ impl AttackDamage {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AttackEffect {
     target: Option<GroupTarget>,
     effect: CombatEffect,
@@ -890,7 +890,7 @@ impl CombatEffect {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CombatRequirement {
     AnyDamage,
     Energy(f32),
@@ -898,7 +898,7 @@ pub enum CombatRequirement {
     TargetHasBuff(BuffKind),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum DamagedEffect {
     Combo(i32),
 }
