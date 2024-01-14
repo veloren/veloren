@@ -12,7 +12,10 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::ServerInfo;
-use common::assets::{self, AssetExt};
+use common::{
+    assets::{self, AssetExt},
+    comp,
+};
 use common_base::span;
 use i18n::LocalizationHandle;
 use iced::{
@@ -23,6 +26,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
 };
+use tracing::error;
 
 image_ids_ice! {
     struct Imgs {
@@ -161,6 +165,20 @@ impl PlayState for ServerInfoState {
                 Event::Close => return PlayStateResult::Shutdown,
                 // Ignore all other events.
                 _ => {},
+            }
+        }
+
+        if let Some(char_select) = &mut self.char_select {
+            if let Err(err) = char_select
+                .client()
+                .borrow_mut()
+                .tick(comp::ControllerInputs::default(), global_state.clock.dt())
+            {
+                let i18n = &global_state.i18n.read();
+                global_state.info_message =
+                    Some(i18n.get_msg("common-connection_lost").into_owned());
+                error!(?err, "[server_info] Failed to tick the client");
+                return PlayStateResult::Pop;
             }
         }
 
