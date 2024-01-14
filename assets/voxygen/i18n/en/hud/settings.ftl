@@ -137,6 +137,7 @@ hud-settings-music_spacing = Music Spacing
 hud-settings-audio_device = Audio Device
 hud-settings-reset_sound = Reset to Defaults
 hud-settings-english_fallback = Display English for missing translations
+hud-settings-language_share_with_server = Share configured language with servers (for localizing rules and motd)
 hud-settings-awaitingkey = Press a key...
 hud-settings-unbound = None
 hud-settings-reset_keybinds = Reset to Defaults

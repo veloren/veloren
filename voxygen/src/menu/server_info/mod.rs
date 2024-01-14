@@ -17,6 +17,7 @@ use common::{
     comp,
 };
 use common_base::span;
+use common_net::msg::server::ServerDescription;
 use i18n::LocalizationHandle;
 use iced::{
     button, scrollable, Align, Column, Container, HorizontalAlignment, Length, Row, Scrollable,
@@ -47,7 +48,8 @@ pub struct Controls {
     decline_button: button::State,
     scrollable: scrollable::State,
     server_info: ServerInfo,
-    seen_before: bool,
+    server_description: ServerDescription,
+    changed: bool,
 }
 
 pub struct ServerInfoState {
@@ -76,15 +78,18 @@ impl ServerInfoState {
         bg_img_spec: &'static str,
         char_select: CharSelectionState,
         server_info: ServerInfo,
+        server_description: ServerDescription,
+        force_show: bool,
     ) -> Result<Self, CharSelectionState> {
         let server = global_state.profile.servers.get(&server_info.name);
 
         // If there are no rules, or we've already accepted these rules, we don't need
         // this state
-        if server_info.rules.is_none()
+        if (server_description.rules.is_none()
             || server.map_or(false, |s| {
-                s.accepted_rules == Some(rules_hash(&server_info.rules))
-            })
+                s.accepted_rules == Some(rules_hash(&server_description.rules))
+            }))
+            && !force_show
         {
             return Err(char_select);
         }
@@ -101,6 +106,11 @@ impl ServerInfoState {
         )
         .unwrap();
 
+        let changed = server.map_or(false, |s| {
+            s.accepted_rules
+                .is_some_and(|accepted| accepted != rules_hash(&server_description.rules))
+        });
+
         Ok(Self {
             scene: Scene::new(global_state.window.renderer_mut()),
             controls: Controls {
@@ -110,12 +120,13 @@ impl ServerInfoState {
                 )),
                 imgs: Imgs::load(&mut ui).expect("Failed to load images"),
                 fonts: Fonts::load(i18n.fonts(), &mut ui).expect("Impossible to load fonts"),
-                i18n: global_state.i18n.clone(),
+                i18n: global_state.i18n,
                 accept_button: Default::default(),
                 decline_button: Default::default(),
                 scrollable: Default::default(),
                 server_info,
-                seen_before: server.map_or(false, |s| s.accepted_rules.is_some()),
+                server_description,
+                changed,
             },
             ui,
             char_select: Some(char_select),
@@ -191,6 +202,7 @@ impl PlayState for ServerInfoState {
             &mut global_state.clipboard,
         );
 
+        #[allow(clippy::never_loop)] // TODO: Remove when more message types are added
         for message in messages {
             match message {
                 Message::Accept => {
@@ -200,7 +212,8 @@ impl PlayState for ServerInfoState {
                         .servers
                         .get_mut(&self.controls.server_info.name)
                     {
-                        server.accepted_rules = Some(rules_hash(&self.controls.server_info.rules));
+                        server.accepted_rules =
+                            Some(rules_hash(&self.controls.server_description.rules));
                     }
 
                     return PlayStateResult::Switch(Box::new(self.char_select.take().unwrap()));
@@ -277,18 +290,18 @@ impl Controls {
         elements.push(
             Container::new(
                 iced::Text::new(i18n.get_msg("main-server-rules"))
-                    .size(self.fonts.cyri.scale(30))
+                    .size(self.fonts.cyri.scale(36))
                     .horizontal_alignment(HorizontalAlignment::Center),
             )
             .width(Length::Fill)
             .into(),
         );
 
-        if self.seen_before {
+        if self.changed {
             elements.push(
                 Container::new(
                     iced::Text::new(i18n.get_msg("main-server-rules-seen-before"))
-                        .size(self.fonts.cyri.scale(20))
+                        .size(self.fonts.cyri.scale(30))
                         .color(IMPORTANT_TEXT_COLOR)
                         .horizontal_alignment(HorizontalAlignment::Center),
                 )
@@ -306,11 +319,16 @@ impl Controls {
         elements.push(
             Scrollable::new(&mut self.scrollable)
                 .push(
-                    iced::Text::new(self.server_info.rules.as_deref().unwrap_or("<rules>"))
-                        .size(self.fonts.cyri.scale(16))
-                        .width(Length::Shrink)
-                        .horizontal_alignment(HorizontalAlignment::Left)
-                        .vertical_alignment(VerticalAlignment::Top),
+                    iced::Text::new(
+                        self.server_description
+                            .rules
+                            .as_deref()
+                            .unwrap_or("<rules>"),
+                    )
+                    .size(self.fonts.cyri.scale(26))
+                    .width(Length::Shrink)
+                    .horizontal_alignment(HorizontalAlignment::Left)
+                    .vertical_alignment(VerticalAlignment::Top),
                 )
                 .height(Length::Fill)
                 .width(Length::Fill)

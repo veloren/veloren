@@ -16,8 +16,8 @@ use common::{
 use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
-    CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo, PlayerListUpdate, RegisterError,
-    ServerGeneral, ServerInit, WorldMapMsg,
+    server::ServerDescription, CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo,
+    PlayerListUpdate, RegisterError, ServerGeneral, ServerInit, WorldMapMsg,
 };
 use hashbrown::{hash_map, HashMap};
 use itertools::Either;
@@ -129,12 +129,20 @@ impl<'a> System<'a> for Sys {
 
         // defer auth lockup
         for (entity, client) in (&read_data.entities, &mut clients).join() {
+            let mut locale = None;
+
             let _ = super::try_recv_all(client, 0, |_, msg: ClientRegister| {
                 trace!(?msg.token_or_username, "defer auth lockup");
                 let pending = read_data.login_provider.verify(&msg.token_or_username);
+                locale = msg.locale;
                 let _ = pending_logins.insert(entity, pending);
                 Ok(())
             });
+
+            // Update locale
+            if let Some(locale) = locale {
+                client.locale = Some(locale);
+            }
         }
 
         let old_player_count = player_list.len();
@@ -320,6 +328,19 @@ impl<'a> System<'a> for Sys {
                         // Tell the client its request was successful.
                         client.send(Ok(()))?;
 
+
+                        let description = read_data
+                                .editable_settings
+                                .server_description
+                                .get(client.locale.as_ref())
+                                .map(|description|
+                                    ServerDescription {
+                                        motd: description.motd.clone(),
+                                        rules: description.rules.clone()
+                                    }
+                                )
+                                .unwrap_or_default();
+
                         // Send client all the tracked components currently attached to its entity
                         // as well as synced resources (currently only `TimeOfDay`)
                         debug!("Starting initial sync with client.");
@@ -340,6 +361,7 @@ impl<'a> System<'a> for Sys {
                             server_constants: ServerConstants {
                                 day_cycle_coefficient: read_data.settings.day_cycle_coefficient()
                             },
+                            description,
                         })?;
                         debug!("Done initial sync with client.");
 

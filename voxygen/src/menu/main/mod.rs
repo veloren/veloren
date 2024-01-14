@@ -26,6 +26,8 @@ use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
+pub use ui::rand_bg_image_spec;
+
 #[derive(Debug)]
 pub enum DetailedInitializationStage {
     #[cfg(feature = "singleplayer")]
@@ -123,6 +125,9 @@ impl PlayState for MainMenuState {
                             ConnectionArgs::Mpsc(14004),
                             &mut self.init,
                             &global_state.tokio_runtime,
+                            global_state.settings.language.share_with_server.then_some(
+                                global_state.settings.language.selected_language.clone(),
+                            ),
                             &global_state.i18n,
                         );
                     },
@@ -294,6 +299,7 @@ impl PlayState for MainMenuState {
                     self.main_menu_ui.connected();
 
                     let server_info = client.server_info().clone();
+                    let server_description = client.server_description().clone();
 
                     let char_select = CharSelectionState::new(
                         global_state,
@@ -305,6 +311,8 @@ impl PlayState for MainMenuState {
                         self.main_menu_ui.bg_img_spec(),
                         char_select,
                         server_info,
+                        server_description,
+                        false,
                     )
                     .map(|s| Box::new(s) as _)
                     .unwrap_or_else(|s| Box::new(s) as _);
@@ -354,6 +362,11 @@ impl PlayState for MainMenuState {
                         connection_args,
                         &mut self.init,
                         &global_state.tokio_runtime,
+                        global_state
+                            .settings
+                            .language
+                            .share_with_server
+                            .then_some(global_state.settings.language.selected_language.clone()),
                         &global_state.i18n,
                     );
                 },
@@ -584,6 +597,7 @@ fn attempt_login(
     connection_args: ConnectionArgs,
     init: &mut InitState,
     runtime: &Arc<runtime::Runtime>,
+    locale: Option<String>,
     localized_strings: &LocalizationHandle,
 ) {
     let localization = localized_strings.read();
@@ -616,6 +630,7 @@ fn attempt_login(
             username,
             password,
             Arc::clone(runtime),
+            locale,
         ));
     }
 }

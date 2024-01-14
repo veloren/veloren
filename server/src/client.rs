@@ -15,6 +15,7 @@ pub struct Client {
     pub participant: Option<Participant>,
     pub last_ping: f64,
     pub login_msg_sent: AtomicBool,
+    pub locale: Option<String>,
 
     //TODO: Consider splitting each of these out into their own components so all the message
     //processing systems can run in parallel with each other (though it may turn out not to
@@ -48,6 +49,7 @@ impl Client {
         client_type: ClientType,
         participant: Participant,
         last_ping: f64,
+        locale: Option<String>,
         general_stream: Stream,
         ping_stream: Stream,
         register_stream: Stream,
@@ -65,6 +67,7 @@ impl Client {
             client_type,
             participant: Some(participant),
             last_ping,
+            locale,
             login_msg_sent: AtomicBool::new(false),
             general_stream,
             ping_stream,

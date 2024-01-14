@@ -20,22 +20,22 @@ pub use self::v2::*;
 pub enum ServerDescriptionRaw {
     V0(v0::ServerDescription),
     V1(v1::ServerDescription),
-    V2(ServerDescription),
+    V2(ServerDescriptions),
 }
 
-impl From<ServerDescription> for ServerDescriptionRaw {
-    fn from(value: ServerDescription) -> Self {
+impl From<ServerDescriptions> for ServerDescriptionRaw {
+    fn from(value: ServerDescriptions) -> Self {
         // Replace variant with that of current latest version.
         Self::V2(value)
     }
 }
 
-impl TryFrom<ServerDescriptionRaw> for (Version, ServerDescription) {
-    type Error = <ServerDescription as EditableSetting>::Error;
+impl TryFrom<ServerDescriptionRaw> for (Version, ServerDescriptions) {
+    type Error = <ServerDescriptions as EditableSetting>::Error;
 
     fn try_from(
         value: ServerDescriptionRaw,
-    ) -> Result<Self, <ServerDescription as EditableSetting>::Error> {
+    ) -> Result<Self, <ServerDescriptions as EditableSetting>::Error> {
         use ServerDescriptionRaw::*;
         Ok(match value {
             // Old versions
@@ -48,9 +48,9 @@ impl TryFrom<ServerDescriptionRaw> for (Version, ServerDescription) {
     }
 }
 
-type Final = ServerDescription;
+type Final = ServerDescriptions;
 
-impl EditableSetting for ServerDescription {
+impl EditableSetting for ServerDescriptions {
     type Error = Infallible;
     type Legacy = legacy::ServerDescription;
     type Setting = ServerDescriptionRaw;
@@ -169,28 +169,44 @@ mod v1 {
         }
     }
 
-    use super::{v2 as next, MIGRATION_UPGRADE_GUARANTEE};
+    use super::v2 as next;
     impl TryFrom<ServerDescription> for Final {
         type Error = <Final as EditableSetting>::Error;
 
         fn try_from(mut value: ServerDescription) -> Result<Final, Self::Error> {
             value.validate()?;
-            Ok(next::ServerDescription::migrate(value)
-                .try_into()
-                .expect(MIGRATION_UPGRADE_GUARANTEE))
+            Ok(next::ServerDescriptions::migrate(value))
         }
     }
 }
 
 mod v2 {
+    use std::collections::HashMap;
+
     use super::{v1 as prev, Final};
     use crate::settings::editable::{EditableSetting, Version};
     use serde::{Deserialize, Serialize};
+
+    /// Map of all localized [`ServerDescription`]s
+    #[derive(Clone, Deserialize, Serialize)]
+    pub struct ServerDescriptions {
+        pub default_locale: String,
+        pub descriptions: HashMap<String, ServerDescription>,
+    }
 
     #[derive(Clone, Deserialize, Serialize)]
     pub struct ServerDescription {
         pub motd: String,
         pub rules: Option<String>,
+    }
+
+    impl Default for ServerDescriptions {
+        fn default() -> Self {
+            Self {
+                default_locale: "en".to_string(),
+                descriptions: HashMap::from([("en".to_string(), ServerDescription::default())]),
+            }
+        }
     }
 
     impl Default for ServerDescription {
@@ -202,14 +218,31 @@ mod v2 {
         }
     }
 
-    impl ServerDescription {
+    impl ServerDescriptions {
+        pub fn get(&self, locale: Option<&String>) -> Option<&ServerDescription> {
+            let locale = locale.map_or(&self.default_locale, |locale| {
+                if self.descriptions.contains_key(locale) {
+                    locale
+                } else {
+                    &self.default_locale
+                }
+            });
+
+            self.descriptions.get(locale)
+        }
+    }
+
+    impl ServerDescriptions {
         /// One-off migration from the previous version.  This must be
         /// guaranteed to produce a valid settings file as long as it is
         /// called with a valid settings file from the previous version.
         pub(super) fn migrate(prev: prev::ServerDescription) -> Self {
             Self {
-                motd: prev.0,
-                rules: None,
+                default_locale: "en".to_string(),
+                descriptions: HashMap::from([("en".to_string(), ServerDescription {
+                    motd: prev.0,
+                    rules: None,
+                })]),
             }
         }
 
@@ -220,7 +253,22 @@ mod v2 {
         /// been modified during validation (this is why validate takes
         /// `&mut self`).
         pub(super) fn validate(&mut self) -> Result<Version, <Final as EditableSetting>::Error> {
-            Ok(Version::Latest)
+            if self.descriptions.is_empty() {
+                *self = Self::default();
+                Ok(Version::Old)
+            } else if !self.descriptions.contains_key(&self.default_locale) {
+                // default locale not present, select the a random one (as ordering in hashmaps
+                // isn't predictable)
+                self.default_locale = self
+                    .descriptions
+                    .keys()
+                    .next()
+                    .expect("We know descriptions isn't empty")
+                    .to_string();
+                Ok(Version::Old)
+            } else {
+                Ok(Version::Latest)
+            }
         }
     }
 

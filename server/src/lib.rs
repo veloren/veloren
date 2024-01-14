@@ -624,14 +624,12 @@ impl Server {
 
     pub fn get_server_info(&self) -> ServerInfo {
         let settings = self.state.ecs().fetch::<Settings>();
-        let editable_settings = self.state.ecs().fetch::<EditableSettings>();
+
         ServerInfo {
             name: settings.server_name.clone(),
-            description: editable_settings.server_description.motd.clone(),
             git_hash: common::util::GIT_HASH.to_string(),
             git_date: common::util::GIT_DATE.to_string(),
             auth_provider: settings.auth_server_address.clone(),
-            rules: editable_settings.server_description.rules.clone(),
         }
     }
 

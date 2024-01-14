@@ -696,7 +696,7 @@ impl MainMenuUi {
 
         let fonts = Fonts::load(i18n.fonts(), &mut ui).expect("Impossible to load fonts");
 
-        let bg_img_spec = BG_IMGS.choose(&mut thread_rng()).unwrap();
+        let bg_img_spec = rand_bg_image_spec();
 
         let bg_img = assets::Image::load_expect(bg_img_spec).read().to_image();
         let controls = Controls::new(
@@ -814,3 +814,5 @@ impl MainMenuUi {
 
     pub fn render<'a>(&'a self, drawer: &mut UiDrawer<'_, 'a>) { self.ui.render(drawer); }
 }
+
+pub fn rand_bg_image_spec() -> &'static str { BG_IMGS.choose(&mut thread_rng()).unwrap() }

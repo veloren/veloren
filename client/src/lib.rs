@@ -56,6 +56,7 @@ use common_base::{prof_span, span};
 use common_net::{
     msg::{
         self,
+        server::ServerDescription,
         world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
         ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, ClientType, DisconnectReason,
         InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError,
@@ -228,6 +229,8 @@ pub struct Client {
     presence: Option<PresenceKind>,
     runtime: Arc<Runtime>,
     server_info: ServerInfo,
+    /// Localized server motd and rules
+    server_description: ServerDescription,
     world_data: WorldData,
     weather: WeatherLerp,
     player_list: HashMap<Uid, PlayerInfo>,
@@ -305,6 +308,7 @@ impl Client {
         mismatched_server_info: &mut Option<ServerInfo>,
         username: &str,
         password: &str,
+        locale: Option<String>,
         auth_trusted: impl FnMut(&str) -> bool,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
@@ -365,6 +369,7 @@ impl Client {
         Self::register(
             username,
             password,
+            locale,
             auth_trusted,
             &server_info,
             &mut register_stream,
@@ -386,6 +391,7 @@ impl Client {
             ability_map,
             server_constants,
             repair_recipe_book,
+            description,
         } = loop {
             tokio::select! {
                 // Spawn in a blocking thread (leaving the network thread free).  This is mostly
@@ -725,6 +731,7 @@ impl Client {
             presence: None,
             runtime,
             server_info,
+            server_description: description,
             world_data: WorldData {
                 lod_base,
                 lod_alt,
@@ -801,6 +808,7 @@ impl Client {
     async fn register(
         username: &str,
         password: &str,
+        locale: Option<String>,
         mut auth_trusted: impl FnMut(&str) -> bool,
         server_info: &ServerInfo,
         register_stream: &mut Stream,
@@ -838,7 +846,10 @@ impl Client {
 
         debug!("Registering client...");
 
-        register_stream.send(ClientRegister { token_or_username })?;
+        register_stream.send(ClientRegister {
+            token_or_username,
+            locale,
+        })?;
 
         match register_stream.recv::<ServerRegisterAnswer>().await? {
             Err(RegisterError::AuthError(err)) => Err(Error::AuthErr(err)),
@@ -1181,6 +1192,8 @@ impl Client {
     pub fn character_list(&self) -> &CharacterList { &self.character_list }
 
     pub fn server_info(&self) -> &ServerInfo { &self.server_info }
+
+    pub fn server_description(&self) -> &ServerDescription { &self.server_description }
 
     pub fn world_data(&self) -> &WorldData { &self.world_data }
 
@@ -3010,6 +3023,7 @@ mod tests {
             &mut None,
             username,
             password,
+            None,
             |suggestion: &str| suggestion == auth_server,
             &|_| {},
             |_| {},

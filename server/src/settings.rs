@@ -10,7 +10,7 @@ pub use admin::{AdminRecord, Admins};
 pub use banlist::{
     Ban, BanAction, BanEntry, BanError, BanErrorKind, BanInfo, BanKind, BanRecord, Banlist,
 };
-pub use server_description::ServerDescription;
+pub use server_description::ServerDescriptions;
 pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};
 
 use chrono::Utc;
@@ -362,7 +362,7 @@ const MIGRATION_UPGRADE_GUARANTEE: &str = "Any valid file of an old verison shou
 pub struct EditableSettings {
     pub whitelist: Whitelist,
     pub banlist: Banlist,
-    pub server_description: ServerDescription,
+    pub server_description: ServerDescriptions,
     pub admins: Admins,
 }
 
@@ -371,7 +371,7 @@ impl EditableSettings {
         Self {
             whitelist: Whitelist::load(data_dir),
             banlist: Banlist::load(data_dir),
-            server_description: ServerDescription::load(data_dir),
+            server_description: ServerDescriptions::load(data_dir),
             admins: Admins::load(data_dir),
         }
     }
@@ -379,8 +379,13 @@ impl EditableSettings {
     pub fn singleplayer(data_dir: &Path) -> Self {
         let load = Self::load(data_dir);
 
-        let mut server_description = ServerDescription::default();
-        server_description.motd = "Who needs friends anyway?".into();
+        let mut server_description = ServerDescriptions::default();
+        server_description
+            .descriptions
+            .values_mut()
+            .for_each(|entry| {
+                entry.motd = "Who needs friends anyway?".into();
+            });
 
         let mut admins = Admins::default();
         // TODO: Let the player choose if they want to use admin commands or not

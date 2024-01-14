@@ -161,6 +161,7 @@ pub enum Interface {
 #[derive(Clone)]
 pub enum Language {
     ChangeLanguage(Box<LanguageMetadata>),
+    ToggleShareWithServer(bool),
     ToggleEnglishFallback(bool),
 }
 #[derive(Clone)]
@@ -716,6 +717,9 @@ impl SettingsChange {
                     global_state
                         .i18n
                         .set_english_fallback(settings.language.use_english_fallback);
+                },
+                Language::ToggleShareWithServer(share) => {
+                    settings.language.share_with_server = share;
                 },
             },
             SettingsChange::Networking(networking_change) => match networking_change {
