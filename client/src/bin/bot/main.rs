@@ -71,6 +71,7 @@ pub fn make_client(
             server_info,
             username,
             password,
+            None,
             |_| true,
             &|_| {},
             |_| {},

@@ -63,6 +63,7 @@ fn main() {
             &mut None,
             &username,
             &password,
+            None,
             |provider| provider == "https://auth.veloren.net",
             &|_| {},
             |_| {},
