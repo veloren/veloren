@@ -96,7 +96,7 @@ pub struct SceneData<'a> {
 }
 
 impl Scene {
-    pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
+    pub fn new(renderer: &mut Renderer, client: &mut Client, settings: &Settings) -> Self {
         let start_angle = -90.0f32.to_radians();
         let resolution = renderer.resolution().map(|e| e as f32);
 
@@ -132,6 +132,8 @@ impl Scene {
                 .get(char_chunk)
                 .map_or(0.0, |z| *z as f32 + 100.0),
         );
+        client.set_lod_pos_fallback(char_pos.xy());
+        client.set_lod_distance(settings.graphics.lod_distance);
 
         Self {
             data,

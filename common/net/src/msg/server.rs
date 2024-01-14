@@ -324,7 +324,6 @@ impl ServerMsg {
                         | ServerGeneral::InventoryUpdate(_, _)
                         | ServerGeneral::GroupInventoryUpdate(_, _, _)
                         | ServerGeneral::TerrainChunkUpdate { .. }
-                        | ServerGeneral::LodZoneUpdate { .. }
                         | ServerGeneral::TerrainBlockUpdates(_)
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)
@@ -348,7 +347,8 @@ impl ServerMsg {
                         | ServerGeneral::CreateEntity(_)
                         | ServerGeneral::DeleteEntity(_)
                         | ServerGeneral::Disconnect(_)
-                        | ServerGeneral::Notification(_) => true,
+                        | ServerGeneral::Notification(_)
+                        | ServerGeneral::LodZoneUpdate { .. } => true,
                     }
             },
             ServerMsg::Ping(_) => true,

@@ -242,6 +242,7 @@ pub struct Client {
     available_recipes: HashMap<String, Option<SpriteKind>>,
     lod_zones: HashMap<Vec2<i32>, lod::Zone>,
     lod_last_requested: Option<Instant>,
+    lod_pos_fallback: Option<Vec2<f32>>,
     force_update_counter: u64,
 
     max_group_size: u32,
@@ -753,6 +754,7 @@ impl Client {
 
             lod_zones: HashMap::new(),
             lod_last_requested: None,
+            lod_pos_fallback: None,
 
             force_update_counter: 0,
 
@@ -890,7 +892,7 @@ impl Client {
                     | ClientGeneral::DeleteCharacter(_)
                     | ClientGeneral::Character(_, _)
                     | ClientGeneral::Spectate(_) => &mut self.character_screen_stream,
-                    //Only in game
+                    // Only in game
                     ClientGeneral::ControllerInputs(_)
                     | ClientGeneral::ControlEvent(_)
                     | ClientGeneral::ControlAction(_)
@@ -911,7 +913,7 @@ impl Client {
                         }
                         &mut self.in_game_stream
                     },
-                    //Only in game, terrain
+                    // Terrain
                     ClientGeneral::TerrainChunkRequest { .. }
                     | ClientGeneral::LodZoneRequest { .. } => {
                         #[cfg(feature = "tracy")]
@@ -920,7 +922,7 @@ impl Client {
                         }
                         &mut self.terrain_stream
                     },
-                    //Always possible
+                    // Always possible
                     ClientGeneral::ChatMsg(_)
                     | ClientGeneral::Command(_, _)
                     | ClientGeneral::Terminate => &mut self.general_stream,
@@ -1195,6 +1197,10 @@ impl Client {
     }
 
     pub fn lod_zones(&self) -> &HashMap<Vec2<i32>, lod::Zone> { &self.lod_zones }
+
+    /// Set the fallback position used for loading LoD zones when the client
+    /// entity does not have a position.
+    pub fn set_lod_pos_fallback(&mut self, pos: Vec2<f32>) { self.lod_pos_fallback = Some(pos); }
 
     /// Returns whether the specified recipe can be crafted and the sprite, if
     /// any, that is required to do so.
@@ -2088,9 +2094,11 @@ impl Client {
             let now = Instant::now();
             self.pending_chunks
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(3));
+        }
 
+        if let Some(lod_pos) = pos.map(|p| p.0.xy()).or(self.lod_pos_fallback) {
             // Manage LoD zones
-            let lod_zone = pos.0.xy().map(|e| lod::from_wpos(e as i32));
+            let lod_zone = lod_pos.map(|e| lod::from_wpos(e as i32));
 
             // Request LoD zones that are in range
             if self

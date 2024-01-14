@@ -27,7 +27,7 @@ impl CharSelectionState {
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         let scene = Scene::new(
             global_state.window.renderer_mut(),
-            &client.borrow(),
+            &mut client.borrow_mut(),
             &global_state.settings,
         );
         let char_selection_ui = CharSelectionUi::new(global_state, &client.borrow());

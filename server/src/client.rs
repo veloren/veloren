@@ -192,7 +192,7 @@ impl Client {
                     | ServerGeneral::SpectatePosition(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
-                    //In-game related, terrain
+                    // Terrain
                     ServerGeneral::TerrainChunkUpdate { .. }
                     | ServerGeneral::LodZoneUpdate { .. }
                     | ServerGeneral::TerrainBlockUpdates(_) => {
