@@ -6,7 +6,7 @@ version = "0.10.0"
 
 [features]
 simd = ["vek/platform_intrinsics"]
-plugins = ["toml", "tar", "wasmer", "wasmer-wasix-types", "bincode", "plugin-api", "serde"]
+plugins = ["common-assets/plugins", "toml", "tar", "wasmer", "wasmer-wasix-types", "bincode", "plugin-api", "serde"]
 
 default = ["simd"]
 
@@ -15,6 +15,7 @@ common = { package = "veloren-common", path = ".." }
 common-net = { package = "veloren-common-net", path = "../net" }
 common-ecs = { package = "veloren-common-ecs", path = "../ecs" }
 common-base = { package = "veloren-common-base", path = "../base" }
+common-assets = { package = "veloren-common-assets", path = "../assets", optional = true}
 
 rayon = { workspace = true }
 num_cpus = "1.0"

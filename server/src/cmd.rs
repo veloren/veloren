@@ -26,7 +26,7 @@ use common::{
     },
     comp::{
         self,
-        buff::{Buff, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffData, BuffKind, BuffSource, MiscBuffData},
         inventory::{
             item::{tool::AbilityMap, MaterialStatManifest, Quality},
             slot::Slot,
@@ -4140,49 +4140,128 @@ fn handle_buff(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(buff), strength, duration) = parse_cmd_args!(args, String, f32, f64) {
-        let strength = strength.unwrap_or(0.01);
-        let duration = duration.unwrap_or(1.0);
+    let (Some(buff), strength, duration, misc_data_spec) =
+        parse_cmd_args!(args, String, f32, f64, String)
+    else {
+        return Err(Content::Plain(action.help_string()));
+    };
+
+    let strength = strength.unwrap_or(0.01);
+
+    if buff == "all" {
+        let duration = duration.unwrap_or(5.0);
         let buffdata = BuffData::new(strength, Some(Secs(duration)));
-        if buff != "all" {
-            cast_buff(&buff, buffdata, server, target)
-        } else {
-            for kind in BUFF_PACK.iter() {
-                cast_buff(kind, buffdata, server, target)?;
-            }
-            Ok(())
-        }
+
+        // apply every(*) non-complex buff
+        //
+        // (*) BUFF_PACK contains all buffs except
+        // invulnerability
+        BUFF_PACK
+            .iter()
+            .filter_map(|kind_key| parse_buffkind(kind_key))
+            .filter(|buffkind| buffkind.is_simple())
+            .for_each(|buffkind| cast_buff(buffkind, buffdata, server, target));
+        Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        let buffkind = parse_buffkind(&buff).ok_or_else(|| {
+            Content::localized_with_args("command-buff-unknown", [("buff", buff.clone())])
+        })?;
+
+        if buffkind.is_simple() {
+            let duration = duration.unwrap_or(10.0);
+            let buffdata = BuffData::new(strength, Some(Secs(duration)));
+            cast_buff(buffkind, buffdata, server, target);
+            Ok(())
+        } else {
+            // default duration is longer for complex buffs
+            let duration = duration.unwrap_or(20.0);
+            let spec = misc_data_spec.ok_or_else(|| {
+                Content::localized_with_args("command-buff-data", [("buff", buff.clone())])
+            })?;
+            cast_buff_complex(buffkind, server, target, spec, strength, duration)
+        }
     }
 }
 
-fn cast_buff(kind: &str, data: BuffData, server: &mut Server, target: EcsEntity) -> CmdResult<()> {
-    if let Some(buffkind) = parse_buffkind(kind) {
-        let ecs = &server.state.ecs();
-        let mut buffs_all = ecs.write_storage::<comp::Buffs>();
-        let stats = ecs.read_storage::<comp::Stats>();
-        let healths = ecs.read_storage::<comp::Health>();
-        let time = ecs.read_resource::<Time>();
-        if let Some(mut buffs) = buffs_all.get_mut(target) {
-            buffs.insert(
-                Buff::new(
-                    buffkind,
-                    data,
-                    vec![],
-                    BuffSource::Command,
-                    *time,
-                    stats.get(target),
-                    healths.get(target),
-                ),
+fn cast_buff_complex(
+    buffkind: BuffKind,
+    server: &mut Server,
+    target: EcsEntity,
+    spec: String,
+    strength: f32,
+    duration: f64,
+) -> CmdResult<()> {
+    // explicit match to remember that this function exists
+    let misc_data = match buffkind {
+        BuffKind::Polymorphed => {
+            let Ok(npc::NpcBody(_id, mut body)) = spec.parse() else {
+                return Err(Content::localized_with_args("command-buff-body-unknown", [
+                    ("spec", spec.clone()),
+                ]));
+            };
+            MiscBuffData::Body(body())
+        },
+        BuffKind::Regeneration
+        | BuffKind::Saturation
+        | BuffKind::Potion
+        | BuffKind::Agility
+        | BuffKind::CampfireHeal
+        | BuffKind::Frenzied
+        | BuffKind::EnergyRegen
+        | BuffKind::IncreaseMaxEnergy
+        | BuffKind::IncreaseMaxHealth
+        | BuffKind::Invulnerability
+        | BuffKind::ProtectingWard
+        | BuffKind::Hastened
+        | BuffKind::Fortitude
+        | BuffKind::Reckless
+        | BuffKind::Flame
+        | BuffKind::Frigid
+        | BuffKind::Lifesteal
+        | BuffKind::ImminentCritical
+        | BuffKind::Fury
+        | BuffKind::Sunderer
+        | BuffKind::Defiance
+        | BuffKind::Bloodfeast
+        | BuffKind::Berserk
+        | BuffKind::Bleeding
+        | BuffKind::Cursed
+        | BuffKind::Burning
+        | BuffKind::Crippled
+        | BuffKind::Frozen
+        | BuffKind::Wet
+        | BuffKind::Ensnared
+        | BuffKind::Poisoned
+        | BuffKind::Parried
+        | BuffKind::PotionSickness
+        | BuffKind::Heatstroke => unreachable!("is_simple() above"),
+    };
+
+    let buffdata = BuffData::new(strength, Some(Secs(duration))).with_misc_data(misc_data);
+
+    cast_buff(buffkind, buffdata, server, target);
+    Ok(())
+}
+
+fn cast_buff(buffkind: BuffKind, data: BuffData, server: &mut Server, target: EcsEntity) {
+    let ecs = &server.state.ecs();
+    let mut buffs_all = ecs.write_storage::<comp::Buffs>();
+    let stats = ecs.read_storage::<comp::Stats>();
+    let healths = ecs.read_storage::<comp::Health>();
+    let time = ecs.read_resource::<Time>();
+    if let Some(mut buffs) = buffs_all.get_mut(target) {
+        buffs.insert(
+            Buff::new(
+                buffkind,
+                data,
+                vec![],
+                BuffSource::Command,
                 *time,
-            );
-        }
-        Ok(())
-    } else {
-        Err(Content::localized_with_args("command-buff-unknown", [(
-            "buff", kind,
-        )]))
+                stats.get(target),
+                healths.get(target),
+            ),
+            *time,
+        );
     }
 }
 
