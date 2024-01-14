@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Perforate icon not displaying
 - Make cave entrances easier to follow
 - Renamed Twiggy Shoulders to match the Twig Armor set 
+- No longer stack buffs of the same kind with equal attributes, this could lead to a DoS if ie. an entity stayed long enough in lava.
 
 ## [0.15.0] - 2023-07-01
 

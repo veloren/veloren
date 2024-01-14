@@ -494,9 +494,6 @@ pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Secs>,
     pub delay: Option<Secs>,
-    /// Force the buff effects to be applied each tick, ignoring num_ticks
-    #[serde(default)]
-    pub force_immediate: bool,
     /// Used for buffs that have rider buffs (e.g. Flame, Frigid)
     pub secondary_duration: Option<Secs>,
     /// Used to add random data to buffs if needed (e.g. polymorphed)
@@ -513,7 +510,6 @@ impl BuffData {
         Self {
             strength,
             duration,
-            force_immediate: false,
             delay: None,
             secondary_duration: None,
             misc_data: None,
@@ -527,12 +523,6 @@ impl BuffData {
 
     pub fn with_secondary_duration(mut self, sec_dur: Secs) -> Self {
         self.secondary_duration = Some(sec_dur);
-        self
-    }
-
-    /// Force the buff effects to be applied each tick, ignoring num_ticks
-    pub fn with_force_immediate(mut self, force_immediate: bool) -> Self {
-        self.force_immediate = force_immediate;
         self
     }
 
@@ -558,14 +548,14 @@ pub enum BuffCategory {
     SelfBuff,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum ModifierKind {
     Additive,
     Multiplicative,
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum BuffEffect {
     /// Periodically damages or heals entity
     HealthChangeOverTime {
@@ -816,11 +806,44 @@ impl Buffs {
 
     pub fn insert(&mut self, buff: Buff, current_time: Time) -> BuffKey {
         let kind = buff.kind;
-        let key = self.buffs.insert(buff);
-        self.kinds[kind]
-            .get_or_insert_with(|| (Vec::new(), current_time))
-            .0
-            .push(key);
+        // Try to find another overlaping non-queueable buff with same data, cat_ids and
+        // source.
+        let other_key = if kind.queues() {
+            None
+        } else {
+            self.kinds[kind].as_ref().and_then(|(keys, _)| {
+                keys.iter()
+                    .find(|key| {
+                        self.buffs.get(**key).map_or(false, |other_buff| {
+                            other_buff.data == buff.data
+                                && other_buff.cat_ids == buff.cat_ids
+                                && other_buff.source == buff.source
+                                && other_buff
+                                    .end_time
+                                    .map_or(true, |end_time| end_time.0 >= buff.start_time.0)
+                        })
+                    })
+                    .copied()
+            })
+        };
+
+        // If another buff with the same fields is found, update end_time and effects
+        let key = if let Some((other_buff, key)) =
+            other_key.and_then(|key| Some((self.buffs.get_mut(key)?, key)))
+        {
+            other_buff.end_time = buff.end_time;
+            other_buff.effects = buff.effects;
+            key
+        // Otherwise, insert a new buff
+        } else {
+            let key = self.buffs.insert(buff);
+            self.kinds[kind]
+                .get_or_insert_with(|| (Vec::new(), current_time))
+                .0
+                .push(key);
+            key
+        };
+
         self.sort_kind(kind);
         if kind.queues() {
             self.delay_queueable_buffs(kind, current_time);
