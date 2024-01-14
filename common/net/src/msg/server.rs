@@ -51,6 +51,7 @@ pub struct ServerInfo {
     pub git_hash: String,
     pub git_date: String,
     pub auth_provider: Option<String>,
+    pub rules: Option<String>,
 }
 
 /// Reponse To ClientType

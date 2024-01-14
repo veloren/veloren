@@ -779,7 +779,7 @@ fn handle_motd(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            (*server.editable_settings().server_description).clone(),
+            server.editable_settings().server_description.motd.clone(),
         ),
     );
     Ok(())
@@ -804,8 +804,8 @@ fn handle_set_motd(
                     .editable_settings_mut()
                     .server_description
                     .edit(data_dir.as_ref(), |d| {
-                        let info = format!("Server description set to {:?}", msg);
-                        **d = msg;
+                        let info = format!("Server message of the day set to {:?}", msg);
+                        d.motd = msg;
                         Some(info)
                     });
             drop(data_dir);
@@ -819,8 +819,8 @@ fn handle_set_motd(
                     .editable_settings_mut()
                     .server_description
                     .edit(data_dir.as_ref(), |d| {
-                        d.clear();
-                        Some("Removed server description".to_string())
+                        d.motd.clear();
+                        Some("Removed server message of the day".to_string())
                     });
             drop(data_dir);
             edit_setting_feedback(server, client, edit, || {

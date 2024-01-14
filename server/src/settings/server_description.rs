@@ -12,20 +12,21 @@ use serde::{Deserialize, Serialize};
 /// ServerDescription, the previously most recent module, and add a new module
 /// for the latest version!  Please respect the migration upgrade guarantee
 /// found in the parent module with any upgrade.
-pub use self::v1::*;
+pub use self::v2::*;
 
 /// Versioned settings files, one per version (v0 is only here as an example; we
 /// do not expect to see any actual v0 settings files).
 #[derive(Deserialize, Serialize)]
 pub enum ServerDescriptionRaw {
     V0(v0::ServerDescription),
-    V1(ServerDescription),
+    V1(v1::ServerDescription),
+    V2(ServerDescription),
 }
 
 impl From<ServerDescription> for ServerDescriptionRaw {
     fn from(value: ServerDescription) -> Self {
         // Replace variant with that of current latest version.
-        Self::V1(value)
+        Self::V2(value)
     }
 }
 
@@ -39,9 +40,10 @@ impl TryFrom<ServerDescriptionRaw> for (Version, ServerDescription) {
         Ok(match value {
             // Old versions
             V0(value) => (Version::Old, value.try_into()?),
+            V1(value) => (Version::Old, value.try_into()?),
             // Latest version (move to old section using the pattern of other old version when it
             // is no longer latest).
-            V1(mut value) => (value.validate()?, value),
+            V2(mut value) => (value.validate()?, value),
         })
     }
 }
@@ -131,7 +133,6 @@ mod v1 {
     use crate::settings::editable::{EditableSetting, Version};
     use core::ops::{Deref, DerefMut};
     use serde::{Deserialize, Serialize};
-    /* use super::v2 as next; */
 
     #[derive(Clone, Deserialize, Serialize)]
     #[serde(transparent)]
@@ -168,10 +169,67 @@ mod v1 {
         }
     }
 
+    use super::{v2 as next, MIGRATION_UPGRADE_GUARANTEE};
+    impl TryFrom<ServerDescription> for Final {
+        type Error = <Final as EditableSetting>::Error;
+
+        fn try_from(mut value: ServerDescription) -> Result<Final, Self::Error> {
+            value.validate()?;
+            Ok(next::ServerDescription::migrate(value)
+                .try_into()
+                .expect(MIGRATION_UPGRADE_GUARANTEE))
+        }
+    }
+}
+
+mod v2 {
+    use super::{v1 as prev, Final};
+    use crate::settings::editable::{EditableSetting, Version};
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Deserialize, Serialize)]
+    pub struct ServerDescription {
+        pub motd: String,
+        pub rules: Option<String>,
+    }
+
+    impl Default for ServerDescription {
+        fn default() -> Self {
+            Self {
+                motd: "This is the best Veloren server".into(),
+                rules: None,
+            }
+        }
+    }
+
+    impl ServerDescription {
+        /// One-off migration from the previous version.  This must be
+        /// guaranteed to produce a valid settings file as long as it is
+        /// called with a valid settings file from the previous version.
+        pub(super) fn migrate(prev: prev::ServerDescription) -> Self {
+            Self {
+                motd: prev.0,
+                rules: None,
+            }
+        }
+
+        /// Perform any needed validation on this server description that can't
+        /// be done using parsing.
+        ///
+        /// The returned version being "Old" indicates the loaded setting has
+        /// been modified during validation (this is why validate takes
+        /// `&mut self`).
+        pub(super) fn validate(&mut self) -> Result<Version, <Final as EditableSetting>::Error> {
+            Ok(Version::Latest)
+        }
+    }
+
     // NOTE: Whenever there is a version upgrade, copy this note as well as the
     // commented-out code below to the next version, then uncomment the code
     // for this version.
-    /* impl TryFrom<ServerDescription> for Final {
+    /*
+    use super::{v3 as next, MIGRATION_UPGRADE_GUARANTEE};
+    impl TryFrom<ServerDescription> for Final {
         type Error = <Final as EditableSetting>::Error;
 
         fn try_from(mut value: ServerDescription) -> Result<Final, Self::Error> {

@@ -380,7 +380,7 @@ impl EditableSettings {
         let load = Self::load(data_dir);
 
         let mut server_description = ServerDescription::default();
-        *server_description = "Who needs friends anyway?".into();
+        server_description.motd = "Who needs friends anyway?".into();
 
         let mut admins = Admins::default();
         // TODO: Let the player choose if they want to use admin commands or not

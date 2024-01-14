@@ -45,10 +45,10 @@ impl Sys {
     ) -> Result<(), crate::error::Error> {
         let mut send_join_messages = || -> Result<(), crate::error::Error> {
             // Give the player a welcome message
-            if !editable_settings.server_description.is_empty() {
+            if !editable_settings.server_description.motd.is_empty() {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    editable_settings.server_description.as_str(),
+                    editable_settings.server_description.motd.as_str(),
                 ))?;
             }
 
