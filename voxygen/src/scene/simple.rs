@@ -2,7 +2,7 @@ use crate::{
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_figure},
     render::{
         create_skybox_mesh, pipelines::FigureSpriteAtlasData, BoneMeshes, Consts, FigureModel,
-        FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, LodData, Mesh, Model,
+        FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Mesh, Model,
         PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
         TerrainVertex,
     },
@@ -12,8 +12,10 @@ use crate::{
             load_mesh, FigureAtlas, FigureModelCache, FigureModelEntry, FigureState,
             FigureUpdateCommonParameters,
         },
+        CloudsLocals, Lod, PostProcessLocals,
     },
     window::{Event, PressState},
+    Settings,
 };
 use anim::{
     character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
@@ -29,7 +31,7 @@ use common::{
     },
     figure::Segment,
     slowjob::SlowJobPool,
-    terrain::BlockKind,
+    terrain::{BlockKind, CoordinateConversions},
     vol::{BaseVol, ReadVol},
 };
 use vek::*;
@@ -68,17 +70,16 @@ pub struct Scene {
     camera: Camera,
 
     skybox: Skybox,
-    lod: LodData,
+    lod: Lod,
     map_bounds: Vec2<f32>,
 
     figure_atlas: FigureAtlas,
-    backdrop: Option<(FigureModelEntry<1>, FigureState<FixtureSkeleton>)>,
     figure_model_cache: FigureModelCache,
     figure_state: Option<FigureState<CharacterSkeleton>>,
 
     //turning_camera: bool,
     turning_character: bool,
-    char_ori: f32,
+    char_pos: Vec3<f32>,
 }
 
 pub struct SceneData<'a> {
@@ -95,8 +96,8 @@ pub struct SceneData<'a> {
 }
 
 impl Scene {
-    pub fn new(renderer: &mut Renderer, backdrop: Option<&str>, client: &Client) -> Self {
-        let start_angle = 90.0f32.to_radians();
+    pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
+        let start_angle = -90.0f32.to_radians();
         let resolution = renderer.resolution().map(|e| e as f32);
 
         let map_bounds = Vec2::new(
@@ -105,9 +106,8 @@ impl Scene {
         );
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
-        camera.set_focus_pos(Vec3::unit_z() * 1.5);
         camera.set_distance(3.4);
-        camera.set_orientation(Vec3::new(start_angle, 0.0, 0.0));
+        camera.set_orientation(Vec3::new(start_angle, 0.1, 0.0));
 
         let mut figure_atlas = FigureAtlas::new(renderer);
 
@@ -120,9 +120,18 @@ impl Scene {
                 .create_rain_occlusion_bound_locals(&[RainOcclusionLocals::default()]),
             point_light_matrices: Box::new([PointLightMatrix::default(); 126]),
         };
-        let lod = LodData::dummy(renderer);
+        let lod = Lod::new(renderer, client, settings);
 
-        let globals_bind_group = renderer.bind_globals(&data, &lod);
+        let globals_bind_group = renderer.bind_globals(&data, lod.get_data());
+
+        let world = client.world_data();
+        let char_chunk = world.chunk_size().map(|e| e as i32 / 2);
+        let char_pos = char_chunk.cpos_to_wpos().map(|e| e as f32).with_z(
+            world
+                .lod_alt
+                .get(char_chunk)
+                .map_or(0.0, |z| *z as f32 + 100.0),
+        );
 
         Self {
             data,
@@ -135,66 +144,13 @@ impl Scene {
 
             figure_model_cache: FigureModelCache::new(),
             figure_state: None,
-
-            backdrop: backdrop.map(|specifier| {
-                let mut state = FigureState::new(renderer, FixtureSkeleton, ());
-                let mut greedy = FigureModel::make_greedy();
-                let mut opaque_mesh = Mesh::new();
-                let (segment, offset) = load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0));
-                let (_opaque_mesh, bounds) =
-                    generate_mesh(&mut greedy, &mut opaque_mesh, segment, offset, 0);
-                // NOTE: Since MagicaVoxel sizes are limited to 256 × 256 × 256, and there are
-                // at most 3 meshed vertices per unique vertex, we know the
-                // total size is bounded by 2^24 * 3 * 1.5 which is bounded by
-                // 2^27, which fits in a u32.
-                let range = 0..opaque_mesh.vertices().len() as u32;
-                let (atlas_texture_data, atlas_size) = greedy.finalize();
-                let model = figure_atlas.create_figure(
-                    renderer,
-                    atlas_texture_data,
-                    atlas_size,
-                    (opaque_mesh, bounds),
-                    [range],
-                );
-                let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-                let common_params = FigureUpdateCommonParameters {
-                    entity: None,
-                    pos: anim::vek::Vec3::zero(),
-                    ori: anim::vek::Quaternion::rotation_from_to_3d(
-                        anim::vek::Vec3::unit_y(),
-                        anim::vek::Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
-                    ),
-                    scale: 1.0,
-                    mount_transform_pos: None,
-                    body: None,
-                    tools: (None, None),
-                    col: Rgba::broadcast(1.0),
-                    dt: 15.0, // Want to get there immediately.
-                    _lpindex: 0,
-                    _visible: true,
-                    is_player: false,
-                    _camera: &camera,
-                    terrain: None,
-                    ground_vel: Vec3::zero(),
-                };
-                state.update(
-                    renderer,
-                    None,
-                    &mut buf,
-                    &common_params,
-                    1.0,
-                    Some(&model),
-                    (),
-                );
-                (model, state)
-            }),
             figure_atlas,
 
             camera,
 
             //turning_camera: false,
             turning_character: false,
-            char_ori: -start_angle,
+            char_pos,
         }
     }
 
@@ -224,11 +180,8 @@ impl Scene {
                 true
             },
             Event::CursorMove(delta) => {
-                /*if self.turning_camera {
-                    self.camera.rotate_by(Vec3::new(delta.x * 0.01, 0.0, 0.0))
-                }*/
                 if self.turning_character {
-                    self.char_ori += delta.x * 0.01;
+                    self.camera.rotate_by(delta.with_z(0.0) * 0.01);
                 }
                 true
             },
@@ -242,7 +195,10 @@ impl Scene {
         renderer: &mut Renderer,
         scene_data: SceneData,
         inventory: Option<&Inventory>,
+        client: &Client,
     ) {
+        self.camera
+            .force_focus_pos(self.char_pos + Vec3::unit_z() * 1.5);
         self.camera.update(
             scene_data.time,
             /* 1.0 / 60.0 */ scene_data.delta_time,
@@ -254,13 +210,18 @@ impl Scene {
             view_mat,
             proj_mat,
             cam_pos,
+            proj_mat_inv,
+            view_mat_inv,
             ..
         } = self.camera.dependents();
-        const VD: f32 = 115.0; // View Distance
+        const VD: f32 = 0.0; // View Distance
 
         const TIME: f64 = 8.6 * 60.0 * 60.0;
-        const SHADOW_NEAR: f32 = 1.0;
-        const SHADOW_FAR: f32 = 25.0;
+        const SHADOW_NEAR: f32 = 0.25;
+        const SHADOW_FAR: f32 = 128.0;
+
+        self.lod
+            .maintain(renderer, client, self.camera.get_focus_pos(), &self.camera);
 
         renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
@@ -268,7 +229,7 @@ impl Scene {
             cam_pos,
             self.camera.get_focus_pos(),
             VD,
-            self.lod.tgt_detail as f32,
+            self.lod.get_data().tgt_detail as f32,
             self.map_bounds,
             TIME,
             scene_data.time,
@@ -288,6 +249,8 @@ impl Scene {
             self.camera.get_mode(),
             250.0,
         )]);
+        renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
+        renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
 
         self.figure_model_cache
             .clean(&mut self.figure_atlas, scene_data.tick);
@@ -348,11 +311,8 @@ impl Scene {
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
             let common_params = FigureUpdateCommonParameters {
                 entity: None,
-                pos: anim::vek::Vec3::zero(),
-                ori: anim::vek::Quaternion::rotation_from_to_3d(
-                    anim::vek::Vec3::unit_y(),
-                    anim::vek::Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
-                ),
+                pos: self.char_pos.into(),
+                ori: anim::vek::Quaternion::identity().rotated_z(std::f32::consts::PI * -0.5),
                 scale: 1.0,
                 mount_transform_pos: None,
                 body: None,
@@ -379,6 +339,7 @@ impl Scene {
         tick: u64,
         body: Option<humanoid::Body>,
         inventory: Option<&Inventory>,
+        client: &Client,
     ) {
         let mut figure_drawer = drawer.draw_figures();
         if let Some(body) = body {
@@ -403,16 +364,9 @@ impl Scene {
             }
         }
 
-        if let Some((model, state)) = &self.backdrop {
-            if let Some(lod) = model.lod_model(0) {
-                figure_drawer.draw(
-                    lod,
-                    state.bound(),
-                    self.figure_atlas.texture(ModelEntryRef::Figure(model)),
-                );
-            }
-        }
         drop(figure_drawer);
+
+        self.lod.render(drawer, Default::default());
 
         drawer.draw_skybox(&self.skybox.model);
     }

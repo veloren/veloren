@@ -27,8 +27,8 @@ impl CharSelectionState {
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         let scene = Scene::new(
             global_state.window.renderer_mut(),
-            Some("fixture.selection_bg"),
             &client.borrow(),
+            &global_state.settings,
         );
         let char_selection_ui = CharSelectionUi::new(global_state, &client.borrow());
 
@@ -199,8 +199,12 @@ impl PlayState for CharSelectionState {
                         as f32,
                 };
 
-                self.scene
-                    .maintain(global_state.window.renderer_mut(), scene_data, loadout);
+                self.scene.maintain(
+                    global_state.window.renderer_mut(),
+                    scene_data,
+                    loadout,
+                    &client,
+                );
             }
 
             // Tick the client (currently only to keep the connection alive).
@@ -280,8 +284,13 @@ impl PlayState for CharSelectionState {
             Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);
 
         if let Some(mut first_pass) = drawer.first_pass() {
-            self.scene
-                .render(&mut first_pass, client.get_tick(), humanoid_body, loadout);
+            self.scene.render(
+                &mut first_pass,
+                client.get_tick(),
+                humanoid_body,
+                loadout,
+                &client,
+            );
         }
 
         if let Some(mut volumetric_pass) = drawer.volumetric_pass() {
