@@ -59,6 +59,8 @@ impl CharSelectionState {
             })
             .unwrap_or_default()
     }
+
+    pub fn client(&self) -> &RefCell<Client> { &self.client }
 }
 
 impl PlayState for CharSelectionState {

@@ -1,8 +1,7 @@
 mod client_init;
-mod scene;
 mod ui;
 
-use super::char_selection::CharSelectionState;
+use super::{char_selection::CharSelectionState, dummy_scene::Scene, server_info::ServerInfoState};
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::SingleplayerState;
 use crate::{
@@ -20,7 +19,6 @@ use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::comp;
 use common_base::span;
 use i18n::LocalizationHandle;
-use scene::Scene;
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
 use std::sync::Arc;
@@ -294,10 +292,24 @@ impl PlayState for MainMenuState {
                     core::mem::replace(&mut self.init, InitState::None)
                 {
                     self.main_menu_ui.connected();
-                    return PlayStateResult::Push(Box::new(CharSelectionState::new(
+
+                    let server_info = client.server_info().clone();
+
+                    let char_select = CharSelectionState::new(
                         global_state,
                         std::rc::Rc::new(std::cell::RefCell::new(*client)),
-                    )));
+                    );
+
+                    let new_state = ServerInfoState::try_from_server_info(
+                        global_state,
+                        self.main_menu_ui.bg_img_spec(),
+                        char_select,
+                        server_info,
+                    )
+                    .map(|s| Box::new(s) as _)
+                    .unwrap_or_else(|s| Box::new(s) as _);
+
+                    return PlayStateResult::Push(new_state);
                 }
             }
         }

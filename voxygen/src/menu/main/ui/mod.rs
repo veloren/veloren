@@ -207,7 +207,7 @@ impl Showing {
     }
 }
 
-struct Controls {
+pub struct Controls {
     fonts: Fonts,
     imgs: Imgs,
     bg_img: widget::image::Handle,
@@ -677,6 +677,7 @@ pub struct MainMenuUi {
     // TODO: re add this
     // tip_no: u16,
     controls: Controls,
+    bg_img_spec: &'static str,
 }
 
 impl MainMenuUi {
@@ -707,8 +708,14 @@ impl MainMenuUi {
             server,
         );
 
-        Self { ui, controls }
+        Self {
+            ui,
+            controls,
+            bg_img_spec,
+        }
     }
+
+    pub fn bg_img_spec(&self) -> &'static str { self.bg_img_spec }
 
     pub fn update_language(&mut self, i18n: LocalizationHandle, settings: &Settings) {
         self.controls.i18n = i18n;
