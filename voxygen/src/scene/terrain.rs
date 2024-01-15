@@ -541,7 +541,7 @@ pub struct SpriteRenderState {
 #[derive(Clone)]
 pub struct SpriteRenderContext {
     pub state: SpriteRenderState,
-    sprite_verts_buffer: Arc<SpriteVerts>,
+    pub sprite_verts_buffer: Arc<SpriteVerts>,
 }
 
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;

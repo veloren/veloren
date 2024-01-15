@@ -7535,7 +7535,7 @@ impl FigureStateMeta {
 pub struct FigureState<S, D = ()> {
     meta: FigureStateMeta,
     skeleton: S,
-    extra: D,
+    pub extra: D,
 }
 
 impl<S, D> Deref for FigureState<S, D> {

@@ -1,13 +1,15 @@
 use crate::{
     render::{
-        create_skybox_mesh, Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light,
-        Model, PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
+        create_skybox_mesh, pipelines::terrain::BoundLocals as BoundTerrainLocals, AltIndices,
+        Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Model,
+        PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
+        SpriteGlobalsBindGroup,
     },
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{FigureAtlas, FigureModelCache, FigureState, FigureUpdateCommonParameters},
-        terrain::SpriteRenderState,
-        CloudsLocals, Lod, PostProcessLocals,
+        terrain::{SpriteRenderContext, SpriteRenderState},
+        CloudsLocals, CullingMode, Lod, PostProcessLocals,
     },
     window::{Event, PressState},
     Settings,
@@ -54,6 +56,7 @@ pub struct Scene {
 
     figure_atlas: FigureAtlas,
     sprite_render_state: SpriteRenderState,
+    sprite_globals: SpriteGlobalsBindGroup,
 
     turning_camera: bool,
 
@@ -62,7 +65,7 @@ pub struct Scene {
     char_model_cache: FigureModelCache<CharacterSkeleton>,
 
     airship_pos: Vec3<f32>,
-    airship_state: Option<FigureState<ShipSkeleton>>,
+    airship_state: Option<FigureState<ShipSkeleton, BoundTerrainLocals>>,
     airship_model_cache: FigureModelCache<ShipSkeleton>,
 }
 
@@ -84,7 +87,7 @@ impl Scene {
         renderer: &mut Renderer,
         client: &mut Client,
         settings: &Settings,
-        sprite_render_state: SpriteRenderState,
+        sprite_render_context: SpriteRenderContext,
     ) -> Self {
         let start_angle = -90.0f32.to_radians();
         let resolution = renderer.resolution().map(|e| e as f32);
@@ -125,16 +128,21 @@ impl Scene {
         client.set_lod_distance(settings.graphics.lod_distance);
 
         Self {
-            data,
             globals_bind_group,
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
             },
-            lod,
             map_bounds,
 
             figure_atlas,
-            sprite_render_state,
+            sprite_render_state: sprite_render_context.state,
+            sprite_globals: renderer.bind_sprite_globals(
+                &data,
+                lod.get_data(),
+                &sprite_render_context.sprite_verts_buffer,
+            ),
+            lod,
+            data,
 
             camera,
 
@@ -432,6 +440,27 @@ impl Scene {
         }
 
         drop(figure_drawer);
+
+        let mut sprite_drawer = drawer.draw_sprites(
+            &self.sprite_globals,
+            &self.sprite_render_state.sprite_atlas_textures,
+        );
+        if let (Some(sprite_instances), Some(data)) = (
+            self.airship_model_cache
+                .get_sprites(ship::Body::DefaultAirship),
+            self.airship_state.as_ref().map(|s| &s.extra),
+        ) {
+            sprite_drawer.draw(
+                data,
+                &sprite_instances[0],
+                &AltIndices {
+                    deep_end: 0,
+                    underground_end: 0,
+                },
+                CullingMode::None,
+            );
+        }
+        drop(sprite_drawer);
 
         self.lod.render(drawer, Default::default());
 
