@@ -1,17 +1,11 @@
 use crate::{
-    mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_figure},
     render::{
-        create_skybox_mesh, pipelines::FigureSpriteAtlasData, BoneMeshes, Consts, FigureModel,
-        FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Mesh, Model,
-        PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
-        TerrainVertex,
+        create_skybox_mesh, Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light,
+        Model, PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
     },
     scene::{
         camera::{self, Camera, CameraMode},
-        figure::{
-            load_mesh, FigureAtlas, FigureModelCache, FigureModelEntry, FigureState,
-            FigureUpdateCommonParameters,
-        },
+        figure::{FigureAtlas, FigureModelCache, FigureState, FigureUpdateCommonParameters},
         CloudsLocals, Lod, PostProcessLocals,
     },
     window::{Event, PressState},
@@ -19,7 +13,6 @@ use crate::{
 };
 use anim::{
     character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
-    fixture::FixtureSkeleton,
     Animation,
 };
 use client::Client;
@@ -29,7 +22,6 @@ use common::{
         inventory::{slot::EquipSlot, Inventory},
         item::ItemKind,
     },
-    figure::Segment,
     slowjob::SlowJobPool,
     terrain::{BlockKind, CoordinateConversions},
     vol::{BaseVol, ReadVol},
@@ -46,18 +38,6 @@ impl BaseVol for VoidVol {
 }
 impl ReadVol for VoidVol {
     fn get(&self, _pos: Vec3<i32>) -> Result<&'_ Self::Vox, Self::Error> { Ok(&()) }
-}
-
-fn generate_mesh(
-    greedy: &mut GreedyMesh<'_, FigureSpriteAtlasData>,
-    mesh: &mut Mesh<TerrainVertex>,
-    segment: Segment,
-    offset: Vec3<f32>,
-    bone_idx: u8,
-) -> BoneMeshes {
-    let (opaque, _, /* shadow */ _, bounds) =
-        generate_mesh_base_vol_figure(segment, (greedy, mesh, offset, Vec3::one(), bone_idx));
-    (opaque /* , shadow */, bounds)
 }
 
 struct Skybox {
@@ -77,8 +57,7 @@ pub struct Scene {
     figure_model_cache: FigureModelCache,
     figure_state: Option<FigureState<CharacterSkeleton>>,
 
-    //turning_camera: bool,
-    turning_character: bool,
+    turning_camera: bool,
     char_pos: Vec3<f32>,
 }
 
@@ -109,7 +88,7 @@ impl Scene {
         camera.set_distance(3.4);
         camera.set_orientation(Vec3::new(start_angle, 0.1, 0.0));
 
-        let mut figure_atlas = FigureAtlas::new(renderer);
+        let figure_atlas = FigureAtlas::new(renderer);
 
         let data = GlobalModel {
             globals: renderer.create_consts(&[Globals::default()]),
@@ -150,8 +129,7 @@ impl Scene {
 
             camera,
 
-            //turning_camera: false,
-            turning_character: false,
+            turning_camera: false,
             char_pos,
         }
     }
@@ -173,16 +151,14 @@ impl Scene {
             },
             Event::MouseButton(button, state) => {
                 if state == PressState::Pressed {
-                    //self.turning_camera = button == MouseButton::Right;
-                    self.turning_character = button == MouseButton::Left;
+                    self.turning_camera = button == MouseButton::Left;
                 } else {
-                    //self.turning_camera = false;
-                    self.turning_character = false;
+                    self.turning_camera = false;
                 }
                 true
             },
             Event::CursorMove(delta) => {
-                if self.turning_character {
+                if self.turning_camera {
                     self.camera.rotate_by(delta.with_z(0.0) * 0.01);
                 }
                 true
@@ -341,7 +317,6 @@ impl Scene {
         tick: u64,
         body: Option<humanoid::Body>,
         inventory: Option<&Inventory>,
-        client: &Client,
     ) {
         let mut figure_drawer = drawer.draw_figures();
         if let Some(body) = body {

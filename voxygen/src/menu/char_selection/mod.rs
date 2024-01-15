@@ -284,13 +284,8 @@ impl PlayState for CharSelectionState {
             Self::get_humanoid_body_inventory(&self.char_selection_ui, &client);
 
         if let Some(mut first_pass) = drawer.first_pass() {
-            self.scene.render(
-                &mut first_pass,
-                client.get_tick(),
-                humanoid_body,
-                loadout,
-                &client,
-            );
+            self.scene
+                .render(&mut first_pass, client.get_tick(), humanoid_body, loadout);
         }
 
         if let Some(mut volumetric_pass) = drawer.volumetric_pass() {
