@@ -6,21 +6,20 @@ use crate::{
     scene::{
         camera::{self, Camera, CameraMode},
         figure::{FigureAtlas, FigureModelCache, FigureState, FigureUpdateCommonParameters},
+        terrain::SpriteRenderState,
         CloudsLocals, Lod, PostProcessLocals,
     },
     window::{Event, PressState},
     Settings,
 };
-use anim::{
-    character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
-    Animation,
-};
+use anim::{character::CharacterSkeleton, ship::ShipSkeleton, Animation};
 use client::Client;
 use common::{
     comp::{
         humanoid,
         inventory::{slot::EquipSlot, Inventory},
         item::ItemKind,
+        ship,
     },
     slowjob::SlowJobPool,
     terrain::{BlockKind, CoordinateConversions},
@@ -54,11 +53,17 @@ pub struct Scene {
     map_bounds: Vec2<f32>,
 
     figure_atlas: FigureAtlas,
-    figure_model_cache: FigureModelCache,
-    figure_state: Option<FigureState<CharacterSkeleton>>,
+    sprite_render_state: SpriteRenderState,
 
     turning_camera: bool,
+
     char_pos: Vec3<f32>,
+    char_state: Option<FigureState<CharacterSkeleton>>,
+    char_model_cache: FigureModelCache<CharacterSkeleton>,
+
+    airship_pos: Vec3<f32>,
+    airship_state: Option<FigureState<ShipSkeleton>>,
+    airship_model_cache: FigureModelCache<ShipSkeleton>,
 }
 
 pub struct SceneData<'a> {
@@ -75,7 +80,12 @@ pub struct SceneData<'a> {
 }
 
 impl Scene {
-    pub fn new(renderer: &mut Renderer, client: &mut Client, settings: &Settings) -> Self {
+    pub fn new(
+        renderer: &mut Renderer,
+        client: &mut Client,
+        settings: &Settings,
+        sprite_render_state: SpriteRenderState,
+    ) -> Self {
         let start_angle = -90.0f32.to_radians();
         let resolution = renderer.resolution().map(|e| e as f32);
 
@@ -109,7 +119,7 @@ impl Scene {
             world
                 .lod_alt
                 .get(char_chunk)
-                .map_or(0.0, |z| *z as f32 + 100.0),
+                .map_or(0.0, |z| *z as f32 + 48.0),
         );
         client.set_lod_pos_fallback(char_pos.xy());
         client.set_lod_distance(settings.graphics.lod_distance);
@@ -123,14 +133,19 @@ impl Scene {
             lod,
             map_bounds,
 
-            figure_model_cache: FigureModelCache::new(),
-            figure_state: None,
             figure_atlas,
+            sprite_render_state,
 
             camera,
 
             turning_camera: false,
             char_pos,
+            char_state: None,
+            char_model_cache: FigureModelCache::new(),
+
+            airship_pos: char_pos - Vec3::unit_z() * 10.0,
+            airship_state: None,
+            airship_model_cache: FigureModelCache::new(),
         }
     }
 
@@ -177,6 +192,9 @@ impl Scene {
     ) {
         self.camera
             .force_focus_pos(self.char_pos + Vec3::unit_z() * 1.5);
+        let ori = self.camera.get_tgt_orientation();
+        self.camera
+            .set_orientation(Vec3::new(ori.x, ori.y.max(-0.25), ori.z));
         self.camera.update(
             scene_data.time,
             /* 1.0 / 60.0 */ scene_data.delta_time,
@@ -196,7 +214,7 @@ impl Scene {
 
         const TIME: f64 = 8.6 * 60.0 * 60.0;
         const SHADOW_NEAR: f32 = 0.25;
-        const SHADOW_FAR: f32 = 128.0;
+        const SHADOW_FAR: f32 = 1.0;
 
         self.lod
             .maintain(renderer, client, self.camera.get_focus_pos(), &self.camera);
@@ -230,7 +248,9 @@ impl Scene {
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
 
-        self.figure_model_cache
+        self.char_model_cache
+            .clean(&mut self.figure_atlas, scene_data.tick);
+        self.airship_model_cache
             .clean(&mut self.figure_atlas, scene_data.tick);
 
         let item_info = |equip_slot| {
@@ -251,12 +271,37 @@ impl Scene {
 
         let hands = (active_tool_hand, second_tool_hand);
 
+        fn figure_params(
+            camera: &Camera,
+            dt: f32,
+            pos: Vec3<f32>,
+        ) -> FigureUpdateCommonParameters<'_> {
+            FigureUpdateCommonParameters {
+                entity: None,
+                pos: pos.into(),
+                ori: anim::vek::Quaternion::identity().rotated_z(std::f32::consts::PI * -0.5),
+                scale: 1.0,
+                mount_transform_pos: None,
+                body: None,
+                tools: (None, None),
+                col: Rgba::broadcast(1.0),
+                dt,
+                _lpindex: 0,
+                _visible: true,
+                is_player: false,
+                _camera: camera,
+                terrain: None,
+                ground_vel: Vec3::zero(),
+            }
+        }
+
         if let Some(body) = scene_data.body {
-            let figure_state = self.figure_state.get_or_insert_with(|| {
+            let char_state = self.char_state.get_or_insert_with(|| {
                 FigureState::new(renderer, CharacterSkeleton::default(), body)
             });
-            let tgt_skeleton = IdleAnimation::update_skeleton(
-                figure_state.skeleton_mut(),
+            let params = figure_params(&self.camera, scene_data.delta_time, self.char_pos.into());
+            let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
+                char_state.skeleton_mut(),
                 (
                     active_tool_kind,
                     second_tool_kind,
@@ -265,48 +310,74 @@ impl Scene {
                 ),
                 scene_data.time as f32,
                 &mut 0.0,
-                &SkeletonAttr::from(&body),
+                &anim::character::SkeletonAttr::from(&body),
             );
             let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
-            *figure_state.skeleton_mut() =
-                Lerp::lerp(&*figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
-
-            let model = self
-                .figure_model_cache
-                .get_or_create_model(
-                    renderer,
-                    &mut self.figure_atlas,
-                    body,
-                    inventory,
-                    (),
-                    scene_data.tick,
-                    CameraMode::default(),
-                    None,
-                    scene_data.slow_job_pool,
-                    None,
-                )
-                .0;
-            let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-            let common_params = FigureUpdateCommonParameters {
-                entity: None,
-                pos: self.char_pos.into(),
-                ori: anim::vek::Quaternion::identity().rotated_z(std::f32::consts::PI * -0.5),
-                scale: 1.0,
-                mount_transform_pos: None,
-                body: None,
-                tools: (None, None),
-                col: Rgba::broadcast(1.0),
-                dt: scene_data.delta_time,
-                _lpindex: 0,
-                _visible: true,
-                is_player: false,
-                _camera: &self.camera,
-                terrain: None,
-                ground_vel: Vec3::zero(),
-            };
-
-            figure_state.update(renderer, None, &mut buf, &common_params, 1.0, model, body);
+            *char_state.skeleton_mut() =
+                Lerp::lerp(&*char_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+            let (model, _) = self.char_model_cache.get_or_create_model(
+                renderer,
+                &mut self.figure_atlas,
+                body,
+                inventory,
+                (),
+                scene_data.tick,
+                CameraMode::default(),
+                None,
+                scene_data.slow_job_pool,
+                None,
+            );
+            char_state.update(
+                renderer,
+                None,
+                &mut [Default::default(); anim::MAX_BONE_COUNT],
+                &params,
+                1.0,
+                model,
+                body,
+            );
         }
+
+        let airship_body = ship::Body::DefaultAirship;
+        let airship_state = self.airship_state.get_or_insert_with(|| {
+            FigureState::new(renderer, ShipSkeleton::default(), airship_body)
+        });
+        let params = figure_params(&self.camera, scene_data.delta_time, self.airship_pos.into());
+        let tgt_skeleton = anim::ship::IdleAnimation::update_skeleton(
+            airship_state.skeleton_mut(),
+            (
+                None,
+                None,
+                scene_data.time as f32,
+                scene_data.time as f32,
+                (params.ori * Vec3::unit_y()).into(),
+                (params.ori * Vec3::unit_y()).into(),
+            ),
+            scene_data.time as f32,
+            &mut 0.0,
+            &anim::ship::SkeletonAttr::from(&airship_body),
+        );
+        let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
+        *airship_state.skeleton_mut() =
+            Lerp::lerp(&*airship_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+        let (model, _) = self.airship_model_cache.get_or_create_terrain_model(
+            renderer,
+            &mut self.figure_atlas,
+            airship_body,
+            (),
+            scene_data.tick,
+            scene_data.slow_job_pool,
+            &self.sprite_render_state,
+        );
+        airship_state.update(
+            renderer,
+            None,
+            &mut [Default::default(); anim::MAX_BONE_COUNT],
+            &params,
+            1.0,
+            model,
+            airship_body,
+        );
     }
 
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
@@ -320,7 +391,7 @@ impl Scene {
     ) {
         let mut figure_drawer = drawer.draw_figures();
         if let Some(body) = body {
-            let model = &self.figure_model_cache.get_model(
+            let model = &self.char_model_cache.get_model(
                 &self.figure_atlas,
                 body,
                 inventory,
@@ -330,14 +401,33 @@ impl Scene {
                 None,
             );
 
-            if let Some((model, figure_state)) = model.zip(self.figure_state.as_ref()) {
+            if let Some((model, char_state)) = model.zip(self.char_state.as_ref()) {
                 if let Some(lod) = model.lod_model(0) {
                     figure_drawer.draw(
                         lod,
-                        figure_state.bound(),
+                        char_state.bound(),
                         self.figure_atlas.texture(ModelEntryRef::Figure(model)),
                     );
                 }
+            }
+        }
+
+        let model = &self.airship_model_cache.get_model(
+            &self.figure_atlas,
+            ship::Body::DefaultAirship,
+            Default::default(),
+            tick,
+            CameraMode::default(),
+            None,
+            None,
+        );
+        if let Some((model, airship_state)) = model.zip(self.airship_state.as_ref()) {
+            if let Some(lod) = model.lod_model(0) {
+                figure_drawer.draw(
+                    lod,
+                    airship_state.bound(),
+                    self.figure_atlas.texture(ModelEntryRef::Terrain(model)),
+                );
             }
         }
 

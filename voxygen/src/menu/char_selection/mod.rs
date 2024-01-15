@@ -25,10 +25,14 @@ pub struct CharSelectionState {
 impl CharSelectionState {
     /// Create a new `CharSelectionState`.
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
+        let sprite_render_state =
+            (global_state.lazy_init)(global_state.window.renderer_mut()).state;
+
         let scene = Scene::new(
             global_state.window.renderer_mut(),
             &mut client.borrow_mut(),
             &global_state.settings,
+            sprite_render_state,
         );
         let char_selection_ui = CharSelectionUi::new(global_state, &client.borrow());
 

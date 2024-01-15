@@ -151,6 +151,10 @@ float ShadowCalculationPoint(uint lightIndex, vec3 fragToLight, vec3 fragNorm, /
 
 float ShadowCalculationDirected(in vec3 fragPos)//in vec4 /*light_pos[2]*/sun_pos, vec3 fragPos)
 {
+    // Don't try to calculate directed shadows if there are no directed light sources
+    // Applies, for example, in the char select menu
+    if (light_shadow_count.z < 1) { return 1.0; }
+
     float bias = 0.000;//0.0005;//-0.0001;// 0.05 / (2.0 * view_distance.x);
     float diskRadius = 0.01;
     const vec3 sampleOffsetDirections[20] = vec3[]

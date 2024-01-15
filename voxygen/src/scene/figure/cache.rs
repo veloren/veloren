@@ -13,8 +13,7 @@ use crate::{
     },
     scene::{
         camera::CameraMode,
-        terrain::{get_sprite_instances, BlocksOfInterest, SPRITE_LOD_LEVELS},
-        Terrain,
+        terrain::{get_sprite_instances, BlocksOfInterest, SpriteRenderState, SPRITE_LOD_LEVELS},
     },
 };
 use anim::Skeleton;
@@ -632,7 +631,7 @@ where
         extra: <Skel::Body as BodySpec>::Extra,
         tick: u64,
         slow_jobs: &SlowJobPool,
-        terrain: &Terrain,
+        sprite_render_state: &SpriteRenderState,
     ) -> (TerrainModelEntryLod<'c>, &'c Skel::Attr)
     where
         for<'a> &'a Skel::Body: Into<Skel::Attr>,
@@ -695,8 +694,8 @@ where
                 let key = v.key().clone();
                 let slot = Arc::new(atomic::AtomicCell::new(None));
                 let manifests = self.manifests.clone();
-                let sprite_data = Arc::clone(&terrain.sprite_data);
-                let sprite_config = Arc::clone(&terrain.sprite_config);
+                let sprite_data = Arc::clone(&sprite_render_state.sprite_data);
+                let sprite_config = Arc::clone(&sprite_render_state.sprite_config);
                 let slot_ = Arc::clone(&slot);
 
                 slow_jobs.spawn("FIGURE_MESHING", move || {

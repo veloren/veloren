@@ -1430,7 +1430,7 @@ impl Scene {
             // Draws sprites
             let mut sprite_drawer = first_pass.draw_sprites(
                 &self.terrain.sprite_globals,
-                &self.terrain.sprite_atlas_textures,
+                &self.terrain.sprite_render_state.sprite_atlas_textures,
             );
             self.figure_mgr.render_sprites(
                 &mut sprite_drawer,
