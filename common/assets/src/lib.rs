@@ -31,14 +31,14 @@ pub use walk::{walk_tree, Walk};
 
 #[cfg(feature = "plugins")]
 lazy_static! {
-/// The HashMap where all loaded assets are stored in.
-static ref ASSETS: plugin_cache::CombinedCache = plugin_cache::CombinedCache::new().unwrap();
+    /// The HashMap where all loaded assets are stored in.
+    static ref ASSETS: plugin_cache::CombinedCache = plugin_cache::CombinedCache::new().unwrap();
 }
 #[cfg(not(feature = "plugins"))]
 lazy_static! {
-/// The HashMap where all loaded assets are stored in.
-static ref ASSETS: AssetCache<fs::FileSystem> =
-        AssetCache::with_source(fs::FileSystem::new().unwrap());
+    /// The HashMap where all loaded assets are stored in.
+    static ref ASSETS: AssetCache<fs::FileSystem> =
+            AssetCache::with_source(fs::FileSystem::new().unwrap());
 }
 
 #[cfg(feature = "hot-reloading")]

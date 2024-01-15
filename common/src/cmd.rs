@@ -201,9 +201,10 @@ lazy_static! {
     };
 
     static ref BUFFS: Vec<String> = {
-        let mut buff_pack: Vec<_> = BUFF_PARSER.keys().cloned().collect();
-        // Add all as valid command
-        buff_pack.push("all".to_string());
+        let mut buff_pack: Vec<String> = BUFF_PARSER.keys().cloned().collect();
+
+        // Add `all` as valid command
+        buff_pack.push("all".to_owned());
         buff_pack
     };
 
@@ -429,6 +430,7 @@ impl ServerChatCommand {
                     Enum("buff", BUFFS.clone(), Required),
                     Float("strength", 0.01, Optional),
                     Float("duration", 10.0, Optional),
+                    Any("buff data spec", Optional),
                 ],
                 "Cast a buff on player",
                 Some(Admin),

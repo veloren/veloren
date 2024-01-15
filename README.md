@@ -48,7 +48,6 @@ Most Veloren servers require you to register with the official authentication se
 - [Website](https://veloren.net)
 - [Discord](https://discord.gg/veloren-community-449602562165833758)
 - [Matrix](https://matrix.to/#/#veloren-space:fachschaften.org)
-- [Twitter](https://twitter.com/velorenproject)
 - [Mastodon](https://floss.social/@veloren)
 - [Reddit](https://www.reddit.com/r/Veloren)
 - [YouTube](https://youtube.com/@Veloren)
