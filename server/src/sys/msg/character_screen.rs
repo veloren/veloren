@@ -47,7 +47,7 @@ impl Sys {
             // Give the player a welcome message
             let localized_description = editable_settings
                 .server_description
-                .get(client.locale.as_ref());
+                .get(client.locale.as_deref());
             if !localized_description.map_or(true, |d| d.motd.is_empty()) {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,

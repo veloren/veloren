@@ -329,17 +329,11 @@ impl<'a> System<'a> for Sys {
                         client.send(Ok(()))?;
 
 
-                        let description = read_data
-                                .editable_settings
-                                .server_description
-                                .get(client.locale.as_ref())
-                                .map(|description|
-                                    ServerDescription {
-                                        motd: description.motd.clone(),
-                                        rules: description.rules.clone()
-                                    }
-                                )
-                                .unwrap_or_default();
+                        let server_descriptions = &read_data.editable_settings.server_description;
+                        let description = ServerDescription {
+                            motd: server_descriptions.get(client.locale.as_deref()).map(|d| d.motd.clone()).unwrap_or_default(),
+                            rules: server_descriptions.get_rules(client.locale.as_deref()).map(str::to_string),
+                        };
 
                         // Send client all the tracked components currently attached to its entity
                         // as well as synced resources (currently only `TimeOfDay`)

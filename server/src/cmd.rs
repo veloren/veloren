@@ -790,7 +790,7 @@ fn handle_motd(
             server
                 .editable_settings()
                 .server_description
-                .get(locale.as_ref())
+                .get(locale.as_deref())
                 .map_or("", |d| &d.motd)
                 .to_string(),
         ),

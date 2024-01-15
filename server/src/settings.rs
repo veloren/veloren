@@ -32,6 +32,8 @@ use std::{
 use tracing::{error, warn};
 use world::sim::FileOpts;
 
+use self::server_description::ServerDescription;
+
 const DEFAULT_WORLD_SEED: u32 = 230;
 const CONFIG_DIR: &str = "server_config";
 const SETTINGS_FILENAME: &str = "settings.ron";
@@ -382,9 +384,9 @@ impl EditableSettings {
         let mut server_description = ServerDescriptions::default();
         server_description
             .descriptions
-            .values_mut()
-            .for_each(|entry| {
-                entry.motd = "Who needs friends anyway?".into();
+            .insert("en".to_string(), ServerDescription {
+                motd: "Who needs friends anyway?".to_string(),
+                rules: None,
             });
 
         let mut admins = Admins::default();

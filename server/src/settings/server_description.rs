@@ -219,16 +219,32 @@ mod v2 {
     }
 
     impl ServerDescriptions {
-        pub fn get(&self, locale: Option<&String>) -> Option<&ServerDescription> {
-            let locale = locale.map_or(&self.default_locale, |locale| {
+        fn unwrap_locale_or_default<'a, 'b: 'a>(&'b self, locale: Option<&'a str>) -> &'a str {
+            locale.map_or(&self.default_locale, |locale| {
                 if self.descriptions.contains_key(locale) {
                     locale
                 } else {
                     &self.default_locale
                 }
-            });
+            })
+        }
 
-            self.descriptions.get(locale)
+        pub fn get(&self, locale: Option<&str>) -> Option<&ServerDescription> {
+            self.descriptions.get(self.unwrap_locale_or_default(locale))
+        }
+
+        /// Attempts to get the rules in the specified locale, falls back to
+        /// `default_locale` if no rules were specified in this locale
+        pub fn get_rules(&self, locale: Option<&str>) -> Option<&str> {
+            self.descriptions
+                .get(self.unwrap_locale_or_default(locale))
+                .and_then(|d| d.rules.as_deref())
+                .or_else(|| {
+                    self.descriptions
+                        .get(&self.default_locale)?
+                        .rules
+                        .as_deref()
+                })
         }
     }
 
