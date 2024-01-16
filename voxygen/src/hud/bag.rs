@@ -21,7 +21,7 @@ use common::{
     combat::{combat_rating, perception_dist_multiplier_from_stealth, Damage},
     comp::{
         inventory::InventorySortOrder,
-        item::{ItemDef, ItemDesc, ItemL10n, MaterialStatManifest, Quality},
+        item::{ItemDef, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
     },
 };
@@ -81,7 +81,7 @@ pub struct InventoryScroller<'a> {
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     localized_strings: &'a Localization,
-    item_l10n: &'a ItemL10n,
+    item_i18n: &'a ItemI18n,
     show_stats: bool,
     show_bag_inv: bool,
     on_right: bool,
@@ -106,7 +106,7 @@ impl<'a> InventoryScroller<'a> {
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a Localization,
-        item_l10n: &'a ItemL10n,
+        item_i18n: &'a ItemI18n,
         show_stats: bool,
         show_bag_inv: bool,
         on_right: bool,
@@ -129,7 +129,7 @@ impl<'a> InventoryScroller<'a> {
             slot_manager,
             pulse,
             localized_strings,
-            item_l10n,
+            item_i18n,
             show_stats,
             show_bag_inv,
             on_right,
@@ -374,7 +374,7 @@ impl<'a> InventoryScroller<'a> {
                             {
                                 // TODO: we do double the work here, optimize?
                                 let (name, _) =
-                                    util::item_text(i, self.localized_strings, self.item_l10n);
+                                    util::item_text(i, self.localized_strings, self.item_i18n);
                                 name
                             },
                             i.amount(),
@@ -470,7 +470,7 @@ impl<'a> InventoryScroller<'a> {
                         .set(state.ids.inv_slots[i], ui);
                 }
                 if self.details_mode {
-                    let (name, _) = util::item_text(item, self.localized_strings, self.item_l10n);
+                    let (name, _) = util::item_text(item, self.localized_strings, self.item_i18n);
                     Text::new(&name)
                         .top_left_with_margins_on(
                             state.ids.inv_alignment,
@@ -652,7 +652,7 @@ pub struct Bag<'a> {
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     localized_strings: &'a Localization,
-    item_l10n: &'a ItemL10n,
+    item_i18n: &'a ItemI18n,
     stats: &'a Stats,
     skill_set: &'a SkillSet,
     health: &'a Health,
@@ -678,7 +678,7 @@ impl<'a> Bag<'a> {
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a Localization,
-        item_l10n: &'a ItemL10n,
+        item_i18n: &'a ItemI18n,
         stats: &'a Stats,
         skill_set: &'a SkillSet,
         health: &'a Health,
@@ -702,7 +702,7 @@ impl<'a> Bag<'a> {
             slot_manager,
             pulse,
             localized_strings,
-            item_l10n,
+            item_i18n,
             stats,
             skill_set,
             energy,
@@ -822,7 +822,7 @@ impl<'a> Widget for Bag<'a> {
             self.pulse,
             self.msm,
             self.localized_strings,
-            self.item_l10n,
+            self.item_i18n,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -839,7 +839,7 @@ impl<'a> Widget for Bag<'a> {
             self.slot_manager,
             self.pulse,
             self.localized_strings,
-            self.item_l10n,
+            self.item_i18n,
             self.show.stats,
             self.show.bag_inv,
             true,

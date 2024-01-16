@@ -489,7 +489,7 @@ type I18nId = String;
 // TODO: probably make a Resource if used outside of voxygen
 // TODO: add hot-reloading similar to how ItemImgs does it?
 // TODO: make it work with plugins (via Concatenate?)
-/// To be used with ItemDesc::l10n
+/// To be used with ItemDesc::i18n
 ///
 /// NOTE: there is a limitation to this manifest, as it uses ItemKey and
 /// ItemKey isn't uniquely identifies Item, when it comes to modular items.
@@ -501,19 +501,23 @@ type I18nId = String;
 /// Translations currently do the same, but *maybe* they shouldn't in which case
 /// we should either extend ItemKey or use new identifier. We could use
 /// ItemDefinitionId, but it's very generic and cumbersome.
-pub struct ItemL10n {
+pub struct ItemI18n {
     /// maps ItemKey to i18n identifier
     map: HashMap<ItemKey, I18nId>,
 }
 
-impl assets::Asset for ItemL10n {
+impl assets::Asset for ItemI18n {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
 }
 
-impl ItemL10n {
-    pub fn new_expect() -> Self { ItemL10n::load_expect("common.item_l10n").read().clone() }
+impl ItemI18n {
+    pub fn new_expect() -> Self {
+        ItemI18n::load_expect("common.item_i18n_manifest")
+            .read()
+            .clone()
+    }
 
     /// Returns (name, description) in Content form.
     // TODO: after we remove legacy text from ItemDef, consider making this
@@ -1482,11 +1486,11 @@ pub trait ItemDesc {
     }
 
     /// Return name's and description's localization descriptors
-    fn l10n(&self, l10n: &ItemL10n) -> (Content, Content) {
+    fn i18n(&self, i18n: &ItemI18n) -> (Content, Content) {
         let item_key: ItemKey = self.into();
 
         #[allow(deprecated)]
-        l10n.item_text_opt(item_key).unwrap_or_else(|| {
+        i18n.item_text_opt(item_key).unwrap_or_else(|| {
             (
                 Content::Plain(self.name().to_string()),
                 Content::Plain(self.description().to_string()),
@@ -1743,7 +1747,7 @@ mod tests {
     }
 
     #[test]
-    fn test_item_l10n() { let _ = ItemL10n::new_expect(); }
+    fn test_item_i18n() { let _ = ItemI18n::new_expect(); }
 
     #[test]
     // Probably can't fail, but better safe than crashing production server
@@ -1753,7 +1757,7 @@ mod tests {
     // All items in Veloren should have localization.
     // If no, add some common dummy i18n id.
     fn ensure_item_localization() {
-        let manifest = ItemL10n::new_expect();
+        let manifest = ItemI18n::new_expect();
         let items = all_items_expect();
         for item in items {
             let item_key: ItemKey = (&item).into();

@@ -10,7 +10,7 @@ use vek::*;
 use client::Client;
 use common::{
     comp::{
-        inventory::item::{ItemDesc, ItemL10n, MaterialStatManifest, Quality},
+        inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         Inventory, Stats,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
@@ -99,7 +99,7 @@ pub struct Trade<'a> {
     common: widget::CommonBuilder,
     slot_manager: &'a mut SlotManager,
     localized_strings: &'a Localization,
-    item_l10n: &'a ItemL10n,
+    item_i18n: &'a ItemI18n,
     msm: &'a MaterialStatManifest,
     pulse: f32,
     show: &'a mut Show,
@@ -118,7 +118,7 @@ impl<'a> Trade<'a> {
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         localized_strings: &'a Localization,
-        item_l10n: &'a ItemL10n,
+        item_i18n: &'a ItemI18n,
         msm: &'a MaterialStatManifest,
         pulse: f32,
         show: &'a mut Show,
@@ -135,7 +135,7 @@ impl<'a> Trade<'a> {
             common: widget::CommonBuilder::default(),
             slot_manager,
             localized_strings,
-            item_l10n,
+            item_i18n,
             msm,
             pulse,
             show,
@@ -349,7 +349,7 @@ impl<'a> Trade<'a> {
             self.pulse,
             self.msm,
             self.localized_strings,
-            self.item_l10n,
+            self.item_i18n,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -367,7 +367,7 @@ impl<'a> Trade<'a> {
                 self.slot_manager,
                 self.pulse,
                 self.localized_strings,
-                self.item_l10n,
+                self.item_i18n,
                 false,
                 true,
                 false,
@@ -537,7 +537,7 @@ impl<'a> Trade<'a> {
                 .invslot
                 .and_then(|i| inventory.get(i))
                 .map(|i| {
-                    let (name, _) = util::item_text(&i, self.localized_strings, self.item_l10n);
+                    let (name, _) = util::item_text(&i, self.localized_strings, self.item_i18n);
 
                     Cow::Owned(name)
                 })

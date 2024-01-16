@@ -98,7 +98,7 @@ use common::{
         },
         item::{
             tool::{AbilityContext, ToolKind},
-            ItemDefinitionIdOwned, ItemDesc, ItemL10n, MaterialStatManifest, Quality,
+            ItemDefinitionIdOwned, ItemDesc, ItemI18n, MaterialStatManifest, Quality,
         },
         loot_owner::LootOwnerKind,
         pet::is_mountable,
@@ -1286,7 +1286,7 @@ pub struct Hud {
     world_map: (/* Id */ Vec<Rotations>, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
-    item_l10n: ItemL10n,
+    item_i18n: ItemI18n,
     fonts: Fonts,
     rot_imgs: ImgsRot,
     failed_block_pickups: HashMap<VolumePos, CollectFailedData>,
@@ -1343,7 +1343,7 @@ impl Hud {
         // Load item images.
         let item_imgs = ItemImgs::new(&mut ui, imgs.not_found);
         // Load item text ("reference" to name and description)
-        let item_l10n = ItemL10n::new_expect();
+        let item_i18n = ItemI18n::new_expect();
         // Load fonts.
         let fonts = Fonts::load(global_state.i18n.read().fonts(), &mut ui)
             .expect("Impossible to load fonts!");
@@ -1383,7 +1383,7 @@ impl Hud {
             world_map,
             rot_imgs,
             item_imgs,
-            item_l10n,
+            item_i18n,
             fonts,
             ids,
             failed_block_pickups: HashMap::default(),
@@ -2012,7 +2012,7 @@ impl Hud {
 
                     // Item
                     overitem::Overitem::new(
-                        util::describe(item, i18n, &self.item_l10n).into(),
+                        util::describe(item, i18n, &self.item_i18n).into(),
                         quality,
                         distance,
                         fonts,
@@ -2096,13 +2096,13 @@ impl Hud {
                     },
                     BlockInteraction::Unlock(kind) => {
                         let item_name = |item_id: &ItemDefinitionIdOwned| {
-                            // TODO: get ItemKey and use it with l10n?
+                            // TODO: get ItemKey and use it with i18n?
                             item_id
                                 .as_ref()
                                 .itemdef_id()
                                 .map(|id| {
                                     let item = Item::new_from_asset_expect(id);
-                                    util::describe(&item, i18n, &self.item_l10n)
+                                    util::describe(&item, i18n, &self.item_i18n)
                                 })
                                 .unwrap_or_else(|| "modular item".to_string())
                         };
@@ -3178,7 +3178,7 @@ impl Hud {
                 item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
-                &self.item_l10n,
+                &self.item_i18n,
                 &msm,
                 self.floaters.combo_floater,
                 &context,
@@ -3226,7 +3226,7 @@ impl Hud {
                     &mut self.slot_manager,
                     self.pulse,
                     i18n,
-                    &self.item_l10n,
+                    &self.item_i18n,
                     player_stats,
                     skill_set,
                     health,
@@ -3271,7 +3271,7 @@ impl Hud {
                 item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
-                &self.item_l10n,
+                &self.item_i18n,
                 &msm,
                 self.pulse,
                 &mut self.show,
@@ -3352,7 +3352,7 @@ impl Hud {
                     &self.imgs,
                     &self.fonts,
                     i18n,
-                    &self.item_l10n,
+                    &self.item_i18n,
                     self.pulse,
                     &self.rot_imgs,
                     item_tooltip_manager,
@@ -3519,7 +3519,7 @@ impl Hud {
             &self.rot_imgs,
             &self.fonts,
             i18n,
-            &self.item_l10n,
+            &self.item_i18n,
             &msm,
             item_tooltip_manager,
             self.pulse,

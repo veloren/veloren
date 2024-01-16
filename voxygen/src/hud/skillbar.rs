@@ -26,7 +26,7 @@ use common::comp::{
     ability::{AbilityInput, Stance},
     item::{
         tool::{AbilityContext, ToolKind},
-        ItemDesc, ItemL10n, MaterialStatManifest,
+        ItemDesc, ItemI18n, MaterialStatManifest,
     },
     skillset::SkillGroupKind,
     Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
@@ -307,7 +307,7 @@ pub struct Skillbar<'a> {
     item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut slots::SlotManager,
     localized_strings: &'a Localization,
-    item_l10n: &'a ItemL10n,
+    item_i18n: &'a ItemI18n,
     pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -344,7 +344,7 @@ impl<'a> Skillbar<'a> {
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a Localization,
-        item_l10n: &'a ItemL10n,
+        item_i18n: &'a ItemI18n,
         msm: &'a MaterialStatManifest,
         combo_floater: Option<ComboFloater>,
         context: &'a AbilityContext,
@@ -376,7 +376,7 @@ impl<'a> Skillbar<'a> {
             item_tooltip_manager,
             slot_manager,
             localized_strings,
-            item_l10n,
+            item_i18n,
             msm,
             combo_floater,
             context,
@@ -1010,7 +1010,7 @@ impl<'a> Skillbar<'a> {
             self.pulse,
             self.msm,
             self.localized_strings,
-            self.item_l10n,
+            self.item_i18n,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -1033,7 +1033,7 @@ impl<'a> Skillbar<'a> {
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory.get_by_hash(i).map(|item| {
                     let (title, desc) =
-                        util::item_text(item, self.localized_strings, self.item_l10n);
+                        util::item_text(item, self.localized_strings, self.item_i18n);
 
                     (title.into(), desc.into())
                 }),

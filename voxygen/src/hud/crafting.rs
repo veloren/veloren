@@ -19,7 +19,7 @@ use common::{
             item_key::ItemKey,
             modular::{self, ModularComponent},
             tool::{AbilityMap, ToolKind},
-            Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemL10n, ItemTag, MaterialStatManifest,
+            Item, ItemBase, ItemDef, ItemDesc, ItemI18n, ItemKind, ItemTag, MaterialStatManifest,
             Quality, TagExampleInfo,
         },
         slot::{InvSlotId, Slot},
@@ -151,7 +151,7 @@ pub struct Crafting<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
-    item_l10n: &'a ItemL10n,
+    item_i18n: &'a ItemI18n,
     pulse: f32,
     rot_imgs: &'a ImgsRot,
     item_tooltip_manager: &'a mut ItemTooltipManager,
@@ -172,7 +172,7 @@ impl<'a> Crafting<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
-        item_l10n: &'a ItemL10n,
+        item_i18n: &'a ItemI18n,
         pulse: f32,
         rot_imgs: &'a ImgsRot,
         item_tooltip_manager: &'a mut ItemTooltipManager,
@@ -189,7 +189,7 @@ impl<'a> Crafting<'a> {
             imgs,
             fonts,
             localized_strings,
-            item_l10n,
+            item_i18n,
             pulse,
             rot_imgs,
             item_tooltip_manager,
@@ -358,7 +358,7 @@ impl<'a> Widget for Crafting<'a> {
             self.pulse,
             self.msm,
             self.localized_strings,
-            self.item_l10n,
+            self.item_i18n,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -745,7 +745,7 @@ impl<'a> Widget for Crafting<'a> {
                     (title, _) = util::item_text(
                         recipe.output.0.as_ref(),
                         self.localized_strings,
-                        self.item_l10n,
+                        self.item_i18n,
                     );
                     &title
                 };
@@ -874,7 +874,7 @@ impl<'a> Widget for Crafting<'a> {
                 (title, _) = util::item_text(
                     recipe.output.0.as_ref(),
                     self.localized_strings,
-                    self.item_l10n,
+                    self.item_i18n,
                 );
                 &title
             };
@@ -1239,7 +1239,7 @@ impl<'a> Widget for Crafting<'a> {
 
                     if let Some(output_item) = output_item {
                         let (name, _) =
-                            util::item_text(&output_item, self.localized_strings, self.item_l10n);
+                            util::item_text(&output_item, self.localized_strings, self.item_i18n);
                         Button::image(animate_by_pulse(
                             &self
                                 .item_imgs
@@ -1994,7 +1994,7 @@ impl<'a> Widget for Crafting<'a> {
                         let (name, _) = util::item_text(
                             item_def.as_ref(),
                             self.localized_strings,
-                            self.item_l10n,
+                            self.item_i18n,
                         );
                         Text::new(&name)
                             .right_from(state.ids.ingredient_frame[i], 10.0)
@@ -2009,7 +2009,7 @@ impl<'a> Widget for Crafting<'a> {
                                 let (name, _) = util::item_text(
                                     item_def.as_ref(),
                                     self.localized_strings,
-                                    self.item_l10n,
+                                    self.item_i18n,
                                 );
 
                                 name
@@ -2028,7 +2028,7 @@ impl<'a> Widget for Crafting<'a> {
                                             let (name, _) = util::item_text(
                                                 def.as_ref(),
                                                 self.localized_strings,
-                                                self.item_l10n,
+                                                self.item_i18n,
                                             );
 
                                             name
