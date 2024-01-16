@@ -125,7 +125,7 @@ impl PlayState for MainMenuState {
                             ConnectionArgs::Mpsc(14004),
                             &mut self.init,
                             &global_state.tokio_runtime,
-                            global_state.settings.language.share_with_server.then_some(
+                            global_state.settings.language.send_to_server.then_some(
                                 global_state.settings.language.selected_language.clone(),
                             ),
                             &global_state.i18n,
@@ -365,7 +365,7 @@ impl PlayState for MainMenuState {
                         global_state
                             .settings
                             .language
-                            .share_with_server
+                            .send_to_server
                             .then_some(global_state.settings.language.selected_language.clone()),
                         &global_state.i18n,
                     );

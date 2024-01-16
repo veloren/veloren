@@ -17,8 +17,8 @@ widget_ids! {
         window_r,
         english_fallback_button,
         english_fallback_button_label,
-        share_with_server_checkbox,
-        share_with_server_checkbox_label,
+        send_to_server_checkbox,
+        send_to_server_checkbox_label,
         window_scrollbar,
         language_list[],
     }
@@ -89,8 +89,8 @@ impl<'a> Widget for Language<'a> {
             .set(state.ids.window_scrollbar, ui);
 
         // Share with server button
-        let share_with_server = ToggleButton::new(
-            self.global_state.settings.language.share_with_server,
+        let send_to_server = ToggleButton::new(
+            self.global_state.settings.language.send_to_server,
             self.imgs.checkbox,
             self.imgs.checkbox_checked,
         )
@@ -98,23 +98,23 @@ impl<'a> Widget for Language<'a> {
         .top_left_with_margin_on(state.ids.window, 20.0)
         .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-        .set(state.ids.share_with_server_checkbox, ui);
+        .set(state.ids.send_to_server_checkbox, ui);
 
-        if share_with_server != self.global_state.settings.language.share_with_server {
-            events.push(ToggleShareWithServer(share_with_server));
+        if send_to_server != self.global_state.settings.language.send_to_server {
+            events.push(ToggleSendToServer(send_to_server));
         }
 
         Text::new(
             &self
                 .localized_strings
-                .get_msg("hud-settings-language_share_with_server"),
+                .get_msg("hud-settings-language_send_to_server"),
         )
-        .right_from(state.ids.share_with_server_checkbox, 10.0)
+        .right_from(state.ids.send_to_server_checkbox, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .graphics_for(state.ids.share_with_server_checkbox)
+        .graphics_for(state.ids.send_to_server_checkbox)
         .color(TEXT_COLOR)
-        .set(state.ids.share_with_server_checkbox_label, ui);
+        .set(state.ids.send_to_server_checkbox_label, ui);
 
         // English as fallback language
         let show_english_fallback = ToggleButton::new(
@@ -123,7 +123,7 @@ impl<'a> Widget for Language<'a> {
             self.imgs.checkbox_checked,
         )
         .w_h(18.0, 18.0)
-        .down_from(state.ids.share_with_server_checkbox, 10.0)
+        .down_from(state.ids.send_to_server_checkbox, 10.0)
         .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.english_fallback_button, ui);

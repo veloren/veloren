@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 pub struct LanguageSettings {
     pub selected_language: String,
     #[serde(default = "default_true")]
-    pub share_with_server: bool,
+    /// Controls whether the locale is sent to servers we connect (usually for
+    /// localizing rules & motd messages)
+    pub send_to_server: bool,
     pub use_english_fallback: bool,
 }
 
@@ -13,7 +15,7 @@ impl Default for LanguageSettings {
     fn default() -> Self {
         Self {
             selected_language: i18n::REFERENCE_LANG.to_string(),
-            share_with_server: true,
+            send_to_server: true,
             use_english_fallback: true,
         }
     }
