@@ -1570,9 +1570,10 @@ pub struct AltIndices {
 
 /// The mode with which culling based on the camera position relative to the
 /// terrain is performed.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub enum CullingMode {
     /// We need to render all elements of the given structure
+    #[default]
     None,
     /// We only need to render surface and shallow (i.e: in the overlapping
     /// region) elements of the structure

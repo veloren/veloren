@@ -61,61 +61,63 @@ impl<'a> System<'a> for Sys {
                 |(chunk_send_emitter, server_emitter), (entity, client, maybe_presence)| {
                     let mut chunk_requests = Vec::new();
                     let _ = super::try_recv_all(client, 5, |client, msg| {
-                        let presence = match maybe_presence {
-                            Some(g) => g,
-                            None => {
-                                debug!(?entity, "client is not in_game, ignoring msg");
-                                trace!(?msg, "ignored msg content");
-                                if matches!(msg, ClientGeneral::TerrainChunkRequest { .. }) {
-                                    network_metrics.chunks_request_dropped.inc();
-                                }
-                                return Ok(());
-                            },
-                        };
-                        match msg {
-                            ClientGeneral::TerrainChunkRequest { key } => {
-                                let in_vd = if let Some(pos) = positions.get(entity) {
-                                    pos.0.xy().map(|e| e as f64).distance_squared(
-                                        key.map(|e| e as f64 + 0.5)
-                                            * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
-                                    ) < ((presence.terrain_view_distance.current() as f64 - 1.0
-                                        + 2.5 * 2.0_f64.sqrt())
-                                        * TerrainChunkSize::RECT_SIZE.x as f64)
-                                        .powi(2)
-                                } else {
-                                    true
-                                };
-                                if in_vd {
-                                    if terrain.get_key_arc(key).is_some() {
-                                        network_metrics.chunks_served_from_memory.inc();
-                                        chunk_send_emitter.emit(ChunkSendEntry {
-                                            chunk_key: key,
-                                            entity,
-                                        });
-                                    } else {
-                                        network_metrics.chunks_generation_triggered.inc();
-                                        chunk_requests.push(ChunkRequest { entity, key });
+                        // SPECIAL CASE: LOD zone requests can be sent by non-present players
+                        if let ClientGeneral::LodZoneRequest { key } = &msg {
+                            client.send(ServerGeneral::LodZoneUpdate {
+                                key: *key,
+                                zone: lod.zone(*key).clone(),
+                            })?;
+                        } else {
+                            let presence = match maybe_presence {
+                                Some(g) => g,
+                                None => {
+                                    debug!(?entity, "client is not in_game, ignoring msg");
+                                    trace!(?msg, "ignored msg content");
+                                    if matches!(msg, ClientGeneral::TerrainChunkRequest { .. }) {
+                                        network_metrics.chunks_request_dropped.inc();
                                     }
-                                } else {
-                                    network_metrics.chunks_request_dropped.inc();
-                                }
-                            },
-                            ClientGeneral::LodZoneRequest { key } => {
-                                client.send(ServerGeneral::LodZoneUpdate {
-                                    key,
-                                    zone: lod.zone(key).clone(),
-                                })?;
-                            },
-                            _ => {
-                                debug!(
-                                    "Kicking possibly misbehaving client due to invalud terrain \
-                                     request"
-                                );
-                                server_emitter.emit(ServerEvent::ClientDisconnect(
-                                    entity,
-                                    common::comp::DisconnectReason::NetworkError,
-                                ));
-                            },
+                                    return Ok(());
+                                },
+                            };
+                            match msg {
+                                ClientGeneral::TerrainChunkRequest { key } => {
+                                    let in_vd = if let Some(pos) = positions.get(entity) {
+                                        pos.0.xy().map(|e| e as f64).distance_squared(
+                                            key.map(|e| e as f64 + 0.5)
+                                                * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
+                                        ) < ((presence.terrain_view_distance.current() as f64 - 1.0
+                                            + 2.5 * 2.0_f64.sqrt())
+                                            * TerrainChunkSize::RECT_SIZE.x as f64)
+                                            .powi(2)
+                                    } else {
+                                        true
+                                    };
+                                    if in_vd {
+                                        if terrain.get_key_arc(key).is_some() {
+                                            network_metrics.chunks_served_from_memory.inc();
+                                            chunk_send_emitter.emit(ChunkSendEntry {
+                                                chunk_key: key,
+                                                entity,
+                                            });
+                                        } else {
+                                            network_metrics.chunks_generation_triggered.inc();
+                                            chunk_requests.push(ChunkRequest { entity, key });
+                                        }
+                                    } else {
+                                        network_metrics.chunks_request_dropped.inc();
+                                    }
+                                },
+                                _ => {
+                                    debug!(
+                                        "Kicking possibly misbehaving client due to invalud terrain \
+                                         request"
+                                    );
+                                    server_emitter.emit(ServerEvent::ClientDisconnect(
+                                        entity,
+                                        common::comp::DisconnectReason::NetworkError,
+                                    ));
+                                },
+                            }
                         }
                         Ok(())
                     });

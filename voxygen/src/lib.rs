@@ -16,7 +16,8 @@
     let_chains,
     generic_const_exprs,
     maybe_uninit_uninit_array,
-    maybe_uninit_array_assume_init
+    maybe_uninit_array_assume_init,
+    closure_lifetime_binder
 )]
 #![recursion_limit = "2048"]
 

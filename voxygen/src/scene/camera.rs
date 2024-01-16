@@ -677,6 +677,9 @@ impl Camera {
     /// Get the orientation of the camera.
     pub fn get_orientation(&self) -> Vec3<f32> { self.ori }
 
+    /// Get the orientation that the camera is moving toward.
+    pub fn get_tgt_orientation(&self) -> Vec3<f32> { self.tgt_ori }
+
     /// Get the field of view of the camera in radians, taking into account
     /// fixation.
     pub fn get_effective_fov(&self) -> f32 { self.fov * self.fixate }

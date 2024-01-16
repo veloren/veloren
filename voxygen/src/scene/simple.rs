@@ -1,35 +1,30 @@
 use crate::{
-    mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_figure},
     render::{
-        create_skybox_mesh, pipelines::FigureSpriteAtlasData, BoneMeshes, Consts, FigureModel,
-        FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, LodData, Mesh, Model,
+        create_skybox_mesh, pipelines::terrain::BoundLocals as BoundTerrainLocals, AltIndices,
+        Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Model,
         PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
-        TerrainVertex,
+        SpriteGlobalsBindGroup,
     },
     scene::{
         camera::{self, Camera, CameraMode},
-        figure::{
-            load_mesh, FigureAtlas, FigureModelCache, FigureModelEntry, FigureState,
-            FigureUpdateCommonParameters,
-        },
+        figure::{FigureAtlas, FigureModelCache, FigureState, FigureUpdateCommonParameters},
+        terrain::{SpriteRenderContext, SpriteRenderState},
+        CloudsLocals, CullingMode, Lod, PostProcessLocals,
     },
     window::{Event, PressState},
+    Settings,
 };
-use anim::{
-    character::{CharacterSkeleton, IdleAnimation, SkeletonAttr},
-    fixture::FixtureSkeleton,
-    Animation,
-};
+use anim::{character::CharacterSkeleton, ship::ShipSkeleton, Animation};
 use client::Client;
 use common::{
     comp::{
         humanoid,
         inventory::{slot::EquipSlot, Inventory},
         item::ItemKind,
+        ship,
     },
-    figure::Segment,
     slowjob::SlowJobPool,
-    terrain::BlockKind,
+    terrain::{BlockKind, CoordinateConversions},
     vol::{BaseVol, ReadVol},
 };
 use vek::*;
@@ -46,18 +41,6 @@ impl ReadVol for VoidVol {
     fn get(&self, _pos: Vec3<i32>) -> Result<&'_ Self::Vox, Self::Error> { Ok(&()) }
 }
 
-fn generate_mesh(
-    greedy: &mut GreedyMesh<'_, FigureSpriteAtlasData>,
-    mesh: &mut Mesh<TerrainVertex>,
-    segment: Segment,
-    offset: Vec3<f32>,
-    bone_idx: u8,
-) -> BoneMeshes {
-    let (opaque, _, /* shadow */ _, bounds) =
-        generate_mesh_base_vol_figure(segment, (greedy, mesh, offset, Vec3::one(), bone_idx));
-    (opaque /* , shadow */, bounds)
-}
-
 struct Skybox {
     model: Model<SkyboxVertex>,
 }
@@ -68,17 +51,22 @@ pub struct Scene {
     camera: Camera,
 
     skybox: Skybox,
-    lod: LodData,
+    lod: Lod,
     map_bounds: Vec2<f32>,
 
     figure_atlas: FigureAtlas,
-    backdrop: Option<(FigureModelEntry<1>, FigureState<FixtureSkeleton>)>,
-    figure_model_cache: FigureModelCache,
-    figure_state: Option<FigureState<CharacterSkeleton>>,
+    sprite_render_state: SpriteRenderState,
+    sprite_globals: SpriteGlobalsBindGroup,
 
-    //turning_camera: bool,
-    turning_character: bool,
-    char_ori: f32,
+    turning_camera: bool,
+
+    char_pos: Vec3<f32>,
+    char_state: Option<FigureState<CharacterSkeleton>>,
+    char_model_cache: FigureModelCache<CharacterSkeleton>,
+
+    airship_pos: Vec3<f32>,
+    airship_state: Option<FigureState<ShipSkeleton, BoundTerrainLocals>>,
+    airship_model_cache: FigureModelCache<ShipSkeleton>,
 }
 
 pub struct SceneData<'a> {
@@ -95,8 +83,13 @@ pub struct SceneData<'a> {
 }
 
 impl Scene {
-    pub fn new(renderer: &mut Renderer, backdrop: Option<&str>, client: &Client) -> Self {
-        let start_angle = 90.0f32.to_radians();
+    pub fn new(
+        renderer: &mut Renderer,
+        client: &mut Client,
+        settings: &Settings,
+        sprite_render_context: SpriteRenderContext,
+    ) -> Self {
+        let start_angle = -90.0f32.to_radians();
         let resolution = renderer.resolution().map(|e| e as f32);
 
         let map_bounds = Vec2::new(
@@ -105,11 +98,10 @@ impl Scene {
         );
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
-        camera.set_focus_pos(Vec3::unit_z() * 1.5);
         camera.set_distance(3.4);
-        camera.set_orientation(Vec3::new(start_angle, 0.0, 0.0));
+        camera.set_orientation(Vec3::new(start_angle, 0.1, 0.0));
 
-        let mut figure_atlas = FigureAtlas::new(renderer);
+        let figure_atlas = FigureAtlas::new(renderer);
 
         let data = GlobalModel {
             globals: renderer.create_consts(&[Globals::default()]),
@@ -120,81 +112,48 @@ impl Scene {
                 .create_rain_occlusion_bound_locals(&[RainOcclusionLocals::default()]),
             point_light_matrices: Box::new([PointLightMatrix::default(); 126]),
         };
-        let lod = LodData::dummy(renderer);
+        let lod = Lod::new(renderer, client, settings);
 
-        let globals_bind_group = renderer.bind_globals(&data, &lod);
+        let globals_bind_group = renderer.bind_globals(&data, lod.get_data());
+
+        let world = client.world_data();
+        let char_chunk = world.chunk_size().map(|e| e as i32 / 2);
+        let char_pos = char_chunk.cpos_to_wpos().map(|e| e as f32).with_z(
+            world
+                .lod_alt
+                .get(char_chunk)
+                .map_or(0.0, |z| *z as f32 + 48.0),
+        );
+        client.set_lod_pos_fallback(char_pos.xy());
+        client.set_lod_distance(settings.graphics.lod_distance);
 
         Self {
-            data,
             globals_bind_group,
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
             },
-            lod,
             map_bounds,
 
-            figure_model_cache: FigureModelCache::new(),
-            figure_state: None,
-
-            backdrop: backdrop.map(|specifier| {
-                let mut state = FigureState::new(renderer, FixtureSkeleton, ());
-                let mut greedy = FigureModel::make_greedy();
-                let mut opaque_mesh = Mesh::new();
-                let (segment, offset) = load_mesh(specifier, Vec3::new(-55.0, -49.5, -2.0));
-                let (_opaque_mesh, bounds) =
-                    generate_mesh(&mut greedy, &mut opaque_mesh, segment, offset, 0);
-                // NOTE: Since MagicaVoxel sizes are limited to 256 × 256 × 256, and there are
-                // at most 3 meshed vertices per unique vertex, we know the
-                // total size is bounded by 2^24 * 3 * 1.5 which is bounded by
-                // 2^27, which fits in a u32.
-                let range = 0..opaque_mesh.vertices().len() as u32;
-                let (atlas_texture_data, atlas_size) = greedy.finalize();
-                let model = figure_atlas.create_figure(
-                    renderer,
-                    atlas_texture_data,
-                    atlas_size,
-                    (opaque_mesh, bounds),
-                    [range],
-                );
-                let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-                let common_params = FigureUpdateCommonParameters {
-                    entity: None,
-                    pos: anim::vek::Vec3::zero(),
-                    ori: anim::vek::Quaternion::rotation_from_to_3d(
-                        anim::vek::Vec3::unit_y(),
-                        anim::vek::Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
-                    ),
-                    scale: 1.0,
-                    mount_transform_pos: None,
-                    body: None,
-                    tools: (None, None),
-                    col: Rgba::broadcast(1.0),
-                    dt: 15.0, // Want to get there immediately.
-                    _lpindex: 0,
-                    _visible: true,
-                    is_player: false,
-                    _camera: &camera,
-                    terrain: None,
-                    ground_vel: Vec3::zero(),
-                };
-                state.update(
-                    renderer,
-                    None,
-                    &mut buf,
-                    &common_params,
-                    1.0,
-                    Some(&model),
-                    (),
-                );
-                (model, state)
-            }),
             figure_atlas,
+            sprite_render_state: sprite_render_context.state,
+            sprite_globals: renderer.bind_sprite_globals(
+                &data,
+                lod.get_data(),
+                &sprite_render_context.sprite_verts_buffer,
+            ),
+            lod,
+            data,
 
             camera,
 
-            //turning_camera: false,
-            turning_character: false,
-            char_ori: -start_angle,
+            turning_camera: false,
+            char_pos,
+            char_state: None,
+            char_model_cache: FigureModelCache::new(),
+
+            airship_pos: char_pos - Vec3::unit_z() * 10.0,
+            airship_state: None,
+            airship_model_cache: FigureModelCache::new(),
         }
     }
 
@@ -215,20 +174,15 @@ impl Scene {
             },
             Event::MouseButton(button, state) => {
                 if state == PressState::Pressed {
-                    //self.turning_camera = button == MouseButton::Right;
-                    self.turning_character = button == MouseButton::Left;
+                    self.turning_camera = button == MouseButton::Left;
                 } else {
-                    //self.turning_camera = false;
-                    self.turning_character = false;
+                    self.turning_camera = false;
                 }
                 true
             },
             Event::CursorMove(delta) => {
-                /*if self.turning_camera {
-                    self.camera.rotate_by(Vec3::new(delta.x * 0.01, 0.0, 0.0))
-                }*/
-                if self.turning_character {
-                    self.char_ori += delta.x * 0.01;
+                if self.turning_camera {
+                    self.camera.rotate_by(delta.with_z(0.0) * 0.01);
                 }
                 true
             },
@@ -242,7 +196,13 @@ impl Scene {
         renderer: &mut Renderer,
         scene_data: SceneData,
         inventory: Option<&Inventory>,
+        client: &Client,
     ) {
+        self.camera
+            .force_focus_pos(self.char_pos + Vec3::unit_z() * 1.5);
+        let ori = self.camera.get_tgt_orientation();
+        self.camera
+            .set_orientation(Vec3::new(ori.x, ori.y.max(-0.25), ori.z));
         self.camera.update(
             scene_data.time,
             /* 1.0 / 60.0 */ scene_data.delta_time,
@@ -254,13 +214,18 @@ impl Scene {
             view_mat,
             proj_mat,
             cam_pos,
+            proj_mat_inv,
+            view_mat_inv,
             ..
         } = self.camera.dependents();
-        const VD: f32 = 115.0; // View Distance
+        const VD: f32 = 0.0; // View Distance
 
         const TIME: f64 = 8.6 * 60.0 * 60.0;
-        const SHADOW_NEAR: f32 = 1.0;
-        const SHADOW_FAR: f32 = 25.0;
+        const SHADOW_NEAR: f32 = 0.25;
+        const SHADOW_FAR: f32 = 1.0;
+
+        self.lod
+            .maintain(renderer, client, self.camera.get_focus_pos(), &self.camera);
 
         renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
@@ -268,7 +233,7 @@ impl Scene {
             cam_pos,
             self.camera.get_focus_pos(),
             VD,
-            self.lod.tgt_detail as f32,
+            self.lod.get_data().tgt_detail as f32,
             self.map_bounds,
             TIME,
             scene_data.time,
@@ -288,8 +253,12 @@ impl Scene {
             self.camera.get_mode(),
             250.0,
         )]);
+        renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
+        renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
 
-        self.figure_model_cache
+        self.char_model_cache
+            .clean(&mut self.figure_atlas, scene_data.tick);
+        self.airship_model_cache
             .clean(&mut self.figure_atlas, scene_data.tick);
 
         let item_info = |equip_slot| {
@@ -310,12 +279,37 @@ impl Scene {
 
         let hands = (active_tool_hand, second_tool_hand);
 
+        fn figure_params(
+            camera: &Camera,
+            dt: f32,
+            pos: Vec3<f32>,
+        ) -> FigureUpdateCommonParameters<'_> {
+            FigureUpdateCommonParameters {
+                entity: None,
+                pos: pos.into(),
+                ori: anim::vek::Quaternion::identity().rotated_z(std::f32::consts::PI * -0.5),
+                scale: 1.0,
+                mount_transform_pos: None,
+                body: None,
+                tools: (None, None),
+                col: Rgba::broadcast(1.0),
+                dt,
+                _lpindex: 0,
+                _visible: true,
+                is_player: false,
+                _camera: camera,
+                terrain: None,
+                ground_vel: Vec3::zero(),
+            }
+        }
+
         if let Some(body) = scene_data.body {
-            let figure_state = self.figure_state.get_or_insert_with(|| {
+            let char_state = self.char_state.get_or_insert_with(|| {
                 FigureState::new(renderer, CharacterSkeleton::default(), body)
             });
-            let tgt_skeleton = IdleAnimation::update_skeleton(
-                figure_state.skeleton_mut(),
+            let params = figure_params(&self.camera, scene_data.delta_time, self.char_pos);
+            let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
+                char_state.skeleton_mut(),
                 (
                     active_tool_kind,
                     second_tool_kind,
@@ -324,51 +318,74 @@ impl Scene {
                 ),
                 scene_data.time as f32,
                 &mut 0.0,
-                &SkeletonAttr::from(&body),
+                &anim::character::SkeletonAttr::from(&body),
             );
             let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
-            *figure_state.skeleton_mut() =
-                Lerp::lerp(&*figure_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
-
-            let model = self
-                .figure_model_cache
-                .get_or_create_model(
-                    renderer,
-                    &mut self.figure_atlas,
-                    body,
-                    inventory,
-                    (),
-                    scene_data.tick,
-                    CameraMode::default(),
-                    None,
-                    scene_data.slow_job_pool,
-                    None,
-                )
-                .0;
-            let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-            let common_params = FigureUpdateCommonParameters {
-                entity: None,
-                pos: anim::vek::Vec3::zero(),
-                ori: anim::vek::Quaternion::rotation_from_to_3d(
-                    anim::vek::Vec3::unit_y(),
-                    anim::vek::Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
-                ),
-                scale: 1.0,
-                mount_transform_pos: None,
-                body: None,
-                tools: (None, None),
-                col: Rgba::broadcast(1.0),
-                dt: scene_data.delta_time,
-                _lpindex: 0,
-                _visible: true,
-                is_player: false,
-                _camera: &self.camera,
-                terrain: None,
-                ground_vel: Vec3::zero(),
-            };
-
-            figure_state.update(renderer, None, &mut buf, &common_params, 1.0, model, body);
+            *char_state.skeleton_mut() =
+                Lerp::lerp(&*char_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+            let (model, _) = self.char_model_cache.get_or_create_model(
+                renderer,
+                &mut self.figure_atlas,
+                body,
+                inventory,
+                (),
+                scene_data.tick,
+                CameraMode::default(),
+                None,
+                scene_data.slow_job_pool,
+                None,
+            );
+            char_state.update(
+                renderer,
+                None,
+                &mut [Default::default(); anim::MAX_BONE_COUNT],
+                &params,
+                1.0,
+                model,
+                body,
+            );
         }
+
+        let airship_body = ship::Body::DefaultAirship;
+        let airship_state = self.airship_state.get_or_insert_with(|| {
+            FigureState::new(renderer, ShipSkeleton::default(), airship_body)
+        });
+        let params = figure_params(&self.camera, scene_data.delta_time, self.airship_pos);
+        let tgt_skeleton = anim::ship::IdleAnimation::update_skeleton(
+            airship_state.skeleton_mut(),
+            (
+                None,
+                None,
+                scene_data.time as f32,
+                scene_data.time as f32,
+                (params.ori * Vec3::unit_y()).into(),
+                (params.ori * Vec3::unit_y()).into(),
+            ),
+            scene_data.time as f32,
+            &mut 0.0,
+            &anim::ship::SkeletonAttr::from(&airship_body),
+        );
+        let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
+        *airship_state.skeleton_mut() =
+            Lerp::lerp(&*airship_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+        let (model, _) = self.airship_model_cache.get_or_create_terrain_model(
+            renderer,
+            &mut self.figure_atlas,
+            airship_body,
+            (),
+            scene_data.tick,
+            scene_data.slow_job_pool,
+            &self.sprite_render_state,
+        );
+        airship_state.update(
+            renderer,
+            None,
+            &mut [Default::default(); anim::MAX_BONE_COUNT],
+            &params,
+            1.0,
+            model,
+            airship_body,
+        );
     }
 
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }
@@ -382,7 +399,7 @@ impl Scene {
     ) {
         let mut figure_drawer = drawer.draw_figures();
         if let Some(body) = body {
-            let model = &self.figure_model_cache.get_model(
+            let model = &self.char_model_cache.get_model(
                 &self.figure_atlas,
                 body,
                 inventory,
@@ -392,27 +409,60 @@ impl Scene {
                 None,
             );
 
-            if let Some((model, figure_state)) = model.zip(self.figure_state.as_ref()) {
+            if let Some((model, char_state)) = model.zip(self.char_state.as_ref()) {
                 if let Some(lod) = model.lod_model(0) {
                     figure_drawer.draw(
                         lod,
-                        figure_state.bound(),
+                        char_state.bound(),
                         self.figure_atlas.texture(ModelEntryRef::Figure(model)),
                     );
                 }
             }
         }
 
-        if let Some((model, state)) = &self.backdrop {
+        let model = &self.airship_model_cache.get_model(
+            &self.figure_atlas,
+            ship::Body::DefaultAirship,
+            Default::default(),
+            tick,
+            CameraMode::default(),
+            None,
+            None,
+        );
+        if let Some((model, airship_state)) = model.zip(self.airship_state.as_ref()) {
             if let Some(lod) = model.lod_model(0) {
                 figure_drawer.draw(
                     lod,
-                    state.bound(),
-                    self.figure_atlas.texture(ModelEntryRef::Figure(model)),
+                    airship_state.bound(),
+                    self.figure_atlas.texture(ModelEntryRef::Terrain(model)),
                 );
             }
         }
+
         drop(figure_drawer);
+
+        let mut sprite_drawer = drawer.draw_sprites(
+            &self.sprite_globals,
+            &self.sprite_render_state.sprite_atlas_textures,
+        );
+        if let (Some(sprite_instances), Some(data)) = (
+            self.airship_model_cache
+                .get_sprites(ship::Body::DefaultAirship),
+            self.airship_state.as_ref().map(|s| &s.extra),
+        ) {
+            sprite_drawer.draw(
+                data,
+                &sprite_instances[0],
+                &AltIndices {
+                    deep_end: 0,
+                    underground_end: 0,
+                },
+                CullingMode::None,
+            );
+        }
+        drop(sprite_drawer);
+
+        self.lod.render(drawer, Default::default());
 
         drawer.draw_skybox(&self.skybox.model);
     }

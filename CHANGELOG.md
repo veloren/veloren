@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Linearize light colors on the CPU rather than in shaders on the GPU
 - You can no longer stack self buffs
 - Renamed "Burning Potion" to "Potion of Combustion"
+- Render LoD terrain on the character selection screen
 
 ### Removed
 - Medium and large potions from all loot tables

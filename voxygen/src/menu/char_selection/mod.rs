@@ -26,10 +26,12 @@ pub struct CharSelectionState {
 impl CharSelectionState {
     /// Create a new `CharSelectionState`.
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
+        let sprite_render_context = (global_state.lazy_init)(global_state.window.renderer_mut());
         let scene = Scene::new(
             global_state.window.renderer_mut(),
-            Some("fixture.selection_bg"),
-            &client.borrow(),
+            &mut client.borrow_mut(),
+            &global_state.settings,
+            sprite_render_context,
         );
         let char_selection_ui = CharSelectionUi::new(global_state, &client.borrow());
 
@@ -224,8 +226,12 @@ impl PlayState for CharSelectionState {
                         as f32,
                 };
 
-                self.scene
-                    .maintain(global_state.window.renderer_mut(), scene_data, loadout);
+                self.scene.maintain(
+                    global_state.window.renderer_mut(),
+                    scene_data,
+                    loadout,
+                    &client,
+                );
             }
 
             // Tick the client (currently only to keep the connection alive).

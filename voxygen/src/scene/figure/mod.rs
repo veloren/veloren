@@ -6288,7 +6288,7 @@ impl FigureMgr {
                                 Arc::clone(vol),
                                 tick,
                                 &slow_jobs,
-                                terrain,
+                                &terrain.sprite_render_state,
                             );
 
                         let state = self
@@ -6315,7 +6315,7 @@ impl FigureMgr {
                             (),
                             tick,
                             &slow_jobs,
-                            terrain,
+                            &terrain.sprite_render_state,
                         )
                     } else {
                         // No way to determine model (this is okay, we might just not have received
@@ -7535,7 +7535,7 @@ impl FigureStateMeta {
 pub struct FigureState<S, D = ()> {
     meta: FigureStateMeta,
     skeleton: S,
-    extra: D,
+    pub extra: D,
 }
 
 impl<S, D> Deref for FigureState<S, D> {

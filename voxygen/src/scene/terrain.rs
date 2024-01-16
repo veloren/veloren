@@ -483,10 +483,6 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     /// might significantly reduce the number of textures we need for
     /// particularly difficult locations.
     atlas: AtlasAllocator,
-    /// FIXME: This could possibly become an `AssetHandle<SpriteSpec>`, to get
-    /// hot-reloading for free, but I am not sure if sudden changes of this
-    /// value would break something
-    pub sprite_config: Arc<SpriteSpec>,
     chunks: HashMap<Vec2<i32>, TerrainChunkData>,
     /// Temporary storage for dead chunks that might still be shadowing chunks
     /// in view.  We wait until either the chunk definitely cannot be
@@ -516,9 +512,8 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
 
     // GPU data
     // Maps sprite kind + variant to data detailing how to render it
-    pub sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
+    pub sprite_render_state: SpriteRenderState,
     pub sprite_globals: SpriteGlobalsBindGroup,
-    pub sprite_atlas_textures: Arc<AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>>,
     /// As stated previously, this is always the very latest texture into which
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
@@ -533,12 +528,20 @@ impl TerrainChunkData {
 }
 
 #[derive(Clone)]
-pub struct SpriteRenderContext {
-    sprite_config: Arc<SpriteSpec>,
+pub struct SpriteRenderState {
+    /// FIXME: This could possibly become an `AssetHandle<SpriteSpec>`, to get
+    /// hot-reloading for free, but I am not sure if sudden changes of this
+    /// value would break something
+    pub sprite_config: Arc<SpriteSpec>,
     // Maps sprite kind + variant to data detailing how to render it
-    sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
-    sprite_atlas_textures: Arc<AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>>,
-    sprite_verts_buffer: Arc<SpriteVerts>,
+    pub sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
+    pub sprite_atlas_textures: Arc<AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>>,
+}
+
+#[derive(Clone)]
+pub struct SpriteRenderContext {
+    pub state: SpriteRenderState,
+    pub sprite_verts_buffer: Arc<SpriteVerts>,
 }
 
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
@@ -705,10 +708,12 @@ impl SpriteRenderContext {
             let sprite_verts_buffer = renderer.create_sprite_verts(sprite_mesh);
 
             Self {
-                // TODO: these are all Arcs, would it makes sense to factor out the Arc?
-                sprite_config: Arc::clone(&sprite_config),
-                sprite_data: Arc::new(sprite_data),
-                sprite_atlas_textures: Arc::new(sprite_atlas_textures),
+                state: SpriteRenderState {
+                    // TODO: these are all Arcs, would it makes sense to factor out the Arc?
+                    sprite_config: Arc::clone(&sprite_config),
+                    sprite_data: Arc::new(sprite_data),
+                    sprite_atlas_textures: Arc::new(sprite_atlas_textures),
+                },
                 sprite_verts_buffer: Arc::new(sprite_verts_buffer),
             }
         };
@@ -732,7 +737,6 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         Self {
             atlas,
-            sprite_config: sprite_render_context.sprite_config,
             chunks: HashMap::default(),
             shadow_chunks: Vec::default(),
             mesh_send_tmp: send,
@@ -740,8 +744,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_todo: HashMap::default(),
             mesh_todos_active: Arc::new(AtomicU64::new(0)),
             mesh_recv_overflow: 0.0,
-            sprite_data: sprite_render_context.sprite_data,
-            sprite_atlas_textures: sprite_render_context.sprite_atlas_textures,
+            sprite_render_state: sprite_render_context.state,
             sprite_globals: renderer.bind_sprite_globals(
                 global_model,
                 lod_data,
@@ -1227,8 +1230,8 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             // Queue the worker thread.
             let started_tick = todo.started_tick;
-            let sprite_data = Arc::clone(&self.sprite_data);
-            let sprite_config = Arc::clone(&self.sprite_config);
+            let sprite_data = Arc::clone(&self.sprite_render_state.sprite_data);
+            let sprite_config = Arc::clone(&self.sprite_render_state.sprite_config);
             let cnt = Arc::clone(&self.mesh_todos_active);
             cnt.fetch_add(1, Ordering::Relaxed);
             scene_data
