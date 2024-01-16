@@ -307,7 +307,7 @@ impl Scene {
             let char_state = self.char_state.get_or_insert_with(|| {
                 FigureState::new(renderer, CharacterSkeleton::default(), body)
             });
-            let params = figure_params(&self.camera, scene_data.delta_time, self.char_pos.into());
+            let params = figure_params(&self.camera, scene_data.delta_time, self.char_pos);
             let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
                 char_state.skeleton_mut(),
                 (
@@ -350,7 +350,7 @@ impl Scene {
         let airship_state = self.airship_state.get_or_insert_with(|| {
             FigureState::new(renderer, ShipSkeleton::default(), airship_body)
         });
-        let params = figure_params(&self.camera, scene_data.delta_time, self.airship_pos.into());
+        let params = figure_params(&self.camera, scene_data.delta_time, self.airship_pos);
         let tgt_skeleton = anim::ship::IdleAnimation::update_skeleton(
             airship_state.skeleton_mut(),
             (
