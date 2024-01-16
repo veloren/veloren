@@ -262,3 +262,43 @@ fn insert_alias(you: bool, info: PlayerInfo, localization: &Localization) -> Str
         (true, true) => format!("{}{}", MOD_SPACING, &localization.get_msg(YOU),),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[allow(unused)] use super::*;
+    use common::comp::{
+        inventory::item::{all_items_expect, ItemDesc, ItemI18n},
+        Content,
+    };
+    use i18n::LocalizationHandle;
+
+    // item::tests::ensure_item_localization tests that we have Content for
+    // each item. This tests that we actually have at least English translation
+    // for this Content.
+    #[test]
+    fn test_item_text() {
+        let manifest = ItemI18n::new_expect();
+        let localization = LocalizationHandle::load_expect("en").read();
+        let items = all_items_expect();
+
+        for item in items {
+            let (name, desc) = item.i18n(&manifest);
+
+            // check i18n for item name
+            let Content::Key(key) = name else {
+                panic!("name is expected to be Key, please fix the test");
+            };
+            localization.try_msg(&key).unwrap_or_else(|| {
+                panic!("'{key}' name doesn't have i18n");
+            });
+
+            // check i18n for item desc
+            let Content::Attr(key, attr) = desc else {
+                panic!("desc is expected to be Attr, please fix the test");
+            };
+            localization.try_attr(&key, &attr).unwrap_or_else(|| {
+                panic!("'{key}' description doesn't have i18n");
+            });
+        }
+    }
+}
