@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ferocious Shirt",
-    description: "The dark side of nature",
+    legacy_name: "Ferocious Shirt",
+    legacy_description: "The dark side of nature",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Ferocious"),

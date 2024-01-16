@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sniper Bow",
-    description: "",
+    legacy_name: "Sniper Bow",
+    legacy_description: "",
     kind: Tool((
         kind: Bow,
         hands: Two,

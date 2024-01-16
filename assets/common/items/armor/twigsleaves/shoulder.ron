@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leafy Shoulders",
-    description: "Leaves cover over the twigs to provide better protection from the elements.",
+    legacy_name: "Leafy Shoulders",
+    legacy_description: "Leaves cover over the twigs to provide better protection from the elements.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Twigs Leaves"),

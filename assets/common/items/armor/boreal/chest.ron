@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Chestplate",
-    description: "So frigid that you can feel it in your heart.",
+    legacy_name: "Boreal Chestplate",
+    legacy_description: "So frigid that you can feel it in your heart.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Boreal"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "FieryTornado",
-    description: "Fiery Tornado weapon",
+    legacy_name: "FieryTornado",
+    legacy_description: "Fiery Tornado weapon",
     kind: Tool((
         kind: Natural,
         hands: Two,

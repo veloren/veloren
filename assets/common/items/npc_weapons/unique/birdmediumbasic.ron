@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bird Medium Basic",
-    description: "BiteBiteBite!!! FightFightFight!!!",
+    legacy_name: "Bird Medium Basic",
+    legacy_description: "BiteBiteBite!!! FightFightFight!!!",
     kind: Tool((
         kind: Natural,
         hands: Two,

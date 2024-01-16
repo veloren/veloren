@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Miner's Footwear",
-    description: "Someone carved 'Mine!' into the inside.",
+    legacy_name: "Miner's Footwear",
+    legacy_description: "Someone carved 'Mine!' into the inside.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Miner"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Resin",
-    description: "Used for woodworking.",
+    legacy_name: "Resin",
+    legacy_description: "Used for woodworking.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

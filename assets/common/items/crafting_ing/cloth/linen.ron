@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Linen",
-    description: "A textile made from flax fibers.",
+    legacy_name: "Linen",
+    legacy_description: "A textile made from flax fibers.",
     kind: Ingredient(
         descriptor: "Linen",
     ),

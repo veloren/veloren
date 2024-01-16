@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tomato Salad",
-    description: "Leafy salad with some chopped, juicy tomatoes mixed in.",
+    legacy_name: "Tomato Salad",
+    legacy_description: "Leafy salad with some chopped, juicy tomatoes mixed in.",
     kind: Consumable(
         kind: Food,
         effects: One(

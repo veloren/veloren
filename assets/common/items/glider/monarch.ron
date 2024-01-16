@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orange Monarch",
-    description: "The delicate wings flutter faintly.",
+    legacy_name: "Orange Monarch",
+    legacy_description: "The delicate wings flutter faintly.",
     kind: Glider,
     quality: High,
     tags: [],

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Brinestone Pads",
-    description: "Almost too heavy.",
+    legacy_name: "Brinestone Pads",
+    legacy_description: "Almost too heavy.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Brinestone"),

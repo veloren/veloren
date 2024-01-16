@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Knitted Red Pouch",
-    description: "A sizeable red bag with two pouches, made of wool and dye.",
+    legacy_name: "Knitted Red Pouch",
+    legacy_description: "A sizeable red bag with two pouches, made of wool and dye.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

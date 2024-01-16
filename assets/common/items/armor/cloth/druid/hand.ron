@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Druid Handwraps",
-    description: "Incredibly light, with the essence of nature.",
+    legacy_name: "Druid Handwraps",
+    legacy_description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Lifecloth"),

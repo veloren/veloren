@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Emerald Ring",
-    description: "A cobalt ring with an emerald gem.",
+    legacy_name: "Emerald Ring",
+    legacy_description: "A cobalt ring with an emerald gem.",
     kind: Armor((
         kind: Ring,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Straw Hat",
-    description: "Often times worn by villagers. It's simple and stylish!",
+    legacy_name: "Straw Hat",
+    legacy_description: "Often times worn by villagers. It's simple and stylish!",
     kind: Armor((
         kind: Head,
         stats: Direct((

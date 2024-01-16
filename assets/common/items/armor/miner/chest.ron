@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Miner's Vestment",
-    description: "Rock dust is covering most of the leather parts.",
+    legacy_name: "Miner's Vestment",
+    legacy_description: "Rock dust is covering most of the leather parts.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Miner"),

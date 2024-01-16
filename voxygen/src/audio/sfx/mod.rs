@@ -87,7 +87,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         beam, biped_large, biped_small, bird_large, humanoid,
-        item::{AbilitySpec, ItemDefinitionId, ItemKind, ToolKind},
+        item::{item_key::ItemKey, AbilitySpec, ItemDefinitionId, ItemKind, ToolKind},
         object,
         poise::PoiseState,
         quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType, Health,
@@ -298,7 +298,7 @@ pub enum SfxInventoryEvent {
     CollectedTool(ToolKind),
     CollectedItem(String),
     CollectFailed,
-    Consumed(String),
+    Consumed(ItemKey),
     Debug,
     Dropped,
     Given,
@@ -317,7 +317,12 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                     ItemKind::Tool(tool) => {
                         SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind))
                     },
-                    ItemKind::Ingredient { .. } if matches!(item.item_definition_id(), ItemDefinitionId::Simple(id) if id.contains("mineral.gem.")) => {
+                    ItemKind::Ingredient { .. }
+                        if matches!(
+                            item.item_definition_id(),
+                            ItemDefinitionId::Simple(id) if id.contains("mineral.gem.")
+                        ) =>
+                    {
                         SfxEvent::Inventory(SfxInventoryEvent::CollectedItem(String::from(
                             "Gemstone",
                         )))

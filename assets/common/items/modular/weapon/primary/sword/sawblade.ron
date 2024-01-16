@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sawblade",
-    description: "",
+    legacy_name: "Sawblade",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Sword,

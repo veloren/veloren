@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Woolen Pants",
-    description: "Thick and ready for the snow.",
+    legacy_name: "Woolen Pants",
+    legacy_description: "Thick and ready for the snow.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Wool"),

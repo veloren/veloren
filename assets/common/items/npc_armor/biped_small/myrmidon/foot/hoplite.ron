@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Myrmidon Hoplite",
-    description: "Ceremonial attire used by members..",
+    legacy_name: "Myrmidon Hoplite",
+    legacy_description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Foot,
         stats: Direct((

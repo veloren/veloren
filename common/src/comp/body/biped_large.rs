@@ -1,4 +1,5 @@
-use crate::{comp::Content, make_case_elim, make_proj_elim};
+use crate::{make_case_elim, make_proj_elim};
+use common_i18n::Content;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 

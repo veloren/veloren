@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Notched Axe",
-    description: "Every dent tells the story of a chopped tree.",
+    legacy_name: "Notched Axe",
+    legacy_description: "Every dent tells the story of a chopped tree.",
     kind: Tool((
         kind: Axe,
         hands: Two,

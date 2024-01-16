@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Caladbolg",
-    description: "You sense an eldritch presence watching you.",
+    legacy_name: "Caladbolg",
+    legacy_description: "You sense an eldritch presence watching you.",
     kind: Tool((
         kind: Sword,
         hands: Two,

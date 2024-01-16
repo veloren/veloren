@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cultist Belt",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Cultist Belt",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Cultist"),

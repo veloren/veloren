@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tiny Red Pouch",
-    description: "Made from multiple patches of dyed cloth.",
+    legacy_name: "Tiny Red Pouch",
+    legacy_description: "Made from multiple patches of dyed cloth.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

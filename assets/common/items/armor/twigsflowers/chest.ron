@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flowery Shirt",
-    description: "Magically imbued twigs decorated with flowers and their stems, letting others know your intentions of peace and love.",
+    legacy_name: "Flowery Shirt",
+    legacy_description: "Magically imbued twigs decorated with flowers and their stems, letting others know your intentions of peace and love.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Twigs Flowers"),

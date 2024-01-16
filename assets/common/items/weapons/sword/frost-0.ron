@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frost Cleaver",
-    description: "Radiates a freezing aura.",
+    legacy_name: "Frost Cleaver",
+    legacy_description: "Radiates a freezing aura.",
     kind: Tool((
         kind: Sword,
         hands: Two,

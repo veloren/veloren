@@ -3,11 +3,8 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
-use crate::{
-    character::CharacterId,
-    comp::{dialogue::Subject, Content},
-    util::Dir,
-};
+use crate::{character::CharacterId, comp::dialogue::Subject, util::Dir};
+use common_i18n::Content;
 use rand::{seq::IteratorRandom, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Component;

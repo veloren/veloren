@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Turret",
-    description: "Turret weapon",
+    legacy_name: "Turret",
+    legacy_description: "Turret weapon",
     kind: Tool((
         kind: Natural,
         hands: Two,

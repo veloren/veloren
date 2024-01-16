@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tarasque Belt",
-    description: "Shattered band of a tarasque shell, making for a strong belt.",
+    legacy_name: "Tarasque Belt",
+    legacy_description: "Shattered band of a tarasque shell, making for a strong belt.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Tarasque"),

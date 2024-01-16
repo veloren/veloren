@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flamekeeper Pants",
-    description: "Flamekeeper Pants",
+    legacy_name: "Flamekeeper Pants",
+    legacy_description: "Flamekeeper Pants",
     kind: Armor((
         kind: Pants,
         stats: Direct((

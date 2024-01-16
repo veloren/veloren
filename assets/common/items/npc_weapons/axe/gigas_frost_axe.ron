@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frost Gigas Axe",
-    description: "Placeholder",
+    legacy_name: "Frost Gigas Axe",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Axe,
         hands: Two,

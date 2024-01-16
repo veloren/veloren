@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ferocious Waraji",
-    description: "The dark side of nature",
+    legacy_name: "Ferocious Waraji",
+    legacy_description: "The dark side of nature",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Ferocious"),

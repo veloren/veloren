@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Leggings",
-    description: "Ornamental and impenetrable, the metal will never dull.",
+    legacy_name: "Cobalt Leggings",
+    legacy_description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Cobalt"),

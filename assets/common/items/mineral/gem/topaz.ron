@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Topaz",
-    description: "An outstanding orange gem.",
+    legacy_name: "Topaz",
+    legacy_description: "An outstanding orange gem.",
     kind: Ingredient(
         descriptor: "Topaz",
     ),

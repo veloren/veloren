@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moonweave",
-    description: "A light yet very sturdy textile.",
+    legacy_name: "Moonweave",
+    legacy_description: "A light yet very sturdy textile.",
     kind: Ingredient(
         descriptor: "Moonwoven",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Irrwurz",
-    description: "Plant Creature",
+    legacy_name: "Irrwurz",
+    legacy_description: "Plant Creature",
     kind: Armor((
         kind: Pants,
         stats: Direct((

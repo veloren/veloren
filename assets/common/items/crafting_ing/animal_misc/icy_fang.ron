@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Icy Shard",
-    description: "Looted from a frosty creature.",
+    legacy_name: "Icy Shard",
+    legacy_description: "Looted from a frosty creature.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

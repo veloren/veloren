@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moonlit Love",
-    description: "Love is in the air.",
+    legacy_name: "Moonlit Love",
+    legacy_description: "Love is in the air.",
     kind: Glider,
     quality: Epic,
     tags: [

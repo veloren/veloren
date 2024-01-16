@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cyclops Eye",
-    description: "Looks like it could open an ancient mechanism.",
+    legacy_name: "Cyclops Eye",
+    legacy_description: "Looks like it could open an ancient mechanism.",
     kind: Utility(
         kind: Key,
     ),

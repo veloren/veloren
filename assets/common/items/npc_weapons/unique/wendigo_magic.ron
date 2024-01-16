@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wendigo Magic",
-    description: "spook.",
+    legacy_name: "Wendigo Magic",
+    legacy_description: "spook.",
     kind: Tool((
         kind: Natural,
         hands: Two,

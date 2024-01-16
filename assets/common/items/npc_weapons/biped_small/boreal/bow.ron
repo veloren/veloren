@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Bow",
-    description: "",
+    legacy_name: "Boreal Bow",
+    legacy_description: "",
     kind: Tool((
         kind: Bow,
         hands: Two,

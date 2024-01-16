@@ -2,12 +2,12 @@ use crate::{
     comp::{
         item::{ItemDefinitionId, ItemDefinitionIdOwned},
         tool::ToolKind,
-        Content,
     },
     lottery::LootSpec,
     make_case_elim,
     terrain::Block,
 };
+use common_i18n::Content;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
@@ -778,9 +778,11 @@ pub enum UnlockKind {
     Free,
     /// The sprite requires that the opening character has a given item in their
     /// inventory
+    // TODO: use ItemKey here?
     Requires(ItemDefinitionIdOwned),
     /// The sprite will consume the given item from the opening character's
     /// inventory
+    // TODO: use ItemKey here?
     Consumes(ItemDefinitionIdOwned),
 }
 

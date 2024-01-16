@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Cloak",
-    description: "Thick yet surprisingly cold.",
+    legacy_name: "Boreal Cloak",
+    legacy_description: "Thick yet surprisingly cold.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Boreal"),

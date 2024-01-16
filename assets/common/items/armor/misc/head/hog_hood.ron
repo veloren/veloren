@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Hog Hood",
-    description: "Wear the guise of a great swine now felled, so that you may honor its sacrifice.",
+    legacy_name: "Hog Hood",
+    legacy_description: "Wear the guise of a great swine now felled, so that you may honor its sacrifice.",
     kind: Armor((
         kind: Head,
         stats: Direct((

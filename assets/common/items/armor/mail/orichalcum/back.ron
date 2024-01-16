@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orichalcum Cape",
-    description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
+    legacy_name: "Orichalcum Cape",
+    legacy_description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Orichalcum"),

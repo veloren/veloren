@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wanderer's Hat",
-    description: "The perfect headwear for those who feel at home on the highways and byways of Veloren.",
+    legacy_name: "Wanderer's Hat",
+    legacy_description: "The perfect headwear for those who feel at home on the highways and byways of Veloren.",
     kind: Armor((
         kind: Head,
         stats: Direct((

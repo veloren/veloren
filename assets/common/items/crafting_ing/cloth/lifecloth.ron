@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lifecloth",
-    description: "A fabric imbued with the gentleness that nature has to offer.",
+    legacy_name: "Lifecloth",
+    legacy_description: "A fabric imbued with the gentleness that nature has to offer.",
     kind: Ingredient(
         descriptor: "Lifecloth",
     ),

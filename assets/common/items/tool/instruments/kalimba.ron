@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Kalimba",
-    description: "Wooden Kalimba.",
+    legacy_name: "Kalimba",
+    legacy_description: "Wooden Kalimba.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

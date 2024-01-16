@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunflower Ice Tea",
-    description: "Brewed from freshly shelled sunflower seeds",
+    legacy_name: "Sunflower Ice Tea",
+    legacy_description: "Brewed from freshly shelled sunflower seeds",
     kind: Consumable(
         kind: Drink,
         effects: One(

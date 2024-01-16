@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Howl Cowl",
-    description: "Wearing the guise of a fearsome wolf befits a fearsome hunter.",
+    legacy_name: "Howl Cowl",
+    legacy_description: "Wearing the guise of a fearsome wolf befits a fearsome hunter.",
     kind: Armor((
         kind: Head,
         stats: Direct((

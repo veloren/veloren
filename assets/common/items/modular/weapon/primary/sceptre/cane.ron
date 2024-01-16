@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cane Shaft",
-    description: "",
+    legacy_name: "Cane Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Sceptre,

@@ -2,11 +2,11 @@ use super::{
     animate_by_pulse, get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    HudInfo, Show, Windows, TEXT_COLOR,
+    util, HudInfo, Show, Windows, TEXT_COLOR,
 };
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
-use common::comp::inventory::item::{Item, ItemDesc, MaterialStatManifest, Quality};
+use common::comp::inventory::item::{Item, ItemDesc, ItemI18n, MaterialStatManifest, Quality};
 use conrod_core::{
     color,
     position::Dimension,
@@ -58,6 +58,7 @@ pub struct LootScroller<'a> {
     rot_imgs: &'a ImgsRot,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    item_i18n: &'a ItemI18n,
     msm: &'a MaterialStatManifest,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     pulse: f32,
@@ -76,6 +77,7 @@ impl<'a> LootScroller<'a> {
         rot_imgs: &'a ImgsRot,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        item_i18n: &'a ItemI18n,
         msm: &'a MaterialStatManifest,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         pulse: f32,
@@ -90,6 +92,7 @@ impl<'a> LootScroller<'a> {
             rot_imgs,
             fonts,
             localized_strings,
+            item_i18n,
             msm,
             item_tooltip_manager,
             pulse,
@@ -153,6 +156,7 @@ impl<'a> Widget for LootScroller<'a> {
             self.pulse,
             self.msm,
             self.localized_strings,
+            self.item_i18n,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -351,7 +355,11 @@ impl<'a> Widget for LootScroller<'a> {
                     &i18n::fluent_args! {
                           "actor" => taken_by,
                           "amount" => amount,
-                          "item" => item.name(),
+                          "item" => {
+                              let (name, _) =
+                                  util::item_text(&item, self.localized_strings, self.item_i18n);
+                              name
+                          },
                     },
                 );
                 let label_font_size = 20;

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Harvester Sythe",
-    description: "Placeholder",
+    legacy_name: "Harvester Sythe",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Natural,
         hands: Two,

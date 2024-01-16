@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Huge Cooked Drumstick",
-    description: "Makes for a legendary meal.",
+    legacy_name: "Huge Cooked Drumstick",
+    legacy_description: "Makes for a legendary meal.",
     kind: Consumable(
         kind: Food,
         effects: One(

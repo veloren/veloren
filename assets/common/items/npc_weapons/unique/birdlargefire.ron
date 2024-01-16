@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bird Large Fire",
-    description: "Fiery touch of a mighty aerial beast",
+    legacy_name: "Bird Large Fire",
+    legacy_description: "Fiery touch of a mighty aerial beast",
     kind: Tool((
         kind: Natural,
         hands: Two,

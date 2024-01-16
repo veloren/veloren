@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Winged Coronet",
-    description: "You feel more connected with nature.",
+    legacy_name: "Winged Coronet",
+    legacy_description: "You feel more connected with nature.",
     kind: Armor((
         kind: Head,
         stats: Direct((

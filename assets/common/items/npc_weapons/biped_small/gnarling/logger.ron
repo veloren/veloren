@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Logger Axe",
-    description: "",
+    legacy_name: "Logger Axe",
+    legacy_description: "",
     kind: Tool((
         kind: Axe,
         hands: Two,

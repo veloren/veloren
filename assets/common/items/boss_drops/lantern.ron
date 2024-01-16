@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Magic Lantern",
-    description: "Illuminates even the darkest dungeon\nA great monster was slain for this item",
+    legacy_name: "Magic Lantern",
+    legacy_description: "Illuminates even the darkest dungeon\nA great monster was slain for this item",
     kind: Lantern(
         (
             color: (r: 128, g: 26, b: 255),

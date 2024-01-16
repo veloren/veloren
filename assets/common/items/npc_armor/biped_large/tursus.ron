@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tursus Skin",
-    description: "Born with it",
+    legacy_name: "Tursus Skin",
+    legacy_description: "Born with it",
     kind: Armor((
         kind: Chest,
         stats: Direct((

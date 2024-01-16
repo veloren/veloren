@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Twig Belt",
-    description: "Small bits of nature magically held together into the shape of a belt.",
+    legacy_name: "Twig Belt",
+    legacy_description: "Small bits of nature magically held together into the shape of a belt.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Twigs"),

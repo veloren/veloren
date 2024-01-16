@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Polaris",
-    description: "Christmas Lantern.",
+    legacy_name: "Polaris",
+    legacy_description: "Christmas Lantern.",
     kind: Lantern(
         (
             color: (r: 67, g: 170, b: 255),

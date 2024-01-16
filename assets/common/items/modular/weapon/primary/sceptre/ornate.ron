@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ornate Sceptre Shaft",
-    description: "",
+    legacy_name: "Ornate Sceptre Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Sceptre,

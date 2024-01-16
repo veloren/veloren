@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Glass Flute",
-    description: "What's the Cardinal doing with it?",
+    legacy_name: "Glass Flute",
+    legacy_description: "What's the Cardinal doing with it?",
     kind: Tool((
         kind: Instrument,
         hands: Two,

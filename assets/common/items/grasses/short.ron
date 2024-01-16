@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Short Grass",
-    description: "Greener than an orc's snout.",
+    legacy_name: "Short Grass",
+    legacy_description: "Greener than an orc's snout.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

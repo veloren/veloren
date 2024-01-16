@@ -92,7 +92,7 @@ pub enum MoodState {
     Bad(MoodContext),
 }
 
-// TODO: dialogue localization
+// TODO: this should return common_i18n::Content
 impl MoodState {
     pub fn describe(&self) -> String {
         match self {
@@ -105,7 +105,7 @@ impl MoodState {
     }
 }
 
-// TODO: dialogue localization
+// TODO: this should return common_i18n::Content
 impl MoodContext {
     pub fn describe(&self) -> String {
         match &self {
@@ -114,11 +114,16 @@ impl MoodContext {
                 format!("{} helped me on {}", hero, quest_desc)
             },
             &MoodContext::EverydayLife => "Life's going as always.".to_string(),
-            MoodContext::NeedItem { item, quantity } => {
-                format!("I need {} {}!", quantity, item.name())
+            MoodContext::NeedItem {
+                item: _,
+                quantity: _,
+            } => {
+                // format!("I need {} {}!", quantity, item.name())
+                "I need some item, not just any item!".to_string()
             },
-            &MoodContext::MissingItem { item } => {
-                format!("Someone robbed my {}!", item.name())
+            &MoodContext::MissingItem { item: _ } => {
+                // format!("Someone robbed my {}!", item.name())
+                "Someone robbed me of my item!".to_string()
             },
         }
     }

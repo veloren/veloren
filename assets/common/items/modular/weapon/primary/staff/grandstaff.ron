@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Grandstaff Shaft",
-    description: "",
+    legacy_name: "Grandstaff Shaft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Staff,

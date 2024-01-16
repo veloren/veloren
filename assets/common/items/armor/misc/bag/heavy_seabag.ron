@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Heavy Seabag",
-    description: "Commonly used by sailors.",
+    legacy_name: "Heavy Seabag",
+    legacy_description: "Commonly used by sailors.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

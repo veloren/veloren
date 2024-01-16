@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Chieftain Mask",
-    description: "It smells like burned wood.",
+    legacy_name: "Chieftain Mask",
+    legacy_description: "It smells like burned wood.",
 	kind: Armor((
         kind: Head,
         stats: Direct((

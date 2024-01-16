@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst Ring",
-    description: "A tin ring with an amethyst gem.",
+    legacy_name: "Amethyst Ring",
+    legacy_description: "A tin ring with an amethyst gem.",
     kind: Armor((
         kind: Ring,
         stats: Direct((

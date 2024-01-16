@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron and Leather Spaulders",
-    description: "Leather inset with heavy iron bands provide protection to the wearer.",
+    legacy_name: "Iron and Leather Spaulders",
+    legacy_description: "Leather inset with heavy iron bands provide protection to the wearer.",
     kind: Armor((
         kind: Shoulder,
         stats: Direct((

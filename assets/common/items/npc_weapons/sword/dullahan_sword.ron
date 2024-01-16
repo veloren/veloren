@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dullahan Sword",
-    description: "Placeholder",
+    legacy_name: "Dullahan Sword",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Sword,
         hands: Two,

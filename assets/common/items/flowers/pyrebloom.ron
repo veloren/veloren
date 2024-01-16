@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pyrebloom",
-    description: "Warm to the touch, long after picking.",
+    legacy_name: "Pyrebloom",
+    legacy_description: "Warm to the touch, long after picking.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

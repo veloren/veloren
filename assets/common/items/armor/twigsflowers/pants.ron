@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flowery Pants",
-    description: "Chainmail woven twigs enhanced with flower stems to provide protection and peace.",
+    legacy_name: "Flowery Pants",
+    legacy_description: "Chainmail woven twigs enhanced with flower stems to provide protection and peace.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Twigs Flowers"),

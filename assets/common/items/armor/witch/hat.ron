@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Witch Hat",
-    description: "Draws strength from dark arts.",
+    legacy_name: "Witch Hat",
+    legacy_description: "Draws strength from dark arts.",
     kind: Armor((
         kind: Head,
         stats: Direct((

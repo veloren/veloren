@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Black Lantern",
-    description: "Quite common due to popular use of budding adventurers!",
+    legacy_name: "Black Lantern",
+    legacy_description: "Quite common due to popular use of budding adventurers!",
     kind: Lantern(
         (
             color: (r: 255, g: 128, b: 26),

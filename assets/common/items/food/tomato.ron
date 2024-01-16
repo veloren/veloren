@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tomato",
-    description: "A red fruit. It's not actually a vegetable!",
+    legacy_name: "Tomato",
+    legacy_description: "A red fruit. It's not actually a vegetable!",
     kind: Consumable(
         kind: Food,
         effects: One(

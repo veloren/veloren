@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Warhelmet",
-    description: "I wonder where it's pointing...",
+    legacy_name: "Boreal Warhelmet",
+    legacy_description: "I wonder where it's pointing...",
     kind: Armor((
         kind: Head,
         stats: Direct((

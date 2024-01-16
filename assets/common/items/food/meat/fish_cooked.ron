@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cooked Fish",
-    description: "A fresh cooked seafood steak.",
+    legacy_name: "Cooked Fish",
+    legacy_description: "A fresh cooked seafood steak.",
     kind: Consumable(
         kind: Food,
         effects: One(

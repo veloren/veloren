@@ -3,7 +3,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs},
     slots::{CraftSlot, CraftSlotInfo, SlotManager},
-    HudInfo, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    util, HudInfo, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::ui::{
     fonts::Fonts,
@@ -19,8 +19,8 @@ use common::{
             item_key::ItemKey,
             modular::{self, ModularComponent},
             tool::{AbilityMap, ToolKind},
-            Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
-            TagExampleInfo,
+            Item, ItemBase, ItemDef, ItemDesc, ItemI18n, ItemKind, ItemTag, MaterialStatManifest,
+            Quality, TagExampleInfo,
         },
         slot::{InvSlotId, Slot},
         Inventory,
@@ -151,6 +151,7 @@ pub struct Crafting<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    item_i18n: &'a ItemI18n,
     pulse: f32,
     rot_imgs: &'a ImgsRot,
     item_tooltip_manager: &'a mut ItemTooltipManager,
@@ -171,6 +172,7 @@ impl<'a> Crafting<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        item_i18n: &'a ItemI18n,
         pulse: f32,
         rot_imgs: &'a ImgsRot,
         item_tooltip_manager: &'a mut ItemTooltipManager,
@@ -187,6 +189,7 @@ impl<'a> Crafting<'a> {
             imgs,
             fonts,
             localized_strings,
+            item_i18n,
             pulse,
             rot_imgs,
             item_tooltip_manager,
@@ -355,6 +358,7 @@ impl<'a> Widget for Crafting<'a> {
             self.pulse,
             self.msm,
             self.localized_strings,
+            self.item_i18n,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -544,6 +548,8 @@ impl<'a> Widget for Crafting<'a> {
         let metal_comp_recipe = make_pseudo_recipe(SpriteKind::Anvil);
         let wood_comp_recipe = make_pseudo_recipe(SpriteKind::CraftingBench);
         let repair_recipe = make_pseudo_recipe(SpriteKind::RepairBench);
+
+        // TODO: localize
         let pseudo_entries = {
             // A BTreeMap is used over a HashMap as when a HashMap is used, the UI shuffles
             // the positions of these every tick, so a BTreeMap is necessary to keep it
@@ -594,6 +600,7 @@ impl<'a> Widget for Crafting<'a> {
             .iter()
             .filter(|(_, recipe)| match search_filter {
                 SearchFilter::None => {
+                    #[allow(deprecated)]
                     let output_name = recipe.output.0.name().to_lowercase();
                     search_keys
                         .iter()
@@ -608,9 +615,11 @@ impl<'a> Widget for Crafting<'a> {
                     };
 
                     match input {
+                        #[allow(deprecated)]
                         RecipeInput::Item(def) => search(&def.name()),
                         RecipeInput::Tag(tag) => search(tag.name()),
                         RecipeInput::TagSameItem(tag) => search(tag.name()),
+                        #[allow(deprecated)]
                         RecipeInput::ListSameItem(defs) => {
                             defs.iter().any(|def| search(&def.name()))
                         },
@@ -667,6 +676,7 @@ impl<'a> Widget for Crafting<'a> {
                 !is_craftable,
                 !has_materials,
                 recipe.output.0.quality(),
+                #[allow(deprecated)]
                 recipe.output.0.name(),
             )
         });
@@ -727,11 +737,17 @@ impl<'a> Widget for Crafting<'a> {
             .press_image(self.imgs.selection_press)
             .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
 
+            let title;
             let recipe_name =
                 if let Some((_recipe, pseudo_name, _filter_tab)) = pseudo_entries.get(name) {
                     *pseudo_name
                 } else {
-                    &recipe.output.0.name
+                    (title, _) = util::item_text(
+                        recipe.output.0.as_ref(),
+                        self.localized_strings,
+                        self.item_i18n,
+                    );
+                    &title
                 };
 
             let text = Text::new(recipe_name)
@@ -848,13 +864,21 @@ impl<'a> Widget for Crafting<'a> {
             None => None,
         } {
             let recipe_name = String::from(recipe_name);
+
+            let title;
             let title = if let Some((_recipe, pseudo_name, _filter_tab)) =
                 pseudo_entries.get(&recipe_name)
             {
                 *pseudo_name
             } else {
-                &recipe.output.0.name
+                (title, _) = util::item_text(
+                    recipe.output.0.as_ref(),
+                    self.localized_strings,
+                    self.item_i18n,
+                );
+                &title
             };
+
             // Title
             Text::new(title)
                 .mid_top_with_margin_on(state.ids.align_ing, -22.0)
@@ -1214,6 +1238,8 @@ impl<'a> Widget for Crafting<'a> {
                     };
 
                     if let Some(output_item) = output_item {
+                        let (name, _) =
+                            util::item_text(&output_item, self.localized_strings, self.item_i18n);
                         Button::image(animate_by_pulse(
                             &self
                                 .item_imgs
@@ -1221,7 +1247,7 @@ impl<'a> Widget for Crafting<'a> {
                             self.pulse,
                         ))
                         .w_h(55.0, 55.0)
-                        .label(&output_item.name())
+                        .label(&name)
                         .label_color(TEXT_COLOR)
                         .label_font_size(self.fonts.cyri.scale(14))
                         .label_font_id(self.fonts.cyri.conrod_id)
@@ -1926,6 +1952,7 @@ impl<'a> Widget for Crafting<'a> {
                         .was_clicked()
                     {
                         events.push(Event::ChangeCraftingTab(CraftingTab::All));
+                        #[allow(deprecated)]
                         events.push(Event::SearchRecipe(Some(item_def.name().to_string())));
                     }
                     // Item image
@@ -1963,7 +1990,13 @@ impl<'a> Widget for Crafting<'a> {
                             .font_size(self.fonts.cyri.scale(14))
                             .color(TEXT_COLOR)
                             .set(state.ids.req_text[i], ui);
-                        Text::new(&item_def.name())
+
+                        let (name, _) = util::item_text(
+                            item_def.as_ref(),
+                            self.localized_strings,
+                            self.item_i18n,
+                        );
+                        Text::new(&name)
                             .right_from(state.ids.ingredient_frame[i], 10.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .font_size(self.fonts.cyri.scale(14))
@@ -1972,14 +2005,35 @@ impl<'a> Widget for Crafting<'a> {
                     } else {
                         // Ingredients
                         let name = match recipe_input {
-                            RecipeInput::Item(_) => item_def.name().to_string(),
+                            RecipeInput::Item(_) => {
+                                let (name, _) = util::item_text(
+                                    item_def.as_ref(),
+                                    self.localized_strings,
+                                    self.item_i18n,
+                                );
+
+                                name
+                            },
                             RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag) => {
+                                // TODO: Localize!
                                 format!("Any {} item", tag.name())
                             },
                             RecipeInput::ListSameItem(item_defs) => {
+                                // TODO: Localize!
                                 format!(
                                     "Any of {}",
-                                    item_defs.iter().map(|def| def.name()).collect::<String>()
+                                    item_defs
+                                        .iter()
+                                        .map(|def| {
+                                            let (name, _) = util::item_text(
+                                                def.as_ref(),
+                                                self.localized_strings,
+                                                self.item_i18n,
+                                            );
+
+                                            name
+                                        })
+                                        .collect::<String>()
                                 )
                             },
                         };

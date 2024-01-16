@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Suspicious Paper Knife",
-    description: "Opens letters quickly.",
+    legacy_name: "Suspicious Paper Knife",
+    legacy_description: "Opens letters quickly.",
     kind: Tool((
         kind: Dagger,
         hands: One,

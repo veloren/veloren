@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tarasque Boots",
-    description: "Tarasque claws form the outside of these boots, protecting the wearer's feet.",
+    legacy_name: "Tarasque Boots",
+    legacy_description: "Tarasque claws form the outside of these boots, protecting the wearer's feet.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Tarasque"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cultist Amulet",
-    description: "You can still feel the Mindflayer's presence within this amulet...",
+    legacy_name: "Cultist Amulet",
+    legacy_description: "You can still feel the Mindflayer's presence within this amulet...",
     kind: Armor((
         kind: Neck,
         stats: Direct((

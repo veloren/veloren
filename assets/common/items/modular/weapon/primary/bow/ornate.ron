@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ornate Bow Limbs",
-    description: "",
+    legacy_name: "Ornate Bow Limbs",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Bow,

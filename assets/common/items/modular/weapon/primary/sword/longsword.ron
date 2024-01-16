@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Longsword Blade",
-    description: "",
+    legacy_name: "Longsword Blade",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Sword,

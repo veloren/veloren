@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Admin Greatsword",
-    description: "Shouldn't this be a hammer?",
+    legacy_name: "Admin Greatsword",
+    legacy_description: "Shouldn't this be a hammer?",
     kind: Tool((
         kind: Sword,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sahagin Spearman",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Sahagin Spearman",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Head,
         stats: Direct((

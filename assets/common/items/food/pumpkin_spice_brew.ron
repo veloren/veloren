@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pumpkin Spice Brew",
-    description: "Brewed from moldy pumpkins.",
+    legacy_name: "Pumpkin Spice Brew",
+    legacy_description: "Brewed from moldy pumpkins.",
     kind: Consumable(
         kind: Drink,
         effects: One(

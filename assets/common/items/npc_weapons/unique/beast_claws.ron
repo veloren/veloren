@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Beast Claws",
-    description: "Was attached to a beast.",
+    legacy_name: "Beast Claws",
+    legacy_description: "Was attached to a beast.",
     kind: Tool((
         kind: Natural,
         hands: Two,

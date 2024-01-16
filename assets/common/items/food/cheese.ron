@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dwarven Cheese",
-    description: "Made from goat milk from the finest dwarven produce. Aromatic and nutritious!",
+    legacy_name: "Dwarven Cheese",
+    legacy_description: "Made from goat milk from the finest dwarven produce. Aromatic and nutritious!",
     kind: Consumable(
         kind: Food,
         effects: One(

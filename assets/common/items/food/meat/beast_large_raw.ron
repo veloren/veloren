@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Raw Meat Slab",
-    description: "Chunk of beastly animal meat, best after cooking.",
+    legacy_name: "Raw Meat Slab",
+    legacy_description: "Chunk of beastly animal meat, best after cooking.",
     kind: Consumable(
         kind: Food,
         effects: One(

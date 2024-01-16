@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Long Hammer Haft",
-    description: "",
+    legacy_name: "Long Hammer Haft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
             toolkind: Hammer,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mindflayer Staff",
-    description: "Placeholder",
+    legacy_name: "Mindflayer Staff",
+    legacy_description: "Placeholder",
     kind: Tool((
         kind: Staff,
         hands: Two,

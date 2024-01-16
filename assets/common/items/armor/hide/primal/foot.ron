@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Primal Boots",
-    description: "Smithed from hide tougher than steel.",
+    legacy_name: "Primal Boots",
+    legacy_description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Plate"),

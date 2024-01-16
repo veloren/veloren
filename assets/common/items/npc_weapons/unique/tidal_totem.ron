@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tidal Totem",
-    description: "Yeet",
+    legacy_name: "Tidal Totem",
+    legacy_description: "Yeet",
     kind: Tool((
         kind: Natural,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst Necklace",
-    description: "A tin necklace lined with amethyst gems.",
+    legacy_name: "Amethyst Necklace",
+    legacy_description: "A tin necklace lined with amethyst gems.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

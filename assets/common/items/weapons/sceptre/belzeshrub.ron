@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Belzeshrub the Broom God",
-    description: "'Is it... alive?'",
+    legacy_name: "Belzeshrub the Broom God",
+    legacy_description: "'Is it... alive?'",
     kind: Tool((
         kind: Sceptre,
         hands: Two,

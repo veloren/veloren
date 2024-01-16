@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sentient Seed",
-    description: "The undeveloped spawn of a sentient plant.",
+    legacy_name: "Sentient Seed",
+    legacy_description: "The undeveloped spawn of a sentient plant.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

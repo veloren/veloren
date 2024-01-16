@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Ore",
-    description: "An incredibly common but incredibly versatile metal.",
+    legacy_name: "Iron Ore",
+    legacy_description: "An incredibly common but incredibly versatile metal.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

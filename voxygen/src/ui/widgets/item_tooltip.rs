@@ -10,7 +10,7 @@ use common::{
     comp::{
         item::{
             armor::Protection, item_key::ItemKey, modular::ModularComponent, Item, ItemDesc,
-            ItemKind, ItemTag, MaterialStatManifest, Quality,
+            ItemI18n, ItemKind, ItemTag, MaterialStatManifest, Quality,
         },
         Energy,
     },
@@ -296,6 +296,7 @@ pub struct ItemTooltip<'a> {
     item_imgs: &'a ItemImgs,
     pulse: f32,
     localized_strings: &'a Localization,
+    item_i18n: &'a ItemI18n,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, WidgetStyle)]
@@ -360,6 +361,7 @@ impl<'a> ItemTooltip<'a> {
         pulse: f32,
         msm: &'a MaterialStatManifest,
         localized_strings: &'a Localization,
+        item_i18n: &'a ItemI18n,
     ) -> Self {
         ItemTooltip {
             common: widget::CommonBuilder::default(),
@@ -377,6 +379,7 @@ impl<'a> ItemTooltip<'a> {
             item_imgs,
             pulse,
             localized_strings,
+            item_i18n,
         }
     }
 
@@ -450,6 +453,7 @@ impl<'a> Widget for ItemTooltip<'a> {
         } = args;
 
         let i18n = &self.localized_strings;
+        let item_i18n = &self.item_i18n;
 
         let inventories = self.client.inventories();
         let inventory = match inventories.get(self.info.viewpoint_entity) {
@@ -465,7 +469,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let equipped_item = inventory.equipped_items_replaceable_by(item_kind).next();
 
-        let (title, desc) = (item.name().to_string(), item.description().to_string());
+        let (title, desc) = util::item_text(item, i18n, item_i18n);
 
         let item_kind = util::kind_text(item_kind, i18n).to_string();
 
@@ -1266,7 +1270,8 @@ impl<'a> Widget for ItemTooltip<'a> {
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
         let item = &self.item;
 
-        let desc = item.description().to_string();
+        // TODO: we do double work here, does it need optimization?
+        let (_, desc) = util::item_text(item, self.localized_strings, self.item_i18n);
 
         let (text_w, _image_w) = self.text_image_width(260.0);
 

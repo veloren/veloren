@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rawhide Shoes",
-    description: "Tightly packed pieces of leather. Light-weight and sturdy!",
+    legacy_name: "Rawhide Shoes",
+    legacy_description: "Tightly packed pieces of leather. Light-weight and sturdy!",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Rawhide"),

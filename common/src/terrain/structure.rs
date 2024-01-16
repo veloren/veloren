@@ -1,11 +1,11 @@
 use super::{BlockKind, SpriteKind};
 use crate::{
     assets::{self, AssetExt, AssetHandle, BoxedError, DotVoxAsset},
-    comp::Content,
     make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
 };
+use common_i18n::Content;
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use serde::Deserialize;

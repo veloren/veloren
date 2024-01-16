@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tidal Claws",
-    description: "Snip snap",
+    legacy_name: "Tidal Claws",
+    legacy_description: "Snip snap",
     kind: Tool((
         kind: Natural,
         hands: Two,

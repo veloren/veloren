@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bird Large Breathe",
-    description: "testing123",
+    legacy_name: "Bird Large Breathe",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

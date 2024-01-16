@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Boreal Spaulders",
-    description: "As though the icy grip of death touches your shoulder.",
+    legacy_name: "Boreal Spaulders",
+    legacy_description: "As though the icy grip of death touches your shoulder.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Boreal"),

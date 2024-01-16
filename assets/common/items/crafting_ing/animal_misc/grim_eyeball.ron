@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Grim Eyeball",
-    description: "Casts a petrifying gaze.",
+    legacy_name: "Grim Eyeball",
+    legacy_description: "Casts a petrifying gaze.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

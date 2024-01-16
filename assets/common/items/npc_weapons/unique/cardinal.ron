@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Caduceus",
-    description: "The snakes seem to be alive",
+    legacy_name: "Caduceus",
+    legacy_description: "The snakes seem to be alive",
     kind: Tool((
         kind: Sceptre,
         hands: Two,

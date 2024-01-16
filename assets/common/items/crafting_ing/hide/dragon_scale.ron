@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dragon Scale",
-    description: "Tough scale from a legendary beast, hot to the touch.",
+    legacy_name: "Dragon Scale",
+    legacy_description: "Tough scale from a legendary beast, hot to the touch.",
     kind: Ingredient(
         descriptor: "Dragonscale",
     ),

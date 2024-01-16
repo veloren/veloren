@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Haniwa Sentry",
-    description: "Rotating turret weapon",
+    legacy_name: "Haniwa Sentry",
+    legacy_description: "Rotating turret weapon",
     kind: Tool((
         kind: Natural,
         hands: Two,

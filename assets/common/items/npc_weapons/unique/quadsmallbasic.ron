@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Quad Small Basic",
-    description: "testing123",
+    legacy_name: "Quad Small Basic",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

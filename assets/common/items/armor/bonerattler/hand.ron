@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bonerattler Gauntlets",
-    description: "The hide and bone from a bonerattler provide strong protection for the wearer.",
+    legacy_name: "Bonerattler Gauntlets",
+    legacy_description: "The hide and bone from a bonerattler provide strong protection for the wearer.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Bonerattler"),

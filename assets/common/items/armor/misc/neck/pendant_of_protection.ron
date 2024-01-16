@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pendant of Protection",
-    description: "You feel some sort of presence keeping you safe...",
+    legacy_name: "Pendant of Protection",
+    legacy_description: "You feel some sort of presence keeping you safe...",
     kind: Armor((
         kind: Neck,
         stats: Direct((

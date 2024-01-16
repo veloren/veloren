@@ -1,0 +1,10 @@
+[package]
+name = "veloren-common-i18n"
+version = "0.1.0"
+edition = "2021"
+description = "Crate for structs and methods that acknowledge the need for localization of the game"
+
+[dependencies]
+serde = { workspace = true, features = ["rc"] }
+hashbrown = { workspace = true }
+rand = { workspace = true }

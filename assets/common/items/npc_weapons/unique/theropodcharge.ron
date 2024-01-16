@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Theropod Charge",
-    description: "testing123",
+    legacy_name: "Theropod Charge",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

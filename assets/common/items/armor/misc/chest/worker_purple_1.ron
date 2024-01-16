@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Worker Shirt",
-    description: "Was used by a farmer, until recently.",
+    legacy_name: "Purple Worker Shirt",
+    legacy_description: "Was used by a farmer, until recently.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

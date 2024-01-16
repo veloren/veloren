@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Hard Carapace",
-    description: "Tough, hard carapace, a shield to many creatures.",
+    legacy_name: "Hard Carapace",
+    legacy_description: "Tough, hard carapace, a shield to many creatures.",
     kind: Ingredient(
         descriptor: "Carapace",
     ),

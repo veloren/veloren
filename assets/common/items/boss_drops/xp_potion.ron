@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Potion of Skill",
-    description: "It doesn't seem to be doing anything...",
+    legacy_name: "Potion of Skill",
+    legacy_description: "It doesn't seem to be doing anything...",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

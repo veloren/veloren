@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mushroom Stick",
-    description: "Roasted mushrooms on a stick for easy carrying",
+    legacy_name: "Mushroom Stick",
+    legacy_description: "Roasted mushrooms on a stick for easy carrying",
     kind: Consumable(
         kind: Food,
         effects: One(

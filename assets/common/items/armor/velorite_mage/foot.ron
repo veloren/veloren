@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Battlemage Boots",
-    description: "",
+    legacy_name: "Velorite Battlemage Boots",
+    legacy_description: "",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Velorite Battlemage"),

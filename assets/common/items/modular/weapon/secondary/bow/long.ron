@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Long Bow Grip",
-    description: "",
+    legacy_name: "Long Bow Grip",
+    legacy_description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
             toolkind: Bow,

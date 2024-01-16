@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Worker Pants",
-    description: "Resilient and reliable.",
+    legacy_name: "Blue Worker Pants",
+    legacy_description: "Resilient and reliable.",
     kind: Armor((
         kind: Pants,
         stats: Direct((

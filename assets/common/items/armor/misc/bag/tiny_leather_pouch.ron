@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Small Leather Pouch",
-    description: "A small reliable leather pouch.",
+    legacy_name: "Small Leather Pouch",
+    legacy_description: "A small reliable leather pouch.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Witch Skirt",
-    description: "",
+    legacy_name: "Witch Skirt",
+    legacy_description: "",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Witch"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Empty Item",
-    description: "This item may grant abilities, but is invisible",
+    legacy_name: "Empty Item",
+    legacy_description: "This item may grant abilities, but is invisible",
     kind: Tool((
         kind: Empty,
         hands: One,

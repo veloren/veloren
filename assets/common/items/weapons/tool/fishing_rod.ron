@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Fishing Rod",
-    description: "Smells of fish.",
+    legacy_name: "Fishing Rod",
+    legacy_description: "Smells of fish.",
     kind: Tool((
         kind: Farming,
         hands: Two,

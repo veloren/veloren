@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Coal",
-    description: "A dark, combustible energy source.",
+    legacy_name: "Coal",
+    legacy_description: "A dark, combustible energy source.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

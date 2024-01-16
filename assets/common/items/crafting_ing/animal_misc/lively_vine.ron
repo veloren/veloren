@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lively Vine",
-    description: "I think it just moved...",
+    legacy_name: "Lively Vine",
+    legacy_description: "I think it just moved...",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

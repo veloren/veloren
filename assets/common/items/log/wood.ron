@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wood Logs",
-    description: "Regular, sturdy wooden logs.\n\nThis can be used when crafting wooden weapons.",
+    legacy_name: "Wood Logs",
+    legacy_description: "Regular, sturdy wooden logs.\n\nThis can be used when crafting wooden weapons.",
     kind: Ingredient(
         descriptor: "Wooden",
     ),

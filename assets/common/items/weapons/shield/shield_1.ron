@@ -1,6 +1,6 @@
 ItemDef(
-    name: "A Tattered Targe",
-    description: "Should withstand a few more hits, hopefully...",
+    legacy_name: "A Tattered Targe",
+    legacy_description: "Should withstand a few more hits, hopefully...",
     kind: Tool((
         kind: Shield,
         hands: One,

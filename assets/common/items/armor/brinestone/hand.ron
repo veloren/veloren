@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Brinestone Gauntlets",
-    description: "Hits like a rock.",
+    legacy_name: "Brinestone Gauntlets",
+    legacy_description: "Hits like a rock.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Brinestone"),

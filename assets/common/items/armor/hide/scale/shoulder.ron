@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Scale Shoulderguards",
-    description: "Each embedded scale provides additional protection.",
+    legacy_name: "Scale Shoulderguards",
+    legacy_description: "Each embedded scale provides additional protection.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Scale"),

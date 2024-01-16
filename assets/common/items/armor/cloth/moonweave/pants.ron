@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moonweave Legs",
-    description: "The fabric dances silently, like moonlight.",
+    legacy_name: "Moonweave Legs",
+    legacy_description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Moonweave"),

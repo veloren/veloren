@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Humble Stick",
-    description: "Walking stick with a sharpened end.",
+    legacy_name: "Humble Stick",
+    legacy_description: "Walking stick with a sharpened end.",
     kind: Tool((
         kind: Staff,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Green Blanket",
-    description: "Keeps your shoulders warm.",
+    legacy_name: "Green Blanket",
+    legacy_description: "Keeps your shoulders warm.",
     kind: Armor((
         kind: Back,
         stats: Direct((

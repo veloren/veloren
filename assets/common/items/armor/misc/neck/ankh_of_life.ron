@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ankh of Life",
-    description: "A unique necklace of unkown origin... You can feel the power flowing through it.",
+    legacy_name: "Ankh of Life",
+    legacy_description: "A unique necklace of unkown origin... You can feel the power flowing through it.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

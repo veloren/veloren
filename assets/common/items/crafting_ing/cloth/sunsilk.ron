@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk",
-    description: "A supernaturally strong textile.",
+    legacy_name: "Sunsilk",
+    legacy_description: "A supernaturally strong textile.",
     kind: Ingredient(
         descriptor: "Sunsilken",
     ),

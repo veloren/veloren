@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Fang Necklace",
-    description: "Only the most savage beings can handle the power of this necklace...",
+    legacy_name: "Fang Necklace",
+    legacy_description: "Only the most savage beings can handle the power of this necklace...",
     kind: Armor((
         kind: Neck,
         stats: Direct((

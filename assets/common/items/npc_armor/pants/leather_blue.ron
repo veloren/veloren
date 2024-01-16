@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Leather Guards",
-    description: "",
+    legacy_name: "Blue Leather Guards",
+    legacy_description: "",
     kind: Armor((
         kind: Pants,
         stats: Direct((

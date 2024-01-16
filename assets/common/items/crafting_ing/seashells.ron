@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Seashells",
-    description: "Shells from a sea creature.",
+    legacy_name: "Seashells",
+    legacy_description: "Shells from a sea creature.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

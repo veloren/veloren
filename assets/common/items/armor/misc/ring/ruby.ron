@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ruby Ring",
-    description: "A silver ring with a ruby gem.",
+    legacy_name: "Ruby Ring",
+    legacy_description: "A silver ring with a ruby gem.",
     kind: Armor((
         kind: Ring,
         stats: Direct((

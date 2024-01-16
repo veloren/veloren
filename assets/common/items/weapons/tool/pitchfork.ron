@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pitchfork",
-    description: "One of the prongs is broken.",
+    legacy_name: "Pitchfork",
+    legacy_description: "One of the prongs is broken.",
     kind: Tool((
         kind: Farming,
         hands: Two,

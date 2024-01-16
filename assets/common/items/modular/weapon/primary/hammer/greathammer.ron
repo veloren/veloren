@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Greathammer Head",
-    description: "",
+    legacy_name: "Greathammer Head",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Hammer,

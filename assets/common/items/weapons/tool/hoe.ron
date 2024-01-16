@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Hoe",
-    description: "It's stained with dirt.",
+    legacy_name: "Hoe",
+    legacy_description: "It's stained with dirt.",
     kind: Tool((
         kind: Farming,
         hands: Two,

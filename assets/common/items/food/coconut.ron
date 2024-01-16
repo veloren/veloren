@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Coconut",
-    description: "Reliable source of water and fat. Can often be found growing on palm trees.",
+    legacy_name: "Coconut",
+    legacy_description: "Reliable source of water and fat. Can often be found growing on palm trees.",
     kind: Consumable(
         kind: Food,
         effects: One(

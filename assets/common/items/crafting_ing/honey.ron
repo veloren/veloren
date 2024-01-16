@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Honey",
-    description: "Stolen from a beehive. Surely the bees won't be happy with this!",
+    legacy_name: "Honey",
+    legacy_description: "Stolen from a beehive. Surely the bees won't be happy with this!",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

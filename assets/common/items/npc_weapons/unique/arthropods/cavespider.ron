@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cave Spider",
-    description: "testing123",
+    legacy_name: "Cave Spider",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

@@ -5,7 +5,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            Effects, Item, ItemDefinitionId, ItemDesc, ItemKind, MaterialKind,
+            Effects, Item, ItemDefinitionId, ItemDesc, ItemI18n, ItemKind, MaterialKind,
             MaterialStatManifest,
         },
         BuffKind,
@@ -59,6 +59,31 @@ pub fn price_desc<'a>(
         _ => 1.0,
     };
     Some((buy_string, sell_string, deal_goodness))
+}
+
+pub fn item_text<'a, I: ItemDesc + ?Sized>(
+    item: &I,
+    i18n: &'a Localization,
+    i18n_spec: &'a ItemI18n,
+) -> (String, String) {
+    let (title, desc) = item.i18n(i18n_spec);
+
+    (i18n.get_content(&title), i18n.get_content(&desc))
+}
+
+pub fn describe<'a, I: ItemDesc + ?Sized>(
+    item: &I,
+    i18n: &'a Localization,
+    i18n_spec: &'a ItemI18n,
+) -> String {
+    let (title, _) = item_text(item, i18n, i18n_spec);
+    let amount = item.amount();
+
+    if amount.get() > 1 {
+        format!("{amount} x {title}")
+    } else {
+        title
+    }
 }
 
 pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frostfang",
-    description: "testing123",
+    legacy_name: "Frostfang",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

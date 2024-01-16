@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pearl",
-    description: "Would make a nice lamp.",
+    legacy_name: "Pearl",
+    legacy_description: "Would make a nice lamp.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",    ),

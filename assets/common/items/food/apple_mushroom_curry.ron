@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mushroom Curry",
-    description: "Who could say no to that?",
+    legacy_name: "Mushroom Curry",
+    legacy_description: "Who could say no to that?",
     kind: Consumable(
         kind: ComplexFood,
         effects: All([

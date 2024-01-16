@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bronze Pantalons",
-    description: "'Heavy and dull, but it can take a punch.'",
+    legacy_name: "Bronze Pantalons",
+    legacy_description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Bronze"),

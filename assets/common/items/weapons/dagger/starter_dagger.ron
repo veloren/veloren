@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rusty Dagger",
-    description: "Easily concealed.",
+    legacy_name: "Rusty Dagger",
+    legacy_description: "Easily concealed.",
     kind: Tool((
         kind: Dagger,
         hands: One,

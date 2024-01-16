@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Freezing Charm",
-    description: "Let your enemies feel the sting of cold as you freeze them in their tracks.",
+    legacy_name: "Freezing Charm",
+    legacy_description: "Let your enemies feel the sting of cold as you freeze them in their tracks.",
     kind: Consumable(
         kind: Drink,
         effects: All([

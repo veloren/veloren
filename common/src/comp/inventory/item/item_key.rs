@@ -10,11 +10,11 @@ pub enum ItemKey {
     Simple(String),
     ModularWeapon(modular::ModularWeaponKey),
     ModularWeaponComponent(modular::ModularWeaponComponentKey),
-    TagExamples(Vec<ItemKey>),
+    TagExamples(Vec<ItemKey>, String),
     Empty,
 }
 
-impl<T: ItemDesc> From<&T> for ItemKey {
+impl<T: ItemDesc + ?Sized> From<&T> for ItemKey {
     fn from(item_desc: &T) -> Self {
         let item_definition_id = item_desc.item_definition_id();
 
@@ -24,6 +24,10 @@ impl<T: ItemDesc> From<&T> for ItemKey {
                     .iter()
                     .map(|id| ItemKey::from(&*Arc::<ItemDef>::load_expect_cloned(id)))
                     .collect(),
+                item_definition_id
+                    .itemdef_id()
+                    .unwrap_or("?modular?")
+                    .to_owned(),
             )
         } else {
             match item_definition_id {

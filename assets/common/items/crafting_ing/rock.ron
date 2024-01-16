@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rock",
-    description: "Made up of a bunch of different minerals, looks like it would hurt to get hit with.",
+    legacy_name: "Rock",
+    legacy_description: "Made up of a bunch of different minerals, looks like it would hurt to get hit with.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

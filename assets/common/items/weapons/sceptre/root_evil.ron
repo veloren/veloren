@@ -1,6 +1,6 @@
 ItemDef(
-    name: "The Root of Evil",
-    description: "'Everything comes at a price...'",
+    legacy_name: "The Root of Evil",
+    legacy_description: "'Everything comes at a price...'",
     kind: Tool((
         kind: Sceptre,
         hands: Two,

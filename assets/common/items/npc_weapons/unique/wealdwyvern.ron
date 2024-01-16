@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Weald Wyvern",
-    description: "testing123",
+    legacy_name: "Weald Wyvern",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Plain Salad",
-    description: "Literally just chopped lettuce. Does this even count as a salad?",
+    legacy_name: "Plain Salad",
+    legacy_description: "Literally just chopped lettuce. Does this even count as a salad?",
     kind: Consumable(
         kind: Food,
         effects: One(

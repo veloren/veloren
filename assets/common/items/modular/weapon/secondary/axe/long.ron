@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Long Axe Haft",
-    description: "",
+    legacy_name: "Long Axe Haft",
+    legacy_description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
             toolkind: Axe,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mandragora",
-    description: "Testing",
+    legacy_name: "Mandragora",
+    legacy_description: "Testing",
     kind: Tool((
         kind: Natural,
         hands: Two,

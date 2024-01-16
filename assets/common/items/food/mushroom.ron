@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mushroom",
-    description: "Hopefully this one is not poisonous",
+    legacy_name: "Mushroom",
+    legacy_description: "Hopefully this one is not poisonous",
     kind: Consumable(
         kind: Food,
         effects: One(

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk Shoulderwraps",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    legacy_name: "Sunsilk Shoulderwraps",
+    legacy_description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Sunsilk"),

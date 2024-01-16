@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dullahan Itself Armor",
-    description: "Made of It ownself.",
+    legacy_name: "Dullahan Itself Armor",
+    legacy_description: "Made of It ownself.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

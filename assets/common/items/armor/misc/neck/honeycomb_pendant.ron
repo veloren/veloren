@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Honeycomb Pendant",
-    description: "This necklace is always spewing out honey...",
+    legacy_name: "Honeycomb Pendant",
+    legacy_description: "This necklace is always spewing out honey...",
     kind: Armor((
         kind: Neck,
         stats: Direct((

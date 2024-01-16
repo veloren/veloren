@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Plate Gloves",
-    description: "Leather adorned with steel for better protection.",
+    legacy_name: "Leather Plate Gloves",
+    legacy_description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Leather Plate"),

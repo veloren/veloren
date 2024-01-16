@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Melodica",
-    description: "Wooden Melodica.",
+    legacy_name: "Melodica",
+    legacy_description: "Wooden Melodica.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

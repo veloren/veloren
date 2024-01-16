@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leafy Boots",
-    description: "Leaves cover the magically entwined twigs to provide simple protection from the elements.",
+    legacy_name: "Leafy Boots",
+    legacy_description: "Leaves cover the magically entwined twigs to provide simple protection from the elements.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Twigs Leaves"),

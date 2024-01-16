@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bonerattler Shoulder Pad",
-    description: "Roughly formed bonerattler hide provide some strong protection.",
+    legacy_name: "Bonerattler Shoulder Pad",
+    legacy_description: "Roughly formed bonerattler hide provide some strong protection.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Bonerattler"),

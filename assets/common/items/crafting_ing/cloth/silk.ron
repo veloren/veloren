@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Silk",
-    description: "A fine and strong fibre produced by spiders.",
+    legacy_name: "Silk",
+    legacy_description: "A fine and strong fibre produced by spiders.",
     kind: Ingredient(
         descriptor: "Silken",
     ),

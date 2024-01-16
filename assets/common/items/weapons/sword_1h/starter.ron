@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Damaged Gladius",
-    description: "This blade has seen better days, but surely it will last.",
+    legacy_name: "Damaged Gladius",
+    legacy_description: "This blade has seen better days, but surely it will last.",
     kind: Tool((
         kind: Sword,
         hands: One,

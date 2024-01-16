@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Clockwork Pants",
-    description: "Clockwork Pants",
+    legacy_name: "Clockwork Pants",
+    legacy_description: "Clockwork Pants",
     kind: Armor((
         kind: Pants,
         stats: Direct((

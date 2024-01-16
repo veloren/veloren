@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Honeycorn",
-    description: "Sweeet",
+    legacy_name: "Honeycorn",
+    legacy_description: "Sweeet",
     kind: Consumable(
         kind: Food,
         effects: One(

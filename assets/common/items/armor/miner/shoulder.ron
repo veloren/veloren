@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Miner's Pauldrons.",
-    description: "Protects Cave-in and out.",
+    legacy_name: "Miner's Pauldrons.",
+    legacy_description: "Protects Cave-in and out.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Miner"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sand Raptor Wings",
-    description: "Take flight with the wings of a thirsty predator",
+    legacy_name: "Sand Raptor Wings",
+    legacy_description: "Take flight with the wings of a thirsty predator",
     kind: Glider,
     quality: High,
     tags: [

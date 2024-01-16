@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Organ Aura",
-    description: "Motivational Tune",
+    legacy_name: "Organ Aura",
+    legacy_description: "Motivational Tune",
     kind: Tool((
         kind: Instrument,
         hands: Two,

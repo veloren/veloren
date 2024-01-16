@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst",
-    description: "A precious purple gem.",
+    legacy_name: "Amethyst",
+    legacy_description: "A precious purple gem.",
     kind: Ingredient(
         descriptor: "Amethyst",
     ),

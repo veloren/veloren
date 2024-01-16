@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Eerie Pumpkin",
-    description: "Did it just blink?!",
+    legacy_name: "Eerie Pumpkin",
+    legacy_description: "Did it just blink?!",
     kind: Lantern(
         (
             color: (r: 31, g: 255, b: 22),

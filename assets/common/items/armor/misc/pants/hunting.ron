@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Hunting Pants",
-    description: "Crafted from soft, supple leather.",
+    legacy_name: "Hunting Pants",
+    legacy_description: "Crafted from soft, supple leather.",
     kind: Armor((
         kind: Pants,
         stats: Direct((

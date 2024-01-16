@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orichalcum Gloves",
-    description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
+    legacy_name: "Orichalcum Gloves",
+    legacy_description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Orichalcum"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Ingot",
-    description: "An alloy of iron and coal that is much tougher than its components.\n\nThis can be used when crafting metal weapons.",
+    legacy_name: "Steel Ingot",
+    legacy_description: "An alloy of iron and coal that is much tougher than its components.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
         descriptor: "Steel",
     ),

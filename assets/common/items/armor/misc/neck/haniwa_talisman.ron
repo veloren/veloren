@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Haniwa Talisman",
-    description: "A talisman depicting a figure of unknown origin.",
+    legacy_name: "Haniwa Talisman",
+    legacy_description: "A talisman depicting a figure of unknown origin.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Footguards",
-    description: "Ornamental and impenetrable, the metal will never dull.",
+    legacy_name: "Cobalt Footguards",
+    legacy_description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Cobalt"),

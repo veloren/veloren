@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnarling Green Totem",
-    description: "Yeet",
+    legacy_name: "Gnarling Green Totem",
+    legacy_description: "Yeet",
     kind: Tool((
         kind: Natural,
         hands: Two,

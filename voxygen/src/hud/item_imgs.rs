@@ -115,7 +115,7 @@ impl ItemImgs {
     }
 
     pub fn img_ids(&self, item_key: ItemKey) -> Vec<Id> {
-        if let ItemKey::TagExamples(keys) = item_key {
+        if let ItemKey::TagExamples(keys, _) = item_key {
             return keys
                 .iter()
                 .filter_map(|k| self.map.get(k))

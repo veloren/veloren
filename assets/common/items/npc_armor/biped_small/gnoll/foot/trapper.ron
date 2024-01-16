@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnoll Trapper",
-    description: "Ceremonial attire used by members..",
+    legacy_name: "Gnoll Trapper",
+    legacy_description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Foot,
         stats: Direct((

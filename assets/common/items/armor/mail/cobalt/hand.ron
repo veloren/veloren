@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Gauntlets",
-    description: "Ornamental and impenetrable, the metal will never dull.",
+    legacy_name: "Cobalt Gauntlets",
+    legacy_description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Cobalt"),

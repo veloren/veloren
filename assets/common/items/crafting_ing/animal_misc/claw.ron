@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Predator Claw",
-    description: "Incredibly sharp claw from a predatory animal.\n\nThis can be used when crafting weapons.",
+    legacy_name: "Predator Claw",
+    legacy_description: "Incredibly sharp claw from a predatory animal.\n\nThis can be used when crafting weapons.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

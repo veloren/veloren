@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Craftsman Hammer",
-    description: "Used to craft various items.",
+    legacy_name: "Craftsman Hammer",
+    legacy_description: "Used to craft various items.",
     kind: Tool((
         kind: Hammer,
         hands: One,

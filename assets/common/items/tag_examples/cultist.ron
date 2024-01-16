@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Anything related to cultists",
-    description: "These items are a little creepy.",
+    legacy_name: "Anything related to cultists",
+    legacy_description: "These items are a little creepy.",
     kind: TagExamples(
         item_ids: [
             "common.items.armor.cultist.belt",

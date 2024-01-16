@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bamboo",
-    description: "A giant woody grass.\n\nThis can be used when crafting wooden weapons.",
+    legacy_name: "Bamboo",
+    legacy_description: "A giant woody grass.\n\nThis can be used when crafting wooden weapons.",
     kind: Ingredient(
         descriptor: "Bamboo",
     ),

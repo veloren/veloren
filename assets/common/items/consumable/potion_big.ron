@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Large Potion",
-    description: "Precious medicine, it makes for the largest rejuvenative flask yet.",
+    legacy_name: "Large Potion",
+    legacy_description: "Precious medicine, it makes for the largest rejuvenative flask yet.",
     kind: Consumable(
         kind: Drink,
         effects: All([

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cotton",
-    description: "Easy to work with and multi-functional.",
+    legacy_name: "Cotton",
+    legacy_description: "Easy to work with and multi-functional.",
     kind: Ingredient(
         descriptor: "Cotton",
     ),

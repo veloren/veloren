@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Skirt",
-    description: "",
+    legacy_name: "Velorite Skirt",
+    legacy_description: "",
     kind: Armor((
         kind: Pants,
         stats: Direct(()),

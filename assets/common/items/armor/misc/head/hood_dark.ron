@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dark Hood",
-    description: "Tis a bit thicker.",
+    legacy_name: "Dark Hood",
+    legacy_description: "Tis a bit thicker.",
     kind: Armor((
         kind: Head,
         stats: Direct((

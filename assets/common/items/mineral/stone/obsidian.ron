@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Obsidian",
-    description: "An igneous rock that comes from felsic lava, it never seems to dwindle.",
+    legacy_name: "Obsidian",
+    legacy_description: "An igneous rock that comes from felsic lava, it never seems to dwindle.",
     kind: Ingredient(
         descriptor: "Obsidian",
     ),

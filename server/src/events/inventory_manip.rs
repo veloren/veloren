@@ -443,7 +443,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         match &*item.kind() {
                             ItemKind::Consumable { effects, .. } => {
                                 maybe_effect = Some(effects.clone());
-                                Some(InventoryUpdateEvent::Consumed(item.name().into_owned()))
+                                Some(InventoryUpdateEvent::Consumed((&item).into()))
                             },
                             ItemKind::Throwable { kind, .. } => {
                                 if let Some(pos) =

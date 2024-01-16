@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Boots",
-    description: "",
+    legacy_name: "Velorite Boots",
+    legacy_description: "",
     kind: Armor((
         kind: Foot,
         stats: Direct(()),

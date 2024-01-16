@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Linen Wrists",
-    description: "Rough cloth bracelets provide a stylish fashion statement, dyed purple.",
+    legacy_name: "Purple Linen Wrists",
+    legacy_description: "Rough cloth bracelets provide a stylish fashion statement, dyed purple.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Cloth Purple"),

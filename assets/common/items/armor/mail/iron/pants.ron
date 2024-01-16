@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Pants",
-    description: "Sturdy and unyielding, across ages of war.",
+    legacy_name: "Iron Pants",
+    legacy_description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Iron"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tarasque Shoulder Pad",
-    description: "Spiky tarasque shell fragments formed to fit as shoulder guards.",
+    legacy_name: "Tarasque Shoulder Pad",
+    legacy_description: "Spiky tarasque shell fragments formed to fit as shoulder guards.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Tarasque"),

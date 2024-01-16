@@ -17,10 +17,9 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
 
 use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher, SharedString};
-use tracing::warn;
-// Re-export because I don't like prefix
-use common::comp::{Content, LocalizationArg};
 use common_assets as assets;
+use common_i18n::{Content, LocalizationArg};
+use tracing::warn;
 
 // Re-export for argument creation
 pub use fluent::{fluent_args, FluentValue};
@@ -107,6 +106,8 @@ impl Language {
         Some(msg)
     }
 
+    /// NOTE: Exists for legacy reasons, avoid.
+    // Read more in the issue on get_variation at Gitlab
     fn try_variation<'a>(
         &'a self,
         key: &str,
@@ -221,12 +222,12 @@ pub struct LocalizationHandle {
     pub use_english_fallback: bool,
 }
 
-/// Read [LocalizationGuard]
+/// Read [`LocalizationGuard`]
 // arbitrary choice to minimize changing all of veloren
 pub type Localization = LocalizationGuard;
 
-/// RAII guard returned from [LocalizationHandle::read()], resembles
-/// [AssetGuard]
+/// RAII guard returned from [`LocalizationHandle::read()`], resembles
+/// [`AssetGuard`]
 pub struct LocalizationGuard {
     active: AssetGuard<Language>,
     fallback: Option<AssetGuard<Language>>,
@@ -289,10 +290,13 @@ impl LocalizationGuard {
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }
 
+    /// NOTE: Exists for legacy reasons, avoid.
+    ///
     /// Get a localized text from the variation of given key
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
+    // Read more in the issue on get_variation at Gitlab
     pub fn try_variation(&self, key: &str, seed: u16) -> Option<Cow<str>> {
         self.active.try_variation(key, seed, None).or_else(|| {
             self.fallback
@@ -301,22 +305,28 @@ impl LocalizationGuard {
         })
     }
 
+    /// NOTE: Exists for legacy reasons, avoid.
+    ///
     /// Get a localized text from the variation of given key
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
     /// If the key is not present in the localization object
     /// then the key itself is returned.
+    // Read more in the issue on get_variation at Gitlab
     pub fn get_variation(&self, key: &str, seed: u16) -> Cow<str> {
         self.try_variation(key, seed)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }
 
+    /// NOTE: Exists for legacy reasons, avoid.
+    ///
     /// Get a localized text from the variation of given key with given
     /// arguments
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
+    // Read more in the issue on get_variation at Gitlab
     pub fn try_variation_ctx<'a>(
         &'a self,
         key: &str,
@@ -332,47 +342,109 @@ impl LocalizationGuard {
             })
     }
 
-    /// Localize the given content.
+    /// Tries its best to localize compound message.
+    ///
+    /// # Example
+    /// ```text
+    /// Content::Localized { "npc-speech-tell_site", seed, {
+    ///     "dir" => Content::Localized("npc-speech-dir_north", seed, {})
+    ///     "dist" => Content::Localized("npc-speech-dist_very_far", seed, {})
+    ///     "site" => Content::Plain(site)
+    /// }}
+    /// ```
+    /// ```fluent
+    /// npc-speech-tell_site =
+    ///    .a0 = Have you visited { $site }? It's just { $dir } of here!
+    ///    .a1 = You should visit { $site } some time.
+    ///    .a2 = If you travel { $dist } to the { $dir }, you can get to { $site }.
+    ///    .a3 = To the { $dir } you'll find { $site }, it's { $dist }.
+    ///
+    /// npc-speech-dir_north = north
+    /// # ... other keys
+    ///
+    /// npc-speech-dist_very_far = very far away
+    /// # ... other keys
+    /// ```
+    ///
+    /// 1) Because content we want is localized itself and has arguments, we
+    /// iterate over them and localize, recursively. Having that, we localize
+    /// our content.
+    ///
+    /// 2) Now there is a chance that some of args have missing
+    /// internalization. In that case, we insert arg name as placeholder and
+    /// mark it as broken. Then we repeat *whole* procedure on fallback
+    /// language if we have it.
+    ///
+    /// 3) Otherwise, return result from (1).
+    // NOTE: it's important that we only use one language at the time, because
+    // otherwise we will get partially-translated message.
+    //
+    // TODO: return Cow<str>?
     pub fn get_content(&self, content: &Content) -> String {
-        // On error, produces the localisation but with the missing key inline
-        fn get_content_inner(lang: &Language, content: &Content) -> Result<String, String> {
+        // Function to localize content for given language.
+        //
+        // Returns Ok(localized_text) if found no errors.
+        // Returns Err(broken_text) on failure.
+        //
+        // broken_text will have i18n keys in it, just i18n key if it was instant miss
+        // or text with missed keys inlined if it was missed down the chain.
+        fn get_content_for_lang(lang: &Language, content: &Content) -> Result<String, String> {
             match content {
                 Content::Plain(text) => Ok(text.clone()),
+                Content::Key(key) => lang
+                    .try_msg(key, None)
+                    .map(Cow::into_owned)
+                    .ok_or_else(|| key.to_string()),
+                Content::Attr(key, attr) => lang
+                    .try_attr(key, attr, None)
+                    .map(Cow::into_owned)
+                    .ok_or_else(|| format!("{key}.{attr}")),
                 Content::Localized { key, seed, args } => {
-                    let mut is_err = false;
+                    // flag to detect failure down the chain
+                    let mut is_arg_failure = false;
+
                     let mut fargs = FluentArgs::new();
                     for (k, arg) in args {
-                        fargs.set(k, match arg {
-                            LocalizationArg::Content(content) => FluentValue::String(
-                                get_content_inner(lang, content)
+                        let arg_val = match arg {
+                            LocalizationArg::Content(content) => {
+                                let arg_res = get_content_for_lang(lang, content)
                                     .unwrap_or_else(|broken_text| {
-                                        is_err = true;
+                                        is_arg_failure = true;
                                         broken_text
                                     })
-                                    .into(),
-                            ),
+                                    .into();
+
+                                FluentValue::String(arg_res)
+                            },
                             LocalizationArg::Nat(n) => FluentValue::from(n),
-                        });
+                        };
+                        fargs.set(k, arg_val);
                     }
 
                     lang.try_variation(key, *seed, Some(&fargs))
                         .map(Cow::into_owned)
                         .ok_or_else(|| key.clone())
-                        .and_then(|text| if is_err { Err(text) } else { Ok(text) })
+                        .and_then(|text| if is_arg_failure { Err(text) } else { Ok(text) })
                 },
             }
         }
 
-        match get_content_inner(&self.active, content) {
+        match get_content_for_lang(&self.active, content) {
             Ok(text) => text,
-            // If part of the localisation failed, use the fallback language
-            Err(broken_text) => self.fallback.as_ref()
-                .and_then(|fb| get_content_inner(fb, content).ok())
-                // If all else fails, localise with the active language, but with the missing key included inline
+            // If localisation or some part of it failed, repeat with fallback.
+            // If it did fail as well, it's probably because fallback was disabled,
+            // so we don't have better option other than returning broken text
+            // we produced earlier.
+            Err(broken_text) => self
+                .fallback
+                .as_ref()
+                .and_then(|fb| get_content_for_lang(fb, content).ok())
                 .unwrap_or(broken_text),
         }
     }
 
+    /// NOTE: Exists for legacy reasons, avoid.
+    ///
     /// Get a localized text from the variation of given key with given
     /// arguments
     ///
@@ -380,6 +452,7 @@ impl LocalizationGuard {
     /// the fallback (if present).
     /// If the key is not present in the localization object
     /// then the key itself is returned.
+    // Read more in the issue on get_variation at Gitlab
     pub fn get_variation_ctx<'a>(&'a self, key: &str, seed: u16, args: &'a FluentArgs) -> Cow<str> {
         self.try_variation_ctx(key, seed, args)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))

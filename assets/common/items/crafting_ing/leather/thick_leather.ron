@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Thick Leather",
-    description: "Strong and durable.",
+    legacy_name: "Thick Leather",
+    legacy_description: "Strong and durable.",
     kind: Ingredient(
         descriptor: "Leather",
     ),

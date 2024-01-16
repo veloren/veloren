@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cardinal's Shoulderguard",
-    description: "The other was lost in a vicious fight.",
+    legacy_name: "Cardinal's Shoulderguard",
+    legacy_description: "The other was lost in a vicious fight.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Cardinal"),

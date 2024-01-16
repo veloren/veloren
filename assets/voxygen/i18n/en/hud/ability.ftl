@@ -9,8 +9,11 @@ common-abilities-staff-fireshockwave = Ring of Fire
 common-abilities-sceptre-wardingaura = Warding Aura
     .desc = Wards your allies against enemy attacks.
 
-# internally translations, currently only used in zh-Hans
-# If we remove them here, they also get auto-removed in zh-Hans, so please keep them, even when not used in en
+# internal terms, currently only used in zh-Hans
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+
 -heavy_stance = ""
 -agile_stance = ""
 -defensive_stance = ""

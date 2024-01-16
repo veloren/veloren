@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Adlet Tracker",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Adlet Tracker",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Foot,
         stats: Direct((

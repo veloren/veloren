@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Emerald",
-    description: "A vibrant viridian gem.",
+    legacy_name: "Emerald",
+    legacy_description: "A vibrant viridian gem.",
     kind: Ingredient(
         descriptor: "Emerald",
     ),

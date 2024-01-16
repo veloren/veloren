@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Cap",
-    description: "Swift like the wind.",
+    legacy_name: "Leather Cap",
+    legacy_description: "Swift like the wind.",
     kind: Armor((
         kind: Head,
         stats: Direct((

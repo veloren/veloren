@@ -20,6 +20,7 @@ default = ["simd"]
 [dependencies]
 
 common-base = { package = "veloren-common-base", path = "base" }
+common-i18n = { package = "veloren-common-i18n", path = "i18n" }
 # inline_tweak = { workspace = true }
 
 # Serde

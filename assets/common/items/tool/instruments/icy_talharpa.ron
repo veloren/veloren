@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Icy Talharpa",
-    description: "Icy Talharpa.",
+    legacy_name: "Icy Talharpa",
+    legacy_description: "Icy Talharpa.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

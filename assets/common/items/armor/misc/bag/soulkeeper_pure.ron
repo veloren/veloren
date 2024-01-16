@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purified Soulkeeper",
-    description: "WIP",
+    legacy_name: "Purified Soulkeeper",
+    legacy_description: "WIP",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

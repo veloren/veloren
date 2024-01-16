@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dragonscale Sash",
-    description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
+    legacy_name: "Dragonscale Sash",
+    legacy_description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Dragonscale"),

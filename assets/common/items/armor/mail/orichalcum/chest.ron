@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orichalcum Chestguard",
-    description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
+    legacy_name: "Orichalcum Chestguard",
+    legacy_description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Orichalcum"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Oil",
-    description: "A measure of thick, sludgy oil.",
+    legacy_name: "Oil",
+    legacy_description: "A measure of thick, sludgy oil.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

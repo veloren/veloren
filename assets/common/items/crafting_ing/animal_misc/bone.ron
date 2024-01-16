@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Thick Bone",
-    description: "A thick bone, it seems sturdy enough to craft with.",
+    legacy_name: "Thick Bone",
+    legacy_description: "A thick bone, it seems sturdy enough to craft with.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

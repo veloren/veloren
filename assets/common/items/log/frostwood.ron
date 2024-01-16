@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frostwood Logs",
-    description: "Chilly wood that comes from cold biomes. Cold to the touch.\n\nThis can be used when crafting wooden weapons.",
+    legacy_name: "Frostwood Logs",
+    legacy_description: "Chilly wood that comes from cold biomes. Cold to the touch.\n\nThis can be used when crafting wooden weapons.",
     kind: Ingredient(
         descriptor: "Frostwood",
     ),

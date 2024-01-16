@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Laevateinn",
-    description: "Can shatter the gate of death",
+    legacy_name: "Laevateinn",
+    legacy_description: "Can shatter the gate of death",
     kind: Tool((
         kind: Staff,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnarling Chieftain",
-    description: "Only worn by the most spiritual of Gnarlings.",
+    legacy_name: "Gnarling Chieftain",
+    legacy_description: "Only worn by the most spiritual of Gnarlings.",
     kind: Armor((
         kind: Foot,
         stats: Direct((

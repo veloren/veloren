@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lime Zest Lantern",
-    description: "It has an opening that could fit a ring...",
+    legacy_name: "Lime Zest Lantern",
+    legacy_description: "It has an opening that could fit a ring...",
     kind: Lantern(
         (
             color: (r: 145, g: 255, b: 145),

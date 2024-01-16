@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mindflayer Spellbag",
-    description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
+    legacy_name: "Mindflayer Spellbag",
+    legacy_description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

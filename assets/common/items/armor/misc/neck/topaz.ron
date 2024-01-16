@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Topaz Necklace",
-    description: "A copper necklace, with topaz embedded in the center.",
+    legacy_name: "Topaz Necklace",
+    legacy_description: "A copper necklace, with topaz embedded in the center.",
     kind: Armor((
         kind: Neck,
         stats: Direct((

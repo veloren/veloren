@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Traveler's Backpack",
-    description: "Comfortable and with enough capacity, its a hoarder's best friend.",
+    legacy_name: "Traveler's Backpack",
+    legacy_description: "Comfortable and with enough capacity, its a hoarder's best friend.",
     kind: Armor((
         kind: Backpack,
         stats: Direct((

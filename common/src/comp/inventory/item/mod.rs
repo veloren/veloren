@@ -14,17 +14,19 @@ use crate::{
     recipe::RecipeInput,
     terrain::Block,
 };
+use common_i18n::Content;
 use core::{
     convert::TryFrom,
     mem,
     num::{NonZeroU32, NonZeroU64},
 };
 use crossbeam_utils::atomic::AtomicCell;
-use hashbrown::Equivalent;
+use hashbrown::{Equivalent, HashMap};
+use item_key::ItemKey;
 use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
-use strum::{EnumString, IntoStaticStr};
+use strum::{EnumIter, EnumString, IntoEnumIterator, IntoStaticStr};
 use tracing::error;
 use vek::Rgb;
 
@@ -103,7 +105,17 @@ pub enum MaterialKind {
 }
 
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr, EnumString,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    IntoStaticStr,
+    EnumString,
+    EnumIter,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum Material {
@@ -342,6 +354,8 @@ pub enum ItemKind {
     },
     Ingredient {
         /// Used to generate names for modular items composed of this ingredient
+        // I think we can actually remove it now?
+        #[deprecated = "part of non-localized name generation"]
         descriptor: String,
     },
     TagExamples {
@@ -383,6 +397,7 @@ impl ItemKind {
             },
             ItemKind::Throwable { kind } => format!("Throwable: {:?}", kind),
             ItemKind::Utility { kind } => format!("Utility: {:?}", kind),
+            #[allow(deprecated)]
             ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
             ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
         }
@@ -466,11 +481,61 @@ impl Hash for Item {
     }
 }
 
+// at the time of writing, we use Fluent, which supports attributes
+// and we can get both name and description using them
+type I18nId = String;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum ItemName {
-    Direct(String),
-    Modular,
-    Component(String),
+// TODO: probably make a Resource if used outside of voxygen
+// TODO: add hot-reloading similar to how ItemImgs does it?
+// TODO: make it work with plugins (via Concatenate?)
+/// To be used with ItemDesc::i18n
+///
+/// NOTE: there is a limitation to this manifest, as it uses ItemKey and
+/// ItemKey isn't uniquely identifies Item, when it comes to modular items.
+///
+/// If modular weapon has the same primary component and the same hand-ness,
+/// we use the same model EVEN IF it has different secondary components, like
+/// Staff with Heavy core or Light core.
+///
+/// Translations currently do the same, but *maybe* they shouldn't in which case
+/// we should either extend ItemKey or use new identifier. We could use
+/// ItemDefinitionId, but it's very generic and cumbersome.
+pub struct ItemI18n {
+    /// maps ItemKey to i18n identifier
+    map: HashMap<ItemKey, I18nId>,
+}
+
+impl assets::Asset for ItemI18n {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+impl ItemI18n {
+    pub fn new_expect() -> Self {
+        ItemI18n::load_expect("common.item_i18n_manifest")
+            .read()
+            .clone()
+    }
+
+    /// Returns (name, description) in Content form.
+    // TODO: after we remove legacy text from ItemDef, consider making this
+    // function non-fallible?
+    fn item_text_opt(&self, mut item_key: ItemKey) -> Option<(Content, Content)> {
+        // we don't put TagExamples into manifest
+        if let ItemKey::TagExamples(_, id) = item_key {
+            item_key = ItemKey::Simple(id.to_string());
+        }
+
+        let key = self.map.get(&item_key);
+        key.map(|key| {
+            (
+                Content::Key(key.to_owned()),
+                Content::Attr(key.to_owned(), "desc".to_owned()),
+            )
+        })
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -625,8 +690,10 @@ pub struct ItemDef {
     /// assets folder, which the ItemDef is loaded from. The name space
     /// prepended with `veloren.core` is reserved for veloren functions.
     item_definition_id: String,
-    pub name: String,
-    pub description: String,
+    #[deprecated = "since item i18n"]
+    name: String,
+    #[deprecated = "since item i18n"]
+    description: String,
     pub kind: ItemKind,
     pub quality: Quality,
     pub tags: Vec<ItemTag>,
@@ -717,6 +784,7 @@ impl ItemDef {
         tags: Vec<ItemTag>,
         slots: u16,
     ) -> Self {
+        #[allow(deprecated)]
         Self {
             item_definition_id,
             name: "test item name".to_owned(),
@@ -731,6 +799,7 @@ impl ItemDef {
 
     #[cfg(test)]
     pub fn create_test_itemdef_from_kind(kind: ItemKind) -> Self {
+        #[allow(deprecated)]
         Self {
             item_definition_id: "test.item".to_string(),
             name: "test item name".to_owned(),
@@ -775,8 +844,8 @@ impl assets::Compound for ItemDef {
         }
 
         let RawItemDef {
-            name,
-            description,
+            legacy_name,
+            legacy_description,
             kind,
             quality,
             tags,
@@ -790,10 +859,11 @@ impl assets::Compound for ItemDef {
         // TODO: This probably does not belong here
         let item_definition_id = specifier.replace('\\', ".");
 
+        #[allow(deprecated)]
         Ok(ItemDef {
             item_definition_id,
-            name,
-            description,
+            name: legacy_name,
+            description: legacy_description,
             kind,
             quality,
             tags,
@@ -806,8 +876,8 @@ impl assets::Compound for ItemDef {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "ItemDef")]
 struct RawItemDef {
-    name: String,
-    description: String,
+    legacy_name: String,
+    legacy_description: String,
     kind: ItemKind,
     quality: Quality,
     tags: Vec<ItemTag>,
@@ -1147,21 +1217,15 @@ impl Item {
         })
     }
 
-    /// Generate a human-readable description of the item and amount.
-    pub fn describe(&self) -> String {
-        if self.amount() > 1 {
-            format!("{} x {}", self.amount(), self.name())
-        } else {
-            self.name().to_string()
-        }
-    }
-
+    #[deprecated = "since item i18n"]
     pub fn name(&self) -> Cow<str> {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
                 if self.components.is_empty() {
+                    #[allow(deprecated)]
                     Cow::Borrowed(&item_def.name)
                 } else {
+                    #[allow(deprecated)]
                     modular::modify_name(&item_def.name, self)
                 }
             },
@@ -1169,8 +1233,10 @@ impl Item {
         }
     }
 
+    #[deprecated = "since item i18n"]
     pub fn description(&self) -> &str {
         match &self.item_base {
+            #[allow(deprecated)]
             ItemBase::Simple(item_def) => &item_def.description,
             // TODO: See if James wanted to make description, else leave with none
             ItemBase::Modular(_) => "",
@@ -1395,7 +1461,9 @@ pub fn flatten_counted_items<'a>(
 /// Provides common methods providing details about an item definition
 /// for either an `Item` containing the definition, or the actual `ItemDef`
 pub trait ItemDesc {
+    #[deprecated = "since item i18n"]
     fn description(&self) -> &str;
+    #[deprecated = "since item i18n"]
     fn name(&self) -> Cow<str>;
     fn kind(&self) -> Cow<ItemKind>;
     fn amount(&self) -> NonZeroU32;
@@ -1416,12 +1484,31 @@ pub trait ItemDesc {
             None
         }
     }
+
+    /// Return name's and description's localization descriptors
+    fn i18n(&self, i18n: &ItemI18n) -> (Content, Content) {
+        let item_key: ItemKey = self.into();
+
+        #[allow(deprecated)]
+        i18n.item_text_opt(item_key).unwrap_or_else(|| {
+            (
+                Content::Plain(self.name().to_string()),
+                Content::Plain(self.description().to_string()),
+            )
+        })
+    }
 }
 
 impl ItemDesc for Item {
-    fn description(&self) -> &str { self.description() }
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        self.description()
+    }
 
-    fn name(&self) -> Cow<str> { self.name() }
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        self.name()
+    }
 
     fn kind(&self) -> Cow<ItemKind> { self.kind() }
 
@@ -1449,9 +1536,15 @@ impl ItemDesc for Item {
 }
 
 impl ItemDesc for ItemDef {
-    fn description(&self) -> &str { &self.description }
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        &self.description
+    }
 
-    fn name(&self) -> Cow<str> { Cow::Borrowed(&self.name) }
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        Cow::Borrowed(&self.name)
+    }
 
     fn kind(&self) -> Cow<ItemKind> { Cow::Borrowed(&self.kind) }
 
@@ -1495,9 +1588,15 @@ impl Component for ItemDrops {
 pub struct DurabilityMultiplier(pub f32);
 
 impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
-    fn description(&self) -> &str { (*self).description() }
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        (*self).description()
+    }
 
-    fn name(&self) -> Cow<str> { (*self).name() }
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        (*self).name()
+    }
 
     fn kind(&self) -> Cow<ItemKind> { (*self).kind() }
 
@@ -1535,6 +1634,64 @@ pub fn all_item_defs_expect() -> Vec<String> {
 pub fn try_all_item_defs() -> Result<Vec<String>, Error> {
     let defs = assets::load_dir::<RawItemDef>("common.items", true)?;
     Ok(defs.ids().map(|id| id.to_string()).collect())
+}
+
+/// Designed to return all possible items, including modulars.
+/// And some impossible too, like ItemKind::TagExamples.
+pub fn all_items_expect() -> Vec<Item> {
+    let defs = assets::load_dir::<RawItemDef>("common.items", true)
+        .expect("failed to load item asset directory");
+
+    // Grab all items from assets
+    let mut asset_items: Vec<Item> = defs
+        .ids()
+        .map(|id| Item::new_from_asset_expect(id))
+        .collect();
+
+    let mut material_parse_table = HashMap::new();
+    for mat in Material::iter() {
+        if let Some(id) = mat.asset_identifier() {
+            material_parse_table.insert(id.to_owned(), mat);
+        }
+    }
+
+    let primary_comp_pool = modular::PRIMARY_COMPONENT_POOL.clone();
+
+    // Grab weapon primary components
+    let mut primary_comps: Vec<Item> = primary_comp_pool
+        .values()
+        .flatten()
+        .map(|(item, _hand_rules)| item.clone())
+        .collect();
+
+    // Grab modular weapons
+    let mut modular_items: Vec<Item> = primary_comp_pool
+        .keys()
+        .flat_map(|(tool, mat_id)| {
+            let mat = material_parse_table
+                .get(mat_id)
+                .expect("unexpected material ident");
+
+            // get all weapons without imposing additional hand restrictions
+            modular::generate_weapons(*tool, *mat, None)
+                .expect("failure during modular weapon generation")
+        })
+        .collect();
+
+    // 1. Append asset items, that should include pretty much everything,
+    // except modular items
+    // 2. Append primary weapon components, which are modular as well.
+    // 3. Finally append modular weapons that are made from (1) and (2)
+    // extend when we get some new exotic stuff
+    //
+    // P. s. I still can't wrap my head around the idea that you can put
+    // tag example into your inventory.
+    let mut all = Vec::new();
+    all.append(&mut asset_items);
+    all.append(&mut primary_comps);
+    all.append(&mut modular_items);
+
+    all
 }
 
 impl PartialEq<ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
@@ -1586,6 +1743,25 @@ mod tests {
         let ids = all_item_defs_expect();
         for item in ids.iter().map(|id| Item::new_from_asset_expect(id)) {
             drop(item)
+        }
+    }
+
+    #[test]
+    fn test_item_i18n() { let _ = ItemI18n::new_expect(); }
+
+    #[test]
+    // Probably can't fail, but better safe than crashing production server
+    fn test_all_items() { let _ = all_items_expect(); }
+
+    #[test]
+    // All items in Veloren should have localization.
+    // If no, add some common dummy i18n id.
+    fn ensure_item_localization() {
+        let manifest = ItemI18n::new_expect();
+        let items = all_items_expect();
+        for item in items {
+            let item_key: ItemKey = (&item).into();
+            let _ = manifest.item_text_opt(item_key).unwrap();
         }
     }
 }

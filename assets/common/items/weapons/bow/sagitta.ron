@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sagitta",
-    description: "Said to have slain a dragon with a single arrow",
+    legacy_name: "Sagitta",
+    legacy_description: "Said to have slain a dragon with a single arrow",
     kind: Tool((
         kind: Bow,
         hands: Two,

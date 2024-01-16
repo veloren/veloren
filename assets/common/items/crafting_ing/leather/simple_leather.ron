@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Simple Leather",
-    description: "Light and flexible.",
+    legacy_name: "Simple Leather",
+    legacy_description: "Light and flexible.",
     kind: Ingredient(
         descriptor: "Raw Hide",
     ),

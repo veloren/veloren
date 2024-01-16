@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Irrwurz",
-    description: "Ceremonial attire used by members.",
+    legacy_name: "Irrwurz",
+    legacy_description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Hand,
         stats: Direct((

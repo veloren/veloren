@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Belt",
-    description: "Metal alloy interlocking plates to improve protection.",
+    legacy_name: "Steel Belt",
+    legacy_description: "Metal alloy interlocking plates to improve protection.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Steel"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frost Saw",
-    description: "Forged from a single piece of eternal ice.",
+    legacy_name: "Frost Saw",
+    legacy_description: "Forged from a single piece of eternal ice.",
     kind: Tool((
         kind: Sword,
         hands: Two,

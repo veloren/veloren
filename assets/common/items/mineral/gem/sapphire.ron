@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sapphire",
-    description: "A colorful cobalt gem.",
+    legacy_name: "Sapphire",
+    legacy_description: "A colorful cobalt gem.",
     kind: Ingredient(
         descriptor: "Sapphire",
     ),

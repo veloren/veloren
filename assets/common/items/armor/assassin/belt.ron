@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Assassin Belt",
-    description: "Only the best for a member of the creed.",
+    legacy_name: "Assassin Belt",
+    legacy_description: "Only the best for a member of the creed.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Assassin"),

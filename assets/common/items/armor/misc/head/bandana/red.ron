@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Bandana",
-    description: "Very sneaky, but also, bright red.",
+    legacy_name: "Red Bandana",
+    legacy_description: "Very sneaky, but also, bright red.",
     kind: Armor((
         kind: Head,
         stats: Direct((

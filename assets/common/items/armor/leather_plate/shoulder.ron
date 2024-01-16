@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Plate Shoulder Pad",
-    description: "Leather adorned with steel for better protection.",
+    legacy_name: "Leather Plate Shoulder Pad",
+    legacy_description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Leather Plate"),

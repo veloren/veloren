@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Arthropod Armor",
-    description: "Worn by arthropods.",
+    legacy_name: "Arthropod Armor",
+    legacy_description: "Worn by arthropods.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Apple Stick",
-    description: "The stick makes it easier to carry!",
+    legacy_name: "Apple Stick",
+    legacy_description: "The stick makes it easier to carry!",
     kind: Consumable(
         kind: Food,
         effects: One(

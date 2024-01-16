@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Fists",
-    description: "Sturdy and unyielding, across ages of war.",
+    legacy_name: "Iron Fists",
+    legacy_description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Iron"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Glass Key",
-    description: "Used to open Glass Barriers. Will break after use.",
+    legacy_name: "Glass Key",
+    legacy_description: "Used to open Glass Barriers. Will break after use.",
     kind: Utility(
         kind: Key,
     ),

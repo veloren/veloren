@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework Green",
-    description: "Watch out for trees.",
+    legacy_name: "Firework Green",
+    legacy_description: "Watch out for trees.",
     kind: Throwable(
         kind: Firework(Green),
     ),

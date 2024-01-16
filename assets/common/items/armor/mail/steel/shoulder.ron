@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Shoulders",
-    description: "The metal alloy plates provide better protection and comfort.",
+    legacy_name: "Steel Shoulders",
+    legacy_description: "The metal alloy plates provide better protection and comfort.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Steel"),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moss Crawler",
-    description: "testing123",
+    legacy_name: "Moss Crawler",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

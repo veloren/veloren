@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Huge Raw Drumstick",
-    description: "It's magnificent.",
+    legacy_name: "Huge Raw Drumstick",
+    legacy_description: "It's magnificent.",
     kind: Consumable(
         kind: Food,
         effects: One(

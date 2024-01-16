@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Living Embers",
-    description: "The smouldering remains of a fiery creature.",
+    legacy_name: "Living Embers",
+    legacy_description: "The smouldering remains of a fiery creature.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

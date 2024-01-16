@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Garlic",
-    description: "Make sure to brush your teeth after eating.",
+    legacy_name: "Garlic",
+    legacy_description: "Make sure to brush your teeth after eating.",
     kind: Consumable(
         kind: Food,
         effects: One(

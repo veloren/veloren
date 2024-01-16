@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sea Bishop Sceptre",
-    description: "Hits like a wave.",
+    legacy_name: "Sea Bishop Sceptre",
+    legacy_description: "Hits like a wave.",
     kind: Tool((
         kind: Sceptre,
         hands: Two,

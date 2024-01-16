@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Damaged Greatsword",
-    description: "The blade could snap at any moment, but you hope it will endure future fights.",
+    legacy_name: "Damaged Greatsword",
+    legacy_description: "The blade could snap at any moment, but you hope it will endure future fights.",
     kind: Tool((
         kind: Sword,
         hands: Two,

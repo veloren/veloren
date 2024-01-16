@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Strips",
-    description: "Tanned animal hide strips formed into loose shoulder pads.",
+    legacy_name: "Leather Strips",
+    legacy_description: "Tanned animal hide strips formed into loose shoulder pads.",
     kind: Armor((
         kind: Shoulder,
         stats: Direct((

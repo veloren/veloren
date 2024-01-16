@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Quad Med Hoof",
-    description: "testing123",
+    legacy_name: "Quad Med Hoof",
+    legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,

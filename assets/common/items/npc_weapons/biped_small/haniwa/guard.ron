@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Guard Spear",
-    description: "",
+    legacy_name: "Guard Spear",
+    legacy_description: "",
     kind: Tool((
         kind: Spear,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cloth Strips",
-    description: "Small and soft, yet useful",
+    legacy_name: "Cloth Strips",
+    legacy_description: "Small and soft, yet useful",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

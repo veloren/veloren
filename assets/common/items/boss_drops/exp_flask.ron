@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flask of Velorite Dust",
-    description: "Take with plenty of water",
+    legacy_name: "Flask of Velorite Dust",
+    legacy_description: "Take with plenty of water",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

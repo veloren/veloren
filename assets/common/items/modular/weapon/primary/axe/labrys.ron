@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Labrys Head",
-    description: "",
+    legacy_name: "Labrys Head",
+    legacy_description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
             toolkind: Axe,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rake",
-    description: "Held together with twine.",
+    legacy_name: "Rake",
+    legacy_description: "Held together with twine.",
     kind: Tool((
         kind: Farming,
         hands: Two,

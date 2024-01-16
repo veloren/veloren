@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Ore",
-    description: "A blue, shiny ore.",
+    legacy_name: "Cobalt Ore",
+    legacy_description: "A blue, shiny ore.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

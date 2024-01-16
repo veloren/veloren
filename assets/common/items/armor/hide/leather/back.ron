@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Cloak",
-    description: "Swift like the wind.",
+    legacy_name: "Leather Cloak",
+    legacy_description: "Swift like the wind.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Leather"),

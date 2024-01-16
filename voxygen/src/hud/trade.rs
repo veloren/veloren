@@ -10,7 +10,7 @@ use vek::*;
 use client::Client;
 use common::{
     comp::{
-        inventory::item::{ItemDesc, MaterialStatManifest, Quality},
+        inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         Inventory, Stats,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
@@ -35,7 +35,8 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{SlotKind, SlotManager, TradeSlot},
-    Hud, HudInfo, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    util, Hud, HudInfo, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0,
+    UI_MAIN,
 };
 use std::borrow::Cow;
 
@@ -98,6 +99,7 @@ pub struct Trade<'a> {
     common: widget::CommonBuilder,
     slot_manager: &'a mut SlotManager,
     localized_strings: &'a Localization,
+    item_i18n: &'a ItemI18n,
     msm: &'a MaterialStatManifest,
     pulse: f32,
     show: &'a mut Show,
@@ -116,6 +118,7 @@ impl<'a> Trade<'a> {
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         localized_strings: &'a Localization,
+        item_i18n: &'a ItemI18n,
         msm: &'a MaterialStatManifest,
         pulse: f32,
         show: &'a mut Show,
@@ -132,6 +135,7 @@ impl<'a> Trade<'a> {
             common: widget::CommonBuilder::default(),
             slot_manager,
             localized_strings,
+            item_i18n,
             msm,
             pulse,
             show,
@@ -345,6 +349,7 @@ impl<'a> Trade<'a> {
             self.pulse,
             self.msm,
             self.localized_strings,
+            self.item_i18n,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -362,6 +367,7 @@ impl<'a> Trade<'a> {
                 self.slot_manager,
                 self.pulse,
                 self.localized_strings,
+                self.item_i18n,
                 false,
                 true,
                 false,
@@ -530,7 +536,11 @@ impl<'a> Trade<'a> {
             let itemname = slot
                 .invslot
                 .and_then(|i| inventory.get(i))
-                .map(|i| i.name())
+                .map(|i| {
+                    let (name, _) = util::item_text(&i, self.localized_strings, self.item_i18n);
+
+                    Cow::Owned(name)
+                })
                 .unwrap_or(Cow::Borrowed(""));
             let is_present = slot.quantity > 0 && slot.invslot.is_some();
             Text::new(&format!("{} x {}", slot.quantity, itemname))

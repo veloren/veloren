@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Basalt",
-    description: "A dark volcanic rock, most volcanic rock tends to be basalt..",
+    legacy_name: "Basalt",
+    legacy_description: "A dark volcanic rock, most volcanic rock tends to be basalt..",
     kind: Ingredient(
         descriptor: "Basalt",
     ),

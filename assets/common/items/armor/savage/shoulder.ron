@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Savage Shoulder Pad",
-    description: "Brings the fury of the barbarians.",
+    legacy_name: "Savage Shoulder Pad",
+    legacy_description: "Brings the fury of the barbarians.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Savage"),

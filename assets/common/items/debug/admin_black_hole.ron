@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Admin's Black Hole",
-    description: "It just works.",
+    legacy_name: "Admin's Black Hole",
+    legacy_description: "It just works.",
     kind: Armor(
         (
             kind: Bag,

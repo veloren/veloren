@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Reliable Leather Pack",
-    description: "It will never give you up.",
+    legacy_name: "Reliable Leather Pack",
+    legacy_description: "It will never give you up.",
     kind: Armor((
         kind: Bag,
         stats: Direct(()),

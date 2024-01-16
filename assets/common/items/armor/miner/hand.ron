@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Miner's Gloves",
-    description: "Someone carved 'Mine!' into the inside.",
+    legacy_name: "Miner's Gloves",
+    legacy_description: "Someone carved 'Mine!' into the inside.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Miner"),

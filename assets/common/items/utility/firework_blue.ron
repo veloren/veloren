@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework Blue",
-    description: "Recommended clearance: 42 chonks",
+    legacy_name: "Firework Blue",
+    legacy_description: "Recommended clearance: 42 chonks",
     kind: Throwable(
         kind: Firework(Blue),
     ),

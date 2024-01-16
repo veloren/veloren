@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Impressive Turban",
-    description: "An incredibly fancy and light-weight turban, quite expensive too.",
+    legacy_name: "Impressive Turban",
+    legacy_description: "An incredibly fancy and light-weight turban, quite expensive too.",
     kind: Armor((
         kind: Head,
         stats: Direct((

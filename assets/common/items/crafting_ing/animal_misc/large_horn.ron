@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Large Horn",
-    description: "A huge sharp horn from an animal.\n\nThis can be used when crafting weapons.",
+    legacy_name: "Large Horn",
+    legacy_description: "A huge sharp horn from an animal.\n\nThis can be used when crafting weapons.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

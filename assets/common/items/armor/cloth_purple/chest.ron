@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Linen Chest",
-    description: "A stylish rough fabric surcoat, dyed purple.",
+    legacy_name: "Purple Linen Chest",
+    legacy_description: "A stylish rough fabric surcoat, dyed purple.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Cloth Purple"),

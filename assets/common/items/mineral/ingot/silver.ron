@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Silver Ingot",
-    description: "An ingot made of refined metallic silver.",
+    legacy_name: "Silver Ingot",
+    legacy_description: "An ingot made of refined metallic silver.",
     kind: Ingredient(
         descriptor: "Silver",
     ),

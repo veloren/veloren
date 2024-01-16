@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Assassin Shoulder Guard",
-    description: "Only the best for a member of the creed.",
+    legacy_name: "Assassin Shoulder Guard",
+    legacy_description: "Only the best for a member of the creed.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Assassin"),

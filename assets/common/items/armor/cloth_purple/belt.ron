@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Linen Belt",
-    description: "A stylish rough fabric belt, dyed purple.",
+    legacy_name: "Purple Linen Belt",
+    legacy_description: "A stylish rough fabric belt, dyed purple.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Cloth Purple"),

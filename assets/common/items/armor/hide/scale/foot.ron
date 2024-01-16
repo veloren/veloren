@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Scale Sabatons",
-    description: "Each embedded scale provides additional protection.",
+    legacy_name: "Scale Sabatons",
+    legacy_description: "Each embedded scale provides additional protection.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Scale"),

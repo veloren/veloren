@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Broom",
-    description: "It's beginning to fall apart.",
+    legacy_name: "Broom",
+    legacy_description: "It's beginning to fall apart.",
     kind: Tool((
         kind: Farming,
         hands: Two,

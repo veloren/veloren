@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Chestplate",
-    description: "A chestplate forged from iron.",
+    legacy_name: "Iron Chestplate",
+    legacy_description: "A chestplate forged from iron.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

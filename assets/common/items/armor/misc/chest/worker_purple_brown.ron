@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purple Worker Shirt",
-    description: "Resilient and reliable.",
+    legacy_name: "Purple Worker Shirt",
+    legacy_description: "Resilient and reliable.",
     kind: Armor((
         kind: Chest,
         stats: Direct((

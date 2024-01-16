@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Druid Shoulderpads",
-    description: "Incredibly light, with the essence of nature.",
+    legacy_name: "Druid Shoulderpads",
+    legacy_description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Lifecloth"),

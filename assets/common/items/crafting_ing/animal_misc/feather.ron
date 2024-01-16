@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Feather",
-    description: "Feather from a bird.",
+    legacy_name: "Feather",
+    legacy_description: "Feather from a bird.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

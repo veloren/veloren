@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron and Leather Spaulders",
-    description: "Leather shoulders decorated with heavy iron hooks provide protection to the wearer.",
+    legacy_name: "Iron and Leather Spaulders",
+    legacy_description: "Leather shoulders decorated with heavy iron hooks provide protection to the wearer.",
     kind: Armor((
         kind: Shoulder,
         stats: Direct((

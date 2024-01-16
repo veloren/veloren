@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Clockwork Chest",
-    description: "Clockwork Chest",
+    legacy_name: "Clockwork Chest",
+    legacy_description: "Clockwork Chest",
     kind: Armor((
         kind: Chest,
         stats: Direct((

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Brinestone Crown",
-    description: "Makes you look taller.",
+    legacy_name: "Brinestone Crown",
+    legacy_description: "Makes you look taller.",
     kind: Armor((
         kind: Head,
         stats: Direct((
