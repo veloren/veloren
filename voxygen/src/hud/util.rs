@@ -15,7 +15,7 @@ use common::{
 };
 use conrod_core::image;
 use i18n::{fluent_args, Localization};
-use std::{borrow::Cow, fmt::Write, num::NonZeroU32};
+use std::{borrow::Cow, fmt::Write};
 
 pub fn price_desc<'a>(
     prices: &Option<SitePrices>,
@@ -79,7 +79,7 @@ pub fn describe<'a, I: ItemDesc + ?Sized>(
     let (title, _) = item_text(item, i18n, l10n_spec);
     let amount = item.amount();
 
-    if amount > NonZeroU32::new(1).unwrap() {
+    if amount.get() > 1 {
         format!("{amount} x {title}")
     } else {
         title

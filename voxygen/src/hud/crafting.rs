@@ -737,18 +737,17 @@ impl<'a> Widget for Crafting<'a> {
             .press_image(self.imgs.selection_press)
             .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
 
-            let borrow_check;
+            let title;
             let recipe_name =
                 if let Some((_recipe, pseudo_name, _filter_tab)) = pseudo_entries.get(name) {
                     *pseudo_name
                 } else {
-                    let (title, _) = util::item_text(
+                    (title, _) = util::item_text(
                         recipe.output.0.as_ref(),
                         self.localized_strings,
                         self.item_l10n,
                     );
-                    borrow_check = title;
-                    &borrow_check
+                    &title
                 };
 
             let text = Text::new(recipe_name)
@@ -865,20 +864,21 @@ impl<'a> Widget for Crafting<'a> {
             None => None,
         } {
             let recipe_name = String::from(recipe_name);
-            let borrow_check;
+
+            let title;
             let title = if let Some((_recipe, pseudo_name, _filter_tab)) =
                 pseudo_entries.get(&recipe_name)
             {
                 *pseudo_name
             } else {
-                let (title, _) = util::item_text(
+                (title, _) = util::item_text(
                     recipe.output.0.as_ref(),
                     self.localized_strings,
                     self.item_l10n,
                 );
-                borrow_check = title;
-                &borrow_check
+                &title
             };
+
             // Title
             Text::new(title)
                 .mid_top_with_margin_on(state.ids.align_ing, -22.0)
