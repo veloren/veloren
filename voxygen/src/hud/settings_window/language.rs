@@ -17,6 +17,8 @@ widget_ids! {
         window_r,
         english_fallback_button,
         english_fallback_button_label,
+        send_to_server_checkbox,
+        send_to_server_checkbox_label,
         window_scrollbar,
         language_list[],
     }
@@ -86,9 +88,64 @@ impl<'a> Widget for Language<'a> {
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.window_scrollbar, ui);
 
+        // Share with server button
+        let send_to_server = ToggleButton::new(
+            self.global_state.settings.language.send_to_server,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .top_left_with_margin_on(state.ids.window, 20.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.send_to_server_checkbox, ui);
+
+        if send_to_server != self.global_state.settings.language.send_to_server {
+            events.push(ToggleSendToServer(send_to_server));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-language_send_to_server"),
+        )
+        .right_from(state.ids.send_to_server_checkbox, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.send_to_server_checkbox)
+        .color(TEXT_COLOR)
+        .set(state.ids.send_to_server_checkbox_label, ui);
+
+        // English as fallback language
+        let show_english_fallback = ToggleButton::new(
+            self.global_state.settings.language.use_english_fallback,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.send_to_server_checkbox, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.english_fallback_button, ui);
+
+        if self.global_state.settings.language.use_english_fallback != show_english_fallback {
+            events.push(ToggleEnglishFallback(show_english_fallback));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-english_fallback"),
+        )
+        .right_from(state.ids.english_fallback_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.english_fallback_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.english_fallback_button_label, ui);
+
         // List available languages
         let selected_language = &self.global_state.settings.language.selected_language;
-        let english_fallback = self.global_state.settings.language.use_english_fallback;
         let language_list = list_localizations();
         if state.ids.language_list.len() < language_list.len() {
             state.update(|state| {
@@ -107,7 +164,7 @@ impl<'a> Widget for Language<'a> {
                 self.imgs.nothing
             });
             let button = if i == 0 {
-                button.mid_top_with_margin_on(state.ids.window, 20.0)
+                button.mid_top_with_margin_on(state.ids.window, 58.0)
             } else {
                 button.mid_bottom_with_margin_on(state.ids.language_list[i - 1], -button_h)
             };
@@ -126,40 +183,6 @@ impl<'a> Widget for Language<'a> {
                 events.push(ChangeLanguage(Box::new(language.to_owned())));
             }
         }
-
-        // English as fallback language
-        let show_english_fallback = ToggleButton::new(
-            english_fallback,
-            self.imgs.checkbox,
-            self.imgs.checkbox_checked,
-        )
-        .w_h(18.0, 18.0);
-        let show_english_fallback = if let Some(id) = state.ids.language_list.last() {
-            show_english_fallback.down_from(*id, 8.0)
-            //mid_bottom_with_margin_on(id, -button_h)
-        } else {
-            show_english_fallback.mid_top_with_margin_on(state.ids.window, 20.0)
-        };
-        let show_english_fallback = show_english_fallback
-            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-            .set(state.ids.english_fallback_button, ui);
-
-        if english_fallback != show_english_fallback {
-            events.push(ToggleEnglishFallback(show_english_fallback));
-        }
-
-        Text::new(
-            &self
-                .localized_strings
-                .get_msg("hud-settings-english_fallback"),
-        )
-        .right_from(state.ids.english_fallback_button, 10.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .graphics_for(state.ids.english_fallback_button)
-        .color(TEXT_COLOR)
-        .set(state.ids.english_fallback_button_label, ui);
 
         events
     }

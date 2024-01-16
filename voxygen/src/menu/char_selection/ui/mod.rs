@@ -153,6 +153,7 @@ pub enum Event {
     DeleteCharacter(CharacterId),
     ClearCharacterListError,
     SelectCharacter(Option<CharacterId>),
+    ShowRules,
 }
 
 enum Mode {
@@ -163,6 +164,7 @@ enum Mode {
         character_buttons: Vec<button::State>,
         new_character_button: button::State,
         logout_button: button::State,
+        rule_button: button::State,
         enter_world_button: button::State,
         spectate_button: button::State,
         yes_button: button::State,
@@ -204,6 +206,7 @@ impl Mode {
             character_buttons: Vec::new(),
             new_character_button: Default::default(),
             logout_button: Default::default(),
+            rule_button: Default::default(),
             enter_world_button: Default::default(),
             spectate_button: Default::default(),
             yes_button: Default::default(),
@@ -308,12 +311,14 @@ struct Controls {
     map_img: GraphicId,
     possible_starting_sites: Vec<SiteInfo>,
     world_sz: Vec2<u32>,
+    has_rules: bool,
 }
 
 #[derive(Clone)]
 enum Message {
     Back,
     Logout,
+    ShowRules,
     EnterWorld,
     Spectate,
     Select(CharacterId),
@@ -356,6 +361,7 @@ impl Controls {
         map_img: GraphicId,
         possible_starting_sites: Vec<SiteInfo>,
         world_sz: Vec2<u32>,
+        has_rules: bool,
     ) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
@@ -377,6 +383,7 @@ impl Controls {
             map_img,
             possible_starting_sites,
             world_sz,
+            has_rules,
         }
     }
 
@@ -467,6 +474,7 @@ impl Controls {
                 ref mut character_buttons,
                 ref mut new_character_button,
                 ref mut logout_button,
+                ref mut rule_button,
                 ref mut enter_world_button,
                 ref mut spectate_button,
                 ref mut yes_button,
@@ -738,7 +746,25 @@ impl Controls {
                 ])
                 .height(Length::Fill);
 
-                let left_column = Column::with_children(vec![server.into(), characters.into()])
+                let mut left_column_children = vec![server.into(), characters.into()];
+
+                if self.has_rules {
+                    left_column_children.push(
+                        Container::new(neat_button(
+                            rule_button,
+                            i18n.get_msg("char_selection-rules").into_owned(),
+                            FILL_FRAC_ONE,
+                            button_style,
+                            Some(Message::ShowRules),
+                        ))
+                        .align_y(Align::End)
+                        .width(Length::Fill)
+                        .center_x()
+                        .height(Length::Units(52))
+                        .into(),
+                    );
+                }
+                let left_column = Column::with_children(left_column_children)
                     .spacing(10)
                     .width(Length::Units(322)) // TODO: see if we can get iced to work with settings below
                     // .max_width(360)
@@ -1670,6 +1696,9 @@ impl Controls {
             Message::Logout => {
                 events.push(Event::Logout);
             },
+            Message::ShowRules => {
+                events.push(Event::ShowRules);
+            },
             Message::ConfirmDeletion => {
                 if let Mode::Select { info_content, .. } = &mut self.mode {
                     if let Some(InfoContent::Deletion(idx)) = info_content {
@@ -1997,6 +2026,7 @@ impl CharSelectionUi {
                 .map(|info| info.site.clone())
                 .collect(),
             client.world_data().chunk_size().as_(),
+            client.server_description().rules.is_some(),
         );
 
         Self {

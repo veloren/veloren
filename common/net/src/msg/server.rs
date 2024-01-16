@@ -47,10 +47,15 @@ pub enum ServerMsg {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerInfo {
     pub name: String,
-    pub description: String,
     pub git_hash: String,
     pub git_date: String,
     pub auth_provider: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ServerDescription {
+    pub motd: String,
+    pub rules: Option<String>,
 }
 
 /// Reponse To ClientType
@@ -69,6 +74,7 @@ pub enum ServerInit {
         material_stats: MaterialStatManifest,
         ability_map: comp::item::tool::AbilityMap,
         server_constants: ServerConstants,
+        description: ServerDescription,
     },
 }
 

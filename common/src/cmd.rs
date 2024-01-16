@@ -651,9 +651,7 @@ impl ServerChatCommand {
                 "Make a sprite at your location",
                 Some(Admin),
             ),
-            ServerChatCommand::Motd => {
-                cmd(vec![Message(Optional)], "View the server description", None)
-            },
+            ServerChatCommand::Motd => cmd(vec![], "View the server description", None),
             ServerChatCommand::Object => cmd(
                 vec![Enum("object", OBJECTS.clone(), Required)],
                 "Spawn an object",
@@ -720,7 +718,7 @@ impl ServerChatCommand {
                 Some(Moderator),
             ),
             ServerChatCommand::SetMotd => cmd(
-                vec![Message(Optional)],
+                vec![Any("locale", Optional), Message(Optional)],
                 "Set the server description",
                 Some(Admin),
             ),

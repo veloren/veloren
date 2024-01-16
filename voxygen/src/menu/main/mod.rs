@@ -1,8 +1,7 @@
 mod client_init;
-mod scene;
 mod ui;
 
-use super::char_selection::CharSelectionState;
+use super::{char_selection::CharSelectionState, dummy_scene::Scene, server_info::ServerInfoState};
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::SingleplayerState;
 use crate::{
@@ -20,13 +19,14 @@ use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::comp;
 use common_base::span;
 use i18n::LocalizationHandle;
-use scene::Scene;
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
 use std::sync::Arc;
 use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
+
+pub use ui::rand_bg_image_spec;
 
 #[derive(Debug)]
 pub enum DetailedInitializationStage {
@@ -125,6 +125,9 @@ impl PlayState for MainMenuState {
                             ConnectionArgs::Mpsc(14004),
                             &mut self.init,
                             &global_state.tokio_runtime,
+                            global_state.settings.language.send_to_server.then_some(
+                                global_state.settings.language.selected_language.clone(),
+                            ),
                             &global_state.i18n,
                         );
                     },
@@ -294,10 +297,27 @@ impl PlayState for MainMenuState {
                     core::mem::replace(&mut self.init, InitState::None)
                 {
                     self.main_menu_ui.connected();
-                    return PlayStateResult::Push(Box::new(CharSelectionState::new(
+
+                    let server_info = client.server_info().clone();
+                    let server_description = client.server_description().clone();
+
+                    let char_select = CharSelectionState::new(
                         global_state,
                         std::rc::Rc::new(std::cell::RefCell::new(*client)),
-                    )));
+                    );
+
+                    let new_state = ServerInfoState::try_from_server_info(
+                        global_state,
+                        self.main_menu_ui.bg_img_spec(),
+                        char_select,
+                        server_info,
+                        server_description,
+                        false,
+                    )
+                    .map(|s| Box::new(s) as _)
+                    .unwrap_or_else(|s| Box::new(s) as _);
+
+                    return PlayStateResult::Push(new_state);
                 }
             }
         }
@@ -342,6 +362,11 @@ impl PlayState for MainMenuState {
                         connection_args,
                         &mut self.init,
                         &global_state.tokio_runtime,
+                        global_state
+                            .settings
+                            .language
+                            .send_to_server
+                            .then_some(global_state.settings.language.selected_language.clone()),
                         &global_state.i18n,
                     );
                 },
@@ -572,6 +597,7 @@ fn attempt_login(
     connection_args: ConnectionArgs,
     init: &mut InitState,
     runtime: &Arc<runtime::Runtime>,
+    locale: Option<String>,
     localized_strings: &LocalizationHandle,
 ) {
     let localization = localized_strings.read();
@@ -604,6 +630,7 @@ fn attempt_login(
             username,
             password,
             Arc::clone(runtime),
+            locale,
         ));
     }
 }

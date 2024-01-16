@@ -1,6 +1,7 @@
 mod ui;
 
 use crate::{
+    menu::{main::rand_bg_image_spec, server_info::ServerInfoState},
     render::{Drawer, GlobalsBindGroup},
     scene::simple::{self as scene, Scene},
     session::SessionState,
@@ -59,6 +60,8 @@ impl CharSelectionState {
             })
             .unwrap_or_default()
     }
+
+    pub fn client(&self) -> &RefCell<Client> { &self.client }
 }
 
 impl PlayState for CharSelectionState {
@@ -157,6 +160,28 @@ impl PlayState for CharSelectionState {
                             UpdateCharacterMetadata::default(),
                             Rc::clone(&self.client),
                         )));
+                    },
+                    ui::Event::ShowRules => {
+                        let client = self.client.borrow();
+
+                        let server_info = client.server_info().clone();
+                        let server_description = client.server_description().clone();
+
+                        let char_select =
+                            CharSelectionState::new(global_state, Rc::clone(&self.client));
+
+                        let new_state = ServerInfoState::try_from_server_info(
+                            global_state,
+                            rand_bg_image_spec(),
+                            char_select,
+                            server_info,
+                            server_description,
+                            true,
+                        )
+                        .map(|s| Box::new(s) as _)
+                        .unwrap_or_else(|s| Box::new(s) as _);
+
+                        return PlayStateResult::Switch(new_state);
                     },
                     ui::Event::ClearCharacterListError => {
                         self.char_selection_ui.error = None;

@@ -45,10 +45,13 @@ impl Sys {
     ) -> Result<(), crate::error::Error> {
         let mut send_join_messages = || -> Result<(), crate::error::Error> {
             // Give the player a welcome message
-            if !editable_settings.server_description.is_empty() {
+            let localized_description = editable_settings
+                .server_description
+                .get(client.locale.as_deref());
+            if !localized_description.map_or(true, |d| d.motd.is_empty()) {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    editable_settings.server_description.as_str(),
+                    localized_description.map_or("", |d| &d.motd),
                 ))?;
             }
 

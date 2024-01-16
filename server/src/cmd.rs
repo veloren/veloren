@@ -6,7 +6,8 @@ use crate::{
     location::Locations,
     login_provider::LoginProvider,
     settings::{
-        Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
+        server_description::ServerDescription, Ban, BanAction, BanInfo, EditableSetting,
+        SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::NpcData,
     weather::WeatherSim,
@@ -775,11 +776,23 @@ fn handle_motd(
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
+    let locale = server
+        .state
+        .ecs()
+        .read_storage::<Client>()
+        .get(client)
+        .and_then(|client| client.locale.clone());
+
     server.notify_client(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            (*server.editable_settings().server_description).clone(),
+            server
+                .editable_settings()
+                .server_description
+                .get(locale.as_deref())
+                .map_or("", |d| &d.motd)
+                .to_string(),
         ),
     );
     Ok(())
@@ -790,22 +803,31 @@ fn handle_set_motd(
     client: EcsEntity,
     _target: EcsEntity,
     args: Vec<String>,
-    _action: &ServerChatCommand,
+    action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let data_dir = server.data_dir();
     let client_uuid = uuid(server, client, "client")?;
     // Ensure the person setting this has a real role in the settings file, since
     // it's persistent.
     let _client_real_role = real_role(server, client_uuid, "client")?;
-    match parse_cmd_args!(args, String) {
-        Some(msg) => {
+    match parse_cmd_args!(args, String, String) {
+        (Some(locale), Some(msg)) => {
             let edit =
                 server
                     .editable_settings_mut()
                     .server_description
                     .edit(data_dir.as_ref(), |d| {
-                        let info = format!("Server description set to {:?}", msg);
-                        **d = msg;
+                        let info = format!("Server message of the day set to {:?}", msg);
+
+                        if let Some(description) = d.descriptions.get_mut(&locale) {
+                            description.motd = msg;
+                        } else {
+                            d.descriptions.insert(locale, ServerDescription {
+                                motd: msg,
+                                rules: None,
+                            });
+                        }
+
                         Some(info)
                     });
             drop(data_dir);
@@ -813,20 +835,25 @@ fn handle_set_motd(
                 unreachable!("edit always returns Some")
             })
         },
-        None => {
+        (Some(locale), None) => {
             let edit =
                 server
                     .editable_settings_mut()
                     .server_description
                     .edit(data_dir.as_ref(), |d| {
-                        d.clear();
-                        Some("Removed server description".to_string())
+                        if let Some(description) = d.descriptions.get_mut(&locale) {
+                            description.motd.clear();
+                            Some("Removed server message of the day".to_string())
+                        } else {
+                            Some("This locale had no motd set".to_string())
+                        }
                     });
             drop(data_dir);
             edit_setting_feedback(server, client, edit, || {
                 unreachable!("edit always returns Some")
             })
         },
+        _ => Err(Content::Plain(action.help_string())),
     }
 }
 

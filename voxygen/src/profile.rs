@@ -39,6 +39,8 @@ pub struct ServerProfile {
     pub selected_character: Option<CharacterId>,
     /// Last spectate position
     pub spectate_position: Option<vek::Vec3<f32>>,
+    /// Hash of left-accepted server rules
+    pub accepted_rules: Option<u64>,
 }
 
 impl Default for ServerProfile {
@@ -47,6 +49,7 @@ impl Default for ServerProfile {
             characters: HashMap::new(),
             selected_character: None,
             spectate_position: None,
+            accepted_rules: None,
         }
     }
 }

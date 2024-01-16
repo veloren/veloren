@@ -36,6 +36,7 @@ pub enum ClientType {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ClientRegister {
     pub token_or_username: String,
+    pub locale: Option<String>,
 }
 
 /// Messages sent from the client to the server

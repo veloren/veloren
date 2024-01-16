@@ -49,6 +49,7 @@ impl ClientInit {
         username: String,
         password: String,
         runtime: Arc<runtime::Runtime>,
+        locale: Option<String>,
     ) -> Self {
         let (tx, rx) = unbounded();
         let (trust_tx, trust_rx) = unbounded();
@@ -81,6 +82,7 @@ impl ClientInit {
                     &mut mismatched_server_info,
                     &username,
                     &password,
+                    locale.clone(),
                     trust_fn,
                     &|stage| {
                         let _ = init_stage_tx.send(stage);

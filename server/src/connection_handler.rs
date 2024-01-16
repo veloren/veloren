@@ -146,6 +146,7 @@ impl ConnectionHandler {
             client_type,
             participant,
             server_data.time,
+            None,
             general_stream,
             ping_stream,
             register_stream,
