@@ -292,17 +292,44 @@ impl Default for UpscaleMode {
 pub enum PresentMode {
     Mailbox,
     Immediate,
+    FifoRelaxed,
     #[default]
     #[serde(other)]
     Fifo, // has to be last for `#[serde(other)]`
+}
+
+impl PresentMode {
+    pub fn localize(&self) -> &'static str {
+        match self {
+            Self::Fifo => "hud-settings-present_mode-vsync_capped",
+            Self::FifoRelaxed => "hud-settings-present_mode-vsync_adaptive",
+            Self::Mailbox => "hud-settings-present_mode-vsync_uncapped",
+            Self::Immediate => "hud-settings-present_mode-vsync_off",
+        }
+    }
 }
 
 impl From<PresentMode> for wgpu::PresentMode {
     fn from(mode: PresentMode) -> Self {
         match mode {
             PresentMode::Fifo => wgpu::PresentMode::Fifo,
+            PresentMode::FifoRelaxed => wgpu::PresentMode::FifoRelaxed,
             PresentMode::Mailbox => wgpu::PresentMode::Mailbox,
             PresentMode::Immediate => wgpu::PresentMode::Immediate,
+        }
+    }
+}
+
+impl TryFrom<wgpu::PresentMode> for PresentMode {
+    type Error = ();
+
+    fn try_from(mode: wgpu::PresentMode) -> Result<Self, ()> {
+        match mode {
+            wgpu::PresentMode::Fifo => Ok(PresentMode::Fifo),
+            wgpu::PresentMode::FifoRelaxed => Ok(PresentMode::FifoRelaxed),
+            wgpu::PresentMode::Mailbox => Ok(PresentMode::Mailbox),
+            wgpu::PresentMode::Immediate => Ok(PresentMode::Immediate),
+            _ => Err(()),
         }
     }
 }

@@ -72,6 +72,7 @@ hud-settings-maximum_fps = Maximum FPS
 hud-settings-background_fps = Background FPS
 hud-settings-present_mode = Present Mode
 hud-settings-present_mode-vsync_capped = Vsync capped
+hud-settings-present_mode-vsync_adaptive = Adaptive vsync
 hud-settings-present_mode-vsync_uncapped = Vsync uncapped
 hud-settings-present_mode-vsync_off = Vsync off
 hud-settings-fov = Field of View (deg)

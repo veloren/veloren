@@ -28,8 +28,8 @@ use super::{
         terrain, ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
-    AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode, ShadowMapMode,
-    ShadowMode, Vertex,
+    AddressMode, FilterMode, OtherModes, PipelineModes, PresentMode, RenderError, RenderMode,
+    ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle, ReloadWatcher};
 use common_base::span;
@@ -135,6 +135,7 @@ enum State {
 pub struct Renderer {
     device: Arc<wgpu::Device>,
     queue: wgpu::Queue,
+    adapter: wgpu::Adapter,
     surface: wgpu::Surface,
     surface_config: wgpu::SurfaceConfiguration,
 
@@ -350,12 +351,21 @@ impl Renderer {
         let format = surface_capabilities.formats[0];
         info!("Using {:?} as the surface format", format);
 
+        let present_mode = other_modes.present_mode.into();
         let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format,
             width: dims.width,
             height: dims.height,
-            present_mode: other_modes.present_mode.into(),
+            present_mode: if surface_capabilities.present_modes.contains(&present_mode) {
+                present_mode
+            } else {
+                *surface_capabilities
+                    .present_modes
+                    .iter()
+                    .find(|mode| PresentMode::try_from(**mode).is_ok())
+                    .expect("There should never be no supported present modes")
+            },
             alpha_mode: wgpu::CompositeAlphaMode::Opaque,
             view_formats: Vec::new(),
         };
@@ -555,6 +565,7 @@ impl Renderer {
         Ok(Self {
             device,
             queue,
+            adapter,
             surface,
             surface_config,
 
@@ -674,6 +685,16 @@ impl Renderer {
 
     /// Get the pipelines mode.
     pub fn pipeline_modes(&self) -> &PipelineModes { &self.pipeline_modes }
+
+    /// Get the supported present modes.
+    pub fn present_modes(&self) -> Vec<PresentMode> {
+        self.surface
+            .get_capabilities(&self.adapter)
+            .present_modes
+            .into_iter()
+            .filter_map(|present_mode| PresentMode::try_from(present_mode).ok())
+            .collect()
+    }
 
     /// Get the current profiling times
     /// Nested timings immediately follow their parent
