@@ -107,3 +107,6 @@ common-material-stone = Камень
 common-material-cloth = Ткань
 common-material-hide = Кожа
 common-sprite-chest = Сундук
+common-stats-durability = Прочность
+common-sprite-chair = Стул
+common-accessibility = Спец. возможности

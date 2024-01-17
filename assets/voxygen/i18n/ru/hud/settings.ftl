@@ -48,7 +48,7 @@ hud-settings-invert_scroll_zoom =
 hud-settings-invert_mouse_y_axis =
     Инвентировать ось
     Y мыши
-hud-settings-invert_controller_y_axis = 
+hud-settings-invert_controller_y_axis =
     Инвентировать ось
     X контроллера
 hud-settings-enable_mouse_smoothing = Сглаживание камеры
@@ -167,3 +167,8 @@ hud-settings-group_only = Только группа
 hud-settings-reset_chat = По умолчанию
 hud-settings-third_party_integrations = Сторонние интеграции
 hud-settings-enable_discord_integration = Включить интеграцию Discord
+hud-settings-autopress_behavior-toggle = Переключить
+hud-settings-autopress_behavior-auto = Авто
+hud-settings-slots = Слоты
+hud-settings-subtitles = Субтитры
+hud-settings-combat_music = Боевая музыка

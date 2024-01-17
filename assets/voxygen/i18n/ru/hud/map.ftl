@@ -22,7 +22,7 @@ hud-map-bridge = Мост
 hud-map-dungeon = Подземелье
 hud-map-difficulty_dungeon =
     Подземелье
-    
+
     Сложность: { $difficulty }
 hud-map-drag = Переместить
 hud-map-zoom = Увеличить
@@ -38,3 +38,4 @@ hud-map-zoom_minimap_explanation = Увеличьте миникарту, что
 hud-map-gnarling = Форт Гнарлингов
 hud-map-chapel_site = Морская часовня
 hud-map-placed_by = Метка установлена { $name }
+hud-map-df_mine = Шахта

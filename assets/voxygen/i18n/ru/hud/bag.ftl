@@ -40,3 +40,5 @@ hud-bag-sort_by_name = Сортировать по имени
 hud-bag-sort_by_quality = Сортировать по качеству
 hud-bag-sort_by_category = Сортировать по категории
 hud-bag-sort_by_tag = Сортировать по тегам
+hud-bag-backpack = Рюкзак
+hud-bag-sort_by_quantity = Сортировать по количеству
