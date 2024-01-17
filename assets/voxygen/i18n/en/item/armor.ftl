@@ -414,31 +414,31 @@ armor-misc-chest-worker_green = Green Worker Shirt
 armor-misc-chest-shirt_white = Green Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-worker_green-worker_orange_0 = Orange Worker Shirt
+armor-misc-chest-worker_orange_0 = Orange Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-shirt_white-worker_orange_1 = Orange Worker Shirt
+armor-misc-chest-worker_orange_1 = Orange Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-worker_green-worker_purple_0 = Purple Worker Shirt
+armor-misc-chest-worker_purple_0 = Purple Worker Shirt
     .desc = Resilient and reliable.
 
-armor-misc-chest-shirt_white-worker_purple_1 = Purple Worker Shirt
+armor-misc-chest-worker_purple_1 = Purple Worker Shirt
     .desc = Was used by a farmer, until recently.
 
 armor-misc-chest-worker_purp_brown = Purple Worker Shirt
     .desc = Resilient and reliable.
 
-armor-misc-chest-worker_green-worker_red_0 = Red Worker Shirt
+armor-misc-chest-worker_red_0 = Red Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-shirt_white-worker_red_1 = Red Worker Shirt
+armor-misc-chest-worker_red_1 = Red Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-worker_green-worker_yellow_0 = Yellow Worker Shirt
+armor-misc-chest-worker_yellow_0 = Yellow Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-shirt_white-worker_yellow_1 = Yellow Worker Shirt
+armor-misc-chest-worker_yellow_1 = Yellow Worker Shirt
     .desc = Was used by a farmer, until recently.
 
 armor-misc-ring-amethyst = Amethyst Ring
@@ -511,7 +511,7 @@ armor-misc-back-admin = Admin's Cape
         With great power comes
         great responsibility.
 
-armor-misc-back-backpack-backpack = Traveler's Backpack
+armor-misc-back-backpack-traveler = Traveler's Backpack
     .desc = Comfortable and with enough capacity, its a hoarder's best friend.
 
 armor-misc-back-dungeon_purple = Purple Cultist Cape
@@ -1048,12 +1048,12 @@ armor-ferocious-pants = Ferocious Shorts
 armor-ferocious-shoulder = Ferocious Guards
     .desc = The dark side of nature
 
-armor-tabard_admin-admin = Admin's Tabard
+armor-tabard-admin_tabard = Admin's Tabard
     .desc = 
         With great power comes
         great responsibility.
 
-armor-misc-back-admin-admin_back = Admin's Cape
+armor-misc-back-admin_back = Admin's Cape
     .desc = 
         With great power comes
         great responsibility.
@@ -1061,25 +1061,25 @@ armor-misc-back-admin-admin_back = Admin's Cape
 armor-misc-bag-admin_black_hole = Admin's Black Hole
     .desc = They say it will fit anything.
 
-armor-velorite_battlemage-belt-cultist_belt = Velorite Belt
+armor-velorite-belt = Velorite Belt
     .desc = {""}
 
-armor-velorite_battlemage-foot-cultist_boots = Velorite Boots
+armor-velorite-boots = Velorite Boots
     .desc = {""}
 
-armor-velorite_battlemage-chest-cultist_chest_blue = Velorite Chest
+armor-velorite-chest = Velorite Chest
     .desc = {""}
 
-armor-velorite_battlemage-hand-cultist_hands_blue = Velorite Gloves
+armor-velorite-hands = Velorite Gloves
     .desc = {""}
 
-armor-velorite_battlemage-pants-cultist_legs_blue = Velorite Skirt
+armor-velorite-legs = Velorite Skirt
     .desc = {""}
 
-armor-velorite_battlemage-shoulder-cultist_shoulder_blue = Velorite Mantle
+armor-velorite-shoulder = Velorite Mantle
     .desc = {""}
 
-armor-velorite_battlemage-back-dungeon_purple = Velorite Admin Cape
+armor-velorite-back = Velorite Admin Cape
     .desc = Where did I put my banhammer again?
 
 armor-misc-head-woolly_wintercap = Woolly Wintercap

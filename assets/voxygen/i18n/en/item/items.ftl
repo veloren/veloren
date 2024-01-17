@@ -12,8 +12,8 @@
 ### If you really want to translate items, start with some subset you know is
 ### actually used by players.
 
-items-keeper_goggle = Left Goggle-Glass
+object-key_quarry_keeper_goggle_left = Left Goggle-Glass
     .desc = Looks like it could open a door...
 
-items-keeper_goggle-flamekeeper_right = Right Goggle-Glass
+object-key_quarry_keeper_goggle_right = Right Goggle-Glass
     .desc = Looks like it could open a door...

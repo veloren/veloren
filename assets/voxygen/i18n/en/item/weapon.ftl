@@ -51,10 +51,10 @@ weapon-staff-firestaff_cultist = Cultist Staff
 weapon-staff-laevateinn = Laevateinn
     .desc = Can shatter the gate of death
 
-weapon-staff-firestaff_starter = Humble Stick
+weapon-staff-firestaff_humble_stick = Humble Stick
     .desc = Walking stick with a sharpened end.
 
-weapon-staff-firestaff_starter-starter_staff = Gnarled Rod
+weapon-staff-firestaff_starter = Gnarled Rod
     .desc = Smells like resin and magic.
 
 weapon-sword-caladbolg = Caladbolg
@@ -129,7 +129,7 @@ weapon-hammer-2hhammer_rusty = Crude Mallet
 weapon-hammer-2hhammer_mjolnir = Mjolnir
     .desc = It's crackling with lightning.
 
-weapon-hammer-2hhammer_rusty-starter_hammer = Sturdy Old Hammer
+weapon-hammer-2hhammer_starter = Sturdy Old Hammer
     .desc = 'Property of...' The rest is missing.
 
 weapon-tool-broom_belzeshrub_purple = Belzeshrub the Broom-God
@@ -137,10 +137,10 @@ weapon-tool-broom_belzeshrub_purple = Belzeshrub the Broom-God
         You can hear him giggle whenever
         you hit the ground a bit too hard...
 
-weapon-sword-frost-1-admin_sword = Admin Greatsword
+weapon-sword-frost-admin_sword = Admin Greatsword
     .desc = Shouldn't this be a hammer?
 
-weapon-bow-velorite-velorite_bow_debug = Admin Velorite Bow
+weapon-bow-velorite-debug = Admin Velorite Bow
     .desc = Infused with Velorite power.
 
 weapon-projectile-fireworks_blue-0 = Firework Blue

@@ -12,7 +12,7 @@
 ### If you really want to translate items, start with some subset you know is
 ### actually used by players.
 
-sprite-crafting_ing-animal_misc-grim_eyeball = Cyclops Eye
+sprite-crafting_ing-animal_misc-cyclops_eyeball = Cyclops Eye
     .desc = Looks like it could open an ancient mechanism.
 
 sprite-carrot-carrot = Carrot
@@ -78,13 +78,13 @@ sprite-food-meat-tough_raw = Raw Tough Meat
 sprite-grass-grass_long_5 = Long Grass
     .desc = Greener than an orc's snout.
 
-sprite-mineral-ore-coal = Coal
+sprite-mineral-stone-coal = Coal
     .desc = A combustible black rock that happens to be really good at burning.
 
 sprite-mineral-ore-bloodstone = Bloodstone Ore
     .desc = A deep red ore, it reminds you of blood.
 
-sprite-mineral-ore-coal-coal = Coal
+sprite-mineral-ore-coal = Coal
     .desc = A dark, combustible energy source.
 
 sprite-mineral-ore-cobalt = Cobalt Ore
@@ -291,7 +291,7 @@ sprite-crafting_ing-animal_misc-claw = Predator Claw
 sprite-crafting_ing-animal_misc-fur = Soft Fur
     .desc = Soft fur from an animal.
 
-sprite-crafting_ing-animal_misc-grim_eyeball-grim_eyeball = Grim Eyeball
+sprite-crafting_ing-animal_misc-grim_eyeball = Grim Eyeball
     .desc = Casts a petrifying gaze.
 
 sprite-crafting_ing-animal_misc-large_horn = Large Horn
@@ -375,5 +375,5 @@ sprite-flowers-sunflower_1 = Sunflower
 sprite-flowers-flax = Wild Flax
     .desc = Could be used to spin some simple cloth.
 
-sprite-flowers-sunflower_1-yellow = Yellow Flower
+sprite-flowers-yellow = Yellow Flower
     .desc = Glows like the sun.

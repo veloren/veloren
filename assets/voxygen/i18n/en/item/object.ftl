@@ -24,16 +24,16 @@ object-key_glass = Glass Key
 object-key_rusty-0 = Rusty Tower Key
     .desc = Smells like magic with a bit of... cheese?
 
-object-key_rusty-0-ancient = Ancient Key
+object-key_quarry_ancient = Ancient Key
     .desc = If you are lucky it works one more time before breaking.
 
-object-key_rusty-0-backdoor = Backdoor Key
+object-key_quarry_backdoor = Backdoor Key
     .desc = If you are lucky it works one more time before breaking.
 
-object-key_rusty-0-overseer = Overseer Key
+object-key_quarry_overseer = Overseer Key
     .desc = If you are lucky it works one more time before breaking.
 
-object-key_rusty-0-smelting = Smelting Room Key
+object-key_quarry_smelting = Smelting Room Key
     .desc = If you are lucky it works one more time before breaking.
 
 object-item_cheese = Golden Cheese
@@ -142,16 +142,16 @@ object-curious_potion = Curious Potion
 object-potion_agility = Potion of Agility
     .desc = Fly, you fools!
 
-object-potion_red-potion_big = Large Potion
+object-potion_big = Large Potion
     .desc = Precious medicine, it makes for the largest rejuvenative flask yet.
 
 object-potion_combustion = Potion of Combustion
     .desc = Sets the user ablaze
 
-object-potion_red-potion_med = Medium Potion
+object-potion_med = Medium Potion
     .desc = An innovative invention from an apothecary, better than its smaller precursors.
 
-object-potion_red-potion_minor = Minor Potion
+object-potion_minor = Minor Potion
     .desc = A small potion concocted from apples and honey.
 
 object-burning_charm = Blazing Charm
