@@ -1,4 +1,3 @@
-
 ### Note to translators.
 ### Translating this will be *a lot* of work. Concentrate on what's important.
 ### We don't want you to burn out on 10% of this file and never want to
@@ -12,206 +11,26 @@
 ### If you really want to translate items, start with some subset you know is
 ### actually used by players.
 
-sprite-crafting_ing-animal_misc-cyclops_eyeball = Cyclops Eye
-    .desc = Looks like it could open an ancient mechanism.
-
-sprite-carrot-carrot = Carrot
-    .desc = An orange root vegetable. They say it'll improve your vision!
-
-sprite-cabbage-cabbage = Lettuce
-    .desc = A vibrant green leafy vegetable. Lettuce make some salads!
-
-sprite-mushrooms-mushroom-10 = Mushroom
-    .desc = Hopefully this one is not poisonous
-
-sprite-food-salad_plain = Plain Salad
-    .desc = Literally just chopped lettuce. Does this even count as a salad?
-
-sprite-spore-corruption_spore = Spore of Corruption
-    .desc = 
-        You feel an evil force pulsating within.
-        
-        It may be unwise to hold on to it for too long...
-
-sprite-tomato-tomato = Tomato
-    .desc = A red fruit. It's not actually a vegetable!
-
-sprite-food-salad_tomato = Tomato Salad
-    .desc = Leafy salad with some chopped, juicy tomatoes mixed in.
-
-sprite-food-meat-beast_large_cooked = Cooked Meat Slab
-    .desc = Medium Rare.
-
-sprite-food-meat-beast_large_raw = Raw Meat Slab
-    .desc = Chunk of beastly animal meat, best after cooking.
-
-sprite-food-meat-beast_small_cooked = Cooked Meat Sliver
-    .desc = Medium Rare.
-
-sprite-food-meat-beast_small_raw = Raw Meat Sliver
-    .desc = Small hunk of beastly animal meat, best after cooking.
-
-sprite-food-meat-bird_cooked = Cooked Bird Meat
-    .desc = Best enjoyed with one in each hand.
-
-sprite-food-meat-bird_large_cooked = Huge Cooked Drumstick
-    .desc = Makes for a legendary meal.
-
-sprite-food-meat-bird_large_raw = Huge Raw Drumstick
-    .desc = It's magnificent.
-
-sprite-food-meat-bird_raw = Raw Bird Meat
-    .desc = A hefty drumstick.
-
-sprite-food-meat-fish_cooked = Cooked Fish
-    .desc = A fresh cooked seafood steak.
-
-sprite-food-meat-fish_raw = Raw Fish
-    .desc = A steak chopped from a fish, best after cooking.
-
-sprite-food-meat-tough_cooked = Cooked Tough Meat
-    .desc = Tastes exotic.
-
-sprite-food-meat-tough_raw = Raw Tough Meat
-    .desc = Peculiar bit of meat, best after cooking.
-
 sprite-grass-grass_long_5 = Long Grass
     .desc = Greener than an orc's snout.
 
-sprite-mineral-stone-coal = Coal
-    .desc = A combustible black rock that happens to be really good at burning.
-
-sprite-mineral-ore-bloodstone = Bloodstone Ore
-    .desc = A deep red ore, it reminds you of blood.
-
-sprite-mineral-ore-coal = Coal
-    .desc = A dark, combustible energy source.
-
-sprite-mineral-ore-cobalt = Cobalt Ore
-    .desc = A blue, shiny ore.
-
-sprite-mineral-ore-copper = Copper Ore
-    .desc = A brown metal. Key part of bronze.
-
-sprite-mineral-ore-gold = Gold Ore
-    .desc = A precious yellow metal.
-
-sprite-mineral-ore-iron = Iron Ore
-    .desc = An incredibly common but incredibly versatile metal.
-
-sprite-mineral-ore-silver = Silver Ore
-    .desc = A precious shiny greyish-white metal.
-
-sprite-mineral-ore-tin = Tin Ore
-    .desc = A silvery metal. One of the components of bronze.
-
-sprite-velorite-velorite_ore = Velorite
-    .desc = A bizarre, oddly shimmering ore, its origin seems to be shrouded in mystery.
-
-sprite-velorite-velorite = Velorite Fragment
-    .desc = Small runes sparkle on its surface, though you don't know what it means.
-
-sprite-mineral-ingot-bloodsteel = Bloodsteel Ingot
-    .desc = 
-        An alloy of bloodstone and iron, with a dark red color.
-        
-        This can be used when crafting metal weapons.
-
-sprite-mineral-ingot-bronze = Bronze Ingot
-    .desc = 
-        A sturdy alloy made from combining copper and tin.
-        
-        This can be used when crafting metal weapons.
-
-sprite-mineral-ingot-cobalt = Cobalt Ingot
-    .desc = 
-        A strikingly blue ingot.
-        
-        This can be used when crafting metal weapons.
-
-sprite-mineral-ingot-copper = Copper Ingot
-    .desc = An ingot with a unique brown color.
-
-sprite-mineral-ingot-gold = Gold Ingot
-    .desc = An ingot made of refined metallic gold.
-
-sprite-mineral-ingot-iron = Iron Ingot
-    .desc = 
-        An incredibly commonplace metal.
-        
-        This can be used when crafting metal weapons.
-
-sprite-mineral-ingot-orichalcum = Orichalcum Ingot
-    .desc = 
-        An ingot made of refined orichalcum.
-        
-        This can be used when crafting metal weapons.
-
-sprite-mineral-ingot-silver = Silver Ingot
-    .desc = An ingot made of refined metallic silver.
-
-sprite-mineral-ingot-steel = Steel Ingot
-    .desc = 
-        An alloy of iron and coal that is much tougher than its components.
-        
-        This can be used when crafting metal weapons.
-
-sprite-mineral-ingot-tin = Tin Ingot
-    .desc = An ingot primarily used to make bronze.
-
-sprite-mineral-gem-amethystgem = Amethyst
-    .desc = A precious purple gem.
-
-sprite-mineral-gem-diamondgem = Diamond
-    .desc = A sparkling silver gem.
-
-sprite-mineral-gem-emeraldgem = Emerald
-    .desc = A vibrant viridian gem.
-
-sprite-mineral-gem-rubygem = Ruby
-    .desc = A superbly scarlet gem.
-
-sprite-mineral-gem-sapphiregem = Sapphire
-    .desc = A colorful cobalt gem.
-
-sprite-mineral-gem-topazgem = Topaz
-    .desc = An outstanding orange gem.
-
 sprite-wood-item-bamboo = Bamboo
-    .desc = 
-        A giant woody grass.
-        
-        This can be used when crafting wooden weapons.
+    .desc = A giant woody grass. This can be used when crafting wooden weapons.
 
 sprite-wood-item-eldwood = Eldwood Logs
-    .desc = 
-        Old logs that emanate magic.
-        
-        This can be used when crafting wooden weapons.
+    .desc = Old logs that emanate magic. This can be used when crafting wooden weapons.
 
 sprite-wood-item-frostwood = Frostwood Logs
-    .desc = 
-        Chilly wood that comes from cold biomes. Cold to the touch.
-        
-        This can be used when crafting wooden weapons.
+    .desc = Chilly wood that comes from cold biomes. Cold to the touch. This can be used when crafting wooden weapons.
 
 sprite-wood-item-hardwood = Hardwood Logs
-    .desc = 
-        Extra thick and sturdy logs.
-        
-        This can be used when crafting wooden weapons.
+    .desc = Extra thick and sturdy logs. This can be used when crafting wooden weapons.
 
 sprite-wood-item-ironwood = Ironwood Logs
-    .desc = 
-        A particularly sturdy wood.
-        
-        This can be used when crafting wooden weapons.
+    .desc = A particularly sturdy wood. This can be used when crafting wooden weapons.
 
 sprite-wood-item-wood = Wood Logs
-    .desc = 
-        Regular, sturdy wooden logs.
-        
-        This can be used when crafting wooden weapons.
+    .desc = Regular, sturdy wooden logs. This can be used when crafting wooden weapons.
 
 sprite-crafting_ing-abyssal_heart = Abyssal Heart
     .desc = Source of Dagons Power.
@@ -377,3 +196,154 @@ sprite-flowers-flax = Wild Flax
 
 sprite-flowers-yellow = Yellow Flower
     .desc = Glows like the sun.
+
+object-v-coin = Coins
+    .desc = Precious coins, can be exchanged for goods and services.
+
+object-collar = Collar
+    .desc = Tames neutral wild animals within 5 blocks
+
+object-training_dummy = Training Dummy
+    .desc = His name is William. Fire at will.
+
+object-mortar_pestle = Mortar and Pestle
+    .desc = Crushes and grinds things into a fine powder or paste. Needed to craft various items.
+
+object-sewing_set = Sewing Set
+    .desc = Used to craft various items.
+
+object-potion_empty = Empty Vial
+    .desc = A simple glass vial used for holding various fluids.
+
+object-glacial_crystal = Glacial Crystal
+    .desc = The purest form of ice, cold enough to cool lava.
+
+object-honey = Honey
+    .desc = Stolen from a beehive. Surely the bees won't be happy with this!
+
+object-glowing_remains = Glowing Remains
+    .desc = 
+        Looted from an evil being.
+        
+        With some additional work it can surely be
+        brought back to its former glory...
+
+object-elegant_crest = Elegant Crest
+    .desc = 
+        A flawless crest from some majestic creature.
+        
+        This can be used when crafting weapons.
+
+object-ice_shard = Icy Shard
+    .desc = Looted from a frosty creature.
+
+object-long_tusk = Long Tusk
+    .desc = 
+        A pointy tusk from some beast.
+        
+        This can be used when crafting weapons.
+
+object-raptor_feather = Raptor Feather
+    .desc = A large colorful feather from a raptor.
+
+object-strong_pincer = Strong Pincer
+    .desc = 
+        The pincer of some creature, it is very tough.
+        
+        This can be used when crafting weapons.
+
+sprite-mineral-ore-bloodstone = Bloodstone Ore
+    .desc = A deep red ore, it reminds you of blood.
+
+sprite-mineral-ore-coal = Coal
+    .desc = A dark, combustible energy source.
+
+sprite-mineral-ore-cobalt = Cobalt Ore
+    .desc = A blue, shiny ore.
+
+sprite-mineral-ore-copper = Copper Ore
+    .desc = A brown metal. Key part of bronze.
+
+sprite-mineral-ore-gold = Gold Ore
+    .desc = A precious yellow metal.
+
+sprite-mineral-ore-iron = Iron Ore
+    .desc = An incredibly common but incredibly versatile metal.
+
+sprite-mineral-ore-silver = Silver Ore
+    .desc = A precious shiny greyish-white metal.
+
+sprite-mineral-ore-tin = Tin Ore
+    .desc = A silvery metal. One of the components of bronze.
+
+sprite-velorite-velorite_ore = Velorite
+    .desc = A bizarre, oddly shimmering ore, its origin seems to be shrouded in mystery.
+
+sprite-velorite-velorite = Velorite Fragment
+    .desc = Small runes sparkle on its surface, though you don't know what it means.
+
+sprite-mineral-ingot-bloodsteel = Bloodsteel Ingot
+    .desc = 
+        An alloy of bloodstone and iron, with a dark red color.
+        
+        This can be used when crafting metal weapons.
+
+sprite-mineral-ingot-bronze = Bronze Ingot
+    .desc = 
+        A sturdy alloy made from combining copper and tin.
+        
+        This can be used when crafting metal weapons.
+
+sprite-mineral-ingot-cobalt = Cobalt Ingot
+    .desc = 
+        A strikingly blue ingot.
+        
+        This can be used when crafting metal weapons.
+
+sprite-mineral-ingot-copper = Copper Ingot
+    .desc = An ingot with a unique brown color.
+
+sprite-mineral-ingot-gold = Gold Ingot
+    .desc = An ingot made of refined metallic gold.
+
+sprite-mineral-ingot-iron = Iron Ingot
+    .desc = 
+        An incredibly commonplace metal.
+        
+        This can be used when crafting metal weapons.
+
+sprite-mineral-ingot-orichalcum = Orichalcum Ingot
+    .desc = 
+        An ingot made of refined orichalcum.
+        
+        This can be used when crafting metal weapons.
+
+sprite-mineral-ingot-silver = Silver Ingot
+    .desc = An ingot made of refined metallic silver.
+
+sprite-mineral-ingot-steel = Steel Ingot
+    .desc = 
+        An alloy of iron and coal that is much tougher than its components.
+        
+        This can be used when crafting metal weapons.
+
+sprite-mineral-ingot-tin = Tin Ingot
+    .desc = An ingot primarily used to make bronze.
+
+sprite-mineral-gem-amethystgem = Amethyst
+    .desc = A precious purple gem.
+
+sprite-mineral-gem-diamondgem = Diamond
+    .desc = A sparkling silver gem.
+
+sprite-mineral-gem-emeraldgem = Emerald
+    .desc = A vibrant viridian gem.
+
+sprite-mineral-gem-rubygem = Ruby
+    .desc = A superbly scarlet gem.
+
+sprite-mineral-gem-sapphiregem = Sapphire
+    .desc = A colorful cobalt gem.
+
+sprite-mineral-gem-topazgem = Topaz
+    .desc = An outstanding orange gem.

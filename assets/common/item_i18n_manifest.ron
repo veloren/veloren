@@ -578,37 +578,37 @@
         ): "common-items-npc_armor-biped_large-haniwageneral",
         Simple(
             "common.items.keys.bone_key",
-        ): "object-key_bone",
+        ): "object-key-bone",
         Simple(
             "common.items.keys.haniwa_key",
-        ): "object-key_haniwa",
+        ): "object-key-haniwa",
         Simple(
             "common.items.keys.glass_key",
-        ): "object-key_glass",
+        ): "object-key-glass",
         Simple(
             "common.items.keys.rusty_tower_key",
-        ): "object-key_rusty-0",
+        ): "object-key-rusty",
         Simple(
             "common.items.keys.quarry_keys.ancient",
-        ): "object-key_quarry_ancient",
+        ): "object-key-quarry-ancient",
         Simple(
             "common.items.keys.quarry_keys.backdoor",
-        ): "object-key_quarry_backdoor",
+        ): "object-key-quarry-backdoor",
         Simple(
             "common.items.keys.quarry_keys.cyclops_eye",
-        ): "sprite-crafting_ing-animal_misc-cyclops_eyeball",
+        ): "object-key-cyclops_eyeball",
         Simple(
             "common.items.keys.quarry_keys.flamekeeper_left",
-        ): "object-key_quarry_keeper_goggle_left",
+        ): "object-key-quarry-keeper_goggle_left",
         Simple(
             "common.items.keys.quarry_keys.flamekeeper_right",
-        ): "object-key_quarry_keeper_goggle_right",
+        ): "object-key-quarry-keeper_goggle_right",
         Simple(
             "common.items.keys.quarry_keys.overseer",
-        ): "object-key_quarry_overseer",
+        ): "object-key-quarry-overseer",
         Simple(
             "common.items.keys.quarry_keys.smelting",
-        ): "object-key_quarry_smelting",
+        ): "object-key-quarry-smelting",
         Simple(
             "common.items.weapons.shield.shield_1",
         ): "weapon-shield-wood-0",
@@ -674,10 +674,10 @@
         ): "weapon-sword-starter",
         Simple(
             "common.items.weapons.tool.broom",
-        ): "weapon-tool-broom-0",
+        ): "weapon-tool-broom",
         Simple(
             "common.items.weapons.tool.fishing_rod",
-        ): "weapon-tool-fishing_rod_blue-0",
+        ): "weapon-tool-fishing_rod_blue",
         Simple(
             "common.items.weapons.tool.golf_club",
         ): "weapon-tool-golf_club",
@@ -686,13 +686,13 @@
         ): "weapon-tool-hoe_green",
         Simple(
             "common.items.weapons.tool.pickaxe",
-        ): "weapon-tool-pickaxe_green-0",
+        ): "weapon-tool-pickaxe_green",
         Simple(
             "common.items.weapons.tool.pitchfork",
-        ): "weapon-tool-pitchfork-0",
+        ): "weapon-tool-pitchfork",
         Simple(
             "common.items.weapons.tool.rake",
-        ): "weapon-tool-rake-0",
+        ): "weapon-tool-rake",
         Simple(
             "common.items.weapons.tool.shovel-0",
         ): "weapon-tool-shovel_green",
@@ -1925,22 +1925,22 @@
         ): "object-collar",
         Simple(
             "common.items.utility.firework_blue",
-        ): "weapon-projectile-fireworks_blue-0",
+        ): "weapon-projectile-fireworks_blue",
         Simple(
             "common.items.utility.firework_green",
-        ): "weapon-projectile-fireworks_green-0",
+        ): "weapon-projectile-fireworks_green",
         Simple(
             "common.items.utility.firework_purple",
-        ): "weapon-projectile-fireworks_purple-0",
+        ): "weapon-projectile-fireworks_purple",
         Simple(
             "common.items.utility.firework_red",
-        ): "weapon-projectile-fireworks_red-0",
+        ): "weapon-projectile-fireworks_red",
         Simple(
             "common.items.utility.firework_white",
-        ): "weapon-projectile-fireworks_white-0",
+        ): "weapon-projectile-fireworks_white",
         Simple(
             "common.items.utility.firework_yellow",
-        ): "weapon-projectile-fireworks_yellow-0",
+        ): "weapon-projectile-fireworks_yellow",
         Simple(
             "common.items.utility.lockpick_0",
         ): "object-lockpick",
@@ -2080,7 +2080,7 @@
         ): "common-items-mineral-stone-basalt",
         Simple(
             "common.items.mineral.stone.coal",
-        ): "sprite-mineral-stone-coal",
+        ): "common-items-mineral-stone-coal",
         Simple(
             "common.items.mineral.stone.granite",
         ): "common-items-mineral-stone-granite",
@@ -2176,7 +2176,7 @@
         ): "glider-blue",
         Simple(
             "common.items.glider.butterfly3",
-        ): "glider-butterfly3",
+        ): "glider-butterfly-moonlit_love",
         Simple(
             "common.items.glider.cloverleaf",
         ): "glider-cloverleaf",
@@ -2185,13 +2185,13 @@
         ): "glider-leaves",
         Simple(
             "common.items.glider.monarch",
-        ): "glider-butterfly2",
+        ): "glider-butterfly-orange_monarch",
         Simple(
             "common.items.glider.moonrise",
         ): "glider-moonrise",
         Simple(
             "common.items.glider.morpho",
-        ): "glider-butterfly1",
+        ): "glider-butterfly-blue_morpho",
         Simple(
             "common.items.glider.moth",
         ): "glider-moth",
@@ -2218,7 +2218,7 @@
         ): "weapon-hammer-craftsman",
         Simple(
             "common.items.tool.pickaxe_steel",
-        ): "weapon-tool-pickaxe_green-1",
+        ): "weapon-tool-pickaxe_steel",
         Simple(
             "common.items.tool.pickaxe_stone",
         ): "weapon-tool-pickaxe_stone",
@@ -3029,16 +3029,16 @@
         ): "object-potion_minor",
         Simple(
             "common.items.lantern.black_0",
-        ): "lantern-black-0",
+        ): "lantern-black",
         Simple(
             "common.items.lantern.blue_0",
-        ): "lantern-blue-0",
+        ): "lantern-blue",
         Simple(
             "common.items.lantern.geode_purp",
         ): "lantern-geode_purp",
         Simple(
             "common.items.lantern.green_0",
-        ): "lantern-green-0",
+        ): "lantern-green",
         Simple(
             "common.items.lantern.polaris",
         ): "lantern-polaris",
@@ -3047,7 +3047,7 @@
         ): "lantern-pumpkin",
         Simple(
             "common.items.lantern.red_0",
-        ): "lantern-red-0",
+        ): "lantern-red",
         Simple(
             "common.items.charms.burning_charm",
         ): "object-burning_charm",

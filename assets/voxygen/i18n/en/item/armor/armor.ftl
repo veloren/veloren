@@ -1,4 +1,3 @@
-
 ### Note to translators.
 ### Translating this will be *a lot* of work. Concentrate on what's important.
 ### We don't want you to burn out on 10% of this file and never want to
@@ -14,9 +13,6 @@
 
 armor-leather_blue-pants = Blue Leather Cuirass
     .desc = {""}
-
-armor-misc-back-backpack = Rugged Backpack
-    .desc = Keeps all your stuff together.
 
 armor-leather_blue-back = Blue Traveler Coat
     .desc = {""}
@@ -271,7 +267,7 @@ armor-misc-foot-ski = Wooden skis
     .desc = Best used downhill on snow.
 
 armor-misc-neck-abyssal_gorget = Abyssal Gorget
-    .desc = Harnessed vigour of the tides
+    .desc = Harnessed vigour of the tides.
 
 armor-misc-neck-amethyst = Amethyst Necklace
     .desc = A tin necklace lined with amethyst gems.
@@ -316,7 +312,7 @@ armor-misc-neck-scratched = Scratched Necklace
     .desc = A shoddy necklace with a string about to snap...
 
 armor-misc-neck-shell = Seashell Necklace
-    .desc = Contains the guardian aura of the ocean
+    .desc = Contains the guardian aura of the ocean.
 
 armor-misc-neck-topaz = Topaz Necklace
     .desc = A copper necklace, with topaz embedded in the center.
@@ -386,9 +382,6 @@ armor-misc-pants-worker_blue = Blue Worker Pants
 
 armor-misc-pants-worker_brown = Comfortable Worker Pants
     .desc = Resilient and reliable.
-
-armor-tabard_admin = Admin's Tabard
-    .desc = With great power comes great responsibility.
 
 armor-misc-shoulder-iron_spikes = Iron Spiked Pauldrons
     .desc = The heavy, rough iron plate has an interlocking spikes shoved through several slots in the center to dissuade attackers.
@@ -464,52 +457,6 @@ armor-misc-ring-scratched = Scratched Ring
 
 armor-misc-ring-topaz = Topaz Ring
     .desc = A copper ring with a topaz gem.
-
-armor-misc-bag-heavy_seabag = Heavy Seabag
-    .desc = Commonly used by sailors.
-
-armor-misc-bag-knitted_red_pouch = Knitted Red Pouch
-    .desc = A sizeable red bag with two pouches, made of wool and dye.
-
-armor-misc-bag-liana_kit = Liana Kit
-    .desc = Woven from dried lianas.
-
-armor-misc-bag-mindflayer_spellbag = Mindflayer Spellbag
-    .desc = 
-        You can almost feel the Mindflayer's
-        evil presence flowing through the fabric.
-
-armor-misc-bag-reliable_backpack = Reliable Backpack
-    .desc = It will never give you up.
-
-armor-misc-bag-reliable_leather_pack = Reliable Leather Pack
-    .desc = It will never give you up.
-
-armor-misc-bag-soulkeeper_cursed = Cursed Soulkeeper
-    .desc = WIP
-
-armor-misc-bag-soulkeeper_pure = Purified Soulkeeper
-    .desc = WIP
-
-armor-misc-bag-sturdy_red_backpack = Sturdy Red Saddlebag
-    .desc = A truly reliable and sizeable bag, embroidered with amethyst and thick leather.
-
-armor-misc-bag-tiny_leather_pouch = Small Leather Pouch
-    .desc = A small reliable leather pouch.
-
-armor-misc-bag-tiny_red_pouch = Tiny Red Pouch
-    .desc = Made from multiple patches of dyed cloth.
-
-armor-misc-bag-troll_hide_pack = Trollhide Pack
-    .desc = Trolls were definitely hurt in the making of this.
-
-armor-misc-bag-woven_red_bag = Woven Red Bag
-    .desc = A moderately sized red bag. Although it still feels pretty cramped.
-
-armor-misc-back-admin = Admin's Cape
-    .desc = 
-        With great power comes
-        great responsibility.
 
 armor-misc-back-backpack-traveler = Traveler's Backpack
     .desc = Comfortable and with enough capacity, its a hoarder's best friend.
@@ -689,22 +636,22 @@ armor-mail-cobalt-shoulder = Cobalt Shoulderguards
     .desc = Ornamental and impenetrable, the metal will never dull.
 
 armor-mail-bronze-back = Bronze Cloak
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-belt = Bronze Girdle
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-chest = Bronze Chestguard
     .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-foot = Bronze Shoes
-    .desc = 'Heavy and dull, but it can take a punch.
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-hand = Bronze Gauntlets
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-pants = Bronze Pantalons
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-shoulder = Bronze Guards
     .desc = Heavy and dull, but it can take a punch.
@@ -1028,59 +975,139 @@ armor-cloth-druid-shoulder = Druid Shoulderpads
     .desc = Incredibly light, with the essence of nature.
 
 armor-ferocious-back = Ferocious Mantle
-    .desc = The dark side of nature
+    .desc = The dark side of nature.
 
 armor-ferocious-belt = Ferocious Sash
-    .desc = The dark side of nature
+    .desc = The dark side of nature.
 
 armor-ferocious-chest = Ferocious Shirt
-    .desc = The dark side of nature
+    .desc = The dark side of nature.
 
 armor-ferocious-foot = Ferocious Waraji
-    .desc = The dark side of nature
+    .desc = The dark side of nature.
 
 armor-ferocious-hand = Ferocious Wraps
-    .desc = The dark side of nature
+    .desc = The dark side of nature.
 
 armor-ferocious-pants = Ferocious Shorts
-    .desc = The dark side of nature
+    .desc = The dark side of nature.
 
 armor-ferocious-shoulder = Ferocious Guards
-    .desc = The dark side of nature
-
-armor-tabard-admin_tabard = Admin's Tabard
-    .desc = 
-        With great power comes
-        great responsibility.
-
-armor-misc-back-admin_back = Admin's Cape
-    .desc = 
-        With great power comes
-        great responsibility.
-
-armor-misc-bag-admin_black_hole = Admin's Black Hole
-    .desc = They say it will fit anything.
-
-armor-velorite-belt = Velorite Belt
-    .desc = {""}
-
-armor-velorite-boots = Velorite Boots
-    .desc = {""}
-
-armor-velorite-chest = Velorite Chest
-    .desc = {""}
-
-armor-velorite-hands = Velorite Gloves
-    .desc = {""}
-
-armor-velorite-legs = Velorite Skirt
-    .desc = {""}
-
-armor-velorite-shoulder = Velorite Mantle
-    .desc = {""}
-
-armor-velorite-back = Velorite Admin Cape
-    .desc = Where did I put my banhammer again?
+    .desc = The dark side of nature.
 
 armor-misc-head-woolly_wintercap = Woolly Wintercap
     .desc = Simple, stylish, and festive.
+
+common-items-armor-alchemist-belt = Alchemist Belt
+    .desc = {""}
+
+common-items-armor-alchemist-chest = Alchemist Jacket
+    .desc = {""}
+
+common-items-armor-alchemist-hat = Alchemist Hat
+    .desc = It seems like a parrot was perched up here.
+
+common-items-armor-alchemist-pants = Alchemist Pants
+    .desc = {""}
+
+common-items-armor-misc-head-headband = Headband
+    .desc = A simple headband, it's nothing special.
+
+common-items-armor-witch-back = Witch Cape
+    .desc = {""}
+
+common-items-armor-witch-belt = Witch Belt
+    .desc = {""}
+
+common-items-armor-witch-chest = Witch Robe
+    .desc = {""}
+
+common-items-armor-witch-foot = Witch Boots
+    .desc = {""}
+
+common-items-armor-witch-hand = Witch Handwarmers
+    .desc = {""}
+
+common-items-armor-witch-pants = Witch Skirt
+    .desc = {""}
+
+common-items-armor-witch-shoulder = Witch Mantle
+    .desc = {""}
+
+common-items-armor-pirate-belt = Pirate Belt
+    .desc = {""}
+
+common-items-armor-pirate-chest = Pirate Jacket
+    .desc = {""}
+
+common-items-armor-pirate-foot = Pirate Boots
+    .desc = {""}
+
+common-items-armor-pirate-hand = Pirate Gloves
+    .desc = {""}
+
+common-items-armor-pirate-pants = Pirate Pants
+    .desc = {""}
+
+common-items-armor-pirate-shoulder = Pirate Mantle
+    .desc = {""}
+
+common-items-armor-miner-back = Miner's Backpack
+    .desc = Battered from heavy rocks being carried inside.
+
+common-items-armor-miner-belt = Miner's Belt
+    .desc = {""}
+
+common-items-armor-miner-chest = Miner's Vestment
+    .desc = Rock dust is covering most of the leather parts.
+
+common-items-armor-miner-foot = Miner's Footwear
+    .desc = Someone carved 'Mine!' into the inside.
+
+common-items-armor-miner-hand = Miner's Gloves
+    .desc = Someone carved 'Mine!' into the inside.
+
+common-items-armor-miner-pants = Miner's pantaloons
+    .desc = {""}
+
+common-items-armor-miner-shoulder = Miner's Pauldrons
+    .desc = Protects Cave-in and out.
+
+common-items-armor-miner-shoulder_captain = Captain's Pauldrons
+    .desc = {""}
+
+common-items-armor-miner-shoulder_flame = Flamekeeper's Pauldrons
+    .desc = {""}
+
+common-items-armor-miner-shoulder_overseer = Overseer's Pauldrons
+    .desc = {""}
+
+common-items-armor-chef-belt = Chef Belt
+    .desc = {""}
+
+common-items-armor-chef-chest = Chef Jacket
+    .desc = {""}
+
+common-items-armor-chef-hat = Chef Hat
+    .desc = {""}
+
+common-items-armor-chef-pants = Chef Pants
+    .desc = {""}
+
+common-items-armor-blacksmith-belt = Blacksmith Belt
+    .desc = {""}
+
+common-items-armor-blacksmith-chest = Blacksmith Jacket
+    .desc = {""}
+
+common-items-armor-blacksmith-hand = Blacksmith Gloves
+    .desc = {""}
+
+common-items-armor-blacksmith-hat = Blacksmith Hat
+    .desc = {""}
+
+common-items-armor-blacksmith-pants = Blacksmith Pants
+    .desc = {""}
+
+common-items-armor-leather_plate-helmet = Leather Plate Helmet
+    .desc = Leather adorned with steel for better protection.
