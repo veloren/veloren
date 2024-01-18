@@ -41,7 +41,7 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
+    #[allow(clippy::blocks_in_conditions)] // TODO: Pending review in #587
     fn run(
         _job: &mut Job<Self>,
         (

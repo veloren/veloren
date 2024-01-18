@@ -498,7 +498,7 @@ impl Controls {
                         self.selected = client
                             .character_list()
                             .characters
-                            .get(0)
+                            .first()
                             .and_then(|i| i.character.id);
                     },
                 }

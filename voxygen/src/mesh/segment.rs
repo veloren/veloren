@@ -63,7 +63,7 @@ where
         |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| !vox.is_filled());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
         should_draw_greedy(pos, delta, uv, |vox| {
-            vol.get(vox).map(|vox| *vox).unwrap_or_else(|_| Cell::Empty)
+            vol.get(vox).copied().unwrap_or(Cell::Empty)
         })
     };
     let create_opaque = |atlas_pos, pos, norm| {
@@ -167,9 +167,7 @@ where
     let get_opacity = |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_fluid());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
         super::terrain::should_draw_greedy(pos, delta, |vox| {
-            vol.get(vox)
-                .map(|vox| *vox)
-                .unwrap_or_else(|_| Block::empty())
+            vol.get(vox).copied().unwrap_or_else(|_| Block::empty())
         })
     };
 
@@ -271,7 +269,7 @@ where
                 for y in -1..greedy_size.y + 1 {
                     for z in -1..greedy_size.z + 1 {
                         let wpos = lower_bound + Vec3::new(x, y, z);
-                        let block = vol.get(wpos).map(|b| *b).unwrap_or_else(|_| Cell::Empty);
+                        let block = vol.get(wpos).copied().unwrap_or(Cell::Empty);
                         flat[i] = block;
                         i += 1;
                     }
@@ -395,7 +393,7 @@ where
         |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| !vox.is_filled());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
         should_draw_greedy(pos, delta, uv, |vox| {
-            vol.get(vox).map(|vox| *vox).unwrap_or_else(|_| Cell::Empty)
+            vol.get(vox).copied().unwrap_or(Cell::Empty)
         })
     };
     let create_opaque = |_atlas_pos, pos: Vec3<f32>, norm| ParticleVertex::new(pos, norm);

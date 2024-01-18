@@ -506,8 +506,8 @@ impl SkillSet {
             let prerequisites_met = this.prerequisites_met(skill);
             // Check that skill is not yet at max level
             if !matches!(this.skills.get(&skill), Some(level) if *level == skill.max_level()) {
-                if let Some(skill_group) = this.skill_groups.get(&skill_group_kind) &&
-                    this.skill_group_accessible_if_exists(skill_group_kind)
+                if let Some(skill_group) = this.skill_groups.get(&skill_group_kind)
+                    && this.skill_group_accessible_if_exists(skill_group_kind)
                 {
                     if prerequisites_met {
                         if let Some(new_available_sp) = skill_group
@@ -521,8 +521,9 @@ impl SkillSet {
                             // NOTE: Verified to exist previously when we accessed
                             // this.skill_groups (assuming a non-pathological implementation of
                             // ToOwned).
-                            let skill_group = this.skill_groups.get_mut(&skill_group_kind)
-                                .expect("Verified to exist when we previously accessed this.skill_groups");
+                            let skill_group = this.skill_groups.get_mut(&skill_group_kind).expect(
+                                "Verified to exist when we previously accessed this.skill_groups",
+                            );
                             skill_group.available_sp = new_available_sp;
                             skill_group.ordered_skills.push(skill);
                             match skill {

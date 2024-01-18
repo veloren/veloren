@@ -35,7 +35,7 @@ where
             // Grab all comments from old file
             let source = fs::File::open(from.join(&path))?;
             let mut comments = Vec::new();
-            for line in BufReader::new(source).lines().flatten() {
+            for line in BufReader::new(source).lines().map_while(Result::ok) {
                 if let Some(idx) = line.find("//") {
                     let comment = &line[idx..line.len()];
                     comments.push(comment.to_owned());

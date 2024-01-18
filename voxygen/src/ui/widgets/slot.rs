@@ -593,6 +593,7 @@ where
     fn style(&self) -> Self::Style {}
 
     /// Update the state of the Slot.
+    #[allow(clippy::useless_asref)] // false positive
     fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
             id,

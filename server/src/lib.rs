@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 #![allow(
     clippy::option_map_unit_fn,
+    clippy::blocks_in_conditions,
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 #![deny(clippy::clone_on_ref_ptr)]

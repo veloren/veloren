@@ -36,6 +36,7 @@ impl OggSound {
     }
 }
 
+#[allow(clippy::implied_bounds_in_impls)]
 pub fn load_ogg(specifier: &str) -> impl Source + Iterator<Item = i16> {
     OggSound::load_or_insert_with(specifier, |error| {
         warn!(?specifier, ?error, "Failed to load sound");

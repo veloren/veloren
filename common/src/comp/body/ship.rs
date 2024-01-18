@@ -307,7 +307,9 @@ pub mod figuredata {
                     let dyna = base_structure.vol.map_into(|cell| {
                         if let Some(i) = cell {
                             let color = base_structure.palette[u8::from(i) as usize];
-                            if let Some(block) = spec.custom_indices.get(&i.get()) && index == 0 {
+                            if let Some(block) = spec.custom_indices.get(&i.get())
+                                && index == 0
+                            {
                                 block.to_block(color)
                             } else {
                                 Block::new(BlockKind::Misc, color)

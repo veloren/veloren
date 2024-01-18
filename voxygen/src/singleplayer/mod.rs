@@ -73,11 +73,10 @@ impl SingleplayerState {
             let mut settings = server::Settings::singleplayer(&server_data_dir);
             let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
 
-            let file_opts = if let Some(gen_opts) = &world.gen_opts && !world.is_generated {
-                server::FileOpts::Save(
-                    world.map_path.clone(),
-                    gen_opts.clone(),
-                )
+            let file_opts = if let Some(gen_opts) = &world.gen_opts
+                && !world.is_generated
+            {
+                server::FileOpts::Save(world.map_path.clone(), gen_opts.clone())
             } else {
                 if !world.is_generated && world.gen_opts.is_none() {
                     world.copy_default_world();
@@ -114,6 +113,7 @@ impl SingleplayerState {
 
             let builder = thread::Builder::new().name("singleplayer-server-thread".into());
             let runtime = Arc::clone(runtime);
+            #[allow(clippy::blocks_in_conditions)]
             let thread = builder
                 .spawn(move || {
                     trace!("starting singleplayer server thread");

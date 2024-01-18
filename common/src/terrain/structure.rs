@@ -161,7 +161,7 @@ pub(crate) fn load_base_structure<B: Default>(
     mut to_block: impl FnMut(Rgb<u8>) -> B,
 ) -> BaseStructure<B> {
     let mut palette = std::array::from_fn(|_| B::default());
-    if let Some(model) = dot_vox_data.models.get(0) {
+    if let Some(model) = dot_vox_data.models.first() {
         for (i, col) in dot_vox_data
             .palette
             .iter()

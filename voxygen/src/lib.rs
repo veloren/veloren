@@ -7,7 +7,6 @@
 )]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
-    array_methods,
     extract_if,
     trait_alias,
     option_get_or_insert_default,

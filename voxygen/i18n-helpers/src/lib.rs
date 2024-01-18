@@ -134,7 +134,9 @@ pub fn localize_chat_message(
     let message_format = |from: &Uid, content: &Content, group: Option<&String>| {
         let alias = name_format_or_complex(true, from);
 
-        let name = if let Some(pi) = info.player_info.get(from).cloned() && show_char_name {
+        let name = if let Some(pi) = info.player_info.get(from).cloned()
+            && show_char_name
+        {
             pi.character.map(|c| c.name)
         } else {
             None

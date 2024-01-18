@@ -85,8 +85,12 @@ impl Sys {
             ClientGeneral::SetViewDistance(view_distances) => {
                 let clamped_vds = view_distances.clamp(settings.max_view_distance);
 
-                presence.terrain_view_distance.set_target(clamped_vds.terrain, time_for_vd_changes);
-                presence.entity_view_distance.set_target(clamped_vds.entity, time_for_vd_changes);
+                presence
+                    .terrain_view_distance
+                    .set_target(clamped_vds.terrain, time_for_vd_changes);
+                presence
+                    .entity_view_distance
+                    .set_target(clamped_vds.entity, time_for_vd_changes);
 
                 // Correct client if its requested VD is too high.
                 if view_distances.terrain != clamped_vds.terrain {
@@ -101,7 +105,9 @@ impl Sys {
                 }
             },
             ClientGeneral::ControlEvent(event) => {
-                if presence.kind.controlling_char() && let Some(controller) = controller {
+                if presence.kind.controlling_char()
+                    && let Some(controller) = controller
+                {
                     // Skip respawn if client entity is alive
                     let skip_respawn = matches!(event, ControlEvent::Respawn)
                         && healths.get(entity).map_or(true, |h| !h.is_dead);
@@ -118,9 +124,15 @@ impl Sys {
                     }
                 }
             },
-            ClientGeneral::PlayerPhysics { pos, vel, ori, force_counter } => {
+            ClientGeneral::PlayerPhysics {
+                pos,
+                vel,
+                ori,
+                force_counter,
+            } => {
                 if presence.kind.controlling_char()
-                    && force_update.map_or(true, |force_update| force_update.counter() == force_counter)
+                    && force_update
+                        .map_or(true, |force_update| force_update.counter() == force_counter)
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && is_rider.get(entity).is_none()
                     && is_volume_rider.get(entity).is_none()
@@ -146,10 +158,12 @@ impl Sys {
                                 let new_block = old_block.into_vacant();
                                 // Take the rare writes lock as briefly as possible.
                                 let mut guard = rare_writes.lock();
-                                let _was_set = guard.block_changes.try_set(pos, new_block).is_some();
+                                let _was_set =
+                                    guard.block_changes.try_set(pos, new_block).is_some();
                                 #[cfg(feature = "persistent_world")]
                                 if _was_set {
-                                    if let Some(terrain_persistence) = guard._terrain_persistence.as_mut()
+                                    if let Some(terrain_persistence) =
+                                        guard._terrain_persistence.as_mut()
                                     {
                                         terrain_persistence.set_block(pos, new_block);
                                     }
@@ -173,10 +187,12 @@ impl Sys {
                             {
                                 // Take the rare writes lock as briefly as possible.
                                 let mut guard = rare_writes.lock();
-                                let _was_set = guard.block_changes.try_set(pos, new_block).is_some();
+                                let _was_set =
+                                    guard.block_changes.try_set(pos, new_block).is_some();
                                 #[cfg(feature = "persistent_world")]
                                 if _was_set {
-                                    if let Some(terrain_persistence) = guard._terrain_persistence.as_mut()
+                                    if let Some(terrain_persistence) =
+                                        guard._terrain_persistence.as_mut()
                                     {
                                         terrain_persistence.set_block(pos, new_block);
                                     }
@@ -188,9 +204,12 @@ impl Sys {
             },
             ClientGeneral::UnlockSkill(skill) => {
                 // FIXME: How do we want to handle the error?  Probably not by swallowing it.
-                let _ = skill_set.as_mut().map(|skill_set| {
-                    SkillSet::unlock_skill_cow(skill_set, skill, |skill_set| skill_set.to_mut())
-                }).transpose();
+                let _ = skill_set
+                    .as_mut()
+                    .map(|skill_set| {
+                        SkillSet::unlock_skill_cow(skill_set, skill, |skill_set| skill_set.to_mut())
+                    })
+                    .transpose();
             },
             ClientGeneral::RequestSiteInfo(id) => {
                 server_emitter.emit(ServerEvent::RequestSiteInfo { entity, id });
@@ -211,7 +230,10 @@ impl Sys {
                 server_emitter.emit(ServerEvent::UpdateMapMarker { entity, update });
             },
             ClientGeneral::SpectatePosition(pos) => {
-                if let Some(admin) = maybe_admin && admin.0 >= AdminRole::Moderator && presence.kind == PresenceKind::Spectator {
+                if let Some(admin) = maybe_admin
+                    && admin.0 >= AdminRole::Moderator
+                    && presence.kind == PresenceKind::Spectator
+                {
                     if let Some(position) = position {
                         position.0 = pos;
                     }

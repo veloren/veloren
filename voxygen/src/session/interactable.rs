@@ -173,7 +173,9 @@ pub(super) fn select_interactable(
                         // interactable. We are only returning the mineable air
                         // elements (e.g. minerals). The mineable weakrock are used
                         // in the terrain selected_pos, but is not an interactable.
-                        if let Some(mine_tool) = b.mine_tool() && b.is_air() {
+                        if let Some(mine_tool) = b.mine_tool()
+                            && b.is_air()
+                        {
                             Some(Interactable::Block(
                                 b,
                                 VolumePos::terrain(t.position_int()),

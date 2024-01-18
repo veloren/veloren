@@ -337,8 +337,10 @@ impl NpcLinks {
         if Actor::Npc(mount) == rider {
             return Err(MountingError::MountSelf);
         }
-        if let Actor::Npc(rider) = rider && self.mount_map.contains_key(rider) {
-           return Err(MountingError::RiderIsMounted);
+        if let Actor::Npc(rider) = rider
+            && self.mount_map.contains_key(rider)
+        {
+            return Err(MountingError::RiderIsMounted);
         }
         if self.rider_map.contains_key(&Actor::Npc(mount)) {
             return Err(MountingError::MountIsRiding);

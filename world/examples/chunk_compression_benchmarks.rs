@@ -660,7 +660,7 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
     }
 }
 
-fn histogram_to_dictionary(histogram: &HashMap<Vec<u8>, usize>, dictionary: &mut Vec<u8>) {
+fn histogram_to_dictionary(histogram: &HashMap<Vec<u8>, usize>, dictionary: &mut [u8]) {
     let mut tmp: Vec<(Vec<u8>, usize)> = histogram.iter().map(|(k, v)| (k.clone(), *v)).collect();
     tmp.sort_by_key(|(_, count)| *count);
     debug!("{:?}", tmp.last());

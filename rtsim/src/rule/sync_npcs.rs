@@ -104,14 +104,14 @@ fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
         {
             if let Some(site) = data.sites.get_mut(current_site) {
                 // TODO: Sites should have an inbox and their own AI code
-                site.known_reports.extend(npc.known_reports
-                    .iter()
-                    .copied());
-                npc.inbox.extend(site.known_reports
-                    .iter()
-                    .copied()
-                    .filter(|report| !npc.known_reports.contains(report))
-                    .map(NpcInput::Report));
+                site.known_reports.extend(npc.known_reports.iter().copied());
+                npc.inbox.extend(
+                    site.known_reports
+                        .iter()
+                        .copied()
+                        .filter(|report| !npc.known_reports.contains(report))
+                        .map(NpcInput::Report),
+                );
             }
         }
 

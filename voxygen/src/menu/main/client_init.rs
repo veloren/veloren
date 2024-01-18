@@ -76,6 +76,7 @@ impl ClientInit {
                     break;
                 }
                 let mut mismatched_server_info = None;
+                #[allow(clippy::blocks_in_conditions)]
                 match Client::new(
                     connection_args.clone(),
                     Arc::clone(&runtime2),

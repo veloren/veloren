@@ -33,11 +33,18 @@ fn on_mount_volume(ctx: EventCtx<SimulateNpcs, OnMountVolume>) {
     let data = &mut *ctx.state.data_mut();
 
     // TODO: Add actor to riders.
-    if let VolumePos { kind: Volume::Entity(vehicle), .. } = ctx.event.pos
+    if let VolumePos {
+        kind: Volume::Entity(vehicle),
+        ..
+    } = ctx.event.pos
         && let Some(link) = data.npcs.mounts.get_steerer_link(vehicle)
         && let Actor::Npc(driver) = link.rider
-        && let Some(driver) = data.npcs.get_mut(driver) {
-        driver.controller.actions.push(NpcAction::Say(Some(ctx.event.actor), comp::Content::localized("npc-speech-welcome-aboard")))
+        && let Some(driver) = data.npcs.get_mut(driver)
+    {
+        driver.controller.actions.push(NpcAction::Say(
+            Some(ctx.event.actor),
+            comp::Content::localized("npc-speech-welcome-aboard"),
+        ))
     }
 }
 

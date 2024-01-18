@@ -864,15 +864,18 @@ impl<'a> PhysicsData<'a> {
                         character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
 
                     let friction_factor = |vel: Vec3<f32>| {
-                        if let Some(Body::Ship(ship)) = body && ship.has_wheels() {
-                        vel
-                            .try_normalized()
-                            .and_then(|dir| Some(orientations.get(entity)?.right().dot(dir).abs()))
-                            .unwrap_or(1.0)
-                            .max(0.2)
-                    } else {
-                        1.0
-                    }
+                        if let Some(Body::Ship(ship)) = body
+                            && ship.has_wheels()
+                        {
+                            vel.try_normalized()
+                                .and_then(|dir| {
+                                    Some(orientations.get(entity)?.right().dot(dir).abs())
+                                })
+                                .unwrap_or(1.0)
+                                .max(0.2)
+                        } else {
+                            1.0
+                        }
                     };
 
                     match &collider {

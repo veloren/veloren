@@ -538,6 +538,7 @@ impl Window {
         }
     }
 
+    #[allow(clippy::get_first)]
     pub fn fetch_events(&mut self) -> Vec<Event> {
         span!(_guard, "fetch_events", "Window::fetch_events");
         // Refresh ui size (used when changing playstates)

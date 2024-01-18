@@ -1499,7 +1499,9 @@ impl Structure for Tavern {
                     },
                 }
             }
-            if let Some(door) = wall.door_bounds() && !matches!(kinds, (Some(RoomKind::Garden), Some(RoomKind::Garden))) {
+            if let Some(door) = wall.door_bounds()
+                && !matches!(kinds, (Some(RoomKind::Garden), Some(RoomKind::Garden)))
+            {
                 let orth = wall.to_dir.orthogonal();
                 painter
                     .aabb(aabb(Aabb {

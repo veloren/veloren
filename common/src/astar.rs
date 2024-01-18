@@ -15,6 +15,7 @@ pub struct PathEntry<S> {
 }
 
 impl<S: Eq> PartialEq for PathEntry<S> {
+    #[allow(clippy::unconditional_recursion)] // false positive as we use .node
     fn eq(&self, other: &PathEntry<S>) -> bool { self.node.eq(&other.node) }
 }
 

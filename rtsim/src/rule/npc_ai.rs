@@ -594,25 +594,46 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + 
                 && let Some(current_site) = ctx.state.data().sites.get(current_site)
                 && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
                 && let Some(mention_site) = ctx.state.data().sites.get(*mention_site)
-                && let Some(mention_site_name) = mention_site.world_site
+                && let Some(mention_site_name) = mention_site
+                    .world_site
                     .map(|ws| ctx.index.sites.get(ws).name().to_string())
             {
                 Content::localized_with_args("npc-speech-tell_site", [
                     ("site", Content::Plain(mention_site_name)),
-                    ("dir", Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc()),
-                    ("dist", Distance::from_length(mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                    (
+                        "dir",
+                        Direction::from_dir(mention_site.wpos.as_() - ctx.npc.wpos.xy())
+                            .localize_npc(),
+                    ),
+                    (
+                        "dist",
+                        Distance::from_length(
+                            mention_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32
+                        )
+                        .localize_npc(),
+                    ),
                 ])
             // Mention nearby monsters
             } else if ctx.rng.gen_bool(0.3)
-                && let Some(monster) = ctx.state.data().npcs
+                && let Some(monster) = ctx
+                    .state
+                    .data()
+                    .npcs
                     .values()
                     .filter(|other| matches!(&other.role, Role::Monster))
                     .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
             {
                 Content::localized_with_args("npc-speech-tell_monster", [
                     ("body", monster.body.localize_npc()),
-                    ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
-                    ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
+                    (
+                        "dir",
+                        Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc(),
+                    ),
+                    (
+                        "dist",
+                        Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
+                            .localize_npc(),
+                    ),
                 ])
             } else {
                 ctx.npc.personality.get_generic_comment(&mut ctx.rng)

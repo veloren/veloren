@@ -7,8 +7,6 @@ pub use retrieve::*;
 
 use std::convert::TryInto;
 
-pub use retrieve::*;
-
 pub use plugin_api as api;
 pub use plugin_derive::*;
 

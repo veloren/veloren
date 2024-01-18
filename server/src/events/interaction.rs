@@ -99,10 +99,12 @@ pub fn handle_npc_interaction(
             })
     };
 
-    if within_range && let Some(agent) = state
-        .ecs()
-        .write_storage::<comp::Agent>()
-        .get_mut(npc_entity) && agent.target.is_none()
+    if within_range
+        && let Some(agent) = state
+            .ecs()
+            .write_storage::<comp::Agent>()
+            .get_mut(npc_entity)
+        && agent.target.is_none()
     {
         if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
             agent
@@ -179,21 +181,28 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
     );
 
     if let Some((mat, _, block)) = block_transform
-    && let Some(mount_offset) = block.mount_offset() {
+        && let Some(mount_offset) = block.mount_offset()
+    {
         let mount_pos = (mat * mount_offset.0.with_w(1.0)).xyz();
         let within_range = {
             let positions = state.ecs().read_storage::<Pos>();
-            positions.get(rider).map_or(false, |pos| pos.0.distance_squared(mount_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2))
+            positions.get(rider).map_or(false, |pos| {
+                pos.0.distance_squared(mount_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2)
+            })
         };
 
         let maybe_uid = state.ecs().read_storage::<Uid>().get(rider).copied();
 
-        if let Some(rider) = maybe_uid && within_range {
-            let _link_successful = state.link(VolumeMounting {
-                pos: volume_pos,
-                block,
-                rider,
-            }).is_ok();
+        if let Some(rider) = maybe_uid
+            && within_range
+        {
+            let _link_successful = state
+                .link(VolumeMounting {
+                    pos: volume_pos,
+                    block,
+                    rider,
+                })
+                .is_ok();
             #[cfg(feature = "worldgen")]
             if _link_successful {
                 let uid_allocator = state.ecs().read_resource::<IdMaps>();
@@ -202,13 +211,20 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
                     && let Some(volume_pos) = volume_pos.try_map_entity(|uid| {
                         let entity = uid_allocator.uid_entity(uid)?;
                         state.read_storage::<RtSimEntity>().get(entity).map(|v| v.0)
-                    }) {
-                    state.ecs().write_resource::<RtSim>().hook_character_mount_volume(
+                    })
+                {
+                    state
+                        .ecs()
+                        .write_resource::<RtSim>()
+                        .hook_character_mount_volume(
                             &state.ecs().read_resource::<Arc<world::World>>(),
-                            state.ecs().read_resource::<world::IndexOwned>().as_index_ref(),
+                            state
+                                .ecs()
+                                .read_resource::<world::IndexOwned>()
+                                .as_index_ref(),
                             volume_pos,
                             rider_actor,
-                    );
+                        );
                 }
             }
         }

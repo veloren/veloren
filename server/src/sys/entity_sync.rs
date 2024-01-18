@@ -334,8 +334,22 @@ impl<'a> System<'a> for Sys {
             );
 
             if include_all_comps && let Some(&pos) = maybe_pos {
-                let send_now = should_sync_client_physics(entity, &player_physics_settings, &players, &force_updates, is_rider);
-                add_physics_components(send_now, &mut comp_sync_package, uid, pos, last_pos, ori, vel);
+                let send_now = should_sync_client_physics(
+                    entity,
+                    &player_physics_settings,
+                    &players,
+                    &force_updates,
+                    is_rider,
+                );
+                add_physics_components(
+                    send_now,
+                    &mut comp_sync_package,
+                    uid,
+                    pos,
+                    last_pos,
+                    ori,
+                    vel,
+                );
             }
 
             if !comp_sync_package.is_empty() {

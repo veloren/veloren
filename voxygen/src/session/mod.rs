@@ -990,8 +990,15 @@ impl PlayState for SessionState {
                                             ))
                                         });
                                 }
-                                if let Some(pet_entity) = close_pet && client.state().read_storage::<Is<Mount>>().get(pet_entity).is_none() {
-                                    let is_staying = client.state()
+                                if let Some(pet_entity) = close_pet
+                                    && client
+                                        .state()
+                                        .read_storage::<Is<Mount>>()
+                                        .get(pet_entity)
+                                        .is_none()
+                                {
+                                    let is_staying = client
+                                        .state()
                                         .read_component_copied::<CharacterActivity>(pet_entity)
                                         .map_or(false, |activity| activity.is_pet_staying);
                                     client.set_pet_stay(pet_entity, !is_staying);

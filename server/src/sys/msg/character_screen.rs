@@ -77,11 +77,13 @@ impl Sys {
         match msg {
             // Request spectator state
             ClientGeneral::Spectate(requested_view_distances) => {
-                if let Some(admin) = admins.get(entity) && admin.0 >= AdminRole::Moderator {
+                if let Some(admin) = admins.get(entity)
+                    && admin.0 >= AdminRole::Moderator
+                {
                     send_join_messages()?;
 
-                    server_emitter.emit(ServerEvent::InitSpectator(entity, requested_view_distances));
-
+                    server_emitter
+                        .emit(ServerEvent::InitSpectator(entity, requested_view_distances));
                 } else {
                     debug!("dropped Spectate msg from unprivileged client")
                 }
@@ -96,8 +98,7 @@ impl Sys {
                     // this.
                     if presences.contains(entity) {
                         debug!("player already ingame, aborting");
-                    } else if character_updater.has_pending_database_action(character_id)
-                    {
+                    } else if character_updater.has_pending_database_action(character_id) {
                         debug!("player recently logged out pending persistence, aborting");
                         client.send(ServerGeneral::CharacterDataLoadResult(Err(
                             "You have recently logged out, please wait a few seconds and try again"
@@ -171,19 +172,35 @@ impl Sys {
                         body,
                         character_updater,
                         start_site.and_then(|site_idx| {
-                            // TODO: This corresponds to the ID generation logic in `world/src/lib.rs`
-                            // Really, we should have a way to consistently refer to sites, but that's a job for rtsim2
-                            // and the site changes that it will require. Until then, this code is very hacky.
-                            world.civs().sites.iter()
+                            // TODO: This corresponds to the ID generation logic in
+                            // `world/src/lib.rs`. Really, we should have
+                            // a way to consistently refer to sites, but that's a job for rtsim2
+                            // and the site changes that it will require. Until then, this code is
+                            // very hacky.
+                            world
+                                .civs()
+                                .sites
+                                .iter()
                                 .find(|(_, site)| site.site_tmp.map(|i| i.id()) == Some(site_idx))
                                 .map(Some)
                                 .unwrap_or_else(|| {
-                                    error!("Tried to create character with starting site index {}, but such a site does not exist", site_idx);
+                                    error!(
+                                        "Tried to create character with starting site index {}, \
+                                         but such a site does not exist",
+                                        site_idx
+                                    );
                                     None
                                 })
                                 .map(|(_, site)| {
                                     let wpos2d = TerrainChunkSize::center_wpos(site.center);
-                                    Waypoint::new(world.find_accessible_pos(index.as_index_ref(), wpos2d, false), time)
+                                    Waypoint::new(
+                                        world.find_accessible_pos(
+                                            index.as_index_ref(),
+                                            wpos2d,
+                                            false,
+                                        ),
+                                        time,
+                                    )
                                 })
                         }),
                     ) {
