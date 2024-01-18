@@ -1,6 +1,6 @@
 hud-bag-inventory = Inventario de { $playername }
 hud-bag-stats_title = Estadísticas de { $playername }
-hud-bag-exp = Exp
+hud-bag-exp = EXP
 hud-bag-armor = Armadura
 hud-bag-stats = Estadísticas
 hud-bag-head = Cabeza
@@ -28,10 +28,9 @@ hud-bag-energy = Energía
 hud-bag-combat_rating = Puntos de combate
 hud-bag-protection = Protección
 hud-bag-stun_res = Resistencia a aturdimiento
-hud-bag-stealth = Stealth
+hud-bag-stealth = Sigilo
 hud-bag-combat_rating_desc =
-    Clasificación de Combate
-    Calculada a partir de tu
+    Calculada a base a tu
     equipo y salud.
 hud-bag-protection_desc = Reducción de daño por armadura
 hud-bag-stun_res_desc =
@@ -42,3 +41,4 @@ hud-bag-sort_by_name = Ordenar por nombre
 hud-bag-sort_by_quality = Ordenar por calidad
 hud-bag-sort_by_category = Ordenar por categoría
 hud-bag-sort_by_tag = Ordenar por Etiqueta
+hud-bag-sort_by_quantity = Ordenar por cantidad

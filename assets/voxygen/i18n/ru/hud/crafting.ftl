@@ -1,4 +1,4 @@
-hud-crafting = Крафт 
+hud-crafting = Крафт
 hud-crafting-recipes = Рецепты
 hud-crafting-ingredients = Ингредиенты:
 hud-crafting-craft = Создать
@@ -30,7 +30,7 @@ hud-crafting-dismantle_title = Разборка
 hud-crafting-dismantle_explanation =
     Наведите курсор на предмет чтобы увидеть
     что вы можете получить.
-    
+
     Двойное нажатие для начала разборки.
 hud-crafting-modular_desc = Перетащите сюда часть предметов, чтобы создать оружие.
 hud-crafting-mod_weap_prim_slot_title = Основной компонент оружия
@@ -43,3 +43,8 @@ hud-crafting-mod_comp_wood_prim_slot_title = Дерево
 hud-crafting-mod_comp_wood_prim_slot_desc = Положите сюда дерево, только определённое дерево можно использовать для изготовления оружия.
 hud-crafting-mod_comp_sec_slot_title = Животный материал
 hud-crafting-mod_comp_sec_slot_desc = При желании поместите сюда животный материал, только определённые ингредиенты можно использовать для улучшения оружия.
+hud-crafting-repair_equipped = Ремонт экипированного
+hud-crafting-repair_all = Починить всё
+hud-crafting-repair_slot_desc = Поместите сюда предмет, чтобы узнать стоимость его ремонта при текущем уровне прочности.
+hud-crafting-repair = Ремонт
+hud-crafting-repair_bench = Ремонтный стол
