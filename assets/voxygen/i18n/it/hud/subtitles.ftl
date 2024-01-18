@@ -111,6 +111,7 @@ subtitle-attack-icy_spikes = Punte di ghiaccio
 subtitle-attack-ice_crack = Crepa di ghiaccio
 subtitle-attack-steam = Vapore
 subtitle-attack-shovel = Scavo con la pala
+subtitle-attack-from-the-ashes = Suono di cura
 
 subtitle-consume_potion = Pozione bevuta
 subtitle-consume_apple = Mela morsa
@@ -154,3 +155,5 @@ subtitle-utterance-wolf-angry = Lupo ringhiante
 subtitle-utterance-wolf-hurt = Lupo che guaisce
 subtitle-utterance-wyvern-angry = Ruggito di viverna
 subtitle-utterance-wyvern-hurt = Viverna ferita
+subtitle-utterance-phoenix-angry = Fenice che urla
+subtitle-utterance-phoenix-hurt = Fenice che ferisce

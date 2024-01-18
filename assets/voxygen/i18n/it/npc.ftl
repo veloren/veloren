@@ -318,3 +318,4 @@ npc-speech-dist_far = lontano
 npc-speech-dist_ahead = non distante
 npc-speech-dist_near = vicino
 npc-speech-dist_near_to = molto vicino
+npc-speech-arena = Andiamo a sederci lì!

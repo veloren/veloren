@@ -5,6 +5,14 @@ buff-stat-health = Ripristina { $str_total } di salute
 ## Potion
 buff-title-potion = Pozione
 buff-desc-potion = Bevendo...
+## Agility
+buff-title-agility = Agilità
+buff-desc-agility = Il tuo movimento è più veloce, ma infliggi meno danni e subisci più danni.
+buff-stat-agility =
+    Aumenta la velocità di movimento del { $strength }%,
+    ma diminuisce il danno del 100%,
+    e aumenta la tua vulnerabilità ai danni
+    del 100%.
 ## Saturation
 buff-title-saturation = Saturazione
 buff-desc-saturation = Guadagna salute nel tempo dai cibi.
@@ -108,7 +116,10 @@ buff-title-bloodfeast = Festa di sangue
 buff-desc-bloodfeast = Ti rigeneri attaccando nemici che sanguinano.
 ## Berserk
 buff-title-berserk = Frenesia
-buff-desc-berserk = Sei in una furia berserker i tuoi attacchi sono più veloci e potenti, ma la tua difesa sarà inferiore.
+buff-desc-berserk = Sei in una furia frenetica i tuoi attacchi sono più veloci e potenti, ma la tua difesa sarà inferiore.
+## Heatstroke
+buff-title-heatstroke = Colpo di calore
+buff-desc-heatstroke = Sei stato esposto al calore e ora soffri di un colpo di calore, il tuo movimento e il recupero di energia sono ridotti. Brividi.
 ## Util
 buff-text-over_seconds = in { $dur_secs } secondi
 buff-text-for_seconds = per { $dur_secs } secondi

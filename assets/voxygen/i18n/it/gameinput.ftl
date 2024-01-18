@@ -75,3 +75,4 @@ gameinput-muteinactivemaster = Disattiva volume principale (finestra inattiva)
 gameinput-mutemusic = Disattiva il volume della musica
 gameinput-mutesfx = Disattiva il volume degli effetti sonori
 gameinput-muteambience = Disattiva il volume dei suoni ambientali
+gameinput-togglewalk = Attiva/disattiva camminata

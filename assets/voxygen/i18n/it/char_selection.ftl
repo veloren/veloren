@@ -26,3 +26,4 @@ char_selection-starting_site_name = { $name }
 char_selection-starting_site_kind = Tipo: { $kind }
 char_selection-create_info_name = Il tuo personaggio ha bisogno di un nome!
 char_selection-version_mismatch = ATTENZIONE! Questo server sta usando una versione differente, possibilmente incompatibile, di gioco. Per favore aggiorna la tua versione.
+char_selection-rules = Regole
