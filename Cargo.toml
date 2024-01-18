@@ -164,7 +164,7 @@ ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e2579673
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
 # This is needed because of an issue with spirv & naga in wgpu 0.18, and there's an issue
 # with uint in uniforms for gl.
-wgpu = { git = "https://github.com/IsseW/wgpu", rev = "96dc8b317" }
+wgpu = { git = "https://github.com/IsseW/wgpu", rev = "5ea160164" }
 
 # [patch."https://github.com/gfx-rs/gfx"]
 # gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
