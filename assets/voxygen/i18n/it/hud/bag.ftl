@@ -14,6 +14,7 @@ hud-bag-glider = Deltaplano
 hud-bag-belt = Cintura
 hud-bag-ring = Anello
 hud-bag-back = Schiena
+hud-bag-backpack = Zaino
 hud-bag-legs = Gambe
 hud-bag-feet = Piedi
 hud-bag-mainhand = Mano principale
