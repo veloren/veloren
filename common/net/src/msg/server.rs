@@ -6,7 +6,7 @@ use crate::sync;
 use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
-    comp::{self, invite::InviteKind, item::MaterialStatManifest, Content},
+    comp::{self, body::Gender, invite::InviteKind, item::MaterialStatManifest, Content},
     event::UpdateCharacterMetadata,
     lod,
     outcome::Outcome,
@@ -35,7 +35,7 @@ pub enum ServerMsg {
     Init(Box<ServerInit>),
     /// Result to `ClientMsg::Register`. send ONCE
     RegisterAnswer(ServerRegisterAnswer),
-    ///Msg that can be send ALWAYS as soon as client is registered, e.g. `Chat`
+    /// Msg that can be send ALWAYS as soon as client is registered, e.g. `Chat`
     General(ServerGeneral),
     Ping(PingMsg),
 }
@@ -259,6 +259,7 @@ pub struct ChatTypeContext {
     pub you: Uid,
     pub player_alias: HashMap<Uid, PlayerInfo>,
     pub entity_name: HashMap<Uid, String>,
+    pub gender: HashMap<Uid, Gender>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
