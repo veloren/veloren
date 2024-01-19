@@ -116,7 +116,7 @@ impl BlockKind {
 
 /// # Format
 ///
-/// ```
+/// ```ignore
 /// BBBBBBBB CCCCCCCC AAAAAIII IIIIIIII
 /// ```
 /// - `0..8`  : BlockKind
@@ -195,13 +195,6 @@ impl Block {
     pub const fn air(sprite: SpriteKind) -> Self { Self::unfilled(BlockKind::Air, sprite) }
 
     #[inline]
-    pub const fn lava(sprite: SpriteKind) -> Self {
-        // TODO: Is this valid? I don't think so, lava is filled. Debug panic will catch
-        // it if not though.
-        Self::unfilled(BlockKind::Lava, sprite)
-    }
-
-    #[inline]
     pub const fn empty() -> Self { Self::air(SpriteKind::Empty) }
 
     #[inline]
@@ -260,7 +253,7 @@ impl Block {
     pub fn get_attr<A: sprite::Attribute>(&self) -> Result<A, sprite::AttributeError<A::Error>> {
         match self.sprite_category() {
             Some(category) => category.read_attr(*self),
-            None => return Err(sprite::AttributeError::NotPresent),
+            None => Err(sprite::AttributeError::NotPresent),
         }
     }
 
@@ -271,7 +264,7 @@ impl Block {
     }
 
     #[inline(always)]
-    pub(super) const fn to_be_u32(&self) -> u32 {
+    pub(super) const fn to_be_u32(self) -> u32 {
         u32::from_be_bytes([self.kind as u8, self.data[0], self.data[1], self.data[2]])
     }
 
@@ -666,7 +659,7 @@ impl Block {
     }
 
     #[inline]
-    pub fn to_u32(&self) -> u32 {
+    pub fn to_u32(self) -> u32 {
         u32::from_le_bytes([self.kind as u8, self.data[0], self.data[1], self.data[2]])
     }
 }

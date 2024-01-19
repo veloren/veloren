@@ -52,7 +52,10 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, fmt};
+use std::{
+    convert::{Infallible, TryFrom},
+    fmt,
+};
 use strum::EnumIter;
 use vek::*;
 
@@ -322,8 +325,6 @@ sprites! {
         ShortGrass  = 0x22,
     },
 }
-
-use core::convert::Infallible;
 
 attributes! {
     Ori { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },

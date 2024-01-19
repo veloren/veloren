@@ -128,7 +128,7 @@ macro_rules! sprites {
             #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize, EnumIter, FromPrimitive)]
             #[repr(u32)]
             pub enum SpriteKind {
-                $($($sprite_name = crate::terrain::sprite::gen_discriminant(crate::terrain::sprite::Category::$category_name, $sprite_id),)*)*
+                $($($sprite_name = $crate::terrain::sprite::gen_discriminant($crate::terrain::sprite::Category::$category_name, $sprite_id),)*)*
             }
         );
 
@@ -197,12 +197,15 @@ macro_rules! attributes {
             }
         }
 
-        $(impl Attribute for $name {
-            const INDEX: usize = Attributes::$name as usize;
-            const BITS: u8 = $bits;
-            type Error = $err;
-            #[inline(always)] fn from_bits(bits: u16) -> Result<Self, Self::Error> { $from_bits(bits) }
-            #[inline(always)] fn into_bits(self) -> u16 { $into_bits(self) }
-        })*
+        $(
+            #[allow(clippy::all)]
+            impl Attribute for $name {
+                const INDEX: usize = Attributes::$name as usize;
+                const BITS: u8 = $bits;
+                type Error = $err;
+                #[inline(always)] fn from_bits(bits: u16) -> Result<Self, Self::Error> { $from_bits(bits) }
+                #[inline(always)] fn into_bits(self) -> u16 { $into_bits(self) }
+            }
+        )*
     };
 }

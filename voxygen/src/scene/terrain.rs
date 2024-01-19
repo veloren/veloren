@@ -212,7 +212,7 @@ impl TryFrom<HashMap<SpriteKind, Option<SpriteConfig<String>>>> for SpriteSpec {
     type Error = SpritesMissing;
 
     fn try_from(
-        mut map: HashMap<SpriteKind, Option<SpriteConfig<String>>>,
+        map: HashMap<SpriteKind, Option<SpriteConfig<String>>>,
     ) -> Result<Self, Self::Error> {
         Ok(Self(map))
 
