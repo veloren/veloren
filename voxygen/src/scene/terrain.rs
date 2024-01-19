@@ -183,13 +183,11 @@ struct SpriteConfig<Model> {
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
 #[derive(Deserialize)]
 #[serde(try_from = "HashMap<SpriteKind, Option<SpriteConfig<String>>>")]
-pub struct SpriteSpec([Option<SpriteConfig<String>>; 256]);
+pub struct SpriteSpec(HashMap<SpriteKind, Option<SpriteConfig<String>>>);
 
 impl SpriteSpec {
     fn get(&self, kind: SpriteKind) -> Option<&SpriteConfig<String>> {
-        const _: () = assert!(core::mem::size_of::<SpriteKind>() == 1);
-        // NOTE: This will never be out of bounds since `SpriteKind` is `repr(u8)`
-        self.0[kind as usize].as_ref()
+        self.0.get(&kind).and_then(Option::as_ref)
     }
 }
 
@@ -216,7 +214,10 @@ impl TryFrom<HashMap<SpriteKind, Option<SpriteConfig<String>>>> for SpriteSpec {
     fn try_from(
         mut map: HashMap<SpriteKind, Option<SpriteConfig<String>>>,
     ) -> Result<Self, Self::Error> {
-        let mut array = [(); 256].map(|()| None);
+        Ok(Self(map))
+
+        /*
+        let mut array = [(); 65536].map(|()| None);
         let sprites_missing = SpriteKind::iter()
             .filter(|kind| match map.remove(kind) {
                 Some(config) => {
@@ -232,6 +233,7 @@ impl TryFrom<HashMap<SpriteKind, Option<SpriteConfig<String>>>> for SpriteSpec {
         } else {
             Err(SpritesMissing(sprites_missing))
         }
+        */
     }
 }
 
