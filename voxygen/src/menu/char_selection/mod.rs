@@ -169,6 +169,8 @@ impl PlayState for CharSelectionState {
                         let server_info = client.server_info().clone();
                         let server_description = client.server_description().clone();
 
+                        drop(client);
+
                         let char_select =
                             CharSelectionState::new(global_state, Rc::clone(&self.client));
 
