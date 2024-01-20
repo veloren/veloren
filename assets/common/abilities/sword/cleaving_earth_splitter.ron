@@ -1,5 +1,5 @@
 DiveMelee(
-    energy_cost: 5,
+    energy_cost: 15,
     vertical_speed: 5,
     buildup_duration: Some(0.1),
     movement_duration: 5,
