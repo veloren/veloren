@@ -1,5 +1,6 @@
 pub mod alpha;
 pub mod beam;
+pub mod combomelee;
 pub mod idle;
 pub mod run;
 pub mod shockwave;
@@ -7,8 +8,8 @@ pub mod shoot;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beam::BeamAnimation, idle::IdleAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, shoot::ShootAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, combomelee::ComboAnimation, idle::IdleAnimation,
+    run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -135,9 +136,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             head: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 2.0),
                 (Treant, _) => (18.0, -8.0),
-                (ClayGolem, _) => (-2.0, 7.0),
+                (ClayGolem, _) => (0.0, 7.0),
                 (WoodGolem, _) => (3.0, 6.0),
                 (CoralGolem, _) => (-1.0, 3.0),
+                (Gravewarden, _) => (-2.0, 7.0),
+                (AncientEffigy, _) => (-2.0, 8.0),
             },
             jaw: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 0.0),
@@ -145,48 +148,62 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ClayGolem, _) => (0.0, 0.0),
                 (WoodGolem, _) => (0.0, 0.0),
                 (CoralGolem, _) => (0.0, 0.0),
+                (Gravewarden, _) => (0.0, 0.0),
+                (AncientEffigy, _) => (0.0, 0.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 34.5),
                 (Treant, _) => (0.0, 28.5),
-                (ClayGolem, _) => (0.0, 26.5),
+                (ClayGolem, _) => (0.0, 23.0),
                 (WoodGolem, _) => (0.0, 24.5),
                 (CoralGolem, _) => (0.0, 25.0),
+                (Gravewarden, _) => (0.0, 26.5),
+                (AncientEffigy, _) => (0.0, 18.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, -10.5),
                 (Treant, _) => (0.0, -10.5),
-                (ClayGolem, _) => (0.0, -4.5),
+                (ClayGolem, _) => (0.0, -7.5),
                 (WoodGolem, _) => (0.0, -4.5),
                 (CoralGolem, _) => (0.0, -11.5),
+                (Gravewarden, _) => (0.0, -4.5),
+                (AncientEffigy, _) => (0.0, -4.5),
             },
             shoulder: match (body.species, body.body_type) {
                 (StoneGolem, _) => (8.0, -1.5, 4.0),
                 (Treant, _) => (8.0, 4.5, -3.0),
-                (ClayGolem, _) => (8.0, 2.0, 3.0),
+                (ClayGolem, _) => (8.0, -1.0, -1.0),
                 (WoodGolem, _) => (6.0, 2.0, 1.0),
                 (CoralGolem, _) => (11.0, 1.0, 0.0),
+                (Gravewarden, _) => (8.0, 2.0, 3.0),
+                (AncientEffigy, _) => (8.0, 2.0, 3.0),
             },
             hand: match (body.species, body.body_type) {
                 (StoneGolem, _) => (12.5, -1.0, -7.0),
                 (Treant, _) => (8.5, -1.0, -7.0),
-                (ClayGolem, _) => (8.5, -1.0, -7.0),
+                (ClayGolem, _) => (6.5, 0.0, -2.0),
                 (WoodGolem, _) => (5.5, -1.0, -6.0),
                 (CoralGolem, _) => (2.5, -1.5, -5.0),
+                (Gravewarden, _) => (8.5, -1.0, -7.0),
+                (AncientEffigy, _) => (8.5, -1.0, -7.0),
             },
             leg: match (body.species, body.body_type) {
                 (StoneGolem, _) => (4.0, 0.0, -3.5),
                 (Treant, _) => (2.0, 9.5, -1.0),
-                (ClayGolem, _) => (1.0, 0.5, -6.0),
+                (ClayGolem, _) => (1.0, 0.0, -3.0),
                 (WoodGolem, _) => (2.0, 0.5, -6.0),
                 (CoralGolem, _) => (2.5, 0.5, -3.0),
+                (Gravewarden, _) => (1.0, 0.5, -6.0),
+                (AncientEffigy, _) => (1.0, 0.5, -6.0),
             },
             foot: match (body.species, body.body_type) {
                 (StoneGolem, _) => (3.5, 0.5, -9.5),
                 (Treant, _) => (3.5, -5.0, -8.5),
-                (ClayGolem, _) => (3.5, -1.0, -8.5),
+                (ClayGolem, _) => (3.5, 0.0, -5.5),
                 (WoodGolem, _) => (2.5, 1.0, -5.5),
                 (CoralGolem, _) => (2.5, 1.0, -1.5),
+                (Gravewarden, _) => (3.5, -1.0, -8.5),
+                (AncientEffigy, _) => (3.5, -1.0, -8.5),
             },
             scaler: match (body.species, body.body_type) {
                 (StoneGolem, _) => 1.5,
@@ -194,6 +211,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ClayGolem, _) => 1.5,
                 (WoodGolem, _) => 1.5,
                 (CoralGolem, _) => 1.0,
+                (Gravewarden, _) => 1.5,
+                (AncientEffigy, _) => 1.0,
             },
             tempo: match (body.species, body.body_type) {
                 (StoneGolem, _) => 1.0,
@@ -201,6 +220,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ClayGolem, _) => 1.0,
                 (WoodGolem, _) => 1.0,
                 (CoralGolem, _) => 1.0,
+                (Gravewarden, _) => 1.0,
+                (AncientEffigy, _) => 1.0,
             },
         }
     }

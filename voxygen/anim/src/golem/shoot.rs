@@ -8,7 +8,7 @@ use core::f32::consts::PI;
 pub struct ShootAnimation;
 
 impl Animation for ShootAnimation {
-    type Dependency<'a> = (Option<StageSection>, f32, f32, Dir);
+    type Dependency<'a> = (Option<StageSection>, f32, f32, Dir, Option<&'a str>);
     type Skeleton = GolemSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +18,7 @@ impl Animation for ShootAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (stage_section, _global_time, _timer, look_dir): Self::Dependency<'_>,
+        (stage_section, _global_time, _timer, look_dir, ability_id): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         _s_a: &SkeletonAttr,
@@ -31,6 +31,11 @@ impl Animation for ShootAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(4.0)),
             _ => (0.0, 0.0, 0.0),
         };
+
+        // AncientEffigy shrink
+        if let Some("common.abilities.custom.ancienteffigy.blast") = ability_id {
+            next.upper_torso.scale = Vec3::one() * (1.0 - move1base);
+        }
 
         let pullback = 1.0 - move3;
 

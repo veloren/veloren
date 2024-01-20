@@ -2171,4 +2171,74 @@
             central: ("npc.bristleback.male.tail"),
         ),
     ),
+    (ClaySteed, Male): (
+        head: (
+            offset: (-4.0, -2.0, -6.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 8,
+        ),
+        neck: (
+            offset: (-4.0, -3.5, -7.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 7,
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            central: ("armor.empty"),
+        ),
+        torso_front: (
+            offset: (-5.0, -9.0, -7.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 6,
+        ),
+        torso_back: (
+            offset: (-5.0, -12.0, -6.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 5,
+        ),
+        ears: (
+            offset: (-4.0, -1.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-2.0, -11.0, -7.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 4,
+        ),
+    ),
+    (ClaySteed, Female): (
+        head: (
+            offset: (-4.0, -2.0, -6.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 8,
+        ),
+        neck: (
+            offset: (-4.0, -3.5, -7.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 7,
+        ),
+        jaw: (
+            offset: (-2.0, 0.0, -2.0),
+            central: ("armor.empty"),
+        ),
+        torso_front: (
+            offset: (-5.0, -9.0, -7.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 6,
+        ),
+        torso_back: (
+            offset: (-5.0, -12.0, -6.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 5,
+        ),
+        ears: (
+            offset: (-4.0, -1.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-2.0, -11.0, -7.0),
+            central: ("npc.claysteed.male.claysteed"),
+            model_index: 4,
+        ),
+    ),
 })

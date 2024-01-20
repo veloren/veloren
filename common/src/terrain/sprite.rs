@@ -120,11 +120,12 @@ sprites! {
         DungeonChest4     = 0x35,
         DungeonChest5     = 0x36,
         CoralChest        = 0x37,
-        CommonLockedChest = 0x38,
-        ChestBuried       = 0x39,
-        Crate             = 0x3A,
-        Barrel            = 0x3B,
-        CrateBlock        = 0x3C,
+        HaniwaUrn       = 0x38,
+        CommonLockedChest = 0x39,
+        ChestBuried       = 0x3A,
+        Crate             = 0x3B,
+        Barrel            = 0x3C,
+        CrateBlock        = 0x3D,
         // Standalone lights
         Lantern         = 0x40,
         StreetLamp      = 0x41,
@@ -292,6 +293,8 @@ sprites! {
         KeyDoor      = 0x06,
         GlassKeyhole = 0x07,
         KeyholeBars  = 0x08,
+        HaniwaKeyDoor = 0x09,
+        HaniwaKeyhole = 0x0A,
         // Windows
         Window1      = 0x10,
         Window2      = 0x11,
@@ -316,6 +319,8 @@ sprites! {
         SeaDecorChain = 0x41,
         IronSpike     = 0x42,
         DoorBars      = 0x43,
+        HaniwaTrap    = 0x44,
+        HaniwaTrapTriggered = 0x45,
     },
     // Decorative items, both natural and artificial
     Decor = 6 has Ori {
@@ -391,6 +396,7 @@ impl SpriteKind {
             SpriteKind::DungeonChest4 => 1.09,
             SpriteKind::DungeonChest5 => 1.09,
             SpriteKind::CoralChest => 1.09,
+            SpriteKind::HaniwaUrn => 1.09,
             SpriteKind::SeaDecorChain => 1.09,
             SpriteKind::SeaDecorBlock => 1.00,
             SpriteKind::SeaDecorWindowHor => 0.55,
@@ -458,6 +464,10 @@ impl SpriteKind {
             | SpriteKind::KeyDoor
             | SpriteKind::BoneKeyhole
             | SpriteKind::BoneKeyDoor
+            | SpriteKind::HaniwaKeyhole
+            | SpriteKind::HaniwaKeyDoor
+            | SpriteKind::HaniwaTrap
+            | SpriteKind::HaniwaTrapTriggered
             | SpriteKind::Bomb
             | SpriteKind::OneWayWall
             | SpriteKind::DoorBars
@@ -626,6 +636,7 @@ impl SpriteKind {
             SpriteKind::CommonLockedChest => table("common.loot_tables.dungeon.sahagin.chest"),
             SpriteKind::ChestBuried => table("common.loot_tables.sprite.chest-buried"),
             SpriteKind::CoralChest => table("common.loot_tables.dungeon.sea_chapel.chest_coral"),
+            SpriteKind::HaniwaUrn => table("common.loot_tables.dungeon.haniwa.key"),
             SpriteKind::Mud => table("common.loot_tables.sprite.mud"),
             SpriteKind::Grave => table("common.loot_tables.sprite.mud"),
             SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
@@ -638,6 +649,7 @@ impl SpriteKind {
             SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
             SpriteKind::Keyhole
             | SpriteKind::BoneKeyhole
+            | SpriteKind::HaniwaKeyhole
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars => {
                 return Some(None);
@@ -735,6 +747,9 @@ impl SpriteKind {
                 ),
                 SpriteKind::BoneKeyhole => UnlockKind::Consumes(
                     ItemDefinitionId::Simple("common.items.keys.bone_key").to_owned(),
+                ),
+                SpriteKind::HaniwaKeyhole => UnlockKind::Consumes(
+                    ItemDefinitionId::Simple("common.items.keys.haniwa_key").to_owned(),
                 ),
                 SpriteKind::GlassKeyhole => UnlockKind::Consumes(
                     ItemDefinitionId::Simple("common.items.keys.glass_key").to_owned(),

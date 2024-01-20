@@ -36,6 +36,7 @@ impl Site {
             | SiteKind::RockCircle(_)
             | SiteKind::TrollCave(_)
             | SiteKind::Camp(_)
+            | SiteKind::Haniwa(_)
             | SiteKind::Adlet(_) => Some(false),
             SiteKind::DwarvenMine(_) => Some(false),
             // Neutral

@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("haniwa_general"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.haniwa.enemy"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

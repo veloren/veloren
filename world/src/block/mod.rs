@@ -371,6 +371,17 @@ pub fn block_from_structure(
                 }),
             ));
         },
+        StructureBlock::HaniwaKeyhole(consumes) => {
+            return Some((
+                Block::air(SpriteKind::HaniwaKeyhole),
+                Some(SpriteCfg {
+                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                        consumes.clone(),
+                    ))),
+                    ..SpriteCfg::default()
+                }),
+            ));
+        },
         StructureBlock::KeyholeBars(consumes) => {
             return Some((
                 Block::air(SpriteKind::KeyholeBars),

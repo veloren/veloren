@@ -276,6 +276,7 @@ impl Body {
                 object::Body::Arrow
                 | object::Body::ArrowSnake
                 | object::Body::ArrowTurret
+                | object::Body::ArrowClay
                 | object::Body::FireworkBlue
                 | object::Body::FireworkGreen
                 | object::Body::FireworkPurple

@@ -190,6 +190,7 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::Bomb => Some(SpriteInteractKind::Collectible),
             SpriteKind::Keyhole
             | SpriteKind::BoneKeyhole
+            | SpriteKind::HaniwaKeyhole
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars => Some(SpriteInteractKind::Unlock),
             // Collectible checked in addition to container for case that sprite requires a tool to

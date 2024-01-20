@@ -1,6 +1,7 @@
 use common::{
     combat::DamageContributor,
     comp::{
+        agent::{Sound, SoundKind},
         aura::Auras,
         body::{object, Body},
         buff::{
@@ -13,6 +14,7 @@ use common::{
         Pos, Stats,
     },
     event::{Emitter, EventBus, ServerEvent},
+    outcome::Outcome,
     resources::{DeltaTime, Secs, Time},
     terrain::SpriteKind,
     uid::{IdMaps, Uid},
@@ -25,12 +27,14 @@ use specs::{
     shred, Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
     WriteStorage,
 };
+use vek::Vec3;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
+    outcome_bus: Read<'a, EventBus<Outcome>>,
     inventories: ReadStorage<'a, Inventory>,
     healths: ReadStorage<'a, Health>,
     energies: ReadStorage<'a, Energy>,
@@ -57,6 +61,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(job: &mut Job<Self>, (read_data, mut stats): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
+        let mut outcome = read_data.outcome_bus.emitter();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         stats.set_event_emission(false);
@@ -172,7 +177,39 @@ impl<'a> System<'a> for Sys {
                 }
                 if matches!(
                     physics_state.on_ground.and_then(|b| b.get_sprite()),
-                    Some(SpriteKind::IronSpike)
+                    Some(SpriteKind::HaniwaTrap)
+                ) && !body.immune_to(BuffKind::Bleeding)
+                {
+                    // TODO: Determine a better place to emit sprite change events
+                    if let Some(pos) = read_data.positions.get(entity) {
+                        // If touching Trap - change sprite and apply Bleeding buff
+                        server_emitter.emit(ServerEvent::CreateSprite {
+                            pos: Vec3::new(pos.0.x as i32, pos.0.y as i32, pos.0.z as i32 - 1),
+                            sprite: SpriteKind::HaniwaTrapTriggered,
+                            del_timeout: Some((4.0, 1.0)),
+                        });
+                        server_emitter.emit(ServerEvent::Sound {
+                            sound: Sound::new(SoundKind::Trap, pos.0, 12.0, read_data.time.0),
+                        });
+                        outcome.emit(Outcome::Slash { pos: pos.0 });
+
+                        server_emitter.emit(ServerEvent::Buff {
+                            entity,
+                            buff_change: BuffChange::Add(Buff::new(
+                                BuffKind::Bleeding,
+                                BuffData::new(5.0, Some(Secs(3.0))),
+                                Vec::new(),
+                                BuffSource::World,
+                                *read_data.time,
+                                Some(&stat),
+                                Some(health),
+                            )),
+                        });
+                    }
+                }
+                if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::IronSpike | SpriteKind::HaniwaTrapTriggered)
                 ) {
                     // If touching Iron Spike apply Bleeding buff
                     server_emitter.emit(ServerEvent::Buff {
@@ -255,6 +292,7 @@ impl<'a> System<'a> for Sys {
                         )),
                     });
                 }
+                // If on FireBlock vines, apply burning buff
                 if matches!(
                     physics_state.in_fluid,
                     Some(Fluid::Liquid {

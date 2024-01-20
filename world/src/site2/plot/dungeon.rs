@@ -230,7 +230,6 @@ impl Room {
         if tile_pos == enemy_spawn_tile && wpos2d == tile_wcenter.xy() {
             let entities = match self.difficulty {
                 2 => enemy_2(dynamic_rng, tile_wcenter),
-                3 => enemy_3(dynamic_rng, tile_wcenter),
                 4 => enemy_4(dynamic_rng, tile_wcenter),
                 5 => enemy_5(dynamic_rng, tile_wcenter),
                 _ => enemy_fallback(dynamic_rng, tile_wcenter),
@@ -252,16 +251,9 @@ impl Room {
                                 - 16
                         })
                         .map(|e| e as f32 / 16.0);
-                match self.difficulty {
-                    3 => {
-                        let turret = turret_3(dynamic_rng, pos);
-                        supplement.add_entity(turret);
-                    },
-                    5 => {
-                        let turret = turret_5(dynamic_rng, pos);
-                        supplement.add_entity(turret);
-                    },
-                    _ => {},
+                if self.difficulty == 5 {
+                    let turret = turret_5(dynamic_rng, pos);
+                    supplement.add_entity(turret);
                 };
             }
         }
@@ -287,7 +279,6 @@ impl Room {
         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
             let entities = match self.difficulty {
                 2 => mini_boss_2(dynamic_rng, tile_wcenter),
-                3 => mini_boss_3(dynamic_rng, tile_wcenter),
                 4 => mini_boss_4(dynamic_rng, tile_wcenter),
                 5 => mini_boss_5(dynamic_rng, tile_wcenter),
                 _ => mini_boss_fallback(dynamic_rng, tile_wcenter),
@@ -319,7 +310,6 @@ impl Room {
         if tile_pos == boss_spawn_tile && wpos2d == tile_wcenter.xy() {
             let entities = match self.difficulty {
                 2 => boss_2(dynamic_rng, tile_wcenter),
-                3 => boss_3(dynamic_rng, tile_wcenter),
                 4 => boss_4(dynamic_rng, tile_wcenter),
                 5 => boss_5(dynamic_rng, tile_wcenter),
                 _ => boss_fallback(dynamic_rng, tile_wcenter),
@@ -723,24 +713,6 @@ fn enemy_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     entities
 }
 
-fn enemy_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let number = dynamic_rng.gen_range(2..=4);
-    let mut entities = Vec::new();
-    entities.resize_with(number, || {
-        // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
-        match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.haniwa.archer", dynamic_rng, None),
-            1 => {
-                entity.with_asset_expect("common.entity.dungeon.haniwa.soldier", dynamic_rng, None)
-            },
-            _ => entity.with_asset_expect("common.entity.dungeon.haniwa.guard", dynamic_rng, None),
-        }
-    });
-
-    entities
-}
-
 fn enemy_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let number = dynamic_rng.gen_range(2..=4);
     let mut entities = Vec::new();
@@ -802,10 +774,6 @@ fn enemy_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<En
     entities
 }
 
-fn turret_3(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
-    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.haniwa.sentry", dynamic_rng, None)
-}
-
 fn turret_5(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
     EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.cultist.turret", dynamic_rng, None)
 }
@@ -818,18 +786,6 @@ fn boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo
             None,
         ),
     ]
-}
-fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let mut entities = Vec::new();
-    entities.resize_with(2, || {
-        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_asset_expect(
-            "common.entity.dungeon.haniwa.claygolem",
-            dynamic_rng,
-            None,
-        )
-    });
-
-    entities
 }
 
 fn boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
@@ -867,18 +823,6 @@ fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
     entities.resize_with(6, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_asset_expect(
             "common.entity.dungeon.sahagin.hakulaq",
-            dynamic_rng,
-            None,
-        )
-    });
-    entities
-}
-
-fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let mut entities = Vec::new();
-    entities.resize_with(3, || {
-        EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_asset_expect(
-            "common.entity.dungeon.haniwa.bonerattler",
             dynamic_rng,
             None,
         )
@@ -1304,7 +1248,6 @@ impl Floor {
                     ));
                     let chest_sprite_fill = Fill::Block(Block::air(match difficulty {
                         2 => SpriteKind::DungeonChest2,
-                        3 => SpriteKind::DungeonChest3,
                         4 => SpriteKind::DungeonChest4,
                         5 => SpriteKind::DungeonChest5,
                         _ => SpriteKind::Chest,
@@ -1524,7 +1467,6 @@ mod tests {
         let mut dynamic_rng = thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
         boss_2(&mut dynamic_rng, tile_wcenter);
-        boss_3(&mut dynamic_rng, tile_wcenter);
         boss_4(&mut dynamic_rng, tile_wcenter);
         boss_5(&mut dynamic_rng, tile_wcenter);
         boss_fallback(&mut dynamic_rng, tile_wcenter);
@@ -1536,7 +1478,6 @@ mod tests {
         let mut dynamic_rng = thread_rng();
         let random_position = Vec3::new(0, 0, 0);
         enemy_2(&mut dynamic_rng, random_position);
-        enemy_3(&mut dynamic_rng, random_position);
         enemy_4(&mut dynamic_rng, random_position);
         enemy_5(&mut dynamic_rng, random_position);
         enemy_fallback(&mut dynamic_rng, random_position);
@@ -1548,7 +1489,6 @@ mod tests {
         let mut dynamic_rng = thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
         mini_boss_2(&mut dynamic_rng, tile_wcenter);
-        mini_boss_3(&mut dynamic_rng, tile_wcenter);
         mini_boss_4(&mut dynamic_rng, tile_wcenter);
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
         mini_boss_fallback(&mut dynamic_rng, tile_wcenter);
@@ -1558,7 +1498,6 @@ mod tests {
     fn test_creating_turrets() {
         let mut dynamic_rng = thread_rng();
         let pos = Vec3::new(0.0, 0.0, 0.0);
-        turret_3(&mut dynamic_rng, pos);
         turret_5(&mut dynamic_rng, pos);
     }
 }

@@ -77,6 +77,7 @@ pub enum SiteKind {
     Gnarling(site2::Site),
     Bridge(site2::Site),
     Adlet(site2::Site),
+    Haniwa(site2::Site),
     PirateHideout(site2::Site),
     JungleRuin(site2::Site),
     RockCircle(site2::Site),
@@ -109,6 +110,13 @@ impl Site {
     pub fn adlet(ad: site2::Site) -> Self {
         Self {
             kind: SiteKind::Adlet(ad),
+            economy: Economy::default(),
+        }
+    }
+
+    pub fn haniwa(ha: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Haniwa(ha),
             economy: Economy::default(),
         }
     }
@@ -247,6 +255,7 @@ impl Site {
             SiteKind::Gnarling(g) => g.radius(),
             SiteKind::Bridge(b) => b.radius(),
             SiteKind::Adlet(ad) => ad.radius(),
+            SiteKind::Haniwa(ha) => ha.radius(),
         }
     }
 
@@ -272,6 +281,7 @@ impl Site {
             SiteKind::Gnarling(g) => g.origin,
             SiteKind::Bridge(b) => b.origin,
             SiteKind::Adlet(ad) => ad.origin,
+            SiteKind::Haniwa(ha) => ha.origin,
         }
     }
 
@@ -297,6 +307,7 @@ impl Site {
             SiteKind::Gnarling(g) => g.spawn_rules(wpos),
             SiteKind::Bridge(b) => b.spawn_rules(wpos),
             SiteKind::Adlet(ad) => ad.spawn_rules(wpos),
+            SiteKind::Haniwa(ha) => ha.spawn_rules(wpos),
         }
     }
 
@@ -322,6 +333,7 @@ impl Site {
             SiteKind::Gnarling(g) => g.name(),
             SiteKind::Bridge(b) => b.name(),
             SiteKind::Adlet(ad) => ad.name(),
+            SiteKind::Haniwa(ha) => ha.name(),
         }
     }
 
@@ -367,6 +379,7 @@ impl Site {
             SiteKind::Gnarling(g) => g.render(canvas, dynamic_rng),
             SiteKind::Bridge(b) => b.render(canvas, dynamic_rng),
             SiteKind::Adlet(ad) => ad.render(canvas, dynamic_rng),
+            SiteKind::Haniwa(ha) => ha.render(canvas, dynamic_rng),
         }
     }
 
@@ -406,6 +419,7 @@ impl Site {
             SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Bridge(b) => b.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Adlet(ad) => ad.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::Haniwa(ha) => ha.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 
@@ -445,6 +459,7 @@ impl Site {
             SiteKind::Gnarling(site2) => Some(site2),
             SiteKind::Bridge(site2) => Some(site2),
             SiteKind::Adlet(site2) => Some(site2),
+            SiteKind::Haniwa(site2) => Some(site2),
         }
     }
 }

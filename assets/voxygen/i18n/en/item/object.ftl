@@ -15,6 +15,9 @@
 object-key_bone = Bone Key
     .desc = Used to open bone locks. Will break after use.
 
+object-key_haniwa = Haniwa Keystone
+    .desc = Used to open doors. Will break after use.
+
 object-key_glass = Glass Key
     .desc = Used to open Glass Barriers. Will break after use.
 

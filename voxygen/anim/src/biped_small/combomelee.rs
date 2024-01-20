@@ -1,10 +1,9 @@
 use super::{
     super::{vek::*, Animation},
     biped_small_alpha_axe, biped_small_alpha_dagger, biped_small_alpha_spear,
-    init_biped_small_alpha, BipedSmallSkeleton, SkeletonAttr,
+    biped_small_wield_spear, init_biped_small_alpha, BipedSmallSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use std::f32::consts::PI;
 
 pub struct ComboAnimation;
 impl Animation for ComboAnimation {
@@ -115,8 +114,6 @@ impl Animation for ComboAnimation {
                     let speed = Vec2::<f32>::from(velocity).magnitude();
                     let speednorm = speed / 9.4;
                     let speednormcancel = 1.0 - speednorm;
-                    let fast = (anim_time * 10.0).sin();
-                    let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
 
                     let (move1base, move2base, move3) = match stage_section {
                         StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
@@ -134,10 +131,25 @@ impl Animation for ComboAnimation {
                         s_a,
                         move1abs,
                         move2abs,
-                        fast,
-                        fastalt,
+                        anim_time,
                         speednormcancel,
                     );
+                },
+                Some("common.abilities.haniwa.guard.backpedal") => {
+                    init_biped_small_alpha(&mut next, s_a);
+                    biped_small_wield_spear(&mut next, s_a, anim_time, 0.0, 0.0);
+
+                    let (move1, move2, move3) = match stage_section {
+                        StageSection::Buildup => (anim_time.powf(0.25), 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time, 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time.powf(0.25)),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1 = move1 * pullback;
+                    let move2 = move2 * pullback;
+
+                    biped_small_alpha_spear(&mut next, s_a, move1, move2, anim_time, 0.0);
                 },
                 _ => {},
             }

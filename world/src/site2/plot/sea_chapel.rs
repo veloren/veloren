@@ -18,7 +18,7 @@ use std::{
 use vek::*;
 
 pub struct SeaChapel {
-    bounds: Aabr<i32>,
+    pub(crate) center: Vec2<i32>,
     pub(crate) alt: i32,
 }
 impl SeaChapel {
@@ -27,9 +27,18 @@ impl SeaChapel {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
         };
+        let center = bounds.center();
         Self {
-            bounds,
+            center,
             alt: CONFIG.sea_level as i32,
+        }
+    }
+
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules {
+            waypoints: false,
+            trees: wpos.distance_squared(self.center) > 100_i32.pow(2),
+            ..SpawnRules::default()
         }
     }
 }
@@ -41,7 +50,7 @@ impl Structure for SeaChapel {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_seachapel")]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 1;
-        let center = self.bounds.center();
+        let center = self.center;
         let diameter = 54;
         let variant = center.with_z(base);
         let mut rng = thread_rng();

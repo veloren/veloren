@@ -5,4 +5,5 @@
     (3.0, LootTable("common.loot_tables.armor.tier-4")),
     // Misc
     (2.0, Item("common.items.armor.misc.neck.haniwa_talisman")),
+    (0.2, Item("common.items.tool.instruments.shamisen")),
 ]

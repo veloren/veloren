@@ -1699,4 +1699,88 @@
             lateral: ("armor.empty"),
         ),
     ),
+    (HaniwaGeneral, Male): (
+        shoulder_l: (
+            offset: (-3.5, -3.0, -7.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.5, -3.0, -7.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-2.5, -2.0, -8.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-2.5, -2.0, -8.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-2.5, -3.0, -3.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-2.5, -3.0, -3.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 10,
+        ),
+    ),
+    (HaniwaGeneral, Female): (
+        shoulder_l: (
+            offset: (-3.5, -3.0, -7.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.5, -3.0, -7.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-2.5, -2.0, -8.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-2.5, -2.0, -8.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-2.5, -3.0, -3.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-2.5, -3.0, -3.0),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-1.5, -3.0, -2.5),
+            lateral: ("npc.haniwa.general.haniwa_general"),
+            model_index: 10,
+        ),
+    ),
 })

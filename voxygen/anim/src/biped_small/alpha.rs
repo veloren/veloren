@@ -1,7 +1,8 @@
 use super::{
     super::{vek::*, Animation},
     biped_small_alpha_axe, biped_small_alpha_dagger, biped_small_alpha_spear,
-    init_biped_small_alpha, BipedSmallSkeleton, SkeletonAttr,
+    biped_small_wield_bow, biped_small_wield_sword, init_biped_small_alpha, BipedSmallSkeleton,
+    SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
 use std::f32::consts::PI;
@@ -40,7 +41,7 @@ impl Animation for AlphaAnimation {
             _last_ori,
             global_time,
             _avg_vel,
-            _acc_vel,
+            acc_vel,
             stage_section,
             timer,
         ): Self::Dependency<'_>,
@@ -52,9 +53,6 @@ impl Animation for AlphaAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;
-
-        let fast = (anim_time * 10.0).sin();
-        let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
 
         let anim_time = anim_time.min(1.0);
         let (move1base, move2base, move3) = match stage_section {
@@ -81,8 +79,7 @@ impl Animation for AlphaAnimation {
                     s_a,
                     move1abs,
                     move2abs,
-                    fast,
-                    fastalt,
+                    anim_time,
                     speednormcancel,
                 );
             },
@@ -91,6 +88,21 @@ impl Animation for AlphaAnimation {
             },
             Some(ToolKind::Dagger) => {
                 biped_small_alpha_dagger(&mut next, s_a, move1abs, move2abs);
+            },
+            Some(ToolKind::Sword) => {
+                let slow = (anim_time * 2.0).sin();
+                biped_small_wield_sword(&mut next, s_a, speednorm, slow);
+
+                next.chest.orientation.rotate_z(1.2 * move1abs);
+                next.head.orientation.rotate_z(-0.6 * move1abs);
+                next.pants.orientation.rotate_z(-0.6 * move1abs);
+                next.control.orientation.rotate_x(0.8 * move1abs);
+                next.control.orientation.rotate_y(-0.4 * move1abs);
+
+                next.chest.orientation.rotate_z(-3.0 * move2abs);
+                next.head.orientation.rotate_z(1.5 * move2abs);
+                next.pants.orientation.rotate_z(2.0 * move2abs);
+                next.control.orientation.rotate_x(-3.0 * move2abs);
             },
             Some(ToolKind::Staff) => match ability_id {
                 Some("common.abilities.custom.dwarves.flamekeeper.flamecrush") => {
@@ -153,6 +165,27 @@ impl Animation for AlphaAnimation {
                             * Quaternion::rotation_z(move1 * 1.2 + move2 * -1.8);
                     next.head.orientation = Quaternion::rotation_z(move1 * -0.8 + move2 * 0.8);
                 },
+            },
+            Some(ToolKind::Bow) => match ability_id {
+                Some("common.abilities.haniwa.archer.kick") => {
+                    let fastacc = (acc_vel * 2.0).sin();
+                    biped_small_wield_bow(&mut next, s_a, anim_time, speed, fastacc);
+
+                    next.chest.orientation.rotate_z(move1abs * 1.1);
+                    next.control.orientation.rotate_z(move1abs * -0.9);
+                    next.control.position += Vec3::new(7.0, 1.0, 0.0) * move1abs;
+                    next.head.orientation.rotate_z(move1abs * -0.8);
+                    next.foot_l.orientation.rotate_z(move1abs * 1.1);
+
+                    next.chest.orientation.rotate_z(move2abs * -2.3);
+                    next.control.orientation.rotate_z(move2abs * 1.9);
+                    next.control.position += Vec3::new(-7.0, -1.0, 0.0) * move2abs;
+                    next.head.orientation.rotate_z(move2abs * 0.9);
+                    next.foot_l.orientation.rotate_y(move2abs * 1.3);
+                    next.foot_l.orientation.rotate_z(move2abs * -2.9);
+                    next.foot_l.position += Vec3::new(3.0, 8.0, 4.0) * move2abs;
+                },
+                _ => {},
             },
             Some(ToolKind::Natural) => {
                 let tension = match stage_section {

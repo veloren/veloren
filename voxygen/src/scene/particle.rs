@@ -386,7 +386,7 @@ impl ParticleMgr {
                     *pos + Vec3::new(0.0, 0.0, 5.6 + 0.5 * rng.gen_range(0.0..0.2)),
                 ));
             },
-            Outcome::FlamethrowerCharge { pos } => {
+            Outcome::FlamethrowerCharge { pos } | Outcome::FuseCharge { pos } => {
                 self.particles.push(Particle::new_directed(
                     Duration::from_secs_f32(rng.gen_range(0.1..0.2)),
                     time,
@@ -433,6 +433,16 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::ClayGolemDash { pos, .. } => {
+                self.particles.resize_with(self.particles.len() + 100, || {
+                    Particle::new(
+                        Duration::from_millis(1000),
+                        time,
+                        ParticleMode::ClayShrapnel,
+                        *pos,
+                    )
+                });
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
@@ -446,6 +456,7 @@ impl ParticleMgr {
             | Outcome::Glider { .. }
             | Outcome::Whoosh { .. }
             | Outcome::Swoosh { .. }
+            | Outcome::Slash { .. }
             | Outcome::Steam { .. }
             | Outcome::FireShockwave { .. }
             | Outcome::PortalActivated { .. }
@@ -1411,13 +1422,13 @@ impl ParticleMgr {
                         ));
                     }
                 },
-                beam::FrontendSpecifier::ClayGolem => {
+                beam::FrontendSpecifier::Gravewarden => {
                     self.particles.resize_with(self.particles.len() + 2, || {
                         Particle::new_directed(
                             Duration::from_secs_f64(beam.duration.0),
                             time,
                             ParticleMode::Laser,
-                            beam.bezier.start,
+                            beam.bezier.start + beam_dir * 1.5,
                             beam.bezier.start + beam_dir * beam.range,
                         )
                     })

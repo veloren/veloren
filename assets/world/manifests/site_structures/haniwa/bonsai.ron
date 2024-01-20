@@ -1,0 +1,8 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.bonsai",
+        center: (28, 22, 1)
+    ),
+]

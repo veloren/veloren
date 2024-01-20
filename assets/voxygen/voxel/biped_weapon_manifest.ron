@@ -1160,6 +1160,14 @@
         vox_spec: ("weapon.tool.wooden_lute", (-2.5, -6.0, 4.0)),
         color: None
     ),
+    Tool("common.items.tool.instruments.steeldrum"): (
+        vox_spec: ("weapon.tool.steeldrum", (-4.5, -8.0, 8.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.shamisen"): (
+        vox_spec: ("weapon.tool.shamisen", (-2.5, -6.0, 0.0)),
+        color: None
+    ),
     Tool("common.items.tool.instruments.guitar"): (
         vox_spec: ("weapon.tool.wooden_guitar", (-4.5, -6.0, 0.0)),
         color: None
@@ -1639,8 +1647,12 @@
         vox_spec: ("weapon.sword.long_2h_saurok", (-2.5, -4.0, -5.0)),
         color: None
     ),
-    Tool("common.items.npc_weapons.sword.adlet_elder_sword"): (
+    Tool("common.items.npc_weapons.sword.haniwa_general_sword"): (
         vox_spec: ("weapon.sword.adlet_elder_sword", (-2.5, -5.0, -5.0)),
+        color: None
+    ),
+    Tool("common.items.npc_weapons.sword.haniwa_general_sword"): (
+        vox_spec: ("weapon.sword.haniwa_general_sword", (-2.5, -5.0, -5.0)),
         color: None
     ),
     Tool("common.items.npc_weapons.bow.saurok_bow"): (

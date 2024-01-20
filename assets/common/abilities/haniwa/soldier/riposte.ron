@@ -1,0 +1,16 @@
+RiposteMelee(
+    energy_cost: 0,
+    buildup_duration: 0.7,
+    swing_duration: 0.3,
+    recover_duration: 0.2,
+    melee_constructor: (
+        kind: Slash(
+            damage: 30,
+            poise: 60,
+            knockback: 15,
+            energy_regen: 0,
+        ),
+        range: 4.0,
+        angle: 60.0,
+    ),
+)

@@ -588,6 +588,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.music.wildskin_drum" => imgs.instrument,
         "common.abilities.music.icy_talharpa" => imgs.instrument,
         "common.abilities.music.washboard" => imgs.instrument,
+        "common.abilities.music.steeldrum" => imgs.instrument,
+        "common.abilities.music.shamisen" => imgs.instrument,
         _ => imgs.not_found,
     }
 }

@@ -6,6 +6,7 @@ use crate::{
         buff::{BuffCategory, BuffChange},
         character_state::OutputEvents,
         controller::InventoryManip,
+        golem,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
         item::{
             armor::Friction,
@@ -97,6 +98,7 @@ impl Body {
                 quadruped_medium::Species::Alpaca => 110.0,
                 quadruped_medium::Species::Akhlut => 90.0,
                 quadruped_medium::Species::Bristleback => 135.0,
+                quadruped_medium::Species::ClaySteed => 120.0,
             },
             Body::BipedLarge(body) => match body.species {
                 biped_large::Species::Slysaurok => 100.0,
@@ -122,7 +124,10 @@ impl Body {
             },
             Body::Object(_) => 0.0,
             Body::ItemDrop(_) => 0.0,
-            Body::Golem(_) => 60.0,
+            Body::Golem(body) => match body.species {
+                golem::Species::ClayGolem => 120.0,
+                _ => 60.0,
+            },
             Body::Theropod(_) => 135.0,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 130.0,

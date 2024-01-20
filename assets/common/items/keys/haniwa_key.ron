@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Haniwa Keystone",
+    legacy_description: "Used to open doors. Will break after use.",
+    kind: Utility(
+        kind: Key,
+    ),
+    amount: 1,
+    quality: Common,
+    tags: [Utility],
+)
+

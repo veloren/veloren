@@ -175,6 +175,9 @@ pub enum Tactic {
     RadialTurret,
     FieryTornado,
     SimpleDouble,
+    ClayGolem,
+    ClaySteed,
+    AncientEffigy,
     // u8s are weights that each ability gets used, if it can be used
     RandomAbilities {
         primary: u8,
@@ -218,7 +221,7 @@ pub enum Tactic {
     // Specific species tactics
     Mindflayer,
     Minotaur,
-    ClayGolem,
+    GraveWarden,
     TidalWarrior,
     Yeti,
     Harvester,
@@ -245,6 +248,11 @@ pub enum Tactic {
     AdletIcepicker,
     AdletTracker,
     AdletElder,
+
+    // Haniwa
+    HaniwaSoldier,
+    HaniwaGuard,
+    HaniwaArcher,
 }
 
 #[derive(Copy, Clone, Debug)]

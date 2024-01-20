@@ -121,7 +121,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
                 Camel | Hirdrasil | Horse | Kelpie | Zebra => {
                     Some((head_mat * Vec4::new(0.0, 2.0, 5.0, 1.0)).xyz())
                 },
-                Darkhound | Llama | Snowleopard | Tiger | Wolf => {
+                Darkhound | Llama | Snowleopard | Tiger | Wolf | ClaySteed => {
                     Some((head_mat * Vec4::new(0.0, 4.0, 1.0, 1.0)).xyz())
                 },
                 Dreadhorn | Mammoth | Moose | Tarasque => {
@@ -240,6 +240,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (0.5, 7.5),
                 (Akhlut, _) => (1.0, 3.5),
                 (Bristleback, _) => (-3.0, -2.0),
+                (ClaySteed, _) => (-0.5, 6.0),
             },
             neck: match (body.species, body.body_type) {
                 (Grolgar, _) => (1.0, -1.0),
@@ -280,6 +281,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (-1.5, 3.0),
                 (Akhlut, _) => (8.5, -1.0),
                 (Bristleback, _) => (6.0, 2.5),
+                (ClaySteed, _) => (1.5, 1.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.0, 2.0),
@@ -321,6 +323,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (3.0, -2.5),
                 (Akhlut, _) => (0.0, -4.5),
                 (Bristleback, _) => (8.0, -6.0),
+                (ClaySteed, _) => (4.0, -1.0),
             },
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
@@ -361,6 +364,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (-8.5, 3.5),
                 (Akhlut, _) => (-14.0, -2.0),
                 (Bristleback, _) => (-7.0, -5.5),
+                (ClaySteed, _) => (-11.0, 4.0),
             },
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (10.0, 13.0),
@@ -401,6 +405,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (7.0, 11.5),
                 (Akhlut, _) => (5.5, 14.5),
                 (Bristleback, _) => (1.5, 9.0),
+                (ClaySteed, _) => (7.0, 15.0),
             },
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (-10.0, 1.5),
@@ -441,6 +446,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (-6.0, 0.0),
                 (Akhlut, _) => (-7.0, 1.0),
                 (Bristleback, _) => (-4.0, 2.0),
+                (ClaySteed, _) => (-6.0, 0.0),
             },
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 8.0),
@@ -482,6 +488,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (1.0, 2.0),
                 (Akhlut, _) => (12.0, -3.0),
                 (Bristleback, _) => (6.0, 1.0),
+                (ClaySteed, _) => (1.0, 3.5),
             },
             leg_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.5, -5.5, -1.0),
@@ -522,6 +529,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (3.5, -2.5, -0.5),
                 (Akhlut, _) => (8.0, -2.0, 0.5),
                 (Bristleback, _) => (6.0, 1.0, -2.0),
+                (ClaySteed, _) => (4.0, -1.5, -2.0),
             },
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -4.0),
@@ -562,6 +570,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (3.5, -7.0, 0.0),
                 (Akhlut, _) => (6.0, -7.5, -2.0),
                 (Bristleback, _) => (4.5, -3.0, -2.0),
+                (ClaySteed, _) => (4.5, -8.0, -3.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, 0.0, -4.0),
@@ -602,6 +611,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (0.0, -0.5, -5.0),
                 (Akhlut, _) => (0.0, 0.0, -5.0),
                 (Bristleback, _) => (0.0, -0.5, -2.0),
+                (ClaySteed, _) => (-0.5, 0.0, -6.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5, -1.5, -3.0),
@@ -642,6 +652,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Alpaca, _) => (-0.5, -0.5, -5.5),
                 (Akhlut, _) => (1.5, -1.0, -4.5),
                 (Bristleback, _) => (-0.5, 0.0, -4.0),
+                (ClaySteed, _) => (0.0, -0.5, -4.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Grolgar, _) => 1.05,
@@ -671,6 +682,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ngoubou, _) => 1.0,
                 (Akhlut, _) => 1.4,
                 (Bristleback, _) => 1.1,
+                (ClaySteed, _) => 1.75,
                 _ => 0.9,
             },
             startangle: match (body.species, body.body_type) {
@@ -794,6 +806,7 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Alpaca, _) => (0.0, -9.0, 0.0),
         (Akhlut, _) => (0.0, -6.0, 1.0),
         (Bristleback, _) => (0.0, -9.0, 3.0),
+        (ClaySteed, _) => (0.0, -6.0, 2.0),
     }
     .into()
 }

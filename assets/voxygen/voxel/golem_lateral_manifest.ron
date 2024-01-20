@@ -135,73 +135,227 @@
             lateral: ("npc.treant.male.foot_r"),
         )
     ),
-    (ClayGolem, Male): (
+    (Gravewarden, Male): (
         shoulder_l: (
             offset: (-13.0, -3.5, -6.5),
-            lateral: ("npc.claygolem.male.shoulder_l"),
+            lateral: ("npc.gravewarden.male.shoulder_l"),
         ),
         shoulder_r: (
             offset: (0.0, -3.5, -6.5),
-            lateral: ("npc.claygolem.male.shoulder_r"),
+            lateral: ("npc.gravewarden.male.shoulder_r"),
         ),
         hand_l: (
             offset: (-7.5, -6.5, -17.0),
-            lateral: ("npc.claygolem.male.hand_l"),
+            lateral: ("npc.gravewarden.male.hand_l"),
         ),
         hand_r: (
             offset: (-7.5, -6.5, -17.0),
-            lateral: ("npc.claygolem.male.hand_r"),
+            lateral: ("npc.gravewarden.male.hand_r"),
         ),
         leg_l: (
             offset: (-8.0, -4.0, -10.0),
-            lateral: ("npc.claygolem.male.leg_l"),
+            lateral: ("npc.gravewarden.male.leg_l"),
         ),
         leg_r: (
             offset: (0.0, -4.0, -10.0),
-            lateral: ("npc.claygolem.male.leg_r"),
+            lateral: ("npc.gravewarden.male.leg_r"),
         ),
         foot_l: (
             offset: (-2.5, -3.0, -7.0),
-            lateral: ("npc.claygolem.male.foot_l"),
+            lateral: ("npc.gravewarden.male.foot_l"),
         ),
         foot_r: (
             offset: (-2.5, -3.0, -7.0),
-            lateral: ("npc.claygolem.male.foot_r"),
+            lateral: ("npc.gravewarden.male.foot_r"),
         )
+    ),
+    (Gravewarden, Female): (
+        shoulder_l: (
+            offset: (-13.0, -3.5, -6.5),
+            lateral: ("npc.gravewarden.male.shoulder_l"),
+        ),
+        shoulder_r: (
+            offset: (0.0, -3.5, -6.5),
+            lateral: ("npc.gravewarden.male.shoulder_r"),
+        ),
+        hand_l: (
+            offset: (-7.5, -6.5, -17.0),
+            lateral: ("npc.gravewarden.male.hand_l"),
+        ),
+        hand_r: (
+            offset: (-7.5, -6.5, -17.0),
+            lateral: ("npc.gravewarden.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-8.0, -4.0, -10.0),
+            lateral: ("npc.gravewarden.male.leg_l"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.0, -10.0),
+            lateral: ("npc.gravewarden.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-2.5, -3.0, -7.0),
+            lateral: ("npc.gravewarden.male.foot_l"),
+        ),
+        foot_r: (
+            offset: (-2.5, -3.0, -7.0),
+            lateral: ("npc.gravewarden.male.foot_r"),
+        )
+    ),
+    (ClayGolem, Male): (
+        shoulder_l: (
+            offset: (-9.0, -2.5, -4.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (0.0, -2.5, -4.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-7.0, -4.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (0.0, -4.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 10,
+        ),
     ),
     (ClayGolem, Female): (
         shoulder_l: (
-            offset: (-13.0, -3.5, -6.5),
-            lateral: ("npc.claygolem.male.shoulder_l"),
+            offset: (-9.0, -2.5, -4.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 3,
         ),
         shoulder_r: (
-            offset: (0.0, -3.5, -6.5),
-            lateral: ("npc.claygolem.male.shoulder_r"),
+            offset: (0.0, -2.5, -4.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 4,
         ),
         hand_l: (
-            offset: (-7.5, -6.5, -17.0),
-            lateral: ("npc.claygolem.male.hand_l"),
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 5,
         ),
         hand_r: (
-            offset: (-7.5, -6.5, -17.0),
-            lateral: ("npc.claygolem.male.hand_r"),
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 6,
         ),
         leg_l: (
-            offset: (-8.0, -4.0, -10.0),
-            lateral: ("npc.claygolem.male.leg_l"),
+            offset: (-7.0, -4.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 7,
         ),
         leg_r: (
-            offset: (0.0, -4.0, -10.0),
-            lateral: ("npc.claygolem.male.leg_r"),
+            offset: (0.0, -4.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 8,
         ),
         foot_l: (
-            offset: (-2.5, -3.0, -7.0),
-            lateral: ("npc.claygolem.male.foot_l"),
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 9,
         ),
         foot_r: (
-            offset: (-2.5, -3.0, -7.0),
-            lateral: ("npc.claygolem.male.foot_r"),
-        )
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.claygolem.male.claygolem"),
+            model_index: 10,
+        ),
+    ),
+    (AncientEffigy, Male): (
+        shoulder_l: (
+            offset: (-9.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+
+        ),
+        shoulder_r: (
+            offset: (0.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_l: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_r: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_l: (
+            offset: (-7.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_r: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+    ),
+    (AncientEffigy, Female): (
+        shoulder_l: (
+            offset: (-9.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+
+        ),
+        shoulder_r: (
+            offset: (0.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_l: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_r: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_l: (
+            offset: (-7.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_r: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
     ),
     (WoodGolem, Male): (
         shoulder_l: (

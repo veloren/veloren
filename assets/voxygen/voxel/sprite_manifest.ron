@@ -1027,6 +1027,65 @@ GlassKeyhole: Some((
     ],
     wind_sway: 0.0,
 )),
+// Haniwa KeyDoor
+HaniwaKeyDoor: Some((
+     variations: [
+         (
+                model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)),
+// Haniwa Keyhole
+HaniwaKeyhole: Some((
+     variations: [
+         (
+                model: "voxygen.voxel.sprite.furniture.haniwa_keyhole_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)),
+HaniwaUrn: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_haniwa_urn",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+
+    ],
+    wind_sway: 0.0,
+)),
+// Haniwa Trap
+HaniwaTrap: Some((
+     variations: [
+         (
+                model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)),
+HaniwaTrapTriggered: Some((
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_trap_triggered-0",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_trap_triggered-1",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)),
 // Welwitch
 Welwitch: Some((
     variations: [

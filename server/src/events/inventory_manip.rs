@@ -329,6 +329,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     if let Some(kind_to_destroy) = match block.get_sprite() {
                         Some(SpriteKind::Keyhole) => Some(SpriteKind::KeyDoor),
                         Some(SpriteKind::BoneKeyhole) => Some(SpriteKind::BoneKeyDoor),
+                        Some(SpriteKind::HaniwaKeyhole) => Some(SpriteKind::HaniwaKeyDoor),
                         Some(SpriteKind::GlassKeyhole) => Some(SpriteKind::GlassBarrier),
                         Some(SpriteKind::KeyholeBars) => Some(SpriteKind::DoorBars),
                         _ => None,

@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Gravewarden"),
+    body: RandomWith("gravewarden"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.haniwa.gravewarden"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

@@ -6,7 +6,7 @@ ItemDef(
         hands: Two,
         stats: (
             equip_time_secs: 0.0,
-            power: 1.6,
+            power: 1.0,
             effect_power: 1.0,
             speed: 1.0,
             range: 1.0,
@@ -16,5 +16,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: None,
+    ability_spec: Some(Custom("Haniwa Guard")),
 )

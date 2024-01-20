@@ -1,0 +1,16 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 2.5,
+    recover_duration: 1.0,
+    projectile: ClayRocket(
+        damage: 75.0,
+        knockback: 35.0,
+        radius: 10.0,
+        min_falloff: 0.75,
+    ),
+    projectile_body: Object(FireRainDrop),
+    projectile_speed: 0.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+    move_efficiency: 0.3,
+)
