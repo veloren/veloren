@@ -12,13 +12,16 @@ DiveMelee(
             knockback: 0,
             energy_regen: 0,
         ),
-        scaled: Some(Slash(
-            damage: 15,
-            poise: 10,
-            knockback: 0,
-            energy_regen: 0,
+        scaled: Some((
+            kind: Slash(
+                damage: 4,
+                poise: 5,
+                knockback: 4,
+                energy_regen: 0,
+            ),
+            range: 1.0,
         )),
-        range: 4.0,
+        range: 2.0,
         angle: 360.0,
         multi_target: Some(Normal),
     ),

@@ -9,11 +9,12 @@ FinisherMelee(
             poise: 0,
             pull: 0,
         ),
-        scaled: Some(Hook(
-            damage: 2,
-            poise: 3,
-            pull: 1,
-        )),
+        scaled: Some((
+            kind: Hook(
+                damage: 2,
+                poise: 3,
+                pull: 1,
+            ))),
         range: 6.0,
         angle: 30.0,
     ),

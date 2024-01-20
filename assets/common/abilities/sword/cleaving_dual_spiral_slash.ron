@@ -8,12 +8,13 @@ ChargedMelee(
             knockback: 0,
             energy_regen: 0,
         ),
-        scaled: Some(Slash(
-            damage: 7,
-            poise: 10,
-            knockback: 0,
-            energy_regen: 10,
-        )),
+        scaled: Some((
+            kind: Slash(
+                damage: 7,
+                poise: 10,
+                knockback: 0,
+                energy_regen: 10,
+            ))),
         range: 3.0,
         angle: 360.0,
         multi_target: Some(Normal),

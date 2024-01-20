@@ -1917,7 +1917,7 @@ impl CharacterAbility {
                     ref mut damage,
                     ref mut knockback,
                     ..
-                }) = melee_constructor.scaled
+                }) = melee_constructor.scaled.as_mut().map(|scaled| scaled.kind)
                 {
                     if let Ok(level) = skillset.skill_level(Hammer(CDamage)) {
                         *damage *= modifiers.scaled_damage.powi(level.into());
