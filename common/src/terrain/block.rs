@@ -156,6 +156,7 @@ impl Block {
 
     /* Constructors */
 
+    // TODO: Rename to `filled`
     #[inline]
     pub const fn new(kind: BlockKind, color: Rgb<u8>) -> Self {
         // TODO: we should probably assert this, overwriting the data fields with a

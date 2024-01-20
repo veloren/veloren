@@ -181,6 +181,9 @@ struct SpriteConfig<Model> {
 /// Configuration data for all sprite models.
 ///
 /// NOTE: Model is an asset path to the appropriate sprite .vox model.
+// TODO: Overhaul this entirely to work with the new sprite attribute system. We'll probably be
+// wanting a way to specify inexact mappings between sprite models and sprite configurations. For
+// example, the ability to use a model for a range of plant growth states.
 #[derive(Deserialize)]
 #[serde(try_from = "HashMap<SpriteKind, Option<SpriteConfig<String>>>")]
 pub struct SpriteSpec(HashMap<SpriteKind, Option<SpriteConfig<String>>>);
