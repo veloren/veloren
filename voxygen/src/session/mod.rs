@@ -601,15 +601,22 @@ impl PlayState for SessionState {
                 .get(player_entity)
                 .map_or_else(|| false, |cb| cb.enabled);
 
-            let is_mining = client
+            let active_mine_tool: Option<ToolKind> = if client.is_wielding() == Some(true) { client
                 .inventories()
                 .get(player_entity)
                 .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
                 .and_then(|item| item.tool_info())
-                .map_or(false, |tool_kind| {
-                    matches!(tool_kind, ToolKind::Pick | ToolKind::Shovel)
+                .map_or(None, |tool_kind| {
+                    match tool_kind {
+                        ToolKind::Pick => Some(tool_kind),
+                        ToolKind::Shovel => Some(tool_kind),
+                        _ => None,
+                    }
                 })
-                && client.is_wielding() == Some(true);
+            } else {
+                None
+            };
+                
 
             // Check to see whether we're aiming at anything
             let (build_target, collect_target, entity_target, mine_target, terrain_target) =
@@ -618,7 +625,7 @@ impl PlayState for SessionState {
                     cam_pos,
                     cam_dir,
                     can_build,
-                    is_mining,
+                    active_mine_tool,
                     self.viewpoint_entity().0,
                 );
 
@@ -651,17 +658,17 @@ impl PlayState for SessionState {
 
             // Nearest block to consider with GameInput primary or secondary key.
             let nearest_block_dist = find_shortest_distance(&[
-                mine_target.filter(|_| is_mining).map(|t| t.distance),
+                mine_target.filter(|_| active_mine_tool.is_some()).map(|t| t.distance),
                 build_target.filter(|_| can_build).map(|t| t.distance),
             ]);
             // Nearest block to be highlighted in the scene (self.scene.set_select_pos).
             let nearest_scene_dist = find_shortest_distance(&[
                 nearest_block_dist,
-                collect_target.filter(|_| !is_mining).map(|t| t.distance),
+                collect_target.filter(|_| active_mine_tool.is_none()).map(|t| t.distance),
             ]);
             // Set break_block_pos only if mining is closest.
             self.inputs.break_block_pos = if let Some(mt) =
-                mine_target.filter(|mt| is_mining && nearest_scene_dist == Some(mt.distance))
+                mine_target.filter(|mt| active_mine_tool.is_some() && nearest_scene_dist == Some(mt.distance))
             {
                 self.scene.set_select_pos(Some(mt.position_int()));
                 Some(mt.position)
@@ -1507,7 +1514,7 @@ impl PlayState for SessionState {
                 global_state.clock.get_stable_dt(),
                 HudInfo {
                     is_aiming,
-                    is_mining,
+                    active_mine_tool,
                     is_first_person: matches!(
                         self.scene.camera().get_mode(),
                         camera::CameraMode::FirstPerson
