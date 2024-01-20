@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added day duration slider configuration on map creation UI.
 - Potion of Agility
 - A way for servers to specify must-accept rules for players
+- A flag argument type for commands
 
 ### Changed
 
