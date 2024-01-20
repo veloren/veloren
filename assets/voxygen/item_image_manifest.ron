@@ -1662,6 +1662,14 @@
         "voxel.weapon.tool.wooden_lute",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
+    Simple("common.items.tool.instruments.steeldrum"): VoxTrans(
+        "voxel.weapon.tool.steeldrum",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),
+    Simple("common.items.tool.instruments.shamisen"): VoxTrans(
+        "voxel.weapon.tool.shamisen",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),
     Simple("common.items.tool.instruments.guitar"): VoxTrans(
         "voxel.weapon.tool.wooden_guitar",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
@@ -4928,6 +4936,10 @@
     ),
     Simple("common.items.keys.bone_key"): VoxTrans(
         "voxel.object.key_bone",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.haniwa_key"): VoxTrans(
+        "voxel.object.key_haniwa",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
     Simple("common.items.keys.glass_key"): VoxTrans(

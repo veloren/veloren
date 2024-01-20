@@ -103,18 +103,24 @@ impl Animation for MusicAnimation {
             Some(ToolKind::Instrument) => {
                 // instrument specific head_bop
                 let head_bop = match ability_id {
-                    Some("common.abilities.music.flute")
-                    | Some("common.abilities.music.glass_flute")
-                    | Some("common.abilities.music.melodica") => 0.2,
+                    Some(
+                        "common.abilities.music.flute"
+                        | "common.abilities.music.glass_flute"
+                        | "common.abilities.music.melodica",
+                    ) => 0.2,
+                    Some(
+                        "common.abilities.music.guitar"
+                        | "common.abilities.music.dark_guitar"
+                        | "common.abilities.music.lute"
+                        | "common.abilities.music.sitar",
+                    ) => 0.5,
 
-                    Some("common.abilities.music.guitar")
-                    | Some("common.abilities.music.dark_guitar")
-                    | Some("common.abilities.music.lute")
-                    | Some("common.abilities.music.sitar") => 0.5,
-
-                    Some("common.abilities.music.lyre")
-                    | Some("common.abilities.music.icy_talharpa")
-                    | Some("common.abilities.music.kalimba") => 0.3,
+                    Some(
+                        "common.abilities.music.lyre"
+                        | "common.abilities.music.icy_talharpa"
+                        | "common.abilities.music.shamisen"
+                        | "common.abilities.music.kalimba",
+                    ) => 0.3,
                     _ => 1.0,
                 };
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
@@ -146,8 +152,7 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_y(3.0)
                             * Quaternion::rotation_z(PI / -3.0);
                     },
-                    Some("common.abilities.music.flute")
-                    | Some("common.abilities.music.glass_flute") => {
+                    Some("common.abilities.music.flute" | "common.abilities.music.glass_flute") => {
                         next.hand_l.position = Vec3::new(
                             4.0 - s_a.hand.0,
                             6.0 + s_a.hand.1 + shortealt * -0.5,
@@ -169,8 +174,9 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_y(PI)
                             * Quaternion::rotation_z(0.05);
                     },
-                    Some("common.abilities.music.guitar")
-                    | Some("common.abilities.music.dark_guitar") => {
+                    Some(
+                        "common.abilities.music.guitar" | "common.abilities.music.dark_guitar",
+                    ) => {
                         next.hand_l.position = Vec3::new(
                             1.0 - s_a.hand.0,
                             6.0 + s_a.hand.1 + shortealt * -1.0,
@@ -193,9 +199,12 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_y(2.0)
                             * Quaternion::rotation_z(PI / -3.0);
                     },
-                    Some("common.abilities.music.lyre")
-                    | Some("common.abilities.music.wildskin_drum")
-                    | Some("common.abilities.music.icy_talharpa") => {
+                    Some(
+                        "common.abilities.music.lyre"
+                        | "common.abilities.music.wildskin_drum"
+                        | "common.abilities.music.steeldrum"
+                        | "common.abilities.music.icy_talharpa",
+                    ) => {
                         next.hand_l.position = Vec3::new(
                             3.0 - s_a.hand.0,
                             4.0 + s_a.hand.1 + shortealt * -0.1,
@@ -239,7 +248,7 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_y(-0.75)
                             * Quaternion::rotation_z(PI - 0.2);
                     },
-                    Some("common.abilities.music.lute") => {
+                    Some("common.abilities.music.lute" | "common.abilities.music.shamisen") => {
                         next.hand_l.position = Vec3::new(
                             2.0 - s_a.hand.0,
                             5.0 + s_a.hand.1 + shortealt * -1.0,

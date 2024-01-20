@@ -3867,7 +3867,7 @@ impl<'a> AgentData<'a> {
         );
     }
 
-    pub fn handle_clay_golem_attack(
+    pub fn handle_grave_warden_attack(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
@@ -3948,7 +3948,7 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Ability(0));
             }
         }
-        // Make clay golem move towards target
+        // Make grave warden move towards target
         self.path_toward_target(
             agent,
             controller,
@@ -5781,6 +5781,453 @@ impl<'a> AgentData<'a> {
                 tgt_data.pos.0,
                 read_data,
                 Path::Partial,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_clay_steed_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        enum ActionStateTimers {
+            AttackTimer,
+        }
+        const HOOF_ATTACK_RANGE: f32 = 1.0;
+        const HOOF_ATTACK_ANGLE: f32 = 50.0;
+
+        agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
+        if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] > 10.0 {
+            // Reset timer
+            agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
+        }
+
+        if attack_data.angle < HOOF_ATTACK_ANGLE
+            && attack_data.dist_sqrd
+                < (HOOF_ATTACK_RANGE + self.body.map_or(0.0, |b| b.max_radius())).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller.push_basic_input(InputKind::Primary);
+        } else if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 5.0 {
+            controller.push_basic_input(InputKind::Secondary);
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Full,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_ancient_effigy_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        enum ActionStateTimers {
+            BlastTimer,
+        }
+        const MAX_ATTACK_RANGE: f32 = 20.0;
+
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+
+        if agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] > 2.0 {
+            // blast
+            controller.push_basic_input(InputKind::Secondary);
+            // Reset timer
+            if matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] = 0.0;
+            }
+        } else if line_of_sight_with_target()
+            && attack_data.angle < 60.0
+            && attack_data.dist_sqrd < MAX_ATTACK_RANGE.powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            if attack_data.in_min_range() {
+                controller.push_basic_input(InputKind::Primary);
+                agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] += read_data.dt.0;
+            } else {
+                controller.push_basic_input(InputKind::Primary);
+            }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_clay_golem_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const MIN_DASH_RANGE: f32 = 15.0;
+
+        if attack_data.angle < 60.0 {
+            controller.inputs.move_dir = Vec2::zero();
+            if attack_data.in_min_range() {
+                controller.push_basic_input(InputKind::Primary);
+            } else if attack_data.dist_sqrd > MIN_DASH_RANGE.powi(2) {
+                controller.push_basic_input(InputKind::Secondary);
+            } else {
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Partial,
+                    None,
+                );
+            }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_haniwa_soldier(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const DEFENSIVE_CONDITION: usize = 0;
+        const RIPOSTE_TIMER: usize = 0;
+        const MODE_CYCLE_TIMER: usize = 1;
+
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            _ => false,
+        };
+
+        agent.combat_state.timers[RIPOSTE_TIMER] += read_data.dt.0;
+        agent.combat_state.timers[MODE_CYCLE_TIMER] += read_data.dt.0;
+
+        if agent.combat_state.timers[MODE_CYCLE_TIMER] > 7.0 {
+            agent.combat_state.conditions[DEFENSIVE_CONDITION] =
+                !agent.combat_state.conditions[DEFENSIVE_CONDITION];
+            agent.combat_state.timers[MODE_CYCLE_TIMER] = 0.0;
+        }
+
+        if matches!(self.char_state, CharacterState::RiposteMelee(_)) {
+            agent.combat_state.timers[RIPOSTE_TIMER] = 0.0;
+        }
+
+        let try_move = if agent.combat_state.conditions[DEFENSIVE_CONDITION] {
+            controller.push_basic_input(InputKind::Block);
+            true
+        } else if agent.combat_state.timers[RIPOSTE_TIMER] > 10.0
+            && could_use_input(InputKind::Secondary)
+        {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else {
+            true
+        };
+
+        if try_move && attack_data.dist_sqrd > 2_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_haniwa_guard(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const BACKPEDAL_DIST: f32 = 5.0;
+        const ROTATE_CCW_CONDITION: usize = 0;
+        const FLURRY_TIMER: usize = 0;
+        const BACKPEDAL_TIMER: usize = 1;
+        const SWITCH_ROTATE_TIMER: usize = 2;
+        const SWITCH_ROTATE_COUNTER: usize = 0;
+
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let abilities = [self.extract_ability(AbilityInput::Auxiliary(0))];
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                a.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            _ => false,
+        };
+
+        if !agent.combat_state.initialized {
+            agent.combat_state.conditions[ROTATE_CCW_CONDITION] = rng.gen_bool(0.5);
+            agent.combat_state.counters[SWITCH_ROTATE_COUNTER] = rng.gen_range(5.0..20.0);
+            agent.combat_state.initialized = true;
+        }
+
+        let continue_flurry = match self.char_state {
+            CharacterState::BasicMelee(_) => {
+                agent.combat_state.timers[FLURRY_TIMER] += read_data.dt.0;
+                false
+            },
+            CharacterState::RapidMelee(c) => {
+                agent.combat_state.timers[FLURRY_TIMER] = 0.0;
+                !matches!(c.stage_section, StageSection::Recover)
+            },
+            CharacterState::ComboMelee2(_) => {
+                agent.combat_state.timers[BACKPEDAL_TIMER] = 0.0;
+                false
+            },
+            _ => false,
+        };
+        agent.combat_state.timers[SWITCH_ROTATE_TIMER] += read_data.dt.0;
+        agent.combat_state.timers[BACKPEDAL_TIMER] += read_data.dt.0;
+
+        if agent.combat_state.timers[SWITCH_ROTATE_TIMER]
+            > agent.combat_state.counters[SWITCH_ROTATE_COUNTER]
+        {
+            agent.combat_state.conditions[ROTATE_CCW_CONDITION] =
+                !agent.combat_state.conditions[ROTATE_CCW_CONDITION];
+            agent.combat_state.counters[SWITCH_ROTATE_COUNTER] = rng.gen_range(5.0..20.0);
+        }
+
+        let move_farther = attack_data.dist_sqrd < BACKPEDAL_DIST.powi(2);
+        let move_closer = if continue_flurry && could_use_input(InputKind::Secondary) {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if agent.combat_state.timers[BACKPEDAL_TIMER] > 10.0
+            && move_farther
+            && could_use_input(InputKind::Ability(0))
+        {
+            controller.push_basic_input(InputKind::Ability(0));
+            false
+        } else if agent.combat_state.timers[FLURRY_TIMER] > 6.0
+            && could_use_input(InputKind::Secondary)
+        {
+            controller.push_basic_input(InputKind::Secondary);
+            false
+        } else if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+            false
+        } else {
+            true
+        };
+
+        if let Some((bearing, speed)) = agent.chaser.chase(
+            &*read_data.terrain,
+            self.pos.0,
+            self.vel.0,
+            tgt_data.pos.0,
+            TraversalConfig {
+                min_tgt_dist: 1.25,
+                ..self.traversal_config
+            },
+        ) {
+            if entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            ) && attack_data.angle < 45.0
+            {
+                let angle = match (
+                    agent.combat_state.conditions[ROTATE_CCW_CONDITION],
+                    move_closer,
+                    move_farther,
+                ) {
+                    (true, true, false) => rng.gen_range(-1.5..-0.5),
+                    (true, false, true) => rng.gen_range(-2.2..-1.7),
+                    (true, _, _) => rng.gen_range(-1.7..-1.5),
+                    (false, true, false) => rng.gen_range(0.5..1.5),
+                    (false, false, true) => rng.gen_range(1.7..2.2),
+                    (false, _, _) => rng.gen_range(1.5..1.7),
+                };
+                controller.inputs.move_dir = bearing
+                    .xy()
+                    .rotated_z(angle)
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::zero)
+                    * speed;
+            } else {
+                controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                self.jump_if(bearing.z > 1.5, controller);
+            }
+        }
+    }
+
+    pub fn handle_haniwa_archer(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const KICK_TIMER: usize = 0;
+        const EXPLOSIVE_TIMER: usize = 1;
+
+        let primary = self.extract_ability(AbilityInput::Primary);
+        let secondary = self.extract_ability(AbilityInput::Secondary);
+        let abilities = [self.extract_ability(AbilityInput::Auxiliary(0))];
+        let could_use_input = |input| match input {
+            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                p.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                s.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                a.could_use(
+                    attack_data,
+                    self,
+                    tgt_data,
+                    read_data,
+                    AbilityPreferences::default(),
+                )
+            }),
+            _ => false,
+        };
+
+        agent.combat_state.timers[KICK_TIMER] += read_data.dt.0;
+        agent.combat_state.timers[EXPLOSIVE_TIMER] += read_data.dt.0;
+
+        match self.char_state.ability_info().map(|ai| ai.input) {
+            Some(InputKind::Secondary) => {
+                agent.combat_state.timers[KICK_TIMER] = 0.0;
+            },
+            Some(InputKind::Ability(0)) => {
+                agent.combat_state.timers[EXPLOSIVE_TIMER] = 0.0;
+            },
+            _ => {},
+        }
+
+        if agent.combat_state.timers[KICK_TIMER] > 4.0 && could_use_input(InputKind::Secondary) {
+            controller.push_basic_input(InputKind::Secondary);
+        } else if agent.combat_state.timers[EXPLOSIVE_TIMER] > 15.0
+            && could_use_input(InputKind::Ability(0))
+        {
+            controller.push_basic_input(InputKind::Ability(0));
+        } else if could_use_input(InputKind::Primary) {
+            controller.push_basic_input(InputKind::Primary);
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
                 None,
             );
         }

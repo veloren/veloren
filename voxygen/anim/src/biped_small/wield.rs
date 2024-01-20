@@ -1,6 +1,7 @@
 use super::{
     super::{vek::*, Animation},
-    BipedSmallSkeleton, SkeletonAttr,
+    biped_small_wield_bow, biped_small_wield_spear, biped_small_wield_sword, BipedSmallSkeleton,
+    SkeletonAttr,
 };
 use common::comp::item::ToolKind;
 use std::f32::consts::PI;
@@ -74,26 +75,7 @@ impl Animation for WieldAnimation {
 
         match active_tool_kind {
             Some(ToolKind::Spear) => {
-                next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 2.0, -2.0);
-                next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 2.0, 2.0);
-
-                next.control.position = Vec3::new(
-                    -3.0,
-                    s_a.grip.2,
-                    -s_a.grip.2 / 2.5
-                        + s_a.grip.0 * -2.0
-                        + fastacc * 1.5
-                        + fastalt * 0.5 * speednormcancel
-                        + speednorm * 2.0,
-                );
-
-                next.control_l.orientation =
-                    Quaternion::rotation_x(PI / 1.5 + slow * 0.1) * Quaternion::rotation_y(-0.3);
-                next.control_r.orientation =
-                    Quaternion::rotation_x(PI / 1.5 + slow * 0.1 + s_a.grip.0 * 0.2)
-                        * Quaternion::rotation_y(0.5 + slow * 0.0 + s_a.grip.0 * 0.2);
-
-                next.control.orientation = Quaternion::rotation_x(-1.35 + 0.5 * speednorm);
+                biped_small_wield_spear(&mut next, s_a, anim_time, speed, fastacc);
             },
             Some(ToolKind::Blowgun) => {
                 next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 3.0);
@@ -118,27 +100,7 @@ impl Animation for WieldAnimation {
                 next.control.orientation = Quaternion::rotation_x(-2.2 + 0.5 * speednorm);
             },
             Some(ToolKind::Bow) => {
-                next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 0.0);
-                next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
-
-                next.control.position = Vec3::new(
-                    -1.0,
-                    2.0 + s_a.grip.2,
-                    3.0 + -s_a.grip.2 / 2.5
-                        + s_a.grip.0 * -2.0
-                        + fastacc * 1.5
-                        + fastalt * 0.5 * speednormcancel
-                        + speednorm * 2.0,
-                );
-
-                next.control_l.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + slow * 0.1) * Quaternion::rotation_y(-0.3);
-                next.control_r.orientation =
-                    Quaternion::rotation_x(PI / 2.0 + slow * 0.1 + s_a.grip.0 * 0.2)
-                        * Quaternion::rotation_y(0.5 + slow * 0.0 + s_a.grip.0 * 0.2);
-
-                next.control.orientation = Quaternion::rotation_x(-0.3 + 0.5 * speednorm)
-                    * Quaternion::rotation_y(0.5 * speednorm);
+                biped_small_wield_bow(&mut next, s_a, anim_time, speed, fastacc);
             },
             Some(ToolKind::Staff) => {
                 next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
@@ -190,28 +152,8 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-0.2 * speednorm)
                     * Quaternion::rotation_z(-0.3);
             },
-            Some(ToolKind::Dagger) => {
-                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
-                next.control_r.position =
-                    Vec3::new(9.0 + s_a.grip.0 * 2.0, -1.0, -2.0 + speednorm * -3.0);
-
-                next.control.position = Vec3::new(
-                    -5.0,
-                    -1.0 + s_a.grip.2,
-                    -1.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + speednorm * 2.0,
-                );
-
-                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1)
-                    * Quaternion::rotation_y(-0.0)
-                    * Quaternion::rotation_z(-0.0);
-                next.control_r.orientation =
-                    Quaternion::rotation_x(0.5 + slow * 0.1 + s_a.grip.0 * 0.2)
-                        * Quaternion::rotation_y(0.2 + slow * 0.0 + s_a.grip.0 * 0.2)
-                        * Quaternion::rotation_z(-0.0);
-
-                next.control.orientation = Quaternion::rotation_x(-0.3 + 0.2 * speednorm)
-                    * Quaternion::rotation_y(-0.2 * speednorm)
-                    * Quaternion::rotation_z(-0.3);
+            Some(ToolKind::Dagger | ToolKind::Sword) => {
+                biped_small_wield_sword(&mut next, s_a, speednorm, slow);
             },
             _ => {
                 next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);

@@ -3,7 +3,7 @@
     name: Name("Clay Golem"),
     body: RandomWith("claygolem"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.haniwa.claygolem"),
+    loot: LootTable("common.loot_tables.dungeon.haniwa.enemy"),
     inventory: (
         loadout: FromBody,
     ),

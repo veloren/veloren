@@ -107,7 +107,9 @@ impl Site {
             .filter_map(|plot| match &plot.kind {
                 PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
                 PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
-                PlotKind::Adlet(a) => Some(a.spawn_rules(wpos)),
+                PlotKind::Adlet(ad) => Some(ad.spawn_rules(wpos)),
+                PlotKind::SeaChapel(p) => Some(p.spawn_rules(wpos)),
+                PlotKind::Haniwa(ha) => Some(ha.spawn_rules(wpos)),
                 //PlotKind::DwarvenMine(m) => Some(m.spawn_rules(wpos)),
                 _ => None,
             })
@@ -1356,6 +1358,54 @@ impl Site {
         site
     }
 
+    pub fn generate_haniwa(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: format!(
+                "{} {}",
+                NameGen::location(&mut rng).generate_haniwa(),
+                [
+                    "Catacombs",
+                    "Crypt",
+                    "Tomb",
+                    "Gravemound",
+                    "Tunnels",
+                    "Vault",
+                    "Chambers",
+                    "Halls",
+                    "Tumulus",
+                    "Barrow",
+                ]
+                .choose(&mut rng)
+                .unwrap()
+            ),
+            ..Site::default()
+        };
+        let size = 24.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let haniwa = plot::Haniwa::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let haniwa_alt = haniwa.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::Haniwa(haniwa),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(haniwa_alt),
+            });
+        }
+        site
+    }
+
     pub fn generate_chapel_site(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
         let mut site = Site {
@@ -1886,6 +1936,7 @@ impl Site {
                 PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::Adlet(adlet) => adlet.render_collect(self, canvas),
+                PlotKind::Haniwa(haniwa) => haniwa.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
                 PlotKind::SavannahPit(savannah_pit) => savannah_pit.render_collect(self, canvas),

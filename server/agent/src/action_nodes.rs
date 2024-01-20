@@ -1051,6 +1051,7 @@ impl<'a> AgentData<'a> {
                             },
                             "Quad Med Basic" => Tactic::QuadMedBasic,
                             "Quad Med Hoof" => Tactic::QuadMedHoof,
+                            "ClaySteed" => Tactic::ClaySteed,
                             "Roshwalr" => Tactic::Roshwalr,
                             "Asp" | "Maneater" => Tactic::QuadLowRanged,
                             "Quad Low Breathe" | "Quad Low Beam" | "Basilisk" => {
@@ -1083,12 +1084,14 @@ impl<'a> AgentData<'a> {
                             "Bushly" | "Irrwurz" | "Driggle" | "Mossy Snail" => {
                                 Tactic::SimpleDouble
                             },
+                            "Clay Golem" => Tactic::ClayGolem,
+                            "Ancient Effigy" => Tactic::AncientEffigy,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Flamekeeper" => Tactic::Flamekeeper,
                             "Minotaur" => Tactic::Minotaur,
                             "Cyclops" => Tactic::Cyclops,
                             "Dullahan" => Tactic::Dullahan,
-                            "Clay Golem" => Tactic::ClayGolem,
+                            "Grave Warden" => Tactic::GraveWarden,
                             "Tidal Warrior" => Tactic::TidalWarrior,
                             "Tidal Totem"
                             | "Tornado"
@@ -1126,6 +1129,9 @@ impl<'a> AgentData<'a> {
                                 abilities: [4, 0, 0, 0, 0],
                             },
                             "Adlet Elder" => Tactic::AdletElder,
+                            "Haniwa Soldier" => Tactic::HaniwaSoldier,
+                            "Haniwa Guard" => Tactic::HaniwaGuard,
+                            "Haniwa Archer" => Tactic::HaniwaArcher,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -1501,6 +1507,19 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::ClayGolem => {
+                self.handle_clay_golem_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::ClaySteed => {
+                self.handle_clay_steed_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::AncientEffigy => self.handle_ancient_effigy_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+            ),
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
@@ -1510,9 +1529,13 @@ impl<'a> AgentData<'a> {
             Tactic::Dullahan => {
                 self.handle_dullahan_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
-            Tactic::ClayGolem => {
-                self.handle_clay_golem_attack(agent, controller, &attack_data, tgt_data, read_data)
-            },
+            Tactic::GraveWarden => self.handle_grave_warden_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+            ),
             Tactic::TidalWarrior => self.handle_tidal_warrior_attack(
                 agent,
                 controller,
@@ -1625,6 +1648,15 @@ impl<'a> AgentData<'a> {
             ),
             Tactic::AdletElder => {
                 self.handle_adlet_elder(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
+            Tactic::HaniwaSoldier => {
+                self.handle_haniwa_soldier(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::HaniwaGuard => {
+                self.handle_haniwa_guard(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
+            Tactic::HaniwaArcher => {
+                self.handle_haniwa_archer(agent, controller, &attack_data, tgt_data, read_data)
             },
         }
     }

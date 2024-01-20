@@ -416,6 +416,11 @@
         secondary: Simple(None, "common.abilities.custom.quadmedhoof.basic"),
         abilities: [],
     ),
+    Custom("ClaySteed"): (
+        primary: Simple(None, "common.abilities.custom.claysteed.basic"),
+        secondary: Simple(None, "common.abilities.custom.claysteed.shockwave"),
+        abilities: [],
+    ),
     Custom("Quad Med Basic"): (
         primary: Simple(None, "common.abilities.custom.quadmedbasic.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.quadmedbasic.triplestrike"),
@@ -654,13 +659,18 @@
 
         ],
      ),
+    Custom("Grave Warden"): (
+        primary: Simple(None, "common.abilities.custom.gravewarden.strike"),
+        secondary: Simple(None, "common.abilities.custom.gravewarden.laser"),
+        abilities: [
+            Simple(None, "common.abilities.custom.gravewarden.shockwave"),
+            Simple(None, "common.abilities.custom.gravewarden.rocket"),
+        ],
+    ),
     Custom("Clay Golem"): (
         primary: Simple(None, "common.abilities.custom.claygolem.strike"),
-        secondary: Simple(None, "common.abilities.custom.claygolem.laser"),
-        abilities: [
-            Simple(None, "common.abilities.custom.claygolem.shockwave"),
-            Simple(None, "common.abilities.custom.claygolem.rocket"),
-        ],
+        secondary: Simple(None, "common.abilities.custom.claygolem.dashstrike"),
+        abilities: [],
     ),
     Custom("Yeti"): (
         primary: Simple(None, "common.abilities.custom.yeti.strike"),
@@ -669,6 +679,11 @@
             Simple(None, "common.abilities.custom.yeti.frostbreath"),
             Simple(None, "common.abilities.custom.yeti.snowball"),
         ],
+    ),
+    Custom("Ancient Effigy"): (
+        primary: Simple(None, "common.abilities.custom.ancienteffigy.laser"),
+        secondary: Simple(None, "common.abilities.custom.ancienteffigy.blast"),
+        abilities: [],
     ),
     Custom("Harvester"): (
         primary: Simple(None, "common.abilities.custom.harvester.scythe"),
@@ -892,6 +907,16 @@
         secondary: Simple(None, "common.abilities.music.sitar"),
         abilities: [],
     ),
+    Custom("Steeldrum"): (
+        primary: Simple(None, "common.abilities.music.steeldrum"),
+        secondary: Simple(None, "common.abilities.music.steeldrum"),
+        abilities: [],
+    ),
+    Custom("Shamisen"): (
+        primary: Simple(None, "common.abilities.music.shamisen"),
+        secondary: Simple(None, "common.abilities.music.shamisen"),
+        abilities: [],
+    ),
     Tool(Debug): (
         primary: Simple(None, "common.abilities.debug.forwardboost"),
         secondary: Simple(None, "common.abilities.debug.upboost"),
@@ -942,6 +967,27 @@
         abilities: [
             Simple(None, "common.abilities.adlet.elder.trap"),
             Simple(None, "common.abilities.adlet.elder.leap"),
+        ],
+    ),
+    // Haniwa
+    Custom("Haniwa Soldier"): (
+        primary: Simple(None, "common.abilities.haniwa.soldier.strike"),
+        secondary: Simple(None, "common.abilities.haniwa.soldier.riposte"),
+        guard: Simple(None, "common.abilities.haniwa.soldier.guard"),
+        abilities: [],
+    ),
+    Custom("Haniwa Guard"): (
+        primary: Simple(None, "common.abilities.haniwa.guard.strike"),
+        secondary: Simple(None, "common.abilities.haniwa.guard.flurry"),
+        abilities: [
+            Simple(None, "common.abilities.haniwa.guard.backpedal")
+        ],
+    ),
+    Custom("Haniwa Archer"): (
+        primary: Simple(None, "common.abilities.haniwa.archer.arrow"),
+        secondary: Simple(None, "common.abilities.haniwa.archer.kick"),
+        abilities: [
+            Simple(None, "common.abilities.haniwa.archer.explosive")
         ],
     ),
 })

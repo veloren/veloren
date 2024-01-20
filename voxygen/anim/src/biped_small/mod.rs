@@ -1,9 +1,12 @@
 pub mod alpha;
 pub mod beam;
+pub mod block;
 pub mod combomelee;
 pub mod dash;
 pub mod idle;
 pub mod leapmelee;
+pub mod rapidmelee;
+pub mod ripostemelee;
 pub mod run;
 pub mod shockwave;
 pub mod shoot;
@@ -13,8 +16,9 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beam::BeamAnimation, combomelee::ComboAnimation, dash::DashAnimation,
-    idle::IdleAnimation, leapmelee::LeapAnimation, run::RunAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, block::BlockAnimation, combomelee::ComboAnimation,
+    dash::DashAnimation, idle::IdleAnimation, leapmelee::LeapAnimation,
+    rapidmelee::RapidMeleeAnimation, ripostemelee::RiposteMeleeAnimation, run::RunAnimation,
     shockwave::ShockwaveAnimation, shoot::ShootAnimation, stunned::StunnedAnimation,
     summon::SummonAnimation, wield::WieldAnimation,
 };
@@ -39,7 +43,9 @@ skeleton_impls!(struct BipedSmallSkeleton {
     control,
     control_l,
     control_r,
-
+    :: // Begin non-bone fields
+    // Allows right hand to not be moved by control bone
+    detach_right: bool,
 });
 
 impl Skeleton for BipedSmallSkeleton {
@@ -72,7 +78,14 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(pants_mat * Mat4::<f32>::from(self.tail)),
             make_bone(control_mat * Mat4::<f32>::from(self.main)),
             make_bone(control_mat * control_l_mat * Mat4::<f32>::from(self.hand_l)),
-            make_bone(control_mat * control_r_mat * Mat4::<f32>::from(self.hand_r)),
+            make_bone(
+                if self.detach_right {
+                    chest_mat
+                } else {
+                    control_mat
+                } * control_r_mat
+                    * Mat4::<f32>::from(self.hand_r),
+            ),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
         ];
@@ -296,10 +309,12 @@ pub fn biped_small_alpha_spear(
     s_a: &SkeletonAttr,
     move1abs: f32,
     move2abs: f32,
-    fast: f32,
-    fastalt: f32,
+    anim_time: f32,
     speednormcancel: f32,
 ) {
+    let fast = (anim_time * 10.0).sin();
+    let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
+
     next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
     next.head.orientation = Quaternion::rotation_x(move1abs * 0.2 + move2abs * 0.3)
         * Quaternion::rotation_z(move1abs * -0.2 + move2abs * 0.6)
@@ -400,4 +415,98 @@ pub fn biped_small_alpha_dagger(
     next.control.orientation = Quaternion::rotation_x(-0.3 + move2abs * -1.0)
         * Quaternion::rotation_y(move1abs * -0.4 + move2abs * 1.0)
         * Quaternion::rotation_z(-0.3 + move2abs * -2.2);
+}
+
+pub fn biped_small_wield_sword(
+    next: &mut BipedSmallSkeleton,
+    s_a: &SkeletonAttr,
+    speednorm: f32,
+    slow: f32,
+) {
+    next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+    next.control_r.position = Vec3::new(9.0 + s_a.grip.0 * 2.0, -1.0, -2.0 + speednorm * -3.0);
+
+    next.control.position = Vec3::new(
+        -5.0,
+        -1.0 + s_a.grip.2,
+        -1.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + speednorm * 2.0,
+    );
+
+    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1)
+        * Quaternion::rotation_y(-0.0)
+        * Quaternion::rotation_z(-0.0);
+    next.control_r.orientation = Quaternion::rotation_x(0.5 + slow * 0.1 + s_a.grip.0 * 0.2)
+        * Quaternion::rotation_y(0.2 + slow * 0.0 + s_a.grip.0 * 0.2)
+        * Quaternion::rotation_z(-0.0);
+
+    next.control.orientation = Quaternion::rotation_x(-0.3 + 0.2 * speednorm)
+        * Quaternion::rotation_y(-0.2 * speednorm)
+        * Quaternion::rotation_z(-0.3);
+}
+
+pub fn biped_small_wield_spear(
+    next: &mut BipedSmallSkeleton,
+    s_a: &SkeletonAttr,
+    anim_time: f32,
+    speed: f32,
+    fastacc: f32,
+) {
+    let speednorm = speed / 9.4;
+    let speednormcancel = 1.0 - speednorm;
+    let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
+    let slow = (anim_time * 2.0).sin();
+
+    next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 2.0, -2.0);
+    next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 2.0, 2.0);
+
+    next.control.position = Vec3::new(
+        -3.0,
+        s_a.grip.2,
+        -s_a.grip.2 / 2.5
+            + s_a.grip.0 * -2.0
+            + fastacc * 1.5
+            + fastalt * 0.5 * speednormcancel
+            + speednorm * 2.0,
+    );
+
+    next.control_l.orientation =
+        Quaternion::rotation_x(PI / 1.5 + slow * 0.1) * Quaternion::rotation_y(-0.3);
+    next.control_r.orientation = Quaternion::rotation_x(PI / 1.5 + slow * 0.1 + s_a.grip.0 * 0.2)
+        * Quaternion::rotation_y(0.5 + slow * 0.0 + s_a.grip.0 * 0.2);
+
+    next.control.orientation = Quaternion::rotation_x(-1.35 + 0.5 * speednorm);
+}
+
+pub fn biped_small_wield_bow(
+    next: &mut BipedSmallSkeleton,
+    s_a: &SkeletonAttr,
+    anim_time: f32,
+    speed: f32,
+    fastacc: f32,
+) {
+    let speednorm = speed / 9.4;
+    let speednormcancel = 1.0 - speednorm;
+    let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
+    let slow = (anim_time * 2.0).sin();
+
+    next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 0.0);
+    next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
+
+    next.control.position = Vec3::new(
+        -1.0,
+        2.0 + s_a.grip.2,
+        3.0 + -s_a.grip.2 / 2.5
+            + s_a.grip.0 * -2.0
+            + fastacc * 1.5
+            + fastalt * 0.5 * speednormcancel
+            + speednorm * 2.0,
+    );
+
+    next.control_l.orientation =
+        Quaternion::rotation_x(PI / 2.0 + slow * 0.1) * Quaternion::rotation_y(-0.3);
+    next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1 + s_a.grip.0 * 0.2)
+        * Quaternion::rotation_y(0.5 + slow * 0.0 + s_a.grip.0 * 0.2);
+
+    next.control.orientation =
+        Quaternion::rotation_x(-0.3 + 0.5 * speednorm) * Quaternion::rotation_y(0.5 * speednorm);
 }

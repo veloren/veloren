@@ -47,6 +47,7 @@ make_case_elim!(
         GlassKeyhole(consumes: String) = 27,
         Sign(content: Content, ori: u8) = 28,
         KeyholeBars(consumes: String) = 29,
+        HaniwaKeyhole(consumes: String) = 30,
     }
 );
 

@@ -571,6 +571,10 @@
                 keyword: "bristleback",
                 generic: "Bristleback"
             ),
+            claysteed: (
+                keyword: "claysteed",
+                generic: "Clay Steed"
+            ),
         )
     ),
     quadruped_small: (
@@ -981,6 +985,10 @@
             sea_bishop: (
                 keyword: "sea_bishop",
                 generic: "Sea Bishop"
+            ),
+            haniwa_general: (
+                keyword: "haniwa_general",
+                generic: "Haniwa General"
             )
         )
     ),
@@ -994,7 +1002,7 @@
         species: (
             stonegolem: (
                 keyword: "stonegolem",
-                generic: "StoneGolem"
+                generic: "Stone Golem"
             ),
             treant: (
                 keyword: "treant",
@@ -1004,13 +1012,21 @@
                 keyword: "woodgolem",
                 generic: "Wooden Golem"
             ),
+            gravewarden: (
+                keyword: "gravewarden",
+                generic: "Gravewarden"
+            ),
             claygolem: (
                 keyword: "claygolem",
-                generic: "ClayGolem"
+                generic: "Clay Golem"
+            ),
+            ancienteffigy: (
+                keyword: "ancienteffigy",
+                generic: "Ancient Effigy"
             ),
             coralgolem: (
                 keyword: "coralgolem",
-                generic: "CoralGolem"
+                generic: "Coral Golem"
             )
         )
     ),

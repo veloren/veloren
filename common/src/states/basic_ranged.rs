@@ -1,8 +1,9 @@
 use crate::{
     combat::{self, CombatEffect},
     comp::{
-        character_state::OutputEvents, object::Body::LaserBeam, Body, CharacterState, LightEmitter,
-        Pos, ProjectileConstructor, StateUpdate,
+        character_state::OutputEvents,
+        object::Body::{GrenadeClay, LaserBeam},
+        Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -67,13 +68,26 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
-                    if self.static_data.projectile_body == Body::Object(LaserBeam) {
-                        // Send local event used for frontend shenanigans
-                        output_events.emit_local(LocalEvent::CreateOutcome(
-                            Outcome::CyclopsCharge {
-                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                            },
-                        ));
+                    match self.static_data.projectile_body {
+                        Body::Object(LaserBeam) => {
+                            // Send local event used for frontend shenanigans
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::CyclopsCharge {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        Body::Object(GrenadeClay) => {
+                            // Send local event used for frontend shenanigans
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::FuseCharge {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (2.5 * data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        _ => {},
                     }
                 } else {
                     // Transitions to recover section of stage

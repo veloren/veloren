@@ -719,6 +719,16 @@
             central: ("armor.empty"),
         )
     ),
+    ArrowClay: (
+        bone0: (
+            offset: (-1.5, -6.0, -1.5),
+            central: ("weapon.projectile.clay-arrow"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     SilverOre: (
         bone0: (
             offset: (-4.5, -5.0, 0.0),
@@ -749,14 +759,26 @@
             central: ("armor.empty"),
         )
     ),
+    GrenadeClay: (
+        bone0: (
+            offset: (-0.5, -6.0, -1.5),
+            central: ("weapon.projectile.clay-missile"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     HaniwaSentry: (
         bone0: (
             offset: (-5.5, -4.5, -5.5),
-            central: ("object.haniwa_sentry.bone0"),
+            central: ("object.haniwa_sentry.bone"),
+            model_index: 0,
         ),
         bone1: (
             offset: (-5.5, -5.5, -3.0),
-            central: ("object.haniwa_sentry.bone1"),
+            central: ("object.haniwa_sentry.bone"),
+            model_index: 1,
         )
     ),
     SeaLantern: (

@@ -216,6 +216,7 @@ impl World {
                                 civ::SiteKind::Citadel => world_msg::SiteKind::Castle,
                                 civ::SiteKind::Bridge(_, _) => world_msg::SiteKind::Bridge,
                                 civ::SiteKind::Adlet => world_msg::SiteKind::Adlet,
+                                civ::SiteKind::Haniwa => world_msg::SiteKind::Haniwa,
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }

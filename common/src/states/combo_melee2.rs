@@ -3,8 +3,11 @@ use crate::{
     comp::{
         character_state::OutputEvents, tool::Stats, CharacterState, MeleeConstructor, StateUpdate,
     },
+    event::LocalEvent,
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
+        combo_melee2,
         utils::*,
     },
 };
@@ -81,6 +84,8 @@ pub struct StaticData {
     pub strikes: Vec<Strike<Duration>>,
     /// The amount of energy consumed with each swing
     pub energy_cost_per_strike: f32,
+    /// Used to specify the attack to the frontend
+    pub specifier: Option<combo_melee2::FrontendSpecifier>,
     /// Whether or not the state should progress through all strikes
     /// automatically once the state is entered
     pub auto_progress: bool,
@@ -133,6 +138,12 @@ impl CharacterBehavior for Data {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Action;
                     }
+                }
+                if let Some(FrontendSpecifier::ClayGolemDash) = self.static_data.specifier {
+                    // Send local event used for frontend shenanigans
+                    output_events.emit_local(LocalEvent::CreateOutcome(Outcome::ClayGolemDash {
+                        pos: data.pos.0,
+                    }));
                 }
             },
             StageSection::Action => {
@@ -237,4 +248,9 @@ fn next_strike(data: &JoinData, update: &mut StateUpdate) {
     if revert_to_wield {
         end_melee_ability(data, update)
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FrontendSpecifier {
+    ClayGolemDash,
 }

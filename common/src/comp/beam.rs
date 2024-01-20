@@ -36,7 +36,7 @@ pub enum FrontendSpecifier {
     Flamethrower,
     LifestealBeam,
     Cultist,
-    ClayGolem,
+    Gravewarden,
     Bubbles,
     Steam,
     Frost,

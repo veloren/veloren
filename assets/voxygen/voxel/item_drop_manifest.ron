@@ -408,6 +408,8 @@
     Simple("common.items.tool.instruments.kalimba"): "voxel.weapon.tool.wooden_kalimba",
     Simple("common.items.tool.instruments.melodica"): "voxel.weapon.tool.melodica",
     Simple("common.items.tool.instruments.lute"): "voxel.weapon.tool.wooden_lute",
+    Simple("common.items.tool.instruments.steeldrum"): "voxel.weapon.tool.steeldrum",
+    Simple("common.items.tool.instruments.shamisen"): "voxel.weapon.tool.shamisen",
     Simple("common.items.tool.instruments.sitar"): "voxel.weapon.tool.wooden_sitar",
     Simple("common.items.tool.instruments.guitar"): "voxel.weapon.tool.wooden_guitar",
     Simple("common.items.tool.instruments.guitar_dark"): "voxel.weapon.tool.black_velvet_guitar",
@@ -946,6 +948,7 @@
     // Keys and Lockpicks
     Simple("common.items.keys.rusty_tower_key"): "voxel.object.key_rusty-0",
     Simple("common.items.keys.bone_key"): "voxel.object.key_bone",
+    Simple("common.items.keys.haniwa_key"): "voxel.object.key_haniwa",
     Simple("common.items.keys.glass_key"): "voxel.object.key_glass",
     Simple("common.items.utility.lockpick_0"): "voxel.object.lockpick",
     Simple("common.items.keys.quarry_keys.ancient"): "voxel.object.key_rusty-0",

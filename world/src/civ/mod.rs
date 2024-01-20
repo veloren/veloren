@@ -384,7 +384,17 @@ impl Civs {
                         )?,
                         SiteKind::Camp,
                     ),
-                    /*70..=75 => (
+                    70..=74 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.mine_site_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::Haniwa,
+                        )?,
+                        SiteKind::Haniwa,
+                    ),
+                    /*75..=80 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -394,7 +404,7 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),
-                    76..=81 => (
+                    81..=86 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -405,7 +415,7 @@ impl Civs {
                         )?,
                         SiteKind::Castle,
                     ),
-                    82..=87 => (SiteKind::Citadel, (&castle_enemies, 20)),
+                    87..=92 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     */
                     _ => (
                         find_site_loc(
@@ -453,6 +463,7 @@ impl Civs {
                 SiteKind::Citadel => (16i32, 0.0),
                 SiteKind::Bridge(_, _) => (0, 0.0),
                 SiteKind::Adlet => (16i32, 0.0),
+                SiteKind::Haniwa => (32i32, 16.0),
                 SiteKind::PirateHideout => (8i32, 3.0),
                 SiteKind::RockCircle => (8i32, 3.0),
                 SiteKind::TrollCave => (4i32, 1.5),
@@ -632,6 +643,11 @@ impl Civs {
                         &mut rng,
                         wpos,
                         index_ref,
+                    )),
+                    SiteKind::Haniwa => WorldSite::haniwa(site2::Site::generate_haniwa(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
                     )),
                 }
             });
@@ -1492,6 +1508,13 @@ impl Civs {
         })
     }
 
+    fn haniwa_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
     fn chapel_site_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Tree | SiteKind::GiantTree => None,
@@ -1916,6 +1939,7 @@ pub enum SiteKind {
     Citadel,
     Bridge(Vec2<i32>, Vec2<i32>),
     Adlet,
+    Haniwa,
     PirateHideout,
     RockCircle,
     TrollCave,
@@ -1972,6 +1996,11 @@ impl SiteKind {
                         && !chunk.river.near_water()
                         && on_flat_terrain()
                 },*/
+                SiteKind::Haniwa => {
+                    on_land()
+                        && on_flat_terrain()
+                        && (-0.3..0.4).contains(&chunk.temp)
+                },
                 SiteKind::GiantTree | SiteKind::Tree => {
                     on_land()
                         && on_flat_terrain()

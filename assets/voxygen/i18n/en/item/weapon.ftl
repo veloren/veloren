@@ -207,6 +207,12 @@ weapon-tool-melodica = Melodica
 weapon-tool-wooden_sitar = Sitar
     .desc = Wooden Sitar.
 
+weapon-tool-steeldrum = Steeldrum
+    .desc = Steeldrum.
+
+weapon-tool-shamisen = Shamisen
+    .desc = Shamisen.
+
 weapon-tool-washboard = Washboard
     .desc = Washboard.
 

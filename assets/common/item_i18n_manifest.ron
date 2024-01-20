@@ -37,6 +37,12 @@
             "common.items.npc_armor.golem.woodgolem",
         ): "common-items-npc_armor-golem-woodgolem",
         Simple(
+            "common.items.npc_armor.golem.ancienteffigy",
+        ): "common-items-npc_armor-golem-ancienteffigy",
+        Simple(
+            "common.items.npc_armor.golem.gravewarden",
+        ): "common-items-npc_armor-golem-gravewarden",
+        Simple(
             "common.items.npc_armor.biped_small.myrmidon.foot.hoplite",
         ): "common-items-npc_armor-biped_small-myrmidon-foot-hoplite",
         Simple(
@@ -520,6 +526,9 @@
             "common.items.npc_armor.quadruped_medium.roshwalr",
         ): "common-items-npc_armor-quadruped_medium-roshwalr",
         Simple(
+            "common.items.npc_armor.quadruped_medium.claysteed",
+        ): "common-items-npc_armor-quadruped_medium-claysteed",
+        Simple(
             "common.items.npc_armor.theropod.rugged",
         ): "common-items-npc_armor-theropod-rugged",
         Simple(
@@ -565,8 +574,14 @@
             "common.items.npc_armor.biped_large.yeti",
         ): "common-items-npc_armor-biped_large-yeti",
         Simple(
+            "common.items.npc_armor.biped_large.haniwageneral",
+        ): "common-items-npc_armor-biped_large-haniwageneral",
+        Simple(
             "common.items.keys.bone_key",
         ): "object-key_bone",
+        Simple(
+            "common.items.keys.haniwa_key",
+        ): "object-key_haniwa",
         Simple(
             "common.items.keys.glass_key",
         ): "object-key_glass",
@@ -2250,6 +2265,12 @@
             "common.items.tool.instruments.wildskin_drum",
         ): "weapon-tool-wildskin_drum",
         Simple(
+            "common.items.tool.instruments.steeldrum",
+        ): "weapon-tool-steeldrum",
+        Simple(
+            "common.items.tool.instruments.shamisen",
+        ): "weapon-tool-shamisen",
+        Simple(
             "common.items.log.bamboo",
         ): "sprite-wood-item-bamboo",
         Simple(
@@ -2379,6 +2400,9 @@
         Simple(
             "common.items.npc_weapons.sword.saurok_sword",
         ): "common-items-npc_weapons-sword-saurok_sword",
+        Simple(
+            "common.items.npc_weapons.sword.haniwa_general_sword",
+        ): "common-items-npc_weapons-sword-haniwa_general_sword",
         Simple(
             "common.items.npc_weapons.unique.akhlut",
         ): "common-items-npc_weapons-unique-akhlut",
@@ -2571,6 +2595,15 @@
         Simple(
             "common.items.npc_weapons.unique.wood_golem_fist",
         ): "common-items-npc_weapons-unique-wood_golem_fist",
+        Simple(
+            "common.items.npc_weapons.unique.ancient_effigy_eyes",
+        ): "common-items-npc_weapons-unique-ancient_effigy_eyes",
+        Simple(
+            "common.items.npc_weapons.unique.claysteed",
+        ): "common-items-npc_weapons-unique-claysteed",
+        Simple(
+            "common.items.npc_weapons.unique.gravewarden_fist",
+        ): "common-items-npc_weapons-unique-gravewarden_fist",
         Simple(
             "common.items.npc_weapons.unique.arthropods.antlion",
         ): "common-items-npc_weapons-unique-arthropods-antlion",

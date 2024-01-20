@@ -48,6 +48,12 @@ common-items-npc_armor-golem-claygolem = Clay Golem Armor
 common-items-npc_armor-golem-woodgolem = Wood Golem Armor
     .desc = Yeet
 
+common-items-npc_armor-golem-ancienteffigy = Ancient Effigy Armor
+    .desc = Worn by ancient effigy.
+
+common-items-npc_armor-golem-gravewarden = Grave Warden Armor
+    .desc = Worn by grave warden.
+
 common-items-npc_armor-biped_small-myrmidon-foot-hoplite = Myrmidon Hoplite
     .desc = Ceremonial attire used by members..
 
@@ -528,6 +534,9 @@ common-items-npc_armor-quadruped_medium-frostfang = Frostfang's Thick Skin
 common-items-npc_armor-quadruped_medium-roshwalr = Roshwalr's Thick Skin
     .desc = testing123
 
+common-items-npc_armor-quadruped_medium-claysteed = Claysteeds's Thick Skin
+    .desc = testing123
+
 common-items-npc_armor-theropod-rugged = Theropod Rugged
     .desc = stronk.
 
@@ -566,6 +575,9 @@ common-items-npc_armor-biped_large-warlord = Giant Warlord Chest
 
 common-items-npc_armor-biped_large-yeti = Yeti Hide
     .desc = Strong as Yeti itself.
+
+common-items-npc_armor-biped_large-haniwageneral = Haniwa General Uniform
+    .desc = Has seen combat.
 
 common-items-weapons-empty-empty = Empty Item
     .desc = This item may grant abilities, but is invisible
@@ -837,6 +849,9 @@ common-items-npc_weapons-sword-pickaxe_velorite_sword = Velorite Pickaxe
 common-items-npc_weapons-sword-saurok_sword = Saurok Sword
     .desc = Placeholder
 
+common-items-npc_weapons-sword-haniwa_general_sword = Haniwa General Sword
+    .desc = Placeholder
+
 common-items-npc_weapons-unique-akhlut = Quad Med Basic
     .desc = testing123
 
@@ -1028,6 +1043,15 @@ common-items-npc_weapons-unique-wendigo_magic = Wendigo Magic
 
 common-items-npc_weapons-unique-wood_golem_fist = Wood Golem Fists
     .desc = Yeet
+
+common-items-npc_weapons-unique-ancient_effigy_eyes = Ancient Effigy Eyes
+    .desc = testing123
+
+common-items-npc_weapons-unique-claysteed = Claysteed Hoof
+    .desc = testing123
+
+common-items-npc_weapons-unique-gravewarden_fist = Gravewarden Fist
+    .desc = testing123
 
 common-items-npc_weapons-unique-arthropods-antlion = Antlion
     .desc = testing123

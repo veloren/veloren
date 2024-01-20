@@ -344,6 +344,7 @@ impl Body {
                 biped_large::Species::Swamptroll => 600.0,
                 biped_large::Species::Gigasfrost => 400.0,
                 biped_large::Species::AdletElder => 350.0,
+                biped_large::Species::HaniwaGeneral => 360.0,
                 _ => 400.0,
             },
             Body::BipedSmall(body) => match body.species {
@@ -507,6 +508,7 @@ impl Body {
                 biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 8.0),
                 biped_large::Species::AdletElder => Vec3::new(3.5, 3.0, 5.0),
                 biped_large::Species::SeaBishop => Vec3::new(3.7, 2.5, 4.2),
+                biped_large::Species::HaniwaGeneral => Vec3::new(3.3, 2.3, 3.8),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -538,6 +540,8 @@ impl Body {
             Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
             Body::Golem(body) => match body.species {
                 golem::Species::CoralGolem => Vec3::new(3.0, 5.0, 4.0),
+                golem::Species::ClayGolem => Vec3::new(6.8, 3.5, 7.5),
+                golem::Species::AncientEffigy => Vec3::new(2.5, 2.5, 3.8),
                 _ => Vec3::new(5.0, 4.5, 7.5),
             },
             Body::Humanoid(humanoid) => {
@@ -568,6 +572,7 @@ impl Body {
                 quadruped_medium::Species::Mammoth => Vec3::new(7.5, 11.5, 8.0),
                 quadruped_medium::Species::Ngoubou => Vec3::new(2.0, 3.2, 2.4),
                 quadruped_medium::Species::Llama => Vec3::new(2.0, 2.5, 2.6),
+                quadruped_medium::Species::ClaySteed => Vec3::new(2.2, 4.8, 4.0),
                 quadruped_medium::Species::Alpaca => Vec3::new(2.0, 2.0, 2.0),
                 quadruped_medium::Species::Camel => Vec3::new(2.0, 4.0, 3.5),
                 quadruped_medium::Species::Wolf => Vec3::new(1.25, 3.0, 1.8),
@@ -844,6 +849,7 @@ impl Body {
                 quadruped_medium::Species::Dreadhorn => 370,
                 quadruped_medium::Species::Mammoth => 250,
                 quadruped_medium::Species::Ngoubou => 290,
+                quadruped_medium::Species::ClaySteed => 400,
                 _ => 70,
             },
             Body::FishMedium(_) => 15,
@@ -899,6 +905,7 @@ impl Body {
                 biped_large::Species::AdletElder => 1500,
                 biped_large::Species::Tursus => 300,
                 biped_large::Species::SeaBishop => 550,
+                biped_large::Species::HaniwaGeneral => 600,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -927,8 +934,10 @@ impl Body {
             Body::ItemDrop(_) => 1000,
             Body::Golem(golem) => match golem.species {
                 golem::Species::WoodGolem => 200,
-                golem::Species::ClayGolem => 450,
+                golem::Species::ClayGolem => 350,
+                golem::Species::Gravewarden => 1000,
                 golem::Species::CoralGolem => 550,
+                golem::Species::AncientEffigy => 250,
                 _ => 1000,
             },
             Body::Theropod(theropod) => match theropod.species {
@@ -1001,22 +1010,37 @@ impl Body {
                     biped_small::Species::Husk
                         | biped_small::Species::Boreal
                         | biped_small::Species::Clockwork
+                        | biped_small::Species::Haniwa
                 ),
                 Body::BipedLarge(b) => matches!(
                     b.species,
                     biped_large::Species::Huskbrute
                         | biped_large::Species::Gigasfrost
                         | biped_large::Species::Dullahan
+                        | biped_large::Species::HaniwaGeneral
                 ),
+                Body::QuadrupedMedium(b) => {
+                    matches!(b.species, quadruped_medium::Species::ClaySteed)
+                },
                 _ => false,
             },
             BuffKind::Crippled => match self {
                 Body::Object(_) | Body::Golem(_) | Body::Ship(_) => true,
-                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Dullahan),
+                Body::BipedLarge(b) => matches!(
+                    b.species,
+                    biped_large::Species::Dullahan | biped_large::Species::HaniwaGeneral {}
+                ),
+                Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Haniwa),
+                Body::QuadrupedMedium(b) => {
+                    matches!(b.species, quadruped_medium::Species::ClaySteed)
+                },
                 _ => false,
             },
             BuffKind::Burning => match self {
-                Body::Golem(g) => matches!(g.species, golem::Species::ClayGolem),
+                Body::Golem(g) => matches!(
+                    g.species,
+                    golem::Species::Gravewarden | golem::Species::AncientEffigy
+                ),
                 Body::BipedSmall(b) => matches!(
                     b.species,
                     biped_small::Species::Haniwa
@@ -1105,7 +1129,7 @@ impl Body {
                 _ => 1.0,
             },
             Body::Golem(g) => match g.species {
-                golem::Species::ClayGolem => 2.45,
+                golem::Species::Gravewarden => 2.45,
                 _ => 1.0,
             },
             Body::QuadrupedLow(b) => match b.species {
@@ -1145,6 +1169,7 @@ impl Body {
                 | quadruped_medium::Species::Llama
                 | quadruped_medium::Species::Alpaca
                 | quadruped_medium::Species::Camel
+                | quadruped_medium::Species::ClaySteed
                 | quadruped_medium::Species::Zebra
                 | quadruped_medium::Species::Donkey
                 | quadruped_medium::Species::Highland
@@ -1285,6 +1310,7 @@ impl Body {
                     (quadruped_medium::Species::Llama, _) => [0.0, 0.1, 1.5],
                     (quadruped_medium::Species::Alpaca, _) => [0.0, -0.1, 1.0],
                     (quadruped_medium::Species::Akhlut, _) => [0.6, 0.6, 2.0],
+                    (quadruped_medium::Species::ClaySteed, _) => [0.0, 0.1, 1.5],
                 }
             },
             Body::Ship(ship) => match ship {

@@ -114,6 +114,8 @@ make_case_elim!(
         PortalActive = 99,
         FieryTornado = 100,
         FireRainDrop = 101,
+        ArrowClay = 102,
+        GrenadeClay = 103,
     }
 );
 
@@ -124,7 +126,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 102] = [
+pub const ALL_OBJECTS: [Body; 104] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -227,6 +229,8 @@ pub const ALL_OBJECTS: [Body; 102] = [
     Body::PortalActive,
     Body::FieryTornado,
     Body::FireRainDrop,
+    Body::ArrowClay,
+    Body::GrenadeClay,
 ];
 
 impl From<Body> for super::Body {
@@ -338,6 +342,8 @@ impl Body {
             Body::PortalActive => "portal_active",
             Body::FieryTornado => "fiery_tornado",
             Body::FireRainDrop => "fire_rain_drop",
+            Body::ArrowClay => "arrow_clay",
+            Body::GrenadeClay => "grenade_clay",
         }
     }
 
@@ -360,6 +366,7 @@ impl Body {
             | Body::ArrowSnake
             | Body::ArrowTurret
             | Body::MultiArrow
+            | Body::ArrowClay
             | Body::Dart
             | Body::DagonBomb
             | Body::SpectralSwordSmall
@@ -386,6 +393,7 @@ impl Body {
             Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow | Body::Dart => {
                 0.003
             },
+            Body::ArrowClay => 1.0,
             Body::SpectralSwordSmall => 0.5,
             Body::SpectralSwordLarge => 50.0,
             Body::BedBlue => 50.0,
@@ -449,7 +457,7 @@ impl Body {
             Body::WindowSpooky => 10.0,
             Body::SilverOre => 1000.0,
             Body::GoldOre => 1000.0,
-            Body::ClayRocket => 50.0,
+            Body::ClayRocket | Body::GrenadeClay => 50.0,
             Body::HaniwaSentry => 300.0,
             Body::SeaLantern => 1000.0,
             Body::Snowball => 7360.0, // 2.5 m diamter
@@ -479,6 +487,7 @@ impl Body {
             | Body::ArrowSnake
             | Body::MultiArrow
             | Body::ArrowTurret
+            | Body::ArrowClay
             | Body::Dart
             | Body::AdletSpear => Vec3::new(0.01, 0.8, 0.01),
             Body::AdletTrap => Vec3::new(1.0, 0.6, 0.3),

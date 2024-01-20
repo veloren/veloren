@@ -369,6 +369,7 @@ impl Block {
                 | SpriteKind::DungeonChest4
                 | SpriteKind::DungeonChest5
                 | SpriteKind::CoralChest
+                | SpriteKind::HaniwaUrn
                 | SpriteKind::Crate => Some(rtsim::ChunkResource::Loot),
             _ => None,
         }
@@ -420,7 +421,7 @@ impl Block {
                 SpriteKind::Lantern => Some(24),
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => Some(16),
                 SpriteKind::SeaDecorEmblem => Some(12),
-                SpriteKind::SeaDecorBlock => Some(10),
+                SpriteKind::SeaDecorBlock | SpriteKind::HaniwaKeyDoor => Some(10),
                 SpriteKind::Mine => Some(2),
                 _ => None,
             },
@@ -502,6 +503,12 @@ impl Block {
                 | SpriteKind::DungeonChest3
                 | SpriteKind::DungeonChest4
                 | SpriteKind::DungeonChest5
+                | SpriteKind::CoralChest
+                | SpriteKind::HaniwaUrn
+                | SpriteKind::HaniwaKeyDoor
+                | SpriteKind::HaniwaKeyhole
+                | SpriteKind::HaniwaTrap
+                | SpriteKind::HaniwaTrapTriggered
                 | SpriteKind::ChestBuried
                 | SpriteKind::SeaDecorBlock
                 | SpriteKind::SeaDecorChain
@@ -510,8 +517,9 @@ impl Block {
                 | SpriteKind::Rope
                 | SpriteKind::IronSpike
                 | SpriteKind::HotSurface
-                | SpriteKind::FireBlock => None,
-                SpriteKind::GlassBarrier | SpriteKind::GlassKeyhole => None,
+                | SpriteKind::FireBlock
+                | SpriteKind::GlassBarrier
+                | SpriteKind::GlassKeyhole => None,
                 SpriteKind::EnsnaringVines
                 | SpriteKind::EnsnaringWeb
                 | SpriteKind::SeaUrchin

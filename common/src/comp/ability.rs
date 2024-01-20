@@ -788,6 +788,7 @@ pub enum CharacterAbility {
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
         energy_cost_per_strike: f32,
+        specifier: Option<combo_melee2::FrontendSpecifier>,
         #[serde(default)]
         auto_progress: bool,
         #[serde(default)]
@@ -1324,6 +1325,7 @@ impl CharacterAbility {
             ComboMelee2 {
                 ref mut strikes,
                 ref mut energy_cost_per_strike,
+                specifier: _,
                 auto_progress: _,
                 meta: _,
             } => {
@@ -2419,12 +2421,14 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::ComboMelee2 {
                 strikes,
                 energy_cost_per_strike,
+                specifier,
                 auto_progress,
                 meta: _,
             } => CharacterState::ComboMelee2(combo_melee2::Data {
                 static_data: combo_melee2::StaticData {
                     strikes: strikes.iter().map(|s| s.to_duration()).collect(),
                     energy_cost_per_strike: *energy_cost_per_strike,
+                    specifier: *specifier,
                     auto_progress: *auto_progress,
                     ability_info,
                 },

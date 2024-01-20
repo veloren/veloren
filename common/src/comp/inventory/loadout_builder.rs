@@ -548,11 +548,17 @@ fn default_main_tool(body: &Body) -> Item {
             golem::Species::ClayGolem => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.clay_golem_fist",
             )),
+            golem::Species::Gravewarden => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.gravewarden_fist",
+            )),
             golem::Species::WoodGolem => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.wood_golem_fist",
             )),
             golem::Species::CoralGolem => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.coral_golem_fist",
+            )),
+            golem::Species::AncientEffigy => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.ancient_effigy_eyes",
             )),
             _ => None,
         },
@@ -570,6 +576,9 @@ fn default_main_tool(body: &Body) -> Item {
             | quadruped_medium::Species::Llama
             | quadruped_medium::Species::Alpaca => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedhoof",
+            )),
+            quadruped_medium::Species::ClaySteed => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.claysteed",
             )),
             quadruped_medium::Species::Saber
             | quadruped_medium::Species::Bonerattler
@@ -786,6 +795,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (biped_large::Species::SeaBishop, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.sea_bishop_sceptre",
+            )),
+            (biped_large::Species::HaniwaGeneral, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.sword.haniwa_general_sword",
             )),
         },
         Body::Object(body) => match body {
@@ -1021,6 +1033,9 @@ impl LoadoutBuilder {
                 biped_large::Species::Gigasfrost => {
                     Some("common.items.npc_armor.biped_large.gigas_frost")
                 },
+                biped_large::Species::HaniwaGeneral => {
+                    Some("common.items.npc_armor.biped_large.haniwageneral")
+                },
                 _ => None,
             },
             Body::BirdLarge(body) => match body.species {
@@ -1036,7 +1051,9 @@ impl LoadoutBuilder {
             },
             Body::Golem(body) => match body.species {
                 golem::Species::ClayGolem => Some("common.items.npc_armor.golem.claygolem"),
+                golem::Species::Gravewarden => Some("common.items.npc_armor.golem.gravewarden"),
                 golem::Species::WoodGolem => Some("common.items.npc_armor.golem.woodgolem"),
+                golem::Species::AncientEffigy => Some("common.items.npc_armor.golem.ancienteffigy"),
                 _ => None,
             },
             Body::QuadrupedLow(body) => match body.species {
@@ -1063,6 +1080,9 @@ impl LoadoutBuilder {
                 },
                 quadruped_medium::Species::Roshwalr => {
                     Some("common.items.npc_armor.quadruped_medium.roshwalr")
+                },
+                quadruped_medium::Species::ClaySteed => {
+                    Some("common.items.npc_armor.quadruped_medium.claysteed")
                 },
                 _ => None,
             },

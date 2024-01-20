@@ -281,7 +281,7 @@ impl Animation for WieldAnimation {
                 Some(ToolKind::Instrument) => {
                     if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
                         match spec.as_str() {
-                            "Lyre" | "IcyTalharpa" | "WildskinDrum" => {
+                            "Lyre" | "IcyTalharpa" | "WildskinDrum" | "Steeldrum" => {
                                 if speed < 0.5 {
                                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                                         * Quaternion::rotation_x(
@@ -392,7 +392,7 @@ impl Animation for WieldAnimation {
                                     * Quaternion::rotation_y(2.0 + u_slow * 0.1)
                                     * Quaternion::rotation_z(u_slowalt * 0.1);
                             },
-                            "Lute" => {
+                            "Lute" | "Shamisen" => {
                                 if speed < 0.5 {
                                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                                         * Quaternion::rotation_x(

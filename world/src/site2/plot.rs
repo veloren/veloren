@@ -14,6 +14,7 @@ pub mod dungeon;
 mod dwarven_mine;
 mod giant_tree;
 mod gnarling;
+mod haniwa;
 mod house;
 mod jungle_ruin;
 mod pirate_hideout;
@@ -32,7 +33,7 @@ pub use self::{
     coastal_workshop::CoastalWorkshop, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
-    gnarling::GnarlingFortification, house::House, jungle_ruin::JungleRuin,
+    gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
     pirate_hideout::PirateHideout, rock_circle::RockCircle, savannah_hut::SavannahHut,
     savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
     tavern::Tavern, troll_cave::TrollCave, workshop::Workshop,
@@ -93,6 +94,7 @@ pub enum PlotKind {
     Dungeon(Dungeon),
     Gnarling(GnarlingFortification),
     Adlet(AdletStronghold),
+    Haniwa(Haniwa),
     GiantTree(GiantTree),
     CliffTower(CliffTower),
     Citadel(Citadel),

@@ -310,6 +310,7 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_medium::Species::Bonerattler => 0.0,
                     quadruped_medium::Species::Tiger => 0.1,
                     quadruped_medium::Species::Roshwalr => 0.0,
+                    quadruped_medium::Species::ClaySteed => 0.0,
                     _ => 0.3,
                 },
                 Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
@@ -466,6 +467,7 @@ pub enum SoundKind {
     Explosion,
     Beam,
     Shockwave,
+    Trap,
 }
 
 #[derive(Clone, Copy, Debug)]

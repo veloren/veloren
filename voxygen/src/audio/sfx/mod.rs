@@ -168,6 +168,7 @@ pub enum SfxEvent {
     CyclopsCharge,
     LaserBeam,
     Steam,
+    FuseCharge,
     Music(ToolKind, AbilitySpec),
     Yeet,
     Klonk,
@@ -456,7 +457,7 @@ impl SfxMgr {
                     audio.emit_ui_sfx(sfx_trigger_item, Some((power * 3.0).min(2.9)));
                 }
             },
-            Outcome::GroundSlam { pos, .. } => {
+            Outcome::GroundSlam { pos, .. } | Outcome::ClayGolemDash { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundSlam);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
@@ -470,6 +471,10 @@ impl SfxMgr {
             },
             Outcome::FlamethrowerCharge { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::CyclopsCharge);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
+            Outcome::FuseCharge { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FuseCharge);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
             Outcome::FlashFreeze { pos, .. } => {
@@ -541,6 +546,7 @@ impl SfxMgr {
                         | object::Body::MultiArrow
                         | object::Body::ArrowSnake
                         | object::Body::ArrowTurret
+                        | object::Body::ArrowClay
                         | object::Body::SpectralSwordSmall
                         | object::Body::SpectralSwordLarge,
                     ) => {
@@ -553,6 +559,7 @@ impl SfxMgr {
                         | object::Body::BoltNature
                         | object::Body::BoltIcicle
                         | object::Body::SpearIcicle
+                        | object::Body::GrenadeClay
                         | object::Body::SpitPoison,
                     ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FireShot);
@@ -584,6 +591,7 @@ impl SfxMgr {
                     | object::Body::MultiArrow
                     | object::Body::ArrowSnake
                     | object::Body::ArrowTurret
+                    | object::Body::ArrowClay
                     | object::Body::SpectralSwordSmall
                     | object::Body::SpectralSwordLarge,
                 ) => {
@@ -651,7 +659,7 @@ impl SfxMgr {
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     }
                 },
-                beam::FrontendSpecifier::ClayGolem | beam::FrontendSpecifier::WebStrand => {},
+                beam::FrontendSpecifier::Gravewarden | beam::FrontendSpecifier::WebStrand => {},
             },
             Outcome::SpriteUnlocked { pos } => {
                 // TODO: Dedicated sound effect!
@@ -779,6 +787,15 @@ impl SfxMgr {
             },
             Outcome::Swoosh { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Swoosh);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e + 0.5),
+                    Some(3.0),
+                    underwater,
+                );
+            },
+            Outcome::Slash { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SmashKlonk);
                 audio.emit_sfx(
                     sfx_trigger_item,
                     pos.map(|e| e + 0.5),
