@@ -16,7 +16,9 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
 
-use assets::{source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher, SharedString};
+use assets::{
+    source::DirEntry, AssetExt, AssetHandle, AssetReadGuard, ReloadWatcher, SharedString,
+};
 use common_assets as assets;
 use common_i18n::{Content, LocalizationArg};
 use tracing::warn;
@@ -167,7 +169,7 @@ impl assets::Compound for Language {
         let mut bundle = FluentBundle::new_concurrent(vec![lang_id]);
 
         // Here go dragons
-        for id in cache.load_dir::<raw::Resource>(path, true)?.ids() {
+        for id in cache.load_rec_dir::<raw::Resource>(path)?.read().ids() {
             match cache.load(id) {
                 Ok(handle) => {
                     let source: &raw::Resource = &handle.read();
@@ -229,8 +231,8 @@ pub type Localization = LocalizationGuard;
 /// RAII guard returned from [`LocalizationHandle::read()`], resembles
 /// [`AssetGuard`]
 pub struct LocalizationGuard {
-    active: AssetGuard<Language>,
-    fallback: Option<AssetGuard<Language>>,
+    active: AssetReadGuard<Language>,
+    fallback: Option<AssetReadGuard<Language>>,
 }
 
 impl LocalizationGuard {
@@ -592,8 +594,9 @@ struct LocalizationList(Vec<LanguageMetadata>);
 impl assets::Compound for LocalizationList {
     fn load(cache: assets::AnyCache, specifier: &SharedString) -> Result<Self, assets::BoxedError> {
         // List language directories
-        let languages = assets::load_dir::<FindManifests>(specifier, false)
+        let languages = assets::load_rec_dir::<FindManifests>(specifier)
             .unwrap_or_else(|e| panic!("Failed to get manifests from {}: {:?}", specifier, e))
+            .read()
             .ids()
             .filter_map(|spec| cache.load::<raw::Manifest>(spec).ok())
             .map(|localization| localization.read().metadata.clone())

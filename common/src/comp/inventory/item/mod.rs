@@ -975,8 +975,11 @@ impl Item {
     /// asset glob pattern
     pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
         let specifier = asset_glob.strip_suffix(".*").unwrap_or(asset_glob);
-        let defs = assets::load_dir::<RawItemDef>(specifier, true)?;
-        defs.ids().map(|id| Item::new_from_asset(id)).collect()
+        let defs = assets::load_rec_dir::<RawItemDef>(specifier)?;
+        defs.read()
+            .ids()
+            .map(|id| Item::new_from_asset(id))
+            .collect()
     }
 
     /// Creates a new instance of an `Item from the provided asset identifier if
@@ -1632,18 +1635,19 @@ pub fn all_item_defs_expect() -> Vec<String> {
 
 /// Returns all item asset specifiers
 pub fn try_all_item_defs() -> Result<Vec<String>, Error> {
-    let defs = assets::load_dir::<RawItemDef>("common.items", true)?;
-    Ok(defs.ids().map(|id| id.to_string()).collect())
+    let defs = assets::load_rec_dir::<RawItemDef>("common.items")?;
+    Ok(defs.read().ids().map(|id| id.to_string()).collect())
 }
 
 /// Designed to return all possible items, including modulars.
 /// And some impossible too, like ItemKind::TagExamples.
 pub fn all_items_expect() -> Vec<Item> {
-    let defs = assets::load_dir::<RawItemDef>("common.items", true)
+    let defs = assets::load_rec_dir::<RawItemDef>("common.items")
         .expect("failed to load item asset directory");
 
     // Grab all items from assets
     let mut asset_items: Vec<Item> = defs
+        .read()
         .ids()
         .map(|id| Item::new_from_asset_expect(id))
         .collect();

@@ -2,10 +2,10 @@ use std::{path::PathBuf, sync::RwLock};
 
 use crate::Concatenate;
 
-use super::{fs::FileSystem, tar_source::Tar, ASSETS_PATH};
+use super::{fs::FileSystem, ASSETS_PATH};
 use assets_manager::{
-    hot_reloading::{DynUpdateSender, EventSender},
-    source::{FileContent, Source},
+    hot_reloading::EventSender,
+    source::{FileContent, Source, Tar},
     AnyCache, AssetCache, BoxedError,
 };
 
@@ -118,7 +118,7 @@ impl Source for CombinedSource {
     // TODO: Enable hot reloading for plugins
     fn make_source(&self) -> Option<Box<dyn Source + Send>> { self.fs.raw_source().make_source() }
 
-    fn configure_hot_reloading(&self, events: EventSender) -> Result<DynUpdateSender, BoxedError> {
+    fn configure_hot_reloading(&self, events: EventSender) -> Result<(), BoxedError> {
         self.fs.raw_source().configure_hot_reloading(events)
     }
 }
@@ -180,7 +180,7 @@ impl CombinedCache {
     /// Add a tar archive (a plugin) to the system.
     /// All files in that tar file become potential assets.
     pub fn register_tar(&self, path: PathBuf) -> std::io::Result<()> {
-        let tar_source = Tar::from_path(&path)?;
+        let tar_source = Tar::open(&path)?;
         let cache = AssetCache::with_source(tar_source);
         self.0
             .raw_source()

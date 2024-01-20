@@ -7,13 +7,12 @@ version = "0.10.0"
 
 [dependencies]
 lazy_static = { workspace = true }
-assets_manager = {version = "0.10", features = ["bincode", "ron", "json"]}
+assets_manager = { version = "0.11.1", features = ["bincode", "ron", "json"] }
 ron = { workspace = true }
 dot_vox = "5.1"
 wavefront = "0.2" # TODO: Use vertex-colors branch when we have models that have them
 image = { workspace = true }
 tracing = { workspace = true }
-tar = { version = "0.4.37", optional = true }
 hashbrown = { workspace = true }
 
 # asset tweak
@@ -25,4 +24,4 @@ walkdir = "2.3.2"
 [features]
 hot-reloading = ["assets_manager/hot-reloading"]
 asset_tweak = ["dep:serde", "hot-reloading"]
-plugins = ["dep:serde", "dep:tar"]
+plugins = ["dep:serde", "assets_manager/tar"]

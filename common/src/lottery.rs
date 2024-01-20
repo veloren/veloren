@@ -370,6 +370,7 @@ impl Default for LootSpec<String> {
 pub mod tests {
     use super::*;
     use crate::{assets, comp::Item};
+    use assets::AssetExt;
 
     #[cfg(test)]
     pub fn validate_loot_spec(item: &LootSpec<String>) {
@@ -379,8 +380,8 @@ pub mod tests {
                 Item::new_from_asset_expect(item);
             },
             LootSpec::LootTable(loot_table) => {
-                let loot_table = Lottery::<LootSpec<String>>::load_expect_cloned(loot_table);
-                validate_table_contents(loot_table);
+                let loot_table = Lottery::<LootSpec<String>>::load_expect(loot_table).read();
+                validate_table_contents(&loot_table);
             },
             LootSpec::Nothing => {},
             LootSpec::ModularWeapon {
@@ -428,7 +429,7 @@ pub mod tests {
         }
     }
 
-    fn validate_table_contents(table: Lottery<LootSpec<String>>) {
+    fn validate_table_contents(table: &Lottery<LootSpec<String>>) {
         for (_, item) in table.iter() {
             validate_loot_spec(item);
         }
@@ -436,10 +437,11 @@ pub mod tests {
 
     #[test]
     fn test_loot_tables() {
-        let loot_tables =
-            assets::read_expect_dir::<Lottery<LootSpec<String>>>("common.loot_tables", true);
-        for loot_table in loot_tables {
-            validate_table_contents(loot_table.clone());
+        let loot_tables = assets::load_rec_dir::<Lottery<LootSpec<String>>>("common.loot_tables")
+            .expect("load loot_tables");
+        for loot_table in loot_tables.read().ids() {
+            let loot_table = Lottery::<LootSpec<String>>::load_expect(loot_table);
+            validate_table_contents(&loot_table.read());
         }
     }
 

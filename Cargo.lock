@@ -316,9 +316,9 @@ dependencies = [
 
 [[package]]
 name = "assets_manager"
-version = "0.10.2"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f00425f4c1f3349b35daf0a73477249f6574fe89f4b9d76aca0b2a1356886b3b"
+checksum = "3725d3fcae7767855256e1f627df67ac8ca675c55fde1bf784d5669d1ddc7261"
 dependencies = [
  "ab_glyph",
  "ahash 0.8.7",
@@ -326,10 +326,11 @@ dependencies = [
  "crossbeam-channel",
  "log",
  "notify",
- "parking_lot 0.12.1",
  "ron 0.8.1",
  "serde",
  "serde_json",
+ "sync_file",
+ "tar",
 ]
 
 [[package]]
@@ -6209,6 +6210,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sync_file"
+version = "0.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a49b72df45d9c2d5fbb13b02c97437a3175d8c9860297297597d3ed715e0f046"
+dependencies = [
+ "wasi 0.11.0+wasi-snapshot-preview1",
+]
+
+[[package]]
 name = "sync_wrapper"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7008,7 +7018,6 @@ dependencies = [
  "lazy_static",
  "ron 0.8.1",
  "serde",
- "tar",
  "tracing",
  "walkdir",
  "wavefront",

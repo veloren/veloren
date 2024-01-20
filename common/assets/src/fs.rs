@@ -1,7 +1,7 @@
 use std::{fs, io};
 
 use assets_manager::{
-    hot_reloading::{DynUpdateSender, EventSender, FsWatcherBuilder},
+    hot_reloading::{EventSender, FsWatcherBuilder},
     source::{DirEntry, FileContent, FileSystem as RawFs, Source},
     BoxedError,
 };
@@ -94,7 +94,7 @@ impl Source for FileSystem {
 
     fn make_source(&self) -> Option<Box<dyn Source + Send>> { Some(Box::new(self.clone())) }
 
-    fn configure_hot_reloading(&self, events: EventSender) -> Result<DynUpdateSender, BoxedError> {
+    fn configure_hot_reloading(&self, events: EventSender) -> Result<(), BoxedError> {
         let mut builder = FsWatcherBuilder::new()?;
 
         if let Some(dir) = &self.override_dir {
@@ -102,6 +102,7 @@ impl Source for FileSystem {
         }
         builder.watch(self.default.root().to_owned())?;
 
-        Ok(builder.build(events))
+        builder.build(events);
+        Ok(())
     }
 }
