@@ -54,13 +54,22 @@ fn default_simultaneous_hits() -> u32 { 1 }
 fn default_combo_gain() -> i32 { 1 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Scaled {
+    pub kind: MeleeConstructorKind,
+    #[serde(default)]
+    pub range: f32,
+    #[serde(default)]
+    pub angle: f32,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MeleeConstructor {
     pub kind: MeleeConstructorKind,
     /// This multiplied by a fraction is added to what is specified in `kind`.
     ///
     /// Note, that this must be the same variant as what is specified in `kind`.
-    pub scaled: Option<MeleeConstructorKind>,
+    pub scaled: Option<Scaled>,
     pub range: f32,
     pub angle: f32,
     pub multi_target: Option<MultiTarget>,
@@ -371,7 +380,7 @@ impl MeleeConstructor {
 
         if let Some(max_scale) = self.scaled {
             use MeleeConstructorKind::*;
-            let scaled = match (self.kind, max_scale) {
+            let scaled = match (self.kind, max_scale.kind) {
                 (
                     Slash {
                         damage: a_damage,
@@ -486,6 +495,8 @@ impl MeleeConstructor {
                 },
             };
             self.kind = scaled;
+            self.range = scale_values(self.range, max_scale.range);
+            self.angle = scale_values(self.angle, max_scale.angle);
             self.scaled = None;
         } else {
             dev_panic!("Attempted to scale on a melee attack that had no provided scaling value.")
@@ -498,7 +509,8 @@ impl MeleeConstructor {
         self.range *= stats.range;
         self.kind = self.kind.adjusted_by_stats(stats);
         if let Some(ref mut scaled) = &mut self.scaled {
-            *scaled = scaled.adjusted_by_stats(stats);
+            scaled.kind = scaled.kind.adjusted_by_stats(stats);
+            scaled.range *= stats.range;
         }
         self.damage_effect = self.damage_effect.map(|de| de.adjusted_by_stats(stats));
         self

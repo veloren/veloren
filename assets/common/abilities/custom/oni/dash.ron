@@ -7,12 +7,13 @@ DashMelee(
             knockback: 8.0,
             energy_regen: 0.0,
         ),
-        scaled: Some(Slash(
-            damage: 32.0,
-            poise: 0.0,
-            knockback: 7.0,
-            energy_regen: 0.0,
-        )),
+        scaled: Some((
+            kind: Slash(
+                damage: 32.0,
+                poise: 0.0,
+                knockback: 7.0,
+                energy_regen: 0.0,
+            ))),
         range: 2.0,
         angle: 15.0,
     ),

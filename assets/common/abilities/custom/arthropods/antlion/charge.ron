@@ -7,12 +7,13 @@ DashMelee(
             knockback: 10.0,
             energy_regen: 0.0,
         ),
-        scaled: Some(Stab(
-            damage: 120.0,
-            poise: 45.0,
-            knockback: 25.0,
-            energy_regen: 0.0,
-        )),
+        scaled: Some((
+            kind: Stab(
+                damage: 120.0,
+                poise: 45.0,
+                knockback: 25.0,
+                energy_regen: 0.0,
+            ))),
         range: 5.0,
         angle: 90.0,
     ),

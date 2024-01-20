@@ -8,12 +8,13 @@ ChargedMelee(
             knockback: 5.0,
             energy_regen: 0.0,
         ),
-        scaled: Some(Bash(
-            damage: 20.0,
-            poise: 30.0,
-            knockback: 20.0,
-            energy_regen: 0.0,
-        )),
+        scaled: Some((
+            kind: Bash(
+                damage: 20.0,
+                poise: 30.0,
+                knockback: 20.0,
+                energy_regen: 0.0,
+            ))),
         range: 3.5,
         angle: 30.0,
         multi_target: Some(Normal),

@@ -8,12 +8,13 @@ ChargedMelee(
             knockback: 0,
             energy_regen: 0,
         ),
-        scaled: Some(Slash(
-            damage: 20,
-            poise: 30,
-            knockback: 0,
-            energy_regen: 30,
-        )),
+        scaled: Some((
+            kind: Slash(
+                damage: 20,
+                poise: 30,
+                knockback: 0,
+                energy_regen: 30,
+            ))),
         range: 4.5,
         angle: 10.0,
         damage_effect: Some(StunnedVulnerable(0.5)),

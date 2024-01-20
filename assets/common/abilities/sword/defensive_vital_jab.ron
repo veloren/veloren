@@ -8,12 +8,13 @@ ChargedMelee(
             knockback: 0,
             energy_regen: 0,
         ),
-        scaled: Some(Stab(
-            damage: 12,
-            poise: 5,
-            knockback: 0,
-            energy_regen: 15,
-        )),
+        scaled: Some((
+            kind: Stab(
+                damage: 12,
+                poise: 5,
+                knockback: 0,
+                energy_regen: 15,
+            ))),
         range: 4.5,
         angle: 10.0,
         damage_effect: Some(BuffsVulnerable(0.75, Parried)),

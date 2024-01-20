@@ -8,12 +8,13 @@ ChargedMelee(
             knockback: 0.0,
             energy_regen: 0.0,
         ),
-        scaled: Some(Stab(
-            damage: 90.0,
-            poise: 150.0,
-            knockback: 0.0,
-            energy_regen: 0.0,
-        )),
+        scaled: Some((
+            kind: Stab(
+                damage: 90.0,
+                poise: 150.0,
+                knockback: 0.0,
+                energy_regen: 0.0,
+            ))),
         range: 3.5,
         angle: 45.0,
     ),
