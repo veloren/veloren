@@ -1,4 +1,4 @@
-use super::SpriteKind;
+use super::{sprite, SpriteKind};
 use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
@@ -114,10 +114,29 @@ impl BlockKind {
     }
 }
 
+/// # Format
+///
+/// ```ignore
+/// BBBBBBBB CCCCCCCC AAAAAIII IIIIIIII
+/// ```
+/// - `0..8`  : BlockKind
+/// - `8..16` : Category
+/// - `16..N` : Attributes (many fields)
+/// - `N..32` : Sprite ID
+///
+/// `N` is per-category. You can match on the category byte to find the length
+/// of the ID field.
+///
+/// Attributes are also per-category. Each category specifies its own list of
+/// attribute fields.
+///
+/// Why is the sprite ID at the end? Simply put, it makes masking faster and
+/// easier, which is important because extracting the `SpriteKind` is a more
+/// commonly performed operation than extracting attributes.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     kind: BlockKind,
-    attr: [u8; 3],
+    data: [u8; 3],
 }
 
 impl FilledVox for Block {
@@ -135,12 +154,22 @@ impl Deref for Block {
 impl Block {
     pub const MAX_HEIGHT: f32 = 3.0;
 
+    /* Constructors */
+
+    // TODO: Rename to `filled`
     #[inline]
     pub const fn new(kind: BlockKind, color: Rgb<u8>) -> Self {
+        // TODO: we should probably assert this, overwriting the data fields with a
+        // colour is bad news
+        /*
+        #[cfg(debug_assertions)]
+        assert!(kind.is_filled());
+        */
+
         Self {
             kind,
             // Colours are only valid for non-fluids
-            attr: if kind.is_filled() {
+            data: if kind.is_filled() {
                 [color.r, color.g, color.b]
             } else {
                 [0; 3]
@@ -148,61 +177,110 @@ impl Block {
         }
     }
 
+    // Only valid if `block_kind` is unfilled, so this is just a private utility
+    // method
     #[inline]
-    pub const fn air(sprite: SpriteKind) -> Self {
+    const fn unfilled(kind: BlockKind, sprite: SpriteKind) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(!kind.is_filled());
+
+        let sprite_bytes = (sprite as u32).to_be_bytes();
+
         Self {
-            kind: BlockKind::Air,
-            attr: [sprite as u8, 0, 0],
+            kind,
+            data: [sprite_bytes[1], sprite_bytes[2], sprite_bytes[3]],
         }
     }
 
     #[inline]
-    pub const fn lava(sprite: SpriteKind) -> Self {
-        Self {
-            kind: BlockKind::Lava,
-            attr: [sprite as u8, 0, 0],
-        }
-    }
+    pub const fn air(sprite: SpriteKind) -> Self { Self::unfilled(BlockKind::Air, sprite) }
 
     #[inline]
     pub const fn empty() -> Self { Self::air(SpriteKind::Empty) }
 
-    /// TODO: See if we can generalize this somehow.
     #[inline]
-    pub const fn water(sprite: SpriteKind) -> Self {
-        Self {
-            kind: BlockKind::Water,
-            attr: [sprite as u8, 0, 0],
+    pub const fn water(sprite: SpriteKind) -> Self { Self::unfilled(BlockKind::Water, sprite) }
+
+    /* Sprite decoding */
+
+    #[inline(always)]
+    pub const fn get_sprite(&self) -> Option<SpriteKind> {
+        if !self.kind.is_filled() {
+            SpriteKind::from_block(*self)
+        } else {
+            None
         }
+    }
+
+    #[inline(always)]
+    pub(super) const fn sprite_category_byte(&self) -> u8 { self.data[0] }
+
+    #[inline(always)]
+    pub const fn sprite_category(&self) -> Option<sprite::Category> {
+        if self.kind.is_filled() {
+            None
+        } else {
+            sprite::Category::from_block(*self)
+        }
+    }
+
+    /// Build this block with the given sprite attribute set.
+    #[inline]
+    pub fn with_attr<A: sprite::Attribute>(
+        mut self,
+        attr: A,
+    ) -> Result<Self, sprite::AttributeError<core::convert::Infallible>> {
+        match self.sprite_category() {
+            Some(category) => category.write_attr(&mut self, attr)?,
+            None => return Err(sprite::AttributeError::NotPresent),
+        }
+        Ok(self)
+    }
+
+    /// Set the given attribute of this block's sprite.
+    #[inline]
+    pub fn set_attr<A: sprite::Attribute>(
+        &mut self,
+        attr: A,
+    ) -> Result<(), sprite::AttributeError<core::convert::Infallible>> {
+        match self.sprite_category() {
+            Some(category) => category.write_attr(self, attr),
+            None => Err(sprite::AttributeError::NotPresent),
+        }
+    }
+
+    /// Get the given attribute of this block's sprite.
+    #[inline]
+    pub fn get_attr<A: sprite::Attribute>(&self) -> Result<A, sprite::AttributeError<A::Error>> {
+        match self.sprite_category() {
+            Some(category) => category.read_attr(*self),
+            None => Err(sprite::AttributeError::NotPresent),
+        }
+    }
+
+    #[inline(always)]
+    pub(super) const fn with_data(mut self, data: [u8; 3]) -> Self {
+        self.data = data;
+        self
+    }
+
+    #[inline(always)]
+    pub(super) const fn to_be_u32(self) -> u32 {
+        u32::from_be_bytes([self.kind as u8, self.data[0], self.data[1], self.data[2]])
     }
 
     #[inline]
     pub fn get_color(&self) -> Option<Rgb<u8>> {
         if self.has_color() {
-            Some(self.attr.into())
+            Some(self.data.into())
         } else {
             None
         }
     }
 
+    // TODO: phase out use of this method in favour of `block.get_attr::<Ori>()`
     #[inline]
-    pub fn get_sprite(&self) -> Option<SpriteKind> {
-        if !self.is_filled() {
-            SpriteKind::from_u8(self.attr[0])
-        } else {
-            None
-        }
-    }
-
-    #[inline]
-    pub fn get_ori(&self) -> Option<u8> {
-        if self.get_sprite()?.has_ori() {
-            // TODO: Formalise this a bit better
-            Some(self.attr[1] & 0b111)
-        } else {
-            None
-        }
-    }
+    pub fn get_ori(&self) -> Option<u8> { self.get_attr::<sprite::Ori>().ok().map(|ori| ori.0) }
 
     /// Returns the rtsim resource, if any, that this block corresponds to. If
     /// you want the scarcity of a block to change with rtsim's resource
@@ -547,7 +625,7 @@ impl Block {
     #[must_use]
     pub fn with_sprite(mut self, sprite: SpriteKind) -> Self {
         if !self.is_filled() {
-            self.attr[0] = sprite as u8;
+            self = Self::unfilled(self.kind, sprite);
         }
         self
     }
@@ -555,14 +633,7 @@ impl Block {
     /// If this block can have orientation, give it a new orientation.
     #[inline]
     #[must_use]
-    pub fn with_ori(mut self, ori: u8) -> Option<Self> {
-        if self.get_sprite().map(|s| s.has_ori()).unwrap_or(false) {
-            self.attr[1] = (self.attr[1] & !0b111) | (ori & 0b111);
-            Some(self)
-        } else {
-            None
-        }
-    }
+    pub fn with_ori(self, ori: u8) -> Option<Self> { self.with_attr(sprite::Ori(ori)).ok() }
 
     /// Remove the terrain sprite or solid aspects of a block
     #[inline]
@@ -584,26 +655,23 @@ impl Block {
         let [bk, r, g, b] = x.to_le_bytes();
         Some(Self {
             kind: BlockKind::from_u8(bk)?,
-            attr: [r, g, b],
+            data: [r, g, b],
         })
     }
 
     #[inline]
-    pub fn to_u32(&self) -> u32 {
-        u32::from_le_bytes([self.kind as u8, self.attr[0], self.attr[1], self.attr[2]])
+    pub fn to_u32(self) -> u32 {
+        u32::from_le_bytes([self.kind as u8, self.data[0], self.data[1], self.data[2]])
     }
 }
+
+const _: () = assert!(core::mem::size_of::<BlockKind>() == 1);
+const _: () = assert!(core::mem::size_of::<Block>() == 4);
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use strum::IntoEnumIterator;
-
-    #[test]
-    fn block_size() {
-        assert_eq!(std::mem::size_of::<BlockKind>(), 1);
-        assert_eq!(std::mem::size_of::<Block>(), 4);
-    }
 
     #[test]
     fn convert_u32() {

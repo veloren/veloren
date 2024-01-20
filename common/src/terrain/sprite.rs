@@ -1,10 +1,50 @@
+//! Here's the deal.
+//!
+//! Blocks are always 4 bytes. The first byte is the [`BlockKind`]. For filled
+//! blocks, the remaining 3 sprites are the block colour. For unfilled sprites
+//! (air, water, etc.) the remaining 3 bytes correspond to sprite data. That's
+//! not a lot to work with! As a result, we're pulling every rabbit out of the
+//! bit-twiddling hat to squash as much information as possible into those 3
+//! bytes.
+//!
+//! Fundamentally, sprites are composed of one or more elements: the
+//! [`SpriteKind`], which tells us what the sprite *is*, and a list of
+//! attributes that define extra properties that the sprite has. Some examples
+//! of attributes might include:
+//!
+//! - the orientation of the sprite (with respect to the volume it sits within)
+//! - whether the sprite has snow cover on it
+//! - a 'variation seed' that allows frontends to pseudorandomly customise the
+//!   appearance of the sprite in a manner that's consistent across clients
+//! - Whether doors are open, closed, or permanently locked
+//! - The stage of growth of a plant
+//! - The kind of plant that sits in pots/planters/vessels
+//! - The colour of the sprite
+//! - The material of the sprite
+//!
+//! # Category
+//!
+//! The first of the three bytes is the sprite 'category'. As much as possible,
+//! we should try to have the properties of each sprite within a category be
+//! consistent with others in the category, to improve performance.
+//!
+//! Since a single byte is not enough to disambiguate the [`SpriteKind`] (we
+//! have more than 256 kinds, so there's not enough space), the category also
+//! corresponds to a 'kind mask': a bitmask that, when applied to the first two
+//! of the three bytes gives us the [`SpriteKind`].
+
+mod magic;
+
+pub use self::magic::{Attribute, AttributeError};
+
 use crate::{
+    attributes,
     comp::{
         item::{ItemDefinitionId, ItemDefinitionIdOwned},
         tool::ToolKind,
     },
     lottery::LootSpec,
-    make_case_elim,
+    make_case_elim, sprites,
     terrain::Block,
 };
 use common_i18n::Content;
@@ -12,266 +52,318 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, fmt};
+use std::{
+    convert::{Infallible, TryFrom},
+    fmt,
+};
 use strum::EnumIter;
 use vek::*;
 
-make_case_elim!(
-    sprite_kind,
-    #[derive(
-        Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize, EnumIter, FromPrimitive,
-    )]
-    #[repr(u8)]
-    pub enum SpriteKind {
-        // Note that the values of these should be linearly contiguous to allow for quick
-        // bounds-checking when casting to a u8.
-        Empty = 0x00,
-        BarrelCactus = 0x01,
-        RoundCactus = 0x02,
-        ShortCactus = 0x03,
-        MedFlatCactus = 0x04,
-        ShortFlatCactus = 0x05,
-        BlueFlower = 0x06,
-        PinkFlower = 0x07,
-        PurpleFlower = 0x08,
-        RedFlower = 0x09,
-        WhiteFlower = 0x0A,
-        YellowFlower = 0x0B,
-        Sunflower = 0x0C,
-        LongGrass = 0x0D,
-        MediumGrass = 0x0E,
-        ShortGrass = 0x0F,
-        Apple = 0x10,
-        Mushroom = 0x11,
-        Liana = 0x12,
-        Velorite = 0x13,
-        VeloriteFrag = 0x14,
-        Chest = 0x15,
-        Pumpkin = 0x16,
-        Welwitch = 0x17,
-        LingonBerry = 0x18,
-        LeafyPlant = 0x19,
-        Fern = 0x1A,
-        DeadBush = 0x1B,
-        Blueberry = 0x1C,
-        Ember = 0x1D,
-        Corn = 0x1E,
-        WheatYellow = 0x1F,
-        WheatGreen = 0x20,
-        Cabbage = 0x21,
-        Flax = 0x22,
-        Carrot = 0x23,
-        Tomato = 0x24,
-        Radish = 0x25,
-        Coconut = 0x26,
-        Turnip = 0x27,
-        Window1 = 0x28,
-        Window2 = 0x29,
-        Window3 = 0x2A,
-        Window4 = 0x2B,
-        Scarecrow = 0x2C,
-        StreetLamp = 0x2D,
-        StreetLampTall = 0x2E,
-        Door = 0x2F,
-        Bed = 0x30,
-        Bench = 0x31,
-        ChairSingle = 0x32,
-        ChairDouble = 0x33,
-        CoatRack = 0x34,
-        Crate = 0x35,
-        DrawerLarge = 0x36,
-        DrawerMedium = 0x37,
-        DrawerSmall = 0x38,
-        DungeonWallDecor = 0x39,
-        HangingBasket = 0x3A,
-        HangingSign = 0x3B,
-        WallLamp = 0x3C,
-        Planter = 0x3D,
-        Shelf = 0x3E,
-        TableSide = 0x3F,
-        TableDining = 0x40,
-        TableDouble = 0x41,
-        WardrobeSingle = 0x42,
-        WardrobeDouble = 0x43,
-        LargeGrass = 0x44,
-        Pot = 0x45,
-        Stones = 0x46,
-        Twigs = 0x47,
-        DropGate = 0x48,
-        DropGateBottom = 0x49,
-        GrassSnow = 0x4A,
-        Reed = 0x4B,
-        Beehive = 0x4C,
-        LargeCactus = 0x4D,
-        VialEmpty = 0x4E,
-        PotionMinor = 0x4F,
-        GrassBlue = 0x50,
-        ChestBuried = 0x51,
-        Mud = 0x52,
-        FireBowlGround = 0x53,
-        CaveMushroom = 0x54,
-        Bowl = 0x55,
-        SavannaGrass = 0x56,
-        TallSavannaGrass = 0x57,
-        RedSavannaGrass = 0x58,
-        SavannaBush = 0x59,
-        Amethyst = 0x5A,
-        Ruby = 0x5B,
-        Sapphire = 0x5C,
-        Emerald = 0x5D,
-        Topaz = 0x5E,
-        Diamond = 0x5F,
-        AmethystSmall = 0x60,
-        TopazSmall = 0x61,
-        DiamondSmall = 0x62,
-        RubySmall = 0x63,
-        EmeraldSmall = 0x64,
-        SapphireSmall = 0x65,
-        WallLampSmall = 0x66,
-        WallSconce = 0x67,
-        StonyCoral = 0x68,
-        SoftCoral = 0x69,
-        SeaweedTemperate = 0x6A,
-        SeaweedTropical = 0x6B,
-        GiantKelp = 0x6C,
-        BullKelp = 0x6D,
-        WavyAlgae = 0x6E,
-        SeaGrapes = 0x6F,
-        MermaidsFan = 0x70,
-        SeaAnemone = 0x71,
-        Seashells = 0x72,
-        Seagrass = 0x73,
-        RedAlgae = 0x74,
-        UnderwaterVent = 0x75,
-        Lantern = 0x76,
-        CraftingBench = 0x77,
-        Forge = 0x78,
-        Cauldron = 0x79,
-        Anvil = 0x7A,
-        CookingPot = 0x7B,
-        DungeonChest0 = 0x7C,
-        DungeonChest1 = 0x7D,
-        DungeonChest2 = 0x7E,
-        DungeonChest3 = 0x7F,
-        DungeonChest4 = 0x80,
-        DungeonChest5 = 0x81,
-        Loom = 0x82,
-        SpinningWheel = 0x83,
-        CrystalHigh = 0x84,
-        Bloodstone = 0x85,
-        Coal = 0x86,
-        Cobalt = 0x87,
-        Copper = 0x88,
-        Iron = 0x89,
-        Tin = 0x8A,
-        Silver = 0x8B,
-        Gold = 0x8C,
-        Cotton = 0x8D,
-        Moonbell = 0x8E,
-        Pyrebloom = 0x8F,
-        TanningRack = 0x90,
-        WildFlax = 0x91,
-        CrystalLow = 0x92,
-        CeilingMushroom = 0x93,
-        Orb = 0x94,
-        EnsnaringVines = 0x95,
-        WitchWindow = 0x96,
-        SmokeDummy = 0x97,
-        Bones = 0x98,
-        CavernGrassBlueShort = 0x99,
-        CavernGrassBlueMedium = 0x9A,
-        CavernGrassBlueLong = 0x9B,
-        CavernLillypadBlue = 0x9C,
-        CavernMycelBlue = 0x9D,
-        DismantlingBench = 0x9E,
-        JungleFern = 0x9F,
-        LillyPads = 0xA0,
-        JungleLeafyPlant = 0xA1,
-        JungleRedGrass = 0xA2,
-        Bomb = 0xA3,
-        ChristmasOrnament = 0xA4,
-        ChristmasWreath = 0xA5,
-        EnsnaringWeb = 0xA6,
-        WindowArabic = 0xA7,
-        MelonCut = 0xA8,
-        BookshelfArabic = 0xA9,
-        DecorSetArabic = 0xAA,
-        SepareArabic = 0xAB,
-        CushionArabic = 0xAC,
-        JugArabic = 0xAD,
-        TableArabicSmall = 0xAE,
-        TableArabicLarge = 0xAF,
-        CanapeArabic = 0xB0,
-        CupboardArabic = 0xB1,
-        WallTableArabic = 0xB2,
-        JugAndBowlArabic = 0xB3,
-        OvenArabic = 0xB4,
-        FountainArabic = 0xB5,
-        Hearth = 0xB6,
-        ForgeTools = 0xB7,
-        CliffDecorBlock = 0xB8,
-        Wood = 0xB9,
-        Bamboo = 0xBA,
-        Hardwood = 0xBB,
-        Ironwood = 0xBC,
-        Frostwood = 0xBD,
-        Eldwood = 0xBE,
-        SeaUrchin = 0xBF,
-        GlassBarrier = 0xC0,
-        CoralChest = 0xC1,
-        SeaDecorChain = 0xC2,
-        SeaDecorBlock = 0xC3,
-        SeaDecorWindowHor = 0xC4,
-        SeaDecorWindowVer = 0xC5,
-        SeaDecorEmblem = 0xC6,
-        SeaDecorPillar = 0xC7,
-        SeashellLantern = 0xC8,
-        Rope = 0xC9,
-        IceSpike = 0xCA,
-        Bedroll = 0xCB,
-        BedrollSnow = 0xCC,
-        BedrollPirate = 0xCD,
-        Tent = 0xCE,
-        Grave = 0xCF,
-        Gravestone = 0xD0,
-        PotionDummy = 0xD1,
-        DoorDark = 0xD2,
-        MagicalBarrier = 0xD3,
-        MagicalSeal = 0xD4,
-        WallLampWizard = 0xD5,
-        Candle = 0xD6,
-        Keyhole = 0xD7,
-        KeyDoor = 0xD8,
-        CommonLockedChest = 0xD9,
-        RepairBench = 0xDA,
-        Helm = 0xDB,
-        DoorWide = 0xDC,
-        BoneKeyhole = 0xDD,
-        BoneKeyDoor = 0xDE,
-        // FireBlock for Burning Buff
-        FireBlock = 0xDF,
-        IceCrystal = 0xE0,
-        GlowIceCrystal = 0xE1,
-        OneWayWall = 0xE2,
-        GlassKeyhole = 0xE3,
-        TallCactus = 0xE4,
-        Sign = 0xE5,
-        DoorBars = 0xE6,
-        KeyholeBars = 0xE7,
-        WoodBarricades = 0xE8,
-        SewerMushroom = 0xE9,
-        DiamondLight = 0xEA,
-        Mine = 0xEB,
-        SmithingTable = 0xEC,
-        Forge0 = 0xED,
-        GearWheel0 = 0xEE,
-        Quench0 = 0xEF,
-        IronSpike = 0xF0,
-        HotSurface = 0xF1,
-        Barrel = 0xF2,
-        CrateBlock = 0xF3,
-    }
-);
+sprites! {
+    Void = 0 {
+        Empty = 0,
+    },
+    // Generic collection of sprites, no attributes but anything goes
+    Misc = 1 {
+        Ember      = 0x00,
+        SmokeDummy = 0x01,
+        Bomb       = 0x02,
+        FireBlock  = 0x03, // FireBlock for Burning Buff
+        Mine       = 0x04,
+        HotSurface = 0x05,
+    },
+    // Furniture. In the future, we might add an attribute to customise material
+    // TODO: Remove sizes and variants, represent with attributes
+    Furniture = 2 has Ori {
+        // Indoor
+        CoatRack         = 0x00,
+        Bed              = 0x01,
+        Bench            = 0x02,
+        ChairSingle      = 0x03,
+        ChairDouble      = 0x04,
+        DrawerLarge      = 0x05,
+        DrawerMedium     = 0x06,
+        DrawerSmall      = 0x07,
+        TableSide        = 0x08,
+        TableDining      = 0x09,
+        TableDouble      = 0x0A,
+        WardrobeSingle   = 0x0B,
+        WardrobeDouble   = 0x0C,
+        BookshelfArabic  = 0x0D,
+        WallTableArabic  = 0x0E,
+        TableArabicLarge = 0x0F,
+        TableArabicSmall = 0x10,
+        CupboardArabic   = 0x11,
+        OvenArabic       = 0x12,
+        CushionArabic    = 0x13,
+        CanapeArabic     = 0x14,
+        Shelf            = 0x15,
+        Planter          = 0x16,
+        Pot              = 0x17,
+        // Crafting
+        CraftingBench    = 0x20,
+        Forge            = 0x21,
+        Cauldron         = 0x22,
+        Anvil            = 0x23,
+        CookingPot       = 0x24,
+        SpinningWheel    = 0x25,
+        TanningRack      = 0x26,
+        Loom             = 0x27,
+        DismantlingBench = 0x28,
+        RepairBench      = 0x29,
+        // Containers
+        Chest             = 0x30,
+        DungeonChest0     = 0x31,
+        DungeonChest1     = 0x32,
+        DungeonChest2     = 0x33,
+        DungeonChest3     = 0x34,
+        DungeonChest4     = 0x35,
+        DungeonChest5     = 0x36,
+        CoralChest        = 0x37,
+        CommonLockedChest = 0x38,
+        ChestBuried       = 0x39,
+        Crate             = 0x3A,
+        Barrel            = 0x3B,
+        CrateBlock        = 0x3C,
+        // Standalone lights
+        Lantern         = 0x40,
+        StreetLamp      = 0x41,
+        StreetLampTall  = 0x42,
+        SeashellLantern = 0x43,
+        FireBowlGround  = 0x44,
+        // Wall
+        HangingBasket     = 0x50,
+        HangingSign       = 0x51,
+        ChristmasOrnament = 0x52,
+        ChristmasWreath   = 0x53,
+        WallLampWizard    = 0x54,
+        WallLamp          = 0x55,
+        WallLampSmall     = 0x56,
+        WallSconce        = 0x57,
+        DungeonWallDecor  = 0x58,
+        // Outdoor
+        Tent          = 0x60,
+        Bedroll       = 0x61,
+        BedrollSnow   = 0x62,
+        BedrollPirate = 0x63,
+        Sign          = 0x64,
+        Helm          = 0x65,
+        // Misc
+        Scarecrow      = 0x70,
+        FountainArabic = 0x71,
+        Hearth         = 0x72,
+    },
+    // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
+    Plant = 3 has Growth {
+        // Cacti
+        BarrelCactus    = 0x00,
+        RoundCactus     = 0x01,
+        ShortCactus     = 0x02,
+        MedFlatCactus   = 0x03,
+        ShortFlatCactus = 0x04,
+        LargeCactus     = 0x05,
+        TallCactus      = 0x06,
+        // Flowers
+        BlueFlower   = 0x10,
+        PinkFlower   = 0x11,
+        PurpleFlower = 0x12,
+        RedFlower    = 0x13,
+        WhiteFlower  = 0x14,
+        YellowFlower = 0x15,
+        Sunflower    = 0x16,
+        Moonbell     = 0x17,
+        Pyrebloom    = 0x18,
+        // Grasses, ferns, and other 'wild' plants/fungi
+        // TODO: remove sizes, make part of the `Growth` attribute
+        LongGrass             = 0x20,
+        MediumGrass           = 0x21,
+        ShortGrass            = 0x22,
+        Fern                  = 0x23,
+        LargeGrass            = 0x24,
+        GrassSnow             = 0x25,
+        Reed                  = 0x26,
+        GrassBlue             = 0x27,
+        SavannaGrass          = 0x28,
+        TallSavannaGrass      = 0x29,
+        RedSavannaGrass       = 0x2A,
+        SavannaBush           = 0x2B,
+        Welwitch              = 0x2C,
+        LeafyPlant            = 0x2D,
+        DeadBush              = 0x2E,
+        JungleFern            = 0x2F,
+        CavernGrassBlueShort  = 0x30,
+        CavernGrassBlueMedium = 0x31,
+        CavernGrassBlueLong   = 0x32,
+        CavernLillypadBlue    = 0x33,
+        EnsnaringVines        = 0x34,
+        LillyPads             = 0x35,
+        JungleLeafyPlant      = 0x36,
+        JungleRedGrass        = 0x37,
+        // Crops, berries, and fungi
+        Corn          = 0x40,
+        WheatYellow   = 0x41,
+        WheatGreen    = 0x42, // TODO: Remove `WheatGreen`, make part of the `Growth` attribute
+        LingonBerry   = 0x43,
+        Blueberry     = 0x44,
+        Cabbage       = 0x45,
+        Pumpkin       = 0x46,
+        Carrot        = 0x47,
+        Tomato        = 0x48,
+        Radish        = 0x49,
+        Turnip        = 0x4A,
+        Flax          = 0x4B,
+        Mushroom      = 0x4C,
+        CaveMushroom  = 0x4D,
+        Cotton        = 0x4E,
+        WildFlax      = 0x4F,
+        SewerMushroom = 0x50,
+        // Seaweeds, corals, and other underwater plants
+        StonyCoral       = 0x60,
+        SoftCoral        = 0x61,
+        SeaweedTemperate = 0x62,
+        SeaweedTropical  = 0x63,
+        GiantKelp        = 0x64,
+        BullKelp         = 0x65,
+        WavyAlgae        = 0x66,
+        SeaGrapes        = 0x67,
+        MermaidsFan      = 0x68,
+        SeaAnemone       = 0x69,
+        Seagrass         = 0x6A,
+        RedAlgae         = 0x6B,
+        // Danglying ceiling plants/fungi
+        Liana           = 0x70,
+        CavernMycelBlue = 0x71,
+        CeilingMushroom = 0x72,
+    },
+    // Solid resources
+    // TODO: Remove small variants, make deposit size be an attribute
+    Resources = 4 {
+        // Gems and ores
+        Amethyst      = 0x00,
+        AmethystSmall = 0x01,
+        Ruby          = 0x02,
+        RubySmall     = 0x03,
+        Sapphire      = 0x04,
+        SapphireSmall = 0x05,
+        Emerald       = 0x06,
+        EmeraldSmall  = 0x07,
+        Topaz         = 0x08,
+        TopazSmall    = 0x09,
+        Diamond       = 0x0A,
+        DiamondSmall  = 0x0B,
+        Bloodstone    = 0x0C,
+        Coal          = 0x0D,
+        Cobalt        = 0x0E,
+        Copper        = 0x0F,
+        Iron          = 0x10,
+        Tin           = 0x11,
+        Silver        = 0x12,
+        Gold          = 0x13,
+        Velorite      = 0x14,
+        VeloriteFrag  = 0x15,
+        // Woods and twigs
+        Twigs     = 0x20,
+        Wood      = 0x21,
+        Bamboo    = 0x22,
+        Hardwood  = 0x23,
+        Ironwood  = 0x24,
+        Frostwood = 0x25,
+        Eldwood   = 0x26,
+        // Other
+        Apple       = 0x30,
+        Coconut     = 0x31,
+        Stones      = 0x32,
+        Seashells   = 0x33,
+        Beehive     = 0x34,
+        Bowl        = 0x35,
+        PotionMinor = 0x36,
+        PotionDummy = 0x37,
+        VialEmpty   = 0x38,
+    },
+    // Structural elements including doors and building parts
+    Structural = 5 has Ori {
+        // Doors and keyholes
+        Door         = 0x00,
+        DoorDark     = 0x01,
+        DoorWide     = 0x02,
+        BoneKeyhole  = 0x03,
+        BoneKeyDoor  = 0x04,
+        Keyhole      = 0x05,
+        KeyDoor      = 0x06,
+        GlassKeyhole = 0x07,
+        KeyholeBars  = 0x08,
+        // Windows
+        Window1      = 0x10,
+        Window2      = 0x11,
+        Window3      = 0x12,
+        Window4      = 0x13,
+        WitchWindow  = 0x14,
+        WindowArabic = 0x15,
+        // Walls
+        GlassBarrier    = 0x20,
+        SeaDecorBlock   = 0x21,
+        CliffDecorBlock = 0x22,
+        MagicalBarrier  = 0x23,
+        OneWayWall      = 0x24,
+        // Gates and grates
+        SeaDecorWindowHor = 0x30,
+        SeaDecorWindowVer = 0x31,
+        DropGate          = 0x32,
+        DropGateBottom    = 0x33,
+        WoodBarricades    = 0x34,
+        // Misc
+        Rope          = 0x40,
+        SeaDecorChain = 0x41,
+        IronSpike     = 0x42,
+        DoorBars      = 0x43,
+    },
+    // Decorative items, both natural and artificial
+    Decor = 6 has Ori {
+        // Natural
+        Bones          = 0x00,
+        IceCrystal     = 0x01,
+        GlowIceCrystal = 0x02,
+        CrystalHigh    = 0x03,
+        CrystalLow     = 0x04,
+        UnderwaterVent = 0x05,
+        SeaUrchin      = 0x06,
+        IceSpike       = 0x07,
+        Mud            = 0x08,
+        Orb            = 0x09,
+        EnsnaringWeb   = 0x0A,
+        DiamondLight   = 0x0B,
+        // Artificial
+        Grave            = 0x10,
+        Gravestone       = 0x11,
+        MelonCut         = 0x12,
+        ForgeTools       = 0x13,
+        JugAndBowlArabic = 0x14,
+        JugArabic        = 0x15,
+        DecorSetArabic   = 0x16,
+        SepareArabic     = 0x17,
+        Candle           = 0x18,
+        SmithingTable    = 0x19,
+        Forge0           = 0x1A,
+        GearWheel0       = 0x1B,
+        Quench0          = 0x1C,
+        SeaDecorEmblem   = 0x1D,
+        SeaDecorPillar   = 0x1E,
+        MagicalSeal      = 0x1F,
+    },
+}
+
+attributes! {
+    Ori { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
+    Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
+}
+
+// The orientation of the sprite, 0..8
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Ori(pub u8);
+
+// The growth of the plant, 0..16
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Growth(pub u8);
 
 impl SpriteKind {
     #[inline]
@@ -656,102 +748,9 @@ impl SpriteKind {
         cfg.and_then(|cfg| cfg.content)
     }
 
+    // TODO: phase out use of this method in favour of `sprite.has_attr::<Ori>()`
     #[inline]
-    pub fn has_ori(&self) -> bool {
-        matches!(
-            self,
-            SpriteKind::Window1
-                | SpriteKind::Window2
-                | SpriteKind::Window3
-                | SpriteKind::Window4
-                | SpriteKind::Bed
-                | SpriteKind::Bench
-                | SpriteKind::ChairSingle
-                | SpriteKind::ChairDouble
-                | SpriteKind::CoatRack
-                | SpriteKind::Crate
-                | SpriteKind::DrawerLarge
-                | SpriteKind::DrawerMedium
-                | SpriteKind::DrawerSmall
-                | SpriteKind::DungeonWallDecor
-                | SpriteKind::HangingBasket
-                | SpriteKind::HangingSign
-                | SpriteKind::WallLamp
-                | SpriteKind::WallLampSmall
-                | SpriteKind::WallSconce
-                | SpriteKind::Planter
-                | SpriteKind::Shelf
-                | SpriteKind::TableSide
-                | SpriteKind::TableDining
-                | SpriteKind::TableDouble
-                | SpriteKind::WardrobeSingle
-                | SpriteKind::WardrobeDouble
-                | SpriteKind::Pot
-                | SpriteKind::Chest
-                | SpriteKind::DungeonChest0
-                | SpriteKind::DungeonChest1
-                | SpriteKind::DungeonChest2
-                | SpriteKind::DungeonChest3
-                | SpriteKind::DungeonChest4
-                | SpriteKind::DungeonChest5
-                | SpriteKind::CoralChest
-                | SpriteKind::SeaDecorWindowVer
-                | SpriteKind::SeaDecorEmblem
-                | SpriteKind::DropGate
-                | SpriteKind::DropGateBottom
-                | SpriteKind::Door
-                | SpriteKind::DoorDark
-                | SpriteKind::Beehive
-                | SpriteKind::PotionMinor
-                | SpriteKind::PotionDummy
-                | SpriteKind::Bowl
-                | SpriteKind::VialEmpty
-                | SpriteKind::FireBowlGround
-                | SpriteKind::Lantern
-                | SpriteKind::CraftingBench
-                | SpriteKind::Forge
-                | SpriteKind::Cauldron
-                | SpriteKind::Anvil
-                | SpriteKind::CookingPot
-                | SpriteKind::SpinningWheel
-                | SpriteKind::TanningRack
-                | SpriteKind::Loom
-                | SpriteKind::DismantlingBench
-                | SpriteKind::RepairBench
-                | SpriteKind::ChristmasOrnament
-                | SpriteKind::ChristmasWreath
-                | SpriteKind::WindowArabic
-                | SpriteKind::BookshelfArabic
-                | SpriteKind::TableArabicLarge
-                | SpriteKind::CanapeArabic
-                | SpriteKind::CupboardArabic
-                | SpriteKind::WallTableArabic
-                | SpriteKind::JugAndBowlArabic
-                | SpriteKind::JugArabic
-                | SpriteKind::MelonCut
-                | SpriteKind::OvenArabic
-                | SpriteKind::Hearth
-                | SpriteKind::ForgeTools
-                | SpriteKind::Tent
-                | SpriteKind::Bedroll
-                | SpriteKind::Grave
-                | SpriteKind::Gravestone
-                | SpriteKind::MagicalBarrier
-                | SpriteKind::Helm
-                | SpriteKind::DoorWide
-                | SpriteKind::BoneKeyhole
-                | SpriteKind::BoneKeyDoor
-                | SpriteKind::IceCrystal
-                | SpriteKind::OneWayWall
-                | SpriteKind::GlowIceCrystal
-                | SpriteKind::Sign
-                | SpriteKind::WoodBarricades
-                | SpriteKind::SmithingTable
-                | SpriteKind::Forge0
-                | SpriteKind::GearWheel0
-                | SpriteKind::Quench0
-        )
-    }
+    pub fn has_ori(&self) -> bool { self.category().has_attr::<Ori>() }
 }
 
 impl fmt::Display for SpriteKind {
@@ -790,4 +789,42 @@ pub enum UnlockKind {
 pub struct SpriteCfg {
     pub unlock: Option<UnlockKind>,
     pub content: Option<Content>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sprite_conv_kind() {
+        for sprite in SpriteKind::all() {
+            let block = Block::air(*sprite);
+            assert_eq!(block.sprite_category(), Some(sprite.category()));
+            assert_eq!(block.get_sprite(), Some(*sprite));
+        }
+    }
+
+    #[test]
+    fn sprite_attr() {
+        for category in Category::all() {
+            if category.has_attr::<Ori>() {
+                for sprite in category.all_sprites() {
+                    for i in 0..4 {
+                        let block = Block::air(*sprite).with_attr(Ori(i)).unwrap();
+                        assert_eq!(block.get_attr::<Ori>().unwrap(), Ori(i));
+                        assert_eq!(block.get_sprite(), Some(*sprite));
+                    }
+                }
+            }
+            if category.has_attr::<Growth>() {
+                for sprite in category.all_sprites() {
+                    for i in 0..16 {
+                        let block = Block::air(*sprite).with_attr(Growth(i)).unwrap();
+                        assert_eq!(block.get_attr::<Growth>().unwrap(), Growth(i));
+                        assert_eq!(block.get_sprite(), Some(*sprite));
+                    }
+                }
+            }
+        }
+    }
 }
