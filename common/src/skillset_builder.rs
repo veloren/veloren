@@ -160,8 +160,11 @@ mod tests {
 
     #[test]
     fn test_all_skillset_assets() {
-        let skillsets = assets::read_expect_dir::<SkillSetTree>("common.skillset", true);
-        for skillset in skillsets {
+        let skillsets =
+            assets::load_rec_dir::<SkillSetTree>("common.skillset").expect("load skillsets");
+        for skillset in skillsets.read().ids() {
+            let skillset = SkillSetTree::load_expect(skillset).read();
+
             drop({
                 let mut skillset_builder = SkillSetBuilder::default();
                 let nodes = &*skillset.0;

@@ -1437,9 +1437,9 @@ mod tests {
     // One for asset itself and second if it serves as a base for other asset.
     #[test]
     fn validate_all_loadout_assets() {
-        let loadouts = assets::load_dir::<LoadoutSpec>("common.loadout", true)
+        let loadouts = assets::load_rec_dir::<LoadoutSpec>("common.loadout")
             .expect("failed to load loadout directory");
-        for loadout_id in loadouts.ids() {
+        for loadout_id in loadouts.read().ids() {
             let loadout =
                 LoadoutSpec::load_cloned(loadout_id).expect("failed to load loadout asset");
             loadout
@@ -1451,10 +1451,10 @@ mod tests {
     // Basically test that our validation tests don't have false-positives
     #[test]
     fn test_valid_assets() {
-        let loadouts = assets::load_dir::<LoadoutSpec>("test.loadout.ok", true)
+        let loadouts = assets::load_rec_dir::<LoadoutSpec>("test.loadout.ok")
             .expect("failed to load loadout directory");
 
-        for loadout_id in loadouts.ids() {
+        for loadout_id in loadouts.read().ids() {
             let loadout =
                 LoadoutSpec::load_cloned(loadout_id).expect("failed to load loadout asset");
             loadout

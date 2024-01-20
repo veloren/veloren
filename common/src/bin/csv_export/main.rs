@@ -489,10 +489,10 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
     }
 
     if entity_config.eq_ignore_ascii_case("all") {
-        let configs = assets::load_dir::<EntityConfig>("common.entity", true)
+        let configs = assets::load_rec_dir::<EntityConfig>("common.entity")
             .expect("Entity files moved somewhere else maybe?")
-            .ids();
-        for config in configs {
+            .read();
+        for config in configs.ids() {
             write_entity_loot(&mut wtr, config)?;
         }
     } else {

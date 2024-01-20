@@ -12,7 +12,7 @@ use crate::{
     recipe::{default_component_recipe_book, default_recipe_book, RecipeInput},
     trade::Good,
 };
-use assets::AssetGuard;
+use assets::AssetReadGuard;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
@@ -528,7 +528,7 @@ struct RememberedRecipe {
     input: Vec<(ItemDefinitionIdOwned, u32)>,
 }
 
-fn get_scaling(contents: &AssetGuard<TradingPriceFile>, good: Good) -> f32 {
+fn get_scaling(contents: &AssetReadGuard<TradingPriceFile>, good: Good) -> f32 {
     contents
         .good_scaling
         .iter()

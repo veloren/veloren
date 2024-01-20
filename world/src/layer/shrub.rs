@@ -74,10 +74,10 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
         let units = UnitChooser::new(shrub.seed).get(shrub.seed).into();
 
         let shrubs = match shrub.kind {
-            ForestKind::Mangrove => &*JUNGLE_SHRUBS,
-            ForestKind::Acacia | ForestKind::Baobab => &*SAVANNAH_SHRUBS,
-            ForestKind::Oak | ForestKind::Chestnut => &*TEMPERATE_SHRUBS,
-            ForestKind::Pine => &*TAIGA_SHRUBS,
+            ForestKind::Mangrove => *JUNGLE_SHRUBS,
+            ForestKind::Acacia | ForestKind::Baobab => *SAVANNAH_SHRUBS,
+            ForestKind::Oak | ForestKind::Chestnut => *TEMPERATE_SHRUBS,
+            ForestKind::Pine => *TAIGA_SHRUBS,
             _ => continue, // TODO: Add more shrub varieties
         }
         .read();

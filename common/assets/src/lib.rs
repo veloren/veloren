@@ -25,7 +25,6 @@ pub use assets_manager::{
 
 mod fs;
 #[cfg(feature = "plugins")] mod plugin_cache;
-#[cfg(feature = "plugins")] mod tar_source;
 mod walk;
 pub use walk::{walk_tree, Walk};
 
@@ -48,9 +47,9 @@ pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 #[cfg(feature = "plugins")]
 pub fn register_tar(path: PathBuf) -> std::io::Result<()> { ASSETS.register_tar(path) }
 
-pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
-pub type AssetGuard<T> = assets_manager::AssetGuard<'static, T>;
-pub type AssetDirHandle<T> = assets_manager::DirHandle<'static, T>;
+pub type AssetHandle<T> = &'static assets_manager::Handle<T>;
+pub type AssetReadGuard<T> = assets_manager::AssetReadGuard<'static, T>;
+pub type AssetDirHandle<T> = AssetHandle<assets_manager::RecursiveDirectory<T>>;
 pub type ReloadWatcher = assets_manager::ReloadWatcher<'static>;
 
 /// The Asset trait, which is implemented by all structures that have their data
@@ -71,7 +70,7 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     where
         Self: Clone,
     {
-        Self::load(specifier).map(AssetHandle::cloned)
+        Self::load(specifier).map(|h| h.cloned())
     }
 
     fn load_or_insert_with(
@@ -143,7 +142,7 @@ pub trait CacheCombined<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
         id: &str,
-    ) -> Result<assets_manager::Handle<'a, A>, BoxedError>;
+    ) -> Result<&'a assets_manager::Handle<A>, BoxedError>;
 }
 
 /// Loads directory and all files in it
@@ -154,39 +153,9 @@ pub trait CacheCombined<'a> {
 ///
 /// When loading a directory recursively, directories that can't be read are
 /// ignored.
-pub fn load_dir<T: DirLoadable>(
-    specifier: &str,
-    recursive: bool,
-) -> Result<AssetDirHandle<T>, Error> {
+pub fn load_rec_dir<T: DirLoadable>(specifier: &str) -> Result<AssetDirHandle<T>, Error> {
     let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
-    ASSETS.load_dir(specifier, recursive)
-}
-
-/// Loads directory and all files in it
-///
-/// # Panics
-/// 1) If can't load directory (filesystem errors)
-/// 2) If file can't be loaded (parsing problem)
-#[track_caller]
-pub fn read_expect_dir<T: DirLoadable + Compound>(
-    specifier: &str,
-    recursive: bool,
-) -> impl Iterator<Item = AssetGuard<T>> {
-    #[track_caller]
-    #[cold]
-    fn expect_failed(err: Error) -> ! {
-        panic!(
-            "Failed loading directory: {} (error={:?})",
-            err.id(),
-            err.reason()
-        )
-    }
-
-    // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
-    match load_dir::<T>(specifier, recursive) {
-        Ok(dir) => dir.ids().map(|entry| T::load_expect(entry).read()),
-        Err(err) => expect_failed(err),
-    }
+    ASSETS.load_rec_dir(specifier)
 }
 
 impl<T: Compound> AssetExt for T {
@@ -203,7 +172,7 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
         specifier: &str,
-    ) -> Result<assets_manager::Handle<'a, A>, BoxedError> {
+    ) -> Result<&'a assets_manager::Handle<A>, BoxedError> {
         #[cfg(feature = "plugins")]
         {
             self.get_cached(specifier).map_or_else(
