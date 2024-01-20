@@ -103,7 +103,8 @@ pub(super) fn targets_under_cursor(
     };
 
     let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| b.is_collectible());
-    let (mine_pos, _, mine_cam_ray) = active_mine_tool.is_some()
+    let (mine_pos, _, mine_cam_ray) = active_mine_tool
+        .is_some()
         .then(|| find_pos(|b: Block| b.mine_tool().is_some()))
         .unwrap_or((None, None, None));
     let (solid_pos, place_block_pos, solid_cam_ray) = find_pos(|b: Block| b.is_filled());

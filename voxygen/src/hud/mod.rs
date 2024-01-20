@@ -2122,53 +2122,31 @@ impl Hud {
                         })]
                     },
                     BlockInteraction::Mine(mine_tool) => {
-                        match &info.active_mine_tool {
-                            Some(active_mine_tool) => {
-                                match (mine_tool, active_mine_tool) {
-                                    (ToolKind::Pick, ToolKind::Pick) => {
-                                        vec![(
-                                            Some(GameInput::Primary),
-                                            i18n.get_msg("hud-mine").to_string(),
-                                        )]
-                                    },
-                                    (ToolKind::Pick, _) => {
-                                        vec![(None, i18n.get_msg("hud-mine-needs_pickaxe").to_string())]
-                                    },
-                                    (ToolKind::Shovel, ToolKind::Shovel) => {
-                                        vec![(
-                                            Some(GameInput::Primary),
-                                            i18n.get_msg("hud-dig").to_string(),
-                                        )]
-                                    },
-                                    (ToolKind::Shovel, _) => {
-                                        vec![(None, i18n.get_msg("hud-mine-needs_shovel").to_string())]
-                                    },
-                                    _ => {
-                                        vec![(
-                                            None,
-                                            i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
-                                        )]
-                                    },
-                                }
+                        match (mine_tool, &info.active_mine_tool) {
+                            (ToolKind::Pick, Some(ToolKind::Pick)) => {
+                                vec![(
+                                    Some(GameInput::Primary),
+                                    i18n.get_msg("hud-mine").to_string(),
+                                )]
                             },
-                            None => {
-                                match mine_tool {
-                                    ToolKind::Pick => {
-                                        vec![(None, i18n.get_msg("hud-mine-needs_pickaxe").to_string())]
-                                    },
-                                    ToolKind::Shovel => {
-                                        vec![(None, i18n.get_msg("hud-mine-needs_shovel").to_string())]
-                                    }
-                                    // TODO: The required tool for mining something may not always be a
-                                    // pickaxe!
-                                    _ => {
-                                        vec![(
-                                            None,
-                                            i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
-                                        )]
-                                    },
-                                }
-                            }
+                            (ToolKind::Pick, _) => {
+                                vec![(None, i18n.get_msg("hud-mine-needs_pickaxe").to_string())]
+                            },
+                            (ToolKind::Shovel, Some(ToolKind::Shovel)) => {
+                                vec![(
+                                    Some(GameInput::Primary),
+                                    i18n.get_msg("hud-dig").to_string(),
+                                )]
+                            },
+                            (ToolKind::Shovel, _) => {
+                                vec![(None, i18n.get_msg("hud-mine-needs_shovel").to_string())]
+                            },
+                            _ => {
+                                vec![(
+                                    None,
+                                    i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
+                                )]
+                            },
                         }
                     },
                     BlockInteraction::Mount => {
