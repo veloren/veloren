@@ -16,7 +16,7 @@ use common::{
         Inventory, LootOwner, Pos, SkillGroupKind,
     },
     consts::{
-        MAX_MOUNT_RANGE, MAX_NPCINTERACT_RANGE, MAX_SPRITE_MOUNT_RANGE,
+        MAX_INTERACT_RANGE, MAX_MOUNT_RANGE, MAX_NPCINTERACT_RANGE, MAX_SPRITE_MOUNT_RANGE,
         SOUND_TRAVEL_DIST_PER_VOLUME,
     },
     event::EventBus,
@@ -473,23 +473,24 @@ pub fn handle_tame_pet(server: &mut Server, pet_entity: EcsEntity, owner_entity:
 
 pub fn handle_block_interaction(
     server: &mut Server,
-    _entity: EcsEntity,
+    entity: EcsEntity,
     pos: VolumePos,
     interaction: BlockInteraction,
 ) {
     let state = server.state_mut();
-    if matches!(&pos.kind, Volume::Terrain) {
-        if state.can_set_block(pos.pos) {
-            if let Some(new_block) = state
-                .terrain()
-                .get(pos.pos)
-                .ok()
-                .and_then(|block| block.apply_interaction(interaction))
-            {
-                state.set_block(pos.pos, new_block);
-            }
+    // TODO: Implement toggling lights on volume entities
+    if let Some(entity_pos) = state.ecs().read_storage::<Pos>().get(entity)
+        && matches!(&pos.kind, Volume::Terrain)
+        && entity_pos.0.distance_squared(pos.pos.as_()) < MAX_INTERACT_RANGE.powi(2)
+        && state.can_set_block(pos.pos)
+    {
+        if let Some(new_block) = state
+            .terrain()
+            .get(pos.pos)
+            .ok()
+            .and_then(|block| block.apply_interaction(interaction))
+        {
+            state.set_block(pos.pos, new_block);
         }
-    } else {
-        // TODO: Handle toggling lights on entities
     }
 }

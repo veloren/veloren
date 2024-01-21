@@ -2162,9 +2162,9 @@ impl Hud {
                         i18n.get_msg("hud-read").to_string(),
                     )],
                     // TODO: change to turn on/turn off?
-                    BlockInteraction::LightToggle(_) => vec![(
+                    BlockInteraction::LightToggle(enable) => vec![(
                         Some(GameInput::Interact),
-                        i18n.get_msg("hud-activate").to_string(),
+                        i18n.get_msg(if *enable { "hud-activate" } else { "hud-deactivate" }).to_string(),
                     )],
                 };
 
