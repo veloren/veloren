@@ -349,7 +349,7 @@ sprites! {
         SeaDecorPillar   = 0x1E,
         MagicalSeal      = 0x1F,
     },
-    Lamp = 7 has Ori, LightDisabled {
+    Lamp = 7 has Ori, LightEnabled {
         // Standalone lights
         Lantern         = 0,
         StreetLamp      = 1,
@@ -362,20 +362,28 @@ sprites! {
 attributes! {
     Ori { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
     Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
-    LightDisabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightDisabled(x)| x as u16 },
+    LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
 }
 
 // The orientation of the sprite, 0..16
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Ori(pub u8);
 
 // The growth of the plant, 0..16
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Growth(pub u8);
 
-// Whether a light has been toggled off.
+impl Default for Growth {
+    fn default() -> Self { Self(15) }
+}
+
+// Whether a light has been toggled on or off.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct LightDisabled(pub bool);
+pub struct LightEnabled(pub bool);
+
+impl Default for LightEnabled {
+    fn default() -> Self { Self(true) }
+}
 
 impl SpriteKind {
     #[inline]

@@ -294,7 +294,7 @@ pub fn generate_mesh<'a>(
         let d = d + 2;
         let flat = {
             let mut volume = vol.cached();
-            const AIR: Block = Block::air(common::terrain::sprite::SpriteKind::Empty);
+            const AIR: Block = Block::empty();
             // TODO: Once we can manage it sensibly, consider using something like
             // Option<Block> instead of just assuming air.
             let mut flat = vec![AIR; (w * h * d) as usize];

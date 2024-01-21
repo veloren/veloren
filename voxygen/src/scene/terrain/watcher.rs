@@ -142,8 +142,8 @@ impl BlocksOfInterest {
                 _ => {
                     if let Some(sprite) = block.get_sprite() {
                         if sprite.category() == sprite::Category::Lamp {
-                            if let Ok(sprite::LightDisabled(disabled)) = block.get_attr() {
-                                interactables.push((pos, Interaction::LightToggle(disabled)));
+                            if let Ok(sprite::LightEnabled(enabled)) = block.get_attr() {
+                                interactables.push((pos, Interaction::LightToggle(!enabled)));
                             }
                         }
 

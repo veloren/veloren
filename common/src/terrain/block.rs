@@ -156,50 +156,44 @@ impl Block {
 
     /* Constructors */
 
-    // TODO: Rename to `filled`
     #[inline]
-    pub const fn new(kind: BlockKind, color: Rgb<u8>) -> Self {
-        // TODO: we should probably assert this, overwriting the data fields with a
-        // colour is bad news
-        /*
-        #[cfg(debug_assertions)]
-        assert!(kind.is_filled());
-        */
+    pub(super) const fn from_raw(kind: BlockKind, data: [u8; 3]) -> Self { Self { kind, data } }
 
-        Self {
-            kind,
-            // Colours are only valid for non-fluids
-            data: if kind.is_filled() {
-                [color.r, color.g, color.b]
-            } else {
-                [0; 3]
-            },
+    // TODO: Rename to `filled`, make caller guarantees stronger
+    #[inline]
+    #[track_caller]
+    pub const fn new(kind: BlockKind, color: Rgb<u8>) -> Self {
+        if kind.is_filled() {
+            Self::from_raw(kind, [color.r, color.g, color.b])
+        } else {
+            // Works because `SpriteKind::Empty` has no attributes
+            let data = (SpriteKind::Empty as u32).to_be_bytes();
+            Self::from_raw(kind, [data[1], data[2], data[3]])
         }
     }
 
     // Only valid if `block_kind` is unfilled, so this is just a private utility
     // method
     #[inline]
-    const fn unfilled(kind: BlockKind, sprite: SpriteKind) -> Self {
+    pub fn unfilled(kind: BlockKind, sprite: SpriteKind) -> Self {
         #[cfg(debug_assertions)]
         assert!(!kind.is_filled());
 
-        let sprite_bytes = (sprite as u32).to_be_bytes();
-
-        Self {
-            kind,
-            data: [sprite_bytes[1], sprite_bytes[2], sprite_bytes[3]],
-        }
+        Self::from_raw(kind, sprite.to_initial_bytes())
     }
 
     #[inline]
-    pub const fn air(sprite: SpriteKind) -> Self { Self::unfilled(BlockKind::Air, sprite) }
+    pub fn air(sprite: SpriteKind) -> Self { Self::unfilled(BlockKind::Air, sprite) }
 
     #[inline]
-    pub const fn empty() -> Self { Self::air(SpriteKind::Empty) }
+    pub const fn empty() -> Self {
+        // Works because `SpriteKind::Empty` has no attributes
+        let data = (SpriteKind::Empty as u32).to_be_bytes();
+        Self::from_raw(BlockKind::Air, [data[1], data[2], data[3]])
+    }
 
     #[inline]
-    pub const fn water(sprite: SpriteKind) -> Self { Self::unfilled(BlockKind::Water, sprite) }
+    pub fn water(sprite: SpriteKind) -> Self { Self::unfilled(BlockKind::Water, sprite) }
 
     /* Sprite decoding */
 
@@ -257,6 +251,9 @@ impl Block {
             None => Err(sprite::AttributeError::NotPresent),
         }
     }
+
+    #[inline(always)]
+    pub(super) const fn data(&self) -> [u8; 3] { self.data }
 
     #[inline(always)]
     pub(super) const fn with_data(mut self, data: [u8; 3]) -> Self {
@@ -428,12 +425,12 @@ impl Block {
         };
 
         if self
-            .get_attr::<sprite::LightDisabled>()
-            .map_or(false, |l| l.0)
+            .get_attr::<sprite::LightEnabled>()
+            .map_or(true, |l| l.0)
         {
-            None
-        } else {
             Some(glow_level)
+        } else {
+            None
         }
     }
 
@@ -636,7 +633,7 @@ impl Block {
 
     /// Apply a light toggle to this block, if possible
     pub fn with_toggle_light(self, enable: bool) -> Option<Self> {
-        self.with_attr(sprite::LightDisabled(!enable)).ok()
+        self.with_attr(sprite::LightEnabled(enable)).ok()
     }
 
     #[inline]
@@ -662,7 +659,7 @@ impl Block {
     #[must_use]
     pub fn into_vacant(self) -> Self {
         if self.is_fluid() {
-            Block::new(self.kind(), Rgb::zero())
+            Block::unfilled(self.kind(), SpriteKind::Empty)
         } else {
             // FIXME: Figure out if there's some sensible way to determine what medium to
             // replace a filled block with if it's removed.
@@ -698,7 +695,7 @@ mod tests {
     #[test]
     fn convert_u32() {
         for bk in BlockKind::iter() {
-            let block = Block::new(bk, Rgb::new(165, 90, 204)); // Pretty unique bit patterns
+            let block = Block::from_raw(bk, [165, 90, 204]); // Pretty unique bit patterns
             if bk.is_filled() {
                 assert_eq!(Block::from_u32(block.to_u32()), Some(block));
             } else {

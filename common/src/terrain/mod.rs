@@ -286,7 +286,7 @@ impl TerrainChunk {
     pub fn water(sea_level: i32) -> TerrainChunk {
         TerrainChunk::new(
             sea_level,
-            Block::new(BlockKind::Water, Rgb::zero()),
+            Block::water(SpriteKind::Empty),
             Block::air(SpriteKind::Empty),
             TerrainChunkMeta::void(),
         )
