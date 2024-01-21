@@ -1420,8 +1420,8 @@ impl Client {
     }
 
     pub fn toggle_sprite_light(&mut self, pos: VolumePos, enable: bool) {
-        self.send_msg(ClientGeneral::ControlEvent(
-            ControlEvent::ToggleSpriteLight(pos, enable),
+        self.control_action(ControlAction::InventoryAction(
+            InventoryAction::ToggleSpriteLight(pos, enable),
         ));
     }
 

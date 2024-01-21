@@ -40,6 +40,9 @@ pub enum InventoryAction {
     Use(Slot),
     Sort,
     Collect(Vec3<i32>),
+    // TODO: Not actually inventory-related: refactor to allow sprite interaction without
+    // inventory manipulation!
+    ToggleSpriteLight(VolumePos, bool),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -159,7 +162,6 @@ pub enum ControlEvent {
         new_ability: ability::AuxiliaryAbility,
     },
     ActivatePortal(Uid),
-    ToggleSpriteLight(VolumePos, bool),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

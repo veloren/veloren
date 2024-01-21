@@ -20,7 +20,7 @@ use common::{
     },
     event::EventBus,
     link::Is,
-    mounting::{Mount, Mounting, Rider, Volume, VolumeMounting, VolumePos, VolumeRider},
+    mounting::{Mount, Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
     outcome::Outcome,
     rtsim::RtSimEntity,
     terrain::{Block, SpriteKind},
@@ -473,23 +473,23 @@ pub fn handle_tame_pet(server: &mut Server, pet_entity: EcsEntity, owner_entity:
 pub fn handle_toggle_sprite_light(
     server: &mut Server,
     entity: EcsEntity,
-    pos: VolumePos,
+    pos: Vec3<i32>,
     enable: bool,
 ) {
     let state = server.state_mut();
     // TODO: Implement toggling lights on volume entities
     if let Some(entity_pos) = state.ecs().read_storage::<Pos>().get(entity)
-        && matches!(&pos.kind, Volume::Terrain)
-        && entity_pos.0.distance_squared(pos.pos.as_()) < MAX_INTERACT_RANGE.powi(2)
-        && state.can_set_block(pos.pos)
+        && entity_pos.0.distance_squared(pos.as_()) < MAX_INTERACT_RANGE.powi(2)
+        && state.can_set_block(pos)
     {
         if let Some(new_block) = state
             .terrain()
-            .get(pos.pos)
+            .get(pos)
             .ok()
             .and_then(|block| block.with_toggle_light(enable))
         {
-            state.set_block(pos.pos, new_block);
+            state.set_block(pos, new_block);
+            // TODO: Emit outcome
         }
     }
 }

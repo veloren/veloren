@@ -340,7 +340,7 @@ pub enum ServerEvent {
     },
     ToggleSpriteLight {
         entity: EcsEntity,
-        pos: VolumePos,
+        pos: Vec3<i32>,
         enable: bool,
     },
 }

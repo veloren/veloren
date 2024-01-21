@@ -160,7 +160,7 @@ macro_rules! sprites {
             }
 
             #[inline] pub(super) fn to_initial_bytes(self) -> [u8; 3] {
-                let sprite_bytes = (*self as u32).to_be_bytes();
+                let sprite_bytes = (self as u32).to_be_bytes();
                 let block = Block::from_raw(super::BlockKind::Air, [sprite_bytes[1], sprite_bytes[2], sprite_bytes[3]]);
                 match self.category() {
                     $(Category::$category_name => block$($(.with_attr($attr::default()).unwrap())*)?,)*

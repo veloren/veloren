@@ -140,13 +140,6 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::StartTeleporting { entity, portal });
                         }
                     },
-                    ControlEvent::ToggleSpriteLight(pos, enable) => {
-                        server_emitter.emit(ServerEvent::ToggleSpriteLight {
-                            entity,
-                            pos,
-                            enable,
-                        });
-                    },
                 }
             }
         }
