@@ -370,6 +370,7 @@ pub enum ConsumableKind {
     Drink,
     Food,
     ComplexFood,
+    Charm,
 }
 
 impl ItemKind {

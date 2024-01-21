@@ -5181,9 +5181,9 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Hastened => imgs.buff_haste_0,
         BuffKind::Fortitude => imgs.buff_fortitude_0,
         BuffKind::Reckless => imgs.buff_reckless,
-        BuffKind::Flame => imgs.debuff_burning_0,
-        BuffKind::Frigid => imgs.debuff_frozen_0,
-        BuffKind::Lifesteal => imgs.buff_plus_0,
+        BuffKind::Flame => imgs.buff_flame,
+        BuffKind::Frigid => imgs.buff_frigid,
+        BuffKind::Lifesteal => imgs.buff_lifesteal,
         // TODO: Get image
         // BuffKind::SalamanderAspect => imgs.debuff_burning_0,
         BuffKind::ImminentCritical => imgs.buff_imminentcritical,

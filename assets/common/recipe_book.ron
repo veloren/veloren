@@ -2330,4 +2330,31 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+    "burning_charm": (
+        output: ("common.items.charms.burning_charm", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 5, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
+    "frozen_charm": (
+        output: ("common.items.charms.frozen_charm", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 5, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
+            (Item("common.items.crafting_ing.animal_misc.icy_fang"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
+    "lifesteal_charm": (
+        output: ("common.items.charms.lifesteal_charm", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cloth_strips"), 5, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 3, false),
+            (Item("common.items.crafting_ing.sentient_seed"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
 }
