@@ -555,3 +555,262 @@ common-items-npc_armor-biped_large-yeti = Yeti Hide
 
 common-items-npc_armor-biped_large-haniwageneral = Haniwa General Uniform
     .desc = Has seen combat.
+    
+armor-leather_blue-pants = Blue Leather Cuirass
+    .desc = {""}
+
+armor-leather_blue-back = Blue Traveler Coat
+    .desc = {""}
+
+armor-velorite_battlemage-back = Velorite Battlemage Cloak
+    .desc = Keeps your shoulders warm.
+
+armor-velorite_battlemage-belt = Velorite Battlemage Belt
+    .desc = {""}
+
+armor-velorite_battlemage-chest = Velorite Battlemage Vest
+    .desc = {""}
+
+armor-velorite_battlemage-foot = Velorite Battlemage Boots
+    .desc = {""}
+
+armor-velorite_battlemage-hand = Velorite Battlemage Gauntlets
+    .desc = {""}
+
+armor-velorite_battlemage-pants = Velorite Battlemage Kilt
+    .desc = {""}
+
+armor-velorite_battlemage-shoulder = Velorite Battlemage Guards
+    .desc = {""}
+
+armor-cardinal-belt = Cardinal's Belt
+    .desc = Seemlessly transitions...
+
+armor-cardinal-chest = Cardinal's Cloak
+    .desc = A part of the cardinal's exquisite cloak.
+
+armor-cardinal-foot = Cardinal's Boots
+    .desc = The boots with millions of steps.
+
+armor-cardinal-hand = Cardinal's Gloves
+    .desc = Bloodstained and rugged.
+
+armor-cardinal-mitre = Cardinal Mitre
+    .desc = Induces respect.
+
+armor-cardinal-pants = Cardinal's Jeans
+    .desc = Pants with many experiences.
+
+armor-cardinal-shoulder = Cardinal's Shoulderguard
+    .desc = The other was lost in a vicious fight.
+
+armor-merchant-back = Merchant Backpack
+    .desc = {""}
+
+armor-merchant-belt = Merchant Belt
+    .desc = {""}
+
+armor-merchant-chest = Merchant Jacket
+    .desc = {""}
+
+armor-merchant-foot = Merchant Boots
+    .desc = {""}
+
+armor-merchant-hand = Merchant Gloves
+    .desc = {""}
+
+armor-merchant-pants = Merchant Pants
+    .desc = {""}
+
+armor-merchant-shoulder_l = Merchant Mantle
+    .desc = {""}
+
+common-items-armor-alchemist-belt = Alchemist Belt
+    .desc = {""}
+
+common-items-armor-alchemist-chest = Alchemist Jacket
+    .desc = {""}
+
+common-items-armor-alchemist-hat = Alchemist Hat
+    .desc = It seems like a parrot was perched up here.
+
+common-items-armor-alchemist-pants = Alchemist Pants
+    .desc = {""}
+
+common-items-armor-misc-head-headband = Headband
+    .desc = A simple headband, it's nothing special.
+
+common-items-armor-witch-back = Witch Cape
+    .desc = {""}
+
+common-items-armor-witch-belt = Witch Belt
+    .desc = {""}
+
+common-items-armor-witch-chest = Witch Robe
+    .desc = {""}
+
+common-items-armor-witch-foot = Witch Boots
+    .desc = {""}
+
+common-items-armor-witch-hand = Witch Handwarmers
+    .desc = {""}
+
+common-items-armor-witch-pants = Witch Skirt
+    .desc = {""}
+
+common-items-armor-witch-shoulder = Witch Mantle
+    .desc = {""}
+
+common-items-armor-pirate-belt = Pirate Belt
+    .desc = {""}
+
+common-items-armor-pirate-chest = Pirate Jacket
+    .desc = {""}
+
+common-items-armor-pirate-foot = Pirate Boots
+    .desc = {""}
+
+common-items-armor-pirate-hand = Pirate Gloves
+    .desc = {""}
+
+common-items-armor-pirate-pants = Pirate Pants
+    .desc = {""}
+
+common-items-armor-pirate-shoulder = Pirate Mantle
+    .desc = {""}
+
+armor-miner-helmet = Miner Helmet
+    .desc = Someone carved 'Mine!' into the inside.
+
+common-items-armor-miner-back = Miner's Backpack
+    .desc = Battered from heavy rocks being carried inside.
+
+common-items-armor-miner-belt = Miner's Belt
+    .desc = {""}
+
+common-items-armor-miner-chest = Miner's Vestment
+    .desc = Rock dust is covering most of the leather parts.
+
+common-items-armor-miner-foot = Miner's Footwear
+    .desc = Someone carved 'Mine!' into the inside.
+
+common-items-armor-miner-hand = Miner's Gloves
+    .desc = Someone carved 'Mine!' into the inside.
+
+common-items-armor-miner-pants = Miner's pantaloons
+    .desc = {""}
+
+common-items-armor-miner-shoulder = Miner's Pauldrons
+    .desc = Protects Cave-in and out.
+
+common-items-armor-miner-shoulder_captain = Captain's Pauldrons
+    .desc = {""}
+
+common-items-armor-miner-shoulder_flame = Flamekeeper's Pauldrons
+    .desc = {""}
+
+common-items-armor-miner-shoulder_overseer = Overseer's Pauldrons
+    .desc = {""}
+
+common-items-armor-chef-belt = Chef Belt
+    .desc = {""}
+
+common-items-armor-chef-chest = Chef Jacket
+    .desc = {""}
+
+common-items-armor-chef-hat = Chef Hat
+    .desc = {""}
+
+common-items-armor-chef-pants = Chef Pants
+    .desc = {""}
+
+common-items-armor-blacksmith-belt = Blacksmith Belt
+    .desc = {""}
+
+common-items-armor-blacksmith-chest = Blacksmith Jacket
+    .desc = {""}
+
+common-items-armor-blacksmith-hand = Blacksmith Gloves
+    .desc = {""}
+
+common-items-armor-blacksmith-hat = Blacksmith Hat
+    .desc = {""}
+
+common-items-armor-blacksmith-pants = Blacksmith Pants
+    .desc = {""}
+
+common-items-armor-leather_plate-helmet = Leather Plate Helmet
+    .desc = Leather adorned with steel for better protection.
+
+armor-assassin-belt = Assassin Belt
+    .desc = Only the best for a member of the creed.
+
+armor-assassin-chest = Assassin Chest
+    .desc = Only the best for a member of the creed.
+
+armor-assassin-foot = Assassin Boots
+    .desc = Only the best for a member of the creed.
+
+armor-assassin-hand = Assassin Gloves
+    .desc = Only the best for a member of the creed.
+
+armor-misc-head-assa_mask-0 = Dark Assassin Mask
+    .desc = A general assassination mask preventing the wearer from being identified.
+
+armor-assassin-pants = Assassin Pants
+    .desc = Only the best for a member of the creed.
+
+armor-assassin-shoulder = Assassin Shoulder Guard
+    .desc = Only the best for a member of the creed.
+
+armor-ferocious-back = Ferocious Mantle
+    .desc = The dark side of nature.
+
+armor-ferocious-belt = Ferocious Sash
+    .desc = The dark side of nature.
+
+armor-ferocious-chest = Ferocious Shirt
+    .desc = The dark side of nature.
+
+armor-ferocious-foot = Ferocious Waraji
+    .desc = The dark side of nature.
+
+armor-ferocious-hand = Ferocious Wraps
+    .desc = The dark side of nature.
+
+armor-ferocious-pants = Ferocious Shorts
+    .desc = The dark side of nature.
+
+armor-ferocious-shoulder = Ferocious Guards
+    .desc = The dark side of nature.
+
+armor-bonerattler-belt = Bonerattler Belt
+    .desc = Sections of vertebrae fastened together with hide and a bonerattler eye for the buckle.
+
+armor-bonerattler-chest = Bonerattler Cuirass
+    .desc = The spiny back and hide of a bonerattler fastened together into a protective cuirass.
+
+armor-bonerattler-foot = Bonerattler Boots
+    .desc = Boots made from the claws and hide of a bonerattler.
+
+armor-bonerattler-hand = Bonerattler Gauntlets
+    .desc = The hide and bone from a bonerattler provide strong protection for the wearer.
+
+armor-bonerattler-pants = Bonerattler Chausses
+    .desc = Assorted bones and hide from a bonerattler provide protection around the wearer's legs.
+
+armor-bonerattler-shoulder = Bonerattler Shoulder Pad
+    .desc = Roughly formed bonerattler hide provide some strong protection.
+
+armor-misc-head-exclamation = Exclamation hat
+    .desc = You feel like bestowing quests.
+
+armor-misc-foot-iceskate = Ice Skates
+    .desc = Best used on a frozen lake.
+
+armor-misc-foot-jackalope = Fluffy Jackalope Slippers
+    .desc = So warm and cozy!
+
+armor-misc-foot-ski = Wooden skis
+    .desc = Best used downhill on snow.
+    
