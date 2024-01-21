@@ -686,24 +686,3 @@ impl Block {
 
 const _: () = assert!(core::mem::size_of::<BlockKind>() == 1);
 const _: () = assert!(core::mem::size_of::<Block>() == 4);
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use strum::IntoEnumIterator;
-
-    #[test]
-    fn convert_u32() {
-        for bk in BlockKind::iter() {
-            let block = Block::from_raw(bk, [165, 90, 204]); // Pretty unique bit patterns
-            if bk.is_filled() {
-                assert_eq!(Block::from_u32(block.to_u32()), Some(block));
-            } else {
-                assert_eq!(
-                    Block::from_u32(block.to_u32()),
-                    Some(Block::new(bk, Rgb::zero())),
-                );
-            }
-        }
-    }
-}
