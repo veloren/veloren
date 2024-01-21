@@ -785,6 +785,9 @@ image_ids! {
         buff_fury: "voxygen.element.de_buffs.buff_fury",
         buff_sunderer: "voxygen.element.de_buffs.buff_sunderer",
         buff_defiance: "voxygen.element.de_buffs.buff_defiance",
+        buff_lifesteal: "voxygen.element.de_buffs.buff_lifesteal",
+        buff_flame: "voxygen.element.de_buffs.buff_flame",
+        buff_frigid: "voxygen.element.de_buffs.buff_frigid",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
