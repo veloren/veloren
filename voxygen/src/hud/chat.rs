@@ -709,9 +709,9 @@ impl<'a> Widget for Chat<'a> {
         } else if keyboard_capturer == Some(id) {
             events.push(Event::Focus(state.ids.chat_input));
         }
-        // If enter is pressed and the input box is not empty, send the current message.
+        // If either Return or Enter is pressed and the input box is not empty, send the current message.
         else if ui.widget_input(state.ids.chat_input).presses().key().any(
-            |key_press| matches!(key_press.key, Key::Return if !state.input.message.is_empty()),
+            |key_press| matches!(key_press.key, Key::Return | Key::NumPadEnter if !state.input.message.is_empty()),
         ) {
             let msg = state.input.message.clone();
             state.update(|s| {
