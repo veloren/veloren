@@ -1,26 +1,3 @@
-
-### Note to translators.
-### Translating this will be *a lot* of work. Concentrate on what's important.
-### We don't want you to burn out on 10% of this file and never want to
-### contribute.
-###
-### These files were automatically generated for all possible items in code.
-### Some of them are hidden from players, some are only possible to get via
-### commands and some simply aren't used anywhere.
-###
-### Start with other files, translate them first and then maybe come back here.
-### If you really want to translate items, start with some subset you know is
-### actually used by players.
-
-armor-leather_blue-pants = Blue Leather Cuirass
-    .desc = {""}
-
-armor-misc-back-backpack = Rugged Backpack
-    .desc = Keeps all your stuff together.
-
-armor-leather_blue-back = Blue Traveler Coat
-    .desc = {""}
-
 armor-hide-carapace-back = Carapace Cape
     .desc = Made from the shell that once shielded a beast.
 
@@ -171,27 +148,6 @@ armor-cloth_blue-shoulder_0 = Blue Linen Coat
 armor-cloth_blue-shoulder_1 = Blue Cloth Pads
     .desc = Simple shoulderpads made from blue cloth.
 
-armor-velorite_battlemage-back = Velorite Battlemage Cloak
-    .desc = Keeps your shoulders warm.
-
-armor-velorite_battlemage-belt = Velorite Battlemage Belt
-    .desc = {""}
-
-armor-velorite_battlemage-chest = Velorite Battlemage Vest
-    .desc = {""}
-
-armor-velorite_battlemage-foot = Velorite Battlemage Boots
-    .desc = {""}
-
-armor-velorite_battlemage-hand = Velorite Battlemage Gauntlets
-    .desc = {""}
-
-armor-velorite_battlemage-pants = Velorite Battlemage Kilt
-    .desc = {""}
-
-armor-velorite_battlemage-shoulder = Velorite Battlemage Guards
-    .desc = {""}
-
 armor-boreal-back = Boreal Cloak
     .desc = Thick yet surprisingly cold.
 
@@ -212,27 +168,6 @@ armor-boreal-pants = Boreal Tunic
 
 armor-boreal-shoulder = Boreal Spaulders
     .desc = As though the icy grip of death touches your shoulder.
-
-armor-assassin-belt = Assassin Belt
-    .desc = Only the best for a member of the creed.
-
-armor-assassin-chest = Assassin Chest
-    .desc = Only the best for a member of the creed.
-
-armor-assassin-foot = Assassin Boots
-    .desc = Only the best for a member of the creed.
-
-armor-assassin-hand = Assassin Gloves
-    .desc = Only the best for a member of the creed.
-
-armor-misc-head-assa_mask-0 = Dark Assassin Mask
-    .desc = A general assassination mask preventing the wearer from being identified.
-
-armor-assassin-pants = Assassin Pants
-    .desc = Only the best for a member of the creed.
-
-armor-assassin-shoulder = Assassin Shoulder Guard
-    .desc = Only the best for a member of the creed.
 
 armor-brinestone-back = Brinestone Cloak
     .desc = It's not weak.
@@ -258,20 +193,11 @@ armor-brinestone-pants = Brinestone Pants
 armor-brinestone-shoulder = Brinestone Pads
     .desc = Almost too heavy.
 
-armor-misc-foot-iceskate = Ice Skates
-    .desc = Best used on a frozen lake.
-
-armor-misc-foot-jackalope = Fluffy Jackalope Slippers
-    .desc = So warm and cozy!
-
 armor-misc-foot-cloth_sandal = Worn out Sandals
     .desc = Loyal companions, though they don't look like they can go much further.
 
-armor-misc-foot-ski = Wooden skis
-    .desc = Best used downhill on snow.
-
 armor-misc-neck-abyssal_gorget = Abyssal Gorget
-    .desc = Harnessed vigour of the tides
+    .desc = Harnessed vigour of the tides.
 
 armor-misc-neck-amethyst = Amethyst Necklace
     .desc = A tin necklace lined with amethyst gems.
@@ -316,7 +242,7 @@ armor-misc-neck-scratched = Scratched Necklace
     .desc = A shoddy necklace with a string about to snap...
 
 armor-misc-neck-shell = Seashell Necklace
-    .desc = Contains the guardian aura of the ocean
+    .desc = Contains the guardian aura of the ocean.
 
 armor-misc-neck-topaz = Topaz Necklace
     .desc = A copper necklace, with topaz embedded in the center.
@@ -332,9 +258,6 @@ armor-misc-head-boreal_warhelm = Boreal Warhelmet
 
 armor-misc-head-crown = Crown
     .desc = A crown fit for royal stature.
-
-armor-misc-head-exclamation = Exclamation hat
-    .desc = You feel like bestowing quests.
 
 armor-misc-head-facegourd = Facegourd
     .desc = Pumpkin Head.
@@ -387,9 +310,6 @@ armor-misc-pants-worker_blue = Blue Worker Pants
 armor-misc-pants-worker_brown = Comfortable Worker Pants
     .desc = Resilient and reliable.
 
-armor-tabard_admin = Admin's Tabard
-    .desc = With great power comes great responsibility.
-
 armor-misc-shoulder-iron_spikes = Iron Spiked Pauldrons
     .desc = The heavy, rough iron plate has an interlocking spikes shoved through several slots in the center to dissuade attackers.
 
@@ -414,31 +334,31 @@ armor-misc-chest-worker_green = Green Worker Shirt
 armor-misc-chest-shirt_white = Green Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-worker_green-worker_orange_0 = Orange Worker Shirt
+armor-misc-chest-worker_orange_0 = Orange Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-shirt_white-worker_orange_1 = Orange Worker Shirt
+armor-misc-chest-worker_orange_1 = Orange Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-worker_green-worker_purple_0 = Purple Worker Shirt
+armor-misc-chest-worker_purple_0 = Purple Worker Shirt
     .desc = Resilient and reliable.
 
-armor-misc-chest-shirt_white-worker_purple_1 = Purple Worker Shirt
+armor-misc-chest-worker_purple_1 = Purple Worker Shirt
     .desc = Was used by a farmer, until recently.
 
 armor-misc-chest-worker_purp_brown = Purple Worker Shirt
     .desc = Resilient and reliable.
 
-armor-misc-chest-worker_green-worker_red_0 = Red Worker Shirt
+armor-misc-chest-worker_red_0 = Red Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-shirt_white-worker_red_1 = Red Worker Shirt
+armor-misc-chest-worker_red_1 = Red Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-worker_green-worker_yellow_0 = Yellow Worker Shirt
+armor-misc-chest-worker_yellow_0 = Yellow Worker Shirt
     .desc = Was used by a farmer, until recently.
 
-armor-misc-chest-shirt_white-worker_yellow_1 = Yellow Worker Shirt
+armor-misc-chest-worker_yellow_1 = Yellow Worker Shirt
     .desc = Was used by a farmer, until recently.
 
 armor-misc-ring-amethyst = Amethyst Ring
@@ -465,53 +385,7 @@ armor-misc-ring-scratched = Scratched Ring
 armor-misc-ring-topaz = Topaz Ring
     .desc = A copper ring with a topaz gem.
 
-armor-misc-bag-heavy_seabag = Heavy Seabag
-    .desc = Commonly used by sailors.
-
-armor-misc-bag-knitted_red_pouch = Knitted Red Pouch
-    .desc = A sizeable red bag with two pouches, made of wool and dye.
-
-armor-misc-bag-liana_kit = Liana Kit
-    .desc = Woven from dried lianas.
-
-armor-misc-bag-mindflayer_spellbag = Mindflayer Spellbag
-    .desc = 
-        You can almost feel the Mindflayer's
-        evil presence flowing through the fabric.
-
-armor-misc-bag-reliable_backpack = Reliable Backpack
-    .desc = It will never give you up.
-
-armor-misc-bag-reliable_leather_pack = Reliable Leather Pack
-    .desc = It will never give you up.
-
-armor-misc-bag-soulkeeper_cursed = Cursed Soulkeeper
-    .desc = WIP
-
-armor-misc-bag-soulkeeper_pure = Purified Soulkeeper
-    .desc = WIP
-
-armor-misc-bag-sturdy_red_backpack = Sturdy Red Saddlebag
-    .desc = A truly reliable and sizeable bag, embroidered with amethyst and thick leather.
-
-armor-misc-bag-tiny_leather_pouch = Small Leather Pouch
-    .desc = A small reliable leather pouch.
-
-armor-misc-bag-tiny_red_pouch = Tiny Red Pouch
-    .desc = Made from multiple patches of dyed cloth.
-
-armor-misc-bag-troll_hide_pack = Trollhide Pack
-    .desc = Trolls were definitely hurt in the making of this.
-
-armor-misc-bag-woven_red_bag = Woven Red Bag
-    .desc = A moderately sized red bag. Although it still feels pretty cramped.
-
-armor-misc-back-admin = Admin's Cape
-    .desc = 
-        With great power comes
-        great responsibility.
-
-armor-misc-back-backpack-backpack = Traveler's Backpack
+armor-misc-back-backpack-traveler = Traveler's Backpack
     .desc = Comfortable and with enough capacity, its a hoarder's best friend.
 
 armor-misc-back-dungeon_purple = Purple Cultist Cape
@@ -549,48 +423,6 @@ armor-witch-hat = Witch Hat
 
 armor-pirate-hat = Pirate Hat
     .desc = It seems like a parrot was perched up here.
-
-armor-miner-helmet = Miner Helmet
-    .desc = Someone carved 'Mine!' into the inside.
-
-armor-bonerattler-belt = Bonerattler Belt
-    .desc = Sections of vertebrae fastened together with hide and a bonerattler eye for the buckle.
-
-armor-bonerattler-chest = Bonerattler Cuirass
-    .desc = The spiny back and hide of a bonerattler fastened together into a protective cuirass.
-
-armor-bonerattler-foot = Bonerattler Boots
-    .desc = Boots made from the claws and hide of a bonerattler.
-
-armor-bonerattler-hand = Bonerattler Gauntlets
-    .desc = The hide and bone from a bonerattler provide strong protection for the wearer.
-
-armor-bonerattler-pants = Bonerattler Chausses
-    .desc = Assorted bones and hide from a bonerattler provide protection around the wearer's legs.
-
-armor-bonerattler-shoulder = Bonerattler Shoulder Pad
-    .desc = Roughly formed bonerattler hide provide some strong protection.
-
-armor-cardinal-belt = Cardinal's Belt
-    .desc = Seemlessly transitions...
-
-armor-cardinal-chest = Cardinal's Cloak
-    .desc = A part of the cardinal's exquisite cloak.
-
-armor-cardinal-foot = Cardinal's Boots
-    .desc = The boots with millions of steps.
-
-armor-cardinal-hand = Cardinal's Gloves
-    .desc = Bloodstained and rugged.
-
-armor-cardinal-mitre = Cardinal Mitre
-    .desc = Induces respect.
-
-armor-cardinal-pants = Cardinal's Jeans
-    .desc = Pants with many experiences.
-
-armor-cardinal-shoulder = Cardinal's Shoulderguard
-    .desc = The other was lost in a vicious fight.
 
 armor-twigsleaves-belt = Leafy Belt
     .desc = Dried leaves cover over the standard twig belt, providing a slightly different texture.
@@ -689,22 +521,22 @@ armor-mail-cobalt-shoulder = Cobalt Shoulderguards
     .desc = Ornamental and impenetrable, the metal will never dull.
 
 armor-mail-bronze-back = Bronze Cloak
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-belt = Bronze Girdle
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-chest = Bronze Chestguard
     .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-foot = Bronze Shoes
-    .desc = 'Heavy and dull, but it can take a punch.
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-hand = Bronze Gauntlets
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-pants = Bronze Pantalons
-    .desc = 'Heavy and dull, but it can take a punch.'
+    .desc = Heavy and dull, but it can take a punch.
 
 armor-mail-bronze-shoulder = Bronze Guards
     .desc = Heavy and dull, but it can take a punch.
@@ -813,27 +645,6 @@ armor-cloth_green-pants = Green Linen Skirt
 
 armor-cloth_green-shoulder = Green Linen Coat
     .desc = A rough fabric coat, dyed green.
-
-armor-merchant-back = Merchant Backpack
-    .desc = {""}
-
-armor-merchant-belt = Merchant Belt
-    .desc = {""}
-
-armor-merchant-chest = Merchant Jacket
-    .desc = {""}
-
-armor-merchant-foot = Merchant Boots
-    .desc = {""}
-
-armor-merchant-hand = Merchant Gloves
-    .desc = {""}
-
-armor-merchant-pants = Merchant Pants
-    .desc = {""}
-
-armor-merchant-shoulder_l = Merchant Mantle
-    .desc = {""}
 
 armor-merchant-turban = Impressive Turban
     .desc = An incredibly fancy and light-weight turban, quite expensive too.
@@ -1026,61 +837,6 @@ armor-cloth-druid-pants = Druid Leggings
 
 armor-cloth-druid-shoulder = Druid Shoulderpads
     .desc = Incredibly light, with the essence of nature.
-
-armor-ferocious-back = Ferocious Mantle
-    .desc = The dark side of nature
-
-armor-ferocious-belt = Ferocious Sash
-    .desc = The dark side of nature
-
-armor-ferocious-chest = Ferocious Shirt
-    .desc = The dark side of nature
-
-armor-ferocious-foot = Ferocious Waraji
-    .desc = The dark side of nature
-
-armor-ferocious-hand = Ferocious Wraps
-    .desc = The dark side of nature
-
-armor-ferocious-pants = Ferocious Shorts
-    .desc = The dark side of nature
-
-armor-ferocious-shoulder = Ferocious Guards
-    .desc = The dark side of nature
-
-armor-tabard_admin-admin = Admin's Tabard
-    .desc = 
-        With great power comes
-        great responsibility.
-
-armor-misc-back-admin-admin_back = Admin's Cape
-    .desc = 
-        With great power comes
-        great responsibility.
-
-armor-misc-bag-admin_black_hole = Admin's Black Hole
-    .desc = They say it will fit anything.
-
-armor-velorite_battlemage-belt-cultist_belt = Velorite Belt
-    .desc = {""}
-
-armor-velorite_battlemage-foot-cultist_boots = Velorite Boots
-    .desc = {""}
-
-armor-velorite_battlemage-chest-cultist_chest_blue = Velorite Chest
-    .desc = {""}
-
-armor-velorite_battlemage-hand-cultist_hands_blue = Velorite Gloves
-    .desc = {""}
-
-armor-velorite_battlemage-pants-cultist_legs_blue = Velorite Skirt
-    .desc = {""}
-
-armor-velorite_battlemage-shoulder-cultist_shoulder_blue = Velorite Mantle
-    .desc = {""}
-
-armor-velorite_battlemage-back-dungeon_purple = Velorite Admin Cape
-    .desc = Where did I put my banhammer again?
 
 armor-misc-head-woolly_wintercap = Woolly Wintercap
     .desc = Simple, stylish, and festive.
