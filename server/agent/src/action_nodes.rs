@@ -713,7 +713,7 @@ impl<'a> AgentData<'a> {
                 },
                 Effect::Buff(BuffEffect { kind, data, .. }) => {
                     if let Some(duration) = data.duration {
-                        for effect in kind.effects(data, self.stats, self.health) {
+                        for effect in kind.effects(data, self.stats) {
                             match effect {
                                 comp::BuffEffect::HealthChangeOverTime { rate, kind, .. } => {
                                     let amount = match kind {

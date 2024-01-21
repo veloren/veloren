@@ -4,7 +4,7 @@ use crate::{
         AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
         DamagedEffect,
     },
-    comp::{aura::AuraKey, Health, Stats},
+    comp::{aura::AuraKey, Stats},
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -70,12 +70,12 @@ pub enum BuffKind {
     /// 50% increase, 1.0 is a 100% increase.
     Hastened,
     /// Increases resistance to incoming poise, and poise damage dealt as health
-    /// is lost from the time the buff activated.
+    /// is lost.
     /// Strength scales the resistance non-linearly. 0.5 provides 50%, 1.0
     /// provides 67%.
     /// Strength scales the poise damage increase linearly, a strength of 1.0
-    /// and n health less from activation will cause poise damage to increase by
-    /// n%.
+    /// and n health less from maximum health will cause poise damage to
+    /// increase by n%.
     Fortitude,
     /// Increases both attack damage and vulnerability to damage.
     /// Damage increases linearly with strength, 1.0 is a 100% increase.
@@ -268,12 +268,7 @@ impl BuffKind {
     /// only the strongest.
     pub fn stacks(self) -> bool { matches!(self, BuffKind::PotionSickness) }
 
-    pub fn effects(
-        &self,
-        data: &BuffData,
-        stats: Option<&Stats>,
-        health: Option<&Health>,
-    ) -> Vec<BuffEffect> {
+    pub fn effects(&self, data: &BuffData, stats: Option<&Stats>) -> Vec<BuffEffect> {
         // Normalized nonlinear scaling
         let nn_scaling = |a| a / (a + 0.5);
         let instance = rand::random();
@@ -392,10 +387,7 @@ impl BuffKind {
             ],
             BuffKind::Fortitude => vec![
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
-                BuffEffect::PoiseDamageFromLostHealth {
-                    initial_health: health.map_or(0.0, |h| h.current()),
-                    strength: data.strength,
-                },
+                BuffEffect::PoiseDamageFromLostHealth(data.strength),
             ],
             BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
             //TODO: Handle potion sickness in a more general way.
@@ -601,10 +593,7 @@ pub enum BuffEffect {
     /// Reduces amount of speed increase by consumables
     MoveSpeedReduction(f32),
     /// Increases poise damage dealt when health is lost
-    PoiseDamageFromLostHealth {
-        initial_health: f32,
-        strength: f32,
-    },
+    PoiseDamageFromLostHealth(f32),
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
     /// Overrides the precision multiplier applied to an attack
@@ -679,9 +668,8 @@ impl Buff {
         source: BuffSource,
         time: Time,
         stats: Option<&Stats>,
-        health: Option<&Health>,
     ) -> Self {
-        let effects = kind.effects(&data, stats, health);
+        let effects = kind.effects(&data, stats);
         let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids
@@ -940,7 +928,6 @@ pub mod tests {
             Vec::new(),
             BuffSource::Unknown,
             time,
-            None,
             None,
         )
     }

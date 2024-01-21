@@ -7,7 +7,7 @@ DiveMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Slash(
-            damage: 30,
+            damage: 25,
             poise: 40,
             knockback: 0,
             energy_regen: 0,

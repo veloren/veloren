@@ -4287,7 +4287,6 @@ fn cast_buff(buffkind: BuffKind, data: BuffData, server: &mut Server, target: Ec
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     let stats = ecs.read_storage::<comp::Stats>();
-    let healths = ecs.read_storage::<comp::Health>();
     let time = ecs.read_resource::<Time>();
     if let Some(mut buffs) = buffs_all.get_mut(target) {
         buffs.insert(
@@ -4298,7 +4297,6 @@ fn cast_buff(buffkind: BuffKind, data: BuffData, server: &mut Server, target: Ec
                 BuffSource::Command,
                 *time,
                 stats.get(target),
-                healths.get(target),
             ),
             *time,
         );

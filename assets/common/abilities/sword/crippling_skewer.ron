@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Stab(
-                    damage: 15,
+                    damage: 14,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 0,
@@ -13,7 +13,7 @@ ComboMelee2(
                 damage_effect: Some(Buff((
                     kind: Bleeding,
                     dur_secs: 8.0,
-                    strength: DamageFraction(0.25),
+                    strength: DamageFraction(0.15),
                     chance: 1.0,
                 ))),
             ),

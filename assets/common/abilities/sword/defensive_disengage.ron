@@ -3,12 +3,12 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 10,
-                    poise: 5,
+                    damage: 0,
+                    poise: 0,
                     knockback: 0,
                     energy_regen: 0,
                 ),
-                range: 6.0,
+                range: 4.0,
                 angle: 45.0,
             ),
             buildup_duration: 0.05,
@@ -26,6 +26,5 @@ ComboMelee2(
     energy_cost_per_strike: 0,
     meta: (
         init_event: Some(EnterStance(Sword(Defensive))),
-        capabilities: ("BLOCKS"),
     ),
 )

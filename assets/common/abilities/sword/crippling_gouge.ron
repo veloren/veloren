@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 16,
+                    damage: 12,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 0,
@@ -12,8 +12,8 @@ ComboMelee2(
                 angle: 45.0,
                 damage_effect: Some(Buff((
                     kind: Bleeding,
-                    dur_secs: 4.0,
-                    strength: DamageFraction(0.4),
+                    dur_secs: 5.0,
+                    strength: DamageFraction(0.25),
                     chance: 1.0,
                 ))),
             ),

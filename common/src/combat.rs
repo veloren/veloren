@@ -157,7 +157,7 @@ impl Attack {
             let damage_reduction = (1.0 - attacker_penetration) * raw_damage_reduction;
             let block_reduction =
                 if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
-                    if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {
+                    if ori.look_vec().angle_between(-dir.with_z(0.0)) < char_state.block_angle() {
                         if char_state.is_parry(source) {
                             emit_outcome(Outcome::Block {
                                 parry: true,
@@ -391,7 +391,6 @@ impl Attack {
                                         time,
                                         attacker.map(|a| a.uid),
                                         target.stats,
-                                        target.health,
                                         applied_damage,
                                         strength_modifier,
                                     )),
@@ -611,7 +610,6 @@ impl Attack {
                                     time,
                                     attacker.map(|a| a.uid),
                                     target.stats,
-                                    target.health,
                                     accumulated_damage,
                                     strength_modifier,
                                 )),
@@ -1179,7 +1177,6 @@ impl CombatBuff {
         time: Time,
         uid: Option<Uid>,
         tgt_stats: Option<&Stats>,
-        tgt_health: Option<&Health>,
         damage: f32,
         strength_modifier: f32,
     ) -> Buff {
@@ -1199,7 +1196,6 @@ impl CombatBuff {
             source,
             time,
             tgt_stats,
-            tgt_health,
         )
     }
 }

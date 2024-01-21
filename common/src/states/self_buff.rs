@@ -127,7 +127,6 @@ impl CharacterBehavior for Data {
                         BuffSource::Character { by: *data.uid },
                         *data.time,
                         Some(data.stats),
-                        data.health,
                     );
                     output_events.emit_server(ServerEvent::Buff {
                         entity: data.entity,
