@@ -6,6 +6,7 @@ use common::{
     comp::{
         self,
         agent::{AgentEvent, Sound, SoundKind},
+        controller::BlockInteraction,
         dialogue::Subject,
         inventory::slot::EquipSlot,
         item::{flatten_counted_items, MaterialStatManifest},
@@ -20,7 +21,7 @@ use common::{
     },
     event::EventBus,
     link::Is,
-    mounting::{Mount, Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
+    mounting::{Mount, Mounting, Rider, Volume, VolumeMounting, VolumePos, VolumeRider},
     outcome::Outcome,
     rtsim::RtSimEntity,
     terrain::{Block, SpriteKind},
@@ -194,7 +195,7 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
                 block,
                 rider,
             }).is_ok();
-            #[cfg(feature = "worldgen")] 
+            #[cfg(feature = "worldgen")]
             if _link_successful {
                 let uid_allocator = state.ecs().read_resource::<IdMaps>();
                 if let Some(rider_entity) = uid_allocator.uid_entity(rider)
@@ -468,4 +469,27 @@ pub fn handle_tame_pet(server: &mut Server, pet_entity: EcsEntity, owner_entity:
     // TODO: Raise outcome to send to clients to play sound/render an indicator
     // showing taming success?
     tame_pet(server.state.ecs(), pet_entity, owner_entity);
+}
+
+pub fn handle_block_interaction(
+    server: &mut Server,
+    _entity: EcsEntity,
+    pos: VolumePos,
+    interaction: BlockInteraction,
+) {
+    let state = server.state_mut();
+    if matches!(&pos.kind, Volume::Terrain) {
+        if state.can_set_block(pos.pos) {
+            if let Some(new_block) = state
+                .terrain()
+                .get(pos.pos)
+                .ok()
+                .and_then(|block| block.apply_interaction(interaction))
+            {
+                state.set_block(pos.pos, new_block);
+            }
+        }
+    } else {
+        // TODO: Handle toggling lights on entities
+    }
 }

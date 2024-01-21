@@ -36,6 +36,7 @@ pub enum BlockInteraction {
     Mine(ToolKind),
     Mount,
     Read(Content),
+    LightToggle(bool),
 }
 
 #[derive(Clone, Debug)]
@@ -105,6 +106,7 @@ impl Interactable {
             },
             Interaction::Craft(tab) => BlockInteraction::Craft(tab),
             Interaction::Mount => BlockInteraction::Mount,
+            Interaction::LightToggle(enable) => BlockInteraction::LightToggle(enable),
         };
         Some(Self::Block(block, volume_pos, block_interaction))
     }

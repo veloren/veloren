@@ -1,6 +1,6 @@
 use crate::hud::CraftingTab;
 use common::{
-    terrain::{Block, BlockKind, SpriteKind},
+    terrain::{sprite, Block, BlockKind, SpriteKind},
     vol::ReadVol,
 };
 use common_base::span;
@@ -16,6 +16,7 @@ pub enum Interaction {
     Craft(CraftingTab),
     Mount,
     Read,
+    LightToggle(bool),
 }
 
 pub enum FireplaceType {
@@ -209,6 +210,11 @@ impl BlocksOfInterest {
                     )),
                     Some(SpriteKind::Sign | SpriteKind::HangingSign) => {
                         interactables.push((pos, Interaction::Read))
+                    },
+                    Some(sprite) if sprite.category() == sprite::Category::Lamp => {
+                        if let Ok(sprite::LightDisabled(disabled)) = block.get_attr() {
+                            interactables.push((pos, Interaction::LightToggle(disabled)));
+                        }
                     },
                     _ if block.is_mountable() => interactables.push((pos, Interaction::Mount)),
                     _ => {},

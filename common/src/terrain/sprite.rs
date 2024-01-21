@@ -120,18 +120,12 @@ sprites! {
         DungeonChest4     = 0x35,
         DungeonChest5     = 0x36,
         CoralChest        = 0x37,
-        HaniwaUrn       = 0x38,
+        HaniwaUrn         = 0x38,
         CommonLockedChest = 0x39,
         ChestBuried       = 0x3A,
         Crate             = 0x3B,
         Barrel            = 0x3C,
         CrateBlock        = 0x3D,
-        // Standalone lights
-        Lantern         = 0x40,
-        StreetLamp      = 0x41,
-        StreetLampTall  = 0x42,
-        SeashellLantern = 0x43,
-        FireBowlGround  = 0x44,
         // Wall
         HangingBasket     = 0x50,
         HangingSign       = 0x51,
@@ -355,20 +349,33 @@ sprites! {
         SeaDecorPillar   = 0x1E,
         MagicalSeal      = 0x1F,
     },
+    Lamp = 7 has Ori, LightDisabled {
+        // Standalone lights
+        Lantern         = 0,
+        StreetLamp      = 1,
+        StreetLampTall  = 2,
+        SeashellLantern = 3,
+        FireBowlGround  = 4,
+    },
 }
 
 attributes! {
     Ori { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
     Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
+    LightDisabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightDisabled(x)| x as u16 },
 }
 
-// The orientation of the sprite, 0..8
+// The orientation of the sprite, 0..16
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Ori(pub u8);
 
 // The growth of the plant, 0..16
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Growth(pub u8);
+
+// Whether a light has been toggled off.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct LightDisabled(pub bool);
 
 impl SpriteKind {
     #[inline]

@@ -1,6 +1,6 @@
 use super::{sprite, SpriteKind};
 use crate::{
-    comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
+    comp::{controller::BlockInteraction, fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
     lottery::LootSpec,
     make_case_elim, rtsim,
@@ -377,13 +377,13 @@ impl Block {
 
     #[inline]
     pub fn get_glow(&self) -> Option<u8> {
-        match self.kind() {
-            BlockKind::Lava => Some(24),
-            BlockKind::GlowingRock | BlockKind::GlowingWeakRock => Some(10),
-            BlockKind::GlowingMushroom => Some(20),
+        let glow_level = match self.kind() {
+            BlockKind::Lava => 24,
+            BlockKind::GlowingRock | BlockKind::GlowingWeakRock => 10,
+            BlockKind::GlowingMushroom => 20,
             _ => match self.get_sprite()? {
-                SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
-                SpriteKind::Ember | SpriteKind::FireBlock => Some(20),
+                SpriteKind::StreetLamp | SpriteKind::StreetLampTall => 24,
+                SpriteKind::Ember | SpriteKind::FireBlock => 20,
                 SpriteKind::WallLamp
                 | SpriteKind::WallLampSmall
                 | SpriteKind::WallSconce
@@ -391,8 +391,8 @@ impl Block {
                 | SpriteKind::ChristmasOrnament
                 | SpriteKind::CliffDecorBlock
                 | SpriteKind::Orb
-                | SpriteKind::Candle => Some(16),
-                SpriteKind::DiamondLight => Some(30),
+                | SpriteKind::Candle => 16,
+                SpriteKind::DiamondLight => 30,
                 SpriteKind::Velorite
                 | SpriteKind::VeloriteFrag
                 | SpriteKind::CavernGrassBlueShort
@@ -400,12 +400,12 @@ impl Block {
                 | SpriteKind::CavernGrassBlueLong
                 | SpriteKind::CavernLillypadBlue
                 | SpriteKind::CavernMycelBlue
-                | SpriteKind::CeilingMushroom => Some(6),
+                | SpriteKind::CeilingMushroom => 6,
                 SpriteKind::CaveMushroom
                 | SpriteKind::CookingPot
                 | SpriteKind::CrystalHigh
-                | SpriteKind::CrystalLow => Some(10),
-                SpriteKind::SewerMushroom => Some(16),
+                | SpriteKind::CrystalLow => 10,
+                SpriteKind::SewerMushroom => 16,
                 SpriteKind::Amethyst
                 | SpriteKind::Ruby
                 | SpriteKind::Sapphire
@@ -417,14 +417,23 @@ impl Block {
                 | SpriteKind::DiamondSmall
                 | SpriteKind::RubySmall
                 | SpriteKind::EmeraldSmall
-                | SpriteKind::SapphireSmall => Some(3),
-                SpriteKind::Lantern => Some(24),
-                SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => Some(16),
-                SpriteKind::SeaDecorEmblem => Some(12),
-                SpriteKind::SeaDecorBlock | SpriteKind::HaniwaKeyDoor => Some(10),
-                SpriteKind::Mine => Some(2),
-                _ => None,
+                | SpriteKind::SapphireSmall => 3,
+                SpriteKind::Lantern => 24,
+                SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
+                SpriteKind::SeaDecorEmblem => 12,
+                SpriteKind::SeaDecorBlock | SpriteKind::HaniwaKeyDoor => 10,
+                SpriteKind::Mine => 2,
+                _ => return None,
             },
+        };
+
+        if self
+            .get_attr::<sprite::LightDisabled>()
+            .map_or(false, |l| l.0)
+        {
+            None
+        } else {
+            Some(glow_level)
         }
     }
 
@@ -622,6 +631,14 @@ impl Block {
         match self.kind() {
             BlockKind::Snow | BlockKind::ArtSnow => 0.8,
             _ => 1.0,
+        }
+    }
+
+    pub fn apply_interaction(&self, interaction: BlockInteraction) -> Option<Self> {
+        match interaction {
+            BlockInteraction::ToggleLight(enable) => {
+                self.with_attr(sprite::LightDisabled(!enable)).ok()
+            },
         }
     }
 
