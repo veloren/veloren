@@ -134,11 +134,6 @@ pub enum UtteranceKind {
      * sounds */
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum BlockInteraction {
-    ToggleLight(bool),
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ControlEvent {
     //ToggleLantern,
@@ -164,7 +159,7 @@ pub enum ControlEvent {
         new_ability: ability::AuxiliaryAbility,
     },
     ActivatePortal(Uid),
-    BlockInteraction(VolumePos, BlockInteraction),
+    ToggleSpriteLight(VolumePos, bool),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

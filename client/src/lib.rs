@@ -20,7 +20,7 @@ use common::{
     comp::{
         self,
         chat::KillSource,
-        controller::{BlockInteraction, CraftEvent},
+        controller::CraftEvent,
         dialogue::Subject,
         group,
         inventory::item::{modular, tool, ItemKind},
@@ -1420,10 +1420,9 @@ impl Client {
     }
 
     pub fn toggle_sprite_light(&mut self, pos: VolumePos, enable: bool) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::BlockInteraction(
-            pos,
-            BlockInteraction::ToggleLight(enable),
-        )));
+        self.send_msg(ClientGeneral::ControlEvent(
+            ControlEvent::ToggleSpriteLight(pos, enable),
+        ));
     }
 
     pub fn remove_buff(&mut self, buff_id: BuffKind) {

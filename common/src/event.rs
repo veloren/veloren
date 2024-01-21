@@ -4,7 +4,6 @@ use crate::{
     comp::{
         self,
         agent::Sound,
-        controller::BlockInteraction,
         dialogue::Subject,
         invite::{InviteKind, InviteResponse},
         misc::PortalData,
@@ -339,10 +338,10 @@ pub enum ServerEvent {
         entity: EcsEntity,
         portal: EcsEntity,
     },
-    BlockInteraction {
+    ToggleSpriteLight {
         entity: EcsEntity,
         pos: VolumePos,
-        interaction: BlockInteraction,
+        enable: bool,
     },
 }
 

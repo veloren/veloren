@@ -25,8 +25,8 @@ use entity_manipulation::{
 use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
-    handle_block_interaction, handle_create_sprite, handle_lantern, handle_mine_block,
-    handle_mount, handle_npc_interaction, handle_set_pet_stay, handle_sound, handle_unmount,
+    handle_create_sprite, handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction,
+    handle_set_pet_stay, handle_sound, handle_toggle_sprite_light, handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
@@ -305,11 +305,11 @@ impl Server {
                 ServerEvent::StartTeleporting { entity, portal } => {
                     handle_start_teleporting(self, entity, portal)
                 },
-                ServerEvent::BlockInteraction {
+                ServerEvent::ToggleSpriteLight {
                     entity,
                     pos,
-                    interaction,
-                } => handle_block_interaction(self, entity, pos, interaction),
+                    enable,
+                } => handle_toggle_sprite_light(self, entity, pos, enable),
             }
         }
 

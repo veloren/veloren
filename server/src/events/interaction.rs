@@ -6,7 +6,6 @@ use common::{
     comp::{
         self,
         agent::{AgentEvent, Sound, SoundKind},
-        controller::BlockInteraction,
         dialogue::Subject,
         inventory::slot::EquipSlot,
         item::{flatten_counted_items, MaterialStatManifest},
@@ -471,11 +470,11 @@ pub fn handle_tame_pet(server: &mut Server, pet_entity: EcsEntity, owner_entity:
     tame_pet(server.state.ecs(), pet_entity, owner_entity);
 }
 
-pub fn handle_block_interaction(
+pub fn handle_toggle_sprite_light(
     server: &mut Server,
     entity: EcsEntity,
     pos: VolumePos,
-    interaction: BlockInteraction,
+    enable: bool,
 ) {
     let state = server.state_mut();
     // TODO: Implement toggling lights on volume entities
@@ -488,7 +487,7 @@ pub fn handle_block_interaction(
             .terrain()
             .get(pos.pos)
             .ok()
-            .and_then(|block| block.apply_interaction(interaction))
+            .and_then(|block| block.with_toggle_light(enable))
         {
             state.set_block(pos.pos, new_block);
         }

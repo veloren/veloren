@@ -1,6 +1,6 @@
 use super::{sprite, SpriteKind};
 use crate::{
-    comp::{controller::BlockInteraction, fluid_dynamics::LiquidKind, tool::ToolKind},
+    comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
     lottery::LootSpec,
     make_case_elim, rtsim,
@@ -634,12 +634,9 @@ impl Block {
         }
     }
 
-    pub fn apply_interaction(&self, interaction: BlockInteraction) -> Option<Self> {
-        match interaction {
-            BlockInteraction::ToggleLight(enable) => {
-                self.with_attr(sprite::LightDisabled(!enable)).ok()
-            },
-        }
+    /// Apply a light toggle to this block, if possible
+    pub fn with_toggle_light(self, enable: bool) -> Option<Self> {
+        self.with_attr(sprite::LightDisabled(!enable)).ok()
     }
 
     #[inline]

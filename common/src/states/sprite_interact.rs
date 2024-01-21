@@ -157,6 +157,7 @@ pub enum SpriteInteractKind {
     Collectible,
     Unlock,
     Fallback,
+    ToggleLight(bool),
 }
 
 impl From<SpriteKind> for Option<SpriteInteractKind> {
@@ -232,6 +233,11 @@ impl SpriteInteractKind {
                 Duration::from_secs_f32(0.8),
                 Duration::from_secs_f32(1.0),
                 Duration::from_secs_f32(0.3),
+            ),
+            Self::ToggleLight(_) => (
+                Duration::from_secs_f32(0.1),
+                Duration::from_secs_f32(0.2),
+                Duration::from_secs_f32(0.1),
             ),
         }
     }
