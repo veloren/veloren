@@ -139,85 +139,96 @@ impl BlocksOfInterest {
                     }
                 },
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
-                _ => match block.get_sprite() {
-                    Some(SpriteKind::Ember) => {
-                        fires.push(pos);
-                        smokers.push(SmokerProperties::new(pos, FireplaceType::House));
-                    },
-                    // Offset positions to account for block height.
-                    // TODO: Is this a good idea?
-                    Some(SpriteKind::StreetLamp) => fire_bowls.push(pos + Vec3::unit_z() * 2),
-                    Some(SpriteKind::FireBowlGround) => fire_bowls.push(pos + Vec3::unit_z()),
-                    Some(SpriteKind::StreetLampTall) => fire_bowls.push(pos + Vec3::unit_z() * 4),
-                    Some(SpriteKind::WallSconce) => fire_bowls.push(pos + Vec3::unit_z()),
-                    Some(SpriteKind::Beehive) => beehives.push(pos),
-                    Some(SpriteKind::CrystalHigh) => fireflies.push(pos),
-                    Some(SpriteKind::Reed) => {
-                        reeds.push(pos);
-                        fireflies.push(pos);
-                        if rng.gen_range(0..12) == 0 {
-                            frogs.push(pos);
+                _ => {
+                    if let Some(sprite) = block.get_sprite() {
+                        if sprite.category() == sprite::Category::Lamp {
+                            if let Ok(sprite::LightDisabled(disabled)) = block.get_attr() {
+                                interactables.push((pos, Interaction::LightToggle(disabled)));
+                            }
                         }
-                    },
-                    Some(SpriteKind::CaveMushroom) => fireflies.push(pos),
-                    Some(SpriteKind::PinkFlower) => flowers.push(pos),
-                    Some(SpriteKind::PurpleFlower) => flowers.push(pos),
-                    Some(SpriteKind::RedFlower) => flowers.push(pos),
-                    Some(SpriteKind::WhiteFlower) => flowers.push(pos),
-                    Some(SpriteKind::YellowFlower) => flowers.push(pos),
-                    Some(SpriteKind::Sunflower) => flowers.push(pos),
-                    Some(SpriteKind::CraftingBench) => {
-                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
-                    },
-                    Some(SpriteKind::SmokeDummy) => {
-                        smokers.push(SmokerProperties::new(pos, FireplaceType::Workshop));
-                    },
-                    Some(SpriteKind::Forge) => interactables
-                        .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
-                    Some(SpriteKind::TanningRack) => interactables
-                        .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
-                    Some(SpriteKind::SpinningWheel) => {
-                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
-                    },
-                    Some(SpriteKind::Loom) => {
-                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
-                    },
-                    Some(SpriteKind::Cauldron) => {
-                        fires.push(pos);
-                        interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
-                    },
-                    Some(SpriteKind::Anvil) => {
-                        interactables.push((pos, Interaction::Craft(CraftingTab::Weapon)))
-                    },
-                    Some(SpriteKind::CookingPot) => {
-                        fires.push(pos);
-                        interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
-                    },
-                    Some(SpriteKind::DismantlingBench) => {
-                        fires.push(pos);
-                        interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
-                    },
-                    Some(SpriteKind::RepairBench) => {
-                        interactables.push((pos, Interaction::Craft(CraftingTab::All)))
-                    },
-                    Some(SpriteKind::OneWayWall) => one_way_walls.push((
-                        pos,
-                        Vec2::unit_y()
-                            .rotated_z(
-                                std::f32::consts::PI * 0.25 * block.get_ori().unwrap_or(0) as f32,
-                            )
-                            .with_z(0.0),
-                    )),
-                    Some(SpriteKind::Sign | SpriteKind::HangingSign) => {
-                        interactables.push((pos, Interaction::Read))
-                    },
-                    Some(sprite) if sprite.category() == sprite::Category::Lamp => {
-                        if let Ok(sprite::LightDisabled(disabled)) = block.get_attr() {
-                            interactables.push((pos, Interaction::LightToggle(disabled)));
+
+                        if block.is_mountable() {
+                            interactables.push((pos, Interaction::Mount));
                         }
-                    },
-                    _ if block.is_mountable() => interactables.push((pos, Interaction::Mount)),
-                    _ => {},
+
+                        match sprite {
+                            SpriteKind::Ember => {
+                                fires.push(pos);
+                                smokers.push(SmokerProperties::new(pos, FireplaceType::House));
+                            },
+                            // Offset positions to account for block height.
+                            // TODO: Is this a good idea?
+                            SpriteKind::StreetLamp => fire_bowls.push(pos + Vec3::unit_z() * 2),
+                            SpriteKind::FireBowlGround => fire_bowls.push(pos + Vec3::unit_z()),
+                            SpriteKind::StreetLampTall => fire_bowls.push(pos + Vec3::unit_z() * 4),
+                            SpriteKind::WallSconce => fire_bowls.push(pos + Vec3::unit_z()),
+                            SpriteKind::Beehive => beehives.push(pos),
+                            SpriteKind::CrystalHigh => fireflies.push(pos),
+                            SpriteKind::Reed => {
+                                reeds.push(pos);
+                                fireflies.push(pos);
+                                if rng.gen_range(0..12) == 0 {
+                                    frogs.push(pos);
+                                }
+                            },
+                            SpriteKind::CaveMushroom => fireflies.push(pos),
+                            SpriteKind::PinkFlower => flowers.push(pos),
+                            SpriteKind::PurpleFlower => flowers.push(pos),
+                            SpriteKind::RedFlower => flowers.push(pos),
+                            SpriteKind::WhiteFlower => flowers.push(pos),
+                            SpriteKind::YellowFlower => flowers.push(pos),
+                            SpriteKind::Sunflower => flowers.push(pos),
+                            SpriteKind::CraftingBench => {
+                                interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                            },
+                            SpriteKind::SmokeDummy => {
+                                smokers.push(SmokerProperties::new(pos, FireplaceType::Workshop));
+                            },
+                            SpriteKind::Forge => interactables
+                                .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
+                            SpriteKind::TanningRack => interactables
+                                .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
+                            SpriteKind::SpinningWheel => {
+                                interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                            },
+                            SpriteKind::Loom => {
+                                interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                            },
+                            SpriteKind::Cauldron => {
+                                fires.push(pos);
+                                interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
+                            },
+                            SpriteKind::Anvil => {
+                                interactables.push((pos, Interaction::Craft(CraftingTab::Weapon)))
+                            },
+                            SpriteKind::CookingPot => {
+                                fires.push(pos);
+                                interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
+                            },
+                            SpriteKind::DismantlingBench => {
+                                fires.push(pos);
+                                interactables
+                                    .push((pos, Interaction::Craft(CraftingTab::Dismantle)))
+                            },
+                            SpriteKind::RepairBench => {
+                                interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                            },
+                            SpriteKind::OneWayWall => one_way_walls.push((
+                                pos,
+                                Vec2::unit_y()
+                                    .rotated_z(
+                                        std::f32::consts::PI
+                                            * 0.25
+                                            * block.get_ori().unwrap_or(0) as f32,
+                                    )
+                                    .with_z(0.0),
+                            )),
+                            SpriteKind::Sign | SpriteKind::HangingSign => {
+                                interactables.push((pos, Interaction::Read))
+                            },
+                            _ => {},
+                        }
+                    }
                 },
             }
             if block.collectible_id().is_some() {
