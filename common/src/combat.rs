@@ -391,7 +391,6 @@ impl Attack {
                                         time,
                                         attacker.map(|a| a.uid),
                                         target.stats,
-                                        target.health,
                                         applied_damage,
                                         strength_modifier,
                                     )),
@@ -611,7 +610,6 @@ impl Attack {
                                     time,
                                     attacker.map(|a| a.uid),
                                     target.stats,
-                                    target.health,
                                     accumulated_damage,
                                     strength_modifier,
                                 )),
@@ -1179,7 +1177,6 @@ impl CombatBuff {
         time: Time,
         uid: Option<Uid>,
         tgt_stats: Option<&Stats>,
-        tgt_health: Option<&Health>,
         damage: f32,
         strength_modifier: f32,
     ) -> Buff {
@@ -1199,7 +1196,6 @@ impl CombatBuff {
             source,
             time,
             tgt_stats,
-            tgt_health,
         )
     }
 }

@@ -153,7 +153,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                 }
@@ -171,7 +170,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                 }
@@ -202,7 +200,6 @@ impl<'a> System<'a> for Sys {
                                 BuffSource::World,
                                 *read_data.time,
                                 Some(&stat),
-                                Some(health),
                             )),
                         });
                     }
@@ -221,7 +218,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                 }
@@ -239,7 +235,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                 }
@@ -257,7 +252,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                     // When standing on IceSpike also apply Frozen
@@ -270,7 +264,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                 }
@@ -288,7 +281,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                 }
@@ -310,7 +302,6 @@ impl<'a> System<'a> for Sys {
                             BuffSource::World,
                             *read_data.time,
                             Some(&stat),
-                            Some(health),
                         )),
                     });
                 } else if matches!(
@@ -387,7 +378,6 @@ impl<'a> System<'a> for Sys {
                                 buff.source,
                                 *read_data.time,
                                 Some(&stat),
-                                Some(health),
                             )),
                         });
                     }
@@ -701,11 +691,8 @@ fn execute_effect(
         BuffEffect::MoveSpeedReduction(red) => {
             stat.move_speed_multiplier *= 1.0 - *red;
         },
-        BuffEffect::PoiseDamageFromLostHealth {
-            initial_health,
-            strength,
-        } => {
-            let lost_health = (*initial_health - health.current()).max(0.0);
+        BuffEffect::PoiseDamageFromLostHealth(strength) => {
+            let lost_health = health.maximum() - health.current();
             stat.poise_damage_modifier *= lost_health / 100.0 * *strength;
         },
         BuffEffect::AttackDamage(dam) => {

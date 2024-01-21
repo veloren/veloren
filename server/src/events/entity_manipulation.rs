@@ -1417,7 +1417,6 @@ pub fn handle_parry_hook(
         };
         let time = ecs.read_resource::<Time>();
         let stats = ecs.read_storage::<comp::Stats>();
-        let healths = ecs.read_storage::<comp::Health>();
         let buff = buff::Buff::new(
             BuffKind::Parried,
             data,
@@ -1425,7 +1424,6 @@ pub fn handle_parry_hook(
             source,
             *time,
             stats.get(attacker),
-            healths.get(attacker),
         );
         server_eventbus.emit_now(ServerEvent::Buff {
             entity: attacker,
