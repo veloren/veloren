@@ -83,7 +83,7 @@ buff-stat-potionsickness =
     subsequent potions by { $strength }%.
 ## Reckless
 buff-title-reckless = Reckless
-buff-desc-reckless = Your attacks are more powerful, however you are leaving your defenses open.
+buff-desc-reckless = Your attacks are more powerful. However, you are leaving your defenses open.
 ## Polymorped
 buff-title-polymorphed = Polymorphed
 buff-desc-polymorphed = Your body changes form.
@@ -95,10 +95,10 @@ buff-title-frigid = Frigid
 buff-desc-frigid = Freeze your foes.
 ## Lifesteal
 buff-title-lifesteal = Lifesteal
-buff-desc-lifesteal = Siphon your enemies life away.
+buff-desc-lifesteal = Siphon your enemies' life away.
 ## Salamander's Aspect
 buff-title-salamanderaspect = Salamander's Aspect
-buff-desc-salamanderaspect = You cannot burn and move fast through lava.
+buff-desc-salamanderaspect = You cannot burn and you move fast through lava.
 ## Imminent Critical
 buff-title-imminentcritical = Imminent Critical
 buff-desc-imminentcritical = Your next attack will critically hit the enemy.
@@ -119,7 +119,7 @@ buff-title-berserk = Berserk
 buff-desc-berserk = You are in a berserking rage, causing your attacks to be more powerful and swift, and increasing your speed. However, as a result your defensive capability is less.
 ## Heatstroke
 buff-title-heatstroke = Heatstroke
-buff-desc-heatstroke = You were exposed to heat and now suffer from heatstroke, your energy reward and movement speed are cut down. Chill.
+buff-desc-heatstroke = You were exposed to heat and now suffer from heatstroke. Your energy reward and movement speed are cut down. Chill.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds
