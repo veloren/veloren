@@ -1,3 +1,6 @@
+### This file contains non-player-facing items.
+### Feel free to ignore them.
+
 common-items-npc_weapons-biped_small-mandragora = Mandragora
     .desc = Testing
 

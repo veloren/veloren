@@ -1,3 +1,6 @@
+### This file contains non-player-facing items.
+### Feel free to ignore them.
+
 common-items-food-coltsfoot = Coltsfoot
     .desc = A daisy-like flower often used in herbal teas.
 
@@ -72,6 +75,18 @@ common-items-weapons-sceptre-belzeshrub = Belzeshrub the Broom God
 
 common-items-tool-pickaxe_velorite = Velorite Pickaxe
     .desc = Allows for swift excavation of any ore in sight.
+
+common-items-testing-test_bag_18_slot = Test 18 slot bag
+    .desc = Used for unit tests do not delete.
+
+common-items-testing-test_bag_9_slot = Test 9 slot bag
+    .desc = Used for unit tests do not delete.
+
+common-items-testing-test_boots = Testing Boots
+    .desc = Hopefully this test doesn't break!
+
+common-items-weapons-empty-empty = Empty Item
+    .desc = This item may grant abilities, but is invisible.
 
 common-items-modular-weapon-primary-bow-bow = Bow Limbs
     .desc = {""}

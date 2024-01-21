@@ -40,14 +40,15 @@ armor-velorite-legs = Velorite Skirt
 armor-velorite-shoulder = Velorite Mantle
     .desc = {""}
 
-common-items-testing-test_bag_18_slot = Test 18 slot bag
-    .desc = Used for unit tests do not delete.
+object-item_cheese = Golden Cheese
+    .desc = They say gods eat it to get eternal youth.
 
-common-items-testing-test_bag_9_slot = Test 9 slot bag
-    .desc = Used for unit tests do not delete.
+weapon-tool-broom_belzeshrub_purple = Belzeshrub the Broom-God
+    .desc = You can hear him giggle whenever you hit the ground a bit too hard...
 
-common-items-testing-test_boots = Testing Boots
-    .desc = Hopefully this test doesn't break!
+weapon-sword-frost-admin_sword = Admin Greatsword
+    .desc = Shouldn't this be a hammer?
 
-common-items-weapons-empty-empty = Empty Item
-    .desc = This item may grant abilities, but is invisible.
+weapon-bow-velorite-debug = Admin Velorite Bow
+    .desc = Infused with Velorite power.
+    

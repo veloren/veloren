@@ -1,4 +1,3 @@
-
 object-bomb = Bomb
     .desc = A highly explosive device, demolitionists adore them!
 

@@ -1,3 +1,6 @@
+### This file contains non-player-facing items.
+### Feel free to ignore them.
+
 common-items-npc_armor-pants-leather_blue = Blue Leather Guards
     .desc = {""}
 
