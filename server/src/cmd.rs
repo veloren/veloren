@@ -4046,8 +4046,11 @@ fn handle_battlemode(
             let Time(change) = change;
             let elapsed = time - change;
             let next = COOLDOWN - elapsed;
-            let notice = format!(" Next change will be available in: {:.0} seconds", next);
-            msg.push_str(&notice);
+
+            if next > 0.0 {
+                let notice = format!(" Next change will be available in: {:.0} seconds", next);
+                msg.push_str(&notice);
+            }
         }
         server.notify_client(
             client,
