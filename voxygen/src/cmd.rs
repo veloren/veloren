@@ -101,6 +101,7 @@ impl ClientChatCommand {
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}",
                 ArgumentSpec::Boolean(_, _, _) => "{}",
+                ArgumentSpec::Flag(_) => "{}",
             })
             .collect::<Vec<_>>()
             .join(" ")
@@ -595,6 +596,7 @@ impl TabComplete for ArgumentSpec {
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
+            ArgumentSpec::Flag(part) => vec![part.to_string()],
         }
     }
 }

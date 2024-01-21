@@ -604,7 +604,9 @@ impl ServerChatCommand {
                 Some(Moderator),
             ),
             ServerChatCommand::Kill => cmd(vec![], "Kill yourself", None),
-            ServerChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", Some(Admin)),
+            ServerChatCommand::KillNpcs => {
+                cmd(vec![Flag("--also-pets")], "Kill the NPCs", Some(Admin))
+            },
             ServerChatCommand::Kit => cmd(
                 vec![Enum("kit_name", KITS.to_vec(), Required)],
                 "Place a set of items into your inventory.",
@@ -1078,6 +1080,7 @@ impl ServerChatCommand {
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}",
                 ArgumentSpec::Boolean(_, _, _) => "{}",
+                ArgumentSpec::Flag(_) => "{}",
             })
             .collect::<Vec<_>>()
             .join(" ")
@@ -1148,6 +1151,8 @@ pub enum ArgumentSpec {
     /// * suggested tab-completion
     /// * whether it's optional
     Boolean(&'static str, String, Requirement),
+    /// The argument is a flag that enables or disables a feature.
+    Flag(&'static str),
 }
 
 impl ArgumentSpec {
@@ -1224,6 +1229,9 @@ impl ArgumentSpec {
                     format!("[{}]", label)
                 }
             },
+            ArgumentSpec::Flag(label) => {
+                format!("[{}]", label)
+            },
         }
     }
 
@@ -1239,6 +1247,7 @@ impl ArgumentSpec {
             | ArgumentSpec::Message(r)
             | ArgumentSpec::Enum(_, _, r)
             | ArgumentSpec::Boolean(_, _, r) => *r,
+            ArgumentSpec::Flag(_) => Requirement::Optional,
             ArgumentSpec::SubCommand => Requirement::Required,
         }
     }
