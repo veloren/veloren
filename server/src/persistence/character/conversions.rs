@@ -372,23 +372,7 @@ pub fn convert_inventory_from_database_items(
     let mut inventory = Inventory::with_loadout_humanoid(loadout);
     let mut item_indices = HashMap::new();
 
-    struct FailedInserts {
-        items: Vec<VelorenItem>,
-        map: HashMap<String, usize>,
-    }
-
-    impl FailedInserts {
-        fn insert(&mut self, db_pos: String, item: VelorenItem) {
-            let i = self.items.len();
-            self.items.push(item);
-            self.map.insert(db_pos, i);
-        }
-    }
-
-    let mut failed_inserts = FailedInserts {
-        items: Vec::new(),
-        map: HashMap::new(),
-    };
+    let mut failed_inserts = HashMap::new();
 
     // In order to items with components to properly load, it is important that this
     // item iteration occurs in order so that any modular items are loaded before
@@ -439,30 +423,38 @@ pub fn convert_inventory_from_database_items(
         };
 
         if db_item.parent_container_item_id == inventory_container_id {
-            if let Ok(slot) = slot(&db_item.position) {
-                let insert_res = inventory.insert_at(slot, item);
+            if db_item.position.contains("overflow_item") {
+                failed_inserts.insert(db_item.position.clone(), item);
+            } else {
+                match slot(&db_item.position) {
+                    Ok(slot) => {
+                        let insert_res = inventory.insert_at(slot, item);
 
-                match insert_res {
-                    Ok(None) => {
-                        // Insert successful
+                        match insert_res {
+                            Ok(None) => {
+                                // Insert successful
+                            },
+                            Ok(Some(_item)) => {
+                                // If inventory.insert returns an item, it means it was swapped for
+                                // an item that already occupied the
+                                // slot. Multiple items being stored
+                                // in the database for the same slot is
+                                // an error.
+                                return Err(PersistenceError::ConversionError(
+                                    "Inserted an item into the same slot twice".to_string(),
+                                ));
+                            },
+                            Err(item) => {
+                                // If this happens there were too many items in the database for the
+                                // current inventory size
+                                failed_inserts.insert(db_item.position.clone(), item);
+                            },
+                        }
                     },
-                    Ok(Some(_item)) => {
-                        // If inventory.insert returns an item, it means it was swapped for an item
-                        // that already occupied the slot. Multiple items
-                        // being stored in the database for the same slot is
-                        // an error.
-                        return Err(PersistenceError::ConversionError(
-                            "Inserted an item into the same slot twice".to_string(),
-                        ));
-                    },
-                    Err(item) => {
-                        // If this happens there were too many items in the database for the current
-                        // inventory size
-                        failed_inserts.insert(db_item.position.clone(), item);
+                    Err(err) => {
+                        return Err(err);
                     },
                 }
-            } else {
-                failed_inserts.insert(db_item.position.clone(), item);
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             get_mutable_item(
@@ -470,21 +462,15 @@ pub fn convert_inventory_from_database_items(
                 inventory_items,
                 &item_indices,
                 &mut (&mut inventory, &mut failed_inserts),
-                &|(inv, f_i): &mut (&mut Inventory, &mut FailedInserts), s| {
+                &|(inv, f_i): &mut (&mut Inventory, &mut HashMap<String, VelorenItem>), s| {
                     // Attempts first to access inventory if that slot exists there. If it does not
                     // it instead attempts to access failed inserts list.
                     slot(s)
                         .ok()
                         .and_then(|slot| inv.slot_mut(slot))
                         .and_then(|a| a.as_mut())
-                        .or(f_i.map.get(s).and_then(|i| f_i.items.get_mut(*i)))
-                    // if let Ok(slot) = slot(s) {
-                    //     dbg!(0);
-                    //     inv.slot_mut(slot).and_then(|a| a.as_mut())
-                    // } else {
-                    //     dbg!(1);
-                    //     f_i.map.get(s).and_then(|i| f_i.items.get_mut(*i))
-                    // }
+                        // .or_else(f_i.map.get(s).and_then(|i| f_i.items.get_mut(*i)))
+                        .or_else(|| f_i.get_mut(s))
                 },
             )?
             .persistence_access_add_component(item);
@@ -498,7 +484,7 @@ pub fn convert_inventory_from_database_items(
 
     // For failed inserts, attempt to push to inventory. If push fails, move to
     // overflow slots.
-    if let Err(inv_error) = inventory.push_all(failed_inserts.items.into_iter()) {
+    if let Err(inv_error) = inventory.push_all(failed_inserts.into_values()) {
         inventory.persistence_push_overflow_items(inv_error.returned_items());
     }
 

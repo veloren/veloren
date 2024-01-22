@@ -1175,6 +1175,7 @@ impl Client {
 
     pub fn split_swap_slots(&mut self, a: Slot, b: Slot) {
         match (a, b) {
+            (Slot::Overflow(_), _) | (_, Slot::Overflow(_)) => {},
             (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => self.control_action(
                 ControlAction::InventoryAction(InventoryAction::Swap(equip, slot)),
             ),
@@ -1183,7 +1184,6 @@ impl Client {
                     InventoryEvent::SplitSwap(inv1, inv2),
                 )))
             },
-            (Slot::Overflow(_), _) | (_, Slot::Overflow(_)) => {},
         }
     }
 
