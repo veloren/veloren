@@ -988,6 +988,9 @@ impl Window {
             },
             WindowEvent::CursorMoved { position, .. } => {
                 if self.cursor_grabbed {
+                    //TODO: An underlying OS call in winit is causing the camera to jump upon the
+                    // next mouse movement event in macos https://github.com/rust-windowing/winit/issues/999
+                    #[cfg(not(target_os = "macos"))]
                     self.center_cursor();
                 } else {
                     self.cursor_position = position;
