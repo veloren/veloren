@@ -40,6 +40,14 @@ impl Weather {
         }
     }
 
+    pub fn lerp_shared(from: &SharedWeather, to: &SharedWeather, t: f32) -> Self {
+        Self {
+            cloud: f32::lerp_unclamped(from.cloud as f32, to.cloud as f32, t) / 255.0,
+            rain: f32::lerp_unclamped(from.rain as f32, to.rain as f32, t) / 255.0,
+            wind: Vec2::zero(),
+        }
+    }
+
     // Get the rain velocity for this weather
     pub fn rain_vel(&self) -> Vec3<f32> {
         const FALL_RATE: f32 = 30.0;
@@ -75,9 +83,90 @@ pub const CHUNKS_PER_CELL: u32 = 16;
 
 pub const CELL_SIZE: u32 = CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct WeatherGrid {
     weather: Grid<Weather>,
+}
+
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct SharedWeather {
+    cloud: u8,
+    rain: u8,
+}
+
+impl From<Weather> for SharedWeather {
+    fn from(weather: Weather) -> Self {
+        Self {
+            cloud: (weather.cloud * 255.0) as u8,
+            rain: (weather.rain * 255.0) as u8,
+        }
+    }
+}
+
+impl From<SharedWeather> for Weather {
+    fn from(weather: SharedWeather) -> Self {
+        Self {
+            cloud: weather.cloud as f32 / 255.0,
+            rain: weather.rain as f32 / 255.0,
+            wind: Vec2::zero(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SharedWeatherGrid {
+    weather: Grid<SharedWeather>,
+}
+
+impl From<&WeatherGrid> for SharedWeatherGrid {
+    fn from(value: &WeatherGrid) -> Self {
+        Self {
+            weather: Grid::from_raw(
+                value.weather.size(),
+                value
+                    .weather
+                    .raw()
+                    .iter()
+                    .copied()
+                    .map(SharedWeather::from)
+                    .collect::<Vec<_>>(),
+            ),
+        }
+    }
+}
+
+impl From<&SharedWeatherGrid> for WeatherGrid {
+    fn from(value: &SharedWeatherGrid) -> Self {
+        Self {
+            weather: Grid::from_raw(
+                value.weather.size(),
+                value
+                    .weather
+                    .raw()
+                    .iter()
+                    .copied()
+                    .map(Weather::from)
+                    .collect::<Vec<_>>(),
+            ),
+        }
+    }
+}
+
+impl SharedWeatherGrid {
+    pub fn new(size: Vec2<u32>) -> Self {
+        size.map(|e| debug_assert!(i32::try_from(e).is_ok()));
+        Self {
+            weather: Grid::new(size.as_(), SharedWeather::default()),
+        }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &SharedWeather)> { self.weather.iter() }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Vec2<i32>, &mut SharedWeather)> {
+        self.weather.iter_mut()
+    }
+
+    pub fn size(&self) -> Vec2<u32> { self.weather.size().as_() }
 }
 
 /// Transforms a world position to cell coordinates. Where (0.0, 0.0) in cell
@@ -112,6 +201,13 @@ impl WeatherGrid {
     }
 
     pub fn size(&self) -> Vec2<u32> { self.weather.size().as_() }
+
+    pub fn get(&self, cell_pos: Vec2<u32>) -> Weather {
+        self.weather
+            .get(cell_pos.as_())
+            .copied()
+            .unwrap_or_default()
+    }
 
     /// Get the weather at a given world position by doing bilinear
     /// interpolation between four cells.

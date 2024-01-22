@@ -49,7 +49,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{IdMaps, Uid},
     vol::RectVolSize,
-    weather::{Weather, WeatherGrid},
+    weather::{SharedWeatherGrid, Weather, WeatherGrid},
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
@@ -178,12 +178,13 @@ pub struct SiteInfoRich {
 }
 
 struct WeatherLerp {
-    old: (WeatherGrid, Instant),
-    new: (WeatherGrid, Instant),
+    old: (SharedWeatherGrid, Instant),
+    new: (SharedWeatherGrid, Instant),
+    local_weather: Weather,
 }
 
 impl WeatherLerp {
-    fn weather_update(&mut self, weather: WeatherGrid) {
+    fn weather_update(&mut self, weather: SharedWeatherGrid) {
         self.old = mem::replace(&mut self.new, (weather, Instant::now()));
     }
 
@@ -197,7 +198,7 @@ impl WeatherLerp {
             return;
         }
         if to_update.size() != new.size() {
-            *to_update = new.clone();
+            *to_update = WeatherGrid::from(new);
         }
         if old.size() == new.size() {
             // Assumes updates are regular
@@ -209,7 +210,7 @@ impl WeatherLerp {
                 .iter_mut()
                 .zip(old.iter().zip(new.iter()))
                 .for_each(|((_, current), ((_, old), (_, new)))| {
-                    *current = Weather::lerp_unclamped(old, new, t);
+                    *current = Weather::lerp_shared(old, new, t);
                 });
         }
     }
@@ -218,8 +219,9 @@ impl WeatherLerp {
 impl Default for WeatherLerp {
     fn default() -> Self {
         Self {
-            old: (WeatherGrid::new(Vec2::zero()), Instant::now()),
-            new: (WeatherGrid::new(Vec2::zero()), Instant::now()),
+            old: (SharedWeatherGrid::new(Vec2::zero()), Instant::now()),
+            new: (SharedWeatherGrid::new(Vec2::zero()), Instant::now()),
+            local_weather: Weather::default(),
         }
     }
 }
@@ -1713,12 +1715,7 @@ impl Client {
             .map(|v| v.0)
     }
 
-    /// Returns Weather::default if no player position exists.
-    pub fn weather_at_player(&self) -> Weather {
-        self.position()
-            .map(|wpos| self.state.weather_at(wpos.xy()))
-            .unwrap_or_default()
-    }
+    pub fn weather_at_player(&self) -> Weather { self.weather.local_weather }
 
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(self.position()?)
@@ -2538,6 +2535,9 @@ impl Client {
             },
             ServerGeneral::WeatherUpdate(weather) => {
                 self.weather.weather_update(weather);
+            },
+            ServerGeneral::LocalWeatherUpdate(weather) => {
+                self.weather.local_weather = weather;
             },
             ServerGeneral::SpectatePosition(pos) => {
                 frontend_events.push(Event::SpectatePosition(pos));
