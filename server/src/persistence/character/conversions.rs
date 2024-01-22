@@ -424,7 +424,18 @@ pub fn convert_inventory_from_database_items(
 
         if db_item.parent_container_item_id == inventory_container_id {
             if db_item.position.contains("overflow_item") {
-                failed_inserts.insert(db_item.position.clone(), item);
+                match failed_inserts.insert(db_item.position.clone(), item) {
+                    None => {
+                        // Insert successful
+                    },
+                    Some(_item) => {
+                        // If insert returns a value, database had two items stored with the same
+                        // position which is an error.
+                        return Err(PersistenceError::ConversionError(
+                            "Inserted an item into the same overflow slot twice".to_string(),
+                        ));
+                    },
+                }
             } else {
                 match slot(&db_item.position) {
                     Ok(slot) => {
