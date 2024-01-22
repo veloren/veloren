@@ -338,6 +338,11 @@ pub enum ServerEvent {
         entity: EcsEntity,
         portal: EcsEntity,
     },
+    ToggleSpriteLight {
+        entity: EcsEntity,
+        pos: Vec3<i32>,
+        enable: bool,
+    },
 }
 
 pub struct EventBus<E> {

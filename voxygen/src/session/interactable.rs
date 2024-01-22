@@ -10,7 +10,7 @@ use client::Client;
 use common::{
     comp,
     comp::{ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Collider, Content},
-    consts::{MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE, TELEPORTER_RADIUS},
+    consts::{MAX_INTERACT_RANGE, MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE, TELEPORTER_RADIUS},
     link::Is,
     mounting::{Mount, Rider, VolumePos, VolumeRider},
     terrain::{Block, TerrainGrid, UnlockKind},
@@ -36,6 +36,7 @@ pub enum BlockInteraction {
     Mine(ToolKind),
     Mount,
     Read(Content),
+    LightToggle(bool),
 }
 
 #[derive(Clone, Debug)]
@@ -105,6 +106,7 @@ impl Interactable {
             },
             Interaction::Craft(tab) => BlockInteraction::Craft(tab),
             Interaction::Mount => BlockInteraction::Mount,
+            Interaction::LightToggle(enable) => BlockInteraction::LightToggle(enable),
         };
         Some(Self::Block(block, volume_pos, block_interaction))
     }
@@ -341,8 +343,9 @@ pub(super) fn select_interactable(
             .filter(|(wpos, volume_pos, interaction)| {
                 match interaction {
                     Interaction::Mount => !is_volume_rider.contains(player_entity)
-                    && wpos.distance_squared(player_pos) < MAX_SPRITE_MOUNT_RANGE * MAX_SPRITE_MOUNT_RANGE
-                    && !is_volume_rider.join().any(|is_volume_rider| is_volume_rider.pos == *volume_pos),
+                        && wpos.distance_squared(player_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2)
+                        && !is_volume_rider.join().any(|is_volume_rider| is_volume_rider.pos == *volume_pos),
+                    Interaction::LightToggle(_) => wpos.distance_squared(player_pos) < MAX_INTERACT_RANGE.powi(2),
                     _ => true,
                 }
             })

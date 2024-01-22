@@ -47,7 +47,7 @@ pub struct Colors {
     pub vein: (u8, u8, u8),
 }
 
-const EMPTY_AIR: Block = Block::air(SpriteKind::Empty);
+const EMPTY_AIR: Block = Block::empty();
 
 pub struct PathLocals {
     pub riverless_alt: f32,

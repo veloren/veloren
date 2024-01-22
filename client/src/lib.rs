@@ -1419,6 +1419,12 @@ impl Client {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::DisableLantern));
     }
 
+    pub fn toggle_sprite_light(&mut self, pos: VolumePos, enable: bool) {
+        self.control_action(ControlAction::InventoryAction(
+            InventoryAction::ToggleSpriteLight(pos, enable),
+        ));
+    }
+
     pub fn remove_buff(&mut self, buff_id: BuffKind) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
             buff_id,

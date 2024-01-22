@@ -40,6 +40,7 @@ hud-zoom_lock_indicator-remind = Zoom locked
 hud-zoom_lock_indicator-enable = Camera zoom locked
 hud-zoom_lock_indicator-disable = Camera zoom unlocked
 hud-activate = Activate
+hud-deactivate = Deactivate
 hud-collect = Collect
 hud-pick_up = Pick up
 hud-open = Open

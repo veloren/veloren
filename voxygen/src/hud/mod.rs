@@ -2161,6 +2161,11 @@ impl Hud {
                         Some(GameInput::Interact),
                         i18n.get_msg("hud-read").to_string(),
                     )],
+                    // TODO: change to turn on/turn off?
+                    BlockInteraction::LightToggle(enable) => vec![(
+                        Some(GameInput::Interact),
+                        i18n.get_msg(if *enable { "hud-activate" } else { "hud-deactivate" }).to_string(),
+                    )],
                 };
 
                 // This is only done once per frame, so it's not a performance issue

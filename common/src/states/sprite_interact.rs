@@ -117,8 +117,19 @@ impl CharacterBehavior for Data {
                             sprite_pos: self.static_data.sprite_pos,
                             required_item: inv_slot,
                         };
-                        output_events
-                            .emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+
+                        match self.static_data.sprite_kind {
+                            SpriteInteractKind::ToggleLight(enable) => {
+                                output_events.emit_server(ServerEvent::ToggleSpriteLight {
+                                    entity: data.entity,
+                                    pos: self.static_data.sprite_pos,
+                                    enable,
+                                })
+                            },
+                            _ => output_events
+                                .emit_server(ServerEvent::InventoryManip(data.entity, inv_manip)),
+                        }
+
                         if matches!(self.static_data.sprite_kind, SpriteInteractKind::Unlock) {
                             output_events.emit_local(LocalEvent::CreateOutcome(
                                 Outcome::SpriteUnlocked {
@@ -157,6 +168,7 @@ pub enum SpriteInteractKind {
     Collectible,
     Unlock,
     Fallback,
+    ToggleLight(bool),
 }
 
 impl From<SpriteKind> for Option<SpriteInteractKind> {
@@ -232,6 +244,11 @@ impl SpriteInteractKind {
                 Duration::from_secs_f32(0.8),
                 Duration::from_secs_f32(1.0),
                 Duration::from_secs_f32(0.3),
+            ),
+            Self::ToggleLight(_) => (
+                Duration::from_secs_f32(0.1),
+                Duration::from_secs_f32(0.2),
+                Duration::from_secs_f32(0.1),
             ),
         }
     }

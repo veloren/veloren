@@ -15,7 +15,7 @@ use common::{
         Inventory, LootOwner, Pos, SkillGroupKind,
     },
     consts::{
-        MAX_MOUNT_RANGE, MAX_NPCINTERACT_RANGE, MAX_SPRITE_MOUNT_RANGE,
+        MAX_INTERACT_RANGE, MAX_MOUNT_RANGE, MAX_NPCINTERACT_RANGE, MAX_SPRITE_MOUNT_RANGE,
         SOUND_TRAVEL_DIST_PER_VOLUME,
     },
     event::EventBus,
@@ -194,7 +194,7 @@ pub fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Vo
                 block,
                 rider,
             }).is_ok();
-            #[cfg(feature = "worldgen")] 
+            #[cfg(feature = "worldgen")]
             if _link_successful {
                 let uid_allocator = state.ecs().read_resource::<IdMaps>();
                 if let Some(rider_entity) = uid_allocator.uid_entity(rider)
@@ -468,4 +468,28 @@ pub fn handle_tame_pet(server: &mut Server, pet_entity: EcsEntity, owner_entity:
     // TODO: Raise outcome to send to clients to play sound/render an indicator
     // showing taming success?
     tame_pet(server.state.ecs(), pet_entity, owner_entity);
+}
+
+pub fn handle_toggle_sprite_light(
+    server: &mut Server,
+    entity: EcsEntity,
+    pos: Vec3<i32>,
+    enable: bool,
+) {
+    let state = server.state_mut();
+    // TODO: Implement toggling lights on volume entities
+    if let Some(entity_pos) = state.ecs().read_storage::<Pos>().get(entity)
+        && entity_pos.0.distance_squared(pos.as_()) < MAX_INTERACT_RANGE.powi(2)
+        && state.can_set_block(pos)
+    {
+        if let Some(new_block) = state
+            .terrain()
+            .get(pos)
+            .ok()
+            .and_then(|block| block.with_toggle_light(enable))
+        {
+            state.set_block(pos, new_block);
+            // TODO: Emit outcome
+        }
+    }
 }

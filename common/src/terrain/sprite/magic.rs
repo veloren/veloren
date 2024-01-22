@@ -158,6 +158,15 @@ macro_rules! sprites {
                     },)*
                 }
             }
+
+            #[inline] pub(super) fn to_initial_bytes(self) -> [u8; 3] {
+                let sprite_bytes = (self as u32).to_be_bytes();
+                let block = Block::from_raw(super::BlockKind::Air, [sprite_bytes[1], sprite_bytes[2], sprite_bytes[3]]);
+                match self.category() {
+                    $(Category::$category_name => block$($(.with_attr($attr::default()).unwrap())*)?,)*
+                }
+                    .data()
+            }
         }
     };
 }
@@ -170,12 +179,14 @@ pub enum AttributeError<E> {
     Attribute(E),
 }
 
-pub trait Attribute: Sized {
-    /// The unique index assigned to this attribute, used to index offset arrays
+pub trait Attribute: Default + Sized {
+    /// The unique index assigned to this attribute, used to index offset
+    /// arrays.
     const INDEX: usize;
-    /// The number of bits required to represent this attribute
+    /// The number of bits required to represent this attribute.
     const BITS: u8;
-    type Error;
+    /// The error that might occur when decoding the attribute from bits.
+    type Error: core::fmt::Debug;
     fn from_bits(bits: u16) -> Result<Self, Self::Error>;
     fn into_bits(self) -> u16;
 }

@@ -1042,6 +1042,9 @@ impl PlayState for SessionState {
                                                         // currently supported
                                                         common::mounting::Volume::Entity(_) => {},
                                                     },
+                                                    BlockInteraction::LightToggle(enable) => {
+                                                        client.toggle_sprite_light(*pos, *enable);
+                                                    },
                                                 }
                                             },
                                             Interactable::Entity(entity) => {

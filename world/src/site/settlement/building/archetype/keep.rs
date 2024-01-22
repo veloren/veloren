@@ -167,7 +167,7 @@ impl Archetype for Keep {
             make_block(colors.pole.0, colors.pole.1, colors.pole.2).with_priority(important_layer);
         let flag =
             make_block(flag_color.0, flag_color.1, flag_color.2).with_priority(important_layer);
-        const AIR: Block = Block::air(SpriteKind::Empty);
+        const AIR: Block = Block::empty();
         const EMPTY: BlockMask = BlockMask::nothing();
         let internal = BlockMask::new(AIR, internal_layer);
 

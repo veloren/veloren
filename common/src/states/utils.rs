@@ -20,6 +20,7 @@ use crate::{
     },
     consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
+    mounting::Volume,
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
     terrain::{Block, TerrainGrid, UnlockKind},
@@ -1139,6 +1140,29 @@ pub fn handle_manipulate_loadout(
         InventoryAction::Use(slot @ Slot::Equip(_)) => {
             let inv_manip = InventoryManip::Use(slot);
             output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+        },
+        InventoryAction::ToggleSpriteLight(pos, enable) => {
+            if matches!(pos.kind, Volume::Terrain) {
+                let sprite_interact = sprite_interact::SpriteInteractKind::ToggleLight(enable);
+
+                let (buildup_duration, use_duration, recover_duration) =
+                    sprite_interact.durations();
+
+                update.character = CharacterState::SpriteInteract(sprite_interact::Data {
+                    static_data: sprite_interact::StaticData {
+                        buildup_duration,
+                        use_duration,
+                        recover_duration,
+                        sprite_pos: pos.pos,
+                        sprite_kind: sprite_interact,
+                        was_wielded: data.character.is_wield(),
+                        was_sneak: data.character.is_stealthy(),
+                        required_item: None,
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                });
+            }
         },
     }
 }
