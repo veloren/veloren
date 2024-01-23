@@ -9,7 +9,7 @@ ItemDef(
             precision_power: Some(-0.03),
         )),
     )),
-    quality: Moderate,
+    quality: Common,
     tags: [
         SalvageInto(Amethyst, 1),
     ],
