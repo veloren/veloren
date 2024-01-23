@@ -9,7 +9,7 @@ ItemDef(
             energy_reward: Some(-0.15),
         )),
     )),
-    quality: Epic,
+    quality: High,
     tags: [
         SalvageInto(Emerald, 1),
     ],

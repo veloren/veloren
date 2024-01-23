@@ -9,7 +9,7 @@ ItemDef(
             energy_reward: Some(-0.05),
         )),
     )),
-    quality: Moderate,
+    quality: Common,
     tags: [
         SalvageInto(Topaz, 1),
     ],

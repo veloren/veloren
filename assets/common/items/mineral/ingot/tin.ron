@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         descriptor: "Tin",
     ),
-    quality: Common,
+    quality: Low,
     tags: [MaterialKind(Metal)],
 )

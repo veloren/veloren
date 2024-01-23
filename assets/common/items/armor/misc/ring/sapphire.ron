@@ -9,7 +9,7 @@ ItemDef(
             precision_power: Some(0.015),
         )),
     )),
-    quality: Moderate,
+    quality: High,
     tags: [
         SalvageInto(Sapphire, 1),
     ],
