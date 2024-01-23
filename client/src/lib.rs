@@ -49,7 +49,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{IdMaps, Uid},
     vol::RectVolSize,
-    weather::{SharedWeatherGrid, Weather, WeatherGrid},
+    weather::{CompressedWeather, SharedWeatherGrid, Weather, WeatherGrid},
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
@@ -210,7 +210,7 @@ impl WeatherLerp {
                 .iter_mut()
                 .zip(old.iter().zip(new.iter()))
                 .for_each(|((_, current), ((_, old), (_, new)))| {
-                    *current = Weather::lerp_shared(old, new, t);
+                    *current = CompressedWeather::lerp_unclamped(old, new, t);
                 });
         }
     }

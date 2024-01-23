@@ -32,19 +32,11 @@ impl Weather {
         }
     }
 
-    pub fn lerp_unclamped(from: &Self, to: &Self, t: f32) -> Self {
+    pub fn lerp_unclamped(&self, to: &Self, t: f32) -> Self {
         Self {
-            cloud: f32::lerp_unclamped(from.cloud, to.cloud, t),
-            rain: f32::lerp_unclamped(from.rain, to.rain, t),
-            wind: Vec2::<f32>::lerp_unclamped(from.wind, to.wind, t),
-        }
-    }
-
-    pub fn lerp_shared(from: &SharedWeather, to: &SharedWeather, t: f32) -> Self {
-        Self {
-            cloud: f32::lerp_unclamped(from.cloud as f32, to.cloud as f32, t) / 255.0,
-            rain: f32::lerp_unclamped(from.rain as f32, to.rain as f32, t) / 255.0,
-            wind: Vec2::zero(),
+            cloud: f32::lerp_unclamped(self.cloud, to.cloud, t),
+            rain: f32::lerp_unclamped(self.rain, to.rain, t),
+            wind: Vec2::<f32>::lerp_unclamped(self.wind, to.wind, t),
         }
     }
 
@@ -88,13 +80,24 @@ pub struct WeatherGrid {
     weather: Grid<Weather>,
 }
 
+/// Weather that's compressed in order to send it to the client.
 #[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct SharedWeather {
+pub struct CompressedWeather {
     cloud: u8,
     rain: u8,
 }
 
-impl From<Weather> for SharedWeather {
+impl CompressedWeather {
+    pub fn lerp_unclamped(&self, to: &CompressedWeather, t: f32) -> Weather {
+        Weather {
+            cloud: f32::lerp_unclamped(self.cloud as f32, to.cloud as f32, t) / 255.0,
+            rain: f32::lerp_unclamped(self.rain as f32, to.rain as f32, t) / 255.0,
+            wind: Vec2::zero(),
+        }
+    }
+}
+
+impl From<Weather> for CompressedWeather {
     fn from(weather: Weather) -> Self {
         Self {
             cloud: (weather.cloud * 255.0) as u8,
@@ -103,8 +106,8 @@ impl From<Weather> for SharedWeather {
     }
 }
 
-impl From<SharedWeather> for Weather {
-    fn from(weather: SharedWeather) -> Self {
+impl From<CompressedWeather> for Weather {
+    fn from(weather: CompressedWeather) -> Self {
         Self {
             cloud: weather.cloud as f32 / 255.0,
             rain: weather.rain as f32 / 255.0,
@@ -115,7 +118,7 @@ impl From<SharedWeather> for Weather {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SharedWeatherGrid {
-    weather: Grid<SharedWeather>,
+    weather: Grid<CompressedWeather>,
 }
 
 impl From<&WeatherGrid> for SharedWeatherGrid {
@@ -128,7 +131,7 @@ impl From<&WeatherGrid> for SharedWeatherGrid {
                     .raw()
                     .iter()
                     .copied()
-                    .map(SharedWeather::from)
+                    .map(CompressedWeather::from)
                     .collect::<Vec<_>>(),
             ),
         }
@@ -156,13 +159,15 @@ impl SharedWeatherGrid {
     pub fn new(size: Vec2<u32>) -> Self {
         size.map(|e| debug_assert!(i32::try_from(e).is_ok()));
         Self {
-            weather: Grid::new(size.as_(), SharedWeather::default()),
+            weather: Grid::new(size.as_(), CompressedWeather::default()),
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &SharedWeather)> { self.weather.iter() }
+    pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &CompressedWeather)> {
+        self.weather.iter()
+    }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Vec2<i32>, &mut SharedWeather)> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Vec2<i32>, &mut CompressedWeather)> {
         self.weather.iter_mut()
     }
 
