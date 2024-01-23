@@ -31,4 +31,5 @@
     (1.0, Item("common.items.armor.misc.chest.worker_yellow_1")),
     (1.0, Item("common.items.armor.misc.pants.worker_blue")),
     (1.0, Item("common.items.armor.misc.pants.worker_brown")),
+    (1.0, Item("common.items.armor.misc.foot.sandals")),
 ]
