@@ -180,10 +180,29 @@ pub struct SiteInfoRich {
 struct WeatherLerp {
     old: (SharedWeatherGrid, Instant),
     new: (SharedWeatherGrid, Instant),
-    local_weather: Weather,
+    old_local_wind: (Vec2<f32>, Instant),
+    new_local_wind: (Vec2<f32>, Instant),
+    local_wind: Vec2<f32>,
 }
 
 impl WeatherLerp {
+    fn local_wind_update(&mut self, wind: Vec2<f32>) {
+        self.old_local_wind = mem::replace(&mut self.new_local_wind, (wind, Instant::now()));
+    }
+
+    fn update_local_wind(&mut self) {
+        // Assumes updates are regular
+        let t = (self.new_local_wind.1.elapsed().as_secs_f32()
+            / self
+                .new_local_wind
+                .1
+                .duration_since(self.old_local_wind.1)
+                .as_secs_f32())
+        .clamp(0.0, 1.0);
+
+        self.local_wind = Vec2::lerp_unclamped(self.old_local_wind.0, self.new_local_wind.0, t);
+    }
+
     fn weather_update(&mut self, weather: SharedWeatherGrid) {
         self.old = mem::replace(&mut self.new, (weather, Instant::now()));
     }
@@ -192,6 +211,7 @@ impl WeatherLerp {
     // that updates come at regular intervals.
     fn update(&mut self, to_update: &mut WeatherGrid) {
         prof_span!("WeatherLerp::update");
+        self.update_local_wind();
         let old = &self.old.0;
         let new = &self.new.0;
         if new.size() == Vec2::zero() {
@@ -218,10 +238,14 @@ impl WeatherLerp {
 
 impl Default for WeatherLerp {
     fn default() -> Self {
+        let old = Instant::now();
+        let new = Instant::now();
         Self {
-            old: (SharedWeatherGrid::new(Vec2::zero()), Instant::now()),
-            new: (SharedWeatherGrid::new(Vec2::zero()), Instant::now()),
-            local_weather: Weather::default(),
+            old: (SharedWeatherGrid::new(Vec2::zero()), old),
+            new: (SharedWeatherGrid::new(Vec2::zero()), new),
+            old_local_wind: (Vec2::zero(), old),
+            new_local_wind: (Vec2::zero(), new),
+            local_wind: Vec2::zero(),
         }
     }
 }
@@ -1715,7 +1739,15 @@ impl Client {
             .map(|v| v.0)
     }
 
-    pub fn weather_at_player(&self) -> Weather { self.weather.local_weather }
+    pub fn weather_at_player(&self) -> Weather {
+        self.position()
+            .map(|p| {
+                let mut weather = self.state.weather_at(p.xy());
+                weather.wind = self.weather.local_wind;
+                weather
+            })
+            .unwrap_or_default()
+    }
 
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(self.position()?)
@@ -2536,8 +2568,8 @@ impl Client {
             ServerGeneral::WeatherUpdate(weather) => {
                 self.weather.weather_update(weather);
             },
-            ServerGeneral::LocalWeatherUpdate(weather) => {
-                self.weather.local_weather = weather;
+            ServerGeneral::LocalWindUpdate(wind) => {
+                self.weather.local_wind_update(wind);
             },
             ServerGeneral::SpectatePosition(pos) => {
                 frontend_events.push(Event::SpectatePosition(pos));

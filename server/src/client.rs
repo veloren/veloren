@@ -192,7 +192,7 @@ impl Client {
                     | ServerGeneral::FinishedTrade(_)
                     | ServerGeneral::MapMarker(_)
                     | ServerGeneral::WeatherUpdate(_)
-                    | ServerGeneral::LocalWeatherUpdate(_)
+                    | ServerGeneral::LocalWindUpdate(_)
                     | ServerGeneral::SpectatePosition(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },

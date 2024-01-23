@@ -4,16 +4,17 @@ use common::{
     outcome::Outcome,
     resources::{DeltaTime, ProgramTime, TimeOfDay},
     slowjob::{SlowJob, SlowJobPool},
-    weather::{SharedWeatherGrid, WeatherGrid},
+    weather::{SharedWeatherGrid, Weather, WeatherGrid},
 };
 use common_ecs::{Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use rand::{seq::SliceRandom, thread_rng, Rng};
-use specs::{Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
 use std::{mem, sync::Arc};
+use vek::Vec2;
 use world::World;
 
-use crate::client::Client;
+use crate::{client::Client, Tick};
 
 use super::{
     sim::{LightningCells, WeatherSim},
@@ -31,6 +32,13 @@ pub struct WeatherJob {
     weather_tx: crossbeam_channel::Sender<(WeatherGrid, LightningCells, WeatherSim)>,
     weather_rx: crossbeam_channel::Receiver<(WeatherGrid, LightningCells, WeatherSim)>,
     state: WeatherJobState,
+    qeued_zones: Vec<(Weather, Vec2<f32>, f32, f32)>,
+}
+
+impl WeatherJob {
+    pub fn queue_zone(&mut self, weather: Weather, pos: Vec2<f32>, radius: f32, time: f32) {
+        self.qeued_zones.push((weather, pos, radius, time))
+    }
 }
 
 #[derive(Default)]
@@ -38,8 +46,10 @@ pub struct Sys;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
+        Entities<'a>,
         Read<'a, TimeOfDay>,
         Read<'a, ProgramTime>,
+        Read<'a, Tick>,
         Read<'a, DeltaTime>,
         Write<'a, LightningCells>,
         Write<'a, Option<WeatherJob>>,
@@ -58,8 +68,10 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut common_ecs::Job<Self>,
         (
+            entities,
             game_time,
             program_time,
+            tick,
             delta_time,
             mut lightning_cells,
             mut weather_job,
@@ -87,6 +99,7 @@ impl<'a> System<'a> for Sys {
                     weather_tx,
                     weather_rx,
                     state: WeatherJobState::Idle(sim),
+                    qeued_zones: Vec::new(),
                 });
 
                 None
@@ -118,6 +131,9 @@ impl<'a> System<'a> for Sys {
 
                 let weather_tx = weather_job.weather_tx.clone();
                 let game_time = *game_time;
+                for (weather, pos, radius, time) in weather_job.qeued_zones.drain(..) {
+                    sim.add_zone(weather, pos, radius, time)
+                }
                 let job = slow_job_pool.spawn("WEATHER", move || {
                     let mut grid = WeatherGrid::new(sim.size());
                     let lightning_cells = sim.tick(game_time, &mut grid);
@@ -148,9 +164,11 @@ impl<'a> System<'a> for Sys {
             });
         }
 
-        for (client, pos) in (&clients, &positions).join() {
-            let weather = grid.get_interpolated(pos.0.xy());
-            client.send_fallible(ServerGeneral::LocalWeatherUpdate(weather));
+        for (entity, client, pos) in (&entities, &clients, &positions).join() {
+            if entity.id() as u64 % 30 == tick.0 % 30 {
+                let weather = grid.get_interpolated(pos.0.xy());
+                client.send_fallible(ServerGeneral::LocalWindUpdate(weather.wind));
+            }
         }
     }
 }

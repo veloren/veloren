@@ -17,7 +17,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
     uuid::Uuid,
-    weather::{SharedWeatherGrid, Weather},
+    weather::SharedWeatherGrid,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -215,7 +215,7 @@ pub enum ServerGeneral {
     SiteEconomy(EconomyInfo),
     MapMarker(comp::MapMarkerUpdate),
     WeatherUpdate(SharedWeatherGrid),
-    LocalWeatherUpdate(Weather),
+    LocalWindUpdate(Vec2<f32>),
     /// Suggest the client to spectate a position. Called after client has
     /// requested teleport etc.
     SpectatePosition(Vec3<f32>),
@@ -340,7 +340,7 @@ impl ServerMsg {
                         | ServerGeneral::SiteEconomy(_)
                         | ServerGeneral::MapMarker(_)
                         | ServerGeneral::WeatherUpdate(_)
-                        | ServerGeneral::LocalWeatherUpdate(_)
+                        | ServerGeneral::LocalWindUpdate(_)
                         | ServerGeneral::SpectatePosition(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
