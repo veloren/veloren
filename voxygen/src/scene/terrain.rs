@@ -1580,7 +1580,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 min: visible_bounding_box.min.as_::<f64>(),
                 max: visible_bounding_box.max.as_::<f64>(),
             };
-            let weather = scene_data.state.weather_at(focus_off.xy() + cam_pos.xy());
+            let weather = scene_data.client.weather_at_player();
             let ray_direction = math::Vec3::<f32>::from(weather.rain_vel().normalized());
 
             // NOTE: We use proj_mat_treeculler here because

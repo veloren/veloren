@@ -780,7 +780,7 @@ impl FigureMgr {
             // Are shadows enabled at all?
             let can_shadow_sun = renderer.pipeline_modes().shadow.is_map() && is_daylight;
 
-            let weather = scene_data.state.weather_at(cam_pos.xy());
+            let weather = scene_data.client.weather_at_player();
 
             let cam_pos = math::Vec3::from(cam_pos);
 

@@ -1198,7 +1198,7 @@ impl Scene {
             .max_weather_near(focus_off.xy() + cam_pos.xy());
         self.wind_vel = weather.wind_vel();
         if weather.rain > RAIN_THRESHOLD {
-            let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
+            let weather = client.weather_at_player();
             let rain_vel = weather.rain_vel();
             let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_vel, up);
 

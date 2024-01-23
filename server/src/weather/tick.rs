@@ -83,7 +83,7 @@ impl<'a> System<'a> for Sys {
             positions,
         ): Self::SystemData,
     ) {
-        if let Some(weather_job) = match &mut *weather_job {
+        let to_update = match &mut *weather_job {
             Some(weather_job) => (program_time.0 - weather_job.last_update.0 >= WEATHER_DT as f64)
                 .then_some(weather_job),
             None => {
@@ -104,7 +104,9 @@ impl<'a> System<'a> for Sys {
 
                 None
             },
-        } {
+        };
+
+        if let Some(weather_job) = to_update {
             if matches!(weather_job.state, WeatherJobState::Working(_))
             && let Ok((new_grid, new_lightning_cells, sim)) = weather_job.weather_rx.try_recv() {
                 *grid = new_grid;
@@ -123,6 +125,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if matches!(weather_job.state, WeatherJobState::Idle(_)) {
+                weather_job.last_update = *program_time;
                 let old_state = mem::replace(&mut weather_job.state, WeatherJobState::None);
 
                 let WeatherJobState::Idle(mut sim) = old_state else {
