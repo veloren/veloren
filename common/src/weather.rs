@@ -100,8 +100,8 @@ impl CompressedWeather {
 impl From<Weather> for CompressedWeather {
     fn from(weather: Weather) -> Self {
         Self {
-            cloud: (weather.cloud * 255.0) as u8,
-            rain: (weather.rain * 255.0) as u8,
+            cloud: (weather.cloud * 255.0).round() as u8,
+            rain: (weather.rain * 255.0).round() as u8,
         }
     }
 }
