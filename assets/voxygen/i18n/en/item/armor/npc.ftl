@@ -558,7 +558,7 @@ common-items-npc_armor-biped_large-yeti = Yeti Hide
 
 common-items-npc_armor-biped_large-haniwageneral = Haniwa General Uniform
     .desc = Has seen combat.
-    
+
 armor-leather_blue-pants = Blue Leather Cuirass
     .desc = {""}
 

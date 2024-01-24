@@ -40,6 +40,7 @@ hud-zoom_lock_indicator-remind = Zoom bloccato
 hud-zoom_lock_indicator-enable = Zoom bloccato
 hud-zoom_lock_indicator-disable = Zoom sbloccato
 hud-activate = Attiva
+hud-deactivate = Disattiva
 hud-collect = Raccogli
 hud-pick_up = Prendi
 hud-open = Apri
