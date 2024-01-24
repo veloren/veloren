@@ -140,9 +140,7 @@ impl<'a> System<'a> for Sys {
                 let job = slow_job_pool.spawn("WEATHER", move || {
                     let mut grid = WeatherGrid::new(sim.size());
                     let lightning_cells = sim.tick(game_time, &mut grid);
-                    weather_tx
-                        .send((grid, lightning_cells, sim))
-                        .expect("We should never send more than 1 of these.")
+                    let _ = weather_tx.send((grid, lightning_cells, sim));
                 });
 
                 weather_job.state = WeatherJobState::Working(job);
@@ -161,9 +159,8 @@ impl<'a> System<'a> for Sys {
                 "This is non-empty, since we multiply with its len for the chance to do a \
                  lightning strike.",
             );
-            let wpos = cell_pos.map(|e| {
-                (e as f32 + thread_rng().gen_range(0.0..1.0)) * common::weather::CELL_SIZE as f32
-            });
+            let wpos = cell_pos
+                .map(|e| (e as f32 + rng.gen_range(0.0..1.0)) * common::weather::CELL_SIZE as f32);
             outcome_emitter.emit(Outcome::Lightning {
                 pos: wpos.with_z(world.sim().get_alt_approx(wpos.as_()).unwrap_or(0.0)),
             });
