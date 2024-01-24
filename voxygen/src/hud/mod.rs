@@ -1162,6 +1162,10 @@ impl Show {
             ui.handle_event(ui::Event(
                 conrod_core::input::Motion::MouseCursor { x: 0.0, y: 0.0 }.into(),
             ));
+
+            //TODO: An underlying OS call in winit is causing the camera to jump upon the
+            // next mouse movement event in macos https://github.com/rust-windowing/winit/issues/999
+            #[cfg(not(target_os = "macos"))]
             global_state.window.center_cursor();
         }
     }
