@@ -208,7 +208,7 @@ impl Renderer {
         let backends = std::env::var("WGPU_BACKEND")
             .ok()
             .and_then(|backend| match backend.to_lowercase().as_str() {
-                "vulkan" => Some(wgpu::Backends::VULKAN),
+                "vulkan" | "vk" => Some(wgpu::Backends::VULKAN),
                 "metal" => Some(wgpu::Backends::METAL),
                 "dx12" => Some(wgpu::Backends::DX12),
                 "primary" => Some(wgpu::Backends::PRIMARY),
