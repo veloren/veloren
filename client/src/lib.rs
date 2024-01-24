@@ -1739,6 +1739,7 @@ impl Client {
             .map(|v| v.0)
     }
 
+    /// Returns Weather::default if no player position exists.
     pub fn weather_at_player(&self) -> Weather {
         self.position()
             .map(|p| {
