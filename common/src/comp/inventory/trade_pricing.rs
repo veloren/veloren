@@ -644,6 +644,9 @@ impl TradePricing {
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.lantern.") => {
                 Good::default()
             },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.keys.") => {
+                Good::default()
+            },
             ItemDefinitionIdOwned::Modular {
                 pseudo_base: _,
                 components: _,

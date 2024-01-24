@@ -8,15 +8,21 @@
 // Please keep it sorted by rarity so it's easier to reason about things
 [
     /// Non-craftable gliders
+    (5.0, Item("common.items.glider.blue")),
+    (5.0, Item("common.items.glider.moonrise")),
+    (2.0, Item("common.items.glider.skullgrin")),
     // Butterfly gliders
-    (5, Item("common.items.glider.morpho")),
-    (5, Item("common.items.glider.monarch")),
-    (5, Item("common.items.glider.moth")),
-    // Skullgrin
-    (2, Item("common.items.glider.skullgrin")),
+    (5.0, Item("common.items.glider.morpho")),
+    (5.0, Item("common.items.glider.monarch")),
+    (5.0, Item("common.items.glider.moth")),
 
-    /// Lanterns
-    (5, Item("common.items.lantern.geode_purp")),
-    (2, Item("common.items.lantern.blue_0")),
-    (2, Item("common.items.boss_drops.lantern")),
+    // Lanterns
+    (5.0, Item("common.items.lantern.geode_purp")),
+    (2.0, Item("common.items.lantern.pumpkin")),
+    (2.0, Item("common.items.boss_drops.lantern")),
+    (2.0, Item("common.items.lantern.blue_0")),
+
+    // Keys
+    (5.0, Item("common.items.keys.bone_key")),
+    (5.0, Item("common.items.keys.glass_key")),
 ]
