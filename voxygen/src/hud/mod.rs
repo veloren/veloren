@@ -78,8 +78,7 @@ use crate::{
     },
     settings::chat::ChatFilter,
     ui::{
-        self, fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable,
-        ScaleMode, Ui,
+        fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui,
     },
     window::Event as WinEvent,
     GlobalState,
@@ -1142,32 +1141,6 @@ impl Show {
 
     fn search_social_players(&mut self, search_key: Option<String>) {
         self.social_search_key = search_key;
-    }
-
-    /// If all of the menus are closed, adjusts coordinates of cursor to center
-    /// of screen
-    fn toggle_cursor_on_menu_close(&self, global_state: &mut GlobalState, ui: &mut Ui) {
-        if !self.bag
-            && !self.trade
-            && !self.esc_menu
-            && !self.map
-            && !self.social
-            && !self.quest
-            && !self.crafting
-            && !self.diary
-            && !self.help
-            && !self.intro
-            && global_state.window.is_cursor_grabbed()
-        {
-            ui.handle_event(ui::Event(
-                conrod_core::input::Motion::MouseCursor { x: 0.0, y: 0.0 }.into(),
-            ));
-
-            //TODO: An underlying OS call in winit is causing the camera to jump upon the
-            // next mouse movement event in macos https://github.com/rust-windowing/winit/issues/999
-            #[cfg(not(target_os = "macos"))]
-            global_state.window.center_cursor();
-        }
     }
 
     pub fn update_map_markers(&mut self, event: comp::MapMarkerUpdate) {
@@ -4713,7 +4686,7 @@ impl Hud {
                     true
                 };
 
-                let matching_key = match key {
+                match key {
                     GameInput::Command if state => {
                         self.force_chat_input = Some("/".to_owned());
                         self.force_chat_cursor = Some(Index { line: 0, char: 1 });
@@ -4809,13 +4782,7 @@ impl Hud {
                             false
                         }
                     },
-                };
-
-                // When a player closes all menus, resets the cursor
-                // to the center of the screen
-                self.show
-                    .toggle_cursor_on_menu_close(global_state, &mut self.ui);
-                matching_key
+                }
             },
             // Else the player is typing in chat
             WinEvent::InputUpdate(_key, _) => self.typing(),
