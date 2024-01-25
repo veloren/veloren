@@ -423,7 +423,7 @@ impl SpriteKind {
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
             SpriteKind::FireBowlGround => 0.55,
-            SpriteKind::Bed => 1.54,
+            SpriteKind::Bed => 0.72,
             SpriteKind::Bench => 0.5,
             SpriteKind::ChairSingle => 0.5,
             SpriteKind::ChairDouble => 0.5,
