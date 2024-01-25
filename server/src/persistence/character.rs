@@ -427,7 +427,7 @@ pub fn create_character(
         },
         Item {
             stack_size: 1,
-            item_id: loadout_container_id,
+            item_id: overflow_items_container_id,
             parent_container_item_id: character_id,
             item_definition_id: OVERFLOW_ITEMS_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: OVERFLOW_ITEMS_PSEUDO_CONTAINER_POSITION.to_owned(),
