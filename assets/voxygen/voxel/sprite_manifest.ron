@@ -2013,7 +2013,7 @@ Bed: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.bed-0",
-            offset: (-9.5, -14.5, 0.0),
+            offset: (-9.0, -13.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
