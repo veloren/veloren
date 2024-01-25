@@ -104,3 +104,4 @@ main-singleplayer-play = Играть
 main-singleplayer-invalid_name = Ошибка: Недопустимое имя
 main-singleplayer-size_lg = Логарифмический размер
 main-singleplayer-map_scale = Вертикальное масштабирование
+main-singleplayer-map_large_warning = Предупреждение: Для первого запуска больших миров потребуется много времени

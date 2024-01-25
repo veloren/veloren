@@ -42,3 +42,5 @@ subtitle-wield_shield = Щит экипирован
 subtitle-unwield_bow = Лук более не экипирован
 subtitle-wield_sceptre = Скипетр экипирован
 subtitle-roll = Перекат
+subtitle-attack_blocked = Атака заблокирована
+subtitle-interrupted = Прервано
