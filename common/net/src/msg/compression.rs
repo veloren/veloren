@@ -184,9 +184,11 @@ impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32>();
+pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32, const HASH_CONS_SPRITES: bool>();
 
-impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
+impl<const N: u32, const HASH_CONS_SPRITES: bool> VoxelImageEncoding
+    for QuadPngEncoding<N, HASH_CONS_SPRITES>
+{
     type Output = CompressedData<(Vec<u8>, [usize; 3], Vec<[u8; 3]>)>;
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
@@ -194,6 +196,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Rgb<u8>, Vec<u8>>,
         Vec<[u8; 3]>,
+        HashMap<[u8; 3], u16>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
@@ -203,6 +206,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
             ImageBuffer::new(width, height),
             ImageBuffer::new(width / N, height / N),
             Vec::new(),
+            HashMap::new(),
         )
     }
 
@@ -221,12 +225,24 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         kind: BlockKind,
         sprite_data: [u8; 3],
     ) {
-        let index: u16 =
-            ws.4.len()
-                .try_into()
-                .expect("Cannot have more than 2^16 sprites in one chunk");
-        let index = index.to_be_bytes();
-        ws.4.push(sprite_data);
+        let index = if HASH_CONS_SPRITES {
+            let index = ws.5.entry(sprite_data).or_insert_with(|| {
+                let index =
+                    ws.4.len()
+                        .try_into()
+                        .expect("Cannot have more than 2^16 sprites in one chunk");
+                ws.4.push(sprite_data);
+                index
+            });
+            index.to_be_bytes()
+        } else {
+            let index: u16 =
+                ws.4.len()
+                    .try_into()
+                    .expect("Cannot have more than 2^16 sprites in one chunk");
+            ws.4.push(sprite_data);
+            index.to_be_bytes()
+        };
 
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([index[0]]));
@@ -323,7 +339,9 @@ const fn gen_lanczos_lookup<const N: u32, const R: u32>(
     array
 }
 
-impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
+impl<const N: u32, const HASH_CONS_SPRITES: bool> VoxelImageDecoding
+    for QuadPngEncoding<N, HASH_CONS_SPRITES>
+{
     fn start(data: &Self::Output) -> Option<Self::Workspace> {
         use image::codecs::png::PngDecoder;
         let (quad, indices, sprite_data) = data.decompress()?;
@@ -337,7 +355,7 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
         let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
         let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
         let d = image_from_bytes(PngDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
-        Some((a, b, c, d, sprite_data))
+        Some((a, b, c, d, sprite_data, HashMap::new()))
     }
 
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block {
@@ -461,9 +479,11 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct TriPngEncoding<const AVERAGE_PALETTE: bool>();
+pub struct TriPngEncoding<const AVERAGE_PALETTE: bool, const HASH_CONS_SPRITES: bool>();
 
-impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_PALETTE> {
+impl<const AVERAGE_PALETTE: bool, const HASH_CONS_SPRITES: bool> VoxelImageEncoding
+    for TriPngEncoding<AVERAGE_PALETTE, HASH_CONS_SPRITES>
+{
     type Output = CompressedData<(Vec<u8>, Vec<Rgb<u8>>, [usize; 3], Vec<[u8; 3]>)>;
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
@@ -471,6 +491,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         HashMap<BlockKind, HashMap<Rgb<u8>, usize>>,
         Vec<[u8; 3]>,
+        HashMap<[u8; 3], u16>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
@@ -480,6 +501,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
             ImageBuffer::new(width, height),
             HashMap::new(),
             Vec::new(),
+            HashMap::new(),
         )
     }
 
@@ -500,12 +522,24 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
         kind: BlockKind,
         sprite_data: [u8; 3],
     ) {
-        let index: u16 =
-            ws.4.len()
-                .try_into()
-                .expect("Cannot have more than 2^16 sprites in one chunk");
-        let index = index.to_be_bytes();
-        ws.4.push(sprite_data);
+        let index = if HASH_CONS_SPRITES {
+            let index = ws.5.entry(sprite_data).or_insert_with(|| {
+                let index =
+                    ws.4.len()
+                        .try_into()
+                        .expect("Cannot have more than 2^16 sprites in one chunk");
+                ws.4.push(sprite_data);
+                index
+            });
+            index.to_be_bytes()
+        } else {
+            let index: u16 =
+                ws.4.len()
+                    .try_into()
+                    .expect("Cannot have more than 2^16 sprites in one chunk");
+            ws.4.push(sprite_data);
+            index.to_be_bytes()
+        };
 
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Luma([index[0]]));
@@ -561,7 +595,9 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
     }
 }
 
-impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_PALETTE> {
+impl<const AVERAGE_PALETTE: bool, const HASH_CONS_SPRITE: bool> VoxelImageDecoding
+    for TriPngEncoding<AVERAGE_PALETTE, HASH_CONS_SPRITE>
+{
     fn start(data: &Self::Output) -> Option<Self::Workspace> {
         use image::codecs::png::PngDecoder;
         let (quad, palette, indices, sprite_data) = data.decompress()?;
@@ -585,7 +621,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
             }
         }
 
-        Some((a, b, c, d, sprite_data))
+        Some((a, b, c, d, sprite_data, HashMap::new()))
     }
 
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, _: bool) -> Block {
