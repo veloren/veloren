@@ -86,23 +86,6 @@ widget_ids! {
         skill_lock_imgs[],
         sword_bg,
         axe_bg,
-        hammer_render,
-        skill_hammer_combo_0,
-        skill_hammer_combo_1,
-        skill_hammer_combo_2,
-        skill_hammer_combo_3,
-        skill_hammer_combo_4,
-        skill_hammer_charged_0,
-        skill_hammer_charged_1,
-        skill_hammer_charged_2,
-        skill_hammer_charged_3,
-        skill_hammer_charged_4,
-        skill_hammer_leap_0,
-        skill_hammer_leap_1,
-        skill_hammer_leap_2,
-        skill_hammer_leap_3,
-        skill_hammer_leap_4,
-        skill_hammer_leap_5,
         bow_render,
         skill_bow_charged_0,
         skill_bow_charged_1,
@@ -1809,154 +1792,12 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
-        // Title text
-        let tree_title = &self.localized_strings.get_msg("common-weapons-hammer");
+        // use skills::HammerSkill::*;
+        // let skill_buttons = &[
+        // ];
 
-        Text::new(tree_title)
-            .mid_top_with_margin_on(state.ids.content_align, 2.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(TEXT_COLOR)
-            .set(state.ids.tree_title_txt, ui);
-
-        // Number of skills per rectangle per weapon, start counting at 0
-        // Maximum of 9 skills/8 indices
-        let skills_top_l = 5;
-        let skills_top_r = 5;
-        let skills_bot_l = 6;
-        let skills_bot_r = 0;
-
-        self.setup_state_for_skill_icons(
-            state,
-            ui,
-            skills_top_l,
-            skills_top_r,
-            skills_bot_l,
-            skills_bot_r,
-        );
-
-        // Skill icons and buttons
-        use skills::HammerSkill::*;
-        // Hammer
-        Image::new(animate_by_pulse(
-            &self
-                .item_imgs
-                .img_ids_or_not_found_img(ItemKey::Simple("example_hammer".to_string())),
-            self.pulse,
-        ))
-        .wh(ART_SIZE)
-        .middle_of(state.ids.content_align)
-        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.ids.hammer_render, ui);
-        use PositionSpecifier::MidTopWithMarginOn;
-        let skill_buttons = &[
-            // Top Left skills
-            //        5 1 6
-            //        3 0 4
-            //        8 2 7
-            SkillIcon::Descriptive {
-                title: "hud-skill-hmr_single_strike_title",
-                desc: "hud-skill-hmr_single_strike",
-                image: self.imgs.twohhammer_m1,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
-                id: state.ids.skill_hammer_combo_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(SsKnockback),
-                image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
-                id: state.ids.skill_hammer_combo_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(SsDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
-                id: state.ids.skill_hammer_combo_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(SsSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
-                id: state.ids.skill_hammer_combo_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(SsRegen),
-                image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
-                id: state.ids.skill_hammer_combo_4,
-            },
-            // Top right skills
-            SkillIcon::Descriptive {
-                title: "hud-skill-hmr_charged_melee_title",
-                desc: "hud-skill-hmr_charged_melee",
-                image: self.imgs.hammergolf,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
-                id: state.ids.skill_hammer_charged_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(CKnockback),
-                image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
-                id: state.ids.skill_hammer_charged_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(CDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
-                id: state.ids.skill_hammer_charged_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(CDrain),
-                image: self.imgs.physical_energy_drain_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
-                id: state.ids.skill_hammer_charged_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(CSpeed),
-                image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
-                id: state.ids.skill_hammer_charged_4,
-            },
-            // Bottom left skills
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(UnlockLeap),
-                image: self.imgs.hammerleap,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
-                id: state.ids.skill_hammer_leap_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(LDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
-                id: state.ids.skill_hammer_leap_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(LKnockback),
-                image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
-                id: state.ids.skill_hammer_leap_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(LCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
-                id: state.ids.skill_hammer_leap_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(LDistance),
-                image: self.imgs.physical_distance_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
-                id: state.ids.skill_hammer_leap_4,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Hammer(LRange),
-                image: self.imgs.physical_radius_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[5], 3.0),
-                id: state.ids.skill_hammer_leap_5,
-            },
-        ];
-
-        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
+        // self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip,
+        // state);
         events
     }
 
@@ -2812,7 +2653,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         // general tree
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
-        Skill::Hammer(s) => hammer_skill_strings(s),
         Skill::Bow(s) => bow_skill_strings(s),
         Skill::Staff(s) => staff_skill_strings(s),
         Skill::Sceptre(s) => sceptre_skill_strings(s),
@@ -2862,81 +2702,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
             tracing::warn!("Requesting title for unlocking unexpected skill group");
             SkillStrings::Empty
         },
-    }
-}
-
-fn hammer_skill_strings(skill: HammerSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.hammer_tree;
-    // Single strike upgrades
-    match skill {
-        HammerSkill::SsKnockback => SkillStrings::with_mult(
-            "hud-skill-hmr_single_strike_knockback_title",
-            "hud-skill-hmr_single_strike_knockback",
-            modifiers.single_strike.knockback,
-        ),
-        HammerSkill::SsDamage => SkillStrings::plain(
-            "hud-skill-hmr_single_strike_damage_title",
-            "hud-skill-hmr_single_strike_damage",
-        ),
-        HammerSkill::SsSpeed => SkillStrings::plain(
-            "hud-skill-hmr_single_strike_speed_title",
-            "hud-skill-hmr_single_strike_speed",
-        ),
-        HammerSkill::SsRegen => SkillStrings::plain(
-            "hud-skill-hmr_single_strike_regen_title",
-            "hud-skill-hmr_single_strike_regen",
-        ),
-        // Charged melee upgrades
-        HammerSkill::CDamage => SkillStrings::with_mult(
-            "hud-skill-hmr_charged_melee_damage_title",
-            "hud-skill-hmr_charged_melee_damage",
-            modifiers.charged.scaled_damage,
-        ),
-        HammerSkill::CKnockback => SkillStrings::with_mult(
-            "hud-skill-hmr_charged_melee_knockback_title",
-            "hud-skill-hmr_charged_melee_knockback",
-            modifiers.charged.scaled_knockback,
-        ),
-        HammerSkill::CDrain => SkillStrings::with_mult(
-            "hud-skill-hmr_charged_melee_nrg_drain_title",
-            "hud-skill-hmr_charged_melee_nrg_drain",
-            modifiers.charged.energy_drain,
-        ),
-        HammerSkill::CSpeed => SkillStrings::with_mult(
-            "hud-skill-hmr_charged_rate_title",
-            "hud-skill-hmr_charged_rate",
-            modifiers.charged.charge_rate,
-        ),
-        // Leap upgrades
-        HammerSkill::UnlockLeap => SkillStrings::plain(
-            "hud-skill-hmr_unlock_leap_title",
-            "hud-skill-hmr_unlock_leap",
-        ),
-        HammerSkill::LDamage => SkillStrings::with_mult(
-            "hud-skill-hmr_leap_damage_title",
-            "hud-skill-hmr_leap_damage",
-            modifiers.leap.base_damage,
-        ),
-        HammerSkill::LCost => SkillStrings::with_mult(
-            "hud-skill-hmr_leap_cost_title",
-            "hud-skill-hmr_leap_cost",
-            modifiers.leap.energy_cost,
-        ),
-        HammerSkill::LDistance => SkillStrings::with_mult(
-            "hud-skill-hmr_leap_distance_title",
-            "hud-skill-hmr_leap_distance",
-            modifiers.leap.leap_strength,
-        ),
-        HammerSkill::LKnockback => SkillStrings::with_mult(
-            "hud-skill-hmr_leap_knockback_title",
-            "hud-skill-hmr_leap_knockback",
-            modifiers.leap.knockback,
-        ),
-        HammerSkill::LRange => SkillStrings::with_const_float(
-            "hud-skill-hmr_leap_radius_title",
-            "hud-skill-hmr_leap_radius",
-            modifiers.leap.range,
-        ),
     }
 }
 

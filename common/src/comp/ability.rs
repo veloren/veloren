@@ -1919,7 +1919,6 @@ impl CharacterAbility {
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Hammer) => self.adjusted_by_hammer_skills(skillset),
             Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
@@ -1947,108 +1946,6 @@ impl CharacterAbility {
                 *swing_duration /= speed;
                 *recover_duration /= speed;
             }
-        }
-    }
-
-    fn adjusted_by_hammer_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
-        use skills::{HammerSkill::*, Skill::Hammer};
-
-        match self {
-            CharacterAbility::ComboMeleeDeprecated {
-                ref mut speed_increase,
-                ref mut max_speed_increase,
-                ref mut stage_data,
-                ref mut max_energy_gain,
-                ref mut scales_from_combo,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.hammer_tree.single_strike;
-
-                if let Ok(level) = skillset.skill_level(Hammer(SsKnockback)) {
-                    *stage_data = (*stage_data)
-                        .iter()
-                        .map(|s| s.modify_strike(modifiers.knockback.powi(level.into())))
-                        .collect::<Vec<_>>();
-                }
-                let speed_segments = f32::from(Hammer(SsSpeed).max_level());
-                let speed_level = f32::from(skillset.skill_level(Hammer(SsSpeed)).unwrap_or(0));
-                *speed_increase *= speed_level / speed_segments;
-                *max_speed_increase *= speed_level / speed_segments;
-
-                let energy_level = skillset.skill_level(Hammer(SsRegen)).unwrap_or(0);
-
-                let stages = u16::try_from(stage_data.len())
-                    .expect("number of stages can't be more than u16");
-
-                *max_energy_gain *= f32::from((energy_level + 1) * stages)
-                    / f32::from((Hammer(SsRegen).max_level() + 1) * stages);
-
-                *scales_from_combo = skillset.skill_level(Hammer(SsDamage)).unwrap_or(0).into();
-            },
-            CharacterAbility::ChargedMelee {
-                ref mut energy_drain,
-                ref mut charge_duration,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.hammer_tree.charged;
-
-                if let Some(MeleeConstructorKind::Bash {
-                    ref mut damage,
-                    ref mut knockback,
-                    ..
-                }) = melee_constructor.scaled.as_mut().map(|scaled| scaled.kind)
-                {
-                    if let Ok(level) = skillset.skill_level(Hammer(CDamage)) {
-                        *damage *= modifiers.scaled_damage.powi(level.into());
-                    }
-                    if let Ok(level) = skillset.skill_level(Hammer(CKnockback)) {
-                        *knockback *= modifiers.scaled_knockback.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(CDrain)) {
-                    *energy_drain *= modifiers.energy_drain.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(CSpeed)) {
-                    let charge_time = 1.0 / modifiers.charge_rate;
-                    *charge_duration *= charge_time.powi(level.into());
-                }
-            },
-            CharacterAbility::LeapMelee {
-                ref mut energy_cost,
-                ref mut forward_leap_strength,
-                ref mut vertical_leap_strength,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.hammer_tree.leap;
-                if let MeleeConstructorKind::Bash {
-                    ref mut damage,
-                    ref mut knockback,
-                    ..
-                } = melee_constructor.kind
-                {
-                    if let Ok(level) = skillset.skill_level(Hammer(LDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                    if let Ok(level) = skillset.skill_level(Hammer(LKnockback)) {
-                        *knockback *= modifiers.knockback.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(LCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(LDistance)) {
-                    let strength = modifiers.leap_strength;
-                    *forward_leap_strength *= strength.powi(level.into());
-                    *vertical_leap_strength *= strength.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(LRange)) {
-                    melee_constructor.range += modifiers.range * f32::from(level);
-                }
-            },
-            _ => {},
         }
     }
 

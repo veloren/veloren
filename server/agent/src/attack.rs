@@ -278,74 +278,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        enum ActionStateTimers {
-            TimerHandleHammerAttack = 0,
-        }
-        let has_leap = || {
-            self.skill_set
-                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-        };
-
-        let has_energy = |need| self.energy.current() > need;
-
-        let use_leap = |controller: &mut Controller| {
-            controller.push_basic_input(InputKind::Ability(0));
-        };
-
-        if attack_data.in_min_range() && attack_data.angle < 45.0 {
-            controller.inputs.move_dir = Vec2::zero();
-            if agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] > 4.0
-            {
-                controller.push_cancel_input(InputKind::Secondary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] =
-                    0.0;
-            } else if agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize]
-                > 3.0
-            {
-                controller.push_basic_input(InputKind::Secondary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
-            } else if has_leap() && has_energy(50.0) && rng.gen_bool(0.9) {
-                use_leap(controller);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
-            } else {
-                controller.push_basic_input(InputKind::Primary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
-            }
-        } else {
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            );
-
-            if attack_data.dist_sqrd < 32.0f32.powi(2)
-                && has_leap()
-                && has_energy(50.0)
-                && entities_have_line_of_sight(
-                    self.pos,
-                    self.body,
-                    self.scale,
-                    tgt_data.pos,
-                    tgt_data.body,
-                    tgt_data.scale,
-                    read_data,
-                )
-            {
-                use_leap(controller);
-            }
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && rng.gen::<f32>() < 0.02
-            {
-                controller.push_basic_input(InputKind::Roll);
-            }
-        }
+        // TODO
     }
 
     pub fn handle_sword_attack(
@@ -4609,10 +4542,6 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             TimerHandleHammerAttack = 0,
         }
-        let has_leap = || {
-            self.skill_set
-                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-        };
 
         let has_energy = |need| self.energy.current() > need;
 
@@ -4633,7 +4562,7 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Secondary);
                 agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
                     read_data.dt.0;
-            } else if has_leap() && has_energy(50.0) && rng.gen_bool(0.9) {
+            } else if has_energy(50.0) && rng.gen_bool(0.9) {
                 use_leap(controller);
                 agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
                     read_data.dt.0;
@@ -4653,7 +4582,6 @@ impl<'a> AgentData<'a> {
             );
 
             if attack_data.dist_sqrd < 32.0f32.powi(2)
-                && has_leap()
                 && has_energy(50.0)
                 && entities_have_line_of_sight(
                     self.pos,

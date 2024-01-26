@@ -1,12 +1,5 @@
 ([
     Group(Weapon(Hammer)),
 
-    // Single Strike, as single as you are
-    Skill((Hammer(SsKnockback), 1)),
-    Skill((Hammer(SsDamage), 1)),
-
-    // Charged
-    Skill((Hammer(CDamage), 1)),
-    Skill((Hammer(CKnockback), 1)),
-
+    Skill((Hammer(ScornfulSwipe), 1)),
 ])
