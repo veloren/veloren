@@ -74,15 +74,11 @@ impl TerrainPersistence {
             }
         }
 
-        let removed = resets.len();
-
         // Reset any unchanged blocks (this is an optimisation only)
         for rpos in resets {
             loaded_chunk.chunk.reset_block(rpos);
             loaded_chunk.modified = true;
         }
-
-        self.cached_chunks.limiter_mut().remove_blocks(removed);
     }
 
     /// Maintain terrain persistence (writing changes changes back to
@@ -314,10 +310,6 @@ impl ByBlockLimiter {
     /// This function should only be used when it is guaranteed that a block has
     /// been added
     fn add_block(&mut self) { self.counted_blocks += 1; }
-
-    /// This function should only be used when it is guaranteed that this number
-    /// of blocks has been removed
-    fn remove_blocks(&mut self, removed: usize) { self.counted_blocks -= removed; }
 }
 
 /// # Adding a new chunk format version
