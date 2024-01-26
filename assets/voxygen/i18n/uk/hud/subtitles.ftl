@@ -6,14 +6,12 @@ subtitle-running_water = Булькання води
 subtitle-lightning = Грім
 subtitle-portal-activated = Портал активовано
 subtitle-portal-teleported = Телепортовано
-
 subtitle-footsteps_grass = Ходьба по траві
 subtitle-footsteps_earth = Ходьба по землі
 subtitle-footsteps_rock = Ходьба по камінні
 subtitle-footsteps_snow = Ходьба по снігу
 subtitle-pickup_item = Предмет підібрано
 subtitle-pickup_failed = Не вдалося підібрати
-
 subtitle-glider_open = Дельтаплан екіпіровано
 subtitle-glider_close = Дельтаплан прибрано
 subtitle-glide = Планерування
@@ -22,52 +20,41 @@ subtitle-swim = Плавання
 subtitle-climb = Лазіння
 subtitle-damage = Пошкодження
 subtitle-death = Смерть
-
 subtitle-wield_bow = Лук екіпіровано
 subtitle-unwield_bow = Лук прибрано
 subtitle-pickup_bow = Лук підібрано
-
 subtitle-wield_sword = Меч екіпіровано
 subtitle-unwield_sword = Меч прибрано
 subtitle-sword_attack = Замах мечем
 subtitle-pickup_sword = Меч підібрано
-
 subtitle-wield_axe = Сокиру екіпіровано
 subtitle-unwield_axe = Сокиру прибрано
 subtitle-axe_attack = Замах сокирою
 subtitle-pickup_axe = Сокиру підібрано
-
 subtitle-wield_hammer = Молот екіпіровано
 subtitle-unwield_hammer = Молот прибрано
 subtitle-hammer_attack = Замах молотом
 subtitle-pickup_hammer = Молот підібрано
-
 subtitle-wield_staff = Посох екіпіровано
 subtitle-unwield_staff = Посох прибрано
 subtitle-fire_shot = Вогняна куля Посоха
 subtitle-staff_attack = Вогняна куля Посоха
 subtitle-pickup_staff = Посох підібрано
-
 subtitle-wield_sceptre = Скіпетр екіпіровано
 subtitle-unwield_sceptre = Скіпетр прибрано
 subtitle-sceptre_heal = Зцілююча аура скіпетра
 subtitle-pickup_sceptre = Скіпетр підібрано
-
 subtitle-wield_dagger = Кинджал екіпіровано
 subtitle-uwield_dagger = Кинджал прибрано
 subtitle-dagger_attack = Замах кинджалом
 subtitle-pickup_dagger = Кинджал підібрано
-
 subtitle-wield_shield = Щит екіпіровано
 subtitle-unwield_shield = Щит прибрано
 subtitle-shield_attack = Поштовх щитом
 subtitle-pickup_shield = Щит підібрано
-
 subtitle-pickup_pick = Кайло підібрано
 subtitle-pickup_gemstone = Самоцвіт підібрано
-
 subtitle-instrument_organ = Гра на органі
-
 subtitle-wield_instrument = Інструмент екіпіровано
 subtitle-unwield_instrument = Інструмент прибрано
 subtitle-instrument_double_bass = Гра на Контрабасі
@@ -84,9 +71,7 @@ subtitle-instrument_dark_guitar = Гра на Темній Гітарі
 subtitle-instrument_washboard = Гра на Пральній Дошці
 subtitle-instrument_wildskin_drum = Гра Барабана з Дикої Шкіри
 subtitle-pickup_instrument = Інструмент підібрано
-
 subtitle-explosion = Вибух
-
 subtitle-arrow_shot = Стріла випущена
 subtitle-arrow_miss = Промах стріли
 subtitle-arrow_hit = Попадання стріли
@@ -94,13 +79,12 @@ subtitle-skill_point = Отримано Очко Умінь
 subtitle-sceptre_beam = Промінь Скіпетра
 subtitle-flame_thrower = Вогнемет
 subtitle-break_block = Блок знищено
-subtitle-attack_blocked = Атаку заблоковано 
+subtitle-attack_blocked = Атаку заблоковано
 subtitle-parry = Парирування
 subtitle-interrupted = Прервано
 subtitle-stunned = Приголомшений
 subtitle-dazed = Ошелешений
 subtitle-knocked_down = Збитий
-
 subtitle-attack-ground_slam = Удар по землі
 subtitle-attack-laser_beam = Лазерний промінь
 subtitle-attack-cyclops_charge = Заряд Циклопа
@@ -112,13 +96,11 @@ subtitle-attack-ice_crack = Крижана тріщина
 subtitle-attack-steam = Пара
 subtitle-attack-shovel = Копання Лопатою
 subtitle-attack-from-the-ashes = Звук зцілення
-
 subtitle-consume_potion = Пиття зілля
 subtitle-consume_apple = Споживання яблука
 subtitle-consume_cheese = Споживання сиру
 subtitle-consume_food = Приймання їжі
 subtitle-consume_liquid = Пиття
-
 subtitle-utterance-alligator-angry = Алігатор шипить
 subtitle-utterance-antelope-angry = Антилопа пирхає
 subtitle-utterance-biped_large-angry = Важке рохкання
@@ -157,3 +139,5 @@ subtitle-utterance-wyvern-angry = Рев Виверни
 subtitle-utterance-wyvern-hurt = Виверні боляче
 subtitle-utterance-phoenix-angry = Крик Фенікса
 subtitle-utterance-phoenix-hurt = Феніксу боляче
+subtitle-instrument_steeldrum = Гра на сталевому барабані
+subtitle-instrument_shamisen = Гра на шямісені

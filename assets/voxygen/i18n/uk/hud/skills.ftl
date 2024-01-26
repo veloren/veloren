@@ -1,10 +1,11 @@
 hud-rank_up = Нова Одиниця Уміння
 hud-skill-sp_available = Доступно { $number } ОУ
 hud-skill-not_unlocked = Ще не відкрито
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Необхідно { $number } ОУ
-hud-skill-set_as_exp_bar = Встановити як панель досвіду
+hud-skill-set_as_exp_bar = Встановити як шкалу досвіду
 hud-skill-inc_health_title = Збільшення здоров'я
 hud-skill-inc_health = Збільшує максимальне здоров'я на { $boost }{ $SP }
 hud-skill-inc_energy_title = Збільшення енергії

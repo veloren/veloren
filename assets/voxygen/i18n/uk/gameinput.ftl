@@ -73,6 +73,6 @@ gameinput-spectateviewpoint = Режим споглядача
 gameinput-mutemaster = Вимкнути всі звуки
 gameinput-muteinactivemaster = Вимкнути всі звуки (В неактивному вікні)
 gameinput-mutemusic = Вимкнути музику
-gameinput-mutesfx = Вимкнути звуки спец. ефектів
+gameinput-mutesfx = Вимкнути звуки спецефектів
 gameinput-muteambience = Вимкнути довколишню музику
 gameinput-togglewalk = Перемкнути режим ходьби
