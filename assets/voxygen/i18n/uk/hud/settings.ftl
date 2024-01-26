@@ -2,7 +2,7 @@ hud-settings-general = Основні
 hud-settings-none = Нічого
 hud-settings-press_behavior-toggle = Перемикання
 hud-settings-press_behavior-hold = Утримування
-hud-settings-autopress_behavior-toggle = Перемикання
+hud-settings-autopress_behavior-toggle = Перемкнути
 hud-settings-autopress_behavior-auto = Автоматично
 hud-settings-help_window = Вікно довідки
 hud-settings-debug_info = Технічна інформація
@@ -33,7 +33,7 @@ hud-settings-speech_bubble_self = Відображати своє діалого
 hud-settings-speech_bubble_dark_mode = Темний режим діалогового вікна
 hud-settings-speech_bubble_icon = Піктограма
 hud-settings-energybar_numbers = Панель здоров'я і енергії
-hud-settings-always_show_bars = 
+hud-settings-always_show_bars =
     Завжди відображати панель 
     здоров'я і енергії
 hud-settings-enable_poise_bar = Увімкнути панель рівноваги
@@ -66,10 +66,10 @@ hud-settings-stop_auto_walk_on_input =
     Вимикати авто-ходу
     при русі
 hud-settings-auto_camera = Авто камера
-hud-settings-bow_zoom = 
+hud-settings-bow_zoom =
     Збільшення під час 
     зарядки лука
-hud-settings-zoom_lock = 
+hud-settings-zoom_lock =
     Фіксація віддаленості 
     камери
 hud-settings-reset_gameplay = За замовчуванням

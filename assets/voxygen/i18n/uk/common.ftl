@@ -12,7 +12,7 @@ common-video = Графіка
 common-sound = Звук
 common-chat = Чат
 common-networking = Мережа
-common-accessibility = Спеціальні можливості
+common-accessibility = Доступність
 common-resume = Продовжити
 common-characters = Персонажі
 common-close = Закрити
@@ -43,7 +43,7 @@ common-sound_settings = Налаштування Звуку
 common-language_settings = Налаштування Мови
 common-chat_settings = Налаштування Чату
 common-networking_settings = Налаштування Мережі
-common-accessibility_settings = Налаштування спеціальних можливостей
+common-accessibility_settings = Налаштування Доступності
 common-connection_lost =
     З'єднання розірвано!
     Можливо сервер перезапустився?
@@ -93,7 +93,7 @@ common-rand_name = Випадкове ім'я
 common-stats-combat_rating = БР
 common-stats-power = Сила
 common-stats-speed = Швидкість
-common-stats-effect-power = Сила ефекту
+common-stats-effect-power = Сила Ефекту
 common-stats-range = Дистанція
 common-stats-energy_efficiency = Енергоощадливість
 common-stats-buff_strength = Сила бафу/дебафу
