@@ -164,16 +164,19 @@ impl PackingFormula for TallPacking {
 pub struct PngEncoding;
 
 impl VoxelImageEncoding for PngEncoding {
-    type Output = Vec<u8>;
-    type Workspace = ImageBuffer<image::Rgba<u8>, Vec<u8>>;
+    type Output = (Vec<u8>, Vec<[u8; 3]>);
+    type Workspace = (ImageBuffer<image::Rgba<u8>, Vec<u8>>, Vec<[u8; 3]>);
 
     fn create(width: u32, height: u32) -> Self::Workspace {
         use image::Rgba;
-        ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
+        (
+            ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height),
+            Vec::new(),
+        )
     }
 
     fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
-        ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
+        ws.0.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
     }
 
     fn put_sprite(
@@ -182,14 +185,11 @@ impl VoxelImageEncoding for PngEncoding {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
-        ws.put_pixel(
-            x,
-            y,
-            image::Rgba([kind as u8, sprite as u8, ori.unwrap_or(0), 255]),
-        );
+        let index = (ws.1.len() as u16).to_be_bytes();
+        ws.1.push(sprite_data);
+        ws.0.put_pixel(x, y, image::Rgba([kind as u8, index[0], index[1], 255]));
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
@@ -201,13 +201,13 @@ impl VoxelImageEncoding for PngEncoding {
             FilterType::Up,
         );
         png.write_image(
-            ws.as_raw(),
-            ws.width(),
-            ws.height(),
+            ws.0.as_raw(),
+            ws.0.width(),
+            ws.0.height(),
             image::ColorType::Rgba8,
         )
         .ok()?;
-        Some(buf)
+        Some((buf, ws.1.clone()))
     }
 }
 
@@ -215,16 +215,19 @@ impl VoxelImageEncoding for PngEncoding {
 pub struct JpegEncoding;
 
 impl VoxelImageEncoding for JpegEncoding {
-    type Output = Vec<u8>;
-    type Workspace = ImageBuffer<image::Rgba<u8>, Vec<u8>>;
+    type Output = (Vec<u8>, Vec<[u8; 3]>);
+    type Workspace = (ImageBuffer<image::Rgba<u8>, Vec<u8>>, Vec<[u8; 3]>);
 
     fn create(width: u32, height: u32) -> Self::Workspace {
         use image::Rgba;
-        ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height)
+        (
+            ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height),
+            Vec::new(),
+        )
     }
 
     fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
-        ws.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
+        ws.0.put_pixel(x, y, image::Rgba([rgb.r, rgb.g, rgb.b, 255 - kind as u8]));
     }
 
     fn put_sprite(
@@ -233,17 +236,18 @@ impl VoxelImageEncoding for JpegEncoding {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        _: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
-        ws.put_pixel(x, y, image::Rgba([kind as u8, sprite as u8, 255, 255]));
+        let index = (ws.1.len() as u16).to_be_bytes();
+        ws.1.push(sprite_data);
+        ws.0.put_pixel(x, y, image::Rgba([kind as u8, index[0], index[0], 255]));
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
         let mut buf = Vec::new();
         let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
-        jpeg.encode_image(ws).ok()?;
-        Some(buf)
+        jpeg.encode_image(&ws.0).ok()?;
+        Some((buf, ws.1.clone()))
     }
 }
 
@@ -251,12 +255,13 @@ impl VoxelImageEncoding for JpegEncoding {
 pub struct MixedEncoding;
 
 impl VoxelImageEncoding for MixedEncoding {
-    type Output = (Vec<u8>, [usize; 3]);
+    type Output = (Vec<u8>, [usize; 4]);
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+        Vec<[u8; 3]>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
@@ -265,6 +270,7 @@ impl VoxelImageEncoding for MixedEncoding {
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
+            Vec::new(),
         )
     }
 
@@ -281,19 +287,20 @@ impl VoxelImageEncoding for MixedEncoding {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
+        let index = (ws.4.len() as u16).to_be_bytes();
+        ws.4.push(sprite_data);
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
-        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+        ws.1.put_pixel(x, y, image::Luma([index[0]]));
+        ws.2.put_pixel(x, y, image::Luma([index[1]]));
         ws.3.put_pixel(x, y, image::Rgb([0; 3]));
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
         let mut buf = Vec::new();
         use image::codecs::png::{CompressionType, FilterType};
-        let mut indices = [0; 3];
+        let mut indices = [0; 4];
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
@@ -309,6 +316,10 @@ impl VoxelImageEncoding for MixedEncoding {
         f(&ws.1, 1)?;
         f(&ws.2, 2)?;
 
+        buf.write_all(&bincode::serialize(&CompressedData::compress(&ws.4, 1)).unwrap())
+            .unwrap();
+        indices[3] = buf.len();
+
         let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 10);
         jpeg.encode_image(&ws.3).ok()?;
         Some((buf, indices))
@@ -318,17 +329,22 @@ impl VoxelImageEncoding for MixedEncoding {
 impl VoxelImageDecoding for MixedEncoding {
     fn start((quad, indices): &Self::Output) -> Option<Self::Workspace> {
         use image::codecs::{jpeg::JpegDecoder, png::PngDecoder};
-        let ranges: [_; 4] = [
+        let ranges: [_; 5] = [
             0..indices[0],
             indices[0]..indices[1],
             indices[1]..indices[2],
-            indices[2]..quad.len(),
+            indices[2]..indices[3],
+            indices[3]..quad.len(),
         ];
         let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
         let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
         let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
+        let sprite_data =
+            bincode::deserialize::<CompressedData<Vec<[u8; 3]>>>(&quad[ranges[4].clone()])
+                .ok()?
+                .decompress()?;
         let d = image_from_bytes(JpegDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
-        Some((a, b, c, d))
+        Some((a, b, c, d, sprite_data))
     }
 
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, _: bool) -> Block {
@@ -341,14 +357,9 @@ impl VoxelImageDecoding for MixedEncoding {
                     b: rgb[2],
                 })
             } else {
-                let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
-                if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
-                    block = block.with_sprite(spritekind);
-                }
-                if let Some(oriblock) = block.with_ori(ws.2.get_pixel(x, y).0[0]) {
-                    block = oriblock;
-                }
-                block
+                let index =
+                    u16::from_be_bytes([ws.1.get_pixel(x, y).0[0], ws.2.get_pixel(x, y).0[0]]);
+                Block::from_raw(kind, ws.4[index as usize])
             }
         } else {
             Block::empty()
@@ -360,15 +371,11 @@ impl VoxelImageDecoding for MixedEncoding {
 pub struct MixedEncodingSparseSprites;
 
 impl VoxelImageEncoding for MixedEncodingSparseSprites {
-    type Output = (
-        Vec<u8>,
-        usize,
-        CompressedData<HashMap<Vec2<u32>, (SpriteKind, u8)>>,
-    );
+    type Output = (Vec<u8>, usize, CompressedData<HashMap<Vec2<u32>, [u8; 3]>>);
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Rgb<u8>, Vec<u8>>,
-        HashMap<Vec2<u32>, (SpriteKind, u8)>,
+        HashMap<Vec2<u32>, [u8; 3]>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
@@ -390,12 +397,11 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
         ws.1.put_pixel(x, y, image::Rgb([0; 3]));
-        ws.2.insert(Vec2::new(x, y), (sprite, ori.unwrap_or(0)));
+        ws.2.insert(Vec2::new(x, y), sprite_data);
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
@@ -424,11 +430,10 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
 pub struct MixedEncodingDenseSprites;
 
 impl VoxelImageEncoding for MixedEncodingDenseSprites {
-    type Output = (Vec<u8>, [usize; 3]);
+    type Output = (Vec<u8>, [usize; 2]);
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
-        Vec<u8>,
-        Vec<u8>,
+        Vec<[u8; 3]>,
         ImageBuffer<image::Rgb<u8>, Vec<u8>>,
     );
 
@@ -436,14 +441,13 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
         (
             ImageBuffer::new(width, height),
             Vec::new(),
-            Vec::new(),
             ImageBuffer::new(width, height),
         )
     }
 
     fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.3.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
+        ws.2.put_pixel(x, y, image::Rgb([rgb.r, rgb.g, rgb.b]));
     }
 
     fn put_sprite(
@@ -452,19 +456,17 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.1.push(sprite as u8);
-        ws.2.push(ori.unwrap_or(0));
-        ws.3.put_pixel(x, y, image::Rgb([0; 3]));
+        ws.1.push(sprite_data);
+        ws.2.put_pixel(x, y, image::Rgb([0; 3]));
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
         let mut buf = Vec::new();
         use image::codecs::png::{CompressionType, FilterType};
-        let mut indices = [0; 3];
+        let mut indices = [0; 2];
         let mut f = |x: &ImageBuffer<_, Vec<u8>>, i| {
             let png = image::codecs::png::PngEncoder::new_with_quality(
                 &mut buf,
@@ -477,16 +479,15 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
             Some(())
         };
         f(&ws.0, 0)?;
-        let mut g = |x: &[u8], i| {
+        let mut g = |x: &[[u8; 3]], i| {
             buf.extend_from_slice(&CompressedData::compress(&x, 4).data);
             indices[i] = buf.len();
         };
 
         g(&ws.1, 1);
-        g(&ws.2, 2);
 
         let mut jpeg = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, 1);
-        jpeg.encode_image(&ws.3).ok()?;
+        jpeg.encode_image(&ws.2).ok()?;
         Some((buf, indices))
     }
 }
@@ -590,12 +591,13 @@ impl<P: RTreeParams> NearestNeighbor for RTree<ColorPoint, P> {
 pub struct PaletteEncoding<'a, NN: NearestNeighbor, const N: u32>(&'a HashMap<BlockKind, NN>);
 
 impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncoding<'a, NN, N> {
-    type Output = CompressedData<(Vec<u8>, [usize; 4])>;
+    type Output = CompressedData<(Vec<u8>, [usize; 4], Vec<[u8; 3]>)>;
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
+        Vec<[u8; 3]>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
@@ -604,6 +606,7 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
             ImageBuffer::new(width / N, height / N),
+            Vec::new(),
         )
     }
 
@@ -619,12 +622,13 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
+        let index = (ws.4.len() as u16).to_be_bytes();
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
-        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+        ws.1.put_pixel(x, y, image::Luma([index[0]]));
+        ws.2.put_pixel(x, y, image::Luma([index[1]]));
+        ws.4.push(sprite_data);
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
@@ -647,7 +651,7 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
         f(&ws.2, 2)?;
         f(&ws.3, 3)?;
 
-        Some(CompressedData::compress(&(buf, indices), 1))
+        Some(CompressedData::compress(&(buf, indices, ws.4.clone()), 1))
     }
 }
 
@@ -955,7 +959,7 @@ fn main() {
                             spiralpos.x, spiralpos.y
                         ))
                         .unwrap();
-                        f.write_all(&jpegchonkgrid).unwrap();
+                        f.write_all(&jpegchonkgrid.0).unwrap();
                     }
 
                     let jpegchonktall_pre = Instant::now();
@@ -976,10 +980,10 @@ fn main() {
                     let pngchonk_post = Instant::now();
 
                     sizes.extend_from_slice(&[
-                        ("jpegchonkgrid", jpegchonkgrid.len() as f32 / n as f32),
-                        ("jpegchonktall", jpegchonktall.len() as f32 / n as f32),
-                        ("jpegchonkflip", jpegchonkflip.len() as f32 / n as f32),
-                        ("pngchonk", pngchonk.len() as f32 / n as f32),
+                        ("jpegchonkgrid", jpegchonkgrid.0.len() as f32 / n as f32),
+                        ("jpegchonktall", jpegchonktall.0.len() as f32 / n as f32),
+                        ("jpegchonkflip", jpegchonkflip.0.len() as f32 / n as f32),
+                        ("pngchonk", pngchonk.0.len() as f32 / n as f32),
                     ]);
                     #[rustfmt::skip]
                     timings.extend_from_slice(&[
@@ -1197,7 +1201,7 @@ fn main() {
                             .unwrap();
                         let jpeg_volgrid =
                             image_terrain_volgrid(&JpegEncoding, GridLtrPacking, &volgrid).unwrap();
-                        f.write_all(&jpeg_volgrid).unwrap();
+                        f.write_all(&jpeg_volgrid.0).unwrap();
 
                         let mixedgrid_pre = Instant::now();
                         let (mixed_volgrid, indices) =
