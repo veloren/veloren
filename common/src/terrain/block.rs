@@ -672,10 +672,12 @@ impl Block {
     #[must_use]
     pub fn from_u32(x: u32) -> Option<Self> {
         let [bk, r, g, b] = x.to_le_bytes();
-        Some(Self {
+        let block = Self {
             kind: BlockKind::from_u8(bk)?,
             data: [r, g, b],
-        })
+        };
+
+        (block.kind.is_filled() || SpriteKind::from_block(block).is_some()).then_some(block)
     }
 
     #[inline]
