@@ -157,7 +157,7 @@ impl Block {
     /* Constructors */
 
     #[inline]
-    pub(super) const fn from_raw(kind: BlockKind, data: [u8; 3]) -> Self { Self { kind, data } }
+    pub const fn from_raw(kind: BlockKind, data: [u8; 3]) -> Self { Self { kind, data } }
 
     // TODO: Rename to `filled`, make caller guarantees stronger
     #[inline]

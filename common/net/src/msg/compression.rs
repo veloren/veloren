@@ -1,5 +1,5 @@
 use common::{
-    terrain::{chonk::Chonk, Block, BlockKind, SpriteKind},
+    terrain::{chonk::Chonk, Block, BlockKind},
     vol::{BaseVol, ReadVol, RectVolSize, WriteVol},
     volumes::vol_grid_2d::VolGrid2d,
 };
@@ -132,8 +132,7 @@ pub trait VoxelImageEncoding {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     );
     fn finish(ws: &Self::Workspace) -> Option<Self::Output>;
 }
@@ -168,10 +167,9 @@ impl<'a, VIE: VoxelImageEncoding> VoxelImageEncoding for &'a VIE {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
-        (*self).put_sprite(ws, x, y, kind, sprite, ori)
+        (*self).put_sprite(ws, x, y, kind, sprite_data)
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> { VIE::finish(ws) }
@@ -189,12 +187,14 @@ impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
 pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32>();
 
 impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
-    type Output = CompressedData<(Vec<u8>, [usize; 3])>;
+    type Output = CompressedData<(Vec<u8>, [usize; 3], Vec<[u8; 3]>)>;
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+        Vec<[u8; 3]>,
+        HashMap<[u8; 3], u16>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
@@ -203,6 +203,8 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
             ImageBuffer::new(width / N, height / N),
+            Vec::new(),
+            HashMap::new(),
         )
     }
 
@@ -219,12 +221,22 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
+        let index = ws.5.entry(sprite_data).or_insert_with(|| {
+            let index =
+                ws.4.len()
+                    .try_into()
+                    .expect("Cannot have more than 2^16 unique sprites in one chunk");
+            ws.4.push(sprite_data);
+            index
+        });
+
+        let index = index.to_be_bytes();
+
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
-        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+        ws.1.put_pixel(x, y, image::Luma([index[0]]));
+        ws.2.put_pixel(x, y, image::Luma([index[1]]));
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
@@ -261,7 +273,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
             .ok()?;
         }
 
-        Some(CompressedData::compress(&(buf, indices), 4))
+        Some(CompressedData::compress(&(buf, indices, ws.4.clone()), 4))
     }
 }
 
@@ -320,7 +332,7 @@ const fn gen_lanczos_lookup<const N: u32, const R: u32>(
 impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
     fn start(data: &Self::Output) -> Option<Self::Workspace> {
         use image::codecs::png::PngDecoder;
-        let (quad, indices) = data.decompress()?;
+        let (quad, indices, sprite_data) = data.decompress()?;
         let ranges: [_; 4] = [
             0..indices[0],
             indices[0]..indices[1],
@@ -331,7 +343,7 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
         let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
         let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
         let d = image_from_bytes(PngDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
-        Some((a, b, c, d))
+        Some((a, b, c, d, sprite_data, HashMap::new()))
     }
 
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block {
@@ -444,14 +456,9 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
                     b: rgb.z as u8,
                 })
             } else {
-                let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
-                if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
-                    block = block.with_sprite(spritekind);
-                }
-                if let Some(oriblock) = block.with_ori(ws.2.get_pixel(x, y).0[0]) {
-                    block = oriblock;
-                }
-                block
+                let index =
+                    u16::from_be_bytes([ws.1.get_pixel(x, y).0[0], ws.2.get_pixel(x, y).0[0]]);
+                Block::from_raw(kind, ws.4[index as usize])
             }
         } else {
             Block::empty()
@@ -463,12 +470,14 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
 pub struct TriPngEncoding<const AVERAGE_PALETTE: bool>();
 
 impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_PALETTE> {
-    type Output = CompressedData<(Vec<u8>, Vec<Rgb<u8>>, [usize; 3])>;
+    type Output = CompressedData<(Vec<u8>, Vec<Rgb<u8>>, [usize; 3], Vec<[u8; 3]>)>;
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         HashMap<BlockKind, HashMap<Rgb<u8>, usize>>,
+        Vec<[u8; 3]>,
+        HashMap<[u8; 3], u16>,
     );
 
     fn create(width: u32, height: u32) -> Self::Workspace {
@@ -476,6 +485,8 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
             ImageBuffer::new(width, height),
+            HashMap::new(),
+            Vec::new(),
             HashMap::new(),
         )
     }
@@ -495,12 +506,21 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
         x: u32,
         y: u32,
         kind: BlockKind,
-        sprite: SpriteKind,
-        ori: Option<u8>,
+        sprite_data: [u8; 3],
     ) {
+        let index = ws.5.entry(sprite_data).or_insert_with(|| {
+            let index =
+                ws.4.len()
+                    .try_into()
+                    .expect("Cannot have more than 2^16 sprites in one chunk");
+            ws.4.push(sprite_data);
+            index
+        });
+        let index = index.to_be_bytes();
+
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        ws.1.put_pixel(x, y, image::Luma([sprite as u8]));
-        ws.2.put_pixel(x, y, image::Luma([ori.unwrap_or(0)]));
+        ws.1.put_pixel(x, y, image::Luma([index[0]]));
+        ws.2.put_pixel(x, y, image::Luma([index[1]]));
     }
 
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> {
@@ -545,14 +565,17 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
             Vec::new()
         };
 
-        Some(CompressedData::compress(&(buf, palette, indices), 4))
+        Some(CompressedData::compress(
+            &(buf, palette, indices, ws.4.clone()),
+            4,
+        ))
     }
 }
 
 impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_PALETTE> {
     fn start(data: &Self::Output) -> Option<Self::Workspace> {
         use image::codecs::png::PngDecoder;
-        let (quad, palette, indices) = data.decompress()?;
+        let (quad, palette, indices, sprite_data) = data.decompress()?;
         let ranges: [_; 3] = [
             0..indices[0],
             indices[0]..indices[1],
@@ -573,7 +596,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
             }
         }
 
-        Some((a, b, c, d))
+        Some((a, b, c, d, sprite_data, HashMap::new()))
     }
 
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, _: bool) -> Block {
@@ -662,14 +685,9 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
                 };
                 Block::new(kind, rgb)
             } else {
-                let mut block = Block::new(kind, Rgb { r: 0, g: 0, b: 0 });
-                if let Some(spritekind) = SpriteKind::from_u8(ws.1.get_pixel(x, y).0[0]) {
-                    block = block.with_sprite(spritekind);
-                }
-                if let Some(oriblock) = block.with_ori(ws.2.get_pixel(x, y).0[0]) {
-                    block = oriblock;
-                }
-                block
+                let index =
+                    u16::from_be_bytes([ws.1.get_pixel(x, y).0[0], ws.2.get_pixel(x, y).0[0]]);
+                Block::from_raw(kind, ws.4[index as usize])
             }
         } else {
             Block::empty()
@@ -754,8 +772,10 @@ pub fn image_terrain<
                     (Some(rgb), None) => {
                         VIE::put_solid(vie, &mut image, i, j, *block, rgb);
                     },
-                    (None, Some(sprite)) => {
-                        VIE::put_sprite(vie, &mut image, i, j, *block, sprite, block.get_ori());
+                    (None, Some(_)) => {
+                        let data = block.to_u32().to_le_bytes();
+
+                        VIE::put_sprite(vie, &mut image, i, j, *block, [data[1], data[2], data[3]]);
                     },
                     _ => panic!(
                         "attr being used for color vs sprite is mutually exclusive (and that's \
