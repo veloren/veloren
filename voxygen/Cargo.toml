@@ -58,7 +58,7 @@ voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true
 # Graphics
 winit = {version = "0.28.6", features = ["serde"]}
 # naga has an issue for spirv in wgpu 18.0
-wgpu = { version = "=0.18.0", default-features = false, features = ["trace", "spirv", "glsl"] }
+wgpu = { version = "0.18.0", default-features = false, features = ["trace", "spirv", "glsl"] }
 wgpu-profiler = "0.15.0"
 bytemuck = { version="1.7", features=["derive"] }
 # shaderc = "0.8.0"
@@ -74,7 +74,6 @@ conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta
 euc = "0.5.0"
 iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
 iced_winit = {git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
-window_clipboard = "0.2"
 glyph_brush = "0.7.0"
 # https://gitlab.com/Frinksy/keyboard-keynames/-/merge_requests/8
 keyboard-keynames = { git = "https://gitlab.com/Imbris/keyboard-keynames.git", tag = "veloren-winit-0.28" }

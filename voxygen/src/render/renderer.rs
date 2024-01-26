@@ -225,7 +225,7 @@ impl Renderer {
             dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
             gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
             // TODO: Look into what we want here.
-            flags: wgpu::InstanceFlags::all(),
+            flags: wgpu::InstanceFlags::from_build_config().with_env(),
         });
 
         let dims = window.inner_size();

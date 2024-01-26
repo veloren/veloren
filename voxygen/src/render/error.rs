@@ -47,6 +47,7 @@ impl From<wgpu::BufferAsyncError> for RenderError {
 impl From<wgpu::SurfaceError> for RenderError {
     fn from(err: wgpu::SurfaceError) -> Self { Self::SurfaceError(err) }
 }
+
 impl From<(&str, shaderc::Error)> for RenderError {
     fn from((shader_name, err): (&str, shaderc::Error)) -> Self {
         Self::ShaderError(shader_name.into(), err)

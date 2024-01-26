@@ -2900,7 +2900,7 @@ dependencies = [
  "log",
  "thiserror",
  "winapi",
- "window_clipboard 0.3.0",
+ "window_clipboard",
  "winit",
 ]
 
@@ -4875,16 +4875,6 @@ name = "range-alloc"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8a99fddc9f0ba0a85884b8d14e3592853e787d581ca1816c91349b10e4eeab"
-
-[[package]]
-name = "raw-window-handle"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e28f55143d0548dad60bb4fbdc835a3d7ac6acc3324506450c5fdd6e42903a76"
-dependencies = [
- "libc",
- "raw-window-handle 0.4.3",
-]
 
 [[package]]
 name = "raw-window-handle"
@@ -7294,7 +7284,6 @@ dependencies = [
  "veloren-world",
  "wgpu",
  "wgpu-profiler",
- "window_clipboard 0.2.4",
  "winit",
  "winres",
 ]
@@ -8036,20 +8025,6 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
-
-[[package]]
-name = "window_clipboard"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "015dd4474dc6aa96fe19aae3a24587a088bd90331dba5a5cc60fb3a180234c4d"
-dependencies = [
- "clipboard-win 4.5.0",
- "clipboard_macos",
- "clipboard_wayland",
- "clipboard_x11",
- "raw-window-handle 0.3.4",
- "thiserror",
-]
 
 [[package]]
 name = "window_clipboard"

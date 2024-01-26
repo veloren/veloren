@@ -108,7 +108,7 @@ fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mu
         });
 }
 fn draw_spawn_entities(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut EguiActions) {
-    ui.spacing_mut().window_margin = Margin::symmetric(10.0, 10.0);
+    ui.spacing_mut().window_margin = Margin::same(10.0);
     Resize::default()
         .default_size([400.0, 200.0])
         .show(ui, |ui| {

@@ -166,27 +166,10 @@ shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c
 # with uint in uniforms for gl.
 wgpu = { git = "https://github.com/IsseW/wgpu", rev = "5ea160164" }
 
-# [patch."https://github.com/gfx-rs/gfx"]
-# gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-# gfx-backend-empty = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-# gfx-backend-vulkan = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-# gfx-backend-gl = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-# gfx-backend-dx12 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-# gfx-backend-dx11 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-# gfx-backend-metal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-
 # # use the latest fixes in naga (remove when updates trickle down to wgpu-rs)
 # naga = { git = "https://github.com/gfx-rs/naga.git", rev = "3a0f0144112ff621dd7f731bf455adf6cab19164" }
-# # use the latest fixes in gfx (remove when updates trickle down to wgpu-rs)
-# gfx-hal = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-empty = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-vulkan = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-gl = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-dx12 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-dx11 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-metal = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# keyboard-keynames = { git = "https://gitlab.com/Capucho/keyboard-keynames.git", rev = "7b1375ee4ea01d0e0b80c419cb27f0498e67df3a" }
 # naga = { path = "../naga" }
+# keyboard-keynames = { git = "https://gitlab.com/Capucho/keyboard-keynames.git", rev = "7b1375ee4ea01d0e0b80c419cb27f0498e67df3a" }
 
 # # Uncomment this to use a local fork of winit (for testing purposes)
 # winit = { path = "../winit" }

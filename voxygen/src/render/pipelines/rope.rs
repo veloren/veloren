@@ -71,7 +71,7 @@ impl RopeLayout {
                     // locals
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -113,6 +113,7 @@ impl RopePipeline {
         global_layout: &GlobalsLayouts,
         layout: &RopeLayout,
         aa_mode: AaMode,
+        format: wgpu::TextureFormat,
     ) -> Self {
         common_base::span!(_guard, "RopePipeline::new");
         let render_pipeline_layout =
@@ -171,8 +172,7 @@ impl RopePipeline {
                 entry_point: "main",
                 targets: &[
                     Some(wgpu::ColorTargetState {
-                        // TODO: use a constant and/or pass in this format on pipeline construction
-                        format: wgpu::TextureFormat::Rgba16Float,
+                        format,
                         blend: Some(wgpu::BlendState {
                             color: wgpu::BlendComponent {
                                 src_factor: wgpu::BlendFactor::SrcAlpha,

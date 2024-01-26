@@ -700,6 +700,7 @@ fn create_ingame_and_shadow_pipelines(
                     &layouts.global,
                     &layouts.rope,
                     pipeline_modes.aa,
+                    format,
                 )
             },
             "rope pipeline creation",
