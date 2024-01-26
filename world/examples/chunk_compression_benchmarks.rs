@@ -613,7 +613,11 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
 
     fn put_solid(&self, ws: &mut Self::Workspace, x: u32, y: u32, kind: BlockKind, rgb: Rgb<u8>) {
         ws.0.put_pixel(x, y, image::Luma([kind as u8]));
-        let i = self.0[&kind].nearest_neighbor(&rgb).unwrap_or(0);
+        let i = self
+            .0
+            .get(&kind)
+            .and_then(|v| v.nearest_neighbor(&rgb))
+            .unwrap_or(0);
         ws.3.put_pixel(x / N, y / N, image::Luma([i]));
     }
 
@@ -717,20 +721,38 @@ fn main() {
                 .unwrap(),
         ),
         (
-            "castle",
+            "gnarling_fort",
             world
                 .civs()
                 .sites()
-                .find(|s| s.is_castle())
+                .find(|s| matches!(s.kind, SiteKind::Gnarling))
                 .map(|s| s.center.as_())
                 .unwrap(),
         ),
         (
-            "tree",
+            "desert_city",
             world
                 .civs()
                 .sites()
-                .find(|s| matches!(s.kind, SiteKind::Tree))
+                .find(|s| matches!(s.kind, SiteKind::DesertCity))
+                .map(|s| s.center.as_())
+                .unwrap(),
+        ),
+        (
+            "giant_tree",
+            world
+                .civs()
+                .sites()
+                .find(|s| matches!(s.kind, SiteKind::GiantTree))
+                .map(|s| s.center.as_())
+                .unwrap(),
+        ),
+        (
+            "haniwa",
+            world
+                .civs()
+                .sites()
+                .find(|s| matches!(s.kind, SiteKind::Haniwa))
                 .map(|s| s.center.as_())
                 .unwrap(),
         ),
@@ -1050,7 +1072,7 @@ fn main() {
 
                 let quadpngfull_pre = Instant::now();
                 let quadpngfull = image_terrain_chonk(
-                    &QuadPngEncoding::<1, true>(),
+                    &QuadPngEncoding::<1>(),
                     TallPacking { flip_y: true },
                     &chunk,
                 )
@@ -1059,7 +1081,7 @@ fn main() {
 
                 let quadpnghalf_pre = Instant::now();
                 let quadpnghalf = image_terrain_chonk(
-                    &QuadPngEncoding::<2, true>(),
+                    &QuadPngEncoding::<2>(),
                     TallPacking { flip_y: true },
                     &chunk,
                 )
@@ -1068,55 +1090,30 @@ fn main() {
 
                 let quadpngquarttall_pre = Instant::now();
                 let quadpngquarttall = image_terrain_chonk(
-                    &QuadPngEncoding::<4, false>(),
+                    &QuadPngEncoding::<4>(),
                     TallPacking { flip_y: true },
                     &chunk,
                 )
                 .unwrap();
                 let quadpngquarttall_post = Instant::now();
-                let quadpngquarttallhash_pre = Instant::now();
-                let quadpngquarttallhash = image_terrain_chonk(
-                    &QuadPngEncoding::<4, true>(),
-                    TallPacking { flip_y: true },
-                    &chunk,
-                )
-                .unwrap();
-                let quadpngquarttallhash_post = Instant::now();
 
                 let quadpngquartwide_pre = Instant::now();
-                let quadpngquartwide = image_terrain_chonk(
-                    &QuadPngEncoding::<4, true>(),
-                    WidePacking::<true>(),
-                    &chunk,
-                )
-                .unwrap();
+                let quadpngquartwide =
+                    image_terrain_chonk(&QuadPngEncoding::<4>(), WidePacking::<true>(), &chunk)
+                        .unwrap();
                 let quadpngquartwide_post = Instant::now();
 
                 let tripngaverage_pre = Instant::now();
-                let tripngaverage = image_terrain_chonk(
-                    &TriPngEncoding::<true, true>(),
-                    WidePacking::<true>(),
-                    &chunk,
-                )
-                .unwrap();
+                let tripngaverage =
+                    image_terrain_chonk(&TriPngEncoding::<true>(), WidePacking::<true>(), &chunk)
+                        .unwrap();
                 let tripngaverage_post = Instant::now();
 
-                let tripngconstbump_pre = Instant::now();
-                let tripngconstbump = image_terrain_chonk(
-                    &TriPngEncoding::<false, false>(),
-                    WidePacking::<true>(),
-                    &chunk,
-                )
-                .unwrap();
-                let tripngconstbump_post = Instant::now();
-                let tripngconsthash_pre = Instant::now();
-                let tripngconsthash = image_terrain_chonk(
-                    &TriPngEncoding::<false, true>(),
-                    WidePacking::<true>(),
-                    &chunk,
-                )
-                .unwrap();
-                let tripngconsthash_post = Instant::now();
+                let tripngconst_pre = Instant::now();
+                let tripngconst =
+                    image_terrain_chonk(&TriPngEncoding::<false>(), WidePacking::<true>(), &chunk)
+                        .unwrap();
+                let tripngconst_post = Instant::now();
 
                 let palette_kdtree_pre = Instant::now();
                 let palette_kdtree = image_terrain_chonk(
@@ -1141,11 +1138,9 @@ fn main() {
                     ("quadpngfull", quadpngfull.data.len() as f32 / n as f32),
                     ("quadpnghalf", quadpnghalf.data.len() as f32 / n as f32),
                     ("quadpngquarttall", quadpngquarttall.data.len() as f32 / n as f32),
-                    ("quadpngquarttallhash", quadpngquarttallhash.data.len() as f32 / n as f32),
                     ("quadpngquartwide", quadpngquartwide.data.len() as f32 / n as f32),
                     ("tripngaverage", tripngaverage.data.len() as f32 / n as f32),
-                    ("tripngconstbump", tripngconstbump.data.len() as f32 / n as f32),
-                    ("tripngconsthash", tripngconsthash.data.len() as f32 / n as f32),
+                    ("tripngconst", tripngconst.data.len() as f32 / n as f32),
                     ("palette_kdtree", palette_kdtree.data.len() as f32 / n as f32),
                     ("palette_rtree", palette_rtree.data.len() as f32 / n as f32),
                 ]);
@@ -1165,11 +1160,9 @@ fn main() {
                     ("quadpngfull", (quadpngfull_post - quadpngfull_pre).subsec_nanos()),
                     ("quadpnghalf", (quadpnghalf_post - quadpnghalf_pre).subsec_nanos()),
                     ("quadpngquarttall", (quadpngquarttall_post - quadpngquarttall_pre).subsec_nanos()),
-                    ("quadpngquarttallhash", (quadpngquarttallhash_post - quadpngquarttallhash_pre).subsec_nanos()),
                     ("quadpngquartwide", (quadpngquartwide_post - quadpngquartwide_pre).subsec_nanos()),
                     ("tripngaverage", (tripngaverage_post - tripngaverage_pre).subsec_nanos()),
-                    ("tripngconstbump", (tripngconstbump_post - tripngconstbump_pre).subsec_nanos()),
-                    ("tripngconsthash", (tripngconsthash_post - tripngconsthash_pre).subsec_nanos()),
+                    ("tripngconst", (tripngconst_post - tripngconst_pre).subsec_nanos()),
                     ("palette_kdtree", (palette_kdtree_post - palette_kdtree_pre).subsec_nanos()),
                     ("palette_rtree", (palette_rtree_post - palette_rtree_pre).subsec_nanos()),
                 ]);
@@ -1209,9 +1202,9 @@ fn main() {
                         .entry(chunk.get_max_z() - chunk.get_min_z())
                         .or_insert((0, 0.0));
                     bucket.0 += 1;
-                    bucket.1 += (tripngconstbump_post - tripngconstbump_pre).subsec_nanos() as f32;
+                    bucket.1 += (tripngconst_post - tripngconst_pre).subsec_nanos() as f32;
                 }
-                if true {
+                if false {
                     let bucket = z_buckets
                         .entry("palette_kdtree")
                         .or_default()
@@ -1220,7 +1213,7 @@ fn main() {
                     bucket.0 += 1;
                     bucket.1 += (palette_kdtree_post - palette_kdtree_pre).subsec_nanos() as f32;
                 }
-                if true {
+                if false {
                     let bucket = z_buckets
                         .entry("palette_rtree")
                         .or_default()

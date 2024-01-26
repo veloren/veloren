@@ -83,17 +83,8 @@ pub type ServerRegisterAnswer = Result<(), RegisterError>;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SerializedTerrainChunk {
     DeflatedChonk(CompressedData<TerrainChunk>),
-    QuadPng(
-        WireChonk<QuadPngEncoding<4, true>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>,
-    ),
-    TriPng(
-        WireChonk<
-            TriPngEncoding<false, true>,
-            WidePacking<true>,
-            TerrainChunkMeta,
-            TerrainChunkSize,
-        >,
-    ),
+    QuadPng(WireChonk<QuadPngEncoding<4>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
+    TriPng(WireChonk<TriPngEncoding<false>, WidePacking<true>, TerrainChunkMeta, TerrainChunkSize>),
 }
 
 impl SerializedTerrainChunk {
