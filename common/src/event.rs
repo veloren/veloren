@@ -538,14 +538,17 @@ pub fn register_event_busses(ecs: &mut World) {
 ///
 /// # Example:
 /// ```
-/// struct Foo;
-/// struct Bar;
-/// struct Baz;
-/// event_emitters!(
-///     pub struct ReadEvents[EventEmitters] {
-///         foo: Foo, bar: Bar, baz: Baz,
-///     }
-/// );
+/// mod some_mod_is_necessary_for_the_test {
+///     use veloren_common::event_emitters;
+///     pub struct Foo;
+///     pub struct Bar;
+///     pub struct Baz;
+///     event_emitters!(
+///       pub struct ReadEvents[EventEmitters] {
+///           foo: Foo, bar: Bar, baz: Baz,
+///       }
+///     );
+/// }
 /// ```
 #[macro_export]
 macro_rules! event_emitters {
