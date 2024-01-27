@@ -101,7 +101,7 @@ impl ClientChatCommand {
                 ArgumentSpec::Message(_) => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}",
-                ArgumentSpec::AssetPath(_, _, _) => "{}",
+                ArgumentSpec::AssetPath(_, _, _, _) => "{}",
                 ArgumentSpec::Boolean(_, _, _) => "{}",
                 ArgumentSpec::Flag(_) => "{}",
             })
@@ -220,6 +220,9 @@ fn preproccess_command(
             }
         } else if matches!(cmd_args.last(), Some(ArgumentSpec::SubCommand)) {
             could_be_entity_target = true;
+        }
+        if let Some(ArgumentSpec::AssetPath(_, prefix, _, _)) = cmd_args.get(i) {
+            *arg = prefix.to_string() + "." + arg;
         }
         if could_be_entity_target && arg.starts_with(ClientEntityTarget::PREFIX) {
             let target_str = arg.trim_start_matches(ClientEntityTarget::PREFIX);
@@ -593,11 +596,15 @@ impl TabComplete for ArgumentSpec {
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
-            ArgumentSpec::AssetPath(_, paths, _) => {
+            ArgumentSpec::AssetPath(_, prefix, paths, _) => {
                 let depth = part.split('.').count();
                 paths
                     .iter()
-                    .map(|path| path.as_str().split('.').take(depth).join("."))
+                    .filter_map(|path| {
+                        path.as_str()
+                            .strip_prefix(&(prefix.to_string() + "."))
+                            .map(|stripped| stripped.split('.').take(depth).join("."))
+                    })
                     .dedup()
                     .filter(|string| string.starts_with(part))
                     .map(|c| c.to_string())
