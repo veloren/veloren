@@ -133,8 +133,11 @@ impl CombinedCache {
     }
 
     #[doc(hidden)]
-    // when not using a compound
-    pub(crate) fn filesystem_cache(&self) -> AnyCache<'_> { self.0.raw_source().fs.as_any_cache() }
+    // Provide a cache to the "combine_static" functions as they omit
+    // wrapping in a Compound (which enables hot-reload)
+    pub(crate) fn non_reloading_cache(&self) -> AnyCache<'_> {
+        self.0.raw_source().fs.as_any_cache()
+    }
 
     /// Combine objects from filesystem and plugins
     pub fn combine<T: Concatenate>(
@@ -200,6 +203,7 @@ impl CombinedCache {
 
     // Just forward these methods to the cache
     #[inline]
+    #[cfg(feature = "hot-reloading")]
     pub fn enhance_hot_reloading(&'static self) { self.0.enhance_hot_reloading(); }
 
     #[inline]

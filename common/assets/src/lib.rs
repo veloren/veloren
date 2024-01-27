@@ -129,7 +129,7 @@ pub trait AssetCombined: AssetExt {
 
     /// Load combined table without hot-reload support
     fn load_and_combine_static(specifier: &str) -> Result<AssetHandle<Self>, Error> {
-        Self::load_and_combine(ASSETS.filesystem_cache(), specifier)
+        Self::load_and_combine(ASSETS.non_reloading_cache(), specifier)
     }
 
     #[track_caller]
@@ -149,7 +149,7 @@ pub trait AssetCombined: AssetExt {
     /// Load combined table without hot-reload support, panic on error
     #[track_caller]
     fn load_expect_combined_static(specifier: &str) -> AssetHandle<Self> {
-        Self::load_expect_combined(ASSETS.filesystem_cache(), specifier)
+        Self::load_expect_combined(ASSETS.non_reloading_cache(), specifier)
     }
 }
 
@@ -157,7 +157,6 @@ pub trait AssetCombined: AssetExt {
 pub trait CacheCombined<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
-        // reloading_cache: AnyCache,
         id: &str,
     ) -> Result<&'a assets_manager::Handle<A>, Error>;
 }
@@ -188,20 +187,14 @@ impl<T: Compound> AssetExt for T {
 impl<'a> CacheCombined<'a> for AnyCache<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
-        //        reloading_cache: AnyCache,
         specifier: &str,
     ) -> Result<&'a assets_manager::Handle<A>, Error> {
         #[cfg(feature = "plugins")]
         {
-            self.get_cached(specifier).map_or_else(
-                || {
-                    tracing::info!("combine {specifier}");
-                    let data: Result<A, _> =
-                        ASSETS.combine(self, |cache: AnyCache| cache.load_owned::<A>(specifier));
-                    data.map(|data| self.get_or_insert(specifier, data))
-                },
-                Ok,
-            )
+            tracing::info!("combine {specifier}");
+            let data: Result<A, _> =
+                ASSETS.combine(self, |cache: AnyCache| cache.load_owned::<A>(specifier));
+            data.map(|data| self.get_or_insert(specifier, data))
         }
         #[cfg(not(feature = "plugins"))]
         {
@@ -210,7 +203,6 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     }
 }
 
-// this function bypasses hot-reloading!
 impl<T: Compound + Concatenate> AssetCombined for T {
     fn load_and_combine(
         reloading_cache: AnyCache<'static>,
