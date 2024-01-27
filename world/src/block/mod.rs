@@ -280,7 +280,8 @@ pub fn block_from_structure(
         | StructureBlock::Acacia
         | StructureBlock::Mangrove
         | StructureBlock::Chestnut
-        | StructureBlock::Baobab => {
+        | StructureBlock::Baobab
+        | StructureBlock::AutumnLeaves => {
             let ranges = sblock
                 .elim_case_pure(&index.colors.block.structure_blocks)
                 .as_ref()
@@ -293,6 +294,7 @@ pub fn block_from_structure(
                     RandomPerm::new(structure_seed).get(structure_seed) as usize % ranges.len(),
                 )
             };
+
 
             range.map(|range| {
                 if calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas))
