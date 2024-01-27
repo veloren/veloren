@@ -212,6 +212,9 @@ fn preproccess_command(
                             break;
                         }
                     },
+                    ArgumentSpec::AssetPath(_, prefix, _, _) => {
+                        *arg = prefix.to_string() + arg;
+                    },
                     _ => {},
                 }
                 if matches!(arg_spec.requirement(), Requirement::Required) {
@@ -220,9 +223,6 @@ fn preproccess_command(
             }
         } else if matches!(cmd_args.last(), Some(ArgumentSpec::SubCommand)) {
             could_be_entity_target = true;
-        }
-        if let Some(ArgumentSpec::AssetPath(_, prefix, _, _)) = cmd_args.get(i) {
-            *arg = prefix.to_string() + arg;
         }
         if could_be_entity_target && arg.starts_with(ClientEntityTarget::PREFIX) {
             let target_str = arg.trim_start_matches(ClientEntityTarget::PREFIX);
