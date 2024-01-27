@@ -537,7 +537,7 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::GiveItem => cmd(
                 vec![
-                    Enum("item", ITEM_SPECS.clone(), Required),
+                    AssetPath("item", ITEM_SPECS.clone(), Required),
                     Integer("num", 1, Optional),
                 ],
                 "Give yourself some items.\nFor an example or to auto complete use Tab.",
@@ -647,7 +647,7 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::MakeNpc => cmd(
                 vec![
-                    Enum("entity_config", ENTITY_CONFIGS.clone(), Required),
+                    AssetPath("entity_config", ENTITY_CONFIGS.clone(), Required),
                     Integer("num", 1, Optional),
                 ],
                 "Spawn entity from config near you.\nFor an example or to auto complete use Tab.",
@@ -1079,6 +1079,7 @@ impl ServerChatCommand {
                 ArgumentSpec::Message(_) => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}",
+                ArgumentSpec::AssetPath(_, _, _) => "{}",
                 ArgumentSpec::Boolean(_, _, _) => "{}",
                 ArgumentSpec::Flag(_) => "{}",
             })
@@ -1146,6 +1147,11 @@ pub enum ArgumentSpec {
     /// * Predefined string completions
     /// * whether it's optional
     Enum(&'static str, Vec<String>, Requirement),
+    /// The argument is an asset path. The associated values are
+    /// * label
+    /// * List of all asset paths as strings for completion
+    /// * whether it's optional
+    AssetPath(&'static str, Vec<String>, Requirement),
     /// The argument is likely a boolean. The associated values are
     /// * label
     /// * suggested tab-completion
@@ -1222,6 +1228,13 @@ impl ArgumentSpec {
                     format!("[{}]", label)
                 }
             },
+            ArgumentSpec::AssetPath(label, _, req) => {
+                if &Requirement::Required == req {
+                    format!("<{}>", label)
+                } else {
+                    format!("[{}]", label)
+                }
+            },
             ArgumentSpec::Boolean(label, _, req) => {
                 if &Requirement::Required == req {
                     format!("<{}>", label)
@@ -1246,6 +1259,7 @@ impl ArgumentSpec {
             | ArgumentSpec::Command(r)
             | ArgumentSpec::Message(r)
             | ArgumentSpec::Enum(_, _, r)
+            | ArgumentSpec::AssetPath(_, _, r)
             | ArgumentSpec::Boolean(_, _, r) => *r,
             ArgumentSpec::Flag(_) => Requirement::Optional,
             ArgumentSpec::SubCommand => Requirement::Required,

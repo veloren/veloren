@@ -17,6 +17,7 @@ use common::{
     uuid::Uuid,
 };
 use common_net::sync::WorldSyncExt;
+use itertools::Itertools;
 use levenshtein::levenshtein;
 use specs::{Join, WorldExt};
 use strum::{EnumIter, IntoEnumIterator};
@@ -100,6 +101,7 @@ impl ClientChatCommand {
                 ArgumentSpec::Message(_) => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}",
+                ArgumentSpec::AssetPath(_, _, _) => "{}",
                 ArgumentSpec::Boolean(_, _, _) => "{}",
                 ArgumentSpec::Flag(_) => "{}",
             })
@@ -591,6 +593,16 @@ impl TabComplete for ArgumentSpec {
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
+            ArgumentSpec::AssetPath(_, paths, _) => {
+                let depth = part.split('.').count();
+                paths
+                    .iter()
+                    .map(|path| path.as_str().split('.').take(depth).join("."))
+                    .dedup()
+                    .filter(|string| string.starts_with(part))
+                    .map(|c| c.to_string())
+                    .collect()
+            },
             ArgumentSpec::Boolean(_, part, _) => ["true", "false"]
                 .iter()
                 .filter(|string| string.starts_with(part))
