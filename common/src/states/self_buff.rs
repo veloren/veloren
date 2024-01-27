@@ -95,7 +95,7 @@ impl CharacterBehavior for Data {
                         .static_data
                         .ability_info
                         .ability
-                        .map_or(false, |a| a.ability.is_from_tool())
+                        .map_or(false, |a| a.ability.is_from_wielded())
                     {
                         vec![BuffCategory::RemoveOnLoadoutChange]
                     } else {

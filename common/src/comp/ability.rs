@@ -72,6 +72,25 @@ impl Default for ActiveAbilities {
     }
 }
 
+// make it pub, for UI stuff, if you want
+enum AbilitySource {
+    Weapons,
+    Glider,
+}
+
+impl AbilitySource {
+    // Get all needed data here and pick the right ability source
+    //
+    // make it pub, for UI stuff, if you want
+    fn determine(char_state: Option<&CharacterState>) -> Self {
+        if char_state.is_some_and(|c| c.is_glide_wielded()) {
+            Self::Glider
+        } else {
+            Self::Weapons
+        }
+    }
+}
+
 impl ActiveAbilities {
     pub fn from_auxiliary(
         auxiliary_sets: HashMap<AuxiliaryKey, Vec<AuxiliaryAbility>>,
@@ -176,7 +195,7 @@ impl ActiveAbilities {
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
-                .map(|i| &i.item_config_expect().abilities)
+                .and_then(|i| i.item_config().map(|c| &c.abilities))
         };
 
         let scale_ability = |ability: CharacterAbility, equip_slot| {
@@ -194,100 +213,55 @@ impl ActiveAbilities {
             context_index,
         };
 
-        match ability {
-            Ability::ToolGuard => {
-                let equip_slot = combat::get_equip_slot_by_block_priority(inv);
-                ability_set(equip_slot)
-                    .and_then(|abilities| {
-                        abilities
-                            .guard(Some(skill_set), context)
-                            .map(|(a, i)| (a.ability.clone(), i))
-                    })
-                    .map(|(ability, i)| {
-                        (
-                            scale_ability(ability, equip_slot),
-                            matches!(equip_slot, EquipSlot::ActiveOffhand),
-                            spec_ability(i),
-                        )
-                    })
+        let inst_ability = |slot: EquipSlot, offhand: bool| {
+            ability_set(slot).and_then(|abilities| {
+                use AbilityInput as I;
+
+                let dispatched = match input {
+                    I::Guard => abilities.guard(Some(skill_set), context),
+                    I::Primary => abilities.primary(Some(skill_set), context),
+                    I::Secondary => abilities.secondary(Some(skill_set), context),
+                    I::Auxiliary(index) => abilities.auxiliary(index, Some(skill_set), context),
+                    I::Movement => return None,
+                };
+
+                dispatched
+                    .map(|(a, i)| (a.ability.clone(), i))
+                    .map(|(a, i)| (scale_ability(a, slot), offhand, spec_ability(i)))
+            })
+        };
+
+        let source = AbilitySource::determine(char_state);
+        match source {
+            AbilitySource::Glider => match ability {
+                Ability::ToolGuard => None,
+                Ability::ToolPrimary => inst_ability(EquipSlot::Glider, false),
+                Ability::ToolSecondary => inst_ability(EquipSlot::Glider, false),
+                Ability::SpeciesMovement => None,
+                Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
+                Ability::Empty => None,
             },
-            Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| {
-                    abilities
-                        .primary(Some(skill_set), context)
-                        .map(|(a, i)| (a.ability.clone(), i))
-                })
-                .map(|(ability, i)| {
-                    (
-                        scale_ability(ability, EquipSlot::ActiveMainhand),
-                        false,
-                        spec_ability(i),
-                    )
-                }),
-            Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| {
-                    abilities
-                        .secondary(Some(skill_set), context)
-                        .map(|(a, i)| (a.ability.clone(), i))
-                })
-                .map(|(ability, i)| {
-                    (
-                        scale_ability(ability, EquipSlot::ActiveOffhand),
-                        true,
-                        spec_ability(i),
-                    )
-                })
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveMainhand)
-                        .and_then(|abilities| {
-                            abilities
-                                .secondary(Some(skill_set), context)
-                                .map(|(a, i)| (a.ability.clone(), i))
-                        })
-                        .map(|(ability, i)| {
-                            (
-                                scale_ability(ability, EquipSlot::ActiveMainhand),
-                                false,
-                                spec_ability(i),
-                            )
-                        })
-                }),
-            Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
-                .then(|| CharacterAbility::default_roll(char_state))
-                .map(|ability| {
-                    (
-                        ability.adjusted_by_skills(skill_set, None),
-                        false,
-                        spec_ability(None),
-                    )
-                }),
-            Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| {
-                    abilities
-                        .auxiliary(index, Some(skill_set), context)
-                        .map(|(a, i)| (a.ability.clone(), i))
-                })
-                .map(|(ability, i)| {
-                    (
-                        scale_ability(ability, EquipSlot::ActiveMainhand),
-                        false,
-                        spec_ability(i),
-                    )
-                }),
-            Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| {
-                    abilities
-                        .auxiliary(index, Some(skill_set), context)
-                        .map(|(a, i)| (a.ability.clone(), i))
-                })
-                .map(|(ability, i)| {
-                    (
-                        scale_ability(ability, EquipSlot::ActiveOffhand),
-                        true,
-                        spec_ability(i),
-                    )
-                }),
-            Ability::Empty => None,
+            AbilitySource::Weapons => match ability {
+                Ability::ToolGuard => {
+                    let equip_slot = combat::get_equip_slot_by_block_priority(inv);
+                    inst_ability(equip_slot, matches!(equip_slot, EquipSlot::ActiveOffhand))
+                },
+                Ability::ToolPrimary => inst_ability(EquipSlot::ActiveMainhand, false),
+                Ability::ToolSecondary => inst_ability(EquipSlot::ActiveOffhand, true)
+                    .or_else(|| inst_ability(EquipSlot::ActiveMainhand, false)),
+                Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
+                    .then(|| CharacterAbility::default_roll(char_state))
+                    .map(|ability| {
+                        (
+                            ability.adjusted_by_skills(skill_set, None),
+                            false,
+                            spec_ability(None),
+                        )
+                    }),
+                Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand, false),
+                Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand, true),
+                Ability::Empty => None,
+            },
         }
     }
 
@@ -296,9 +270,9 @@ impl ActiveAbilities {
         skill_set: Option<&'a SkillSet>,
         equip_slot: EquipSlot,
     ) -> impl Iterator<Item = usize> + 'a {
-        inv.and_then(|inv| inv.equipped(equip_slot))
+        inv.and_then(|inv| inv.equipped(equip_slot).and_then(|i| i.item_config()))
             .into_iter()
-            .flat_map(|i| &i.item_config_expect().abilities.abilities)
+            .flat_map(|config| &config.abilities.abilities)
             .enumerate()
             .filter_map(move |(i, a)| match a {
                 AbilityKind::Simple(skill, _) => skill
@@ -338,6 +312,7 @@ impl ActiveAbilities {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum AbilityInput {
     Guard,
     Primary,
@@ -360,15 +335,29 @@ pub enum Ability {
 }
 
 impl Ability {
+    fn try_input(&self) -> Option<AbilityInput> {
+        let input = match self {
+            Self::ToolGuard => AbilityInput::Guard,
+            Self::ToolPrimary => AbilityInput::Primary,
+            Self::ToolSecondary => AbilityInput::Secondary,
+            Self::SpeciesMovement => AbilityInput::Movement,
+            Self::OffWeaponAux(idx) | Self::MainWeaponAux(idx) => AbilityInput::Auxiliary(*idx),
+            Self::Empty => return None,
+        };
+
+        Some(input)
+    }
+
     pub fn ability_id<'a>(
         self,
+        char_state: Option<&CharacterState>,
         inv: Option<&'a Inventory>,
-        skillset: Option<&'a SkillSet>,
+        skill_set: Option<&'a SkillSet>,
         context: &AbilityContext,
     ) -> Option<&'a str> {
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
-                .map(|i| &i.item_config_expect().abilities)
+                .and_then(|i| i.item_config().map(|c| &c.abilities))
         };
 
         let contextual_id = |kind: Option<&'a AbilityKind<_>>| -> Option<&'a str> {
@@ -383,62 +372,60 @@ impl Ability {
             }
         };
 
-        match self {
-            Ability::ToolGuard => ability_set(combat::get_equip_slot_by_block_priority(inv))
-                .and_then(|abilities| {
-                    abilities
-                        .guard(skillset, context)
-                        .map(|a| a.0.id.as_str())
-                        .or_else(|| {
-                            abilities
-                                .guard
-                                .as_ref()
-                                .and_then(|g| contextual_id(Some(g)))
-                        })
-                }),
-            Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
-                abilities
-                    .primary(skillset, context)
-                    .map(|a| a.0.id.as_str())
-                    .or_else(|| contextual_id(Some(&abilities.primary)))
-            }),
-            Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| {
-                    abilities
-                        .secondary(skillset, context)
-                        .map(|a| a.0.id.as_str())
-                        .or_else(|| contextual_id(Some(&abilities.secondary)))
-                })
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
-                        abilities
-                            .secondary(skillset, context)
-                            .map(|a| a.0.id.as_str())
-                            .or_else(|| contextual_id(Some(&abilities.secondary)))
+        let inst_ability = |slot: EquipSlot| {
+            ability_set(slot).and_then(|abilities| {
+                use AbilityInput as I;
+
+                let dispatched = match self.try_input()? {
+                    I::Guard => abilities.guard(skill_set, context),
+                    I::Primary => abilities.primary(skill_set, context),
+                    I::Secondary => abilities.secondary(skill_set, context),
+                    I::Auxiliary(index) => abilities.auxiliary(index, skill_set, context),
+                    I::Movement => return None,
+                };
+
+                dispatched
+                    .map(|(a, _)| a.id.as_str())
+                    .or_else(|| match self.try_input()? {
+                        I::Guard => abilities
+                            .guard
+                            .as_ref()
+                            .and_then(|g| contextual_id(Some(g))),
+                        I::Primary => contextual_id(Some(&abilities.primary)),
+                        I::Secondary => contextual_id(Some(&abilities.secondary)),
+                        I::Auxiliary(index) => contextual_id(abilities.abilities.get(index)),
+                        I::Movement => None,
                     })
-                }),
-            Ability::SpeciesMovement => None, // TODO: Make not None
-            Ability::MainWeaponAux(index) => {
-                ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
-                    abilities
-                        .auxiliary(index, skillset, context)
-                        .map(|a| a.0.id.as_str())
-                        .or_else(|| contextual_id(abilities.abilities.get(index)))
-                })
+            })
+        };
+
+        let source = AbilitySource::determine(char_state);
+        match source {
+            AbilitySource::Glider => match self {
+                Ability::ToolGuard => None,
+                Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
+                Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
+                Ability::SpeciesMovement => None, // TODO: Make not None
+                Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
+                Ability::Empty => None,
             },
-            Ability::OffWeaponAux(index) => {
-                ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
-                    abilities
-                        .auxiliary(index, skillset, context)
-                        .map(|a| a.0.id.as_str())
-                        .or_else(|| contextual_id(abilities.abilities.get(index)))
-                })
+            AbilitySource::Weapons => match self {
+                Ability::ToolGuard => {
+                    let equip_slot = combat::get_equip_slot_by_block_priority(inv);
+                    inst_ability(equip_slot)
+                },
+                Ability::ToolPrimary => inst_ability(EquipSlot::ActiveMainhand),
+                Ability::ToolSecondary => inst_ability(EquipSlot::ActiveMainhand)
+                    .or_else(|| inst_ability(EquipSlot::ActiveOffhand)),
+                Ability::SpeciesMovement => None, // TODO: Make not None
+                Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
+                Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
+                Ability::Empty => None,
             },
-            Ability::Empty => None,
         }
     }
 
-    pub fn is_from_tool(&self) -> bool {
+    pub fn is_from_wielded(&self) -> bool {
         match self {
             Ability::ToolPrimary
             | Ability::ToolSecondary
@@ -449,6 +436,7 @@ impl Ability {
         }
     }
 }
+
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum GuardAbility {
     Tool,
@@ -471,10 +459,14 @@ pub struct SpecifiedAbility {
 }
 
 impl SpecifiedAbility {
-    pub fn ability_id(self, inv: Option<&Inventory>) -> Option<&str> {
+    pub fn ability_id<'a>(
+        self,
+        char_state: Option<&CharacterState>,
+        inv: Option<&'a Inventory>,
+    ) -> Option<&'a str> {
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
-                .map(|i| &i.item_config_expect().abilities)
+                .and_then(|i| i.item_config().map(|c| &c.abilities))
         };
 
         fn ability_id(spec_ability: SpecifiedAbility, ability: &AbilityKind<AbilityItem>) -> &str {
@@ -490,23 +482,41 @@ impl SpecifiedAbility {
             }
         }
 
-        match self.ability {
-            Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
-                .map(|abilities| ability_id(self, &abilities.primary)),
-            Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
-                .map(|abilities| ability_id(self, &abilities.secondary))
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveMainhand)
-                        .map(|abilities| ability_id(self, &abilities.secondary))
-                }),
-            Ability::ToolGuard => ability_set(combat::get_equip_slot_by_block_priority(inv))
-                .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a))),
-            Ability::SpeciesMovement => None, // TODO: Make not None
-            Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| abilities.abilities.get(index).map(|a| ability_id(self, a))),
-            Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
-                .and_then(|abilities| abilities.abilities.get(index).map(|a| ability_id(self, a))),
-            Ability::Empty => None,
+        let inst_ability = |slot: EquipSlot| {
+            ability_set(slot).and_then(|abilities| {
+                use AbilityInput as I;
+
+                let dispatched = match self.ability.try_input()? {
+                    I::Guard => abilities.guard.as_ref(),
+                    I::Primary => Some(&abilities.primary),
+                    I::Secondary => Some(&abilities.secondary),
+                    I::Auxiliary(index) => abilities.abilities.get(index),
+                    I::Movement => return None,
+                };
+                dispatched.map(|a| ability_id(self, a))
+            })
+        };
+
+        let source = AbilitySource::determine(char_state);
+        match source {
+            AbilitySource::Glider => match self.ability {
+                Ability::ToolGuard => None,
+                Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
+                Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
+                Ability::SpeciesMovement => None,
+                Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
+                Ability::Empty => None,
+            },
+            AbilitySource::Weapons => match self.ability {
+                Ability::ToolGuard => inst_ability(combat::get_equip_slot_by_block_priority(inv)),
+                Ability::ToolPrimary => inst_ability(EquipSlot::ActiveMainhand),
+                Ability::ToolSecondary => inst_ability(EquipSlot::ActiveOffhand)
+                    .or_else(|| inst_ability(EquipSlot::ActiveMainhand)),
+                Ability::SpeciesMovement => None, // TODO: Make not None
+                Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
+                Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
+                Ability::Empty => None,
+            },
         }
     }
 }
@@ -514,13 +524,14 @@ impl SpecifiedAbility {
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum PrimaryAbility {
     Tool,
+    Glider,
     Empty,
 }
 
 impl From<PrimaryAbility> for Ability {
     fn from(primary: PrimaryAbility) -> Self {
         match primary {
-            PrimaryAbility::Tool => Ability::ToolPrimary,
+            PrimaryAbility::Tool | PrimaryAbility::Glider => Ability::ToolPrimary,
             PrimaryAbility::Empty => Ability::Empty,
         }
     }
@@ -529,13 +540,14 @@ impl From<PrimaryAbility> for Ability {
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum SecondaryAbility {
     Tool,
+    Glider,
     Empty,
 }
 
 impl From<SecondaryAbility> for Ability {
     fn from(primary: SecondaryAbility) -> Self {
         match primary {
-            SecondaryAbility::Tool => Ability::ToolSecondary,
+            SecondaryAbility::Tool | SecondaryAbility::Glider => Ability::ToolSecondary,
             SecondaryAbility::Empty => Ability::Empty,
         }
     }
@@ -705,6 +717,11 @@ pub enum CharacterAbility {
         only_up: bool,
         speed: f32,
         max_exit_velocity: f32,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
+    GlideBoost {
+        booster: glide::Boost,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1125,6 +1142,7 @@ impl CharacterAbility {
                 },
                 CharacterAbility::ComboMeleeDeprecated { .. }
                 | CharacterAbility::Boost { .. }
+                | CharacterAbility::GlideBoost { .. }
                 | CharacterAbility::BasicBeam { .. }
                 | CharacterAbility::Blink { .. }
                 | CharacterAbility::Music { .. }
@@ -1688,6 +1706,7 @@ impl CharacterAbility {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
             },
+            GlideBoost { .. } => {},
         }
         self
     }
@@ -1724,6 +1743,7 @@ impl CharacterAbility {
                 }
             },
             Boost { .. }
+            | GlideBoost { .. }
             | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
@@ -1773,6 +1793,7 @@ impl CharacterAbility {
             | RiposteMelee { .. }
             | BasicBeam { .. }
             | Boost { .. }
+            | GlideBoost { .. }
             | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
@@ -1801,6 +1822,7 @@ impl CharacterAbility {
             | SelfBuff { meta, .. }
             | BasicBeam { meta, .. }
             | Boost { meta, .. }
+            | GlideBoost { meta, .. }
             | ComboMeleeDeprecated { meta, .. }
             | ComboMelee2 { meta, .. }
             | Blink { meta, .. }
@@ -2312,6 +2334,13 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 timer: Duration::default(),
             }),
+            CharacterAbility::GlideBoost { booster, meta: _ } => {
+                let scale = data.body.dimensions().z.sqrt();
+                let mut glide_data = glide::Data::new(scale * 4.5, scale, *data.ori);
+                glide_data.booster = Some(*booster);
+
+                CharacterState::Glide(glide_data)
+            },
             CharacterAbility::DashMelee {
                 energy_cost: _,
                 energy_drain,

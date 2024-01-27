@@ -1975,6 +1975,9 @@
             "common.items.debug.admin",
         ): "armor-tabard-admin_tabard",
         Simple(
+            "common.items.debug.glider",
+        ): "other-glider-vroom-debug",
+        Simple(
             "common.items.debug.admin_back",
         ): "armor-misc-back-admin_back",
         Simple(

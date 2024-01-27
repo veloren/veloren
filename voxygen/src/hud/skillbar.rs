@@ -1043,6 +1043,7 @@ impl<'a> Skillbar<'a> {
                             .get(i)
                             .and_then(|a| {
                                 Ability::from(*a).ability_id(
+                                    self.char_state,
                                     Some(inventory),
                                     Some(skill_set),
                                     contexts,
@@ -1118,6 +1119,7 @@ impl<'a> Skillbar<'a> {
 
         let primary_ability_id = self.active_abilities.and_then(|a| {
             Ability::from(a.primary).ability_id(
+                self.char_state,
                 Some(self.inventory),
                 Some(self.skillset),
                 self.context,
@@ -1148,6 +1150,7 @@ impl<'a> Skillbar<'a> {
 
         let secondary_ability_id = self.active_abilities.and_then(|a| {
             Ability::from(a.secondary).ability_id(
+                self.char_state,
                 Some(self.inventory),
                 Some(self.skillset),
                 self.context,

@@ -66,7 +66,7 @@ impl CharacterBehavior for Data {
         if input_is_pressed(data, InputKind::Roll) {
             handle_input(data, output_events, &mut update, InputKind::Roll);
         }
-        handle_wield(data, &mut update);
+        handle_glider_input_or(data, &mut update, output_events, handle_wield);
 
         // If still in this state, do the things
         if matches!(update.character, CharacterState::GlideWield(_)) {

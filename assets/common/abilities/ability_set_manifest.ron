@@ -953,6 +953,11 @@
         secondary: Simple(None, "common.abilities.empty.basic"),
         abilities: [],
     ),
+    Custom("Admin's Eagle"): (
+        primary: Simple(None, "common.abilities.debug.glide_speeder"),
+        secondary: Simple(None, "common.abilities.debug.glide_boost"),
+        abilities: [],
+    ),
     // Adlets
     // TODO: Do we want to eventually convert these to simple variants of weapons?
     Custom("Adlet Hunter"): (

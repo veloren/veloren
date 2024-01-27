@@ -228,6 +228,13 @@ impl CharacterState {
         }
     }
 
+    pub fn is_glide_wielded(&self) -> bool {
+        matches!(
+            self,
+            CharacterState::Glide { .. } | CharacterState::GlideWield { .. }
+        )
+    }
+
     pub fn is_stealthy(&self) -> bool {
         matches!(
             self,

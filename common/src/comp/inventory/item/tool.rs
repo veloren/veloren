@@ -37,13 +37,12 @@ pub enum ToolKind {
     Farming,
     Pick,
     Shovel,
+    /// Music Instruments
+    Instrument,
     // npcs
     /// Intended for invisible weapons (e.g. a creature using its claws or
     /// biting)
     Natural,
-    /// This is an placeholder item, it is used by non-humanoid npcs to attack
-    /// Music Instruments
-    Instrument,
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
 }

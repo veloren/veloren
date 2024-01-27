@@ -3816,6 +3816,10 @@
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
+    Simple("common.items.debug.glider"): VoxTrans(
+        "voxel.glider.cloverleaf",
+        (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+    ),
     // Misc
     Simple("common.items.weapons.tool.golf_club"): VoxTrans(
         "voxel.weapon.tool.golf_club",

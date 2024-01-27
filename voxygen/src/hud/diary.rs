@@ -852,7 +852,12 @@ impl<'a> Widget for Diary<'a> {
                             Some(self.inventory),
                             Some(self.skill_set),
                         )
-                        .ability_id(Some(self.inventory), Some(self.skill_set), self.context);
+                        .ability_id(
+                            None,
+                            Some(self.inventory),
+                            Some(self.skill_set),
+                            self.context,
+                        );
                     let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
                         util::ability_description(ability_id, self.localized_strings)
                     } else {
@@ -935,6 +940,7 @@ impl<'a> Widget for Diary<'a> {
                 .map(|a| {
                     (
                         Ability::from(a).ability_id(
+                            None,
                             Some(self.inventory),
                             Some(self.skill_set),
                             self.context,
@@ -951,6 +957,7 @@ impl<'a> Widget for Diary<'a> {
                 .map(|a| {
                     (
                         Ability::from(a).ability_id(
+                            None,
                             Some(self.inventory),
                             Some(self.skill_set),
                             self.context,

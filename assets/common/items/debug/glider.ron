@@ -1,0 +1,8 @@
+ItemDef(
+    legacy_name: "Vroom Glider",
+    legacy_description: "goes brrr.",
+    kind: Glider,
+    quality: Debug,
+    tags: [],
+    ability_spec: Some(Custom("Admin's Eagle")),
+)
