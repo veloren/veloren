@@ -537,7 +537,7 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::GiveItem => cmd(
                 vec![
-                    AssetPath("item", "common.items", ITEM_SPECS.clone(), Required),
+                    AssetPath("item", "common.items.", ITEM_SPECS.clone(), Required),
                     Integer("num", 1, Optional),
                 ],
                 "Give yourself some items.\nFor an example or to auto complete use Tab.",
@@ -649,7 +649,7 @@ impl ServerChatCommand {
                 vec![
                     AssetPath(
                         "entity_config",
-                        "common.entity",
+                        "common.entity.",
                         ENTITY_CONFIGS.clone(),
                         Required,
                     ),

@@ -222,7 +222,7 @@ fn preproccess_command(
             could_be_entity_target = true;
         }
         if let Some(ArgumentSpec::AssetPath(_, prefix, _, _)) = cmd_args.get(i) {
-            *arg = prefix.to_string() + "." + arg;
+            *arg = prefix.to_string() + arg;
         }
         if could_be_entity_target && arg.starts_with(ClientEntityTarget::PREFIX) {
             let target_str = arg.trim_start_matches(ClientEntityTarget::PREFIX);
@@ -597,17 +597,14 @@ impl TabComplete for ArgumentSpec {
                 .map(|c| c.to_string())
                 .collect(),
             ArgumentSpec::AssetPath(_, prefix, paths, _) => {
-                let depth = part.split('.').count();
+                let part_with_prefix = prefix.to_string() + part;
+                let depth = part_with_prefix.split('.').count();
                 paths
                     .iter()
-                    .filter_map(|path| {
-                        path.as_str()
-                            .strip_prefix(&(prefix.to_string() + "."))
-                            .map(|stripped| stripped.split('.').take(depth).join("."))
-                    })
+                    .map(|path| path.as_str().split('.').take(depth).join("."))
                     .dedup()
-                    .filter(|string| string.starts_with(part))
-                    .map(|c| c.to_string())
+                    .filter(|string| string.starts_with(&part_with_prefix))
+                    .filter_map(|c| Some(c.strip_prefix(prefix)?.to_string()))
                     .collect()
             },
             ArgumentSpec::Boolean(_, part, _) => ["true", "false"]
