@@ -121,6 +121,7 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 }
 
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
+#[cfg(feature = "plugins")]
 pub trait AssetCombined: AssetExt {
     fn load_and_combine(
         reloading_cache: AnyCache<'static>,
@@ -203,6 +204,7 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     }
 }
 
+#[cfg(feature = "plugins")]
 impl<T: Compound + Concatenate> AssetCombined for T {
     fn load_and_combine(
         reloading_cache: AnyCache<'static>,
@@ -234,9 +236,11 @@ impl Asset for Image {
     const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
 }
 
+#[cfg(feature = "plugins")]
 pub struct DotVoxAsset(pub DotVoxData);
 
 pub struct DotVoxLoader;
+#[cfg(feature = "plugins")]
 impl Loader<DotVoxAsset> for DotVoxLoader {
     fn load(content: Cow<[u8]>, _: &str) -> Result<DotVoxAsset, BoxedError> {
         let data = dot_vox::load_bytes(&content).map_err(|err| err.to_owned())?;
@@ -244,6 +248,7 @@ impl Loader<DotVoxAsset> for DotVoxLoader {
     }
 }
 
+#[cfg(feature = "plugins")]
 impl Asset for DotVoxAsset {
     type Loader = DotVoxLoader;
 
