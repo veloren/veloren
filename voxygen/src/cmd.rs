@@ -17,6 +17,7 @@ use common::{
     uuid::Uuid,
 };
 use common_net::sync::WorldSyncExt;
+use itertools::Itertools;
 use levenshtein::levenshtein;
 use specs::{Join, WorldExt};
 use strum::{EnumIter, IntoEnumIterator};
@@ -100,6 +101,7 @@ impl ClientChatCommand {
                 ArgumentSpec::Message(_) => "{/.*/}",
                 ArgumentSpec::SubCommand => "{} {/.*/}",
                 ArgumentSpec::Enum(_, _, _) => "{}",
+                ArgumentSpec::AssetPath(_, _, _, _) => "{}",
                 ArgumentSpec::Boolean(_, _, _) => "{}",
                 ArgumentSpec::Flag(_) => "{}",
             })
@@ -209,6 +211,9 @@ fn preproccess_command(
                             command_start = i + j + 1;
                             break;
                         }
+                    },
+                    ArgumentSpec::AssetPath(_, prefix, _, _) => {
+                        *arg = prefix.to_string() + arg;
                     },
                     _ => {},
                 }
@@ -591,6 +596,17 @@ impl TabComplete for ArgumentSpec {
                 .filter(|string| string.starts_with(part))
                 .map(|c| c.to_string())
                 .collect(),
+            ArgumentSpec::AssetPath(_, prefix, paths, _) => {
+                let part_with_prefix = prefix.to_string() + part;
+                let depth = part_with_prefix.split('.').count();
+                paths
+                    .iter()
+                    .map(|path| path.as_str().split('.').take(depth).join("."))
+                    .dedup()
+                    .filter(|string| string.starts_with(&part_with_prefix))
+                    .filter_map(|c| Some(c.strip_prefix(prefix)?.to_string()))
+                    .collect()
+            },
             ArgumentSpec::Boolean(_, part, _) => ["true", "false"]
                 .iter()
                 .filter(|string| string.starts_with(part))
