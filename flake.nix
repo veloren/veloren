@@ -127,8 +127,6 @@
             export VELOREN_GIT_VERSION="${git.prettyRev}"
             export VELOREN_GIT_TAG="${git.tag}"
           '';
-
-          VK_ADD_LAYER_PATH = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
         });
 
         nci.projects."veloren" = {
