@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Besättande spil
     .desc = Skjuter en förgiftad pil. Låter dig kontrollera ditt mål.
-common-abilities-hammer-leap = Nederslag
-    .desc = En attack som träffar ett område och knuffar fiender. Hoppar mot pekarens position.
 common-abilities-bow-shotgun = Pilskur
     .desc = Skjuter iväg en skur av pilar.
 common-abilities-staff-fireshockwave = Eldens ring

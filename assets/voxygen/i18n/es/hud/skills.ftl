@@ -58,50 +58,6 @@ hud-skill-swim = Movimiento acuático.
 hud-skill-swim_speed_title = Velocidad al nadar
 hud-skill-swim_speed = Nadas un { $boost } % más rápido.{ $SP }
 
-# Martillo - Árbol de habilidades
-
-
-## Golpe único
-
-hud-skill-hmr_single_strike_title = Golpe sencillo
-hud-skill-hmr_single_strike = Tan sencillo como tú.
-hud-skill-hmr_single_strike_knockback_title = Retroceso de {{ hud-skill-hmr_single_strike_title }}
-hud-skill-hmr_single_strike_knockback = Aumenta el retroceso de los golpes en un { $boost } %.{ $SP }
-hud-skill-hmr_single_strike_regen_title = Regeneración de {{ hud-skill-hmr_single_strike_title }}
-hud-skill-hmr_single_strike_regen = Aumenta la energía obtenida con cada golpe sucesivo.{ $SP }
-hud-skill-hmr_single_strike_damage_title = Daño de {{ hud-skill-hmr_single_strike_title }}
-hud-skill-hmr_single_strike_damage = Aumenta el daño infligido con cada golpe sucesivo.{ $SP }
-hud-skill-hmr_single_strike_speed_title = Velocidad de {{ hud-skill-hmr_single_strike_title }}
-hud-skill-hmr_single_strike_speed = Aumenta la velocidad de ataque con cada golpe sucesivo.{ $SP }
-
-## Martillazo
-
-hud-skill-hmr_charged_melee_title = Martillazo
-hud-skill-hmr_charged_melee = Un golpe más con el martillo... pero esta vez lleno de energía.
-hud-skill-hmr_charged_rate_title = Velocidad de carga de {{ hud-skill-hmr_charged_melee_title }}
-hud-skill-hmr_charged_rate = El tiempo para preparar un martillazo es un { $boost } % más rápido.{ $SP }
-hud-skill-hmr_charged_melee_nrg_drain_title = Consumo de energía de {{ hud-skill-hmr_charged_melee_title }}
-hud-skill-hmr_charged_melee_nrg_drain = Reduce la velocidad con la que se consume la energía mientras se prepara un golpe cargado con el martillo en un { $boost } %.{ $SP }
-hud-skill-hmr_charged_melee_damage_title = Daño de {{ hud-skill-hmr_charged_melee_title }}
-hud-skill-hmr_charged_melee_damage = Aumenta el daño del golpe cargado en un { $boost } %.{ $SP }
-hud-skill-hmr_charged_melee_knockback_title = Retroceso de {{ hud-skill-hmr_charged_melee_title }}
-hud-skill-hmr_charged_melee_knockback = Aumenta en gran medida el potencial para lanzar por los aires a los enemigos en un { $boost } %.{ $SP }
-
-## Terremoto
-
-hud-skill-hmr_unlock_leap_title = Desbloquear Terremoto
-hud-skill-hmr_unlock_leap = Desbloquea el Terremoto.{ $SP }
-hud-skill-hmr_leap_damage_title = Daño de Terremoto
-hud-skill-hmr_leap_damage = Aumenta el daño del salto en un { $boost } %.{ $SP }
-hud-skill-hmr_leap_distance_title = Distancia de Terremoto
-hud-skill-hmr_leap_distance = Aumenta la distancia de salto en un { $boost } %.{ $SP }
-hud-skill-hmr_leap_knockback_title = Retroceso de Terremoto
-hud-skill-hmr_leap_knockback = Aumenta el retroceso infligido del salto en un { $boost } %.{ $SP }
-hud-skill-hmr_leap_cost_title = Coste de Terremoto
-hud-skill-hmr_leap_cost = Reduce el coste del salto en un { $boost } %.{ $SP }
-hud-skill-hmr_leap_radius_title = Radio de Terremoto
-hud-skill-hmr_leap_radius = Aumenta el radio del golpe al suelo en { $boost } metros.{ $SP }
-
 # Cetro - Árbol de habilidades
 
 

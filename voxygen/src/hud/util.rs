@@ -619,9 +619,6 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.axe.bulkhead" => imgs.axe_bulkhead,
         "common.abilities.axe.capsize" => imgs.axe_capsize,
         // Hammer
-        "common.abilities.hammer.singlestrike" => imgs.twohhammer_m1,
-        "common.abilities.hammer.charged" => imgs.hammergolf,
-        "common.abilities.hammer.leap" => imgs.hammerleap,
         // Bow
         "common.abilities.bow.charged" => imgs.bow_m1,
         "common.abilities.bow.repeater" => imgs.bow_m2,

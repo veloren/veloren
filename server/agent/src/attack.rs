@@ -8,7 +8,7 @@ use common::{
         ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance, BASE_ABILITY_LIMIT},
         buff::BuffKind,
         item::tool::AbilityContext,
-        skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
+        skills::{AxeSkill, BowSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
         ControlEvent, Controller, Fluid, InputKind,
     },
@@ -271,12 +271,12 @@ impl<'a> AgentData<'a> {
 
     pub fn handle_hammer_attack(
         &self,
-        agent: &mut Agent,
-        controller: &mut Controller,
-        attack_data: &AttackData,
-        tgt_data: &TargetData,
-        read_data: &ReadData,
-        rng: &mut impl Rng,
+        _agent: &mut Agent,
+        _controller: &mut Controller,
+        _attack_data: &AttackData,
+        _tgt_data: &TargetData,
+        _read_data: &ReadData,
+        _rng: &mut impl Rng,
     ) {
         // TODO
     }

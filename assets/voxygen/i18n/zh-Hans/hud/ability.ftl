@@ -1,7 +1,5 @@
 common-abilities-debug-possess = 附身箭矢
     .desc = 射出一个毒箭矢，使你能够控制你的目标.
-common-abilities-hammer-leap = 厄运粉碎
-    .desc = 一个拥有击退的AOE（范围）攻击. 跳跃到指定地点.
 common-abilities-bow-shotgun = 爆发
     .desc = 迸发一堆箭矢.
 common-abilities-staff-fireshockwave = 火焰之圈

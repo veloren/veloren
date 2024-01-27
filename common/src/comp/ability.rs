@@ -670,7 +670,6 @@ pub enum CharacterAbilityType {
     ChargedRanged,
     DashMelee(StageSection),
     BasicBlock,
-    ComboMeleeDeprecated(StageSection, u32),
     ComboMelee2(StageSection),
     FinisherMelee(StageSection),
     DiveMelee(StageSection),
@@ -697,9 +696,6 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::BasicBlock(_) => Self::BasicBlock,
             CharacterState::LeapMelee(data) => Self::LeapMelee(data.stage_section),
             CharacterState::LeapShockwave(data) => Self::LeapShockwave(data.stage_section),
-            CharacterState::ComboMeleeDeprecated(data) => {
-                Self::ComboMeleeDeprecated(data.stage_section, data.stage)
-            },
             CharacterState::ComboMelee2(data) => Self::ComboMelee2(data.stage_section),
             CharacterState::FinisherMelee(data) => Self::FinisherMelee(data.stage_section),
             CharacterState::DiveMelee(data) => Self::DiveMelee(data.stage_section),
@@ -833,18 +829,6 @@ pub enum CharacterAbility {
         recover_duration: f32,
         roll_strength: f32,
         attack_immunities: AttackFilters,
-        #[serde(default)]
-        meta: AbilityMeta,
-    },
-    ComboMeleeDeprecated {
-        stage_data: Vec<combo_melee::Stage<f32>>,
-        initial_energy_gain: f32,
-        max_energy_gain: f32,
-        energy_increase: f32,
-        speed_increase: f32,
-        max_speed_increase: f32,
-        scales_from_combo: u32,
-        ori_modifier: f32,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1216,8 +1200,7 @@ impl CharacterAbility {
                     (data.physics.on_ground.is_none() || buildup_duration.is_some())
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
-                CharacterAbility::ComboMeleeDeprecated { .. }
-                | CharacterAbility::Boost { .. }
+                CharacterAbility::Boost { .. }
                 | CharacterAbility::GlideBoost { .. }
                 | CharacterAbility::BasicBeam { .. }
                 | CharacterAbility::Blink { .. }
@@ -1388,22 +1371,6 @@ impl CharacterAbility {
                 *movement_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-            },
-            ComboMeleeDeprecated {
-                ref mut stage_data,
-                initial_energy_gain: _,
-                max_energy_gain: _,
-                energy_increase: _,
-                speed_increase: _,
-                max_speed_increase: _,
-                scales_from_combo: _,
-                ori_modifier: _,
-                meta: _,
-            } => {
-                *stage_data = stage_data
-                    .iter_mut()
-                    .map(|s| s.adjusted_by_stats(stats))
-                    .collect();
             },
             ComboMelee2 {
                 ref mut strikes,
@@ -1823,7 +1790,6 @@ impl CharacterAbility {
             },
             Boost { .. }
             | GlideBoost { .. }
-            | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
@@ -1873,7 +1839,6 @@ impl CharacterAbility {
             | BasicBeam { .. }
             | Boost { .. }
             | GlideBoost { .. }
-            | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
@@ -1902,7 +1867,6 @@ impl CharacterAbility {
             | BasicBeam { meta, .. }
             | Boost { meta, .. }
             | GlideBoost { meta, .. }
-            | ComboMeleeDeprecated { meta, .. }
             | ComboMelee2 { meta, .. }
             | Blink { meta, .. }
             | BasicSummon { meta, .. }
@@ -2374,34 +2338,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 was_wielded: false, // false by default. utils might set it to true
                 prev_aimed_dir: None,
                 is_sneaking: false,
-            }),
-            CharacterAbility::ComboMeleeDeprecated {
-                stage_data,
-                initial_energy_gain,
-                max_energy_gain,
-                energy_increase,
-                speed_increase,
-                max_speed_increase,
-                scales_from_combo,
-                ori_modifier,
-                meta: _,
-            } => CharacterState::ComboMeleeDeprecated(combo_melee::Data {
-                static_data: combo_melee::StaticData {
-                    num_stages: stage_data.len() as u32,
-                    stage_data: stage_data.iter().map(|stage| stage.to_duration()).collect(),
-                    initial_energy_gain: *initial_energy_gain,
-                    max_energy_gain: *max_energy_gain,
-                    energy_increase: *energy_increase,
-                    speed_increase: 1.0 - *speed_increase,
-                    max_speed_increase: *max_speed_increase,
-                    scales_from_combo: *scales_from_combo,
-                    ori_modifier: *ori_modifier,
-                    ability_info,
-                },
-                exhausted: false,
-                stage: 1,
-                timer: Duration::default(),
-                stage_section: StageSection::Buildup,
             }),
             CharacterAbility::ComboMelee2 {
                 strikes,

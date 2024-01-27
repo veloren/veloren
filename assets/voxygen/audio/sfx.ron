@@ -422,13 +422,6 @@
             threshold: 0.5,
             subtitle: "subtitle-unwield_hammer",
         ),
-        Attack(ComboMeleeDeprecated(Action, 1), Hammer): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-hammer_attack",
-        ),
         Attack(ChargedMelee(Action), Hammer): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",

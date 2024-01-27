@@ -3098,11 +3098,6 @@ enum SkillStrings<'a> {
         desc: &'a str,
         constant: u32,
     },
-    WithConstFloat {
-        title: &'a str,
-        desc: &'a str,
-        constant: f32,
-    },
     WithMult {
         title: &'a str,
         desc: &'a str,
@@ -3116,14 +3111,6 @@ impl<'a> SkillStrings<'a> {
 
     fn with_const(title: &'a str, desc: &'a str, constant: u32) -> Self {
         Self::WithConst {
-            title,
-            desc,
-            constant,
-        }
-    }
-
-    fn with_const_float(title: &'a str, desc: &'a str, constant: f32) -> Self {
-        Self::WithConstFloat {
             title,
             desc,
             constant,
@@ -3156,20 +3143,6 @@ impl<'a> SkillStrings<'a> {
                 (title, desc)
             },
             Self::WithConst {
-                title,
-                desc,
-                constant,
-            } => {
-                let title = i18n.get_msg(title);
-                let args = i18n::fluent_args! {
-                    "boost" => constant,
-                    "SP" => sp(i18n, skill_set, skill),
-                };
-                let desc = i18n.get_msg_ctx(desc, &args);
-
-                (title, desc)
-            },
-            Self::WithConstFloat {
                 title,
                 desc,
                 constant,

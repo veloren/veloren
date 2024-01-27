@@ -150,7 +150,6 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::DashMelee(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::LeapShockwave(_)
-                | CharacterState::ComboMeleeDeprecated(_)
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::Music(_)
