@@ -512,7 +512,7 @@ impl<'frame> Drawer<'frame> {
     ///
     /// Note, this automatically calls the internal `run_ui_premultiply_passes`
     /// to complete any pending image uploads for the UI.
-    pub fn third_pass<'a>(&'a mut self) -> ThirdPassDrawer<'a> {
+    pub fn third_pass(&mut self) -> ThirdPassDrawer {
         self.run_ui_premultiply_passes();
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
