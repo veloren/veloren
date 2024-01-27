@@ -34,7 +34,7 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use std::{borrow::Cow, convert::TryFrom, time::Duration};
+use std::{borrow::Cow, time::Duration};
 
 use super::shockwave::ShockwaveDodgeable;
 

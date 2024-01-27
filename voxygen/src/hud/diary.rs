@@ -86,6 +86,7 @@ widget_ids! {
         skill_lock_imgs[],
         sword_bg,
         axe_bg,
+        hammer_bg,
         bow_render,
         skill_bow_charged_0,
         skill_bow_charged_1,
@@ -1792,12 +1793,124 @@ impl<'a> Diary<'a> {
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
-        // use skills::HammerSkill::*;
-        // let skill_buttons = &[
-        // ];
+        // Hammer
+        Image::new(self.imgs.hammer_bg)
+            .wh([865.0, 600.0])
+            .mid_top_with_margin_on(state.ids.content_align, 65.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.hammer_bg, ui);
 
-        // self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip,
-        // state);
+        use PositionSpecifier::TopLeftWithMarginsOn;
+        let skill_buttons = &[
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::ScornfulSwipe),
+                ability_id: "common.abilities.hammer.scornful_swipe",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 492.0, 416.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Tremor),
+                ability_id: "common.abilities.hammer.tremor",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 418.0, 149.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::VigorousBash),
+                ability_id: "common.abilities.hammer.vigorous_bash",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 422.0, 282.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Retaliate),
+                ability_id: "common.abilities.hammer.retaliate",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 313.0, 87.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::SpineCracker),
+                ability_id: "common.abilities.hammer.spine_cracker",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 311.0, 327.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Breach),
+                ability_id: "common.abilities.hammer.breach",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 311.0, 214.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::IronTempest),
+                ability_id: "common.abilities.hammer.iron_tempest",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 202.0, 216.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Upheaval),
+                ability_id: "common.abilities.hammer.upheaval",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 202.0, 343.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Thunderclap),
+                ability_id: "common.abilities.hammer.thunderclap",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 72.0, 218.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::SeismicShock),
+                ability_id: "common.abilities.hammer.seismic_shock",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 71.0, 336.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::HeavyWhorl),
+                ability_id: "common.abilities.hammer.heavy_whorl",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 417.0, 675.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Intercept),
+                ability_id: "common.abilities.hammer.intercept",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 421.0, 541.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::PileDriver),
+                ability_id: "common.abilities.hammer.pile_driver",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 312.0, 735.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::LungPummel),
+                ability_id: "common.abilities.hammer.lung_pummel",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 310.0, 609.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::HelmCrusher),
+                ability_id: "common.abilities.hammer.helm_crusher",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 310.0, 497.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Rampart),
+                ability_id: "common.abilities.hammer.rampart",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 201.0, 605.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Tenacity),
+                ability_id: "common.abilities.hammer.tenacity",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 201.0, 478.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Earthshaker),
+                ability_id: "common.abilities.hammer.earthshaker",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 71.0, 600.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Hammer(HammerSkill::Judgement),
+                ability_id: "common.abilities.hammer.judgement",
+                position: TopLeftWithMarginsOn(state.ids.hammer_bg, 70.0, 481.0),
+            },
+        ];
+
+        state.update(|s| {
+            s.ids
+                .skills
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+        state.update(|s| {
+            s.ids
+                .skill_lock_imgs
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+
+        self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
     }
 
