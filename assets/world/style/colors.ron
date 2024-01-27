@@ -33,7 +33,7 @@
             Mangrove: [(start: (20, 60, 0), end: (40, 90, 30))],
             Chestnut: [(start: (30, 80, 0), end: (50, 120, 0))],
             Baobab: [(start: (50, 100, 40), end: (50, 90, 0))],
-            AutumnLeaves: [(start: (178, 216, 0), end: (255, 185, 63)), (start: (142, 164, 0), end: (142, 164, 0)), (start: (168, 81, 0), end: (54, 150, 31))],
+            AutumnLeaves: [(start: (168, 188, 38), end: (193, 138, 0)), (start: (196, 136, 33), end: (214, 91, 30)), (start: (147, 23, 23), end: (136, 17, 13))],
         )
 
         // Water blocks ignore color now so this isn't used, but just in case this color was worth
