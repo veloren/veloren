@@ -2146,8 +2146,7 @@ impl PlayState for SessionState {
         // PostProcess and UI
         {
             prof_span!("post-process and ui");
-            let mut third_pass_prepared = drawer.prepare_third_pass();
-            let mut third_pass = third_pass_prepared.drawer();
+            let mut third_pass = drawer.third_pass();
             third_pass.draw_postprocess();
             // Draw the UI to the screen
             if let Some(mut ui_drawer) = third_pass.draw_ui() {

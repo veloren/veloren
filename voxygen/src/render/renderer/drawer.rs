@@ -87,6 +87,7 @@ struct RendererBorrow<'frame> {
 }
 
 pub struct Drawer<'frame> {
+    view: wgpu::TextureView,
     encoder: Option<ManualOwningScope<'frame, wgpu::CommandEncoder>>,
     borrow: RendererBorrow<'frame>,
     surface_texture: Option<wgpu::SurfaceTexture>,
@@ -141,7 +142,16 @@ impl<'frame> Drawer<'frame> {
         let encoder =
             ManualOwningScope::start("frame", &mut renderer.profiler, encoder, borrow.device);
 
+        // Create a view to the surface texture.
+        let view = surface_texture
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor {
+                label: Some("Surface texture view"),
+                ..Default::default()
+            });
+
         Self {
+            view,
             encoder: Some(encoder),
             borrow,
             surface_texture: Some(surface_texture),
@@ -341,7 +351,7 @@ impl<'frame> Drawer<'frame> {
                     view: &self.borrow.views.tgt_depth,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Discard,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: None,
                 }),
@@ -502,18 +512,37 @@ impl<'frame> Drawer<'frame> {
     ///
     /// Note, this automatically calls the internal `run_ui_premultiply_passes`
     /// to complete any pending image uploads for the UI.
-    pub fn prepare_third_pass(&mut self) -> ThirdPassDrawerPrepared<'_, 'frame> {
+    pub fn third_pass<'a>(&'a mut self) -> ThirdPassDrawer<'a> {
         self.run_ui_premultiply_passes();
+        let encoder = self.encoder.as_mut().unwrap();
+        let device = self.borrow.device;
+        let mut render_pass =
+            encoder.scoped_render_pass("third_pass", device, &wgpu::RenderPassDescriptor {
+                label: Some("third pass (postprocess + ui)"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    // If a screenshot was requested render to that as an intermediate texture
+                    // instead
+                    view: self
+                        .taking_screenshot
+                        .as_ref()
+                        .map_or(&self.view, |s| s.texture_view()),
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
 
-        // Create a view to the surface texture.
-        let view = self.surface_texture.as_ref().unwrap().texture.create_view(
-            &wgpu::TextureViewDescriptor {
-                label: Some("Surface texture view"),
-                ..Default::default()
-            },
-        );
+        render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
 
-        ThirdPassDrawerPrepared { view, drawer: self }
+        ThirdPassDrawer {
+            render_pass,
+            borrow: &self.borrow,
+        }
     }
 
     #[cfg(feature = "egui-ui")]
@@ -1309,49 +1338,6 @@ impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
         self.render_pass.set_vertex_buffer(0, submodel.buf());
         self.render_pass
             .draw_indexed(0..submodel.len() / 4 * 6, 0, 0..1);
-    }
-}
-
-/// Third pass drawer intermediate representation in order to store
-/// the surface texture view (in case it's used).
-pub struct ThirdPassDrawerPrepared<'pass, 'drawer> {
-    /// The texture view to render to.
-    view: wgpu::TextureView,
-    drawer: &'pass mut Drawer<'drawer>,
-}
-
-impl<'pass, 'drawer> ThirdPassDrawerPrepared<'pass, 'drawer> {
-    pub fn drawer(&mut self) -> ThirdPassDrawer {
-        let encoder = self.drawer.encoder.as_mut().unwrap();
-        let device = self.drawer.borrow.device;
-        let mut render_pass =
-            encoder.scoped_render_pass("third_pass", device, &wgpu::RenderPassDescriptor {
-                label: Some("third pass (postprocess + ui)"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    // If a screenshot was requested render to that as an intermediate texture
-                    // instead
-                    view: self
-                        .drawer
-                        .taking_screenshot
-                        .as_ref()
-                        .map_or(&self.view, |s| s.texture_view()),
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
-
-        render_pass.set_bind_group(0, &self.drawer.globals.bind_group, &[]);
-
-        ThirdPassDrawer {
-            render_pass,
-            borrow: &self.drawer.borrow,
-        }
     }
 }
 

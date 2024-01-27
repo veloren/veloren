@@ -233,8 +233,7 @@ impl PlayState for ServerInfoState {
 
     fn render(&self, drawer: &mut Drawer<'_>, _: &Settings) {
         // Draw the UI to the screen.
-        let mut third_pass = drawer.prepare_third_pass();
-        let mut third_pass = third_pass.drawer();
+        let mut third_pass = drawer.third_pass();
         if let Some(mut ui_drawer) = third_pass.draw_ui() {
             self.ui.render(&mut ui_drawer);
         };
