@@ -122,17 +122,34 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
 pub trait AssetCombined: AssetExt {
-    fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, Error>;
+    fn load_and_combine(
+        reloading_cache: AnyCache<'static>,
+        specifier: &str,
+    ) -> Result<AssetHandle<Self>, Error>;
+
+    /// Load combined table without hot-reload support
+    fn load_and_combine_static(specifier: &str) -> Result<AssetHandle<Self>, Error> {
+        Self::load_and_combine(ASSETS.filesystem_cache(), specifier)
+    }
 
     #[track_caller]
-    fn load_expect_combined(specifier: &str) -> AssetHandle<Self> {
+    fn load_expect_combined(
+        reloading_cache: AnyCache<'static>,
+        specifier: &str,
+    ) -> AssetHandle<Self> {
         // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
-        match Self::load_and_combine(specifier) {
+        match Self::load_and_combine(reloading_cache, specifier) {
             Ok(handle) => handle,
             Err(err) => {
                 panic!("Failed loading essential combined asset: {specifier} (error={err:?})")
             },
         }
+    }
+
+    /// Load combined table without hot-reload support, panic on error
+    #[track_caller]
+    fn load_expect_combined_static(specifier: &str) -> AssetHandle<Self> {
+        Self::load_expect_combined(ASSETS.filesystem_cache(), specifier)
     }
 }
 
@@ -140,6 +157,7 @@ pub trait AssetCombined: AssetExt {
 pub trait CacheCombined<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
+        // reloading_cache: AnyCache,
         id: &str,
     ) -> Result<&'a assets_manager::Handle<A>, Error>;
 }
@@ -170,6 +188,7 @@ impl<T: Compound> AssetExt for T {
 impl<'a> CacheCombined<'a> for AnyCache<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
+        //        reloading_cache: AnyCache,
         specifier: &str,
     ) -> Result<&'a assets_manager::Handle<A>, Error> {
         #[cfg(feature = "plugins")]
@@ -178,7 +197,7 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
                 || {
                     tracing::info!("combine {specifier}");
                     let data: Result<A, _> =
-                        ASSETS.combine(|cache: AnyCache| cache.load_owned::<A>(specifier));
+                        ASSETS.combine(self, |cache: AnyCache| cache.load_owned::<A>(specifier));
                     data.map(|data| self.get_or_insert(specifier, data))
                 },
                 Ok,
@@ -191,9 +210,13 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     }
 }
 
+// this function bypasses hot-reloading!
 impl<T: Compound + Concatenate> AssetCombined for T {
-    fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, Error> {
-        ASSETS.as_any_cache().load_and_combine(specifier)
+    fn load_and_combine(
+        reloading_cache: AnyCache<'static>,
+        specifier: &str,
+    ) -> Result<AssetHandle<Self>, Error> {
+        reloading_cache.load_and_combine(specifier)
     }
 }
 
@@ -290,9 +313,12 @@ impl<T> Compound for MultiRon<T>
 where
     T: for<'de> serde::Deserialize<'de> + Send + Sync + 'static + Concatenate,
 {
-    fn load(_cache: AnyCache, id: &SharedString) -> Result<Self, BoxedError> {
+    // the passed cache registers with hot reloading
+    fn load(reloading_cache: AnyCache, id: &SharedString) -> Result<Self, BoxedError> {
         ASSETS
-            .combine(|cache: AnyCache| cache.load_owned::<Ron<T>>(id).map(|ron| ron.into_inner()))
+            .combine(reloading_cache, |cache: AnyCache| {
+                cache.load_owned::<Ron<T>>(id).map(|ron| ron.into_inner())
+            })
             .map(MultiRon)
             .map_err(Into::<BoxedError>::into)
     }

@@ -282,7 +282,7 @@ impl Concatenate for ResourceExperienceManifest {
 
 lazy_static! {
     static ref RESOURCE_EXPERIENCE_MANIFEST: assets::AssetHandle<ResourceExperienceManifest> =
-        assets::AssetCombined::load_expect_combined(
+        assets::AssetCombined::load_expect_combined_static(
             "server.manifests.resource_experience_manifest"
         );
 }

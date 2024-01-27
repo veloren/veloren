@@ -132,12 +132,18 @@ impl CombinedCache {
         CombinedSource::new().map(|combined_source| Self(AssetCache::with_source(combined_source)))
     }
 
+    #[doc(hidden)]
+    // when not using a compound
+    pub(crate) fn filesystem_cache(&self) -> AnyCache<'_> { self.0.raw_source().fs.as_any_cache() }
+
     /// Combine objects from filesystem and plugins
     pub fn combine<T: Concatenate>(
         &self,
+        // this cache registers with hot reloading
+        reloading_cache: AnyCache,
         mut load_from: impl FnMut(AnyCache) -> Result<T, assets_manager::Error>,
     ) -> Result<T, assets_manager::Error> {
-        let mut result = load_from(self.0.raw_source().fs.as_any_cache());
+        let mut result = load_from(reloading_cache);
         // Report a severe error from the filesystem asset even if later overwritten by
         // an Ok value from a plugin
         if let Err(ref fs_error) = result {
@@ -222,7 +228,4 @@ impl CombinedCache {
     pub fn load_owned<A: Compound>(&self, id: &str) -> Result<A, assets_manager::Error> {
         self.0.load_owned(id)
     }
-
-    #[inline]
-    pub fn as_any_cache(&self) -> AnyCache { self.0.as_any_cache() }
 }
