@@ -7,7 +7,7 @@ use crate::{
     },
     render::{
         AaMode, BloomConfig, BloomFactor, BloomMode, CloudMode, FluidMode, LightingMode,
-        ReflectionMode, RenderMode, ShadowMapMode, ShadowMode, UpscaleMode,
+        PresentMode, ReflectionMode, RenderMode, ShadowMapMode, ShadowMode, UpscaleMode,
     },
     session::settings_change::Graphics as GraphicsChange,
     settings::{Fps, GraphicsSettings},
@@ -662,7 +662,14 @@ impl<'a> Widget for Video<'a> {
         let mode_list = self.global_state.window.renderer().present_modes();
         let mode_label_list = mode_list
             .iter()
-            .map(|mode| self.localized_strings.get_msg(mode.localize()))
+            .map(|mode| {
+                self.localized_strings.get_msg(match mode {
+                    PresentMode::Fifo => "hud-settings-present_mode-vsync_capped",
+                    PresentMode::FifoRelaxed => "hud-settings-present_mode-vsync_adaptive",
+                    PresentMode::Mailbox => "hud-settings-present_mode-vsync_uncapped",
+                    PresentMode::Immediate => "hud-settings-present_mode-vsync_off",
+                })
+            })
             .collect::<Vec<_>>();
 
         // Get which present mode is currently active

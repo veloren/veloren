@@ -135,7 +135,6 @@ enum State {
 pub struct Renderer {
     device: Arc<wgpu::Device>,
     queue: wgpu::Queue,
-    adapter: wgpu::Adapter,
     surface: wgpu::Surface,
     surface_config: wgpu::SurfaceConfiguration,
 
@@ -185,6 +184,8 @@ pub struct Renderer {
 
     /// The texture format used for the intermediate rendering passes
     intermediate_format: wgpu::TextureFormat,
+
+    present_modes: Vec<PresentMode>,
 }
 
 impl Renderer {
@@ -562,10 +563,16 @@ impl Renderer {
         #[cfg(feature = "egui-ui")]
         let egui_renderpass = egui_wgpu_backend::RenderPass::new(&device, format, 1);
 
+        let present_modes = surface
+            .get_capabilities(&adapter)
+            .present_modes
+            .into_iter()
+            .filter_map(|present_mode| PresentMode::try_from(present_mode).ok())
+            .collect();
+
         Ok(Self {
             device,
             queue,
-            adapter,
             surface,
             surface_config,
 
@@ -606,6 +613,7 @@ impl Renderer {
             graphics_backend,
 
             intermediate_format,
+            present_modes,
         })
     }
 
@@ -642,7 +650,16 @@ impl Renderer {
             self.other_modes = other_modes;
 
             // Update present mode in swap chain descriptor
-            self.surface_config.present_mode = self.other_modes.present_mode.into();
+            self.surface_config.present_mode =
+                if self.present_modes.contains(&self.other_modes.present_mode) {
+                    self.other_modes.present_mode
+                } else {
+                    *self
+                        .present_modes
+                        .first()
+                        .expect("There should never be no supported present modes")
+                }
+                .into();
 
             // Only enable profiling if the wgpu features are enabled
             self.other_modes.profiler_enabled &= self.profiler_features_enabled;
@@ -687,14 +704,7 @@ impl Renderer {
     pub fn pipeline_modes(&self) -> &PipelineModes { &self.pipeline_modes }
 
     /// Get the supported present modes.
-    pub fn present_modes(&self) -> Vec<PresentMode> {
-        self.surface
-            .get_capabilities(&self.adapter)
-            .present_modes
-            .into_iter()
-            .filter_map(|present_mode| PresentMode::try_from(present_mode).ok())
-            .collect()
-    }
+    pub fn present_modes(&self) -> &[PresentMode] { &self.present_modes }
 
     /// Get the current profiling times
     /// Nested timings immediately follow their parent

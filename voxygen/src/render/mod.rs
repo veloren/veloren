@@ -298,17 +298,6 @@ pub enum PresentMode {
     Fifo, // has to be last for `#[serde(other)]`
 }
 
-impl PresentMode {
-    pub fn localize(&self) -> &'static str {
-        match self {
-            Self::Fifo => "hud-settings-present_mode-vsync_capped",
-            Self::FifoRelaxed => "hud-settings-present_mode-vsync_adaptive",
-            Self::Mailbox => "hud-settings-present_mode-vsync_uncapped",
-            Self::Immediate => "hud-settings-present_mode-vsync_off",
-        }
-    }
-}
-
 impl From<PresentMode> for wgpu::PresentMode {
     fn from(mode: PresentMode) -> Self {
         match mode {
