@@ -10,7 +10,7 @@ use crate::{
         SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::NpcData,
-    weather::WeatherSim,
+    weather::WeatherJob,
     wiring,
     wiring::OutputFormula,
     Server, Settings, StateExt,
@@ -4474,11 +4474,14 @@ fn handle_weather_zone(
         let mut add_zone = |weather: weather::Weather| {
             if let Ok(pos) = position(server, client, "player") {
                 let pos = pos.0.xy() / weather::CELL_SIZE as f32;
-                server
+                if let Some(weather_job) = server
                     .state
                     .ecs_mut()
-                    .write_resource::<WeatherSim>()
-                    .add_zone(weather, pos, radius, time);
+                    .write_resource::<Option<WeatherJob>>()
+                    .as_mut()
+                {
+                    weather_job.queue_zone(weather, pos, radius, time);
+                }
             }
         };
         match name.as_str() {

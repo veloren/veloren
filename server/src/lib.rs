@@ -371,6 +371,7 @@ impl Server {
             pool.configure("CHUNK_GENERATOR", |n| n / 2 + n / 4);
             pool.configure("CHUNK_SERIALIZER", |n| n / 2);
             pool.configure("RTSIM_SAVE", |_| 1);
+            pool.configure("WEATHER", |_| 1);
         }
         state
             .ecs_mut()
@@ -588,7 +589,7 @@ impl Server {
                     return Err(Error::RtsimError(err));
                 },
             }
-            weather::init(&mut state, &world);
+            weather::init(&mut state);
         }
 
         let server_constants = ServerConstants {

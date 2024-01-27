@@ -49,7 +49,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{IdMaps, Uid},
     vol::RectVolSize,
-    weather::{Weather, WeatherGrid},
+    weather::{CompressedWeather, SharedWeatherGrid, Weather, WeatherGrid},
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
@@ -178,12 +178,32 @@ pub struct SiteInfoRich {
 }
 
 struct WeatherLerp {
-    old: (WeatherGrid, Instant),
-    new: (WeatherGrid, Instant),
+    old: (SharedWeatherGrid, Instant),
+    new: (SharedWeatherGrid, Instant),
+    old_local_wind: (Vec2<f32>, Instant),
+    new_local_wind: (Vec2<f32>, Instant),
+    local_wind: Vec2<f32>,
 }
 
 impl WeatherLerp {
-    fn weather_update(&mut self, weather: WeatherGrid) {
+    fn local_wind_update(&mut self, wind: Vec2<f32>) {
+        self.old_local_wind = mem::replace(&mut self.new_local_wind, (wind, Instant::now()));
+    }
+
+    fn update_local_wind(&mut self) {
+        // Assumes updates are regular
+        let t = (self.new_local_wind.1.elapsed().as_secs_f32()
+            / self
+                .new_local_wind
+                .1
+                .duration_since(self.old_local_wind.1)
+                .as_secs_f32())
+        .clamp(0.0, 1.0);
+
+        self.local_wind = Vec2::lerp_unclamped(self.old_local_wind.0, self.new_local_wind.0, t);
+    }
+
+    fn weather_update(&mut self, weather: SharedWeatherGrid) {
         self.old = mem::replace(&mut self.new, (weather, Instant::now()));
     }
 
@@ -191,13 +211,14 @@ impl WeatherLerp {
     // that updates come at regular intervals.
     fn update(&mut self, to_update: &mut WeatherGrid) {
         prof_span!("WeatherLerp::update");
+        self.update_local_wind();
         let old = &self.old.0;
         let new = &self.new.0;
         if new.size() == Vec2::zero() {
             return;
         }
         if to_update.size() != new.size() {
-            *to_update = new.clone();
+            *to_update = WeatherGrid::from(new);
         }
         if old.size() == new.size() {
             // Assumes updates are regular
@@ -209,7 +230,7 @@ impl WeatherLerp {
                 .iter_mut()
                 .zip(old.iter().zip(new.iter()))
                 .for_each(|((_, current), ((_, old), (_, new)))| {
-                    *current = Weather::lerp_unclamped(old, new, t);
+                    *current = CompressedWeather::lerp_unclamped(old, new, t);
                 });
         }
     }
@@ -217,9 +238,14 @@ impl WeatherLerp {
 
 impl Default for WeatherLerp {
     fn default() -> Self {
+        let old = Instant::now();
+        let new = Instant::now();
         Self {
-            old: (WeatherGrid::new(Vec2::zero()), Instant::now()),
-            new: (WeatherGrid::new(Vec2::zero()), Instant::now()),
+            old: (SharedWeatherGrid::new(Vec2::zero()), old),
+            new: (SharedWeatherGrid::new(Vec2::zero()), new),
+            old_local_wind: (Vec2::zero(), old),
+            new_local_wind: (Vec2::zero(), new),
+            local_wind: Vec2::zero(),
         }
     }
 }
@@ -1716,7 +1742,11 @@ impl Client {
     /// Returns Weather::default if no player position exists.
     pub fn weather_at_player(&self) -> Weather {
         self.position()
-            .map(|wpos| self.state.weather_at(wpos.xy()))
+            .map(|p| {
+                let mut weather = self.state.weather_at(p.xy());
+                weather.wind = self.weather.local_wind;
+                weather
+            })
             .unwrap_or_default()
     }
 
@@ -2538,6 +2568,9 @@ impl Client {
             },
             ServerGeneral::WeatherUpdate(weather) => {
                 self.weather.weather_update(weather);
+            },
+            ServerGeneral::LocalWindUpdate(wind) => {
+                self.weather.local_wind_update(wind);
             },
             ServerGeneral::SpectatePosition(pos) => {
                 frontend_events.push(Event::SpectatePosition(pos));
