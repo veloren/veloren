@@ -574,20 +574,13 @@ impl<'frame> Drawer<'frame> {
             &screen_descriptor,
         );
 
-        let view = self.surface_texture.as_ref().unwrap().texture.create_view(
-            &wgpu::TextureViewDescriptor {
-                label: Some("Surface texture view"),
-                ..Default::default()
-            },
-        );
-
         self.borrow
             .egui_render_pass
             .execute(
                 self.encoder.as_mut().unwrap(),
                 self.taking_screenshot
                     .as_ref()
-                    .map_or(&view, |s| s.texture_view()),
+                    .map_or(&self.view, |s| s.texture_view()),
                 &paint_jobs,
                 &screen_descriptor,
                 None,
