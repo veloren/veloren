@@ -123,8 +123,7 @@ impl TakeScreenshot {
         );
 
         move || {
-            // TODO: Do we need a thread for this now that we handle screenshots in a
-            // callback from wgpu? Send buffer to another thread for async
+            // Send buffer to another thread for async
             // mapping, downloading, and passing to the given handler function
             // (which probably saves it to the disk)
             std::thread::Builder::new()
