@@ -558,7 +558,7 @@ impl Renderer {
             enable_debug_groups: other_modes.profiler_enabled,
             max_num_pending_frames: 4,
         })
-        .map_err(RenderError::ProfilerCreationError)?;
+        .expect("Error creating profiler");
 
         #[cfg(feature = "egui-ui")]
         let egui_renderpass = egui_wgpu_backend::RenderPass::new(&device, format, 1);
@@ -674,11 +674,7 @@ impl Renderer {
                     enable_debug_groups: self.other_modes.profiler_enabled,
                     max_num_pending_frames: 4,
                 })
-                .map_err(|err| {
-                    RenderError::ProfilerCreationError(
-                        wgpu_profiler::CreationError::InvalidSettings(err),
-                    )
-                })?;
+                .expect("Error creating profiler");
 
             // Recreate render target
             self.on_resize(self.resolution);

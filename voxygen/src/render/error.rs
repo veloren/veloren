@@ -8,7 +8,6 @@ pub enum RenderError {
     CouldNotFindAdapter,
     ErrorInitializingCompiler,
     ShaderError(String, shaderc::Error),
-    ProfilerCreationError(wgpu_profiler::CreationError),
 }
 
 use std::fmt;
@@ -31,7 +30,6 @@ impl fmt::Debug for RenderError {
                 f,
                 "\"{shader_name}\" shader failed to compile due to the following error: {err}",
             ),
-            RenderError::ProfilerCreationError(err) => write!(f, "Profiler creation error: {err}"),
         }
     }
 }
