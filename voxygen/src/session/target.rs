@@ -1,7 +1,4 @@
-use core::prelude::v1;
-
 use specs::{Join, LendJoin, WorldExt};
-use tracing::{debug, info};
 use vek::*;
 
 use client::{self, Client};
@@ -16,8 +13,6 @@ use common::{
     vol::ReadVol,
 };
 use common_base::span;
-
-use crate::scene::Scene;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Target<T> {
@@ -356,17 +351,15 @@ fn closest_line_seg_line_seg(
     let p3 = Vec3::new(p3.x as f64, p3.y as f64, p3.z as f64);
     let p4 = Vec3::new(p4.x as f64, p4.y as f64, p4.z as f64);
 
-    let P1 = p1;
-    let P2 = p3;
-    let V1 = p2 - p1;
-    let V2 = p4 - p3;
-    let V21 = P2 - P1;
+    let d1 = p2 - p1;
+    let d2 = p4 - p3;
+    let d21 = p3 - p1;
 
-    let v22 = V2.dot(V2);
-    let v11 = V1.dot(V1);
-    let v21 = V2.dot(V1);
-    let v21_1 = V21.dot(V1);
-    let v21_2 = V21.dot(V2);
+    let v22 = d2.dot(d2);
+    let v11 = d1.dot(d1);
+    let v21 = d2.dot(d1);
+    let v21_1 = d21.dot(d1);
+    let v21_2 = d21.dot(d2);
 
     let denom = v21 * v21 - v22 * v11;
 
@@ -382,13 +375,8 @@ fn closest_line_seg_line_seg(
 
     let (s, t) = (s.clamp(0.0, 1.0), t.clamp(0.0, 1.0));
 
-    if s == 0.0 {
-        info!("p3: {}, p4: {}", p3, p4);
-        info!("s: {}, t: {}", s, t);
-    }
-
-    let p_a = P1 + s * V1;
-    let p_b = P2 + t * V2;
+    let p_a = p1 + s * d1;
+    let p_b = p3 + t * d2;
 
     (
         Vec3::new(p_a.x as f32, p_a.y as f32, p_a.z as f32),
