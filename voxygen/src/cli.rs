@@ -7,7 +7,7 @@
 //!
 //! Airshipper should only use arguments listed above! Since we will not try to
 //! be careful about their stability otherwise.
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 pub struct Args {
@@ -16,4 +16,13 @@ pub struct Args {
     /// This allows passing in server selection performed in airshipper.
     #[clap(short, long)]
     pub server: Option<String>,
+
+    #[clap(subcommand)]
+    pub command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+pub enum Commands {
+    /// List available wgpu backends.
+    ListBackends,
 }
