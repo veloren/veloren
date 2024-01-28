@@ -50,6 +50,7 @@ use crate::{
     menu::char_selection::CharSelectionState,
     render::{Drawer, GlobalsBindGroup},
     scene::{camera, CameraMode, DebugShapeId, Scene, SceneData},
+    session::target::ray_entities,
     settings::Settings,
     window::{AnalogGameInput, Event},
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -1349,8 +1350,74 @@ impl PlayState for SessionState {
                     if !self.free_look {
                         self.walk_forward_dir = self.scene.camera().forward_xy();
                         self.walk_right_dir = self.scene.camera().right_xy();
-                        self.inputs.look_dir =
-                            Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
+
+                        let dir = if is_aiming {
+                            let client = self.client.borrow();
+                            // Shoot ray from camera forward direction and get the point it hits an
+                            // entity or terrain
+                            let ray_start = cam_pos + cam_dir * 2.0;
+                            let entity_ray_end = ray_start + cam_dir * 500.0;
+                            let terrain_ray_end = ray_start + cam_dir * 1000.0;
+
+                            let aim_point = match ray_entities(
+                                &client,
+                                ray_start,
+                                entity_ray_end,
+                                500.0,
+                            ) {
+                                Some((dist, _)) => ray_start + cam_dir * dist,
+                                None => {
+                                    let terrain_ray_distance = client
+                                        .state()
+                                        .terrain()
+                                        .ray(ray_start, terrain_ray_end)
+                                        .max_iter(1000)
+                                        .until(Block::is_solid)
+                                        .cast()
+                                        .0;
+                                    ray_start + cam_dir * terrain_ray_distance
+                                },
+                            };
+
+                            // Get player orientation
+                            let ori = client
+                                .state()
+                                .read_storage::<comp::Ori>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap();
+                            // Get player scale
+                            let scale = client
+                                .state()
+                                .read_storage::<comp::Scale>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap_or(comp::Scale(1.0));
+                            // Get player body offsets
+                            let body = client
+                                .state()
+                                .read_storage::<comp::Body>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap();
+                            let body_offsets = body.projectile_offsets(ori.look_vec(), scale.0);
+
+                            // Get direction from player character to aim point
+                            let player_pos = client
+                                .state()
+                                .read_storage::<Pos>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap();
+                            // self.scene.debug.add_shape(crate::scene::DebugShape::Line([aim_point,
+                            // (player_pos.0 + Vec3 { x: 0.0, y: 0.0, z: 1000.0 })]));
+                            drop(client);
+                            aim_point - (player_pos.0 + body_offsets)
+                        } else {
+                            cam_dir + aim_dir_offset
+                        };
+
+                        self.inputs.look_dir = Dir::from_unnormalized(dir).unwrap();
                     }
                 }
                 self.inputs.strafing = matches!(
@@ -2040,6 +2107,7 @@ impl PlayState for SessionState {
                         &mut global_state.audio,
                         &scene_data,
                         &client,
+                        &global_state.settings,
                     );
 
                     // Process outcomes from client
