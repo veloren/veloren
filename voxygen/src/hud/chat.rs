@@ -24,6 +24,7 @@ use vek::Vec2;
 
 widget_ids! {
     struct Ids {
+        draggable_area,
         message_box,
         message_box_bg,
         chat_input,
@@ -268,8 +269,6 @@ impl<'a> Widget for Chat<'a> {
                 events.push(Event::ResizeChat(size));
             }
         };
-
-        handle_chat_mouse_events(state.ids.message_box, ui, &mut events);
 
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
@@ -569,6 +568,7 @@ impl<'a> Widget for Chat<'a> {
                     .w(self.chat_size.x - 17.0)
                     .color(color)
                     .line_spacing(2.0);
+
                 // Add space between messages.
                 let y = match text.get_y_dimension(ui) {
                     Dimension::Absolute(y) => y + 2.0,
@@ -775,6 +775,21 @@ impl<'a> Widget for Chat<'a> {
                 events.push(Event::SendMessage(msg));
             }
         }
+
+        Rectangle::fill([self.chat_size.x, self.chat_size.y])
+            .rgba(0.0, 0.0, 0.0, 0.0)
+            .and(|r| {
+                if input_focused {
+                    r.up_from(
+                        state.ids.chat_input_border_up,
+                        0.0 + CHAT_MARGIN_THICKNESS / 2.0,
+                    )
+                } else {
+                    r.bottom_left_with_margins_on(ui.window, self.chat_pos.y, self.chat_pos.x)
+                }
+            })
+            .set(state.ids.draggable_area, ui);
+        handle_chat_mouse_events(state.ids.draggable_area, ui, &mut events);
         events
     }
 }
