@@ -19,7 +19,7 @@
             // Leaves all actually get interpolated.
             TemperateLeaves: [
                 (start: (20, 100, 40), end: (60, 120, 0)),
-                // TODO: Uncomment when we add autumnal trees. Hannibal is in charge now. NVM he is doing Mapletrees instead
+                // TODO: Uncomment when we add autumnal trees. 
                 //(start: (178, 216, 0), end: (255, 185, 63)),
                 //(start: (142, 164, 0), end: (142, 164, 0)),
                 //(start: (168, 81, 0), end: (54, 150, 31)),
