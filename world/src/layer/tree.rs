@@ -763,10 +763,9 @@ impl TreeConfig {
             proportionality: 0.0,
             inhabited: false,
             hanging_sprites: &[],
-            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(69, 37, 17)),
         }
     }
-}
 
 // TODO: Rename this to `Tree` when the name conflict is gone
 pub struct ProceduralTree {
