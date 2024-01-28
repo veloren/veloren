@@ -4,9 +4,10 @@ use crate::Concatenate;
 
 use super::{fs::FileSystem, ASSETS_PATH};
 use assets_manager::{
+    asset::DirLoadable,
     hot_reloading::EventSender,
     source::{FileContent, Source, Tar},
-    AnyCache, AssetCache, BoxedError,
+    AnyCache, AssetCache, BoxedError, Compound, Storable,
 };
 
 struct PluginEntry {
@@ -131,18 +132,27 @@ impl CombinedCache {
         CombinedSource::new().map(|combined_source| Self(AssetCache::with_source(combined_source)))
     }
 
+    #[doc(hidden)]
+    // Provide a cache to the "combine_static" functions as they omit
+    // wrapping in a Compound (which enables hot-reload)
+    pub(crate) fn non_reloading_cache(&self) -> AnyCache<'_> {
+        self.0.raw_source().fs.as_any_cache()
+    }
+
     /// Combine objects from filesystem and plugins
     pub fn combine<T: Concatenate>(
         &self,
-        mut load_from: impl FnMut(AnyCache) -> Result<T, BoxedError>,
-    ) -> Result<T, BoxedError> {
-        let mut result = load_from(self.0.raw_source().fs.as_any_cache());
+        // this cache registers with hot reloading
+        reloading_cache: AnyCache,
+        mut load_from: impl FnMut(AnyCache) -> Result<T, assets_manager::Error>,
+    ) -> Result<T, assets_manager::Error> {
+        let mut result = load_from(reloading_cache);
         // Report a severe error from the filesystem asset even if later overwritten by
         // an Ok value from a plugin
         if let Err(ref fs_error) = result {
             match fs_error
-                .source()
-                .and_then(|error_source| error_source.downcast_ref::<std::io::Error>())
+                .reason()
+                .downcast_ref::<std::io::Error>()
                 .map(|io_error| io_error.kind())
             {
                 Some(std::io::ErrorKind::NotFound) => (),
@@ -161,8 +171,8 @@ impl CombinedCache {
                 // Report any error other than NotFound
                 Err(plugin_error) => {
                     match plugin_error
-                        .source()
-                        .and_then(|error_source| error_source.downcast_ref::<std::io::Error>())
+                        .reason()
+                        .downcast_ref::<std::io::Error>()
                         .map(|io_error| io_error.kind())
                     {
                         Some(std::io::ErrorKind::NotFound) => (),
@@ -190,11 +200,36 @@ impl CombinedCache {
             .push(PluginEntry { path, cache });
         Ok(())
     }
-}
 
-// Delegate all cache operations directly to the contained cache object
-impl std::ops::Deref for CombinedCache {
-    type Target = AssetCache<CombinedSource>;
+    // Just forward these methods to the cache
+    #[inline]
+    #[cfg(feature = "hot-reloading")]
+    pub fn enhance_hot_reloading(&'static self) { self.0.enhance_hot_reloading(); }
 
-    fn deref(&self) -> &Self::Target { &self.0 }
+    #[inline]
+    pub fn load_rec_dir<A: DirLoadable>(
+        &self,
+        id: &str,
+    ) -> Result<&assets_manager::Handle<assets_manager::RecursiveDirectory<A>>, assets_manager::Error>
+    {
+        self.0.load_rec_dir(id)
+    }
+
+    #[inline]
+    pub fn load<A: Compound>(
+        &self,
+        id: &str,
+    ) -> Result<&assets_manager::Handle<A>, assets_manager::Error> {
+        self.0.load(id)
+    }
+
+    #[inline]
+    pub fn get_or_insert<A: Storable>(&self, id: &str, a: A) -> &assets_manager::Handle<A> {
+        self.0.get_or_insert(id, a)
+    }
+
+    #[inline]
+    pub fn load_owned<A: Compound>(&self, id: &str) -> Result<A, assets_manager::Error> {
+        self.0.load_owned(id)
+    }
 }

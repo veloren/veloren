@@ -2,7 +2,6 @@
 //! Load assets (images or voxel data) from files
 
 #[cfg(feature = "plugins")]
-use assets_manager::SharedBytes;
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
@@ -122,18 +121,36 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 }
 
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
+#[cfg(feature = "plugins")]
 pub trait AssetCombined: AssetExt {
-    fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError>;
+    fn load_and_combine(
+        reloading_cache: AnyCache<'static>,
+        specifier: &str,
+    ) -> Result<AssetHandle<Self>, Error>;
+
+    /// Load combined table without hot-reload support
+    fn load_and_combine_static(specifier: &str) -> Result<AssetHandle<Self>, Error> {
+        Self::load_and_combine(ASSETS.non_reloading_cache(), specifier)
+    }
 
     #[track_caller]
-    fn load_expect_combined(specifier: &str) -> AssetHandle<Self> {
+    fn load_expect_combined(
+        reloading_cache: AnyCache<'static>,
+        specifier: &str,
+    ) -> AssetHandle<Self> {
         // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
-        match Self::load_and_combine(specifier) {
+        match Self::load_and_combine(reloading_cache, specifier) {
             Ok(handle) => handle,
             Err(err) => {
                 panic!("Failed loading essential combined asset: {specifier} (error={err:?})")
             },
         }
+    }
+
+    /// Load combined table without hot-reload support, panic on error
+    #[track_caller]
+    fn load_expect_combined_static(specifier: &str) -> AssetHandle<Self> {
+        Self::load_expect_combined(ASSETS.non_reloading_cache(), specifier)
     }
 }
 
@@ -142,7 +159,7 @@ pub trait CacheCombined<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
         id: &str,
-    ) -> Result<&'a assets_manager::Handle<A>, BoxedError>;
+    ) -> Result<&'a assets_manager::Handle<A>, Error>;
 }
 
 /// Loads directory and all files in it
@@ -172,32 +189,28 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     fn load_and_combine<A: Compound + Concatenate>(
         self,
         specifier: &str,
-    ) -> Result<&'a assets_manager::Handle<A>, BoxedError> {
+    ) -> Result<&'a assets_manager::Handle<A>, Error> {
         #[cfg(feature = "plugins")]
         {
-            self.get_cached(specifier).map_or_else(
-                || {
-                    // only create this combined object if is not yet cached
-                    let id_bytes = SharedBytes::from_slice(specifier.as_bytes());
-                    // as it was created from UTF8 it needs to be valid UTF8
-                    let id = SharedString::from_utf8(id_bytes).unwrap();
-                    tracing::info!("combine {specifier}");
-                    let data: Result<A, _> = ASSETS.combine(|cache: AnyCache| A::load(cache, &id));
-                    data.map(|data| self.get_or_insert(specifier, data))
-                },
-                Ok,
-            )
+            tracing::info!("combine {specifier}");
+            let data: Result<A, _> =
+                ASSETS.combine(self, |cache: AnyCache| cache.load_owned::<A>(specifier));
+            data.map(|data| self.get_or_insert(specifier, data))
         }
         #[cfg(not(feature = "plugins"))]
         {
-            Ok(self.load(specifier)?)
+            self.load(specifier)
         }
     }
 }
 
+#[cfg(feature = "plugins")]
 impl<T: Compound + Concatenate> AssetCombined for T {
-    fn load_and_combine(specifier: &str) -> Result<AssetHandle<Self>, BoxedError> {
-        ASSETS.as_any_cache().load_and_combine(specifier)
+    fn load_and_combine(
+        reloading_cache: AnyCache<'static>,
+        specifier: &str,
+    ) -> Result<AssetHandle<Self>, Error> {
+        reloading_cache.load_and_combine(specifier)
     }
 }
 
@@ -223,9 +236,11 @@ impl Asset for Image {
     const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
 }
 
+#[cfg(feature = "plugins")]
 pub struct DotVoxAsset(pub DotVoxData);
 
 pub struct DotVoxLoader;
+#[cfg(feature = "plugins")]
 impl Loader<DotVoxAsset> for DotVoxLoader {
     fn load(content: Cow<[u8]>, _: &str) -> Result<DotVoxAsset, BoxedError> {
         let data = dot_vox::load_bytes(&content).map_err(|err| err.to_owned())?;
@@ -233,6 +248,7 @@ impl Loader<DotVoxAsset> for DotVoxLoader {
     }
 }
 
+#[cfg(feature = "plugins")]
 impl Asset for DotVoxAsset {
     type Loader = DotVoxLoader;
 
@@ -294,10 +310,14 @@ impl<T> Compound for MultiRon<T>
 where
     T: for<'de> serde::Deserialize<'de> + Send + Sync + 'static + Concatenate,
 {
-    fn load(_cache: AnyCache, id: &SharedString) -> Result<Self, BoxedError> {
+    // the passed cache registers with hot reloading
+    fn load(reloading_cache: AnyCache, id: &SharedString) -> Result<Self, BoxedError> {
         ASSETS
-            .combine(|cache: AnyCache| <Ron<T> as Compound>::load(cache, id).map(|r| r.0))
+            .combine(reloading_cache, |cache: AnyCache| {
+                cache.load_owned::<Ron<T>>(id).map(|ron| ron.into_inner())
+            })
             .map(MultiRon)
+            .map_err(Into::<BoxedError>::into)
     }
 }
 

@@ -242,7 +242,7 @@ lazy_static! {
     };
 
     pub static ref KITS: Vec<String> = {
-        let mut kits = if let Ok(kits) = KitManifest::load_and_combine(KIT_MANIFEST_PATH) {
+        let mut kits = if let Ok(kits) = KitManifest::load_and_combine_static(KIT_MANIFEST_PATH) {
             let mut kits = kits.read().0.keys().cloned().collect::<Vec<String>>();
             kits.sort();
             kits
@@ -255,7 +255,7 @@ lazy_static! {
     };
 
     static ref PRESETS: HashMap<String, Vec<(Skill, u8)>> = {
-        if let Ok(presets) = SkillPresetManifest::load_and_combine(PRESET_MANIFEST_PATH) {
+        if let Ok(presets) = SkillPresetManifest::load_and_combine_static(PRESET_MANIFEST_PATH) {
             presets.read().0.clone()
         } else {
             warn!("Error while loading presets");
@@ -1324,12 +1324,12 @@ mod tests {
 
     #[test]
     fn test_loading_skill_presets() {
-        SkillPresetManifest::load_expect_combined(PRESET_MANIFEST_PATH);
+        SkillPresetManifest::load_expect_combined_static(PRESET_MANIFEST_PATH);
     }
 
     #[test]
     fn test_load_kits() {
-        let kits = KitManifest::load_expect_combined(KIT_MANIFEST_PATH).read();
+        let kits = KitManifest::load_expect_combined_static(KIT_MANIFEST_PATH).read();
         let mut rng = rand::thread_rng();
         for kit in kits.0.values() {
             for (item_id, _) in kit.iter() {

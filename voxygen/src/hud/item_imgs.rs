@@ -76,7 +76,7 @@ pub struct ItemImgs {
 
 impl ItemImgs {
     pub fn new(ui: &mut Ui, not_found: Id) -> Self {
-        let manifest = ItemImagesSpec::load_expect_combined("voxygen.item_image_manifest");
+        let manifest = ItemImagesSpec::load_expect_combined_static("voxygen.item_image_manifest");
         let map = manifest
             .read()
             .0
