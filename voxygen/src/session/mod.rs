@@ -1409,8 +1409,7 @@ impl PlayState for SessionState {
                                 .get(player_entity)
                                 .copied()
                                 .unwrap();
-                            // self.scene.debug.add_shape(crate::scene::DebugShape::Line([aim_point,
-                            // (player_pos.0 + Vec3 { x: 0.0, y: 0.0, z: 1000.0 })]));
+
                             drop(client);
                             aim_point - (player_pos.0 + body_offsets)
                         } else {
