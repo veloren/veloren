@@ -140,6 +140,8 @@ use std::{
 use tracing::warn;
 use vek::*;
 
+use self::chat::{DEFAULT_CHAT_BOX_HEIGHT, DEFAULT_CHAT_BOX_WIDTH};
+
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_VELORITE: Color = Color::Rgba(0.0, 0.66, 0.66, 1.0);
 const TEXT_BLUE_COLOR: Color = Color::Rgba(0.8, 0.9, 1.0, 1.0);
@@ -1292,6 +1294,7 @@ pub struct Hud {
     floaters: Floaters,
     voxel_minimap: VoxelMinimap,
     map_drag: Vec2<f64>,
+    chat_size: Vec2<f64>,
 }
 
 impl Hud {
@@ -1427,6 +1430,7 @@ impl Hud {
                 block_floaters: Vec::new(),
             },
             map_drag: Vec2::zero(),
+            chat_size: Vec2::new(DEFAULT_CHAT_BOX_WIDTH, DEFAULT_CHAT_BOX_HEIGHT),
         }
     }
 
@@ -3459,6 +3463,7 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 i18n,
+                self.chat_size,
             )
             .and_then(self.force_chat_input.take(), |c, input| c.input(input))
             .and_then(self.tab_complete.take(), |c, input| {
@@ -3487,6 +3492,9 @@ impl Hud {
                         self.show.chat_tab_settings_index = Some(tab);
                         self.show.settings_tab = SettingsTab::Chat;
                         self.show.settings(true);
+                    },
+                    chat::Event::ResizeChat(size) => {
+                        self.chat_size = size;
                     },
                 }
             }

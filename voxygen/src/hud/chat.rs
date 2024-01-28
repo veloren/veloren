@@ -20,6 +20,7 @@ use conrod_core::{
 use i18n::Localization;
 use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
+use vek::Vec2;
 
 widget_ids! {
     struct Ids {
@@ -53,9 +54,11 @@ const MAX_MESSAGES: usize = 100;
 const CHAT_ICON_WIDTH: f64 = 16.0;
 const CHAT_MARGIN_THICKNESS: f64 = 2.0;
 const CHAT_ICON_HEIGHT: f64 = 16.0;
-const CHAT_BOX_WIDTH: f64 = 470.0;
+pub const DEFAULT_CHAT_BOX_WIDTH: f64 = 470.0;
 const CHAT_BOX_INPUT_WIDTH: f64 = 460.0 - CHAT_ICON_WIDTH - 1.0;
-const CHAT_BOX_HEIGHT: f64 = 154.0;
+pub const DEFAULT_CHAT_BOX_HEIGHT: f64 = 154.0;
+const MIN_DIMENSION: Vec2<f64> = Vec2::new(300., 100.);
+const MAX_DIMENSION: Vec2<f64> = Vec2::new(650., 500.);
 
 const CHAT_TAB_HEIGHT: f64 = 20.0;
 const CHAT_TAB_ALL_WIDTH: f64 = 40.0;
@@ -78,6 +81,7 @@ pub struct Chat<'a> {
 
     // TODO: add an option to adjust this
     history_max: usize,
+    chat_size: Vec2<f64>,
 
     localized_strings: &'a Localization,
 }
@@ -91,6 +95,7 @@ impl<'a> Chat<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        chat_size: Vec2<f64>,
     ) -> Self {
         Self {
             pulse,
@@ -104,6 +109,7 @@ impl<'a> Chat<'a> {
             global_state,
             common: widget::CommonBuilder::default(),
             history_max: 32,
+            chat_size,
             localized_strings,
         }
     }
@@ -179,6 +185,7 @@ pub enum Event {
     Focus(Id),
     ChangeChatTab(Option<usize>),
     ShowChatTabSettings(usize),
+    ResizeChat(Vec2<f64>),
 }
 
 impl<'a> Widget for Chat<'a> {
@@ -231,6 +238,24 @@ impl<'a> Widget for Chat<'a> {
                 s.messages.pop_front();
             }
         });
+
+        let handle_chat_resize = |chat_widget, ui: &mut UiCell, events: &mut Vec<Event>| {
+            let dragged: Vec2<f64> = ui
+                .widget_input(chat_widget)
+                .drags()
+                .right()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum::<Vec2<f64>>();
+            if !dragged.is_approx_zero() {
+                let size = self.chat_size + dragged;
+                let size = size.map3(MIN_DIMENSION, MAX_DIMENSION, |sz, min, max| {
+                    sz.clamp(min, max)
+                });
+                events.push(Event::ResizeChat(size));
+            }
+        };
+
+        handle_chat_resize(state.ids.message_box, ui, &mut events);
 
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
@@ -390,22 +415,22 @@ impl<'a> Widget for Chat<'a> {
                 Dimension::Absolute(y) => y + 6.0,
                 _ => 0.0,
             };
-            Rectangle::fill([CHAT_BOX_WIDTH, y])
+            Rectangle::fill([self.chat_size.x, y])
                 .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity + 0.1)
                 .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
-                .w(CHAT_BOX_WIDTH)
+                .w(self.chat_size.x)
                 .set(state.ids.chat_input_bg, ui);
 
             //border around focused chat window
             let border_color = adjust_border_opacity(color, chat_settings.chat_opacity);
             //top line
-            Line::centred([0.0, 0.0], [CHAT_BOX_WIDTH, 0.0])
+            Line::centred([0.0, 0.0], [self.chat_size.x, 0.0])
                 .color(border_color)
                 .thickness(CHAT_MARGIN_THICKNESS)
                 .top_left_of(state.ids.chat_input_bg)
                 .set(state.ids.chat_input_border_up, ui);
             //bottom line
-            Line::centred([0.0, 0.0], [CHAT_BOX_WIDTH, 0.0])
+            Line::centred([0.0, 0.0], [self.chat_size.x, 0.0])
                 .color(border_color)
                 .thickness(CHAT_MARGIN_THICKNESS)
                 .bottom_left_of(state.ids.chat_input_bg)
@@ -433,7 +458,7 @@ impl<'a> Widget for Chat<'a> {
         }
 
         // Message box
-        Rectangle::fill([CHAT_BOX_WIDTH, CHAT_BOX_HEIGHT])
+        Rectangle::fill([self.chat_size.x, self.chat_size.y])
             .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity)
             .and(|r| {
                 if input_focused {
@@ -503,13 +528,13 @@ impl<'a> Widget for Chat<'a> {
                     .resize(n_badges, &mut ui.widget_id_generator())
             })
         }
-        Rectangle::fill_with([CHAT_ICON_WIDTH, CHAT_BOX_HEIGHT], color::TRANSPARENT)
+        Rectangle::fill_with([CHAT_ICON_WIDTH, self.chat_size.y], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.message_box_bg, 0.0, 0.0)
             .crop_kids()
             .set(state.ids.chat_icon_align, ui);
         let (mut items, _) = List::flow_down(messages.len() + 1)
             .top_left_with_margins_on(state.ids.message_box_bg, 0.0, CHAT_ICON_WIDTH)
-            .w_h(CHAT_BOX_WIDTH - CHAT_ICON_WIDTH, CHAT_BOX_HEIGHT)
+            .w_h(self.chat_size.x - CHAT_ICON_WIDTH, self.chat_size.y)
             .scroll_kids_vertically()
             .set(state.ids.message_box, ui);
 
@@ -527,7 +552,7 @@ impl<'a> Widget for Chat<'a> {
                 let text = Text::new(text)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
-                    .w(CHAT_BOX_WIDTH - 17.0)
+                    .w(self.chat_size.x - 17.0)
                     .color(color)
                     .line_spacing(2.0);
                 // Add space between messages.
@@ -561,7 +586,7 @@ impl<'a> Widget for Chat<'a> {
                     Text::new("")
                         .font_size(self.fonts.opensans.scale(6))
                         .font_id(self.fonts.opensans.conrod_id)
-                        .w(CHAT_BOX_WIDTH),
+                        .w(self.chat_size.x),
                     ui,
                 );
             };
@@ -583,7 +608,7 @@ impl<'a> Widget for Chat<'a> {
             let alpha = 1.0 - (time_since_hover / 1.5).powi(4);
             let shading = color::rgba(1.0, 0.82, 0.27, (chat_settings.chat_opacity + 0.1) * alpha);
 
-            Rectangle::fill([CHAT_BOX_WIDTH, CHAT_TAB_HEIGHT])
+            Rectangle::fill([self.chat_size.x, CHAT_TAB_HEIGHT])
                 .rgba(0.0, 0.0, 0.0, (chat_settings.chat_opacity + 0.1) * alpha)
                 .up_from(state.ids.message_box_bg, 0.0)
                 .set(state.ids.chat_tab_align, ui);
@@ -614,7 +639,7 @@ impl<'a> Widget for Chat<'a> {
                 events.push(Event::ChangeChatTab(None));
             }
 
-            let chat_tab_width = (CHAT_BOX_WIDTH - CHAT_TAB_ALL_WIDTH) / (MAX_CHAT_TABS as f64);
+            let chat_tab_width = (self.chat_size.x - CHAT_TAB_ALL_WIDTH) / (MAX_CHAT_TABS as f64);
 
             if state.ids.chat_tabs.len() < chat_tabs.len() {
                 state.update(|s| {
