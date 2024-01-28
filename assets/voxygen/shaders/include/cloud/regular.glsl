@@ -182,6 +182,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
 #endif
 
 const float STEP_SCALE = DIST_CAP / (10.0 * float(QUALITY));
+const float CAST_DIST_CAP = 1000000;
 
 float step_to_dist(float step, float quality) {
     return pow(step, 2) * STEP_SCALE / quality;
@@ -197,7 +198,7 @@ float dist_to_step(float dist, float quality) {
 
 vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, float max_dist, const float quality) {
     // Limit the marching distance to reduce maximum jumps
-    max_dist = min(max_dist, DIST_CAP);
+    max_dist = min(max_dist, CAST_DIST_CAP);
 
     origin.xyz += focus_off.xyz;
 
