@@ -1,4 +1,7 @@
+use core::prelude::v1;
+
 use specs::{Join, LendJoin, WorldExt};
+use tracing::{debug, info};
 use vek::*;
 
 use client::{self, Client};
@@ -13,6 +16,8 @@ use common::{
     vol::ReadVol,
 };
 use common_base::span;
+
+use crate::scene::Scene;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Target<T> {
@@ -236,5 +241,157 @@ pub(super) fn targets_under_cursor(
         entity_target,
         mine_target,
         terrain_target,
+    )
+}
+
+pub(super) fn ray_entities(
+    client: &Client,
+    start: Vec3<f32>,
+    end: Vec3<f32>,
+    cast_dist: f32,
+) -> Option<(f32, Entity)> {
+    let player_entity = client.entity();
+    let ecs = client.state().ecs();
+    let positions = ecs.read_storage::<comp::Pos>();
+    let colliders = ecs.read_storage::<comp::Collider>();
+
+    let mut nearby = (
+        &ecs.entities(),
+        &positions,
+        &colliders,
+    )
+        .join()
+        .filter(|(e, _, _)| *e != player_entity)
+        .filter_map(|(e, p, c)| {
+            let height = c.get_height();
+            let radius = c.bounding_radius().max(height / 2.0);
+            // Move position up from the feet
+            let pos = Vec3::new(p.0.x, p.0.y, p.0.z + c.get_z_limits(1.0).0 + height/2.0);
+            // Distance squared from start to the entity
+            let dist_sqr = pos.distance_squared(start);
+            Some((e, pos, radius, dist_sqr, c))
+        })
+        // Roughly filter out entities farther than ray distance
+        .filter(|(_, _, _, d_sqr, c)| *d_sqr <= cast_dist.powi(2))
+        .collect::<Vec<_>>();
+    // Sort by distance
+    nearby.sort_unstable_by(|a, b| a.3.partial_cmp(&b.3).unwrap());
+
+    let seg_ray = LineSegment3 { start, end };
+
+    let entity = nearby.iter().find_map(|(e, p, r, d_sqr, c)| {
+        let nearest = seg_ray.projected_point(*p);
+
+        return match c {
+            comp::Collider::CapsulePrism {
+                p0,
+                p1,
+                radius,
+                z_min,
+                z_max,
+            } => {
+                if nearest.distance_squared(*p) < (r * 1.732).powi(2) {
+                    // 1.732 = sqrt(3)
+                    let entity_rotation = ecs
+                        .read_storage::<comp::Ori>()
+                        .get(*e)
+                        .copied()
+                        .unwrap_or_default();
+                    let entity_position = ecs.read_storage::<comp::Pos>().get(*e).copied().unwrap();
+                    let world_p0 = entity_position.0
+                        + (entity_rotation.to_quat()
+                            * Vec3::new(p0.x, p0.y, z_min + c.get_height() / 2.0));
+                    let world_p1 = entity_position.0
+                        + (entity_rotation.to_quat()
+                            * Vec3::new(p1.x, p1.y, z_min + c.get_height() / 2.0));
+
+                    let (p_a, p_b) = if p0 != p1 {
+                        let seg_capsule = LineSegment3 {
+                            start: world_p0,
+                            end: world_p1,
+                        };
+                        closest_line_seg_line_seg(
+                            seg_ray.start,
+                            seg_ray.end,
+                            seg_capsule.start,
+                            seg_capsule.end,
+                        )
+                    } else {
+                        let nearest = seg_ray.projected_point(world_p0);
+                        (nearest, world_p0)
+                    };
+
+                    let distance = p_a.xy().distance_squared(p_b.xy());
+
+                    if distance < radius.powi(2)
+                        && p_a.z >= entity_position.0.z + z_min
+                        && p_a.z <= entity_position.0.z + z_max
+                    {
+                        return Some((p_a.distance(start), Entity(*e)));
+                    }
+                }
+                None
+            },
+            _ => {
+                if nearest.distance_squared(*p) < r.powi(2) {
+                    return Some((nearest.distance(start), Entity(*e)));
+                }
+                None
+            },
+        };
+    });
+
+    return entity;
+}
+
+// Get closest point between 2 line segments https://math.stackexchange.com/a/4289668
+fn closest_line_seg_line_seg(
+    p1: Vec3<f32>,
+    p2: Vec3<f32>,
+    p3: Vec3<f32>,
+    p4: Vec3<f32>,
+) -> (Vec3<f32>, Vec3<f32>) {
+    let p1 = Vec3::new(p1.x as f64, p1.y as f64, p1.z as f64);
+    let p2 = Vec3::new(p2.x as f64, p2.y as f64, p2.z as f64);
+    let p3 = Vec3::new(p3.x as f64, p3.y as f64, p3.z as f64);
+    let p4 = Vec3::new(p4.x as f64, p4.y as f64, p4.z as f64);
+
+    let P1 = p1;
+    let P2 = p3;
+    let V1 = p2 - p1;
+    let V2 = p4 - p3;
+    let V21 = P2 - P1;
+
+    let v22 = V2.dot(V2);
+    let v11 = V1.dot(V1);
+    let v21 = V2.dot(V1);
+    let v21_1 = V21.dot(V1);
+    let v21_2 = V21.dot(V2);
+
+    let denom = v21 * v21 - v22 * v11;
+
+    let (s, t) = if denom == 0.0 {
+        let s = 0.0;
+        let t = (v11 * s - v21_1) / v21;
+        (s, t)
+    } else {
+        let s = (v21_2 * v21 - v22 * v21_1) / denom;
+        let t = (-v21_1 * v21 + v11 * v21_2) / denom;
+        (s, t)
+    };
+
+    let (s, t) = (s.clamp(0.0, 1.0), t.clamp(0.0, 1.0));
+
+    if s == 0.0 {
+        info!("p3: {}, p4: {}", p3, p4);
+        info!("s: {}, t: {}", s, t);
+    }
+
+    let p_a = P1 + s * V1;
+    let p_b = P2 + t * V2;
+
+    (
+        Vec3::new(p_a.x as f32, p_a.y as f32, p_a.z as f32),
+        Vec3::new(p_b.x as f32, p_b.y as f32, p_b.z as f32),
     )
 }
