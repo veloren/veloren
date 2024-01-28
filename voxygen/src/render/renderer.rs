@@ -187,6 +187,8 @@ pub struct Renderer {
 
     /// Supported present modes.
     present_modes: Vec<PresentMode>,
+    /// Cached max texture size.
+    max_texture_size: u32,
 }
 
 impl Renderer {
@@ -349,6 +351,8 @@ impl Renderer {
             );
         }
 
+        let max_texture_size = device.limits().max_texture_dimension_2d;
+
         let surface_capabilities = surface.get_capabilities(&adapter);
         let format = surface_capabilities.formats[0];
         info!("Using {:?} as the surface format", format);
@@ -409,18 +413,22 @@ impl Renderer {
             &device,
             (dims.width, dims.height),
             &ShadowMapMode::try_from(pipeline_modes.shadow).unwrap_or_default(),
+            max_texture_size,
         )
         .map_err(|err| {
             warn!("Could not create shadow map views: {:?}", err);
         })
         .ok();
 
-        let rain_occlusion_view =
-            RainOcclusionMap::create_view(&device, &pipeline_modes.rain_occlusion)
-                .map_err(|err| {
-                    warn!("Could not create rain occlusion map views: {:?}", err);
-                })
-                .ok();
+        let rain_occlusion_view = RainOcclusionMap::create_view(
+            &device,
+            &pipeline_modes.rain_occlusion,
+            max_texture_size,
+        )
+        .map_err(|err| {
+            warn!("Could not create rain occlusion map views: {:?}", err);
+        })
+        .ok();
 
         let shaders = Shaders::load_expect("");
         let shaders_watcher = shaders.reload_watcher();
@@ -614,7 +622,9 @@ impl Renderer {
             graphics_backend,
 
             intermediate_format,
+
             present_modes,
+            max_texture_size,
         })
     }
 
@@ -808,7 +818,12 @@ impl Renderer {
             if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
                 (shadow_views, self.pipeline_modes.shadow)
             {
-                match ShadowMap::create_shadow_views(&self.device, (dims.x, dims.y), &mode) {
+                match ShadowMap::create_shadow_views(
+                    &self.device,
+                    (dims.x, dims.y),
+                    &mode,
+                    self.max_texture_size,
+                ) {
                     Ok((new_point_depth, new_directed_depth)) => {
                         *point_depth = new_point_depth;
                         *directed_depth = new_directed_depth;
@@ -824,6 +839,7 @@ impl Renderer {
                 match RainOcclusionMap::create_view(
                     &self.device,
                     &self.pipeline_modes.rain_occlusion,
+                    self.max_texture_size,
                 ) {
                     Ok(new_rain_depth) => {
                         *rain_depth = new_rain_depth;
@@ -1420,11 +1436,7 @@ impl Renderer {
     }
 
     /// Return the maximum supported texture size.
-    pub fn max_texture_size(&self) -> u32 { Self::max_texture_size_raw(&self.device) }
-
-    fn max_texture_size_raw(device: &wgpu::Device) -> u32 {
-        device.limits().max_texture_dimension_2d
-    }
+    pub fn max_texture_size(&self) -> u32 { self.max_texture_size }
 
     /// Create a new immutable texture from the provided image.
     /// # Panics

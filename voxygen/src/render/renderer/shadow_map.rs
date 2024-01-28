@@ -1,7 +1,4 @@
-use super::{
-    super::{pipelines::shadow, texture::Texture, RenderError, ShadowMapMode},
-    Renderer,
-};
+use super::super::{pipelines::shadow, texture::Texture, RenderError, ShadowMapMode};
 use vek::*;
 
 /// A type that holds shadow map data.  Since shadow mapping may not be
@@ -150,11 +147,11 @@ impl ShadowMap {
         device: &wgpu::Device,
         size: (u32, u32),
         mode: &ShadowMapMode,
+        max_texture_size: u32,
     ) -> Result<(Texture, Texture), RenderError> {
         // (Attempt to) apply resolution factor to shadow map resolution.
         let resolution_factor = mode.resolution.clamped(0.25, 4.0);
 
-        let max_texture_size = Renderer::max_texture_size_raw(device);
         // Limit to max texture size, rather than erroring.
         let size = Vec2::new(size.0, size.1).map(|e| {
             let size = e as f32 * resolution_factor;
