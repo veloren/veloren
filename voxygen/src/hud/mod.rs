@@ -1295,6 +1295,7 @@ pub struct Hud {
     voxel_minimap: VoxelMinimap,
     map_drag: Vec2<f64>,
     chat_size: Vec2<f64>,
+    chat_pos: Vec2<f64>,
 }
 
 impl Hud {
@@ -1431,6 +1432,7 @@ impl Hud {
             },
             map_drag: Vec2::zero(),
             chat_size: Vec2::new(DEFAULT_CHAT_BOX_WIDTH, DEFAULT_CHAT_BOX_HEIGHT),
+            chat_pos: Vec2::new(10.0, 10.0),
         }
     }
 
@@ -3464,6 +3466,7 @@ impl Hud {
                 &self.fonts,
                 i18n,
                 self.chat_size,
+                self.chat_pos,
             )
             .and_then(self.force_chat_input.take(), |c, input| c.input(input))
             .and_then(self.tab_complete.take(), |c, input| {
@@ -3495,6 +3498,9 @@ impl Hud {
                     },
                     chat::Event::ResizeChat(size) => {
                         self.chat_size = size;
+                    },
+                    chat::Event::MoveChat(pos) => {
+                        self.chat_pos = pos;
                     },
                 }
             }

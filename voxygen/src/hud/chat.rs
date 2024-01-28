@@ -82,6 +82,7 @@ pub struct Chat<'a> {
     // TODO: add an option to adjust this
     history_max: usize,
     chat_size: Vec2<f64>,
+    chat_pos: Vec2<f64>,
 
     localized_strings: &'a Localization,
 }
@@ -96,6 +97,7 @@ impl<'a> Chat<'a> {
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
         chat_size: Vec2<f64>,
+        chat_pos: Vec2<f64>,
     ) -> Self {
         Self {
             pulse,
@@ -110,6 +112,7 @@ impl<'a> Chat<'a> {
             common: widget::CommonBuilder::default(),
             history_max: 32,
             chat_size,
+            chat_pos,
             localized_strings,
         }
     }
@@ -186,6 +189,7 @@ pub enum Event {
     ChangeChatTab(Option<usize>),
     ShowChatTabSettings(usize),
     ResizeChat(Vec2<f64>),
+    MoveChat(Vec2<f64>),
 }
 
 impl<'a> Widget for Chat<'a> {
@@ -239,15 +243,25 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
-        let handle_chat_resize = |chat_widget, ui: &mut UiCell, events: &mut Vec<Event>| {
-            let dragged: Vec2<f64> = ui
+        let handle_chat_mouse_events = |chat_widget, ui: &mut UiCell, events: &mut Vec<Event>| {
+            let pos_delta: Vec2<f64> = ui
+                .widget_input(chat_widget)
+                .drags()
+                .left()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum();
+            if !pos_delta.is_approx_zero() {
+                let pos = self.chat_pos + pos_delta;
+                events.push(Event::MoveChat(pos));
+            }
+            let size_delta: Vec2<f64> = ui
                 .widget_input(chat_widget)
                 .drags()
                 .right()
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
-                .sum::<Vec2<f64>>();
-            if !dragged.is_approx_zero() {
-                let size = self.chat_size + dragged;
+                .sum();
+            if !size_delta.is_approx_zero() {
+                let size = self.chat_size + size_delta;
                 let size = size.map3(MIN_DIMENSION, MAX_DIMENSION, |sz, min, max| {
                     sz.clamp(min, max)
                 });
@@ -255,7 +269,7 @@ impl<'a> Widget for Chat<'a> {
             }
         };
 
-        handle_chat_resize(state.ids.message_box, ui, &mut events);
+        handle_chat_mouse_events(state.ids.message_box, ui, &mut events);
 
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
@@ -417,7 +431,7 @@ impl<'a> Widget for Chat<'a> {
             };
             Rectangle::fill([self.chat_size.x, y])
                 .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity + 0.1)
-                .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
+                .bottom_left_with_margins_on(ui.window, self.chat_pos.y, self.chat_pos.x)
                 .w(self.chat_size.x)
                 .set(state.ids.chat_input_bg, ui);
 
@@ -467,7 +481,7 @@ impl<'a> Widget for Chat<'a> {
                         0.0 + CHAT_MARGIN_THICKNESS / 2.0,
                     )
                 } else {
-                    r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
+                    r.bottom_left_with_margins_on(ui.window, self.chat_pos.y, self.chat_pos.x)
                 }
             })
             .crop_kids()
