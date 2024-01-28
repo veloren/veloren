@@ -185,6 +185,7 @@ pub struct Renderer {
     /// The texture format used for the intermediate rendering passes
     intermediate_format: wgpu::TextureFormat,
 
+    /// Supported present modes.
     present_modes: Vec<PresentMode>,
 }
 
@@ -649,17 +650,10 @@ impl Renderer {
         if self.other_modes != other_modes {
             self.other_modes = other_modes;
 
-            // Update present mode in swap chain descriptor
-            self.surface_config.present_mode =
-                if self.present_modes.contains(&self.other_modes.present_mode) {
-                    self.other_modes.present_mode
-                } else {
-                    *self
-                        .present_modes
-                        .first()
-                        .expect("There should never be no supported present modes")
-                }
-                .into();
+            // Update present mode in swap chain descriptor if it is supported.
+            if self.present_modes.contains(&self.other_modes.present_mode) {
+                self.surface_config.present_mode = self.other_modes.present_mode.into()
+            }
 
             // Only enable profiling if the wgpu features are enabled
             self.other_modes.profiler_enabled &= self.profiler_features_enabled;

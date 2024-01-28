@@ -87,7 +87,7 @@ struct RendererBorrow<'frame> {
 }
 
 pub struct Drawer<'frame> {
-    view: wgpu::TextureView,
+    surface_view: wgpu::TextureView,
     encoder: Option<ManualOwningScope<'frame, wgpu::CommandEncoder>>,
     borrow: RendererBorrow<'frame>,
     surface_texture: Option<wgpu::SurfaceTexture>,
@@ -143,7 +143,7 @@ impl<'frame> Drawer<'frame> {
             ManualOwningScope::start("frame", &mut renderer.profiler, encoder, borrow.device);
 
         // Create a view to the surface texture.
-        let view = surface_texture
+        let surface_view = surface_texture
             .texture
             .create_view(&wgpu::TextureViewDescriptor {
                 label: Some("Surface texture view"),
@@ -151,7 +151,7 @@ impl<'frame> Drawer<'frame> {
             });
 
         Self {
-            view,
+            surface_view,
             encoder: Some(encoder),
             borrow,
             surface_texture: Some(surface_texture),
@@ -514,6 +514,7 @@ impl<'frame> Drawer<'frame> {
     /// to complete any pending image uploads for the UI.
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
         self.run_ui_premultiply_passes();
+
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -525,7 +526,7 @@ impl<'frame> Drawer<'frame> {
                     view: self
                         .taking_screenshot
                         .as_ref()
-                        .map_or(&self.view, |s| s.texture_view()),
+                        .map_or(&self.surface_view, |s| s.texture_view()),
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
@@ -580,7 +581,7 @@ impl<'frame> Drawer<'frame> {
                 self.encoder.as_mut().unwrap(),
                 self.taking_screenshot
                     .as_ref()
-                    .map_or(&self.view, |s| s.texture_view()),
+                    .map_or(&self.surface_view, |s| s.texture_view()),
                 &paint_jobs,
                 &screen_descriptor,
                 None,
@@ -754,13 +755,6 @@ impl<'frame> Drop for Drawer<'frame> {
             .take()
             .zip(self.borrow.pipelines.blit())
             .map(|(screenshot, blit)| {
-                let view = self.surface_texture.as_ref().unwrap().texture.create_view(
-                    &wgpu::TextureViewDescriptor {
-                        label: Some("Surface texture view"),
-                        ..Default::default()
-                    },
-                );
-
                 // Image needs to be copied from the screenshot texture to the swapchain texture
                 let mut render_pass = encoder.scoped_render_pass(
                     "screenshot blit",
@@ -768,7 +762,7 @@ impl<'frame> Drop for Drawer<'frame> {
                     &wgpu::RenderPassDescriptor {
                         label: Some("Blit screenshot pass"),
                         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                            view: &view,
+                            view: &self.surface_view,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
