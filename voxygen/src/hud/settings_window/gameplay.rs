@@ -59,6 +59,12 @@ widget_ids! {
         bow_zoom_label,
         zoom_lock_button,
         zoom_lock_label,
+        aim_offset_x_slider,
+        aim_offset_x_label,
+        aim_offset_x_value,
+        aim_offset_y_slider,
+        aim_offset_y_label,
+        aim_offset_y_value,
     }
 }
 
@@ -662,12 +668,78 @@ impl<'a> Widget for Gameplay<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.zoom_lock_label, ui);
 
+        // Aim offset x
+        let display_aim_offset_x = self.global_state.settings.gameplay.aim_offset_x;
+        Text::new("Aim Offset X")
+            .down_from(state.ids.zoom_lock_behavior_list, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.aim_offset_x_label, ui);
+
+        if let Some(new_val) = ImageSlider::continuous(
+            display_aim_offset_x,
+            -3.0,
+            3.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(550.0, 22.0)
+        .down_from(state.ids.aim_offset_x_label, 10.0)
+        .track_breadth(30.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.aim_offset_x_slider, ui)
+        {
+            events.push(AdjustAimOffsetX(new_val));
+        }
+
+        Text::new(&format!("{:.2}", display_aim_offset_x))
+            .right_from(state.ids.aim_offset_x_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.aim_offset_x_value, ui);
+
+        // Aim offset y
+        let display_aim_offset_y = self.global_state.settings.gameplay.aim_offset_y;
+        Text::new("Aim Offset Y")
+            .down_from(state.ids.aim_offset_x_slider, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.aim_offset_y_label, ui);
+
+        if let Some(new_val) = ImageSlider::continuous(
+            display_aim_offset_y,
+            -3.0,
+            3.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(550.0, 22.0)
+        .down_from(state.ids.aim_offset_y_label, 10.0)
+        .track_breadth(30.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.aim_offset_y_slider, ui)
+        {
+            events.push(AdjustAimOffsetY(new_val));
+        }
+
+        Text::new(&format!("{:.2}", display_aim_offset_y))
+            .right_from(state.ids.aim_offset_y_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.aim_offset_y_value, ui);
+
         // Reset the gameplay settings to the default settings
         if Button::image(self.imgs.button)
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.zoom_lock_behavior_list, 12.0)
+            .down_from(state.ids.aim_offset_y_slider, 12.0)
             .label(
                 &self
                     .localized_strings

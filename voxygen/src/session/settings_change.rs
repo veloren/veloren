@@ -77,6 +77,9 @@ pub enum Gameplay {
     ChangeBowZoom(bool),
     ChangeZoomLock(bool),
 
+    AdjustAimOffsetX(f32),
+    AdjustAimOffsetY(f32),
+
     ResetGameplaySettings,
 }
 #[derive(Clone)]
@@ -426,6 +429,12 @@ impl SettingsChange {
                     },
                     Gameplay::ChangeZoomLock(state) => {
                         settings.gameplay.zoom_lock = state;
+                    },
+                    Gameplay::AdjustAimOffsetX(offset) => {
+                        settings.gameplay.aim_offset_x = offset;
+                    },
+                    Gameplay::AdjustAimOffsetY(offset) => {
+                        settings.gameplay.aim_offset_y = offset;
                     },
                     Gameplay::ResetGameplaySettings => {
                         // Reset Gameplay Settings

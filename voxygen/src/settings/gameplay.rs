@@ -21,6 +21,8 @@ pub struct GameplaySettings {
     pub auto_camera: bool,
     pub bow_zoom: bool,
     pub zoom_lock: bool,
+    pub aim_offset_x: f32,
+    pub aim_offset_y: f32,
 }
 
 impl Default for GameplaySettings {
@@ -42,6 +44,8 @@ impl Default for GameplaySettings {
             auto_camera: false,
             bow_zoom: true,
             zoom_lock: false,
+            aim_offset_x: 1.0,
+            aim_offset_y: 0.0,
         }
     }
 }
