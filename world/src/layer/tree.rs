@@ -224,7 +224,7 @@ pub fn apply_trees_to(
                                 StructureBlock::TemperateLeaves,
                             );
                         },
-                        ForestKind::Autumntree => {
+                        ForestKind::Mapletree => {
                             break 'model TreeModel::Procedural(
                                 ProceduralTree::generate(
                                     TreeConfig::oak(
@@ -233,7 +233,7 @@ pub fn apply_trees_to(
                                     ),
                                     &mut RandomPerm::new(seed),
                                 ),
-                                StructureBlock::AutumnLeaves,
+                                StructureBlock::MapleLeaves,
                             );
                         },
                     };

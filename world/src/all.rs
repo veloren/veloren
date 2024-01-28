@@ -19,7 +19,7 @@ pub enum ForestKind {
     Swamp,
     Frostpine,
     Dead,
-    Autumntree,
+    Mapletree,
 }
 
 pub struct Environment {
@@ -44,7 +44,7 @@ impl ForestKind {
             ForestKind::Mangrove => 0.5..1.3,
             ForestKind::Swamp => 0.5..1.1,
             ForestKind::Dead => 0.0..1.5,
-            ForestKind::Autumntree => 0.55..1.5,
+            ForestKind::Mapletree => 0.55..1.25,
             _ => 0.0..0.0,
         }
     }
@@ -64,7 +64,7 @@ impl ForestKind {
             ForestKind::Mangrove => 0.35..1.6,
             ForestKind::Swamp => -0.6..0.8,
             ForestKind::Dead => -1.5..1.0,
-            ForestKind::Autumntree => -0.15..0.45,
+            ForestKind::Mapletree => -0.15..0.25,
             _ => 0.0..0.0,
         }
     }
@@ -93,7 +93,7 @@ impl ForestKind {
             ForestKind::Mangrove => 2.0,
             ForestKind::Swamp => 1.0,
             ForestKind::Dead => 0.01,
-            ForestKind::Autumntree => 0.65,
+            ForestKind::Mapletree => 0.65,
             _ => 0.0,
         }
     }
@@ -111,7 +111,7 @@ impl ForestKind {
             ForestKind::Birch => 0.65,
             ForestKind::Mangrove => 1.0,
             ForestKind::Swamp => 0.4,
-            ForestKind::Autumntree => 0.4,
+            ForestKind::Mapletree => 0.4,
             _ => 1.0,
         }
     }

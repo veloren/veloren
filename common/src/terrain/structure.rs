@@ -48,7 +48,7 @@ make_case_elim!(
         Sign(content: Content, ori: u8) = 28,
         KeyholeBars(consumes: String) = 29,
         HaniwaKeyhole(consumes: String) = 30,
-        AutumnLeaves = 31,
+        MapleLeaves = 31,
     }
 );
 
