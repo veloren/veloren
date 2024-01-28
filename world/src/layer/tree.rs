@@ -227,10 +227,7 @@ pub fn apply_trees_to(
                         ForestKind::Mapletree => {
                             break 'model TreeModel::Procedural(
                                 ProceduralTree::generate(
-                                    TreeConfig::oak(
-                                        &mut RandomPerm::new(seed),
-                                        scale,
-                                    ),
+                                    TreeConfig::oak(&mut RandomPerm::new(seed), scale),
                                     &mut RandomPerm::new(seed),
                                 ),
                                 StructureBlock::MapleLeaves,

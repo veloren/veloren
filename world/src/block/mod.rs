@@ -295,7 +295,6 @@ pub fn block_from_structure(
                 )
             };
 
-
             range.map(|range| {
                 if calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas))
                     && field.chance(pos + structure_pos, 0.025)
