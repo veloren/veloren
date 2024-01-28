@@ -526,6 +526,7 @@ impl Scene {
         audio: &mut AudioFrontend,
         scene_data: &SceneData,
         client: &Client,
+        settings: &Settings,
     ) {
         span!(_guard, "maintain", "Scene::maintain");
         // Get player position.
@@ -632,15 +633,28 @@ impl Scene {
                             viewpoint_eye_height
                         }
                     },
-                    CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.16,
+                    CameraMode::ThirdPerson if scene_data.is_aiming => {
+                        viewpoint_height * 1.16 + settings.gameplay.aim_offset_y
+                    },
                     CameraMode::ThirdPerson => viewpoint_eye_height,
                     CameraMode::Freefly => 0.0,
                 };
+
+                let right = match self.camera.get_mode() {
+                    CameraMode::FirstPerson => 0.0,
+                    CameraMode::ThirdPerson if scene_data.is_aiming => {
+                        settings.gameplay.aim_offset_x
+                    },
+                    CameraMode::ThirdPerson => 0.0,
+                    CameraMode::Freefly => 0.0,
+                };
+
                 // Alter camera position to match player.
                 let tilt = self.camera.get_orientation().y;
                 let dist = self.camera.get_distance();
 
                 Vec3::unit_z() * (up * viewpoint_scale - tilt.min(0.0).sin() * dist * 0.6)
+                    + self.camera.right() * (right * viewpoint_scale)
             } else {
                 self.figure_mgr
                     .viewpoint_offset(scene_data, scene_data.viewpoint_entity)
