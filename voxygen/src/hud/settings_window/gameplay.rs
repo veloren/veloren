@@ -670,7 +670,7 @@ impl<'a> Widget for Gameplay<'a> {
 
         // Aim offset x
         let display_aim_offset_x = self.global_state.settings.gameplay.aim_offset_x;
-        Text::new("Aim Offset X")
+        Text::new(&self.localized_strings.get_msg("hud-settings-aim_offset_x"))
             .down_from(state.ids.zoom_lock_behavior_list, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -703,7 +703,7 @@ impl<'a> Widget for Gameplay<'a> {
 
         // Aim offset y
         let display_aim_offset_y = self.global_state.settings.gameplay.aim_offset_y;
-        Text::new("Aim Offset Y")
+        Text::new(&self.localized_strings.get_msg("hud-settings-aim_offset_y"))
             .down_from(state.ids.aim_offset_x_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
