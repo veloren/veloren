@@ -257,24 +257,24 @@ pub(super) fn ray_entities(
     )
         .join()
         .filter(|(e, _, _)| *e != player_entity)
-        .filter_map(|(e, p, c)| {
+        .map(|(e, p, c)| {
             let height = c.get_height();
             let radius = c.bounding_radius().max(height / 2.0);
             // Move position up from the feet
             let pos = Vec3::new(p.0.x, p.0.y, p.0.z + c.get_z_limits(1.0).0 + height/2.0);
             // Distance squared from start to the entity
             let dist_sqr = pos.distance_squared(start);
-            Some((e, pos, radius, dist_sqr, c))
+            (e, pos, radius, dist_sqr, c)
         })
         // Roughly filter out entities farther than ray distance
-        .filter(|(_, _, _, d_sqr, c)| *d_sqr <= cast_dist.powi(2))
+        .filter(|(_, _, _, d_sqr, _)| *d_sqr <= cast_dist.powi(2))
         .collect::<Vec<_>>();
     // Sort by distance
     nearby.sort_unstable_by(|a, b| a.3.partial_cmp(&b.3).unwrap());
 
     let seg_ray = LineSegment3 { start, end };
 
-    let entity = nearby.iter().find_map(|(e, p, r, d_sqr, c)| {
+    let entity = nearby.iter().find_map(|(e, p, r, _, c)| {
         let nearest = seg_ray.projected_point(*p);
 
         return match c {
@@ -336,7 +336,7 @@ pub(super) fn ray_entities(
         };
     });
 
-    return entity;
+    entity
 }
 
 // Get closest point between 2 line segments https://math.stackexchange.com/a/4289668

@@ -1359,25 +1359,21 @@ impl PlayState for SessionState {
                             let entity_ray_end = ray_start + cam_dir * 500.0;
                             let terrain_ray_end = ray_start + cam_dir * 1000.0;
 
-                            let aim_point = match ray_entities(
-                                &client,
-                                ray_start,
-                                entity_ray_end,
-                                500.0,
-                            ) {
-                                Some((dist, _)) => ray_start + cam_dir * dist,
-                                None => {
-                                    let terrain_ray_distance = client
-                                        .state()
-                                        .terrain()
-                                        .ray(ray_start, terrain_ray_end)
-                                        .max_iter(1000)
-                                        .until(Block::is_solid)
-                                        .cast()
-                                        .0;
-                                    ray_start + cam_dir * terrain_ray_distance
-                                },
-                            };
+                            let aim_point =
+                                match ray_entities(&client, ray_start, entity_ray_end, 500.0) {
+                                    Some((dist, _)) => ray_start + cam_dir * dist,
+                                    None => {
+                                        let terrain_ray_distance = client
+                                            .state()
+                                            .terrain()
+                                            .ray(ray_start, terrain_ray_end)
+                                            .max_iter(1000)
+                                            .until(Block::is_solid)
+                                            .cast()
+                                            .0;
+                                        ray_start + cam_dir * terrain_ray_distance
+                                    },
+                                };
 
                             // Get player orientation
                             let ori = client
