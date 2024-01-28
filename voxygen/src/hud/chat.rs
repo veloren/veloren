@@ -244,6 +244,8 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
+        let maximum_chat_size = self.chat_size
+            + Vec2::unit_y() * (CHAT_TAB_HEIGHT + CHAT_ICON_HEIGHT + CHAT_MARGIN_THICKNESS * 2.0);
         let handle_chat_mouse_events = |chat_widget, ui: &mut UiCell, events: &mut Vec<Event>| {
             let pos_delta: Vec2<f64> = ui
                 .widget_input(chat_widget)
@@ -252,7 +254,11 @@ impl<'a> Widget for Chat<'a> {
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
             if !pos_delta.is_approx_zero() {
-                let pos = self.chat_pos + pos_delta;
+                let pos = (self.chat_pos + pos_delta).map(|e| e.max(0.)).map3(
+                    self.global_state.window.logical_size(),
+                    maximum_chat_size,
+                    |e, wsz, csz| e.min(wsz - csz),
+                );
                 events.push(Event::MoveChat(pos));
             }
             let size_delta: Vec2<f64> = ui
@@ -262,10 +268,11 @@ impl<'a> Widget for Chat<'a> {
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
             if !size_delta.is_approx_zero() {
-                let size = self.chat_size + size_delta;
-                let size = size.map3(MIN_DIMENSION, MAX_DIMENSION, |sz, min, max| {
-                    sz.clamp(min, max)
-                });
+                let size = (self.chat_size + size_delta).map3(
+                    MIN_DIMENSION,
+                    MAX_DIMENSION,
+                    |sz, min, max| sz.clamp(min, max),
+                );
                 events.push(Event::ResizeChat(size));
             }
         };
