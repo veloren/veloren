@@ -56,10 +56,9 @@ const CHAT_ICON_WIDTH: f64 = 16.0;
 const CHAT_MARGIN_THICKNESS: f64 = 2.0;
 const CHAT_ICON_HEIGHT: f64 = 16.0;
 pub const DEFAULT_CHAT_BOX_WIDTH: f64 = 470.0;
-const CHAT_BOX_INPUT_WIDTH: f64 = 460.0 - CHAT_ICON_WIDTH - 1.0;
-pub const DEFAULT_CHAT_BOX_HEIGHT: f64 = 154.0;
-const MIN_DIMENSION: Vec2<f64> = Vec2::new(300., 100.);
-const MAX_DIMENSION: Vec2<f64> = Vec2::new(650., 500.);
+pub const DEFAULT_CHAT_BOX_HEIGHT: f64 = 150.0;
+const MIN_DIMENSION: Vec2<f64> = Vec2::new(400.0, 150.0);
+const MAX_DIMENSION: Vec2<f64> = Vec2::new(650.0, 500.0);
 
 const CHAT_TAB_HEIGHT: f64 = 20.0;
 const CHAT_TAB_ALL_WIDTH: f64 = 40.0;
@@ -237,6 +236,8 @@ impl<'a> Widget for Chat<'a> {
         let chat_tabs = &chat_settings.chat_tabs;
         let current_chat_tab = chat_settings.chat_tab_index.and_then(|i| chat_tabs.get(i));
 
+        let chat_box_input_width = self.chat_size.x - CHAT_ICON_WIDTH - 7.0;
+
         // Empty old messages
         state.update(|s| {
             while s.messages.len() > MAX_MESSAGES {
@@ -244,8 +245,8 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
-        let maximum_chat_size = self.chat_size
-            + Vec2::unit_y() * (CHAT_TAB_HEIGHT + CHAT_ICON_HEIGHT + CHAT_MARGIN_THICKNESS * 2.0);
+        let chat_in_screen_upper =
+            self.chat_pos.y > self.global_state.window.logical_size().y / 2.0;
         let handle_chat_mouse_events = |chat_widget, ui: &mut UiCell, events: &mut Vec<Event>| {
             let pos_delta: Vec2<f64> = ui
                 .widget_input(chat_widget)
@@ -254,11 +255,12 @@ impl<'a> Widget for Chat<'a> {
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
             if !pos_delta.is_approx_zero() {
-                let pos = (self.chat_pos + pos_delta).map(|e| e.max(0.)).map3(
-                    self.global_state.window.logical_size(),
-                    maximum_chat_size,
-                    |e, wsz, csz| e.min(wsz - csz),
+                let pos = (self.chat_pos + pos_delta).map(|e| e.max(0.)).map2(
+                    self.global_state.window.logical_size() - self.chat_size
+                        + Vec2::unit_y() * CHAT_TAB_HEIGHT,
+                    |e, bounds| e.min(bounds),
                 );
+
                 events.push(Event::MoveChat(pos));
             }
             let size_delta: Vec2<f64> = ui
@@ -268,14 +270,21 @@ impl<'a> Widget for Chat<'a> {
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
             if !size_delta.is_approx_zero() {
-                let size = (self.chat_size + size_delta).map3(
-                    MIN_DIMENSION,
-                    MAX_DIMENSION,
-                    |sz, min, max| sz.clamp(min, max),
-                );
+                let size = (self.chat_size + size_delta)
+                    .map3(MIN_DIMENSION, MAX_DIMENSION, |sz, min, max| {
+                        sz.clamp(min, max).trunc()
+                    })
+                    .map2(
+                        self.global_state.window.logical_size()
+                            - Vec2::unit_y() * CHAT_TAB_HEIGHT
+                            - self.chat_pos,
+                        |e, bounds| e.min(bounds),
+                    );
                 events.push(Event::ResizeChat(size));
             }
         };
+
+        handle_chat_mouse_events(state.ids.draggable_area, ui, &mut events);
 
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
@@ -352,7 +361,13 @@ impl<'a> Widget for Chat<'a> {
                     if let Some(replacement) = &s.completions.get(s.completions_index.unwrap()) {
                         let (completed, offset) =
                             do_tab_completion(cursor, &s.input.message, replacement);
-                        force_cursor = cursor_offset_to_index(offset, &completed, ui, self.fonts);
+                        force_cursor = cursor_offset_to_index(
+                            offset,
+                            &completed,
+                            ui,
+                            self.fonts,
+                            chat_box_input_width,
+                        );
                         s.input.message = completed;
                     }
                 });
@@ -384,6 +399,7 @@ impl<'a> Widget for Chat<'a> {
                         &s.input.message,
                         ui,
                         self.fonts,
+                        chat_box_input_width,
                     );
                 } else {
                     s.input.message.clear();
@@ -420,7 +436,7 @@ impl<'a> Widget for Chat<'a> {
             // Any changes to this TextEdit's width and font size must be reflected in
             // `cursor_offset_to_index` below.
             let mut text_edit = TextEdit::new(&state.input.message)
-                .w(CHAT_BOX_INPUT_WIDTH)
+                .w(chat_box_input_width)
                 .restrict_to_height(false)
                 .color(color)
                 .line_spacing(2.0)
@@ -437,8 +453,14 @@ impl<'a> Widget for Chat<'a> {
             };
             Rectangle::fill([self.chat_size.x, y])
                 .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity + 0.1)
-                .bottom_left_with_margins_on(ui.window, self.chat_pos.y, self.chat_pos.x)
                 .w(self.chat_size.x)
+                .and(|r| {
+                    if chat_in_screen_upper {
+                        r.down_from(state.ids.message_box_bg, CHAT_MARGIN_THICKNESS / 2.0)
+                    } else {
+                        r.bottom_left_with_margins_on(ui.window, self.chat_pos.y, self.chat_pos.x)
+                    }
+                })
                 .set(state.ids.chat_input_bg, ui);
 
             //border around focused chat window
@@ -481,7 +503,7 @@ impl<'a> Widget for Chat<'a> {
         Rectangle::fill([self.chat_size.x, self.chat_size.y])
             .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity)
             .and(|r| {
-                if input_focused {
+                if input_focused && !chat_in_screen_upper {
                     r.up_from(
                         state.ids.chat_input_border_up,
                         0.0 + CHAT_MARGIN_THICKNESS / 2.0,
@@ -572,7 +594,8 @@ impl<'a> Widget for Chat<'a> {
                 let text = Text::new(text)
                     .font_size(self.fonts.opensans.scale(15))
                     .font_id(self.fonts.opensans.conrod_id)
-                    .w(self.chat_size.x - 17.0)
+                    .w(self.chat_size.x - CHAT_ICON_WIDTH - 1.0)
+                    .wrap_by_word()
                     .color(color)
                     .line_spacing(2.0);
 
@@ -783,20 +806,16 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        Rectangle::fill([self.chat_size.x, self.chat_size.y])
-            .rgba(0.0, 0.0, 0.0, 0.0)
+        Rectangle::fill_with([self.chat_size.x, self.chat_size.y], color::TRANSPARENT)
             .and(|r| {
                 if input_focused {
-                    r.up_from(
-                        state.ids.chat_input_border_up,
-                        0.0 + CHAT_MARGIN_THICKNESS / 2.0,
-                    )
+                    r.up_from(state.ids.chat_input_border_up, CHAT_MARGIN_THICKNESS / 2.0)
                 } else {
                     r.bottom_left_with_margins_on(ui.window, self.chat_pos.y, self.chat_pos.x)
                 }
             })
             .set(state.ids.draggable_area, ui);
-        handle_chat_mouse_events(state.ids.draggable_area, ui, &mut events);
+
         events
     }
 }
@@ -844,13 +863,19 @@ fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) 
     }
 }
 
-fn cursor_offset_to_index(offset: usize, text: &str, ui: &Ui, fonts: &Fonts) -> Option<Index> {
+fn cursor_offset_to_index(
+    offset: usize,
+    text: &str,
+    ui: &Ui,
+    fonts: &Fonts,
+    input_width: f64,
+) -> Option<Index> {
     // This moves the cursor to the given offset. Conrod is a pain.
     //
     // Width and font must match that of the chat TextEdit
     let font = ui.fonts.get(fonts.opensans.conrod_id)?;
     let font_size = fonts.opensans.scale(15);
-    let infos = text::line::infos(text, font, font_size).wrap_by_whitespace(CHAT_BOX_INPUT_WIDTH);
+    let infos = text::line::infos(text, font, font_size).wrap_by_whitespace(input_width);
 
     cursor::index_before_char(infos, offset)
 }

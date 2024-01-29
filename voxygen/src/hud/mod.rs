@@ -3451,11 +3451,46 @@ impl Hud {
             }
         }
 
+        if global_state.settings.audio.subtitles {
+            Subtitles::new(
+                client,
+                &global_state.settings,
+                &global_state.audio.get_listener().clone(),
+                &mut global_state.audio.subtitles,
+                &self.fonts,
+                i18n,
+            )
+            .set(self.ids.subtitles, ui_widgets);
+        }
+
+        //Loot
+        LootScroller::new(
+            &mut self.new_loot_messages,
+            client,
+            &info,
+            &self.show,
+            &self.imgs,
+            &self.item_imgs,
+            &self.rot_imgs,
+            &self.fonts,
+            i18n,
+            &self.item_i18n,
+            &msm,
+            item_tooltip_manager,
+            self.pulse,
+        )
+        .set(self.ids.loot_scroller, ui_widgets);
+
+        self.new_loot_messages = VecDeque::new();
+
         // Don't put NPC messages in chat box.
         self.new_messages
             .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_)));
 
         // Chat box
+        // Draw this after loot scroller and subtitles so it can be dragged
+        // even when hovering over them
+        // TODO look into parenting and then settings movable widgets to floating
         if global_state.settings.interface.toggle_chat {
             for event in Chat::new(
                 &mut self.new_messages,
@@ -3506,40 +3541,8 @@ impl Hud {
             }
         }
 
-        if global_state.settings.audio.subtitles {
-            Subtitles::new(
-                client,
-                &global_state.settings,
-                &global_state.audio.get_listener().clone(),
-                &mut global_state.audio.subtitles,
-                &self.fonts,
-                i18n,
-            )
-            .set(self.ids.subtitles, ui_widgets);
-        }
-
         self.new_messages = VecDeque::new();
         self.new_notifications = VecDeque::new();
-
-        //Loot
-        LootScroller::new(
-            &mut self.new_loot_messages,
-            client,
-            &info,
-            &self.show,
-            &self.imgs,
-            &self.item_imgs,
-            &self.rot_imgs,
-            &self.fonts,
-            i18n,
-            &self.item_i18n,
-            &msm,
-            item_tooltip_manager,
-            self.pulse,
-        )
-        .set(self.ids.loot_scroller, ui_widgets);
-
-        self.new_loot_messages = VecDeque::new();
 
         // Windows
 
