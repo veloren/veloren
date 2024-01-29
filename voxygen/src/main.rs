@@ -50,9 +50,9 @@ fn main() {
         match command {
             cli::Commands::ListWgpuBackends => {
                 #[cfg(target_os = "windows")]
-                let backends = &["dx11", "dx12", "vulkan"];
+                let backends = &["opengl", "dx12", "vulkan"];
                 #[cfg(target_os = "linux")]
-                let backends = &["vulkan"];
+                let backends = &["opengl", "vulkan"];
                 #[cfg(target_os = "macos")]
                 let backends = &["metal"];
 
