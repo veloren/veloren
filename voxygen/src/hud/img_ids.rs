@@ -314,7 +314,8 @@ image_ids! {
         axe_keelhaul: "voxygen.element.skills.axe.keelhaul",
         axe_bulkhead: "voxygen.element.skills.axe.bulkhead",
         axe_capsize: "voxygen.element.skills.axe.capsize",
-
+        // Hammer
+        hammer_solid_smash: "voxygen.element.skills.hammer.solid_smash",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

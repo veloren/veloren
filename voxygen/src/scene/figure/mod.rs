@@ -1329,6 +1329,7 @@ impl FigureMgr {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     hands,
                                     Some(s.stage_section),
                                     Some(s.static_data.ability_info),

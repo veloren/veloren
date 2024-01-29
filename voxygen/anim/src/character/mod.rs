@@ -467,3 +467,35 @@ impl CharacterSkeleton {
         }
     }
 }
+
+pub fn hammer_start(next: &mut CharacterSkeleton, s_a: &SkeletonAttr) {
+    next.main.position = Vec3::new(0.0, 0.0, 0.0);
+    next.main.orientation = Quaternion::rotation_z(0.0);
+    next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1 + 3.0, s_a.hhl.2 - 1.0);
+    next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3)
+        * Quaternion::rotation_y(s_a.hhl.4)
+        * Quaternion::rotation_z(s_a.hhl.5);
+    next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1 + 3.0, s_a.hhr.2 + 1.0);
+    next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3)
+        * Quaternion::rotation_y(s_a.hhr.4)
+        * Quaternion::rotation_z(s_a.hhr.5);
+
+    next.control.position = Vec3::new(s_a.hc.0 - 1.0, s_a.hc.1, s_a.hc.2 - 3.0);
+    next.control.orientation = Quaternion::rotation_x(s_a.hc.3)
+        * Quaternion::rotation_y(s_a.hc.4)
+        * Quaternion::rotation_z(s_a.hc.5);
+}
+
+pub fn twist_back(next: &mut CharacterSkeleton, move1: f32, c: f32, h: f32, b: f32, s: f32) {
+    next.chest.orientation.rotate_z(move1 * c);
+    next.head.orientation.rotate_z(move1 * -h);
+    next.belt.orientation.rotate_z(move1 * -b);
+    next.shorts.orientation.rotate_z(move1 * -s);
+}
+
+pub fn twist_forward(next: &mut CharacterSkeleton, move2: f32, c: f32, h: f32, b: f32, s: f32) {
+    next.chest.orientation.rotate_z(move2 * -c);
+    next.head.orientation.rotate_z(move2 * h);
+    next.belt.orientation.rotate_z(move2 * b);
+    next.shorts.orientation.rotate_z(move2 * s);
+}

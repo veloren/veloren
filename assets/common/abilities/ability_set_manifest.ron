@@ -193,8 +193,7 @@
     ),
     Tool(Hammer): (
         guard: Some(Simple(None, "common.abilities.hammer.basic_guard")),
-        primary: Simple(None, "common.abilities.hammer.basic_guard"),
-        // primary: Simple(None, "common.abilities.hammer.solid_smash"),
+        primary: Simple(None, "common.abilities.hammer.solid_smash"),
         secondary: Simple(None, "common.abilities.hammer.basic_guard"),
         // secondary: Simple(None, "common.abilities.hammer.wide_wallop"),
         abilities: [

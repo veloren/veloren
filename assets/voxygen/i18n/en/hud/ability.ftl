@@ -375,3 +375,8 @@ common-abilities-axe-capsize = Capsize
     .desc =
         Stagger everything nearby with a heavy spinning strike.
         Automatically upgrades from bulkhead at 50 combo.
+
+# Hammer abilities
+common-abilities-hammer-solid_smash = Solid Smash
+    .desc =
+        A solid smash, that'll hurt
