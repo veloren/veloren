@@ -380,3 +380,6 @@ common-abilities-axe-capsize = Capsize
 common-abilities-hammer-solid_smash = Solid Smash
     .desc =
         A solid smash, that'll hurt
+common-abilities-hammer-wide_wallop = Wide Wallop
+    .desc =
+        Pull back and send them flying

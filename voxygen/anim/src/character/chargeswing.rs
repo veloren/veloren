@@ -1,6 +1,6 @@
 use super::{
     super::{vek::*, Animation},
-    CharacterSkeleton, SkeletonAttr,
+    hammer_start, twist_back, twist_forward, CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
 use core::f32::consts::{PI, TAU};
@@ -261,6 +261,27 @@ impl Animation for ChargeswingAnimation {
 
                 next.control.orientation.rotate_x(move2 * -3.0);
                 next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
+            },
+            Some("common.abilities.hammer.wide_wallop") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3, tension) = match stage_section {
+                    StageSection::Charge => (anim_time.min(1.0), 0.0, 0.0, (anim_time * 7.0).sin()),
+                    StageSection::Action => (1.0, anim_time, 0.0, 0.0),
+                    StageSection::Recover => (1.0, 1.0, anim_time, 0.0),
+                    _ => (0.0, 0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.control.orientation.rotate_x(move1 * 1.1 + move2 * 0.6);
+                twist_back(&mut next, move1 + tension / 25.0, 1.7, 0.7, 0.3, 1.1);
+                next.control.orientation.rotate_y(move1 * -0.8);
+                next.control.position += Vec3::new(0.0, 0.0, 6.0) * move1;
+
+                twist_forward(&mut next, move2, 4.8, 1.7, 0.7, 3.2);
+                next.control.orientation.rotate_y(move2 * 2.0);
+                next.control.orientation.rotate_z(move2 * -1.8);
             },
             _ => {},
         }

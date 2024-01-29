@@ -194,8 +194,7 @@
     Tool(Hammer): (
         guard: Some(Simple(None, "common.abilities.hammer.basic_guard")),
         primary: Simple(None, "common.abilities.hammer.solid_smash"),
-        secondary: Simple(None, "common.abilities.hammer.basic_guard"),
-        // secondary: Simple(None, "common.abilities.hammer.wide_wallop"),
+        secondary: Simple(None, "common.abilities.hammer.wide_wallop"),
         abilities: [
             // Simple(Hammer(ScornfulSwipe), "common.abilities.hammer.scornful_swipe"),
             // Simple(Hammer(Tremor), "common.abilities.hammer.tremor"),
