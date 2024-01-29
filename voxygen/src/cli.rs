@@ -27,6 +27,6 @@ pub struct Args {
 #[derive(Subcommand)]
 pub enum Commands {
     /// List available wgpu backends. This is called by Airshipper to show a
-    /// dropbox of available backends
+    /// dropbox of available backends.
     ListWgpuBackends,
 }
