@@ -42,6 +42,28 @@ use tracing::{info, warn};
 use veloren_voxygen::ui::egui::EguiState;
 
 fn main() {
+    // Process CLI arguments
+    use clap::Parser;
+    let args = cli::Args::parse();
+
+    if let Some(command) = args.command {
+        match command {
+            cli::Commands::ListWgpuBackends => {
+                #[cfg(target_os = "windows")]
+                let backends = &["dx11", "dx12", "vulkan"];
+                #[cfg(target_os = "linux")]
+                let backends = &["vulkan"];
+                #[cfg(target_os = "macos")]
+                let backends = &["metal"];
+
+                for backend in backends {
+                    println!("{backend}");
+                }
+                return;
+            },
+        }
+    }
+
     #[cfg(feature = "tracy")]
     common_base::tracy_client::Client::start();
 
@@ -92,10 +114,6 @@ fn main() {
     }
 
     panic_handler::set_panic_hook(log_filename, logs_dir);
-
-    // Process CLI arguments
-    use clap::Parser;
-    let args = cli::Args::parse();
 
     // Setup tokio runtime
     use common::consts::MIN_RECOMMENDED_TOKIO_THREADS;
