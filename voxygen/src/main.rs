@@ -48,7 +48,7 @@ fn main() {
 
     if let Some(command) = args.command {
         match command {
-            cli::Commands::ListBackends => {
+            cli::Commands::ListWgpuBackends => {
                 #[cfg(target_os = "windows")]
                 let backends = &["dx11", "dx12", "vulkan"];
                 #[cfg(target_os = "linux")]

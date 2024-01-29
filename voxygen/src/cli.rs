@@ -7,6 +7,9 @@
 //!
 //! Airshipper should only use arguments listed above! Since we will not try to
 //! be careful about their stability otherwise.
+//!
+//! Likewise Airshipper should only use the following subcommands:
+//! * `ListWgpuBackends`
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -23,6 +26,7 @@ pub struct Args {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// List available wgpu backends.
-    ListBackends,
+    /// List available wgpu backends. This is called by Airshipper to show a
+    /// dropbox of available backends
+    ListWgpuBackends,
 }
