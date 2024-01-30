@@ -50,6 +50,7 @@ make_case_elim!(
         HaniwaKeyhole(consumes: String) = 30,
         MapleLeaves = 31,
         CherryLeaves = 32,
+        AutumnLeaves = 33,
     }
 );
 
