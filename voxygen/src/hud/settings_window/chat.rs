@@ -26,6 +26,8 @@ widget_ids! {
         transp_value,
         char_name_text,
         char_name_button,
+        chat_tab_fade_text,
+        chat_tab_fade_button,
         reset_chat_button,
 
         //Tabs
@@ -213,12 +215,35 @@ impl<'a> Widget for Chat<'a> {
             )));
         }
 
+        // "Show character names in chat" toggle button
+        Text::new("Fade out Chat Tabs")
+            .down_from(state.ids.char_name_text, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.chat_tab_fade_text, ui);
+
+        if chat_settings.chat_tab_fade
+            != ToggleButton::new(
+                chat_settings.chat_tab_fade,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.chat_tab_fade_text, 10.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.chat_tab_fade_button, ui)
+        {
+            events.push(Event::ChatChange(ChatTabFade(!chat_settings.chat_tab_fade)));
+        }
+
         // Reset the chat settings to the default settings
         if Button::image(self.imgs.button)
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.char_name_text, 20.0)
+            .down_from(state.ids.chat_tab_fade_text, 20.0)
             .label(&self.localized_strings.get_msg("hud-settings-reset_chat"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)

@@ -19,6 +19,7 @@ use conrod_core::{
 };
 use i18n::Localization;
 use i18n_helpers::localize_chat_message;
+use inline_tweak::tweak;
 use std::collections::{HashSet, VecDeque};
 use vek::Vec2;
 
@@ -83,6 +84,7 @@ pub struct Chat<'a> {
     history_max: usize,
     chat_size: Vec2<f64>,
     chat_pos: Vec2<f64>,
+    unread_tabs: Vec<bool>,
 
     localized_strings: &'a Localization,
 }
@@ -98,6 +100,7 @@ impl<'a> Chat<'a> {
         localized_strings: &'a Localization,
         chat_size: Vec2<f64>,
         chat_pos: Vec2<f64>,
+        unread_tabs: Vec<bool>,
     ) -> Self {
         Self {
             pulse,
@@ -114,6 +117,7 @@ impl<'a> Chat<'a> {
             chat_size,
             chat_pos,
             localized_strings,
+            unread_tabs,
         }
     }
 
@@ -190,6 +194,7 @@ pub enum Event {
     ShowChatTabSettings(usize),
     ResizeChat(Vec2<f64>),
     MoveChat(Vec2<f64>),
+    UpdateUnread(Vec<bool>),
 }
 
 impl<'a> Widget for Chat<'a> {
@@ -285,6 +290,28 @@ impl<'a> Widget for Chat<'a> {
         };
 
         handle_chat_mouse_events(state.ids.draggable_area, ui, &mut events);
+
+        let group_members = self
+            .client
+            .group_members()
+            .iter()
+            .filter_map(|(u, r)| match r {
+                Role::Member => Some(u),
+                Role::Pet => None,
+            })
+            .collect::<HashSet<_>>();
+
+        let chat_tabs_with_new_content = chat_tabs.iter().map(|tab| {
+            self.new_messages
+                .iter()
+                .any(|new_message| tab.filter.satisfies(new_message, &group_members))
+        });
+        let mut new_unread: Vec<bool> = self
+            .unread_tabs
+            .iter()
+            .zip(chat_tabs_with_new_content)
+            .map(|(a, b)| a | b)
+            .collect();
 
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
@@ -521,15 +548,6 @@ impl<'a> Widget for Chat<'a> {
                     .resize(s.messages.len(), &mut ui.widget_id_generator())
             });
         }
-        let group_members = self
-            .client
-            .group_members()
-            .iter()
-            .filter_map(|(u, r)| match r {
-                Role::Member => Some(u),
-                Role::Pet => None,
-            })
-            .collect::<HashSet<_>>();
         let show_char_name = chat_settings.chat_character_name;
         let messages = &state
             .messages
@@ -643,12 +661,15 @@ impl<'a> Widget for Chat<'a> {
         {
             state.update(|s| s.tabs_last_hover_pulse = Some(self.pulse));
         }
-
-        if let Some(time_since_hover) = state
-            .tabs_last_hover_pulse
-            .map(|t| self.pulse - t)
-            .filter(|t| t <= &1.5)
-        {
+        let time_since_hover = if chat_settings.chat_tab_fade {
+            state
+                .tabs_last_hover_pulse
+                .map(|t| self.pulse - t)
+                .filter(|t| t <= &1.5)
+        } else {
+            Some(0.0)
+        };
+        if let Some(time_since_hover) = time_since_hover {
             let alpha = 1.0 - (time_since_hover / 1.5).powi(4);
             let shading = color::rgba(1.0, 0.82, 0.27, (chat_settings.chat_opacity + 0.1) * alpha);
 
@@ -693,7 +714,8 @@ impl<'a> Widget for Chat<'a> {
                 });
             }
             for (i, chat_tab) in chat_tabs.iter().enumerate() {
-                if Button::image(if chat_settings.chat_tab_index == Some(i) {
+                let is_unread = new_unread[i];
+                if Button::image(if chat_settings.chat_tab_index == Some(i) || is_unread {
                     self.imgs.selection
                 } else {
                     self.imgs.nothing
@@ -701,7 +723,6 @@ impl<'a> Widget for Chat<'a> {
                 .w_h(chat_tab_width, CHAT_TAB_HEIGHT)
                 .hover_image(self.imgs.selection_hover)
                 .press_image(self.imgs.selection_press)
-                .image_color(shading)
                 .label(chat_tab.label.as_str())
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_font_id(self.fonts.cyri.conrod_id)
@@ -714,9 +735,17 @@ impl<'a> Widget for Chat<'a> {
                     },
                     0.0,
                 )
+                .and(|r| {
+                    if is_unread && chat_settings.chat_tab_index != Some(i) {
+                        r.image_color(shading.complement())
+                    } else {
+                        r.image_color(shading)
+                    }
+                })
                 .set(state.ids.chat_tabs[i], ui)
                 .was_clicked()
                 {
+                    new_unread[i] = false;
                     events.push(Event::ChangeChatTab(Some(i)));
                 }
 
@@ -815,7 +844,7 @@ impl<'a> Widget for Chat<'a> {
                 }
             })
             .set(state.ids.draggable_area, ui);
-
+        events.push(Event::UpdateUnread(new_unread));
         events
     }
 }

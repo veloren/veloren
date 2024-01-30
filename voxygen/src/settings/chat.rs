@@ -73,6 +73,7 @@ pub struct ChatSettings {
     pub chat_character_name: bool,
     pub chat_tabs: Vec<ChatTab>,
     pub chat_tab_index: Option<usize>,
+    pub chat_tab_fade: bool,
     pub chat_cmd_prefix: char,
 }
 
@@ -83,6 +84,7 @@ impl Default for ChatSettings {
             chat_character_name: true,
             chat_tabs: vec![ChatTab::default()],
             chat_tab_index: Some(0),
+            chat_tab_fade: false,
             chat_cmd_prefix: '/',
         }
     }
