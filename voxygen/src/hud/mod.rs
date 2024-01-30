@@ -1297,6 +1297,7 @@ pub struct Hud {
     chat_size: Vec2<f64>,
     chat_pos: Vec2<f64>,
     unread_tabs: Vec<bool>,
+    force_chat: bool,
 }
 
 impl Hud {
@@ -1435,6 +1436,7 @@ impl Hud {
             chat_size: Vec2::new(DEFAULT_CHAT_BOX_WIDTH, DEFAULT_CHAT_BOX_HEIGHT),
             chat_pos: Vec2::new(10.0, 10.0),
             unread_tabs: vec![false; global_state.settings.chat.chat_tabs.len()],
+            force_chat: false,
         }
     }
 
@@ -3493,7 +3495,7 @@ impl Hud {
         // Draw this after loot scroller and subtitles so it can be dragged
         // even when hovering over them
         // TODO look into parenting and then settings movable widgets to floating
-        if global_state.settings.interface.toggle_chat {
+        if global_state.settings.interface.toggle_chat || self.force_chat {
             for event in Chat::new(
                 &mut self.new_messages,
                 client,
@@ -3542,6 +3544,9 @@ impl Hud {
                     },
                     chat::Event::UpdateUnread(unread) => {
                         self.unread_tabs = unread;
+                    },
+                    chat::Event::CloseChat => {
+                        self.force_chat = false;
                     },
                 }
             }
@@ -4721,6 +4726,7 @@ impl Hud {
                 self.ui.focus_widget(if self.typing() {
                     None
                 } else {
+                    self.force_chat = true;
                     Some(self.ids.chat)
                 });
                 true
@@ -4728,6 +4734,7 @@ impl Hud {
             WinEvent::InputUpdate(GameInput::Escape, true) => {
                 if self.typing() {
                     self.ui.focus_widget(None);
+                    self.force_chat = false;
                 } else if self.show.trade {
                     self.events.push(Event::TradeAction(TradeAction::Decline));
                 } else {
@@ -4753,6 +4760,7 @@ impl Hud {
                     GameInput::Command if state => {
                         self.force_chat_input = Some("/".to_owned());
                         self.force_chat_cursor = Some(Index { line: 0, char: 1 });
+                        self.force_chat = true;
                         self.ui.focus_widget(Some(self.ids.chat));
                         true
                     },

@@ -19,7 +19,6 @@ use conrod_core::{
 };
 use i18n::Localization;
 use i18n_helpers::localize_chat_message;
-use inline_tweak::tweak;
 use std::collections::{HashSet, VecDeque};
 use vek::Vec2;
 
@@ -195,6 +194,7 @@ pub enum Event {
     ResizeChat(Vec2<f64>),
     MoveChat(Vec2<f64>),
     UpdateUnread(Vec<bool>),
+    CloseChat,
 }
 
 impl<'a> Widget for Chat<'a> {
@@ -261,8 +261,9 @@ impl<'a> Widget for Chat<'a> {
                 .sum();
             if !pos_delta.is_approx_zero() {
                 let pos = (self.chat_pos + pos_delta).map(|e| e.max(0.)).map2(
-                    self.global_state.window.logical_size() - self.chat_size
-                        + Vec2::unit_y() * CHAT_TAB_HEIGHT,
+                    self.global_state.window.logical_size()
+                        - self.chat_size
+                        - Vec2::unit_y() * CHAT_TAB_HEIGHT,
                     |e, bounds| e.min(bounds),
                 );
 
@@ -528,7 +529,7 @@ impl<'a> Widget for Chat<'a> {
 
         // Message box
         Rectangle::fill([self.chat_size.x, self.chat_size.y])
-            .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity)
+            .rgba(0.0, 0.0, 0.0, chat_settings.chat_opacity + 0.1)
             .and(|r| {
                 if input_focused && !chat_in_screen_upper {
                     r.up_from(
@@ -807,10 +808,21 @@ impl<'a> Widget for Chat<'a> {
         } else if keyboard_capturer == Some(id) {
             events.push(Event::Focus(state.ids.chat_input));
         }
-        // If either Return or Enter is pressed and the input box is not empty, send the current message.
-        else if ui.widget_input(state.ids.chat_input).presses().key().any(
-            |key_press| matches!(key_press.key, Key::Return | Key::NumPadEnter if !state.input.message.is_empty()),
-        ) {
+        // If either Return or Enter is pressed and the input box is not empty, send the current
+        // message.
+        else if ui
+            .widget_input(state.ids.chat_input)
+            .presses()
+            .key()
+            .any(|key_press| {
+                let has_message = !state.input.message.is_empty();
+                let pressed = matches!(key_press.key, Key::Return | Key::NumPadEnter);
+                if pressed {
+                    events.push(Event::CloseChat);
+                }
+                has_message && pressed
+            })
+        {
             let msg = state.input.message.clone();
             state.update(|s| {
                 s.input.message.clear();
