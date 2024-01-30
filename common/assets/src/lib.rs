@@ -1,7 +1,6 @@
 //#![warn(clippy::pedantic)]
 //! Load assets (images or voxel data) from files
 
-#[cfg(feature = "plugins")]
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
@@ -121,7 +120,6 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 }
 
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
-#[cfg(feature = "plugins")]
 pub trait AssetCombined: AssetExt {
     fn load_and_combine(
         reloading_cache: AnyCache<'static>,
@@ -130,7 +128,14 @@ pub trait AssetCombined: AssetExt {
 
     /// Load combined table without hot-reload support
     fn load_and_combine_static(specifier: &str) -> Result<AssetHandle<Self>, Error> {
-        Self::load_and_combine(ASSETS.non_reloading_cache(), specifier)
+        #[cfg(feature = "plugins")]
+        {
+            Self::load_and_combine(ASSETS.non_reloading_cache(), specifier)
+        }
+        #[cfg(not(feature = "plugins"))]
+        {
+            Self::load(specifier)
+        }
     }
 
     #[track_caller]
@@ -150,7 +155,14 @@ pub trait AssetCombined: AssetExt {
     /// Load combined table without hot-reload support, panic on error
     #[track_caller]
     fn load_expect_combined_static(specifier: &str) -> AssetHandle<Self> {
-        Self::load_expect_combined(ASSETS.non_reloading_cache(), specifier)
+        #[cfg(feature = "plugins")]
+        {
+            Self::load_expect_combined(ASSETS.non_reloading_cache(), specifier)
+        }
+        #[cfg(not(feature = "plugins"))]
+        {
+            Self::load_expect(specifier)
+        }
     }
 }
 
@@ -204,7 +216,6 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     }
 }
 
-#[cfg(feature = "plugins")]
 impl<T: Compound + Concatenate> AssetCombined for T {
     fn load_and_combine(
         reloading_cache: AnyCache<'static>,
@@ -236,11 +247,9 @@ impl Asset for Image {
     const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
 }
 
-#[cfg(feature = "plugins")]
 pub struct DotVoxAsset(pub DotVoxData);
 
 pub struct DotVoxLoader;
-#[cfg(feature = "plugins")]
 impl Loader<DotVoxAsset> for DotVoxLoader {
     fn load(content: Cow<[u8]>, _: &str) -> Result<DotVoxAsset, BoxedError> {
         let data = dot_vox::load_bytes(&content).map_err(|err| err.to_owned())?;
@@ -248,7 +257,6 @@ impl Loader<DotVoxAsset> for DotVoxLoader {
     }
 }
 
-#[cfg(feature = "plugins")]
 impl Asset for DotVoxAsset {
     type Loader = DotVoxLoader;
 
