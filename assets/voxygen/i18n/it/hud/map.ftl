@@ -35,4 +35,5 @@ hud-map-zoom_minimap_explanation =
 hud-map-gnarling = Fortificazioni Gnarling
 hud-map-chapel_site = Cappella del mare
 hud-map-adlet = Fortezza degli Adlet
+hud-map-haniwa = Catacomba Haniwa
 hud-map-placed_by = Piazzato da { $name }
