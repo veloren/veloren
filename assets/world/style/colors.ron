@@ -19,10 +19,7 @@
             // Leaves all actually get interpolated.
             TemperateLeaves: [
                 (start: (20, 100, 40), end: (60, 120, 0)),
-                // TODO: Uncomment when we add autumnal trees. 
-                //(start: (178, 216, 0), end: (255, 185, 63)),
-                //(start: (142, 164, 0), end: (142, 164, 0)),
-                //(start: (168, 81, 0), end: (54, 150, 31)),
+
             ],
             PineLeaves: [(start: (0, 60, 50), end: (30, 80, 10))],
             FrostpineLeaves: [(start: (24, 89, 85), end: (67, 22, 82))],
