@@ -71,6 +71,12 @@ impl Lod {
                     lod::ObjectKind::GiantTree,
                     make_lod_object("giant_tree", renderer),
                 ),
+                (lod::ObjectKind::MapleTree, make_lod_object("oak", renderer)),
+                (lod::ObjectKind::Cherry, make_lod_object("oak", renderer)),
+                (
+                    lod::ObjectKind::AutumnTree,
+                    make_lod_object("oak", renderer),
+                ),
             ]
             .into_iter()
             .collect(),
@@ -128,6 +134,9 @@ impl Lod {
                         lod::ObjectKind::Dead => Rgb::new(20, 10, 2),
                         lod::ObjectKind::House => Rgb::new(20, 15, 0),
                         lod::ObjectKind::GiantTree => Rgb::new(8, 35, 5),
+                        lod::ObjectKind::MapleTree => Rgb::new(20, 0, 5),
+                        lod::ObjectKind::Cherry => Rgb::new(70, 40, 70),
+                        lod::ObjectKind::AutumnTree => Rgb::new(60, 25, 0),
                     };
                     objects
                         .entry(object.kind)

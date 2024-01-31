@@ -621,6 +621,9 @@ impl World {
                             all::ForestKind::Pine
                             | all::ForestKind::Frostpine
                             | all::ForestKind::Redwood => lod::ObjectKind::Pine,
+                            all::ForestKind::Mapletree => lod::ObjectKind::MapleTree,
+                            all::ForestKind::Cherry => lod::ObjectKind::Cherry,
+                            all::ForestKind::AutumnTree => lod::ObjectKind::AutumnTree,
                             _ => lod::ObjectKind::Oak,
                         },
                         pos: {
