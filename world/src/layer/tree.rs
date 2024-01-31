@@ -242,7 +242,7 @@ pub fn apply_trees_to(
                                 StructureBlock::CherryLeaves,
                             );
                         },
-                         ForestKind::AutumnTree => {
+                        ForestKind::AutumnTree => {
                             break 'model TreeModel::Procedural(
                                 ProceduralTree::generate(
                                     TreeConfig::autumn_tree(&mut RandomPerm::new(seed), scale),
