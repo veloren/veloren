@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A way for servers to specify must-accept rules for players
 - A flag argument type for commands
 - The ability to turn lamp-like sprites on and off
+- Added Autumn Forests, Cherry Blossom Forests, and Maple Trees.
 
 ### Changed
 
