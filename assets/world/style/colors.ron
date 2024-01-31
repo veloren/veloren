@@ -19,10 +19,7 @@
             // Leaves all actually get interpolated.
             TemperateLeaves: [
                 (start: (20, 100, 40), end: (60, 120, 0)),
-                // TODO: Uncomment when we add autumnal trees. 
-                //(start: (178, 216, 0), end: (255, 185, 63)),
-                //(start: (142, 164, 0), end: (142, 164, 0)),
-                //(start: (168, 81, 0), end: (54, 150, 31)),
+
             ],
             PineLeaves: [(start: (0, 60, 50), end: (30, 80, 10))],
             FrostpineLeaves: [(start: (24, 89, 85), end: (67, 22, 82))],
@@ -34,7 +31,8 @@
             Chestnut: [(start: (30, 80, 0), end: (50, 120, 0))],
             Baobab: [(start: (50, 100, 40), end: (50, 90, 0))],
             MapleLeaves: [(start: (103, 32, 21), end: (131, 24, 26)), (start: (96, 30, 44), end: (92, 9, 46))],
-            CherryLeaves: [(start: (210, 109, 116), end: (217, 102, 102)), (start: (191, 128, 151), end: (206, 113, 123))]
+            CherryLeaves: [(start: (210, 109, 116), end: (217, 102, 102)), (start: (191, 128, 151), end: (206, 113, 123))],
+            AutumnLeaves: [(start: (198, 87, 24), end: (184, 57, 15)), (start: (230, 151, 27), end: (213, 130, 20)), (start: (131, 23, 31), end: (115, 5, 31))],
         )
 
         // Water blocks ignore color now so this isn't used, but just in case this color was worth

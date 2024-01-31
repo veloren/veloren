@@ -242,6 +242,15 @@ pub fn apply_trees_to(
                                 StructureBlock::CherryLeaves,
                             );
                         },
+                        ForestKind::AutumnTree => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::autumn_tree(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::AutumnLeaves,
+                            );
+                        },
                     };
 
                     let models = models.read();
@@ -764,6 +773,31 @@ impl TreeConfig {
             inhabited: false,
             hanging_sprites: &[],
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(69, 37, 17)),
+        }
+    }
+
+    pub fn autumn_tree(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 9.0 * scale,
+            trunk_radius: 2.0 * scale,
+            branch_child_len: 0.9,
+            branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
+            leaf_radius: 2.5 * log_scale..3.25 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.45,
+            max_depth: 4,
+            splits: 2.25..3.25,
+            split_range: 0.75..1.5,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 1.0,
+            proportionality: 0.0,
+            inhabited: false,
+            hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00007, SpriteKind::Beehive)],
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
         }
     }
 }
