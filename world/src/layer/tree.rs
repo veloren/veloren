@@ -766,6 +766,7 @@ impl TreeConfig {
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(69, 37, 17)),
         }
     }
+}
 
 // TODO: Rename this to `Tree` when the name conflict is gone
 pub struct ProceduralTree {
