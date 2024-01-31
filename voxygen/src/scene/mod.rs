@@ -40,7 +40,7 @@ use common::{
     },
     outcome::Outcome,
     resources::{DeltaTime, TimeOfDay, TimeScale},
-    terrain::{BlockKind, TerrainChunk, TerrainGrid, CoordinateConversion, NEIGHBOR_DELTA},
+    terrain::{BlockKind, TerrainChunk, TerrainGrid},
     vol::ReadVol,
     weather::WeatherGrid,
 };
@@ -1653,13 +1653,19 @@ impl Scene {
             let ecs = client.state().ecs();
 
             let vels = &ecs.read_component::<comp::Vel>();
-            let Some(vel) = vels.get(client.entity()) else { return; };
+            let Some(vel) = vels.get(client.entity()) else {
+                return;
+            };
 
             let phys_states = &ecs.read_component::<comp::PhysicsState>();
-            let Some(phys) = phys_states.get(client.entity()) else {return;};
+            let Some(phys) = phys_states.get(client.entity()) else {
+                return;
+            };
 
             let positions = &ecs.read_component::<comp::Pos>();
-            let Some(pos) = positions.get(client.entity()) else {return;};
+            let Some(pos) = positions.get(client.entity()) else {
+                return;
+            };
 
             let weather = ecs.read_resource::<WeatherGrid>();
             // take id and remove to delete the previous lines.
@@ -1667,7 +1673,9 @@ impl Scene {
             const LINE_WIDTH: f32 = 0.05;
             // Fluid Velocity
             {
-                let Some(fluid) = phys.in_fluid else { return;};
+                let Some(fluid) = phys.in_fluid else {
+                    return;
+                };
                 let shape = DebugShape::Line([pos.0, pos.0 + fluid.flow_vel().0 / 2.], LINE_WIDTH);
                 let id = self.debug.add_shape(shape);
                 lines.fluid_vel = Some(id);
@@ -1676,7 +1684,9 @@ impl Scene {
             }
             // Chunk Terrain Normal Vector
             {
-                let Some(chunk) = client.current_chunk() else { return;};
+                let Some(chunk) = client.current_chunk() else {
+                    return;
+                };
                 let shape = DebugShape::Line(
                     [
                         pos.0,

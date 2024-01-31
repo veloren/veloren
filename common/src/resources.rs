@@ -12,7 +12,7 @@ impl TimeOfDay {
 
     fn get_angle_rad(self) -> f32 {
         const TIME_FACTOR: f64 = (std::f64::consts::PI * 2.0) / (3600.0 * 24.0);
-        ((self.0 as f32 * TIME_FACTOR) % (std::f64::consts::PI * 2.0)) as f32
+        ((self.0 * TIME_FACTOR) % (std::f64::consts::PI * 2.0)) as f32
     }
 
     /// Computes the direction of light from the sun based on the time of day.

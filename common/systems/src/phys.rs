@@ -619,7 +619,9 @@ impl<'a> PhysicsData<'a> {
                 prof_span!(guard, "Apply Weather INIT");
                 let pos_2d = pos.0.as_().xy();
                 let chunk_pos: Vec2<i32> = pos_2d.wpos_to_cpos();
-                let Some(current_chunk) = read.terrain.get_key(chunk_pos) else { continue; };
+                let Some(current_chunk) = read.terrain.get_key(chunk_pos) else {
+                    continue;
+                };
 
                 let meta = current_chunk.meta();
                 if !state.is_glide() || meta.alt() - 25. > pos.0.z {

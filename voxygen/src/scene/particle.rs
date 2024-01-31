@@ -15,7 +15,8 @@ use common::{
         item::Reagent,
         object,
         shockwave::{self, ShockwaveDodgeable},
-        BeamSegment, Body, CharacterActivity, CharacterState, Fluid, Ori, PhysicsState, Pos, Scale, Shockwave, Vel,
+        Beam, Body, CharacterActivity, CharacterState, Fluid, Ori, PhysicsState, Pos, Scale,
+        Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -916,17 +917,18 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
 
-        for (entity, interpolated, vel, character_state, body, ori, character_activity, physics) in (
-            &ecs.entities(),
-            &ecs.read_storage::<Interpolated>(),
-            ecs.read_storage::<Vel>().maybe(),
-            &ecs.read_storage::<CharacterState>(),
-            &ecs.read_storage::<Body>(),
-            &ecs.read_storage::<Ori>(),
-            &ecs.read_storage::<CharacterActivity>(),
-            &ecs.read_storage::<PhysicsState>(),
-        )
-            .join()
+        for (entity, interpolated, vel, character_state, body, ori, character_activity, physics) in
+            (
+                &ecs.entities(),
+                &ecs.read_storage::<Interpolated>(),
+                ecs.read_storage::<Vel>().maybe(),
+                &ecs.read_storage::<CharacterState>(),
+                &ecs.read_storage::<Body>(),
+                &ecs.read_storage::<Ori>(),
+                &ecs.read_storage::<CharacterActivity>(),
+                &ecs.read_storage::<PhysicsState>(),
+            )
+                .join()
         {
             match character_state {
                 CharacterState::Boost(_) => {

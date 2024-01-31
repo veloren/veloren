@@ -36,6 +36,7 @@ pub use block::BlockGen;
 use civ::WorldCivStage;
 pub use column::ColumnSample;
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta};
+use common::terrain::CoordinateConversions;
 pub use index::{IndexOwned, IndexRef};
 use sim::WorldSimStage;
 
@@ -372,6 +373,7 @@ impl World {
             sim_chunk.tree_density,
             sim_chunk.cave.1.alt != 0.0,
             sim_chunk.river.is_river(),
+            sim_chunk.river.near_water(),
             sim_chunk.river.velocity,
             sim_chunk.temp,
             sim_chunk.humidity,
@@ -389,21 +391,7 @@ impl World {
                         .get_origin()
                         .distance_squared(chunk_center_wpos2d)
                 })
-                .map(|id| index.sites[*id].kind.convert_to_meta().unwrap_or_default())
-                .or_else(|| sim_chunk.poi.map(|poi| self.civs.pois[poi].name.clone())),
-            sim_chunk.get_biome(),
-            sim_chunk.alt,
-            sim_chunk.tree_density,
-            sim_chunk.cave.1.alt != 0.0,
-            sim_chunk.river.is_river(),
-            sim_chunk.river.near_water(),
-            sim_chunk.river.velocity,
-            sim_chunk.temp,
-            sim_chunk.humidity,
-            sim_chunk
-                .sites
-                .iter()
-                .find_map(|site| index.sites[*site].kind.convert_to_meta()),
+                .map(|id| index.sites[*id].kind.convert_to_meta().unwrap_or_default()),
             self.sim.approx_chunk_terrain_normal(chunk_pos),
             sim_chunk.rockiness,
             sim_chunk.cliff_height,
