@@ -282,7 +282,7 @@ pub fn block_from_structure(
         | StructureBlock::Chestnut
         | StructureBlock::Baobab
         | StructureBlock::MapleLeaves
-        | StructureBlock::CherryLeaves 
+        | StructureBlock::CherryLeaves
         | StructureBlock::AutumnLeaves => {
             let ranges = sblock
                 .elim_case_pure(&index.colors.block.structure_blocks)
