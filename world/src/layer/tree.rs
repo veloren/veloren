@@ -224,6 +224,15 @@ pub fn apply_trees_to(
                                 StructureBlock::TemperateLeaves,
                             );
                         },
+                        ForestKind::Mapletree => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::oak(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::MapleLeaves,
+                            );
+                        },
                     };
 
                     let models = models.read();
