@@ -57,7 +57,6 @@ voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true
 
 # Graphics
 winit = {version = "0.28.6", features = ["serde"]}
-# naga has an issue for spirv in wgpu 18.0
 wgpu = { version = "0.18.0", default-features = false, features = ["trace", "spirv", "glsl"] }
 wgpu-profiler = "0.15.0"
 bytemuck = { version="1.7", features=["derive"] }
