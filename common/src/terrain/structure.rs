@@ -49,6 +49,7 @@ make_case_elim!(
         KeyholeBars(consumes: String) = 29,
         HaniwaKeyhole(consumes: String) = 30,
         MapleLeaves = 31,
+        CherryLeaves = 32,
     }
 );
 

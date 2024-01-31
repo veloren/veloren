@@ -34,6 +34,7 @@
             Chestnut: [(start: (30, 80, 0), end: (50, 120, 0))],
             Baobab: [(start: (50, 100, 40), end: (50, 90, 0))],
             MapleLeaves: [(start: (103, 32, 21), end: (131, 24, 26)), (start: (96, 30, 44), end: (92, 9, 46))],
+            CherryLeaves: [(start: (210, 109, 116), end: (217, 102, 102)), (start: (191, 128, 151), end: (206, 113, 123))]
         )
 
         // Water blocks ignore color now so this isn't used, but just in case this color was worth
