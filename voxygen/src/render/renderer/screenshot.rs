@@ -1,5 +1,6 @@
 use super::super::pipelines::blit;
 use common_base::prof_span;
+use crossbeam_channel;
 use tracing::error;
 
 pub type ScreenshotFn = Box<dyn FnOnce(Result<image::RgbImage, String>) + Send>;
@@ -135,6 +136,7 @@ impl TakeScreenshot {
         }
     }
 
+    /// Don't call this from the main loop, it will block for a while
     fn download_and_handle_internal(self) {
         prof_span!("download_and_handle_internal");
         // Calculate padded bytes per row
@@ -144,82 +146,95 @@ impl TakeScreenshot {
         let buffer = std::sync::Arc::new(self.buffer);
         let buffer2 = std::sync::Arc::clone(&buffer);
         let buffer_slice = buffer.slice(..);
+        let (map_result_sender, map_result_receiver) = crossbeam_channel::bounded(1);
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-            let padded_buffer;
-            let buffer_slice = buffer2.slice(..);
-            let rows = match result {
-                Ok(()) => {
-                    // Copy to a Vec
-                    padded_buffer = buffer_slice.get_mapped_range();
-                    padded_buffer
-                        .chunks(padded_bytes_per_row as usize)
-                        .map(|padded_chunk| {
-                            &padded_chunk[..self.width as usize * self.bytes_per_pixel as usize]
-                        })
-                },
-                // Error
-                Err(err) => {
-                    error!(
-                        ?err,
-                        "Failed to map buffer for downloading a screenshot from the GPU"
-                    );
-                    return;
-                },
-            };
-
-            // Note: we don't use bytes_per_pixel here since we expect only certain formats
-            // below.
-            let bytes_per_rgb = 3;
-            let mut pixel_bytes =
-                Vec::with_capacity(self.width as usize * self.height as usize * bytes_per_rgb);
-            // Construct image
-            let image = match self.tex_format {
-                wgpu::TextureFormat::Bgra8UnormSrgb => {
-                    prof_span!("copy image");
-                    rows.for_each(|row| {
-                        let (pixels, rest) = row.as_chunks();
-                        assert!(
-                            rest.is_empty(),
-                            "Always valid because each pixel uses four bytes"
-                        );
-                        // Swap blue and red components and drop alpha to get a RGB texture.
-                        for &[b, g, r, _a] in pixels {
-                            pixel_bytes.extend_from_slice(&[r, g, b])
-                        }
-                    });
-
-                    Ok(pixel_bytes)
-                },
-                wgpu::TextureFormat::Rgba8UnormSrgb => {
-                    prof_span!("copy image");
-                    rows.for_each(|row| {
-                        let (pixels, rest) = row.as_chunks();
-                        assert!(
-                            rest.is_empty(),
-                            "Always valid because each pixel uses four bytes"
-                        );
-                        // Drop alpha to get a RGB texture.
-                        for &[r, g, b, _a] in pixels {
-                            pixel_bytes.extend_from_slice(&[r, g, b])
-                        }
-                    });
-
-                    Ok(pixel_bytes)
-                },
-                format => Err(format!(
-                    "Unhandled format for screenshot texture: {:?}",
-                    format,
-                )),
-            }
-            .map(|pixel_bytes| {
-                image::RgbImage::from_vec(self.width, self.height, pixel_bytes).expect(
-                    "Failed to create ImageBuffer! Buffer was not large enough. This should not \
-                     occur",
-                )
-            });
-            // Call supplied handler
-            (self.screenshot_fn)(image);
+            map_result_sender
+                .send(result)
+                .expect("seems like the receiver broke, which should not happen");
         });
+        let result = match map_result_receiver.recv() {
+            Ok(result) => result,
+            Err(e) => {
+                error!(
+                    ?e,
+                    "map_async never send the result for the screenshot mapping"
+                );
+                return;
+            },
+        };
+        let padded_buffer;
+        let buffer_slice = buffer2.slice(..);
+        let rows = match result {
+            Ok(()) => {
+                // Copy to a Vec
+                padded_buffer = buffer_slice.get_mapped_range();
+                padded_buffer
+                    .chunks(padded_bytes_per_row as usize)
+                    .map(|padded_chunk| {
+                        &padded_chunk[..self.width as usize * self.bytes_per_pixel as usize]
+                    })
+            },
+            // Error
+            Err(err) => {
+                error!(
+                    ?err,
+                    "Failed to map buffer for downloading a screenshot from the GPU"
+                );
+                return;
+            },
+        };
+
+        // Note: we don't use bytes_per_pixel here since we expect only certain formats
+        // below.
+        let bytes_per_rgb = 3;
+        let mut pixel_bytes =
+            Vec::with_capacity(self.width as usize * self.height as usize * bytes_per_rgb);
+        // Construct image
+        let image = match self.tex_format {
+            wgpu::TextureFormat::Bgra8UnormSrgb => {
+                prof_span!("copy image");
+                rows.for_each(|row| {
+                    let (pixels, rest) = row.as_chunks();
+                    assert!(
+                        rest.is_empty(),
+                        "Always valid because each pixel uses four bytes"
+                    );
+                    // Swap blue and red components and drop alpha to get a RGB texture.
+                    for &[b, g, r, _a] in pixels {
+                        pixel_bytes.extend_from_slice(&[r, g, b])
+                    }
+                });
+
+                Ok(pixel_bytes)
+            },
+            wgpu::TextureFormat::Rgba8UnormSrgb => {
+                prof_span!("copy image");
+                rows.for_each(|row| {
+                    let (pixels, rest) = row.as_chunks();
+                    assert!(
+                        rest.is_empty(),
+                        "Always valid because each pixel uses four bytes"
+                    );
+                    // Drop alpha to get a RGB texture.
+                    for &[r, g, b, _a] in pixels {
+                        pixel_bytes.extend_from_slice(&[r, g, b])
+                    }
+                });
+
+                Ok(pixel_bytes)
+            },
+            format => Err(format!(
+                "Unhandled format for screenshot texture: {:?}",
+                format,
+            )),
+        }
+        .map(|pixel_bytes| {
+            image::RgbImage::from_vec(self.width, self.height, pixel_bytes).expect(
+                "Failed to create ImageBuffer! Buffer was not large enough. This should not occur",
+            )
+        });
+        // Call supplied handler
+        (self.screenshot_fn)(image);
     }
 }
 
