@@ -2,7 +2,12 @@ use super::{
     img_ids::Imgs, ChatTab, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR,
     OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
 };
-use crate::{cmd::complete, settings::chat::MAX_CHAT_TABS, ui::fonts::Fonts, GlobalState};
+use crate::{
+    cmd::complete,
+    settings::chat::MAX_CHAT_TABS,
+    ui::{fonts::Fonts, Scale},
+    GlobalState,
+};
 use client::Client;
 use common::comp::{group::Role, ChatMode, ChatMsg, ChatType};
 use conrod_core::{
@@ -20,7 +25,7 @@ use conrod_core::{
 use i18n::Localization;
 use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
-use vek::Vec2;
+use vek::{approx::AbsDiffEq, Vec2};
 
 widget_ids! {
     struct Ids {
@@ -84,6 +89,7 @@ pub struct Chat<'a> {
     chat_size: Vec2<f64>,
     chat_pos: Vec2<f64>,
     unread_tabs: Vec<bool>,
+    scale: Scale,
 
     localized_strings: &'a Localization,
 }
@@ -100,6 +106,7 @@ impl<'a> Chat<'a> {
         chat_size: Vec2<f64>,
         chat_pos: Vec2<f64>,
         unread_tabs: Vec<bool>,
+        scale: Scale,
     ) -> Self {
         Self {
             pulse,
@@ -117,6 +124,7 @@ impl<'a> Chat<'a> {
             chat_pos,
             localized_strings,
             unread_tabs,
+            scale,
         }
     }
 
@@ -259,15 +267,15 @@ impl<'a> Widget for Chat<'a> {
                 .left()
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
-            if !pos_delta.is_approx_zero() {
-                let pos = (self.chat_pos + pos_delta).map(|e| e.max(0.)).map2(
-                    self.global_state.window.logical_size()
-                        - self.chat_size
-                        - Vec2::unit_y() * CHAT_TAB_HEIGHT,
-                    |e, bounds| e.min(bounds),
-                );
-
-                events.push(Event::MoveChat(pos));
+            let new_pos = (self.chat_pos + pos_delta).map(|e| e.max(0.)).map2(
+                self.scale
+                    .scale_point(self.global_state.window.logical_size())
+                    - Vec2::unit_y() * CHAT_TAB_HEIGHT
+                    - self.chat_size,
+                |e, bounds| e.min(bounds),
+            );
+            if new_pos.abs_diff_ne(&self.chat_pos, f64::EPSILON) {
+                events.push(Event::MoveChat(new_pos));
             }
             let size_delta: Vec2<f64> = ui
                 .widget_input(chat_widget)
@@ -275,18 +283,21 @@ impl<'a> Widget for Chat<'a> {
                 .right()
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
-            if !size_delta.is_approx_zero() {
-                let size = (self.chat_size + size_delta)
-                    .map3(MIN_DIMENSION, MAX_DIMENSION, |sz, min, max| {
-                        sz.clamp(min, max).trunc()
-                    })
-                    .map2(
-                        self.global_state.window.logical_size()
-                            - Vec2::unit_y() * CHAT_TAB_HEIGHT
-                            - self.chat_pos,
-                        |e, bounds| e.min(bounds),
-                    );
-                events.push(Event::ResizeChat(size));
+            let new_size = (self.chat_size + size_delta)
+                .map3(
+                    self.scale.scale_point(MIN_DIMENSION),
+                    self.scale.scale_point(MAX_DIMENSION),
+                    |sz, min, max| sz.clamp(min, max),
+                )
+                .map2(
+                    self.scale
+                        .scale_point(self.global_state.window.logical_size())
+                        - Vec2::unit_y() * CHAT_TAB_HEIGHT
+                        - self.chat_pos,
+                    |e, bounds| e.min(bounds),
+                );
+            if new_size.abs_diff_ne(&self.chat_size, f64::EPSILON) {
+                events.push(Event::ResizeChat(new_size));
             }
         };
 
