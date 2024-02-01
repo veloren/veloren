@@ -26,7 +26,8 @@ impl Animation for GlidingAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        next.glider_trails = true;
+        // TODO: remove glider trails completely
+        next.glider_trails = false;
 
         let speednorm = velocity.magnitude().min(50.0) / 50.0;
         let slow = (acc_vel * 0.1).sin();
