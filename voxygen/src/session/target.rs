@@ -286,43 +286,55 @@ pub(super) fn ray_entities(
                 z_min,
                 z_max,
             } => {
-                if nearest.distance_squared(*p) < (r * 1.732).powi(2) {
-                    // 1.732 = sqrt(3)
-                    let entity_rotation = ecs
-                        .read_storage::<comp::Ori>()
-                        .get(*e)
-                        .copied()
-                        .unwrap_or_default();
-                    let entity_position = ecs.read_storage::<comp::Pos>().get(*e).copied().unwrap();
-                    let world_p0 = entity_position.0
-                        + (entity_rotation.to_quat()
-                            * Vec3::new(p0.x, p0.y, z_min + c.get_height() / 2.0));
-                    let world_p1 = entity_position.0
-                        + (entity_rotation.to_quat()
-                            * Vec3::new(p1.x, p1.y, z_min + c.get_height() / 2.0));
-
-                    let (p_a, p_b) = if p0 != p1 {
-                        let seg_capsule = LineSegment3 {
-                            start: world_p0,
-                            end: world_p1,
-                        };
-                        closest_points_ls3(seg_ray, seg_capsule)
-                    } else {
-                        let nearest = seg_ray.projected_point(world_p0);
-                        (nearest, world_p0)
-                    };
-
-                    let distance = p_a.xy().distance_squared(p_b.xy());
-
-                    if distance < radius.powi(2)
-                        && p_a.z >= entity_position.0.z + z_min
-                        && p_a.z <= entity_position.0.z + z_max
-                    {
-                        return Some((p_a.distance(start), Entity(*e)));
-                    }
+                // Check if the nearest point is within the capsule's inclusive radius (radius
+                // from center to furthest possible edge corner) If not, then
+                // the ray doesn't intersect the capsule at all and we can skip it
+                if nearest.distance_squared(*p) > (r * 3.0_f32.sqrt()).powi(2) {
+                    return None;
                 }
+
+                let entity_rotation = ecs
+                    .read_storage::<comp::Ori>()
+                    .get(*e)
+                    .copied()
+                    .unwrap_or_default();
+                let entity_position = ecs.read_storage::<comp::Pos>().get(*e).copied().unwrap();
+                let world_p0 = entity_position.0
+                    + (entity_rotation.to_quat()
+                        * Vec3::new(p0.x, p0.y, z_min + c.get_height() / 2.0));
+                let world_p1 = entity_position.0
+                    + (entity_rotation.to_quat()
+                        * Vec3::new(p1.x, p1.y, z_min + c.get_height() / 2.0));
+
+                // Get the closest points between the ray and the capsule's line segment
+                // If the capsule's line segment is a point, then the closest point is the point
+                // itself
+                let (p_a, p_b) = if p0 != p1 {
+                    let seg_capsule = LineSegment3 {
+                        start: world_p0,
+                        end: world_p1,
+                    };
+                    closest_points_ls3(seg_ray, seg_capsule)
+                } else {
+                    let nearest = seg_ray.projected_point(world_p0);
+                    (nearest, world_p0)
+                };
+
+                // Check if the distance between the closest points are within the capsule
+                // prism's radius on the xy plane and if the closest points are
+                // within the capsule prism's z range
+                let distance = p_a.xy().distance_squared(p_b.xy());
+                if distance < radius.powi(2)
+                    && p_a.z >= entity_position.0.z + z_min
+                    && p_a.z <= entity_position.0.z + z_max
+                {
+                    return Some((p_a.distance(start), Entity(*e)));
+                }
+
+                // If all else fails, then the ray doesn't intersect the capsule
                 None
             },
+            // TODO: handle other collider types, for now just use the bounding sphere
             _ => {
                 if nearest.distance_squared(*p) < r.powi(2) {
                     return Some((nearest.distance(start), Entity(*e)));
@@ -331,6 +343,5 @@ pub(super) fn ray_entities(
             },
         };
     });
-
     entity
 }
