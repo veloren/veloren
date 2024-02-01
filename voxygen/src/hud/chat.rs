@@ -202,7 +202,7 @@ pub enum Event {
     ResizeChat(Vec2<f64>),
     MoveChat(Vec2<f64>),
     UpdateUnread(Vec<bool>),
-    CloseChat,
+    DisableForceChat,
 }
 
 impl<'a> Widget for Chat<'a> {
@@ -249,7 +249,7 @@ impl<'a> Widget for Chat<'a> {
         let chat_tabs = &chat_settings.chat_tabs;
         let current_chat_tab = chat_settings.chat_tab_index.and_then(|i| chat_tabs.get(i));
 
-        let chat_box_input_width = self.chat_size.x - CHAT_ICON_WIDTH - 7.0;
+        let chat_box_input_width = self.chat_size.x - CHAT_ICON_WIDTH - 12.0;
 
         // Empty old messages
         state.update(|s| {
@@ -829,7 +829,7 @@ impl<'a> Widget for Chat<'a> {
                 let has_message = !state.input.message.is_empty();
                 let pressed = matches!(key_press.key, Key::Return | Key::NumPadEnter);
                 if pressed {
-                    events.push(Event::CloseChat);
+                    events.push(Event::DisableForceChat);
                 }
                 has_message && pressed
             })

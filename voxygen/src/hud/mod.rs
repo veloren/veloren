@@ -1273,6 +1273,7 @@ pub struct Hud {
     failed_entity_pickups: HashMap<EcsEntity, CollectFailedData>,
     new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
+    message_backlog: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     content_bubbles: Vec<(Vec3<f32>, comp::SpeechBubble)>,
@@ -1374,6 +1375,7 @@ impl Hud {
             failed_entity_pickups: HashMap::default(),
             new_loot_messages: VecDeque::new(),
             new_messages: VecDeque::new(),
+            message_backlog: VecDeque::new(),
             new_notifications: VecDeque::new(),
             speech_bubbles: HashMap::new(),
             content_bubbles: Vec::new(),
@@ -3486,7 +3488,7 @@ impl Hud {
         )
         .set(self.ids.loot_scroller, ui_widgets);
 
-        self.new_loot_messages = VecDeque::new();
+        self.new_loot_messages.clear();
 
         // Don't put NPC messages in chat box.
         self.new_messages
@@ -3497,6 +3499,9 @@ impl Hud {
         // even when hovering over them
         // TODO look into parenting and then settings movable widgets to floating
         if global_state.settings.interface.toggle_chat || self.force_chat {
+            for hidden in self.message_backlog.drain(..).rev() {
+                self.new_messages.push_front(hidden);
+            }
             for event in Chat::new(
                 &mut self.new_messages,
                 client,
@@ -3547,15 +3552,20 @@ impl Hud {
                     chat::Event::UpdateUnread(unread) => {
                         self.unread_tabs = unread;
                     },
-                    chat::Event::CloseChat => {
+                    chat::Event::DisableForceChat => {
                         self.force_chat = false;
                     },
                 }
             }
+        } else {
+            self.message_backlog.extend(self.new_messages.drain(..));
+            while self.message_backlog.len() > 100 {
+                self.message_backlog.pop_front();
+            }
         }
 
-        self.new_messages = VecDeque::new();
-        self.new_notifications = VecDeque::new();
+        self.new_messages.clear();
+        self.new_notifications.clear();
 
         // Windows
 
