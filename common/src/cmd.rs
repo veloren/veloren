@@ -316,6 +316,7 @@ pub enum ServerChatCommand {
     Ban,
     BattleMode,
     BattleModeForce,
+    BeNpc,
     Body,
     Buff,
     Build,
@@ -464,6 +465,20 @@ impl ServerChatCommand {
                 If called without arguments will show current battle mode.",
                 None,
 
+            ),
+            ServerChatCommand::BeNpc => cmd(
+                vec![
+                    AssetPath(
+                        "entity_config",
+                        "common.entity.",
+                        ENTITY_CONFIGS.clone(),
+                        Required,
+                    ),
+                    Boolean("+alignment", "true".to_string(), Optional),
+                    Boolean("+group", "true".to_string(), Optional),
+                ],
+                "Convert yourself to an NPC. Be careful!",
+                Some(Admin),
             ),
             ServerChatCommand::Body => cmd(
                 vec![Enum("body", ENTITIES.clone(), Required)],
@@ -944,6 +959,7 @@ impl ServerChatCommand {
             ServerChatCommand::Ban => "ban",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
+            ServerChatCommand::BeNpc => "be_npc",
             ServerChatCommand::Body => "body",
             ServerChatCommand::Buff => "buff",
             ServerChatCommand::Build => "build",

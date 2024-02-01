@@ -130,6 +130,7 @@ fn do_command(
         ServerChatCommand::Ban => handle_ban,
         ServerChatCommand::BattleMode => handle_battlemode,
         ServerChatCommand::BattleModeForce => handle_battlemode_force,
+        ServerChatCommand::BeNpc => handle_be_npc,
         ServerChatCommand::Body => handle_body,
         ServerChatCommand::Buff => handle_buff,
         ServerChatCommand::Build => handle_build,
@@ -612,6 +613,109 @@ fn handle_make_block(
     } else {
         Err(Content::Plain(action.help_string()))
     }
+}
+
+fn handle_be_npc(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if client != target {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::Plain("I hope you aren't abusing this!".to_owned()),
+            ),
+        );
+    }
+
+    let (Some(entity_config), and_alignment, and_group) = parse_cmd_args!(args, String, bool, bool)
+    else {
+        return Err(Content::Plain(action.help_string()));
+    };
+    let and_alignment = and_alignment.is_some_and(|o| o);
+    let and_group = and_group.is_some_and(|o| o);
+
+    let config = match EntityConfig::load(&entity_config) {
+        Ok(asset) => asset.read(),
+        Err(_err) => {
+            return Err(Content::localized_with_args(
+                "command-entity-load-failed",
+                [("config", entity_config)],
+            ));
+        },
+    };
+
+    let mut loadout_rng = thread_rng();
+    let dummy = Vec3::zero();
+    let entity_info = EntityInfo::at(dummy).with_entity_config(
+        config.clone(),
+        Some(&entity_config),
+        &mut loadout_rng,
+        None,
+    );
+
+    match NpcData::from_entity_info(entity_info) {
+        NpcData::Data {
+            inventory,
+            stats,
+            skill_set,
+            poise,
+            health,
+            body,
+            scale,
+            alignment,
+            // we aren't interested in these (yet?)
+            pos: _,
+            agent: _,
+            loot: _,
+        } => {
+            // Should do basically what StateExt::create_npc does
+            insert_or_replace_component(server, target, inventory, "player")?;
+            insert_or_replace_component(server, target, stats, "player")?;
+            insert_or_replace_component(server, target, skill_set, "player")?;
+            insert_or_replace_component(server, target, poise, "player")?;
+            if let Some(health) = health {
+                insert_or_replace_component(server, target, health, "player")?;
+            }
+            insert_or_replace_component(server, target, body, "player")?;
+            insert_or_replace_component(server, target, body.mass(), "player")?;
+            insert_or_replace_component(server, target, body.density(), "player")?;
+            insert_or_replace_component(server, target, body.collider(), "player")?;
+            insert_or_replace_component(server, target, scale, "player")?;
+
+            if and_alignment || and_group {
+                insert_or_replace_component(server, target, alignment, "player")?;
+            }
+
+            if and_group {
+                let npc_group = match alignment {
+                    Alignment::Enemy => Some(comp::group::ENEMY),
+                    Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
+                    Alignment::Wild | Alignment::Passive | Alignment::Owned(_) => None,
+                };
+
+                // Set the group or remove it
+                if let Some(group) = npc_group {
+                    insert_or_replace_component(server, target, group, "player")?;
+                } else {
+                    let ecs = server.state.ecs();
+                    ecs.write_storage::<comp::Group>().remove(target);
+                }
+            }
+        },
+        NpcData::Waypoint(_) => {
+            return Err(Content::localized("command-unimplemented-waypoint-spawn"));
+        },
+        NpcData::Teleporter(_, _) => {
+            return Err(Content::localized("command-unimplemented-teleporter-spawn"));
+        },
+    }
+
+    Ok(())
 }
 
 fn handle_make_npc(
