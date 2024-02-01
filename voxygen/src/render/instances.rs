@@ -31,7 +31,7 @@ impl<T: Copy + Pod> Instances<T> {
         Self {
             // TODO: examine if we have Instances that are not updated (e.g. sprites) and if there
             // would be any gains from separating those out
-            buf: DynamicBuffer::new(device, len, wgpu::BufferUsage::VERTEX),
+            buf: DynamicBuffer::new(device, len, wgpu::BufferUsages::VERTEX),
         }
     }
 

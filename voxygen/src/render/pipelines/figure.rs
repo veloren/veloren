@@ -113,7 +113,7 @@ impl FigureLayout {
                     // locals
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -124,7 +124,7 @@ impl FigureLayout {
                     // bone data
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -177,6 +177,7 @@ impl FigurePipeline {
         global_layout: &GlobalsLayouts,
         layout: &FigureLayout,
         aa_mode: AaMode,
+        format: wgpu::TextureFormat,
     ) -> Self {
         common_base::span!(_guard, "FigurePipeline::new");
         let render_pipeline_layout =
@@ -206,7 +207,7 @@ impl FigurePipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                clamp_depth: false,
+                unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -218,7 +219,7 @@ impl FigurePipeline {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
                     read_mask: !0,
-                    write_mask: !0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -235,18 +236,19 @@ impl FigurePipeline {
                 module: fs_module,
                 entry_point: "main",
                 targets: &[
-                    wgpu::ColorTargetState {
-                        format: wgpu::TextureFormat::Rgba16Float,
+                    Some(wgpu::ColorTargetState {
+                        format,
                         blend: None,
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
-                    wgpu::ColorTargetState {
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
+                    Some(wgpu::ColorTargetState {
                         format: wgpu::TextureFormat::Rgba8Uint,
                         blend: None,
-                        write_mask: wgpu::ColorWrite::ALL,
-                    },
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
                 ],
             }),
+            multiview: None,
         });
 
         Self {
@@ -284,7 +286,7 @@ impl AtlasData for FigureSpriteAtlasData {
             // col lights
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                 ty: wgpu::BindingType::Texture {
                     sample_type: wgpu::TextureSampleType::Float { filterable: true },
                     view_dimension: wgpu::TextureViewDimension::D2,
@@ -294,11 +296,8 @@ impl AtlasData for FigureSpriteAtlasData {
             },
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
-                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                ty: wgpu::BindingType::Sampler {
-                    filtering: true,
-                    comparison: false,
-                },
+                visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
         ]

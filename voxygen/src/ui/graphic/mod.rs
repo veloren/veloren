@@ -695,7 +695,7 @@ fn create_image_texture(
     // TODO: Right now we have to manually clear images to workaround AMD DX bug,
     // for this we use Queue::write_texture which needs this usage. I think this
     // may be fixed in newer wgpu versions that auto-clear the texture.
-    let workaround_usage = wgpu::TextureUsage::COPY_DST;
+    let workaround_usage = wgpu::TextureUsages::COPY_DST;
     let tex_info = wgpu::TextureDescriptor {
         label: None,
         size: wgpu::Extent3d {
@@ -707,10 +707,11 @@ fn create_image_texture(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::RENDER_ATTACHMENT // GPU premultiply
-            | wgpu::TextureUsage::COPY_DST // CPU premultiply
-            | wgpu::TextureUsage::SAMPLED // using image in ui rendering
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT // GPU premultiply
+            | wgpu::TextureUsages::COPY_DST // CPU premultiply
+            | wgpu::TextureUsages::TEXTURE_BINDING // using image in ui rendering
             | workaround_usage,
+        view_formats: &[],
     };
     let view_info = wgpu::TextureViewDescriptor {
         format: Some(tex_info.format),

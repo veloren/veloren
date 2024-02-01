@@ -1,4 +1,4 @@
-cargo-features = ["named-profiles","profile-overrides"]
+cargo-features = ["named-profiles", "profile-overrides"]
 
 [workspace]
 resolver = "2"
@@ -51,13 +51,13 @@ opt-level = 3
 # this profile is used by developers if dev doesn't has enough debug information,
 # the name must != debug, as debug is used by dev because....
 [profile.debuginfo]
-inherits= 'dev'
+inherits = 'dev'
 debug = true
 
 # used to perform things that do a *lot* of math (i.e. worldgen) but still need reasonable compilation time.  Ideally this would also
 # add -C target-cpu=native, but I don't think you can set this by profile currently.
 [profile.no_overflow]
-inherits= 'dev'
+inherits = 'dev'
 overflow-checks = false
 debug-assertions = false
 
@@ -80,7 +80,7 @@ overflow-checks = false
 debug-assertions = false
 lto = true
 debug = false
-panic = "abort" # don't need unwinding so we can skip including the landing pads for that
+panic = "abort"          # don't need unwinding so we can skip including the landing pads for that
 # line tables so we can have useful backtraces for in-house crates
 [profile.release.package."veloren-network"]
 debug = 1
@@ -108,7 +108,7 @@ incremental = true
 
 # this profile is used by developers for release profiling
 [profile.releasedebuginfo]
-inherits =  'release'
+inherits = 'release'
 debug = 1
 
 [workspace.metadata.nix]
@@ -159,49 +159,26 @@ clap = { version = "4.2",  features = ["derive"]}
 
 [patch.crates-io]
 vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986c5477341bea4456be26" }
-# patch winit to support older raw-window-handle that works with old wgpu
-winit = { git = "https://github.com/Imberflur/winit.git", tag = "raw-window-handle-0.4-retro-support-v1" }
-# patch wgpu so we can use wgpu-profiler crate
-# wgpu = { git = "https://github.com/gfx-rs/wgpu.git", rev = "a92b8549a8e2cb9dac781bafc5ed32828f3caf46" }
-wgpu = { git = "https://github.com/pythonesque/wgpu.git", rev = "179ea209374a92837cde252f1d9ee01f628cae08" }
 # ntapi 3.7 fails to compile under windows due to the bug https://github.com/MSxDOS/ntapi/pull/12
 ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e25796739157c0fce3e0007a7de6eb" }
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
-
-[patch."https://github.com/gfx-rs/gfx"]
-gfx-hal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-empty = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-vulkan = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-gl = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-dx12 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-dx11 = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
-gfx-backend-metal = { git = "https://github.com/Imberflur/gfx.git", tag = "veloren-fixes-v1" }
+# This is needed because of an issue with spirv & naga in wgpu 0.18, and there's an issue
+# with uint in uniforms for gl.
+wgpu = { git = "https://github.com/IsseW/wgpu", rev = "5ea160164" }
 
 # # use the latest fixes in naga (remove when updates trickle down to wgpu-rs)
 # naga = { git = "https://github.com/gfx-rs/naga.git", rev = "3a0f0144112ff621dd7f731bf455adf6cab19164" }
-# # use the latest fixes in gfx (remove when updates trickle down to wgpu-rs)
-# gfx-hal = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-empty = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-vulkan = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-gl = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-dx12 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-dx11 = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
-# gfx-backend-metal = { git = "https://github.com/gfx-rs/gfx.git", rev = "e305dcca3557923a6a8810162d8dd09cb45a43a6" }
+# naga = { path = "../naga" }
+# keyboard-keynames = { git = "https://gitlab.com/Capucho/keyboard-keynames.git", rev = "7b1375ee4ea01d0e0b80c419cb27f0498e67df3a" }
 
 # # Uncomment this to use a local fork of winit (for testing purposes)
 # winit = { path = "../winit" }
 
 # # Uncomment this to use a local fork of wgpu (for testing purposes)
 # [patch.'https://github.com/gfx-rs/wgpu']
+# wgpu-hal = { path = "../wgpu/wgpu-hal" }
 # wgpu-core = { path = "../wgpu/wgpu-core" }
 # wgpu-types = { path = "../wgpu/wgpu-types" }
 
-# # Uncomment this to use a local fork of gfx-hal (for testing purposes)
-# [patch."https://github.com/gfx-rs/gfx"]
-# gfx-hal = { path = "../gfx/src/hal" }
-# gfx-backend-empty = { path = "../gfx/src/backend/empty" }
-# gfx-backend-vulkan = { path = "../gfx/src/backend/vulkan" }
-# gfx-backend-gl = { path = "../gfx/src/backend/gl" }
-# gfx-backend-dx12 = { path = "../gfx/src/backend/dx12" }
-# gfx-backend-dx11 = { path = "../gfx/src/backend/dx11" }
-# gfx-backend-metal = { path = "../gfx/src/backend/metal" }
+[patch."https://github.com/gfx-rs/naga"]
+# naga = { path = "../naga" }

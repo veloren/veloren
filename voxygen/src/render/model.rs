@@ -36,7 +36,7 @@ impl<V: Vertex> Model<V> {
         }
 
         Some(Self {
-            vbuf: Buffer::new(device, wgpu::BufferUsage::VERTEX, mesh.vertices()),
+            vbuf: Buffer::new(device, wgpu::BufferUsages::VERTEX, mesh.vertices()),
         })
     }
 
@@ -64,7 +64,7 @@ pub struct DynamicModel<V: Vertex> {
 impl<V: Vertex> DynamicModel<V> {
     pub fn new(device: &wgpu::Device, size: usize) -> Self {
         Self {
-            vbuf: DynamicBuffer::new(device, size, wgpu::BufferUsage::VERTEX),
+            vbuf: DynamicBuffer::new(device, size, wgpu::BufferUsages::VERTEX),
         }
     }
 

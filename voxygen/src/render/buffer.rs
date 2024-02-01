@@ -10,7 +10,7 @@ pub struct Buffer<T: Copy + Pod> {
 }
 
 impl<T: Copy + Pod> Buffer<T> {
-    pub fn new(device: &wgpu::Device, usage: wgpu::BufferUsage, data: &[T]) -> Self {
+    pub fn new(device: &wgpu::Device, usage: wgpu::BufferUsages, data: &[T]) -> Self {
         let contents = bytemuck::cast_slice(data);
 
         Self {
@@ -31,13 +31,13 @@ impl<T: Copy + Pod> Buffer<T> {
 pub struct DynamicBuffer<T: Copy + Pod>(Buffer<T>);
 
 impl<T: Copy + Pod> DynamicBuffer<T> {
-    pub fn new(device: &wgpu::Device, len: usize, usage: wgpu::BufferUsage) -> Self {
+    pub fn new(device: &wgpu::Device, len: usize, usage: wgpu::BufferUsages) -> Self {
         let buffer = Buffer {
             buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: None,
                 mapped_at_creation: false,
                 size: len as u64 * std::mem::size_of::<T>() as u64,
-                usage: usage | wgpu::BufferUsage::COPY_DST,
+                usage: usage | wgpu::BufferUsages::COPY_DST,
             }),
             len,
             phantom_data: std::marker::PhantomData,

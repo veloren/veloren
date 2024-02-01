@@ -16,7 +16,7 @@ use super::{
     Renderer, ShadowMap, ShadowMapRenderer,
 };
 use common_base::prof_span;
-use core::{num::NonZeroU32, ops::Range};
+use core::ops::Range;
 use std::sync::Arc;
 use vek::Aabr;
 use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
@@ -73,7 +73,7 @@ struct RendererBorrow<'frame> {
     queue: &'frame wgpu::Queue,
     device: &'frame wgpu::Device,
     #[cfg(feature = "egui-ui")]
-    sc_desc: &'frame wgpu::SwapChainDescriptor,
+    surface_config: &'frame wgpu::SurfaceConfiguration,
     shadow: Option<&'frame super::Shadow>,
     pipelines: Pipelines<'frame>,
     locals: &'frame super::locals::Locals,
@@ -87,9 +87,10 @@ struct RendererBorrow<'frame> {
 }
 
 pub struct Drawer<'frame> {
+    surface_view: wgpu::TextureView,
     encoder: Option<ManualOwningScope<'frame, wgpu::CommandEncoder>>,
     borrow: RendererBorrow<'frame>,
-    swap_tex: wgpu::SwapChainTexture,
+    surface_texture: Option<wgpu::SurfaceTexture>,
     globals: &'frame GlobalsBindGroup,
     // Texture and other info for taking a screenshot
     // Writes to this instead in the third pass if it is present
@@ -100,7 +101,7 @@ impl<'frame> Drawer<'frame> {
     pub fn new(
         encoder: wgpu::CommandEncoder,
         renderer: &'frame mut Renderer,
-        swap_tex: wgpu::SwapChainTexture,
+        surface_texture: wgpu::SurfaceTexture,
         globals: &'frame GlobalsBindGroup,
     ) -> Self {
         let taking_screenshot = renderer.take_screenshot.take().map(|screenshot_fn| {
@@ -108,7 +109,7 @@ impl<'frame> Drawer<'frame> {
                 &renderer.device,
                 &renderer.layouts.blit,
                 &renderer.sampler,
-                &renderer.sc_desc,
+                &renderer.surface_config,
                 screenshot_fn,
             )
         });
@@ -125,7 +126,7 @@ impl<'frame> Drawer<'frame> {
             queue: &renderer.queue,
             device: &renderer.device,
             #[cfg(feature = "egui-ui")]
-            sc_desc: &renderer.sc_desc,
+            surface_config: &renderer.surface_config,
             shadow,
             pipelines,
             locals: &renderer.locals,
@@ -141,10 +142,19 @@ impl<'frame> Drawer<'frame> {
         let encoder =
             ManualOwningScope::start("frame", &mut renderer.profiler, encoder, borrow.device);
 
+        // Create a view to the surface texture.
+        let surface_view = surface_texture
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor {
+                label: Some("Surface texture view"),
+                ..Default::default()
+            });
+
         Self {
+            surface_view,
             encoder: Some(encoder),
             borrow,
-            swap_tex,
+            surface_texture: Some(surface_texture),
             globals,
             taking_screenshot,
         }
@@ -174,10 +184,12 @@ impl<'frame> Drawer<'frame> {
                         view: &rain_occlusion_renderer.depth.view,
                         depth_ops: Some(wgpu::Operations {
                             load: wgpu::LoadOp::Clear(1.0),
-                            store: true,
+                            store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,
                     }),
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 },
             );
 
@@ -211,10 +223,12 @@ impl<'frame> Drawer<'frame> {
                         view: &shadow_renderer.directed_depth.view,
                         depth_ops: Some(wgpu::Operations {
                             load: wgpu::LoadOp::Clear(1.0),
-                            store: true,
+                            store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,
                     }),
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 });
 
             render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -242,31 +256,33 @@ impl<'frame> Drawer<'frame> {
             encoder.scoped_render_pass("first_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("first pass"),
                 color_attachments: &[
-                    wgpu::RenderPassColorAttachment {
+                    Some(wgpu::RenderPassColorAttachment {
                         view: &self.borrow.views.tgt_color,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                            store: true,
+                            store: wgpu::StoreOp::Store,
                         },
-                    },
-                    wgpu::RenderPassColorAttachment {
+                    }),
+                    Some(wgpu::RenderPassColorAttachment {
                         view: &self.borrow.views.tgt_mat,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                            store: true,
+                            store: wgpu::StoreOp::Store,
                         },
-                    },
+                    }),
                 ],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.borrow.views.tgt_depth,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(0.0),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: None,
                 }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -290,15 +306,17 @@ impl<'frame> Drawer<'frame> {
         let mut render_pass =
             encoder.scoped_render_pass("volumetric_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("volumetric pass (clouds)"),
-                color_attachments: &[wgpu::RenderPassColorAttachment {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &self.borrow.views.tgt_color_pp,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
-                }],
+                })],
                 depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -321,22 +339,24 @@ impl<'frame> Drawer<'frame> {
         let mut render_pass =
             encoder.scoped_render_pass("transparent_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("transparent pass (trails)"),
-                color_attachments: &[wgpu::RenderPassColorAttachment {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &self.borrow.views.tgt_color_pp,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
-                }],
+                })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.borrow.views.tgt_depth,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Load,
-                        store: false,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: None,
                 }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -377,12 +397,17 @@ impl<'frame> Drawer<'frame> {
             let mut render_pass =
                 encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
                     label: Some(&pass_label),
-                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                         resolve_target: None,
                         view,
-                        ops: wgpu::Operations { store: true, load },
-                    }],
+                        ops: wgpu::Operations {
+                            store: wgpu::StoreOp::Store,
+                            load,
+                        },
+                    })],
                     depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 });
 
             render_pass.set_bind_group(0, bind, &[]);
@@ -460,27 +485,31 @@ impl<'frame> Drawer<'frame> {
             let mut render_pass =
                 encoder.scoped_render_pass(&profile_name, device, &wgpu::RenderPassDescriptor {
                     label: Some(&label),
-                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                         view: &target_texture.view,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Load,
-                            store: true,
+                            store: wgpu::StoreOp::Store,
                         },
-                    }],
+                    })],
                     depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 });
             render_pass.set_pipeline(&premultiply_alpha.pipeline);
             for upload in &uploads {
                 let (source_bind_group, push_constant_data) = upload.draw_data(&target_texture);
                 let bytes = bytemuck::bytes_of(&push_constant_data);
                 render_pass.set_bind_group(0, source_bind_group, &[]);
-                render_pass.set_push_constants(wgpu::ShaderStage::VERTEX, 0, bytes);
+                render_pass.set_push_constants(wgpu::ShaderStages::VERTEX, 0, bytes);
                 render_pass.draw(0..6, 0..1);
             }
         }
     }
 
+    /// Prepares the third pass drawer to be used.
+    ///
     /// Note, this automatically calls the internal `run_ui_premultiply_passes`
     /// to complete any pending image uploads for the UI.
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
@@ -491,20 +520,22 @@ impl<'frame> Drawer<'frame> {
         let mut render_pass =
             encoder.scoped_render_pass("third_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("third pass (postprocess + ui)"),
-                color_attachments: &[wgpu::RenderPassColorAttachment {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     // If a screenshot was requested render to that as an intermediate texture
                     // instead
                     view: self
                         .taking_screenshot
                         .as_ref()
-                        .map_or(&self.swap_tex.view, |s| s.texture_view()),
+                        .map_or(&self.surface_view, |s| s.texture_view()),
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
-                }],
+                })],
                 depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -519,24 +550,24 @@ impl<'frame> Drawer<'frame> {
     pub fn draw_egui(&mut self, platform: &mut Platform, scale_factor: f32) {
         span!(guard, "Draw egui");
 
-        let (_output, paint_commands) = platform.end_frame();
+        let output = platform.end_frame(None);
 
-        let paint_jobs = platform.context().tessellate(paint_commands);
+        let paint_jobs = platform.context().tessellate(output.shapes);
 
         let screen_descriptor = ScreenDescriptor {
-            physical_width: self.borrow.sc_desc.width,
-            physical_height: self.borrow.sc_desc.height,
+            physical_width: self.borrow.surface_config.width,
+            physical_height: self.borrow.surface_config.height,
             scale_factor,
         };
 
-        self.borrow.egui_render_pass.update_texture(
-            self.borrow.device,
-            self.borrow.queue,
-            &platform.context().texture(),
-        );
         self.borrow
             .egui_render_pass
-            .update_user_textures(self.borrow.device, self.borrow.queue);
+            .add_textures(
+                self.borrow.device,
+                self.borrow.queue,
+                &output.textures_delta,
+            )
+            .expect("Failed to update egui textures");
         self.borrow.egui_render_pass.update_buffers(
             self.borrow.device,
             self.borrow.queue,
@@ -544,15 +575,23 @@ impl<'frame> Drawer<'frame> {
             &screen_descriptor,
         );
 
-        self.borrow.egui_render_pass.execute(
-            self.encoder.as_mut().unwrap(),
-            self.taking_screenshot
-                .as_ref()
-                .map_or(&self.swap_tex.view, |s| s.texture_view()),
-            &paint_jobs,
-            &screen_descriptor,
-            None,
-        );
+        self.borrow
+            .egui_render_pass
+            .execute(
+                self.encoder.as_mut().unwrap(),
+                self.taking_screenshot
+                    .as_ref()
+                    .map_or(&self.surface_view, |s| s.texture_view()),
+                &paint_jobs,
+                &screen_descriptor,
+                None,
+            )
+            .expect("Failed to draw egui");
+
+        self.borrow
+            .egui_render_pass
+            .remove_textures(output.textures_delta)
+            .expect("Failed to remove unused egui textures");
 
         drop(guard);
     }
@@ -593,7 +632,7 @@ impl<'frame> Drawer<'frame> {
                             base_mip_level: 0,
                             mip_level_count: None,
                             base_array_layer: face,
-                            array_layer_count: NonZeroU32::new(1),
+                            array_layer_count: Some(1),
                         });
 
                 let label = format!("point shadow face-{} pass", face);
@@ -605,10 +644,12 @@ impl<'frame> Drawer<'frame> {
                             view: &view,
                             depth_ops: Some(wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(1.0),
-                                store: true,
+                                store: wgpu::StoreOp::Store,
                             }),
                             stencil_ops: None,
                         }),
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
                     });
 
                 render_pass.set_pipeline(&shadow_renderer.point_pipeline.pipeline);
@@ -617,7 +658,7 @@ impl<'frame> Drawer<'frame> {
 
                 (0../*20*/1).for_each(|point_light| {
                     render_pass.set_push_constants(
-                        wgpu::ShaderStage::all(),
+                        wgpu::ShaderStages::all(),
                         0,
                         &data[(6 * (point_light + 1) * STRIDE + face as usize * STRIDE)
                             ..(6 * (point_light + 1) * STRIDE + (face + 1) as usize * STRIDE)],
@@ -656,10 +697,12 @@ impl<'frame> Drawer<'frame> {
                         view: &shadow_renderer.directed_depth.view,
                         depth_ops: Some(wgpu::Operations {
                             load: wgpu::LoadOp::Clear(1.0),
-                            store: true,
+                            store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,
                     }),
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 },
             );
 
@@ -677,7 +720,7 @@ impl<'frame> Drawer<'frame> {
                             base_mip_level: 0,
                             mip_level_count: None,
                             base_array_layer: face,
-                            array_layer_count: NonZeroU32::new(1),
+                            array_layer_count: Some(1),
                         });
 
                 let label = format!("clear point shadow face-{} pass", face);
@@ -688,10 +731,12 @@ impl<'frame> Drawer<'frame> {
                         view: &view,
                         depth_ops: Some(wgpu::Operations {
                             load: wgpu::LoadOp::Clear(1.0),
-                            store: true,
+                            store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,
                     }),
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 });
             }
         }
@@ -716,15 +761,17 @@ impl<'frame> Drop for Drawer<'frame> {
                     self.borrow.device,
                     &wgpu::RenderPassDescriptor {
                         label: Some("Blit screenshot pass"),
-                        color_attachments: &[wgpu::RenderPassColorAttachment {
-                            view: &self.swap_tex.view,
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &self.surface_view,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                                store: true,
+                                store: wgpu::StoreOp::Store,
                             },
-                        }],
+                        })],
                         depth_stencil_attachment: None,
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
                     },
                 );
                 render_pass.set_pipeline(&blit.pipeline);
@@ -747,6 +794,7 @@ impl<'frame> Drop for Drawer<'frame> {
         if let Some(f) = download_and_handle_screenshot {
             f();
         }
+        self.surface_texture.take().unwrap().present();
 
         profiler
             .end_frame()

@@ -659,17 +659,18 @@ impl<'a> Widget for Video<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.present_mode_text, ui);
 
-        let mode_list = [
-            PresentMode::Fifo,
-            PresentMode::Mailbox,
-            PresentMode::Immediate,
-        ];
-        let mode_label_list = [
-            "hud-settings-present_mode-vsync_capped",
-            "hud-settings-present_mode-vsync_uncapped",
-            "hud-settings-present_mode-vsync_off",
-        ]
-        .map(|k| self.localized_strings.get_msg(k));
+        let mode_list = self.global_state.window.renderer().present_modes();
+        let mode_label_list = mode_list
+            .iter()
+            .map(|mode| {
+                self.localized_strings.get_msg(match mode {
+                    PresentMode::Fifo => "hud-settings-present_mode-vsync_capped",
+                    PresentMode::FifoRelaxed => "hud-settings-present_mode-vsync_adaptive",
+                    PresentMode::Mailbox => "hud-settings-present_mode-vsync_uncapped",
+                    PresentMode::Immediate => "hud-settings-present_mode-vsync_off",
+                })
+            })
+            .collect::<Vec<_>>();
 
         // Get which present mode is currently active
         let selected = mode_list
@@ -1549,7 +1550,7 @@ impl<'a> Widget for Video<'a> {
             .iter()
             .filter(
                 |mode| match self.global_state.settings.graphics.fullscreen.refresh_rate_millihertz {
-                    Some(rate) => mode.refresh_rate_millihertz() == rate,
+                    Some(refresh_rate) => mode.refresh_rate_millihertz() == refresh_rate,
                     None => true,
                 },
             )
@@ -1610,9 +1611,8 @@ impl<'a> Widget for Video<'a> {
                     None => true,
                 },
             )
-            // TODO: why do we sort by this and then map to it?
-            .sorted_by_key(|mode| mode.refresh_rate_millihertz())
             .map(|mode| mode.refresh_rate_millihertz())
+            .sorted()
             .rev()
             .dedup()
             .collect();

@@ -57,9 +57,9 @@ voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true
 
 # Graphics
 winit = {version = "0.28.6", features = ["serde"]}
-wgpu = { version = "=0.8.0", features = ["trace", "cross"] }
-wgpu-profiler = { git = "https://github.com/Imberflur/wgpu-profiler", tag = "wgpu-0.8" }
-bytemuck = { version="1.4", features=["derive"] }
+wgpu = { version = "0.18.0", default-features = false, features = ["trace", "spirv", "glsl"] }
+wgpu-profiler = "0.15.0"
+bytemuck = { version="1.7", features=["derive"] }
 # shaderc = "0.8.0"
 # Working around a current bug in shaderc that causes it to use the system installation even if we specify compile from source
 shaderc = { git = "https://github.com/pythonesque/shaderc-rs", rev = "f2605a02062834019bedff911aee2fd2998c49f9" }
@@ -77,9 +77,9 @@ glyph_brush = "0.7.0"
 # https://gitlab.com/Frinksy/keyboard-keynames/-/merge_requests/8
 keyboard-keynames = { git = "https://gitlab.com/Imbris/keyboard-keynames.git", tag = "veloren-winit-0.28" }
 # EGUI
-egui = {version = "0.12", optional = true }
-egui_wgpu_backend = {git = "https://github.com/hasenbanck/egui_wgpu_backend.git", rev = "63a002c6a9b6c016e45806dd065864431caab621", optional = true }
-egui_winit_platform = { git = "https://github.com/Imberflur/egui_winit_platform.git", tag = "veloren-winit-0.28", optional = true }
+egui = {version = "0.23", optional = true }
+egui_wgpu_backend = { git = "https://github.com/hasenbanck/egui_wgpu_backend.git", rev = "34691d4e9149deb9cd0bb8cbb5a56bffebf47588", optional = true }
+egui_winit_platform = { version = "0.20", optional = true }
 
 # ECS
 specs = { workspace = true, features = ["serde", "storage-event-control"] }

@@ -74,7 +74,7 @@ impl BloomLayout {
                     // Color source
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
                             sample_type: wgpu::TextureSampleType::Float { filterable: true },
                             view_dimension: wgpu::TextureViewDimension::D2,
@@ -84,17 +84,14 @@ impl BloomLayout {
                     },
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
-                        visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler {
-                            filtering: true,
-                            comparison: false,
-                        },
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                         count: None,
                     },
                     // halfpixel
                     wgpu::BindGroupLayoutEntry {
                         binding: 2,
-                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -176,7 +173,7 @@ impl BloomPipelines {
                     strip_index_format: None,
                     front_face: wgpu::FrontFace::Ccw,
                     cull_mode: None,
-                    clamp_depth: false,
+                    unclipped_depth: false,
                     polygon_mode: wgpu::PolygonMode::Fill,
                     conservative: false,
                 },
@@ -189,12 +186,13 @@ impl BloomPipelines {
                 fragment: Some(wgpu::FragmentState {
                     module: fs_module,
                     entry_point: "main",
-                    targets: &[wgpu::ColorTargetState {
+                    targets: &[Some(wgpu::ColorTargetState {
                         format: target_format,
                         blend,
-                        write_mask: wgpu::ColorWrite::ALL,
-                    }],
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
                 }),
+                multiview: None,
             })
         };
 

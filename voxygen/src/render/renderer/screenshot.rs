@@ -1,5 +1,6 @@
 use super::super::pipelines::blit;
 use common_base::prof_span;
+use crossbeam_channel;
 use tracing::error;
 
 pub type ScreenshotFn = Box<dyn FnOnce(Result<image::RgbImage, String>) + Send>;
@@ -13,7 +14,7 @@ pub struct TakeScreenshot {
     // Dimensions used for copying from the screenshot texture to a buffer
     width: u32,
     height: u32,
-    bytes_per_pixel: u8,
+    bytes_per_pixel: u32,
     // Texture format
     tex_format: wgpu::TextureFormat,
 }
@@ -24,7 +25,7 @@ impl TakeScreenshot {
         blit_layout: &blit::BlitLayout,
         sampler: &wgpu::Sampler,
         // Used to determine the resolution and texture format
-        sc_desc: &wgpu::SwapChainDescriptor,
+        surface_config: &wgpu::SurfaceConfiguration,
         // Function that is given the image after downloading it from the GPU
         // This is executed in a background thread
         screenshot_fn: ScreenshotFn,
@@ -32,22 +33,23 @@ impl TakeScreenshot {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("screenshot tex"),
             size: wgpu::Extent3d {
-                width: sc_desc.width,
-                height: sc_desc.height,
+                width: surface_config.width,
+                height: surface_config.height,
                 depth_or_array_layers: 1,
             },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: sc_desc.format,
-            usage: wgpu::TextureUsage::COPY_SRC
-                | wgpu::TextureUsage::SAMPLED
-                | wgpu::TextureUsage::RENDER_ATTACHMENT,
+            format: surface_config.format,
+            usage: wgpu::TextureUsages::COPY_SRC
+                | wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor {
             label: Some("screenshot tex view"),
-            format: Some(sc_desc.format),
+            format: Some(surface_config.format),
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
@@ -58,13 +60,13 @@ impl TakeScreenshot {
 
         let bind_group = blit_layout.bind(device, &view, sampler);
 
-        let bytes_per_pixel = sc_desc.format.describe().block_size;
-        let padded_bytes_per_row = padded_bytes_per_row(sc_desc.width, bytes_per_pixel);
+        let bytes_per_pixel = surface_config.format.block_size(None).unwrap();
+        let padded_bytes_per_row = padded_bytes_per_row(surface_config.width, bytes_per_pixel);
 
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("screenshot download buffer"),
-            size: (padded_bytes_per_row * sc_desc.height) as u64,
-            usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ,
+            size: (padded_bytes_per_row * surface_config.height) as u64,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
             mapped_at_creation: false,
         });
 
@@ -74,10 +76,10 @@ impl TakeScreenshot {
             view,
             buffer,
             screenshot_fn,
-            width: sc_desc.width,
-            height: sc_desc.height,
+            width: surface_config.width,
+            height: surface_config.height,
             bytes_per_pixel,
-            tex_format: sc_desc.format,
+            tex_format: surface_config.format,
         }
     }
 
@@ -104,12 +106,13 @@ impl TakeScreenshot {
                 texture: &self.texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
             },
             wgpu::ImageCopyBuffer {
                 buffer: &self.buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: core::num::NonZeroU32::new(padded_bytes_per_row),
+                    bytes_per_row: Some(padded_bytes_per_row),
                     rows_per_image: None,
                 },
             },
@@ -121,8 +124,9 @@ impl TakeScreenshot {
         );
 
         move || {
-            // Send buffer to another thread for async mapping, downloading, and passing to
-            // the given handler function (which probably saves it to the disk)
+            // Send buffer to another thread for async
+            // mapping, downloading, and passing to the given handler function
+            // (which probably saves it to the disk)
             std::thread::Builder::new()
                 .name("screenshot".into())
                 .spawn(move || {
@@ -132,26 +136,35 @@ impl TakeScreenshot {
         }
     }
 
+    /// Don't call this from the main loop, it will block for a while
     fn download_and_handle_internal(self) {
         prof_span!("download_and_handle_internal");
         // Calculate padded bytes per row
         let padded_bytes_per_row = padded_bytes_per_row(self.width, self.bytes_per_pixel);
-        let singlethread_rt = match tokio::runtime::Builder::new_current_thread().build() {
-            Ok(rt) => rt,
-            Err(err) => {
-                error!(?err, "Could not create tokio runtime");
+
+        // Map buffer
+        let buffer = std::sync::Arc::new(self.buffer);
+        let buffer2 = std::sync::Arc::clone(&buffer);
+        let buffer_slice = buffer.slice(..);
+        let (map_result_sender, map_result_receiver) = crossbeam_channel::bounded(1);
+        buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+            map_result_sender
+                .send(result)
+                .expect("seems like the receiver broke, which should not happen");
+        });
+        let result = match map_result_receiver.recv() {
+            Ok(result) => result,
+            Err(e) => {
+                error!(
+                    ?e,
+                    "map_async never send the result for the screenshot mapping"
+                );
                 return;
             },
         };
-
-        // Map buffer
-        let buffer_slice = self.buffer.slice(..);
-        let buffer_map_future = buffer_slice.map_async(wgpu::MapMode::Read);
         let padded_buffer;
-
-        // Wait on buffer mapping
-        let rows = match singlethread_rt.block_on(buffer_map_future) {
-            // Buffer is mapped and we can read it
+        let buffer_slice = buffer2.slice(..);
+        let rows = match result {
             Ok(()) => {
                 // Copy to a Vec
                 padded_buffer = buffer_slice.get_mapped_range();
@@ -220,16 +233,15 @@ impl TakeScreenshot {
                 "Failed to create ImageBuffer! Buffer was not large enough. This should not occur",
             )
         });
-
         // Call supplied handler
         (self.screenshot_fn)(image);
     }
 }
 
 // Graphics API requires a specific alignment for buffer copies
-fn padded_bytes_per_row(width: u32, bytes_per_pixel: u8) -> u32 {
+fn padded_bytes_per_row(width: u32, bytes_per_pixel: u32) -> u32 {
     let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
-    let unpadded_bytes_per_row = width * bytes_per_pixel as u32;
+    let unpadded_bytes_per_row = width * bytes_per_pixel;
     let padding = (align - unpadded_bytes_per_row % align) % align;
     unpadded_bytes_per_row + padding
 }

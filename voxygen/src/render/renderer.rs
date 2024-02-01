@@ -28,14 +28,12 @@ use super::{
         terrain, ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
-    AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode, ShadowMapMode,
-    ShadowMode, Vertex,
+    AddressMode, FilterMode, OtherModes, PipelineModes, PresentMode, RenderError, RenderMode,
+    ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle, ReloadWatcher};
 use common_base::span;
 use core::convert::TryFrom;
-#[cfg(feature = "egui-ui")]
-use egui_wgpu_backend::wgpu::TextureFormat;
 use std::sync::Arc;
 use tracing::{error, info, warn};
 use vek::*;
@@ -138,8 +136,7 @@ pub struct Renderer {
     device: Arc<wgpu::Device>,
     queue: wgpu::Queue,
     surface: wgpu::Surface,
-    swap_chain: wgpu::SwapChain,
-    sc_desc: wgpu::SwapChainDescriptor,
+    surface_config: wgpu::SurfaceConfiguration,
 
     sampler: wgpu::Sampler,
     depth_sampler: wgpu::Sampler,
@@ -184,6 +181,14 @@ pub struct Renderer {
 
     // To remember the backend info after initialization for debug purposes
     graphics_backend: String,
+
+    /// The texture format used for the intermediate rendering passes
+    intermediate_format: wgpu::TextureFormat,
+
+    /// Supported present modes.
+    present_modes: Vec<PresentMode>,
+    /// Cached max texture size.
+    max_texture_size: u32,
 }
 
 impl Renderer {
@@ -204,34 +209,39 @@ impl Renderer {
 
         // TODO: fix panic on wayland with opengl?
         // TODO: fix backend defaulting to opengl on wayland.
-        let backend_bit = std::env::var("WGPU_BACKEND")
+        let backends = std::env::var("WGPU_BACKEND")
             .ok()
             .and_then(|backend| match backend.to_lowercase().as_str() {
-                "vulkan" => Some(wgpu::BackendBit::VULKAN),
-                "metal" => Some(wgpu::BackendBit::METAL),
-                "dx12" => Some(wgpu::BackendBit::DX12),
-                "primary" => Some(wgpu::BackendBit::PRIMARY),
-                "opengl" | "gl" => Some(wgpu::BackendBit::GL),
-                "dx11" => Some(wgpu::BackendBit::DX11),
-                "secondary" => Some(wgpu::BackendBit::SECONDARY),
-                "all" => Some(wgpu::BackendBit::all()),
+                "vulkan" | "vk" => Some(wgpu::Backends::VULKAN),
+                "metal" => Some(wgpu::Backends::METAL),
+                "dx12" => Some(wgpu::Backends::DX12),
+                "primary" => Some(wgpu::Backends::PRIMARY),
+                "opengl" | "gl" => Some(wgpu::Backends::GL),
+                "dx11" => Some(wgpu::Backends::DX11),
+                "secondary" => Some(wgpu::Backends::SECONDARY),
+                "all" => Some(wgpu::Backends::all()),
                 _ => None,
             })
-            .unwrap_or(
-                (wgpu::BackendBit::PRIMARY | wgpu::BackendBit::SECONDARY) & !wgpu::BackendBit::GL,
-            );
+            .unwrap_or(wgpu::Backends::PRIMARY | wgpu::Backends::SECONDARY);
 
-        let instance = wgpu::Instance::new(backend_bit);
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends,
+            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
+            gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
+            // TODO: Look into what we want here.
+            flags: wgpu::InstanceFlags::from_build_config().with_env(),
+        });
 
         let dims = window.inner_size();
 
         // This is unsafe because the window handle must be valid, if you find a way to
         // have an invalid winit::Window then you have bigger issues
         #[allow(unsafe_code)]
-        let surface = unsafe { instance.create_surface(window) };
+        let surface =
+            unsafe { instance.create_surface(window) }.expect("Failed to create a surface");
 
         let adapters = instance
-            .enumerate_adapters(backend_bit)
+            .enumerate_adapters(backends)
             .enumerate()
             .collect::<Vec<_>>();
 
@@ -259,6 +269,7 @@ impl Renderer {
                 runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
                     power_preference: wgpu::PowerPreference::HighPerformance,
                     compatible_surface: Some(&surface),
+                    force_fallback_adapter: false,
                 }))
             },
         }
@@ -310,10 +321,10 @@ impl Renderer {
             &wgpu::DeviceDescriptor {
                 // TODO
                 label: None,
-                features: wgpu::Features::DEPTH_CLAMPING
+                features: wgpu::Features::DEPTH_CLIP_CONTROL
                     | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
                     | wgpu::Features::PUSH_CONSTANTS
-                    | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
+                    | (adapter.features() & wgpu_profiler::GpuProfiler::ALL_WGPU_TIMER_FEATURES),
                 limits,
             },
             trace_path,
@@ -322,17 +333,17 @@ impl Renderer {
         // Set error handler for wgpu errors
         // This is better for use than their default because it includes the error in
         // the panic message
-        device.on_uncaptured_error(move |error| {
+        device.on_uncaptured_error(Box::new(move |error| {
             error!("{}", &error);
             panic!(
                 "wgpu error (handling all wgpu errors as fatal):\n{:?}\n{:?}",
                 &error, &info,
             );
-        });
+        }));
 
         let profiler_features_enabled = device
             .features()
-            .contains(wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES);
+            .intersects(wgpu_profiler::GpuProfiler::ALL_WGPU_TIMER_FEATURES);
         if !profiler_features_enabled {
             info!(
                 "The features for GPU profiling (timestamp queries) are not available on this \
@@ -340,37 +351,84 @@ impl Renderer {
             );
         }
 
-        let format = adapter
-            .get_swap_chain_preferred_format(&surface)
-            .expect("No supported swap chain format found");
-        info!("Using {:?} as the swapchain format", format);
+        let max_texture_size = device.limits().max_texture_dimension_2d;
 
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+        let surface_capabilities = surface.get_capabilities(&adapter);
+        let format = surface_capabilities.formats[0];
+        info!("Using {:?} as the surface format", format);
+
+        let present_mode = other_modes.present_mode.into();
+        let surface_config = wgpu::SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format,
             width: dims.width,
             height: dims.height,
-            present_mode: other_modes.present_mode.into(),
+            present_mode: if surface_capabilities.present_modes.contains(&present_mode) {
+                present_mode
+            } else {
+                *surface_capabilities
+                    .present_modes
+                    .iter()
+                    .find(|mode| PresentMode::try_from(**mode).is_ok())
+                    .expect("There should never be no supported present modes")
+            },
+            alpha_mode: wgpu::CompositeAlphaMode::Opaque,
+            view_formats: Vec::new(),
         };
 
-        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        let supported_internal_formats = [wgpu::TextureFormat::Rgba16Float, format];
+        let intermediate_format = supported_internal_formats
+            .into_iter()
+            .find(|format| {
+                use wgpu::TextureUsages as Usages;
+                use wgpu::TextureFormatFeatureFlags as Flags;
+                use super::AaMode;
+
+                let features = adapter
+                    .get_texture_format_features(*format);
+
+                let usage_ok = features
+                    .allowed_usages
+                    .contains(Usages::RENDER_ATTACHMENT | Usages::COPY_SRC | Usages::TEXTURE_BINDING);
+
+                let msaa_flags = match pipeline_modes.aa {
+                    AaMode::None | AaMode::Fxaa | AaMode::Hqx | AaMode::FxUpscale | AaMode::Bilinear => Flags::empty(),
+                    AaMode::MsaaX4 => Flags::MULTISAMPLE_X4,
+                    AaMode::MsaaX8 => Flags::MULTISAMPLE_X8,
+                    AaMode::MsaaX16 => Flags::MULTISAMPLE_X8, // TODO?
+                };
+
+                let flags_ok = features.flags.contains(Flags::FILTERABLE | msaa_flags);
+
+                usage_ok && flags_ok
+            })
+            // This should be unreachable as the surface format should always support the
+            // needed capabilities
+            .expect("No supported intermediate format");
+        info!("Using {:?} as the intermediate format", intermediate_format);
+
+        surface.configure(&device, &surface_config);
 
         let shadow_views = ShadowMap::create_shadow_views(
             &device,
             (dims.width, dims.height),
             &ShadowMapMode::try_from(pipeline_modes.shadow).unwrap_or_default(),
+            max_texture_size,
         )
         .map_err(|err| {
             warn!("Could not create shadow map views: {:?}", err);
         })
         .ok();
 
-        let rain_occlusion_view =
-            RainOcclusionMap::create_view(&device, &pipeline_modes.rain_occlusion)
-                .map_err(|err| {
-                    warn!("Could not create rain occlusion map views: {:?}", err);
-                })
-                .ok();
+        let rain_occlusion_view = RainOcclusionMap::create_view(
+            &device,
+            &pipeline_modes.rain_occlusion,
+            max_texture_size,
+        )
+        .map_err(|err| {
+            warn!("Could not create rain occlusion map views: {:?}", err);
+        })
+        .ok();
 
         let shaders = Shaders::load_expect("");
         let shaders_watcher = shaders.reload_watcher();
@@ -429,8 +487,9 @@ impl Renderer {
             },
             shaders.cloned(),
             pipeline_modes.clone(),
-            sc_desc.clone(), // Note: cheap clone
+            surface_config.clone(), // Note: cheap clone
             shadow_views.is_some(),
+            intermediate_format,
         )?;
 
         let state = State::Interface {
@@ -445,6 +504,7 @@ impl Renderer {
             (dims.width, dims.height),
             &pipeline_modes,
             &other_modes,
+            intermediate_format,
         );
 
         let create_sampler = |filter| {
@@ -501,21 +561,29 @@ impl Renderer {
             create_quad_index_buffer_u16(&device, QUAD_INDEX_BUFFER_U16_START_VERT_LEN as usize);
         let quad_index_buffer_u32 =
             create_quad_index_buffer_u32(&device, QUAD_INDEX_BUFFER_U32_START_VERT_LEN as usize);
-        let mut profiler = wgpu_profiler::GpuProfiler::new(4, queue.get_timestamp_period());
         other_modes.profiler_enabled &= profiler_features_enabled;
-        profiler.enable_timer = other_modes.profiler_enabled;
-        profiler.enable_debug_marker = other_modes.profiler_enabled;
+        let profiler = wgpu_profiler::GpuProfiler::new(wgpu_profiler::GpuProfilerSettings {
+            enable_timer_scopes: other_modes.profiler_enabled,
+            enable_debug_groups: other_modes.profiler_enabled,
+            max_num_pending_frames: 4,
+        })
+        .expect("Error creating profiler");
 
         #[cfg(feature = "egui-ui")]
-        let egui_renderpass =
-            egui_wgpu_backend::RenderPass::new(&device, TextureFormat::Bgra8UnormSrgb, 1);
+        let egui_renderpass = egui_wgpu_backend::RenderPass::new(&device, format, 1);
+
+        let present_modes = surface
+            .get_capabilities(&adapter)
+            .present_modes
+            .into_iter()
+            .filter_map(|present_mode| PresentMode::try_from(present_mode).ok())
+            .collect();
 
         Ok(Self {
             device,
             queue,
             surface,
-            swap_chain,
-            sc_desc,
+            surface_config,
 
             state,
             recreation_pending: None,
@@ -552,6 +620,11 @@ impl Renderer {
             is_minimized: false,
 
             graphics_backend,
+
+            intermediate_format,
+
+            present_modes,
+            max_texture_size,
         })
     }
 
@@ -587,8 +660,10 @@ impl Renderer {
         if self.other_modes != other_modes {
             self.other_modes = other_modes;
 
-            // Update present mode in swap chain descriptor
-            self.sc_desc.present_mode = self.other_modes.present_mode.into();
+            // Update present mode in swap chain descriptor if it is supported.
+            if self.present_modes.contains(&self.other_modes.present_mode) {
+                self.surface_config.present_mode = self.other_modes.present_mode.into()
+            }
 
             // Only enable profiling if the wgpu features are enabled
             self.other_modes.profiler_enabled &= self.profiler_features_enabled;
@@ -597,8 +672,13 @@ impl Renderer {
                 // Clear the times if disabled
                 core::mem::take(&mut self.profile_times);
             }
-            self.profiler.enable_timer = self.other_modes.profiler_enabled;
-            self.profiler.enable_debug_marker = self.other_modes.profiler_enabled;
+            self.profiler
+                .change_settings(wgpu_profiler::GpuProfilerSettings {
+                    enable_timer_scopes: self.other_modes.profiler_enabled,
+                    enable_debug_groups: self.other_modes.profiler_enabled,
+                    max_num_pending_frames: 4,
+                })
+                .expect("Error creating profiler");
 
             // Recreate render target
             self.on_resize(self.resolution);
@@ -622,6 +702,9 @@ impl Renderer {
 
     /// Get the pipelines mode.
     pub fn pipeline_modes(&self) -> &PipelineModes { &self.pipeline_modes }
+
+    /// Get the supported present modes.
+    pub fn present_modes(&self) -> &[PresentMode] { &self.present_modes }
 
     /// Get the current profiling times
     /// Nested timings immediately follow their parent
@@ -657,9 +740,9 @@ impl Renderer {
             self.is_minimized = false;
             // Resize swap chain
             self.resolution = dims;
-            self.sc_desc.width = dims.x;
-            self.sc_desc.height = dims.y;
-            self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+            self.surface_config.width = dims.x;
+            self.surface_config.height = dims.y;
+            self.surface.configure(&self.device, &self.surface_config);
 
             // Resize other render targets
             let (views, bloom_sizes) = Self::create_rt_views(
@@ -667,6 +750,7 @@ impl Renderer {
                 (dims.x, dims.y),
                 &self.pipeline_modes,
                 &self.other_modes,
+                self.intermediate_format,
             );
             self.views = views;
 
@@ -734,7 +818,12 @@ impl Renderer {
             if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
                 (shadow_views, self.pipeline_modes.shadow)
             {
-                match ShadowMap::create_shadow_views(&self.device, (dims.x, dims.y), &mode) {
+                match ShadowMap::create_shadow_views(
+                    &self.device,
+                    (dims.x, dims.y),
+                    &mode,
+                    self.max_texture_size,
+                ) {
                     Ok((new_point_depth, new_directed_depth)) => {
                         *point_depth = new_point_depth;
                         *directed_depth = new_directed_depth;
@@ -750,6 +839,7 @@ impl Renderer {
                 match RainOcclusionMap::create_view(
                     &self.device,
                     &self.pipeline_modes.rain_occlusion,
+                    self.max_texture_size,
                 ) {
                     Ok(new_rain_depth) => {
                         *rain_depth = new_rain_depth;
@@ -792,7 +882,7 @@ impl Renderer {
             self.queue.submit(std::iter::empty());
         }
 
-        self.device.poll(wgpu::Maintain::Poll)
+        self.device.poll(wgpu::Maintain::Poll);
     }
 
     /// Create render target views
@@ -801,6 +891,7 @@ impl Renderer {
         size: (u32, u32),
         pipeline_modes: &PipelineModes,
         other_modes: &OtherModes,
+        format: wgpu::TextureFormat,
     ) -> (Views, [Vec2<f32>; bloom::NUM_SIZES]) {
         let upscaled = Vec2::<u32>::from(size)
             .map(|e| (e as f32 * other_modes.upscale_mode.factor) as u32)
@@ -821,7 +912,9 @@ impl Renderer {
                 sample_count,
                 dimension: wgpu::TextureDimension::D2,
                 format,
-                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING
+                    | wgpu::TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[],
             });
 
             tex.create_view(&wgpu::TextureViewDescriptor {
@@ -837,8 +930,8 @@ impl Renderer {
             })
         };
 
-        let tgt_color_view = color_view(width, height, wgpu::TextureFormat::Rgba16Float);
-        let tgt_color_pp_view = color_view(width, height, wgpu::TextureFormat::Rgba16Float);
+        let tgt_color_view = color_view(width, height, format);
+        let tgt_color_pp_view = color_view(width, height, format);
 
         let tgt_mat_view = color_view(width, height, wgpu::TextureFormat::Rgba8Uint);
 
@@ -851,9 +944,10 @@ impl Renderer {
             size
         });
 
-        let bloom_tgt_views = pipeline_modes.bloom.is_on().then(|| {
-            bloom_sizes.map(|size| color_view(size.x, size.y, wgpu::TextureFormat::Rgba16Float))
-        });
+        let bloom_tgt_views = pipeline_modes
+            .bloom
+            .is_on()
+            .then(|| bloom_sizes.map(|size| color_view(size.x, size.y, format)));
 
         let tgt_depth_tex = device.create_texture(&wgpu::TextureDescriptor {
             label: None,
@@ -866,7 +960,8 @@ impl Renderer {
             sample_count,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
         });
         let tgt_depth_view = tgt_depth_tex.create_view(&wgpu::TextureViewDescriptor {
             label: None,
@@ -890,7 +985,8 @@ impl Renderer {
             sample_count,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
         });
         // TODO: Consider no depth buffer for the final draw to the window?
         let win_depth_view = win_depth_tex.create_view(&wgpu::TextureViewDescriptor {
@@ -990,7 +1086,8 @@ impl Renderer {
         // Try to get the latest profiling results
         if self.other_modes.profiler_enabled {
             // Note: this lags a few frames behind
-            if let Some(profile_times) = self.profiler.process_finished_frame() {
+            let timestamp_period = self.queue.get_timestamp_period();
+            if let Some(profile_times) = self.profiler.process_finished_frame(timestamp_period) {
                 self.profile_times = profile_times;
             }
         }
@@ -1168,26 +1265,26 @@ impl Renderer {
             }
         }
 
-        let tex = match self.swap_chain.get_current_frame() {
-            Ok(frame) => frame.output,
+        let texture = match self.surface.get_current_texture() {
+            Ok(texture) => texture,
             // If lost recreate the swap chain
-            Err(err @ wgpu::SwapChainError::Lost) => {
+            Err(err @ wgpu::SurfaceError::Lost) => {
                 warn!("{}. Recreating swap chain. A frame will be missed", err);
                 self.on_resize(self.resolution);
                 return Ok(None);
             },
-            Err(wgpu::SwapChainError::Timeout) => {
+            Err(wgpu::SurfaceError::Timeout) => {
                 // This will probably be resolved on the next frame
                 // NOTE: we don't log this because it happens very frequently with
                 // PresentMode::Fifo and unlimited FPS on certain machines
                 return Ok(None);
             },
-            Err(err @ wgpu::SwapChainError::Outdated) => {
+            Err(err @ wgpu::SurfaceError::Outdated) => {
                 warn!("{}. Recreating the swapchain", err);
-                self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+                self.surface.configure(&self.device, &self.surface_config);
                 return Ok(None);
             },
-            Err(err @ wgpu::SwapChainError::OutOfMemory) => return Err(err.into()),
+            Err(err @ wgpu::SurfaceError::OutOfMemory) => return Err(err.into()),
         };
         let encoder = self
             .device
@@ -1195,7 +1292,7 @@ impl Renderer {
                 label: Some("A render encoder"),
             });
 
-        Ok(Some(drawer::Drawer::new(encoder, self, tex, globals)))
+        Ok(Some(drawer::Drawer::new(encoder, self, texture, globals)))
     }
 
     /// Recreate the pipelines
@@ -1220,8 +1317,9 @@ impl Renderer {
                         // needs to become a part of the pipeline modes
                         // (note here since the present mode is accessible
                         // through the swap chain descriptor)
-                        self.sc_desc.clone(), // Note: cheap clone
+                        self.surface_config.clone(), // Note: cheap clone
                         shadow.map.is_enabled(),
+                        self.intermediate_format,
                     ),
                 ));
             },
@@ -1338,14 +1436,7 @@ impl Renderer {
     }
 
     /// Return the maximum supported texture size.
-    pub fn max_texture_size(&self) -> u32 { Self::max_texture_size_raw(&self.device) }
-
-    /// Return the maximum supported texture size from the factory.
-    fn max_texture_size_raw(_device: &wgpu::Device) -> u32 {
-        // This value is temporary as there are plans to include a way to get this in
-        // wgpu this is just a sane standard for now
-        8192
-    }
+    pub fn max_texture_size(&self) -> u32 { self.max_texture_size }
 
     /// Create a new immutable texture from the provided image.
     /// # Panics
@@ -1361,7 +1452,7 @@ impl Renderer {
         let tex = Texture::new_raw(&self.device, texture_info, view_info, sampler_info);
 
         let size = texture_info.size;
-        let block_size = texture_info.format.describe().block_size;
+        let block_size = texture_info.format.block_size(None).unwrap();
         assert_eq!(
             size.width as usize
                 * size.height as usize
@@ -1536,7 +1627,7 @@ fn create_quad_index_buffer_u16(device: &wgpu::Device, vert_length: usize) -> Bu
         .map(|(i, b)| (i / 6 * 4 + b) as u16)
         .collect::<Vec<_>>();
 
-    Buffer::new(device, wgpu::BufferUsage::INDEX, &indices)
+    Buffer::new(device, wgpu::BufferUsages::INDEX, &indices)
 }
 
 fn create_quad_index_buffer_u32(device: &wgpu::Device, vert_length: usize) -> Buffer<u32> {
@@ -1550,7 +1641,7 @@ fn create_quad_index_buffer_u32(device: &wgpu::Device, vert_length: usize) -> Bu
         .map(|(i, b)| (i / 6 * 4 + b) as u32)
         .collect::<Vec<_>>();
 
-    Buffer::new(device, wgpu::BufferUsage::INDEX, &indices)
+    Buffer::new(device, wgpu::BufferUsages::INDEX, &indices)
 }
 
 /// Terrain-related buffers segment themselves by depth to allow us to do

@@ -53,7 +53,7 @@ impl RainOcclusionLayout {
                 label: None,
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
@@ -118,7 +118,7 @@ impl RainOcclusionFigurePipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                clamp_depth: true,
+                unclipped_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -129,8 +129,8 @@ impl RainOcclusionFigurePipeline {
                 stencil: wgpu::StencilState {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
-                    read_mask: !0,
-                    write_mask: !0,
+                    read_mask: 0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -144,6 +144,7 @@ impl RainOcclusionFigurePipeline {
                 alpha_to_coverage_enabled: false,
             },
             fragment: None,
+            multiview: None,
         });
 
         Self {
@@ -186,7 +187,7 @@ impl RainOcclusionPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: None,
-                clamp_depth: true,
+                unclipped_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -197,8 +198,8 @@ impl RainOcclusionPipeline {
                 stencil: wgpu::StencilState {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
-                    read_mask: !0,
-                    write_mask: !0,
+                    read_mask: 0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -212,6 +213,7 @@ impl RainOcclusionPipeline {
                 alpha_to_coverage_enabled: false,
             },
             fragment: None,
+            multiview: None,
         });
 
         Self {

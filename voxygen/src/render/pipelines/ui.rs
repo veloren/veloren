@@ -1,6 +1,5 @@
 use super::super::{Bound, Consts, GlobalsLayouts, Quad, Texture, Tri, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
-use core::num::NonZeroU32;
 use std::mem;
 use vek::*;
 
@@ -34,7 +33,7 @@ impl Vertex {
         ];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &ATTRIBUTES,
         }
     }
@@ -156,7 +155,7 @@ impl UiLayout {
                     // locals
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -172,7 +171,7 @@ impl UiLayout {
                     // texture
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                         ty: wgpu::BindingType::Texture {
                             sample_type: wgpu::TextureSampleType::Float { filterable: true },
                             view_dimension: wgpu::TextureViewDimension::D2,
@@ -182,17 +181,14 @@ impl UiLayout {
                     },
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler {
-                            filtering: true,
-                            comparison: false,
-                        },
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                         count: None,
                     },
                     // tex_locals
                     wgpu::BindGroupLayoutEntry {
                         binding: 2,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -259,7 +255,7 @@ impl UiPipeline {
         device: &wgpu::Device,
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
-        sc_desc: &wgpu::SwapChainDescriptor,
+        surface_config: &wgpu::SurfaceConfiguration,
         global_layout: &GlobalsLayouts,
         layout: &UiLayout,
     ) -> Self {
@@ -283,7 +279,7 @@ impl UiPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                clamp_depth: false,
+                unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -296,8 +292,8 @@ impl UiPipeline {
             fragment: Some(wgpu::FragmentState {
                 module: fs_module,
                 entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
-                    format: sc_desc.format,
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: surface_config.format,
                     blend: Some(wgpu::BlendState {
                         color: wgpu::BlendComponent {
                             src_factor: wgpu::BlendFactor::SrcAlpha,
@@ -310,9 +306,10 @@ impl UiPipeline {
                             operation: wgpu::BlendOperation::Add,
                         },
                     }),
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
             }),
+            multiview: None,
         });
 
         Self {
@@ -463,7 +460,7 @@ impl PremultiplyAlphaLayout {
                     // source_texture
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
                             sample_type: wgpu::TextureSampleType::Float { filterable: false },
                             view_dimension: wgpu::TextureViewDimension::D2,
@@ -492,7 +489,7 @@ impl PremultiplyAlphaPipeline {
             label: Some("Premultiply alpha pipeline layout"),
             bind_group_layouts: &[&layout.source_texture],
             push_constant_ranges: &[wgpu::PushConstantRange {
-                stages: wgpu::ShaderStage::VERTEX,
+                stages: wgpu::ShaderStages::VERTEX,
                 range: 0..core::mem::size_of::<PremultiplyAlphaParams>() as u32,
             }],
         });
@@ -510,7 +507,7 @@ impl PremultiplyAlphaPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                clamp_depth: false,
+                unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -519,12 +516,13 @@ impl PremultiplyAlphaPipeline {
             fragment: Some(wgpu::FragmentState {
                 module: fs_module,
                 entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
+                targets: &[Some(wgpu::ColorTargetState {
                     format: UI_IMAGE_FORMAT,
                     blend: None,
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
             }),
+            multiview: None,
         });
 
         Self { pipeline }
@@ -584,19 +582,21 @@ impl PremultiplyUpload {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
         });
         queue.write_texture(
             wgpu::ImageCopyTexture {
                 texture: &source_tex,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
             },
             &(&**image)[..(image.width() as usize * image.height() as usize * 4)],
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(image.width() * 4),
-                rows_per_image: NonZeroU32::new(image.height()),
+                bytes_per_row: Some(image.width() * 4),
+                rows_per_image: Some(image.height()),
             },
             image_size,
         );

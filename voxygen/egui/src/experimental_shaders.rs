@@ -1,8 +1,8 @@
 use crate::{EguiAction, EguiActions};
-use egui::{CtxRef, Vec2, Window};
+use egui::{Context, Vec2, Window};
 
 pub fn draw_experimental_shaders_window(
-    ctx: &CtxRef,
+    ctx: &Context,
     open: &mut bool,
     egui_actions: &mut EguiActions,
     experimental_shaders: &[(String, bool)],

@@ -180,6 +180,8 @@
                 libxkbcommon
                 udev
                 xorg.libxcb
+
+                fontconfig
               ];
               nativeBuildInputs = with pkgs; [
                 python3

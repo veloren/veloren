@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed "Burning Potion" to "Potion of Combustion"
 - Render LoD terrain on the character selection screen
 - Camera no longer jumps on first mouse event after cursor grab is released on macos
+- Updated wgpu. Now supports OpenGL. Dx11 no longer supported.
 
 ### Removed
 - Medium and large potions from all loot tables

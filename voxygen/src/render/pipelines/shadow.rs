@@ -38,7 +38,7 @@ impl ShadowLayout {
                 label: None,
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
@@ -115,7 +115,7 @@ impl ShadowFigurePipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Front),
-                clamp_depth: true,
+                unclipped_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -127,7 +127,7 @@ impl ShadowFigurePipeline {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
                     read_mask: !0,
-                    write_mask: !0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -141,6 +141,7 @@ impl ShadowFigurePipeline {
                 alpha_to_coverage_enabled: false,
             },
             fragment: None,
+            multiview: None,
         });
 
         Self {
@@ -183,7 +184,7 @@ impl ShadowPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Front),
-                clamp_depth: true,
+                unclipped_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -195,7 +196,7 @@ impl ShadowPipeline {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
                     read_mask: !0,
-                    write_mask: !0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -209,6 +210,7 @@ impl ShadowPipeline {
                 alpha_to_coverage_enabled: false,
             },
             fragment: None,
+            multiview: None,
         });
 
         Self {
@@ -232,7 +234,7 @@ impl PointShadowPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Point shadow pipeline layout"),
                 push_constant_ranges: &[wgpu::PushConstantRange {
-                    stages: wgpu::ShaderStage::all(),
+                    stages: wgpu::ShaderStages::all(),
                     range: 0..64,
                 }],
                 bind_group_layouts: &[&global_layout.globals, &terrain_layout.locals],
@@ -253,7 +255,7 @@ impl PointShadowPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                clamp_depth: false,
+                unclipped_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -265,7 +267,7 @@ impl PointShadowPipeline {
                     front: wgpu::StencilFaceState::IGNORE,
                     back: wgpu::StencilFaceState::IGNORE,
                     read_mask: !0,
-                    write_mask: !0,
+                    write_mask: 0,
                 },
                 bias: wgpu::DepthBiasState {
                     constant: 0,
@@ -279,6 +281,7 @@ impl PointShadowPipeline {
                 alpha_to_coverage_enabled: false,
             },
             fragment: None,
+            multiview: None,
         });
 
         Self {
@@ -321,7 +324,7 @@ impl ShadowDebugPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Front),
-                clamp_depth: true,
+                unclipped_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -347,6 +350,7 @@ impl ShadowDebugPipeline {
                 alpha_to_coverage_enabled: false,
             },
             fragment: None,
+            multiview: None,
         });
 
         Self {

@@ -792,7 +792,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                         sample_count: 1,
                         dimension: wgpu::TextureDimension::D2,
                         format: fmt,
-                        usage: wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::SAMPLED,
+                        usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
+                        view_formats: &[],
                     },
                     &wgpu::TextureViewDescriptor {
                         label: Some("Terrain atlas texture view"),
@@ -805,7 +806,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         array_layer_count: None,
                     },
                     &wgpu::SamplerDescriptor {
-                        label: Some("Terrain atlas texture sampler"),
+                        label: Some("Terrain atlas sampler"),
                         address_mode_u: wgpu::AddressMode::ClampToEdge,
                         address_mode_v: wgpu::AddressMode::ClampToEdge,
                         address_mode_w: wgpu::AddressMode::ClampToEdge,

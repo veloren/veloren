@@ -1,6 +1,6 @@
 use crate::{AdminCommandState, EguiAction, EguiActions};
 use common::cmd::ServerChatCommand;
-use egui::{CollapsingHeader, CtxRef, Resize, Slider, Ui, Vec2, Window};
+use egui::{style::Margin, CollapsingHeader, Context, Resize, Slider, Ui, Vec2, Window};
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -25,7 +25,7 @@ lazy_static! {
 }
 
 pub fn draw_admin_commands_window(
-    ctx: &CtxRef,
+    ctx: &Context,
     state: &mut AdminCommandState,
     open: &mut bool,
     egui_actions: &mut EguiActions,
@@ -69,7 +69,7 @@ fn draw_kits(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut Egui
 }
 
 fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut EguiActions) {
-    ui.spacing_mut().window_padding = Vec2::new(10.0, 10.0);
+    ui.spacing_mut().window_margin = Margin::same(10.0);
     Resize::default()
         .default_size([400.0, 200.0])
         .show(ui, |ui| {
@@ -108,7 +108,7 @@ fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mu
         });
 }
 fn draw_spawn_entities(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut EguiActions) {
-    ui.spacing_mut().window_padding = Vec2::new(10.0, 10.0);
+    ui.spacing_mut().window_margin = Margin::same(10.0);
     Resize::default()
         .default_size([400.0, 200.0])
         .show(ui, |ui| {

@@ -1,9 +1,6 @@
 use crate::{render::pipelines::rain_occlusion, scene::terrain::RAIN_OCCLUSION_CHUNKS};
 
-use super::{
-    super::{texture::Texture, RenderError, ShadowMapMode},
-    Renderer,
-};
+use super::super::{texture::Texture, RenderError, ShadowMapMode};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
@@ -60,7 +57,9 @@ impl RainOcclusionMap {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Depth24Plus,
-                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING
+                    | wgpu::TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[],
             };
 
             let view = wgpu::TextureViewDescriptor {
@@ -101,10 +100,12 @@ impl RainOcclusionMap {
                 view: &tex.view,
                 depth_ops: Some(wgpu::Operations {
                     load: wgpu::LoadOp::Clear(1.0),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,
             }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
         });
 
         queue.submit(std::iter::once(encoder.finish()));
@@ -117,11 +118,11 @@ impl RainOcclusionMap {
     pub(super) fn create_view(
         device: &wgpu::Device,
         mode: &ShadowMapMode,
+        max_texture_size: u32,
     ) -> Result<Texture, RenderError> {
         // (Attempt to) apply resolution factor to rain occlusion map resolution.
         let resolution_factor = mode.resolution.clamped(0.25, 4.0);
 
-        let max_texture_size = Renderer::max_texture_size_raw(device);
         let size =
             (RAIN_OCCLUSION_CHUNKS as f32).sqrt().ceil() as u32 * TerrainChunkSize::RECT_SIZE * 2;
 
@@ -182,7 +183,8 @@ impl RainOcclusionMap {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
         };
 
         let rain_occlusion_view = wgpu::TextureViewDescriptor {

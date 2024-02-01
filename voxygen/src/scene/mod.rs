@@ -53,8 +53,9 @@ const ZOOM_CAP_ADMIN: f32 = 100000.0;
 // TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
 
-const MAX_LIGHT_COUNT: usize = 20; // 31 (total shadow_mats is limited to 128 with default max_uniform_buffer_binding_size)
-const MAX_SHADOW_COUNT: usize = 24;
+pub(crate) const MAX_LIGHT_COUNT: usize = 20; // 31 (total shadow_mats is limited to 128 with default max_uniform_buffer_binding_size)
+pub(crate) const MAX_SHADOW_COUNT: usize = 24;
+pub(crate) const MAX_POINT_LIGHT_MATRICES_COUNT: usize = MAX_LIGHT_COUNT * 6 + 6;
 const NUM_DIRECTED_LIGHTS: usize = 1;
 const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not emit light from their origin
 const SHADOW_DIST_RADIUS: f32 = 8.0;
@@ -304,7 +305,9 @@ impl Scene {
             shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
             rain_occlusion_mats: renderer
                 .create_rain_occlusion_bound_locals(&[RainOcclusionLocals::default()]),
-            point_light_matrices: Box::new([PointLightMatrix::default(); MAX_LIGHT_COUNT * 6 + 6]),
+            point_light_matrices: Box::new(
+                [PointLightMatrix::default(); MAX_POINT_LIGHT_MATRICES_COUNT],
+            ),
         };
 
         let lod = Lod::new(renderer, client, settings);

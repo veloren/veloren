@@ -1,5 +1,4 @@
 use super::RenderError;
-use core::num::NonZeroU32;
 use image::DynamicImage;
 use wgpu::Extent3d;
 
@@ -55,7 +54,8 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
         });
 
         queue.write_texture(
@@ -63,12 +63,13 @@ impl Texture {
                 texture: &tex,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
             },
             buffer.as_slice(),
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(image.width() * bytes_per_pixel),
-                rows_per_image: NonZeroU32::new(image.height()),
+                bytes_per_row: Some(image.width() * bytes_per_pixel),
+                rows_per_image: Some(image.height()),
             },
             Extent3d {
                 width: image.width(),
@@ -128,7 +129,8 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             // TODO: nondynamic version doesn't seeem to have different usage, unify code?
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
         };
 
         let sampler_info = wgpu::SamplerDescriptor {
@@ -184,7 +186,7 @@ impl Texture {
         let byte_len = size.width as usize
             * size.height as usize
             * size.depth_or_array_layers as usize
-            * self.format.describe().block_size as usize;
+            * self.format.block_size(None).unwrap() as usize;
         let zeros = vec![0; byte_len];
 
         self.update(queue, [0, 0], [size.width, size.height], &zeros);
@@ -193,7 +195,7 @@ impl Texture {
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
     pub fn update(&self, queue: &wgpu::Queue, offset: [u32; 2], size: [u32; 2], data: &[u8]) {
-        let bytes_per_pixel = self.format.describe().block_size as u32;
+        let bytes_per_pixel = self.format.block_size(None).unwrap();
 
         debug_assert_eq!(
             data.len(),
@@ -209,12 +211,13 @@ impl Texture {
                     y: offset[1],
                     z: 0,
                 },
+                aspect: wgpu::TextureAspect::All,
             },
             data,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(size[0] * bytes_per_pixel),
-                rows_per_image: NonZeroU32::new(size[1]),
+                bytes_per_row: Some(size[0] * bytes_per_pixel),
+                rows_per_image: Some(size[1]),
             },
             Extent3d {
                 width: size[0],
