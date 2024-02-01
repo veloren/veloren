@@ -13,6 +13,7 @@ use common::{
     vol::ReadVol,
 };
 use common_base::span;
+use common_systems::phys::closest_points_ls3;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Target<T> {
@@ -305,12 +306,7 @@ pub(super) fn ray_entities(
                             start: world_p0,
                             end: world_p1,
                         };
-                        closest_line_seg_line_seg(
-                            seg_ray.start,
-                            seg_ray.end,
-                            seg_capsule.start,
-                            seg_capsule.end,
-                        )
+                        closest_points_ls3(seg_ray, seg_capsule)
                     } else {
                         let nearest = seg_ray.projected_point(world_p0);
                         (nearest, world_p0)
@@ -337,49 +333,4 @@ pub(super) fn ray_entities(
     });
 
     entity
-}
-
-// Get closest point between 2 line segments https://math.stackexchange.com/a/4289668
-fn closest_line_seg_line_seg(
-    p1: Vec3<f32>,
-    p2: Vec3<f32>,
-    p3: Vec3<f32>,
-    p4: Vec3<f32>,
-) -> (Vec3<f32>, Vec3<f32>) {
-    let p1 = Vec3::new(p1.x as f64, p1.y as f64, p1.z as f64);
-    let p2 = Vec3::new(p2.x as f64, p2.y as f64, p2.z as f64);
-    let p3 = Vec3::new(p3.x as f64, p3.y as f64, p3.z as f64);
-    let p4 = Vec3::new(p4.x as f64, p4.y as f64, p4.z as f64);
-
-    let d1 = p2 - p1;
-    let d2 = p4 - p3;
-    let d21 = p3 - p1;
-
-    let v22 = d2.dot(d2);
-    let v11 = d1.dot(d1);
-    let v21 = d2.dot(d1);
-    let v21_1 = d21.dot(d1);
-    let v21_2 = d21.dot(d2);
-
-    let denom = v21 * v21 - v22 * v11;
-
-    let (s, t) = if denom == 0.0 {
-        let s = 0.0;
-        let t = (v11 * s - v21_1) / v21;
-        (s, t)
-    } else {
-        let s = (v21_2 * v21 - v22 * v21_1) / denom;
-        let t = (-v21_1 * v21 + v11 * v21_2) / denom;
-        (s, t)
-    };
-
-    let (s, t) = (s.clamp(0.0, 1.0), t.clamp(0.0, 1.0));
-
-    let p_a = p1 + s * d1;
-    let p_b = p3 + t * d2;
-
-    (
-        Vec3::new(p_a.x as f32, p_a.y as f32, p_a.z as f32),
-        Vec3::new(p_b.x as f32, p_b.y as f32, p_b.z as f32),
-    )
 }
