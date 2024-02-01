@@ -310,6 +310,7 @@ pub enum ServerChatCommand {
     Adminify,
     Airship,
     Alias,
+    Alignment,
     AreaAdd,
     AreaList,
     AreaRemove,
@@ -429,6 +430,25 @@ impl ServerChatCommand {
             ServerChatCommand::Alias => cmd(
                 vec![Any("name", Required)],
                 "Change your alias",
+                Some(Moderator),
+            ),
+            ServerChatCommand::Alignment => cmd(
+                vec![
+                    Enum(
+                        "alignment",
+                        vec![
+                            "wild".to_owned(),
+                            "enemy".to_owned(),
+                            "npc".to_owned(),
+                            "tame".to_owned(),
+                            "owned".to_owned(),
+                            "passive".to_owned(),
+                        ],
+                        Required,
+                    ),
+                    Boolean("+group", "true".to_string(), Optional),
+                ],
+                "Change your alignment",
                 Some(Moderator),
             ),
             ServerChatCommand::Buff => cmd(
@@ -956,6 +976,7 @@ impl ServerChatCommand {
             ServerChatCommand::Adminify => "adminify",
             ServerChatCommand::Airship => "airship",
             ServerChatCommand::Alias => "alias",
+            ServerChatCommand::Alignment => "alignment",
             ServerChatCommand::Ban => "ban",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",

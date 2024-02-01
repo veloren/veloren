@@ -127,6 +127,7 @@ fn do_command(
         ServerChatCommand::Adminify => handle_adminify,
         ServerChatCommand::Airship => handle_spawn_airship,
         ServerChatCommand::Alias => handle_alias,
+        ServerChatCommand::Alignment => handle_alignment,
         ServerChatCommand::Ban => handle_ban,
         ServerChatCommand::BattleMode => handle_battlemode,
         ServerChatCommand::BattleModeForce => handle_battlemode_force,
@@ -615,6 +616,59 @@ fn handle_make_block(
     }
 }
 
+fn handle_alignment(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let (Some(alignment_spec), and_group) = parse_cmd_args!(args, String, bool) else {
+        return Err(Content::Plain(action.help_string()));
+    };
+    let and_group = and_group.is_some_and(|flag| flag);
+
+    let alignment = match alignment_spec.as_str() {
+        "wild" => Alignment::Wild,
+        "enemy" => Alignment::Enemy,
+        "npc" => Alignment::Npc,
+        "tame" => Alignment::Tame,
+        "owned" => {
+            // Switch to Owned by client
+            //
+            // If client = target, you'll be owned by yourself, and treated as
+            // Player.
+            //
+            // If client != target, target will be your pet now.
+            let uid = uid(server, client, "client")?;
+
+            Alignment::Owned(uid)
+        },
+        "passive" => Alignment::Passive,
+        _ => return Err(Content::Plain(action.help_string())),
+    };
+
+    insert_or_replace_component(server, target, alignment, "player")?;
+
+    if and_group {
+        let npc_group = match alignment {
+            Alignment::Enemy => Some(comp::group::ENEMY),
+            Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
+            Alignment::Wild | Alignment::Passive | Alignment::Owned(_) => None,
+        };
+
+        // Set the group or remove it
+        if let Some(group) = npc_group {
+            insert_or_replace_component(server, target, group, "player")?;
+        } else {
+            let ecs = server.state.ecs();
+            ecs.write_storage::<comp::Group>().remove(target);
+        }
+    }
+
+    Ok(())
+}
+
 fn handle_be_npc(
     server: &mut Server,
     client: EcsEntity,
@@ -636,8 +690,8 @@ fn handle_be_npc(
     else {
         return Err(Content::Plain(action.help_string()));
     };
-    let and_alignment = and_alignment.is_some_and(|o| o);
-    let and_group = and_group.is_some_and(|o| o);
+    let and_alignment = and_alignment.is_some_and(|flag| flag);
+    let and_group = and_group.is_some_and(|flag| flag);
 
     let config = match EntityConfig::load(&entity_config) {
         Ok(asset) => asset.read(),
