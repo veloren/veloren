@@ -665,7 +665,6 @@ impl<'a> PhysicsData<'a> {
                 let surrounding_chunks_metas = NEIGHBOR_DELTA
                     .iter()
                     .map(move |&(x, y)| chunk_pos + Vec2::new(x, y))
-                    .filter(|pos| read.terrain.contains_key(*pos))
                     .filter_map(|cpos| read.terrain.get_key(cpos).map(|c| c.meta()))
                     .collect::<Vec<_>>();
 
@@ -756,7 +755,7 @@ impl<'a> PhysicsData<'a> {
                 wind_vel *= (1.0 - interp_tree_density).max(0.7); // probably 0. to 1. src: SiteKind::is_suitable_loc comparisons
 
                 // clamp magnitude, we never want to throw players around way too fast.
-                let magn = wind_vel.magnitude_squared() + 0.0001; // Hack: adding a tiny value so that its never div by zero.
+                let magn = wind_vel.magnitude_squared().max(0.0001);
                 wind_vel *= magn.min(600.) / magn; // 600 here is compared to squared ~ 25. this limits the magnitude of the wind.
                 phys.in_fluid = phys.in_fluid.map(|f| match f {
                     Fluid::Air { elevation, .. } => Fluid::Air {
