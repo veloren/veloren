@@ -1351,11 +1351,24 @@ impl PlayState for SessionState {
                         self.walk_forward_dir = self.scene.camera().forward_xy();
                         self.walk_right_dir = self.scene.camera().right_xy();
 
-                        let dir = if is_aiming {
-                            let client = self.client.borrow();
+                        let client = self.client.borrow();
+
+                        let holding_ranged = client
+                            .inventories()
+                            .get(player_entity)
+                            .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
+                            .and_then(|item| item.tool_info())
+                            .is_some_and(|tool_kind| {
+                                matches!(
+                                    tool_kind,
+                                    ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre
+                                )
+                            });
+
+                        let dir = if is_aiming && holding_ranged {
                             // Shoot ray from camera forward direction and get the point it hits an
                             // entity or terrain
-                            let ray_start = cam_pos + cam_dir * 2.0;
+                            let ray_start = cam_pos + cam_dir * self.scene.camera().get_distance();
                             let entity_ray_end = ray_start + cam_dir * 500.0;
                             let terrain_ray_end = ray_start + cam_dir * 1000.0;
 

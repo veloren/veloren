@@ -33,7 +33,10 @@ use crate::{
 use client::Client;
 use common::{
     calendar::Calendar,
-    comp::{self, ship::figuredata::VOXEL_COLLIDER_MANIFEST},
+    comp::{
+        self, item::ItemDesc, ship::figuredata::VOXEL_COLLIDER_MANIFEST, slot::EquipSlot,
+        tool::ToolKind,
+    },
     outcome::Outcome,
     resources::{DeltaTime, TimeScale},
     terrain::{BlockKind, TerrainChunk, TerrainGrid},
@@ -622,6 +625,19 @@ impl Scene {
                     .get(scene_data.viewpoint_entity)
                     .map(|p| p.on_ground.is_some());
 
+                let player_entity = client.entity();
+                let holding_ranged = client
+                    .inventories()
+                    .get(player_entity)
+                    .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
+                    .and_then(|item| item.tool_info())
+                    .is_some_and(|tool_kind| {
+                        matches!(
+                            tool_kind,
+                            ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre
+                        )
+                    });
+
                 let up = match self.camera.get_mode() {
                     CameraMode::FirstPerson => {
                         if viewpoint_rolling {
@@ -633,16 +649,17 @@ impl Scene {
                             viewpoint_eye_height
                         }
                     },
-                    CameraMode::ThirdPerson if scene_data.is_aiming => {
+                    CameraMode::ThirdPerson if scene_data.is_aiming && holding_ranged => {
                         viewpoint_height * 1.16 + settings.gameplay.aim_offset_y
                     },
+                    CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.16,
                     CameraMode::ThirdPerson => viewpoint_eye_height,
                     CameraMode::Freefly => 0.0,
                 };
 
                 let right = match self.camera.get_mode() {
                     CameraMode::FirstPerson => 0.0,
-                    CameraMode::ThirdPerson if scene_data.is_aiming => {
+                    CameraMode::ThirdPerson if scene_data.is_aiming && holding_ranged => {
                         settings.gameplay.aim_offset_x
                     },
                     CameraMode::ThirdPerson => 0.0,
