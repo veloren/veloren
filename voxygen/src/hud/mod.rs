@@ -270,6 +270,7 @@ widget_ids! {
         velocity,
         glide_ratio,
         glide_aoe,
+        air_vel,
         orientation,
         look_direction,
         loaded_distance,
@@ -2735,6 +2736,7 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.glide_ratio, ui_widgets);
+            // Glide Angle of Attack
             let glide_angle_text = angle_of_attack_text(
                 debug_info.in_fluid,
                 debug_info.velocity,
@@ -2746,6 +2748,14 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.glide_aoe, ui_widgets);
+            // Air velocity
+            let air_vel_text = air_velocity(debug_info.in_fluid);
+            Text::new(&air_vel_text)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.glide_aoe, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.air_vel, ui_widgets);
             // Player's orientation vector
             let orientation_text = match debug_info.ori {
                 Some(ori) => {
@@ -2759,7 +2769,7 @@ impl Hud {
             };
             Text::new(&orientation_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.glide_aoe, V_PAD)
+                .down_from(self.ids.air_vel, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.orientation, ui_widgets);
@@ -5384,6 +5394,17 @@ pub fn angle_of_attack_text(
         format!("Angle of Attack: {:.1}", aoe.to_degrees())
     } else {
         "Angle of Attack: Not moving".to_owned()
+    }
+}
+
+fn air_velocity(fluid: Option<comp::Fluid>) -> String {
+    if let Some(comp::Fluid::Air { vel: air_vel, .. }) = fluid {
+        format!(
+            "Air Velocity: ({:.1}, {:.1}, {:.1})",
+            air_vel.0.x, air_vel.0.y, air_vel.0.z
+        )
+    } else {
+        "Air Velocity: Not in Air".to_owned()
     }
 }
 
