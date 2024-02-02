@@ -449,7 +449,7 @@ impl ServerChatCommand {
                     Boolean("+group", "true".to_string(), Optional),
                 ],
                 "Change your alignment",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::Buff => cmd(
                 vec![
@@ -542,12 +542,12 @@ impl ServerChatCommand {
             ServerChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::DebugWays => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column's ways",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::DisconnectAllPlayers => cmd(
                 vec![Any("confirm", Required)],
@@ -557,7 +557,7 @@ impl ServerChatCommand {
             ServerChatCommand::DropAll => cmd(
                 vec![],
                 "Drops all your items on the ground",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", Some(Admin)),
             ServerChatCommand::Explosion => cmd(
@@ -858,18 +858,18 @@ impl ServerChatCommand {
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
                 "Teleport to an rtsim npc",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::RtsimInfo => cmd(
                 vec![Integer("npc index", 0, Required)],
                 "Display information about an rtsim NPC",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::RtsimNpc => cmd(
                 vec![Any("query", Required), Integer("max number", 20, Optional)],
                 "List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of \
                  distance",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::RtsimPurge => cmd(
                 vec![Boolean(
@@ -883,7 +883,7 @@ impl ServerChatCommand {
             ServerChatCommand::RtsimChunk => cmd(
                 vec![],
                 "Display information about the current chunk from rtsim",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::Unban => cmd(
                 vec![PlayerName(Required)],
