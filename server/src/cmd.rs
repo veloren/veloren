@@ -128,16 +128,15 @@ fn do_command(
         ServerChatCommand::Airship => handle_spawn_airship,
         ServerChatCommand::Alias => handle_alias,
         ServerChatCommand::Alignment => handle_alignment,
-        ServerChatCommand::Ban => handle_ban,
-        ServerChatCommand::BattleMode => handle_battlemode,
-        ServerChatCommand::BattleModeForce => handle_battlemode_force,
-        ServerChatCommand::BeNpc => handle_be_npc,
-        ServerChatCommand::Body => handle_body,
-        ServerChatCommand::Buff => handle_buff,
-        ServerChatCommand::Build => handle_build,
         ServerChatCommand::AreaAdd => handle_area_add,
         ServerChatCommand::AreaList => handle_area_list,
         ServerChatCommand::AreaRemove => handle_area_remove,
+        ServerChatCommand::Ban => handle_ban,
+        ServerChatCommand::BattleMode => handle_battlemode,
+        ServerChatCommand::BattleModeForce => handle_battlemode_force,
+        ServerChatCommand::Body => handle_body,
+        ServerChatCommand::Buff => handle_buff,
+        ServerChatCommand::Build => handle_build,
         ServerChatCommand::Campfire => handle_spawn_campfire,
         ServerChatCommand::DebugColumn => handle_debug_column,
         ServerChatCommand::DebugWays => handle_debug_ways,
@@ -155,7 +154,7 @@ fn do_command(
         ServerChatCommand::GroupPromote => handle_group_promote,
         ServerChatCommand::Health => handle_health,
         ServerChatCommand::Help => handle_help,
-        ServerChatCommand::Respawn => handle_respawn,
+        ServerChatCommand::IntoNpc => handle_into_npc,
         ServerChatCommand::JoinFaction => handle_join_faction,
         ServerChatCommand::Jump => handle_jump,
         ServerChatCommand::Kick => handle_kick,
@@ -175,6 +174,7 @@ fn do_command(
         ServerChatCommand::Region => handle_region,
         ServerChatCommand::ReloadChunks => handle_reload_chunks,
         ServerChatCommand::RemoveLights => handle_remove_lights,
+        ServerChatCommand::Respawn => handle_respawn,
         ServerChatCommand::RevokeBuild => handle_revoke_build,
         ServerChatCommand::RevokeBuildAll => handle_revoke_build_all,
         ServerChatCommand::Safezone => handle_safezone,
@@ -669,7 +669,7 @@ fn handle_alignment(
     Ok(())
 }
 
-fn handle_be_npc(
+fn handle_into_npc(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
