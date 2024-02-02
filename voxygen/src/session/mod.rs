@@ -50,6 +50,7 @@ use crate::{
     menu::char_selection::CharSelectionState,
     render::{Drawer, GlobalsBindGroup},
     scene::{camera, CameraMode, DebugShapeId, Scene, SceneData},
+    session::target::ray_entities,
     settings::Settings,
     window::{AnalogGameInput, Event},
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -1349,8 +1350,88 @@ impl PlayState for SessionState {
                     if !self.free_look {
                         self.walk_forward_dir = self.scene.camera().forward_xy();
                         self.walk_right_dir = self.scene.camera().right_xy();
-                        self.inputs.look_dir =
-                            Dir::from_unnormalized(cam_dir + aim_dir_offset).unwrap();
+
+                        let client = self.client.borrow();
+
+                        let holding_ranged = client
+                            .inventories()
+                            .get(player_entity)
+                            .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
+                            .and_then(|item| item.tool_info())
+                            .is_some_and(|tool_kind| {
+                                matches!(
+                                    tool_kind,
+                                    ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre
+                                )
+                            });
+
+                        let dir = if is_aiming
+                            && holding_ranged
+                            && self.scene.camera().get_mode() == CameraMode::ThirdPerson
+                        {
+                            // Shoot ray from camera focus forwards and get the point it hits an
+                            // entity or terrain. The ray starts from the camera focus point
+                            // so that the player won't aim at things behind them, in front of the
+                            // camera.
+                            let ray_start = self.scene.camera().get_focus_pos();
+                            let entity_ray_end = ray_start + cam_dir * 1000.0;
+                            let terrain_ray_end = ray_start + cam_dir * 1000.0;
+
+                            let aim_point = {
+                                // Get the distance to nearest entity and terrain
+                                let entity_dist =
+                                    ray_entities(&client, ray_start, entity_ray_end, 1000.0).0;
+                                let terrain_ray_distance = client
+                                    .state()
+                                    .terrain()
+                                    .ray(ray_start, terrain_ray_end)
+                                    .max_iter(1000)
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .0;
+
+                                // Return the hit point of whichever was smaller
+                                ray_start + cam_dir * entity_dist.min(terrain_ray_distance)
+                            };
+
+                            // Get player orientation
+                            let ori = client
+                                .state()
+                                .read_storage::<comp::Ori>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap();
+                            // Get player scale
+                            let scale = client
+                                .state()
+                                .read_storage::<comp::Scale>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap_or(comp::Scale(1.0));
+                            // Get player body offsets
+                            let body = client
+                                .state()
+                                .read_storage::<comp::Body>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap();
+                            let body_offsets = body.projectile_offsets(ori.look_vec(), scale.0);
+
+                            // Get direction from player character to aim point
+                            let player_pos = client
+                                .state()
+                                .read_storage::<Pos>()
+                                .get(player_entity)
+                                .copied()
+                                .unwrap();
+
+                            drop(client);
+                            aim_point - (player_pos.0 + body_offsets)
+                        } else {
+                            cam_dir + aim_dir_offset
+                        };
+
+                        self.inputs.look_dir = Dir::from_unnormalized(dir).unwrap();
                     }
                 }
                 self.inputs.strafing = matches!(
@@ -2040,6 +2121,7 @@ impl PlayState for SessionState {
                         &mut global_state.audio,
                         &scene_data,
                         &client,
+                        &global_state.settings,
                     );
 
                     // Process outcomes from client
