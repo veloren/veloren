@@ -678,37 +678,6 @@ fn handle_into_npc(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    // Black magic
-
-    let id_to_drop = {
-        let ecs = server.state.ecs();
-        let presences = ecs.read_storage::<Presence>();
-        let presence = presences.get(target);
-        if let Some(PresenceKind::Character(character_id)) = presence.map(|p| p.kind) {
-            Some(character_id)
-        } else {
-            None
-        }
-    };
-
-    {
-        if let Some(id) = id_to_drop {
-            server
-                .state
-                .mut_resource::<IdMaps>()
-                .remove_entity(Some(target), None, Some(id), None);
-        }
-    }
-
-    {
-        let ecs_mut = server.state.ecs_mut();
-        let mut presences = ecs_mut.write_storage::<Presence>();
-        if let Some(presence) = presences.get_mut(target) {
-            presence.kind = PresenceKind::Possessor;
-        }
-    }
-    // End of black magic
-
     if client != target {
         server.notify_client(
             client,
@@ -802,6 +771,26 @@ fn handle_into_npc(
         },
     }
 
+    // Black magic
+    //
+    // Mainly needed to disable persistence
+    {
+        let ecs = server.state.ecs();
+        let mut presences = ecs.write_storage::<Presence>();
+        let presence = presences.get_mut(target);
+
+        if let Some(presence) = presence && let PresenceKind::Character(id) = presence.kind {
+            server.state.ecs().write_resource::<IdMaps>().remove_entity(
+                Some(target),
+                None,
+                Some(id),
+                None,
+            );
+
+            presence.kind = PresenceKind::Possessor;
+        }
+    }
+    // End of black magic
     Ok(())
 }
 
