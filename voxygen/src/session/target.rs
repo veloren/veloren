@@ -13,7 +13,7 @@ use common::{
     vol::ReadVol,
 };
 use common_base::span;
-use common_systems::phys::closest_points_ls3;
+use common_systems::phys::closest_points_3d;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Target<T> {
@@ -245,7 +245,7 @@ pub(super) fn ray_entities(
     start: Vec3<f32>,
     end: Vec3<f32>,
     cast_dist: f32,
-) -> Option<(f32, Entity)> {
+) -> (f32, Option<Entity>) {
     let player_entity = client.entity();
     let ecs = client.state().ecs();
     let positions = ecs.read_storage::<comp::Pos>();
@@ -314,7 +314,7 @@ pub(super) fn ray_entities(
                         start: world_p0,
                         end: world_p1,
                     };
-                    closest_points_ls3(seg_ray, seg_capsule)
+                    closest_points_3d(seg_ray, seg_capsule)
                 } else {
                     let nearest = seg_ray.projected_point(world_p0);
                     (nearest, world_p0)
@@ -344,4 +344,6 @@ pub(super) fn ray_entities(
         };
     });
     entity
+        .map(|(dist, e)| (dist, Some(e)))
+        .unwrap_or((cast_dist, None))
 }

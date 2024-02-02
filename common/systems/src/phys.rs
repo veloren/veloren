@@ -2201,7 +2201,7 @@ fn closest_points(n: LineSegment2<f32>, m: LineSegment2<f32>) -> (Vec2<f32>, Vec
 }
 
 // Get closest point between 2 3D line segments https://math.stackexchange.com/a/4289668
-pub fn closest_points_ls3(n: LineSegment3<f32>, m: LineSegment3<f32>) -> (Vec3<f32>, Vec3<f32>) {
+pub fn closest_points_3d(n: LineSegment3<f32>, m: LineSegment3<f32>) -> (Vec3<f32>, Vec3<f32>) {
     let p1 = n.start;
     let p2 = n.end;
     let p3 = m.start;

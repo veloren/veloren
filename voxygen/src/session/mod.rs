@@ -1365,28 +1365,34 @@ impl PlayState for SessionState {
                                 )
                             });
 
-                        let dir = if is_aiming && holding_ranged {
-                            // Shoot ray from camera forward direction and get the point it hits an
-                            // entity or terrain
-                            let ray_start = cam_pos + cam_dir * self.scene.camera().get_distance();
-                            let entity_ray_end = ray_start + cam_dir * 500.0;
+                        let dir = if is_aiming
+                            && holding_ranged
+                            && self.scene.camera().get_mode() == CameraMode::ThirdPerson
+                        {
+                            // Shoot ray from camera focus forwards and get the point it hits an
+                            // entity or terrain. The ray starts from the camera focus point
+                            // so that the player won't aim at things behind them, in front of the
+                            // camera.
+                            let ray_start = self.scene.camera().get_focus_pos();
+                            let entity_ray_end = ray_start + cam_dir * 1000.0;
                             let terrain_ray_end = ray_start + cam_dir * 1000.0;
 
-                            let aim_point =
-                                match ray_entities(&client, ray_start, entity_ray_end, 500.0) {
-                                    Some((dist, _)) => ray_start + cam_dir * dist,
-                                    None => {
-                                        let terrain_ray_distance = client
-                                            .state()
-                                            .terrain()
-                                            .ray(ray_start, terrain_ray_end)
-                                            .max_iter(1000)
-                                            .until(Block::is_solid)
-                                            .cast()
-                                            .0;
-                                        ray_start + cam_dir * terrain_ray_distance
-                                    },
-                                };
+                            let aim_point = {
+                                // Get the distance to nearest entity and terrain
+                                let entity_dist =
+                                    ray_entities(&client, ray_start, entity_ray_end, 1000.0).0;
+                                let terrain_ray_distance = client
+                                    .state()
+                                    .terrain()
+                                    .ray(ray_start, terrain_ray_end)
+                                    .max_iter(1000)
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .0;
+
+                                // Return the hit point of whichever was smaller
+                                ray_start + cam_dir * entity_dist.min(terrain_ray_distance)
+                            };
 
                             // Get player orientation
                             let ori = client
