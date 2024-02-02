@@ -2918,6 +2918,9 @@ impl Client {
             match self.player_list.get(uid) {
                 Some(player_info) => {
                     result.player_alias.insert(*uid, player_info.clone());
+                    result
+                        .gender
+                        .insert(*uid, gender_of_uid(uid).unwrap_or(comp::Gender::Masculine));
                 },
                 None => {
                     result
@@ -2925,9 +2928,6 @@ impl Client {
                         .insert(*uid, name_of_uid(uid).unwrap_or_else(|| "<?>".to_string()));
                 },
             };
-            result
-                .gender
-                .insert(*uid, gender_of_uid(uid).unwrap_or(comp::Gender::Masculine));
         };
 
         match &msg.chat_type {
