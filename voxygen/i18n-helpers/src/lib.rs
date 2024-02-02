@@ -207,13 +207,6 @@ fn localize_kill_message(
             })
         },
         // Other deaths
-        KillSource::Environment(environment) => {
-            localization.get_msg_ctx("hud-chat-environment_kill_msg", &i18n::fluent_args! {
-                "name" => name_format(victim),
-                "victim_gender" => gender_str(victim),
-                "environment" => environment,
-            })
-        },
         KillSource::FallDamage => {
             localization.get_msg_ctx("hud-chat-fall_kill_msg", &i18n::fluent_args! {
                 "name" => name_format(victim),

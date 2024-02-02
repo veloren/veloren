@@ -73,7 +73,10 @@ pub enum KillSource {
     Player(Uid, KillType),
     NonPlayer(String, KillType),
     NonExistent(KillType),
-    Environment(String),
+    // #[deprecated = "if you use it, please expose enum for translators"]
+    //
+    // when I say 'enum' I mean it, not just arg to Content.
+    // Environment(String),
     FallDamage,
     Suicide,
     Other,

@@ -47,7 +47,6 @@ hud-chat-npc_other_kill_msg = { $attacker } killed [{ $victim }]
 
 ## Other deaths
 
-hud-chat-environmental_kill_msg = [{ $name }] died in { $environment }
 hud-chat-fall_kill_msg = [{ $name }] died from fall damage
 hud-chat-suicide_msg = [{ $name }] died from self-inflicted wounds
 hud-chat-default_death_msg = [{ $name }] died

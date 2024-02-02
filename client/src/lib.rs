@@ -2940,7 +2940,6 @@ impl Client {
                         add_data_of(attacker_uid);
                     },
                     KillSource::NonPlayer(_, _)
-                    | KillSource::Environment(_)
                     | KillSource::FallDamage
                     | KillSource::Suicide
                     | KillSource::NonExistent(_)

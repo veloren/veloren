@@ -22,7 +22,10 @@ pub enum KillSource {
     Player(PlayerInfo, KillType),
     NonPlayer(String, KillType),
     NonExistent(KillType),
-    Environment(String),
+    // #[deprecated = "if you use it, please expose enum for translators"]
+    //
+    // when I say 'enum' I mean it, not just arg to Content.
+    // Environment(String),
     FallDamage,
     Suicide,
     Other,
@@ -160,7 +163,6 @@ impl ChatExporter {
                     },
                     comp::chat::KillSource::NonPlayer(str, t) => KillSource::NonPlayer(str, t),
                     comp::chat::KillSource::NonExistent(t) => KillSource::NonExistent(t),
-                    comp::chat::KillSource::Environment(str) => KillSource::Environment(str),
                     comp::chat::KillSource::FallDamage => KillSource::FallDamage,
                     comp::chat::KillSource::Suicide => KillSource::Suicide,
                     comp::chat::KillSource::Other => KillSource::Other,
