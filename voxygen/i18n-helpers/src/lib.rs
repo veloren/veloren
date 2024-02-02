@@ -19,8 +19,14 @@ pub fn localize_chat_message(
 ) -> (ChatType<String>, String) {
     let info = lookup_fn(&msg);
 
-    let name_format_or_you = |you, uid: &Uid| match info.player_alias.get(uid).cloned() {
-        Some(pi) => insert_alias(you && info.you == *uid, pi, localization),
+    let name_format_or_complex = |complex, uid: &Uid| match info.player_alias.get(uid).cloned() {
+        Some(pi) => {
+            if complex {
+                insert_alias(info.you == *uid, pi, localization)
+            } else {
+                pi.player_alias
+            }
+        },
         None => info
             .entity_name
             .get(uid)
@@ -28,25 +34,59 @@ pub fn localize_chat_message(
             .expect("client didn't proved enough info"),
     };
 
-    let name_format = |uid: &Uid| name_format_or_you(false, uid);
+    // Some messages do suffer from complicated logic of insert_alias.
+    // This includes every notification-like message, like death.
+    let name_format = |uid: &Uid| name_format_or_complex(false, uid);
 
-    // FIXME: this shouldn't pass review!
+    // FIXME: this shouldn't pass the review!
     let gender_str = |uid: &Uid| "he".to_owned();
 
     let message_format = |from: &Uid, content: &Content, group: Option<&String>| {
-        let alias = name_format_or_you(true, from);
+        let alias = name_format_or_complex(true, from);
+
         let name = if let Some(pi) = info.player_alias.get(from).cloned() && show_char_name {
             pi.character.map(|c| c.name)
         } else {
             None
         };
+
         let message = localization.get_content(content);
-        match (group, name) {
-            (Some(group), None) => format!("({group}) [{alias}]: {message}"),
-            (Some(group), Some(name)) => format!("({group}) [{alias}] {name}: {message}"),
-            (None, None) => format!("[{alias}]: {message}"),
-            (None, Some(name)) => format!("[{alias}] {name}: {message}"),
-        }
+
+        let line = match group {
+            Some(group) => match name {
+                Some(name) => localization.get_msg_ctx(
+                    "hud-chat-message-in-group-with-name",
+                    &i18n::fluent_args! {
+                        "group" => group,
+                        "alias" => alias,
+                        "name" => name,
+                        "msg" => message,
+                    },
+                ),
+                None => {
+                    localization.get_msg_ctx("hud-chat-message-in-group", &i18n::fluent_args! {
+                        "group" => group,
+                        "alias" => alias,
+                        "msg" => message,
+                    })
+                },
+            },
+            None => match name {
+                Some(name) => {
+                    localization.get_msg_ctx("hud-chat-message-with-name", &i18n::fluent_args! {
+                        "alias" => alias,
+                        "name" => name,
+                        "msg" => message,
+                    })
+                },
+                None => localization.get_msg_ctx("hud-chat-message", &i18n::fluent_args! {
+                    "alias" => alias,
+                    "msg" => message,
+                }),
+            },
+        };
+
+        line.into_owned()
     };
 
     let new_msg = match &msg.chat_type {
@@ -67,20 +107,23 @@ pub fn localize_chat_message(
         | ChatType::FactionMeta(_)
         | ChatType::GroupMeta(_) => localization.get_content(msg.content()),
         ChatType::Tell(from, to) => {
-            let from_alias = name_format(from);
-            let to_alias = name_format(to);
-            // TODO: internationalise
-            if *from == info.you {
-                format!(
-                    "To [{to_alias}]: {}",
-                    localization.get_content(msg.content())
-                )
+            // If `from` is you, it means you're writing to someone
+            // and you want to see who you're writing to.
+            //
+            // Otherwise, someone writes to you, and you want to see
+            // who is that person that's writing to you.
+            let (key, person_to_show) = if info.you == *from {
+                ("hud-chat-tell-to", to)
             } else {
-                format!(
-                    "From [{from_alias}]: {}",
-                    localization.get_content(msg.content())
-                )
-            }
+                ("hud-chat-tell-from", from)
+            };
+
+            localization
+                .get_msg_ctx(key, &i18n::fluent_args! {
+                    "alias" => name_format(person_to_show),
+                    "user_gender" => gender_str(person_to_show),
+                })
+                .into_owned()
         },
         ChatType::Say(uid) | ChatType::Region(uid) | ChatType::World(uid) => {
             message_format(uid, msg.content(), None)
@@ -88,24 +131,27 @@ pub fn localize_chat_message(
         ChatType::Group(uid, descriptor) | ChatType::Faction(uid, descriptor) => {
             message_format(uid, msg.content(), Some(descriptor))
         },
-        // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and
-        // should be filtered by server (due to not having a Pos) for chat-cli
         ChatType::Npc(uid) | ChatType::NpcSay(uid) => message_format(uid, msg.content(), None),
         ChatType::NpcTell(from, to) => {
-            let from_alias = name_format(from);
-            let to_alias = name_format(to);
-            // TODO: internationalise
-            if *from == info.you {
-                format!(
-                    "To [{to_alias}]: {}",
-                    localization.get_content(msg.content())
-                )
+            // If `from` is you, it means you're writing to someone
+            // and you want to see who you're writing to.
+            //
+            // Otherwise, someone writes to you, and you want to see
+            // who is that person that's writing to you.
+            //
+            // Hopefully, no gendering needed, because for npc, we
+            // simply don't know.
+            let (key, person_to_show) = if info.you == *from {
+                ("hud-chat-tell-to-npc", to)
             } else {
-                format!(
-                    "From [{from_alias}]: {}",
-                    localization.get_content(msg.content())
-                )
-            }
+                ("hud-chat-tell-from-npc", from)
+            };
+
+            localization
+                .get_msg_ctx(key, &i18n::fluent_args! {
+                    "alias" => name_format(person_to_show),
+                })
+                .into_owned()
         },
         ChatType::Meta => localization.get_content(msg.content()),
         ChatType::Kill(kill_source, victim) => {
@@ -277,16 +323,16 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
     }
 }
 
-fn insert_alias(you: bool, info: PlayerInfo, localization: &Localization) -> String {
-    // FIXME: this should take gender into account
-    const YOU: &str = "hud-chat-you";
+// TODO: consider fetching "you" string from localization and somehow fetching
+// user's gender and putting it as argument.
+fn insert_alias(_replace_you: bool, info: PlayerInfo, _localization: &Localization) -> String {
     // Leave space for a mod badge icon.
     const MOD_SPACING: &str = "      ";
-    match (info.is_moderator, you) {
-        (false, false) => info.player_alias,
-        (false, true) => localization.get_msg(YOU).to_string(),
-        (true, false) => format!("{}{}", MOD_SPACING, info.player_alias),
-        (true, true) => format!("{}{}", MOD_SPACING, &localization.get_msg(YOU)),
+
+    if info.is_moderator {
+        info.player_alias
+    } else {
+        format!("{}{}", MOD_SPACING, info.player_alias)
     }
 }
 
