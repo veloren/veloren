@@ -554,11 +554,9 @@ impl ServerChatCommand {
                 "Disconnects all players from the server",
                 Some(Admin),
             ),
-            ServerChatCommand::DropAll => cmd(
-                vec![],
-                "Drops all your items on the ground",
-                Some(Admin),
-            ),
+            ServerChatCommand::DropAll => {
+                cmd(vec![], "Drops all your items on the ground", Some(Admin))
+            },
             ServerChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", Some(Admin)),
             ServerChatCommand::Explosion => cmd(
                 vec![Float("radius", 5.0, Required)],

@@ -15,6 +15,7 @@ use crate::{
     wiring::OutputFormula,
     Server, Settings, StateExt,
 };
+
 use assets::AssetExt;
 use authc::Uuid;
 use chrono::{NaiveTime, Timelike, Utc};
@@ -34,7 +35,8 @@ use common::{
         },
         invite::InviteKind,
         misc::PortalData,
-        AdminRole, ChatType, Content, Inventory, Item, LightEmitter, WaypointArea,
+        AdminRole, ChatType, Content, Inventory, Item, LightEmitter, Presence, PresenceKind,
+        WaypointArea,
     },
     depot,
     effect::Effect,
@@ -49,7 +51,7 @@ use common::{
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     tether::Tethered,
-    uid::Uid,
+    uid::{IdMaps, Uid},
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
@@ -677,8 +679,6 @@ fn handle_into_npc(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     // Black magic
-    use crate::IdMaps;
-    use comp::{Presence, PresenceKind};
 
     let id_to_drop = {
         let ecs = server.state.ecs();
