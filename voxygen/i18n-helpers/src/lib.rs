@@ -75,21 +75,22 @@ pub fn localize_chat_message(
     // If the language can represent Female, Male and Neuter, we can pass these.
     //
     // Exact design of such a complex system is honestly up to discussion.
-    let gender_str = |uid: &Uid| match info.player_info.get(uid) {
-        Some(pi) => match pi.character.as_ref().and_then(|c| c.gender) {
-            Some(Gender::Feminine) => "she".to_owned(),
-            Some(Gender::Masculine) => "he".to_owned(),
-            None => {
-                tracing::error!("We tried to get the gender, but failed");
+    let gender_str = |uid: &Uid| {
+        if let Some(pi) = info.player_info.get(uid) {
+            match pi.character.as_ref().and_then(|c| c.gender) {
+                Some(Gender::Feminine) => "she".to_owned(),
+                Some(Gender::Masculine) => "he".to_owned(),
+                None => {
+                    tracing::error!("We tried to get the gender, but failed");
 
-                "??".to_owned()
+                    "??".to_owned()
+                },
             }
-        },
-        None => {
+        } else {
             tracing::error!("We tried to get the gender of the player we can't find");
 
             "??".to_owned()
-        },
+        }
     };
 
     // This is where the most fun begings.
@@ -265,24 +266,6 @@ fn localize_kill_message(
     localization: &Localization,
 ) -> String {
     match kill_source {
-        // Buff deaths
-        KillSource::Player(attacker, KillType::Buff(buff_kind)) => {
-            let buff_ident = get_buff_ident(*buff_kind);
-
-            let s = localization
-                .get_attr_ctx(
-                    "hud-chat-died_of_pvp_buff_msg",
-                    buff_ident,
-                    &i18n::fluent_args! {
-                        "victim" => name_format(victim),
-                        "victim_gender" => gender_str(victim),
-                        "attacker" => name_format(attacker),
-                        "attacker_gender" => gender_str(attacker),
-                    },
-                )
-                .into_owned();
-            Cow::Owned(s)
-        },
         KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => {
             let buff_ident = get_buff_ident(*buff_kind);
 
@@ -299,21 +282,6 @@ fn localize_kill_message(
                 .into_owned();
             Cow::Owned(s)
         },
-        KillSource::NonExistent(KillType::Buff(buff_kind)) => {
-            let buff_ident = get_buff_ident(*buff_kind);
-
-            let s = localization
-                .get_attr_ctx(
-                    "hud-chat-died_of_buff_nonexistent_msg",
-                    buff_ident,
-                    &i18n::fluent_args! {
-                        "victim" => name_format(victim),
-                        "victim_gender" => gender_str(victim),
-                    },
-                )
-                .into_owned();
-            Cow::Owned(s)
-        },
         // PvP deaths
         KillSource::Player(attacker, kill_type) => {
             let key = match kill_type {
@@ -322,7 +290,24 @@ fn localize_kill_message(
                 KillType::Explosion => "hud-chat-pvp_explosion_kill_msg",
                 KillType::Energy => "hud-chat-pvp_energy_kill_msg",
                 KillType::Other => "hud-chat-pvp_other_kill_msg",
-                &KillType::Buff(_) => unreachable!("handled above"),
+                KillType::Buff(buff_kind) => {
+                    return {
+                        let buff_ident = get_buff_ident(*buff_kind);
+
+                        localization
+                            .get_attr_ctx(
+                                "hud-chat-died_of_pvp_buff_msg",
+                                buff_ident,
+                                &i18n::fluent_args! {
+                                    "victim" => name_format(victim),
+                                    "victim_gender" => gender_str(victim),
+                                    "attacker" => name_format(attacker),
+                                    "attacker_gender" => gender_str(attacker),
+                                },
+                            )
+                            .into_owned()
+                    };
+                },
             };
             localization.get_msg_ctx(key, &i18n::fluent_args! {
                 "victim" => name_format(victim),
@@ -339,7 +324,23 @@ fn localize_kill_message(
                 KillType::Explosion => "hud-chat-npc_explosion_kill_msg",
                 KillType::Energy => "hud-chat-npc_energy_kill_msg",
                 KillType::Other => "hud-chat-npc_other_kill_msg",
-                &KillType::Buff(_) => unreachable!("handled above"),
+                KillType::Buff(buff_kind) => {
+                    return {
+                        let buff_ident = get_buff_ident(*buff_kind);
+
+                        localization
+                            .get_attr_ctx(
+                                "hud-chat-died_of_npc_buff_msg",
+                                buff_ident,
+                                &i18n::fluent_args! {
+                                    "victim" => name_format(victim),
+                                    "victim_gender" => gender_str(victim),
+                                    "attacker" => attacker_name,
+                                },
+                            )
+                            .into_owned()
+                    };
+                },
             };
             localization.get_msg_ctx(key, &i18n::fluent_args! {
                 "victim" => name_format(victim),
@@ -359,6 +360,21 @@ fn localize_kill_message(
                 "name" => name_format(victim),
                 "victim_gender" => gender_str(victim),
             })
+        },
+        KillSource::NonExistent(KillType::Buff(buff_kind)) => {
+            let buff_ident = get_buff_ident(*buff_kind);
+
+            let s = localization
+                .get_attr_ctx(
+                    "hud-chat-died_of_buff_nonexistent_msg",
+                    buff_ident,
+                    &i18n::fluent_args! {
+                        "victim" => name_format(victim),
+                        "victim_gender" => gender_str(victim),
+                    },
+                )
+                .into_owned();
+            Cow::Owned(s)
         },
         KillSource::NonExistent(_) | KillSource::Other => {
             localization.get_msg_ctx("hud-chat-default_death_msg", &i18n::fluent_args! {
