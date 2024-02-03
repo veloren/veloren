@@ -1,4 +1,4 @@
-## Used in npc-speech-tell_monster
+## Monster descriptions, used ONLY in npc-speech-tell_monster
 
 body-npc-speech-generic = some creature
 body-npc-speech-biped_large-ogre-male = an ogre

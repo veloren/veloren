@@ -274,6 +274,8 @@ npc-speech-tell_monster =
     .a0 = They say there's { $body } { $dir }, { $dist } ...
     .a1 = You think you're tough? There's { $body } { $dir }.
 
+## Direction hints, used ONLY in npc-speech-tell* above
+
 npc-speech-dir_north = to the north
 npc-speech-dir_north_east = to the north-east
 npc-speech-dir_east = to the east
@@ -282,6 +284,8 @@ npc-speech-dir_south = to the south
 npc-speech-dir_south_west = to the south-west
 npc-speech-dir_west = to the west
 npc-speech-dir_north_west = to the north-west
+
+## Distance hints, used ONLY in npc-speech-tell* above
 
 npc-speech-dist_very_far = very far away
 npc-speech-dist_far = far away
