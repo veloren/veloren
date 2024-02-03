@@ -1358,7 +1358,7 @@ impl Body {
             }
         }
 
-        try_localize(self).unwrap_or_else(|| Content::localized("body-generic"))
+        try_localize(self).unwrap_or_else(|| Content::localized("body-npc-speech-generic"))
     }
 }
 
