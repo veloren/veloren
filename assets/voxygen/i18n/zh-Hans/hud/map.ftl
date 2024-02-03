@@ -16,6 +16,7 @@ hud-map-town = 城镇
 hud-map-castle = 城堡
 hud-map-bridge = 桥
 hud-map-dungeon = 地牢
+hud-map-df_mine = 矿洞
 hud-map-difficulty_dungeon =
     地牢
     
@@ -31,6 +32,8 @@ hud-map-toggle_minimap_voxel = 切换小地图视图
 hud-map-zoom_minimap_explanation =
     放大小地图以更详细地
     查看您周围的区域
-hud-map-gnarling = 防御工事
+hud-map-gnarling = 哥纳林要塞
 hud-map-chapel_site = 海上教堂
+hud-map-adlet = 狼人要塞
+hud-map-haniwa = 陶俑武士地下墓穴
 hud-map-placed_by = 放置 { $name }

@@ -26,3 +26,4 @@ char_selection-starting_site_name = { $name }
 char_selection-starting_site_kind = 种类: { $kind }
 char_selection-create_info_name = 你的角色需要一个名字!
 char_selection-version_mismatch = 警告！此服务器正在运行另一个可能不兼容的游戏版本,请更新您的游戏.
+char_selection-rules = 规则
