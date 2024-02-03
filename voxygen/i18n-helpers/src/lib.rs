@@ -32,7 +32,7 @@ pub fn localize_chat_message(
             .entity_name
             .get(uid)
             .cloned()
-            .expect("client didn't proved enough info"),
+            .expect("client didn't provided enough info"),
     };
 
     // Some messages do suffer from complicated logic of insert_alias.
@@ -200,6 +200,7 @@ pub fn localize_chat_message(
             .into_owned(),
         ChatType::CommandError
         | ChatType::CommandInfo
+        | ChatType::Meta
         | ChatType::FactionMeta(_)
         | ChatType::GroupMeta(_) => localization.get_content(msg.content()),
         ChatType::Tell(from, to) => {
@@ -249,7 +250,6 @@ pub fn localize_chat_message(
                 })
                 .into_owned()
         },
-        ChatType::Meta => localization.get_content(msg.content()),
         ChatType::Kill(kill_source, victim) => {
             localize_kill_message(kill_source, victim, name_format, gender_str, localization)
         },
@@ -266,22 +266,6 @@ fn localize_kill_message(
     localization: &Localization,
 ) -> String {
     match kill_source {
-        KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => {
-            let buff_ident = get_buff_ident(*buff_kind);
-
-            let s = localization
-                .get_attr_ctx(
-                    "hud-chat-died_of_npc_buff_msg",
-                    buff_ident,
-                    &i18n::fluent_args! {
-                        "victim" => name_format(victim),
-                        "victim_gender" => gender_str(victim),
-                        "attacker" => attacker_name,
-                    },
-                )
-                .into_owned();
-            Cow::Owned(s)
-        },
         // PvP deaths
         KillSource::Player(attacker, kill_type) => {
             let key = match kill_type {
@@ -291,22 +275,20 @@ fn localize_kill_message(
                 KillType::Energy => "hud-chat-pvp_energy_kill_msg",
                 KillType::Other => "hud-chat-pvp_other_kill_msg",
                 KillType::Buff(buff_kind) => {
-                    return {
-                        let buff_ident = get_buff_ident(*buff_kind);
+                    let buff_ident = get_buff_ident(*buff_kind);
 
-                        localization
-                            .get_attr_ctx(
-                                "hud-chat-died_of_pvp_buff_msg",
-                                buff_ident,
-                                &i18n::fluent_args! {
-                                    "victim" => name_format(victim),
-                                    "victim_gender" => gender_str(victim),
-                                    "attacker" => name_format(attacker),
-                                    "attacker_gender" => gender_str(attacker),
-                                },
-                            )
-                            .into_owned()
-                    };
+                    return localization
+                        .get_attr_ctx(
+                            "hud-chat-died_of_pvp_buff_msg",
+                            buff_ident,
+                            &i18n::fluent_args! {
+                                "victim" => name_format(victim),
+                                "victim_gender" => gender_str(victim),
+                                "attacker" => name_format(attacker),
+                                "attacker_gender" => gender_str(attacker),
+                            },
+                        )
+                        .into_owned();
                 },
             };
             localization.get_msg_ctx(key, &i18n::fluent_args! {
@@ -325,21 +307,19 @@ fn localize_kill_message(
                 KillType::Energy => "hud-chat-npc_energy_kill_msg",
                 KillType::Other => "hud-chat-npc_other_kill_msg",
                 KillType::Buff(buff_kind) => {
-                    return {
-                        let buff_ident = get_buff_ident(*buff_kind);
+                    let buff_ident = get_buff_ident(*buff_kind);
 
-                        localization
-                            .get_attr_ctx(
-                                "hud-chat-died_of_npc_buff_msg",
-                                buff_ident,
-                                &i18n::fluent_args! {
-                                    "victim" => name_format(victim),
-                                    "victim_gender" => gender_str(victim),
-                                    "attacker" => attacker_name,
-                                },
-                            )
-                            .into_owned()
-                    };
+                    return localization
+                        .get_attr_ctx(
+                            "hud-chat-died_of_npc_buff_msg",
+                            buff_ident,
+                            &i18n::fluent_args! {
+                                "victim" => name_format(victim),
+                                "victim_gender" => gender_str(victim),
+                                "attacker" => attacker_name,
+                            },
+                        )
+                        .into_owned();
                 },
             };
             localization.get_msg_ctx(key, &i18n::fluent_args! {
@@ -386,7 +366,7 @@ fn localize_kill_message(
     .into_owned()
 }
 
-// determine attr for `hud-chat-died-of-buff`
+/// Determines .attr for `hud-chat-died-of-buff` messages
 fn get_buff_ident(buff: BuffKind) -> &'static str {
     match buff {
         BuffKind::Burning => "burning",
@@ -434,19 +414,17 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
     }
 }
 
-// TODO: consider fetching "you" string from localization and somehow fetching
-// user's gender and putting it as argument.
-//
-// Altenatively, which would be a better design, pass 'is_you' to
-// hud-chat-message and provide $mod_spacing attribute to use.
+/// Used for inserting spacing for mod badge icon next to alias
+// TODO: consider passing '$is_you' to hud-chat-message strings along with
+// $spacing variable, for more flexible translations.
 fn insert_alias(_replace_you: bool, info: PlayerInfo, _localization: &Localization) -> String {
     // Leave space for a mod badge icon.
     const MOD_SPACING: &str = "      ";
 
     if info.is_moderator {
-        info.player_alias
-    } else {
         format!("{}{}", MOD_SPACING, info.player_alias)
+    } else {
+        info.player_alias
     }
 }
 
