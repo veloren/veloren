@@ -198,7 +198,14 @@ impl<
     const EXTENSION: &'static str = "ron";
 }
 
-// Grammatical gender
+// Semantic gender aka body_type
+//
+// Should be used for localization with extreme care.
+// For basically everything except *maybe* humanoids, it's simply wrong to
+// assume that this may be used as grammatical gender.
+//
+// TODO: remove this and instead add GUI for players to choose preferred gender.
+// Read a comment for `gender_str` in voxygen/i18n-helpers/src/lib.rs.
 pub enum Gender {
     Masculine,
     Feminine,
@@ -1359,71 +1366,14 @@ impl Body {
         }
     }
 
-    pub fn gender(&self) -> Gender {
+    // Read comment on `Gender` for more
+    pub fn humanoid_gender(&self) -> Option<Gender> {
         match self {
             Body::Humanoid(b) => match b.body_type {
-                humanoid::BodyType::Male => Gender::Masculine,
-                humanoid::BodyType::Female => Gender::Feminine,
+                humanoid::BodyType::Male => Some(Gender::Masculine),
+                humanoid::BodyType::Female => Some(Gender::Feminine),
             },
-            Body::QuadrupedSmall(b) => match b.body_type {
-                quadruped_small::BodyType::Male => Gender::Masculine,
-                quadruped_small::BodyType::Female => Gender::Feminine,
-            },
-            Body::QuadrupedMedium(b) => match b.body_type {
-                quadruped_medium::BodyType::Male => Gender::Masculine,
-                quadruped_medium::BodyType::Female => Gender::Feminine,
-            },
-            Body::BirdMedium(b) => match b.body_type {
-                bird_medium::BodyType::Male => Gender::Masculine,
-                bird_medium::BodyType::Female => Gender::Feminine,
-            },
-            Body::FishMedium(b) => match b.body_type {
-                fish_medium::BodyType::Male => Gender::Masculine,
-                fish_medium::BodyType::Female => Gender::Feminine,
-            },
-            Body::Dragon(b) => match b.body_type {
-                dragon::BodyType::Male => Gender::Masculine,
-                dragon::BodyType::Female => Gender::Feminine,
-            },
-            Body::BirdLarge(b) => match b.body_type {
-                bird_large::BodyType::Male => Gender::Masculine,
-                bird_large::BodyType::Female => Gender::Feminine,
-            },
-            Body::FishSmall(b) => match b.body_type {
-                fish_small::BodyType::Male => Gender::Masculine,
-                fish_small::BodyType::Female => Gender::Feminine,
-            },
-            Body::BipedLarge(b) => match b.body_type {
-                biped_large::BodyType::Male => Gender::Masculine,
-                biped_large::BodyType::Female => Gender::Feminine,
-            },
-            Body::BipedSmall(b) => match b.body_type {
-                biped_small::BodyType::Male => Gender::Masculine,
-                biped_small::BodyType::Female => Gender::Feminine,
-            },
-            Body::Golem(b) => match b.body_type {
-                golem::BodyType::Male => Gender::Masculine,
-                golem::BodyType::Female => Gender::Feminine,
-            },
-            Body::Theropod(b) => match b.body_type {
-                theropod::BodyType::Male => Gender::Masculine,
-                theropod::BodyType::Female => Gender::Feminine,
-            },
-            Body::QuadrupedLow(b) => match b.body_type {
-                quadruped_low::BodyType::Male => Gender::Masculine,
-                quadruped_low::BodyType::Female => Gender::Feminine,
-            },
-            Body::Arthropod(b) => match b.body_type {
-                arthropod::BodyType::Male => Gender::Masculine,
-                arthropod::BodyType::Female => Gender::Feminine,
-            },
-            Body::Crustacean(b) => match b.body_type {
-                crustacean::BodyType::Male => Gender::Masculine,
-                crustacean::BodyType::Female => Gender::Feminine,
-            },
-            Body::ItemDrop(_) | Body::Object(_) | Body::Ship(_) => {
-                panic!("we don't care about item gender")
-            },
+            _ => None,
         }
     }
 }

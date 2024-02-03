@@ -2911,7 +2911,7 @@ impl Client {
             )
                 .join()
                 .find(|(_, u)| u == &uid)
-                .map(|(c, _)| c.original_body.gender())
+                .and_then(|(c, _)| c.original_body.humanoid_gender())
         };
 
         let mut add_data_of = |uid| {

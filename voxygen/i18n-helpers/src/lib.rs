@@ -3,6 +3,7 @@ use std::borrow::Cow;
 
 use common::{
     comp::{
+        body::Gender,
         chat::{KillSource, KillType},
         BuffKind, ChatMsg, ChatType, Content,
     },
@@ -38,8 +39,91 @@ pub fn localize_chat_message(
     // This includes every notification-like message, like death.
     let name_format = |uid: &Uid| name_format_or_complex(false, uid);
 
-    // FIXME: this shouldn't pass the review!
-    let gender_str = |uid: &Uid| "he".to_owned();
+    // This is a hack, kind of.
+    //
+    // Current implementation just checks if our player is humanoid, and if so,
+    // we take the body_type of its character and assume it as grammatical gender.
+    //
+    // In short,
+    //  body_type of character
+    //  -> sex of character
+    //  -> gender of player.
+    //  -> grammatical gender for use in messages.
+    //
+    // This is obviously, wrong, but it's good enough approximation, after all,
+    // players do choose their characters.
+    //
+    // In the future, we will want special GUI where players can specify their
+    // gender (and change it!), and we do want to handle more genders than just
+    // male and female.
+    //
+    // Ideally, the system should handle following (if we exclude plurals):
+    // - Female
+    // - Male
+    // - Neuter (or fallback Female)
+    // - Neuter (or fallback Male)
+    // - Intermediate (or fallback Female)
+    // - Intermediate (or fallback Male)
+    // and maybe more, not sure.
+    //
+    // What is supported by language and what is not, as well as maybe how to
+    // convert genders into strings to match, should go into _manifest.ron file
+    //
+    // So let's say language only supports male and female, we will convert all
+    // genders to these, using some fallbacks, and pass it.
+    //
+    // If the language can represent Female, Male and Neuter, we can pass these.
+    //
+    // Exact design of such a complex system is honestly up to discussion.
+    let gender_str = |uid: &Uid| match info.gender.get(uid) {
+        Some(Gender::Feminine) => "she".to_owned(),
+        Some(Gender::Masculine) => "he".to_owned(),
+        None => "??".to_owned(),
+    };
+
+    // This is where the most fun begings.
+    //
+    // Unlike people, "items" can have their own gender, which is completely
+    // independent of everything, including common sense.
+    //
+    // For example, word "masculinity" can be feminine in some languages,
+    // as well as word "boy", and vice versa.
+    //
+    // So we can't rely on body_type, at all. And even if we did try, our
+    // body_type isn't even always represents animal sex, there are some
+    // animals that use body_type to represent their kind, like different
+    // types of Fox ("male" fox is forest, "female" is arctic one).
+    // And what about Mindflayer? They do have varied body_type, but do they
+    // even have concept of gender?
+    //
+    // Our use case is probably less cryptic, after all we are limited by
+    // mostly sentient things, but that doesn't help at all.
+    //
+    // Common example is word "spider", which can be feminine in one languages
+    // and masculine in other, and sometimes even neuter.
+    //
+    // Oh, and I want to add that we are talking about grammatical genders, and
+    // languages define their own grammar. There are languages that have more
+    // than three grammatical genders, there are languages that don't have
+    // male/female distinction and instead realy on animacy/non-animacy.
+    // What has an animacy and what doesn't is for language to decide.
+    // There are languages as well that mix these concepts and may have neuter,
+    // female, masculine with animacy, masculine with animacy. Some languages
+    // have their own scheme of things that arbitrarily picks noun-class per
+    // noun.
+    // Don't get me wrong. *All* languages do pick the gender for the word
+    // arbitrary as I showed at the beginning, it's just some languages have
+    // not just different mapping, but different gender set as well.
+    //
+    // The *only* option we have is fetch the gender per each name entry from
+    // localization files.
+    //
+    // I'm not 100% sure what should be the implementation of it, but I imagine
+    // that Stats::name() should be changed to include a way to reference where
+    // to grab the gender associated with this name, so translation then can
+    // pick right article or use right adjective/verb connected with NPC in the
+    // context of the message.
+    let _gender_str_npc = || "idk".to_owned();
 
     let message_format = |from: &Uid, content: &Content, group: Option<&String>| {
         let alias = name_format_or_complex(true, from);
@@ -325,6 +409,9 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
 
 // TODO: consider fetching "you" string from localization and somehow fetching
 // user's gender and putting it as argument.
+//
+// Altenatively, which would be a better design, pass 'is_you' to
+// hud-chat-message and provide $mod_spacing attribute to use.
 fn insert_alias(_replace_you: bool, info: PlayerInfo, _localization: &Localization) -> String {
     // Leave space for a mod badge icon.
     const MOD_SPACING: &str = "      ";
