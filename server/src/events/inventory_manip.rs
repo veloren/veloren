@@ -559,6 +559,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     }
                     Some(InventoryUpdateEvent::Used)
                 },
+                // Items in overflow slots cannot be used
+                Slot::Overflow(_) => None,
             };
 
             drop(inventories);
@@ -663,6 +665,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let item = match slot {
                 Slot::Inventory(slot) => inventory.take_half(slot, &ability_map, &msm),
                 Slot::Equip(_) => None,
+                Slot::Overflow(_) => None,
             };
 
             if let Some(item) = item {
@@ -686,6 +689,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let item = match slot {
                 Slot::Inventory(slot) => inventory.remove(slot),
                 Slot::Equip(slot) => inventory.replace_loadout_item(slot, None, time),
+                Slot::Overflow(slot) => inventory.overflow_remove(slot),
             };
 
             // FIXME: We should really require the drop and write to be atomic!
@@ -717,6 +721,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let item = match slot {
                 Slot::Inventory(slot) => inventory.take_half(slot, ability_map, &msm),
                 Slot::Equip(_) => None,
+                Slot::Overflow(o) => inventory.overflow_take_half(o, ability_map, &msm),
             };
 
             // FIXME: We should really require the drop and write to be atomic!

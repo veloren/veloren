@@ -1753,6 +1753,7 @@ impl PlayState for SessionState {
                                             move_allowed = false;
                                         }
                                     },
+                                    Slot::Overflow(_) => {},
                                 }
                             };
                         }
@@ -2021,6 +2022,7 @@ impl PlayState for SessionState {
                                     let item = match item {
                                         Slot::Equip(slot) => inventory.equipped(slot),
                                         Slot::Inventory(slot) => inventory.get(slot),
+                                        Slot::Overflow(_) => None,
                                     }?;
                                     let repair_recipe =
                                         client.repair_recipe_book().repair_recipe(item)?;

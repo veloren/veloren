@@ -23,6 +23,7 @@ fn push_full() {
             .map(|a| Some(a.duplicate(ability_map, msm)))
             .collect(),
         loadout: LoadoutBuilder::empty().build(),
+        overflow_items: vec![],
     };
     assert_eq!(
         inv.push(TEST_ITEMS[0].duplicate(ability_map, msm))
@@ -43,6 +44,7 @@ fn push_all_full() {
             .map(|a| Some(a.duplicate(ability_map, msm)))
             .collect(),
         loadout: LoadoutBuilder::empty().build(),
+        overflow_items: vec![],
     };
     let Error::Full(leftovers) = inv
         .push_all(
@@ -73,6 +75,7 @@ fn push_unique_all_full() {
             .map(|a| Some(a.duplicate(ability_map, msm)))
             .collect(),
         loadout: LoadoutBuilder::empty().build(),
+        overflow_items: vec![],
     };
     inv.push_all_unique(
         TEST_ITEMS
@@ -92,6 +95,7 @@ fn push_all_empty() {
         next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
         loadout: LoadoutBuilder::empty().build(),
+        overflow_items: vec![],
     };
     inv.push_all(
         TEST_ITEMS
@@ -111,6 +115,7 @@ fn push_all_unique_empty() {
         next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
         loadout: LoadoutBuilder::empty().build(),
+        overflow_items: vec![],
     };
     inv.push_all_unique(
         TEST_ITEMS

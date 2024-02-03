@@ -20,7 +20,7 @@ use common::{
     assets::AssetExt,
     combat::{combat_rating, perception_dist_multiplier_from_stealth, Damage},
     comp::{
-        inventory::InventorySortOrder,
+        inventory::{slot::Slot, InventorySortOrder},
         item::{ItemDef, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
     },
@@ -308,9 +308,10 @@ impl<'a> InventoryScroller<'a> {
         // Create available inventory slot widgets
         if state.ids.inv_slots.len() < self.inventory.capacity() {
             state.update(|s| {
-                s.ids
-                    .inv_slots
-                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
+                s.ids.inv_slots.resize(
+                    self.inventory.capacity() + self.inventory.overflow_items().count(),
+                    &mut ui.widget_id_generator(),
+                );
             });
         }
         if state.ids.inv_slot_names.len() < self.inventory.capacity() {
@@ -363,7 +364,17 @@ impl<'a> InventoryScroller<'a> {
         };
 
         let mut i = 0;
-        let mut items = self.inventory.slots_with_id().collect::<Vec<_>>();
+        let mut items = self
+            .inventory
+            .slots_with_id()
+            .map(|(slot, item)| (Slot::Inventory(slot), item.as_ref()))
+            .chain(
+                self.inventory
+                    .overflow_items()
+                    .enumerate()
+                    .map(|(i, item)| (Slot::Overflow(i), Some(item))),
+            )
+            .collect::<Vec<_>>();
         if self.details_mode && !self.is_us {
             items.sort_by_cached_key(|(_, item)| {
                 (
@@ -417,6 +428,11 @@ impl<'a> InventoryScroller<'a> {
 
             if self.show_salvage && item.as_ref().map_or(false, |item| item.is_salvageable()) {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
+            }
+
+            // Highlight in red slots that are overflow
+            if matches!(pos, Slot::Overflow(_)) {
+                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 0.0, 0.0, 1.0));
             }
 
             if let Some(item) = item {

@@ -46,14 +46,18 @@ pub(crate) use conversions::convert_waypoint_from_database_json as parse_waypoin
 const CHARACTER_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.character";
 const INVENTORY_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.inventory";
 const LOADOUT_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.loadout";
+const OVERFLOW_ITEMS_PSEUDO_CONTAINER_DEF_ID: &str =
+    "veloren.core.pseudo_containers.overflow_items";
 const INVENTORY_PSEUDO_CONTAINER_POSITION: &str = "inventory";
 const LOADOUT_PSEUDO_CONTAINER_POSITION: &str = "loadout";
+const OVERFLOW_ITEMS_PSEUDO_CONTAINER_POSITION: &str = "overflow_items";
 const WORLD_PSEUDO_CONTAINER_ID: EntityId = 1;
 
 #[derive(Clone, Copy)]
 struct CharacterContainers {
     inventory_container_id: EntityId,
     loadout_container_id: EntityId,
+    overflow_items_container_id: EntityId,
 }
 
 /// Load the inventory/loadout
@@ -126,6 +130,8 @@ pub fn load_character_data(
     let character_containers = get_pseudo_containers(connection, char_id)?;
     let inventory_items = load_items(connection, character_containers.inventory_container_id)?;
     let loadout_items = load_items(connection, character_containers.loadout_container_id)?;
+    let overflow_items_items =
+        load_items(connection, character_containers.overflow_items_container_id)?;
 
     let mut stmt = connection.prepare_cached(
         "
@@ -276,6 +282,8 @@ pub fn load_character_data(
                 &inventory_items,
                 character_containers.loadout_container_id,
                 &loadout_items,
+                character_containers.overflow_items_container_id,
+                &overflow_items_items,
             )?,
             waypoint: char_waypoint,
             pets,
@@ -383,13 +391,14 @@ pub fn create_character(
         map_marker,
     } = persisted_components;
 
-    // Fetch new entity IDs for character, inventory and loadout
-    let mut new_entity_ids = get_new_entity_ids(transaction, |next_id| next_id + 3)?;
+    // Fetch new entity IDs for character, inventory, loadout, and overflow items
+    let mut new_entity_ids = get_new_entity_ids(transaction, |next_id| next_id + 4)?;
 
     // Create pseudo-container items for character
     let character_id = new_entity_ids.next().unwrap();
     let inventory_container_id = new_entity_ids.next().unwrap();
     let loadout_container_id = new_entity_ids.next().unwrap();
+    let overflow_items_container_id = new_entity_ids.next().unwrap();
 
     let pseudo_containers = vec![
         Item {
@@ -414,6 +423,14 @@ pub fn create_character(
             parent_container_item_id: character_id,
             item_definition_id: LOADOUT_PSEUDO_CONTAINER_DEF_ID.to_owned(),
             position: LOADOUT_PSEUDO_CONTAINER_POSITION.to_owned(),
+            properties: String::new(),
+        },
+        Item {
+            stack_size: 1,
+            item_id: overflow_items_container_id,
+            parent_container_item_id: character_id,
+            item_definition_id: OVERFLOW_ITEMS_PSEUDO_CONTAINER_DEF_ID.to_owned(),
+            position: OVERFLOW_ITEMS_PSEUDO_CONTAINER_POSITION.to_owned(),
             properties: String::new(),
         },
     ];
@@ -524,6 +541,7 @@ pub fn create_character(
             loadout_container_id,
             &inventory,
             inventory_container_id,
+            overflow_items_container_id,
             &mut next_id,
         );
         inserts = inserts_;
@@ -807,6 +825,11 @@ fn get_pseudo_containers(
             character_id,
             INVENTORY_PSEUDO_CONTAINER_POSITION,
         )?,
+        overflow_items_container_id: get_pseudo_container_id(
+            connection,
+            character_id,
+            OVERFLOW_ITEMS_PSEUDO_CONTAINER_POSITION,
+        )?,
     };
 
     Ok(character_containers)
@@ -1001,6 +1024,7 @@ pub fn update(
             pseudo_containers.loadout_container_id,
             &inventory,
             pseudo_containers.inventory_container_id,
+            pseudo_containers.overflow_items_container_id,
             &mut next_id,
         );
         upserts = upserts_;
@@ -1012,11 +1036,15 @@ pub fn update(
     let mut existing_item_ids: Vec<_> = vec![
         Value::from(pseudo_containers.inventory_container_id),
         Value::from(pseudo_containers.loadout_container_id),
+        Value::from(pseudo_containers.overflow_items_container_id),
     ];
     for it in load_items(transaction, pseudo_containers.inventory_container_id)? {
         existing_item_ids.push(Value::from(it.item_id));
     }
     for it in load_items(transaction, pseudo_containers.loadout_container_id)? {
+        existing_item_ids.push(Value::from(it.item_id));
+    }
+    for it in load_items(transaction, pseudo_containers.overflow_items_container_id)? {
         existing_item_ids.push(Value::from(it.item_id));
     }
 

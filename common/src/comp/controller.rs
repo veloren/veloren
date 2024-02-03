@@ -31,6 +31,9 @@ pub enum InventoryEvent {
         craft_event: CraftEvent,
         craft_sprite: Option<VolumePos>,
     },
+    OverflowMove(usize, InvSlotId),
+    OverflowDrop(usize),
+    OverflowSplitDrop(usize),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -86,6 +89,11 @@ impl From<InventoryEvent> for InventoryManip {
                 craft_event,
                 craft_sprite,
             },
+            InventoryEvent::OverflowMove(o, inv) => {
+                Self::Swap(Slot::Overflow(o), Slot::Inventory(inv))
+            },
+            InventoryEvent::OverflowDrop(o) => Self::Drop(Slot::Overflow(o)),
+            InventoryEvent::OverflowSplitDrop(o) => Self::SplitDrop(Slot::Overflow(o)),
         }
     }
 }

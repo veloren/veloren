@@ -1439,6 +1439,30 @@ impl Item {
         self.update_item_state(ability_map, msm);
     }
 
+    /// If an item is stackable and has an amount greater than 1, creates a new
+    /// item with half the amount (rounded down), and decreases the amount of
+    /// the original item by the same quantity.
+    #[must_use = "Returned items will be lost if not used"]
+    pub fn take_half(
+        &mut self,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Option<Item> {
+        if self.is_stackable() && self.amount() > 1 {
+            let mut return_item = self.duplicate(ability_map, msm);
+            let returning_amount = self.amount() / 2;
+            self.decrease_amount(returning_amount).ok()?;
+            return_item.set_amount(returning_amount).expect(
+                "return_item.amount() = self.amount() / 2 < self.amount() (since self.amount() ≥ \
+                 1) ≤ self.max_amount() = return_item.max_amount(), since return_item is a \
+                 duplicate of item",
+            );
+            Some(return_item)
+        } else {
+            None
+        }
+    }
+
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
         let ability_map = &AbilityMap::load().read();
