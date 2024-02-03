@@ -988,10 +988,7 @@ impl Window {
             },
             WindowEvent::CursorMoved { position, .. } => {
                 if self.cursor_grabbed {
-                    //TODO: An underlying OS call in winit is causing the camera to jump upon the
-                    // next mouse movement event in macos https://github.com/rust-windowing/winit/issues/999
-                    #[cfg(not(target_os = "macos"))]
-                    self.center_cursor();
+                    self.reset_cursor_position();
                 } else {
                     self.cursor_position = position;
                 }
@@ -1056,22 +1053,15 @@ impl Window {
         }
     }
 
-    /// Moves mouse cursor to center of screen
-    /// based on the window dimensions
-    pub fn center_cursor(&self) {
-        let dimensions: Vec2<f64> = self.logical_size();
-
-        if let Err(err) = self
-            .window
-            .set_cursor_position(winit::dpi::PhysicalPosition::new(
-                dimensions[0] / (2_f64),
-                dimensions[1] / (2_f64),
-            ))
-        {
+    /// Reset the cursor position to the last position
+    /// This is used when handling the CursorMoved event to maintain the cursor
+    /// position when it is grabbed
+    fn reset_cursor_position(&self) {
+        if let Err(err) = self.window.set_cursor_position(self.cursor_position) {
             // Log this error once rather than every frame
             static SPAM_GUARD: std::sync::Once = std::sync::Once::new();
             SPAM_GUARD.call_once(|| {
-                error!("Error centering cursor position: {:?}", err);
+                error!("Error resetting cursor position: {:?}", err);
             })
         }
     }
