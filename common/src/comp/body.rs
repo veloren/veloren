@@ -198,11 +198,11 @@ impl<
     const EXTENSION: &'static str = "ron";
 }
 
-// Semantic gender aka body_type
-//
-// Should be used for localization with extreme care.
-// For basically everything except *maybe* humanoids, it's simply wrong to
-// assume that this may be used as grammatical gender.
+/// Semantic gender aka body_type
+///
+/// Should be used for localization with extreme care.
+/// For basically everything except *maybe* humanoids, it's simply wrong to
+/// assume that this may be used as grammatical gender.
 //
 // TODO: remove this and instead add GUI for players to choose preferred gender.
 // Read a comment for `gender_str` in voxygen/i18n-helpers/src/lib.rs.
@@ -1366,7 +1366,7 @@ impl Body {
         }
     }
 
-    // Read comment on `Gender` for more
+    /// Read comment on `Gender` for more
     pub fn humanoid_gender(&self) -> Option<Gender> {
         match self {
             Body::Humanoid(b) => match b.body_type {

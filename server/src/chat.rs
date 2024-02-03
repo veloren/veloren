@@ -17,15 +17,14 @@ pub struct PlayerInfo {
     alias: String,
 }
 
+/// Enum representing death reasons
+///
+/// All variants should be strictly typed, no string content.
 #[derive(Clone, Serialize, Deserialize)]
 pub enum KillSource {
     Player(PlayerInfo, KillType),
     NonPlayer(String, KillType),
     NonExistent(KillType),
-    // #[deprecated = "if you use it, please expose enum for translators"]
-    //
-    // when I say 'enum' I mean it, not just arg to Content.
-    // Environment(String),
     FallDamage,
     Suicide,
     Other,
