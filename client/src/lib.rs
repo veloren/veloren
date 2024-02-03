@@ -2250,6 +2250,7 @@ impl Client {
                     player_info.character = match &player_info.character {
                         Some(character) => Some(msg::CharacterInfo {
                             name: character.name.to_string(),
+                            gender: character.gender,
                         }),
                         None => {
                             warn!(
@@ -2887,9 +2888,8 @@ impl Client {
     pub fn lookup_msg_context(&self, msg: &comp::ChatMsg) -> ChatTypeContext {
         let mut result = ChatTypeContext {
             you: self.uid().expect("Client doesn't have a Uid!!!"),
-            player_alias: HashMap::new(),
+            player_info: HashMap::new(),
             entity_name: HashMap::new(),
-            gender: HashMap::new(),
         };
 
         let name_of_uid = |uid| {
@@ -2903,24 +2903,10 @@ impl Client {
                 .map(|(c, _)| c.name.clone())
         };
 
-        let gender_of_uid = |uid| {
-            let ecs = self.state.ecs();
-            (
-                &ecs.read_storage::<comp::Stats>(),
-                &ecs.read_storage::<Uid>(),
-            )
-                .join()
-                .find(|(_, u)| u == &uid)
-                .and_then(|(c, _)| c.original_body.humanoid_gender())
-        };
-
         let mut add_data_of = |uid| {
             match self.player_list.get(uid) {
                 Some(player_info) => {
-                    result.player_alias.insert(*uid, player_info.clone());
-                    result
-                        .gender
-                        .insert(*uid, gender_of_uid(uid).unwrap_or(comp::Gender::Masculine));
+                    result.player_info.insert(*uid, player_info.clone());
                 },
                 None => {
                     result

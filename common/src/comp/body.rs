@@ -203,9 +203,10 @@ impl<
 /// Should be used for localization with extreme care.
 /// For basically everything except *maybe* humanoids, it's simply wrong to
 /// assume that this may be used as grammatical gender.
-//
-// TODO: remove this and instead add GUI for players to choose preferred gender.
-// Read a comment for `gender_str` in voxygen/i18n-helpers/src/lib.rs.
+///
+/// TODO: remove this and instead add GUI for players to choose preferred
+/// gender. Read a comment for `gender_str` in voxygen/i18n-helpers/src/lib.rs.
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum Gender {
     Masculine,
     Feminine,

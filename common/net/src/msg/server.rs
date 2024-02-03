@@ -257,14 +257,14 @@ pub struct PlayerInfo {
 /// used for localisation, filled by client and used by i18n code
 pub struct ChatTypeContext {
     pub you: Uid,
-    pub player_alias: HashMap<Uid, PlayerInfo>,
+    pub player_info: HashMap<Uid, PlayerInfo>,
     pub entity_name: HashMap<Uid, String>,
-    pub gender: HashMap<Uid, Gender>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterInfo {
     pub name: String,
+    pub gender: Option<Gender>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
