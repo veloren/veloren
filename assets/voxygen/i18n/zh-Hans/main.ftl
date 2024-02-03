@@ -32,6 +32,24 @@ main-login_process =
     你可以通过下面的网站创建用户.
     
     https://veloren.net/account/.
+main-singleplayer-new = 新建
+main-singleplayer-delete = 删除
+main-singleplayer-regenerate = 重新生成
+main-singleplayer-create_custom = 自定义
+main-singleplayer-invalid_name = 错误: 无效的世界名称
+main-singleplayer-seed = 种子
+main-singleplayer-day_length = 白天长度
+main-singleplayer-random_seed = 随机种子
+main-singleplayer-size_lg = 指数级大小
+main-singleplayer-map_large_warning = 警告: 生成大型地图可能需要很长时间
+main-singleplayer-world_name = 世界名称
+main-singleplayer-map_scale = 地图缩放
+main-singleplayer-map_erosion_quality = 地图侵蚀质量
+main-singleplayer-map_shape = 地图形状
+main-singleplayer-play = 开始游戏
+main-singleplayer-generate_and_play = 生成并开始游戏
+menu-singleplayer-confirm_delete = 你确定要删除 "{ $world_name }"
+menu-singleplayer-confirm_regenerate = 你确定要重新生成 "{ $world_name }"
 main-login-server_not_found = 找不到服务器
 main-login-authentication_error = 服务器验证错误
 main-login-internal_error = 客户端出现内部错误（很可能是玩家角色被删除）
@@ -64,6 +82,8 @@ main-servers-stream_error = Client connection/compression/(de)serialization erro
 main-servers-database_error = 服务器数据库错误: { $raw_error }
 main-servers-persistence_error = 服务器持久性错误（可能与资源文件/角色数据相关）: { $raw_error }
 main-servers-other_error = 服务器常规错误: { $raw_error }
+main-server-rules = 这个服务器有一些规则你要遵守
+main-server-rules-seen-before = 这些规则从你上次玩这个服务器时有所改变
 main-credits = 鸣谢
 main-credits-created_by = 创建了
 main-credits-music = 音乐
