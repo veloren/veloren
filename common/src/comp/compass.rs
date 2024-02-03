@@ -54,6 +54,9 @@ impl Direction {
         }
     }
 
+    /// Should be only used with care with npc-tell_monster and npc-tell_site
+    ///
+    /// If you add new usages for it, please consult i18n team.
     pub fn localize_npc(&self) -> Content {
         Content::localized(match self {
             Direction::North => "npc-speech-dir_north",
@@ -103,6 +106,9 @@ impl Distance {
         }
     }
 
+    /// Should be only used with care with npc-tell_monster and npc-tell_site
+    ///
+    /// If you add new usages for it, please consult i18n team.
     pub fn localize_npc(&self) -> Content {
         Content::localized(match self {
             Self::VeryFar => "npc-speech-dist_very_far",

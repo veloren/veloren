@@ -1346,11 +1346,19 @@ impl Body {
         Vec3::new(0.0, self.dimensions().y * 0.6, self.dimensions().z * 0.7)
     }
 
-    pub fn localize(&self) -> Content {
-        match self {
-            Self::BipedLarge(biped_large) => biped_large.localize(),
-            _ => Content::localized("body-generic"),
+    /// Should be only used with npc-tell_monster.
+    ///
+    /// If you want to use for displaying names in HUD, add new strings.
+    /// If you want to use for anything else, add new strings.
+    pub fn localize_npc(&self) -> Content {
+        fn try_localize(body: &Body) -> Option<Content> {
+            match body {
+                Body::BipedLarge(biped_large) => biped_large.localize_npc(),
+                _ => None,
+            }
         }
+
+        try_localize(self).unwrap_or_else(|| Content::localized("body-generic"))
     }
 }
 
