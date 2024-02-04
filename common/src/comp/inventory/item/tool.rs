@@ -97,6 +97,28 @@ impl ToolKind {
                 | ToolKind::Dagger
         )
     }
+
+    pub fn block_priority(&self) -> i32 {
+        match self {
+            ToolKind::Debug => 0,
+            ToolKind::Blowgun => 1,
+            ToolKind::Bow => 2,
+            ToolKind::Staff => 3,
+            ToolKind::Sceptre => 4,
+            ToolKind::Empty => 5,
+            ToolKind::Natural => 6,
+            ToolKind::Instrument => 7,
+            ToolKind::Farming => 8,
+            ToolKind::Shovel => 9,
+            ToolKind::Pick => 10,
+            ToolKind::Dagger => 11,
+            ToolKind::Spear => 12,
+            ToolKind::Hammer => 13,
+            ToolKind::Axe => 14,
+            ToolKind::Sword => 15,
+            ToolKind::Shield => 16,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

@@ -352,23 +352,60 @@ impl CharacterState {
         match self {
             CharacterState::BasicBlock(data) => {
                 data.static_data.blocked_attacks.applies(attack_source)
+                    && matches!(
+                        self.stage_section(),
+                        Some(StageSection::Buildup | StageSection::Action),
+                    )
             },
-            _ => false,
+            CharacterState::ComboMelee2(data) => {
+                data.static_data
+                    .ability_info
+                    .ability_meta
+                    .capabilities
+                    .contains(Capability::BLOCKS)
+                    && matches!(
+                        self.stage_section(),
+                        Some(StageSection::Buildup | StageSection::Action),
+                    )
+            },
+            CharacterState::Idle(_)
+            | CharacterState::Climb(_)
+            | CharacterState::Sit
+            | CharacterState::Dance
+            | CharacterState::Talk
+            | CharacterState::Glide(_)
+            | CharacterState::GlideWield(_)
+            | CharacterState::Stunned(_)
+            | CharacterState::Equipping(_)
+            | CharacterState::Wielding(_)
+            | CharacterState::Roll(_)
+            | CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::Boost(_)
+            | CharacterState::DashMelee(_)
+            | CharacterState::ComboMeleeDeprecated(_)
+            | CharacterState::LeapMelee(_)
+            | CharacterState::LeapShockwave(_)
+            | CharacterState::ChargedRanged(_)
+            | CharacterState::ChargedMelee(_)
+            | CharacterState::RepeaterRanged(_)
+            | CharacterState::Shockwave(_)
+            | CharacterState::BasicBeam(_)
+            | CharacterState::BasicAura(_)
+            | CharacterState::Blink(_)
+            | CharacterState::BasicSummon(_)
+            | CharacterState::SelfBuff(_)
+            | CharacterState::SpriteSummon(_)
+            | CharacterState::UseItem(_)
+            | CharacterState::SpriteInteract(_)
+            | CharacterState::Wallrun(_)
+            | CharacterState::Skate(_)
+            | CharacterState::Music(_)
+            | CharacterState::FinisherMelee(_)
+            | CharacterState::DiveMelee(_)
+            | CharacterState::RiposteMelee(_)
+            | CharacterState::RapidMelee(_) => false,
         }
-    }
-
-    pub fn is_half_block(&self, attack_source: AttackSource) -> bool {
-        matches!(attack_source, AttackSource::Melee)
-            && self
-                .ability_info()
-                .map(|a| a.ability_meta.capabilities)
-                .map_or(false, |c| {
-                    c.contains(Capability::BLOCKS)
-                        && matches!(
-                            self.stage_section(),
-                            Some(StageSection::Buildup | StageSection::Action)
-                        )
-                })
     }
 
     /// In radians

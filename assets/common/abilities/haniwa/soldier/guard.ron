@@ -2,6 +2,7 @@ BasicBlock(
     buildup_duration: 0.25,
     recover_duration: 0.25,
     max_angle: 90.0,
+    block_strength: 1.0,
     parry_window: (
         buildup: false,
         recover: false,
@@ -9,6 +10,7 @@ BasicBlock(
     energy_cost: 0,
     energy_regen: 0,
     can_hold: true,
+    can_use_block_priority: true,
     blocked_attacks: (
         melee: true,
         projectiles: true,

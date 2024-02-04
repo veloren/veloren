@@ -685,7 +685,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 // Block Strength
                 stat_text(
                     format!(
-                        "{} : {:+.0}",
+                        "{} : {:.1}",
                         i18n.get_msg("common-stats-block_strength"),
                         stats.block_strength * 10.0
                     ),
@@ -1215,13 +1215,13 @@ impl<'a> Widget for ItemTooltip<'a> {
                     // Block Strength
                     let block_str_text = if is_primary {
                         format!(
-                            "{} : {:.0}",
+                            "{} : {:.1}",
                             i18n.get_msg("common-stats-block_strength"),
                             stats.block_strength * 10.0
                         )
                     } else {
                         format!(
-                            "{} : x{:.2}",
+                            "{} : {:.2}",
                             i18n.get_msg("common-stats-block_strength"),
                             stats.block_strength
                         )

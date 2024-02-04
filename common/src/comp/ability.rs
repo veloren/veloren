@@ -196,7 +196,7 @@ impl ActiveAbilities {
 
         match ability {
             Ability::ToolGuard => {
-                let equip_slot = combat::get_block_equip_slot(inv);
+                let equip_slot = combat::get_block_equip_slot_by_priority(inv);
                 ability_set(equip_slot)
                     .and_then(|abilities| {
                         abilities
@@ -205,7 +205,7 @@ impl ActiveAbilities {
                     })
                     .map(|(ability, i)| (scale_ability(ability, equip_slot), true, spec_ability(i)))
                     .or_else(|| {
-                        ability_set(EquipSlot::ActiveOffhand)
+                        ability_set(EquipSlot::ActiveMainhand)
                             .and_then(|abilities| {
                                 abilities
                                     .guard(Some(skill_set), context)
@@ -213,7 +213,7 @@ impl ActiveAbilities {
                             })
                             .map(|(ability, i)| {
                                 (
-                                    scale_ability(ability, EquipSlot::ActiveOffhand),
+                                    scale_ability(ability, EquipSlot::ActiveMainhand),
                                     false,
                                     spec_ability(i),
                                 )
@@ -393,7 +393,7 @@ impl Ability {
         };
 
         match self {
-            Ability::ToolGuard => ability_set(combat::get_block_equip_slot(inv))
+            Ability::ToolGuard => ability_set(combat::get_block_equip_slot_by_priority(inv))
                 .and_then(|abilities| {
                     abilities
                         .guard(skillset, context)
@@ -406,7 +406,7 @@ impl Ability {
                         })
                 })
                 .or_else(|| {
-                    ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
+                    ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                         abilities
                             .guard(skillset, context)
                             .map(|a| a.0.id.as_str())
@@ -521,10 +521,10 @@ impl SpecifiedAbility {
                     ability_set(EquipSlot::ActiveMainhand)
                         .map(|abilities| ability_id(self, &abilities.secondary))
                 }),
-            Ability::ToolGuard => ability_set(combat::get_block_equip_slot(inv))
+            Ability::ToolGuard => ability_set(combat::get_block_equip_slot_by_priority(inv))
                 .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
                 .or_else(|| {
-                    ability_set(EquipSlot::ActiveOffhand)
+                    ability_set(EquipSlot::ActiveMainhand)
                         .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
                 }),
             Ability::SpeciesMovement => None, // TODO: Make not None
@@ -756,6 +756,7 @@ pub enum CharacterAbility {
         energy_cost: f32,
         energy_regen: f32,
         can_hold: bool,
+        can_use_block_priority: bool,
         blocked_attacks: AttackFilters,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1282,6 +1283,7 @@ impl CharacterAbility {
                 ref mut energy_cost,
                 energy_regen: _,
                 can_hold: _,
+                can_use_block_priority: _,
                 blocked_attacks: _,
                 meta: _,
             } => {
@@ -2346,6 +2348,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 energy_cost,
                 energy_regen,
                 can_hold,
+                can_use_block_priority,
                 blocked_attacks,
                 meta: _,
             } => CharacterState::BasicBlock(basic_block::Data {
@@ -2358,6 +2361,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     energy_cost: *energy_cost,
                     energy_regen: *energy_regen,
                     can_hold: *can_hold,
+                    can_use_block_priority: *can_use_block_priority,
                     blocked_attacks: *blocked_attacks,
                     ability_info,
                 },
@@ -3000,6 +3004,8 @@ bitflags::bitflags! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
     // If more are ever needed, first check if any not used anymore, as some were only used in intermediary stages so may be free
     pub struct Capability: u8 {
+        // The ability will parry all blockable attacks in the buildup portion
+        const PARRIES             = 0b01000000;
         // There used to be a capability here, to keep ordering the same below this is now a placeholder
         const PLACEHOLDER         = 0b00000001;
         // Allows blocking to interrupt the ability at any point
@@ -3012,8 +3018,6 @@ bitflags::bitflags! {
         const KNOCKBACK_RESISTANT = 0b00010000;
         // The ability will parry melee attacks in the buildup portion
         const PARRIES_MELEE       = 0b00100000;
-        // The ability will parry all blockable attacks in the buildup portion
-        const PARRIES             = 0b01000000;
     }
 }
 

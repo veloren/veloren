@@ -25,7 +25,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
-    /// What percentage incoming damage is reduced by
+    /// What percentage of block strength is effective
     pub block_strength: f32,
     /// What durations are considered a parry
     pub parry_window: ParryWindow,
@@ -37,6 +37,8 @@ pub struct StaticData {
     pub energy_regen: f32,
     /// Whether block can be held
     pub can_hold: bool,
+    /// Whether can choose higher priority weapon block
+    pub can_use_block_priority: bool,
     /// What kinds of attacks the block applies to
     pub blocked_attacks: AttackFilters,
 }
