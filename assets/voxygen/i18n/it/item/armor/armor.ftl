@@ -13,7 +13,7 @@ armor-hide-carapace-foot = Solette di carapace
 armor-hide-carapace-hand = Impugnature di carapace
     .desc = Fatta dalla corazza che un tempo proteggeva una bestia.
 
-armor-hide-carapace-pants = Pantaloni di carapace
+armor-hide-carapace-pants = Gambiere di carapace
     .desc = Fatta dalla corazza che un tempo proteggeva una bestia.
 
 armor-hide-carapace-shoulder = Paraspalle di carapace
@@ -97,7 +97,7 @@ armor-hide-scale-chest = Corpetto di scaglie
 armor-hide-scale-foot = Sabatons di scaglie
     .desc = Ogni scaglia incorporata fornisce una protezione aggiuntiva.
 
-armor-hide-scale-hand = Guanti di scaglie
+armor-hide-scale-hand = Mitteni di scaglie
     .desc = Ogni scaglia incorporata fornisce una protezione aggiuntiva.
 
 armor-hide-scale-pants = Pantaloni di scaglie
@@ -118,7 +118,7 @@ armor-hide-dragonscale-chest = Corpetto di scaglie di drago
 armor-hide-dragonscale-foot = Speroni di scaglie di drago
     .desc = Realizzata dalle scaglie di una creatura leggendaria, si può sentire il potere pulsare attraverso di essa.
 
-armor-hide-dragonscale-hand = Guanti di scaglie di drago
+armor-hide-dragonscale-hand = Mitteni di scaglie di drago
     .desc = Realizzata dalle scaglie di una creatura leggendaria, si può sentire il potere pulsare attraverso di essa.
 
 armor-hide-dragonscale-pants = Leggings di scaglie di drago
@@ -184,10 +184,10 @@ armor-brinestone-crown = Corona di pietrasale
 armor-brinestone-foot = Stivali di pietrasale
     .desc = Non molto confortevoli.
 
-armor-brinestone-hand = Guanti di pietrasale
+armor-brinestone-hand = Mitteni di pietrasale
     .desc = Colpisce come una roccia.
 
-armor-brinestone-pants = Pantaloni di pietrasale
+armor-brinestone-pants = Schinieri di pietrasale
     .desc = Non rovinare.
 
 armor-brinestone-shoulder = Paraspalle di pietrasale
@@ -490,7 +490,7 @@ armor-mail-bloodsteel-chest = Corazza di ferrosangue
 armor-mail-bloodsteel-foot = Calzari in ferrosangue
     .desc = Forgiata per preservare la vita, al costo di un'altra.
 
-armor-mail-bloodsteel-hand = Guanti di ferrosangue
+armor-mail-bloodsteel-hand = Mitteni di ferrosangue
     .desc = Forgiata per preservare la vita, al costo di un'altra.
 
 armor-mail-bloodsteel-pants = Gambali in ferrosangue
@@ -535,13 +535,13 @@ armor-mail-bronze-foot = Calzari di bronzo
 armor-mail-bronze-hand = Guanti di bronzo
     .desc = Pesante e opaco, ma può resistere a un colpo.
 
-armor-mail-bronze-pants = Pantaloni di bronzo
+armor-mail-bronze-pants = Schinieri di bronzo
     .desc = Pesante e opaco, ma può resistere a un colpo.
 
-armor-mail-bronze-shoulder = Guardie di bronzo
+armor-mail-bronze-shoulder = Spalline di bronzo
     .desc = Pesante e opaco, ma può resistere a un colpo.
 
-armor-mail-orichalcum-6 = Mantello di oricalco
+armor-mail-orichalcum-6 = Cappa di oricalco
     .desc = Un antico lega. I miti narrano di eroi che una volta indossavano questo metallo.
 
 armor-mail-orichalcum-2 = Cintura di oricalco
@@ -550,13 +550,13 @@ armor-mail-orichalcum-2 = Cintura di oricalco
 armor-mail-orichalcum = Corazza di oricalco
     .desc = Un antico lega. I miti narrano di eroi che una volta indossavano questo metallo.
 
-armor-mail-orichalcum-3 = Stivali da Guerra di oricalco
+armor-mail-orichalcum-3 = Stivali da guerra di oricalco
     .desc = Un antico lega. I miti narrano di eroi che una volta indossavano questo metallo.
 
 armor-mail-orichalcum-4 = Guanti di oricalco
     .desc = Un antico lega. I miti narrano di eroi che una volta indossavano questo metallo.
 
-armor-mail-orichalcum-1 = Piastre per le Gambe di oricalco
+armor-mail-orichalcum-1 = Schinieri di oricalco
     .desc = Un antico lega. I miti narrano di eroi che una volta indossavano questo metallo.
 
 armor-mail-orichalcum-5 = Mantello di oricalco
@@ -592,13 +592,13 @@ armor-mail-iron-belt = Cintura di ferro
 armor-mail-iron-chest = Corazza di ferro
     .desc = Robusto e implacabile, attraverso epoche di guerra.
 
-armor-mail-iron-foot = Copripiante di ferro
+armor-mail-iron-foot = Stivali di ferro
     .desc = Robusto e implacabile, attraverso epoche di guerra.
 
-armor-mail-iron-hand = Pugni di ferro
+armor-mail-iron-hand = Mitteni di ferro
     .desc = Robusto e implacabile, attraverso epoche di guerra.
 
-armor-mail-iron-pants = Pantaloni di ferro
+armor-mail-iron-pants = Schinieri di ferro
     .desc = Robusto e implacabile, attraverso epoche di guerra.
 
 armor-mail-iron-shoulder = Paraspalle in ferro
@@ -658,7 +658,7 @@ armor-tarasque-chest = Corazza della tarasca
 armor-tarasque-foot = Stivali della tarasca
     .desc = Le artigli della tarasca formano l'esterno di questi stivali, proteggendo i piedi del portatore.
 
-armor-tarasque-hand = Guanti della tarasca
+armor-tarasque-hand = Mitteni della tarasca
     .desc = Frammenti frantumati provenienti da un guscio di tarasca modellati in guanti protettivi.
 
 armor-tarasque-pants = Calzoni della tarasca
@@ -832,7 +832,7 @@ armor-cloth-druid-foot = Stivali del druido
 armor-cloth-druid-hand = Bendaggi per le mani del druido
     .desc = Incredibilmente leggera, con l'essenza della natura.
 
-armor-cloth-druid-pants = Leggings del druido
+armor-cloth-druid-pants = Pantaloni del druido
     .desc = Incredibilmente leggera, con l'essenza della natura.
 
 armor-cloth-druid-shoulder = Spalline del druido
