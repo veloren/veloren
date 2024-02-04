@@ -1,3 +1,5 @@
+## Generic NPC messages
+
 npc-speech-villager =
     .a0 = I love cheese.
 npc-speech-villager_open =
@@ -249,14 +251,54 @@ npc-speech-merchant_sell_directed =
     .a0 = You there! Are you in need of a new thingamabob?
     .a1 = Are you hungry? I'm sure I've got some cheese you can buy.
     .a2 = You look like you could do with some new armour!
+
+## NPC site hints
+## Available variables:
+## - $dir references npc-speech-dir-* variables below
+## - $dist references npc-speech-dist-* variables below
+## - $site represents hard-coded site in the world
+
 npc-speech-tell_site =
-    .a0 = Have you visited { $site }? It's just { $dir } of here!
+    .a0 = There's { $site } { $dir } of here. Have you visited it?
     .a1 = You should visit { $site } some time.
-    .a2 = If you travel { $dist } to the { $dir }, you can get to { $site }.
-    .a3 = To the { $dir } you'll find { $site }, it's { $dist }.
+    .a2 = If you travel { $dist } { $dir }, you can get to { $site }.
+    .a3 = { $dir } you'll find { $site }, it's { $dist }.
+
+## NPC monster hints
+## Available variables:
+## - $dir references npc-speech-dir-* variables below
+## - $dist references npc-speech-dist-* variables below
+## - $body references body-npc-speech-* variables in `body` component
+
 npc-speech-tell_monster =
-    .a0 = They say there's a { $body } to the { $dir }, { $dist }...
-    .a1 = You think you're tough? To the { $dir } there's a { $body }.
+    .a0 = They say there's { $body } { $dir }, { $dist } ...
+    .a1 = You think you're tough? There's { $body } { $dir }.
+
+## Direction hints, used ONLY in npc-speech-tell* above
+
+npc-speech-dir_north = to the north
+npc-speech-dir_north_east = to the north-east
+npc-speech-dir_east = to the east
+npc-speech-dir_south_east = to the south-east
+npc-speech-dir_south = to the south
+npc-speech-dir_south_west = to the south-west
+npc-speech-dir_west = to the west
+npc-speech-dir_north_west = to the north-west
+
+## Distance hints, used ONLY in npc-speech-tell* above
+
+npc-speech-dist_very_far = very far away
+npc-speech-dist_far = far away
+npc-speech-dist_ahead = some way away
+npc-speech-dist_near = nearby
+npc-speech-dist_near_to = very close
+
+## NPC proposals
+
+npc-speech-arena = Let's sit over there!
+
+## NPC reactions
+
 npc-speech-witness_murder =
     .a0 = Murderer!
     .a1 = How could you do this?
@@ -273,18 +315,3 @@ npc-speech-welcome-aboard =
     .a0 = Welcome aboard!
     .a1 = Can I see your ticket... just kidding it's free!
     .a2 = Have a nice ride!
-npc-speech-dir_north = north
-npc-speech-dir_north_east = north-east
-npc-speech-dir_east = east
-npc-speech-dir_south_east = south-east
-npc-speech-dir_south = south
-npc-speech-dir_south_west = south-west
-npc-speech-dir_west = west
-npc-speech-dir_north_west = north-west
-
-npc-speech-dist_very_far = very far away
-npc-speech-dist_far = far away
-npc-speech-dist_ahead = some way away
-npc-speech-dist_near = nearby
-npc-speech-dist_near_to = very close
-npc-speech-arena = Let's sit over there!

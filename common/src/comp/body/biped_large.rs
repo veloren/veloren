@@ -25,20 +25,29 @@ impl Body {
         Self { species, body_type }
     }
 
-    pub fn localize(&self) -> Content {
-        Content::localized(match &self.species {
-            Species::Ogre => "body-biped_large-ogre",
-            Species::Cyclops => "body-biped_large-cyclops",
-            Species::Wendigo => "body-biped_large-wendigo",
-            Species::Werewolf => "body-biped_large-werewolf",
-            Species::Cavetroll => "body-biped_large-cave_troll",
-            Species::Mountaintroll => "body-biped_large-mountain_troll",
-            Species::Swamptroll => "body-biped_large-swamp_troll",
-            Species::Blueoni => "body-biped_large-blue_oni",
-            Species::Redoni => "body-biped_large-red_oni",
-            Species::Tursus => "body-biped_large-tursus",
-            _ => "body-generic",
-        })
+    /// Should be only used with npc-tell_monster.
+    ///
+    /// If you want to use for displaying names in HUD, add new strings.
+    /// If you want to use for anything else, add new strings.
+    pub fn localize_npc(&self) -> Option<Content> {
+        let key = match &self.species {
+            Species::Ogre => match self.body_type {
+                BodyType::Male => "body-npc-speech-biped_large-ogre-male",
+                BodyType::Female => "body-npc-speech-biped_large-ogre-female",
+            },
+            Species::Cyclops => "body-npc-speech-biped_large-cyclops",
+            Species::Wendigo => "body-npc-speech-biped_large-wendigo",
+            Species::Werewolf => "body-npc-speech-biped_large-werewolf",
+            Species::Cavetroll => "body-npc-speech-biped_large-cave_troll",
+            Species::Mountaintroll => "body-npc-speech-biped_large-mountain_troll",
+            Species::Swamptroll => "body-npc-speech-biped_large-swamp_troll",
+            Species::Blueoni => "body-npc-speech-biped_large-blue_oni",
+            Species::Redoni => "body-npc-speech-biped_large-red_oni",
+            Species::Tursus => "body-npc-speech-biped_large-tursus",
+            _ => return None,
+        };
+
+        Some(Content::localized(key))
     }
 }
 

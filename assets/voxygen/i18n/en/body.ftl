@@ -1,11 +1,14 @@
-body-generic = creature
-body-biped_large-ogre = ogre
-body-biped_large-cyclops = cyclops
-body-biped_large-wendigo = wendigo
-body-biped_large-werewolf = werewolf
-body-biped_large-cave_troll = cave troll
-body-biped_large-mountain_troll = mountain troll
-body-biped_large-swamp_troll = swamp troll
-body-biped_large-blue_oni = blue oni
-body-biped_large-red_oni = red oni
-body-biped_large-tursus = tursus
+## Monster descriptions, used ONLY in npc-speech-tell_monster
+
+body-npc-speech-generic = some creature
+body-npc-speech-biped_large-ogre-male = an ogre
+body-npc-speech-biped_large-ogre-female = an ogre
+body-npc-speech-biped_large-cyclops = a cyclops
+body-npc-speech-biped_large-wendigo = a wendigo
+body-npc-speech-biped_large-werewolf = a werewolf
+body-npc-speech-biped_large-cave_troll = a cave troll
+body-npc-speech-biped_large-mountain_troll = a mountain troll
+body-npc-speech-biped_large-swamp_troll = a swamp troll
+body-npc-speech-biped_large-blue_oni = a blue oni
+body-npc-speech-biped_large-red_oni = a red oni
+body-npc-speech-biped_large-tursus = a tursus

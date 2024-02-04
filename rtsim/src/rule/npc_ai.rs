@@ -610,7 +610,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + 
                     .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
             {
                 Content::localized_with_args("npc-speech-tell_monster", [
-                    ("body", monster.body.localize()),
+                    ("body", monster.body.localize_npc()),
                     ("dir", Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc()),
                     ("dist", Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32).localize_npc()),
                 ])
