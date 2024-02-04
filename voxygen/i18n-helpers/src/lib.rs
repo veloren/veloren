@@ -80,15 +80,9 @@ pub fn localize_chat_message(
             match pi.character.as_ref().and_then(|c| c.gender) {
                 Some(Gender::Feminine) => "she".to_owned(),
                 Some(Gender::Masculine) => "he".to_owned(),
-                None => {
-                    tracing::error!("We tried to get the gender, but failed");
-
-                    "??".to_owned()
-                },
+                None => "??".to_owned(),
             }
         } else {
-            tracing::error!("We tried to get the gender of the player we can't find");
-
             "??".to_owned()
         }
     };
