@@ -522,7 +522,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
                     character: ecs.read_storage::<comp::Stats>().get(possessee).map(|s| {
                         msg::CharacterInfo {
                             name: s.name.clone(),
-                            // NOTE: hack, read docs for humanoid_gender() for more
+                            // NOTE: hack, read docs on body::Gender for more
                             gender: s.original_body.humanoid_gender(),
                         }
                     }),

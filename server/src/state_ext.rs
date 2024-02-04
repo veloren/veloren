@@ -724,7 +724,7 @@ impl StateExt for State {
             self.notify_players(ServerGeneral::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
                     name: String::from(&stats.name),
-                    // NOTE: hack, read docs for humanoid_gender() for more
+                    // NOTE: hack, read docs on body::Gender for more
                     gender: stats.original_body.humanoid_gender(),
                 }),
             ));
