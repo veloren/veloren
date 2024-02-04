@@ -481,7 +481,7 @@ impl<'a> Widget for Chat<'a> {
                     .and_then(|uid| {
                         self.client
                             .lookup_msg_context(m)
-                            .player_alias
+                            .player_info
                             .get(&uid)
                             .map(|i| i.is_moderator)
                     })

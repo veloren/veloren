@@ -166,7 +166,7 @@ impl Client {
             ServerMsg::RegisterAnswer(m) => PreparedMsg::new(0, &m, &self.register_stream_params),
             ServerMsg::General(g) => {
                 match g {
-                    //Character Screen related
+                    // Character Screen related
                     ServerGeneral::CharacterDataLoadResult(_)
                     | ServerGeneral::CharacterListUpdate(_)
                     | ServerGeneral::CharacterActionError(_)
@@ -176,7 +176,7 @@ impl Client {
                     | ServerGeneral::SpectatorSuccess(_) => {
                         PreparedMsg::new(1, &g, &self.character_screen_stream_params)
                     },
-                    //In-game related
+                    // In-game related
                     ServerGeneral::GroupUpdate(_)
                     | ServerGeneral::Invite { .. }
                     | ServerGeneral::InvitePending(_)

@@ -2250,6 +2250,7 @@ impl Client {
                     player_info.character = match &player_info.character {
                         Some(character) => Some(msg::CharacterInfo {
                             name: character.name.to_string(),
+                            gender: character.gender,
                         }),
                         None => {
                             warn!(
@@ -2870,10 +2871,13 @@ impl Client {
     }
 
     /// Change player alias to "You" if client belongs to matching player
+    // TODO: move this to voxygen or i18n-helpers and properly localize there
+    // or what's better, just remove completely, it won't properly work with
+    // localization anyway.
     pub fn personalize_alias(&self, uid: Uid, alias: String) -> String {
         let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
         if client_uid == uid {
-            "You".to_string() // TODO: Localize
+            "You".to_string()
         } else {
             alias
         }
@@ -2884,9 +2888,10 @@ impl Client {
     pub fn lookup_msg_context(&self, msg: &comp::ChatMsg) -> ChatTypeContext {
         let mut result = ChatTypeContext {
             you: self.uid().expect("Client doesn't have a Uid!!!"),
-            player_alias: HashMap::new(),
+            player_info: HashMap::new(),
             entity_name: HashMap::new(),
         };
+
         let name_of_uid = |uid| {
             let ecs = self.state.ecs();
             (
@@ -2897,53 +2902,52 @@ impl Client {
                 .find(|(_, u)| u == &uid)
                 .map(|(c, _)| c.name.clone())
         };
-        let mut alias_of_uid = |uid| match self.player_list.get(uid) {
-            Some(player_info) => {
-                result.player_alias.insert(*uid, player_info.clone());
-            },
-            None => {
-                result
-                    .entity_name
-                    .insert(*uid, name_of_uid(uid).unwrap_or_else(|| "<?>".to_string()));
-            },
+
+        let mut add_data_of = |uid| {
+            match self.player_list.get(uid) {
+                Some(player_info) => {
+                    result.player_info.insert(*uid, player_info.clone());
+                },
+                None => {
+                    result
+                        .entity_name
+                        .insert(*uid, name_of_uid(uid).unwrap_or_else(|| "<?>".to_string()));
+                },
+            };
         };
+
         match &msg.chat_type {
-            comp::ChatType::Online(uid) | comp::ChatType::Offline(uid) => {
-                alias_of_uid(uid);
-            },
-            comp::ChatType::CommandError => (),
-            comp::ChatType::CommandInfo => (),
-            comp::ChatType::FactionMeta(_) => (),
-            comp::ChatType::GroupMeta(_) => (),
+            comp::ChatType::Online(uid) | comp::ChatType::Offline(uid) => add_data_of(uid),
             comp::ChatType::Kill(kill_source, victim) => {
-                alias_of_uid(victim);
+                add_data_of(victim);
+
                 match kill_source {
                     KillSource::Player(attacker_uid, _) => {
-                        alias_of_uid(attacker_uid);
+                        add_data_of(attacker_uid);
                     },
-                    KillSource::NonPlayer(_, _) => (),
-                    KillSource::Environment(_) => (),
-                    KillSource::FallDamage => (),
-                    KillSource::Suicide => (),
-                    KillSource::NonExistent(_) => (),
-                    KillSource::Other => (),
+                    KillSource::NonPlayer(_, _)
+                    | KillSource::FallDamage
+                    | KillSource::Suicide
+                    | KillSource::NonExistent(_)
+                    | KillSource::Other => (),
                 };
             },
             comp::ChatType::Tell(from, to) | comp::ChatType::NpcTell(from, to) => {
-                alias_of_uid(from);
-                alias_of_uid(to);
+                add_data_of(from);
+                add_data_of(to);
             },
             comp::ChatType::Say(uid)
             | comp::ChatType::Region(uid)
             | comp::ChatType::World(uid)
-            | comp::ChatType::NpcSay(uid) => {
-                alias_of_uid(uid);
-            },
-            comp::ChatType::Group(uid, _) | comp::ChatType::Faction(uid, _) => {
-                alias_of_uid(uid);
-            },
-            comp::ChatType::Npc(uid) => alias_of_uid(uid),
-            comp::ChatType::Meta => (),
+            | comp::ChatType::NpcSay(uid)
+            | comp::ChatType::Group(uid, _)
+            | comp::ChatType::Faction(uid, _)
+            | comp::ChatType::Npc(uid) => add_data_of(uid),
+            comp::ChatType::CommandError
+            | comp::ChatType::CommandInfo
+            | comp::ChatType::FactionMeta(_)
+            | comp::ChatType::GroupMeta(_)
+            | comp::ChatType::Meta => (),
         };
         result
     }

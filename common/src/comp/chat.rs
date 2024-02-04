@@ -57,6 +57,11 @@ impl ChatMode {
     pub const fn default() -> Self { Self::World }
 }
 
+/// Enum representing death types
+///
+/// All variants should be strictly typed, no string content.
+///
+/// If it's too complicated to create an enum for death type, consult i18n team
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum KillType {
     Buff(BuffKind),
@@ -65,15 +70,17 @@ pub enum KillType {
     Explosion,
     Energy,
     Other,
-    // Projectile(String), TODO: add projectile name when available
+    // Projectile(Type), TODO: add projectile name when available
 }
 
+/// Enum representing death reasons
+///
+/// All variants should be strictly typed, no string content.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum KillSource {
     Player(Uid, KillType),
     NonPlayer(String, KillType),
     NonExistent(KillType),
-    Environment(String),
     FallDamage,
     Suicide,
     Other,

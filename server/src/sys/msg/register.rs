@@ -99,6 +99,8 @@ impl<'a> System<'a> for Sys {
                         player_alias: player.alias.clone(),
                         character: stats.map(|stats| CharacterInfo {
                             name: stats.name.clone(),
+                            // NOTE: hack, read docs for body::Gender for more
+                            gender: stats.original_body.humanoid_gender(),
                         }),
                         uuid: player.uuid(),
                     }),
