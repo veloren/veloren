@@ -1,9 +1,0 @@
-body-biped_large-werewolf = оборотень
-body-biped_large-ogre = огр
-body-biped_large-wendigo = вендиго
-body-biped_large-mountain_troll = Горный тролль
-body-biped_large-tursus = Турсус
-body-biped_large-swamp_troll = Болотный тролль
-body-biped_large-cave_troll = пещерный тролль
-body-biped_large-cyclops = циклоп
-body-generic = существо

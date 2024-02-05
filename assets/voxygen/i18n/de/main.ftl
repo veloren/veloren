@@ -7,31 +7,31 @@ main-tip = Tipp:
 main-unbound_key_tip = Keine Taste ausgewählt
 main-notice =
     Wilkommen in der Alpha-Version von Veloren!
-    
+
     Bevor du dich ins Abenteuer stürzt, behalte bitte einige Dinge im Hinterkopf:
-    
+
     - Dies ist eine frühe Alpha. Du wirst auf Bugs, unfertiges Gameplay und Mechaniken, sowie fehlende Features stoßen.
-    
+
     - Für konstruktives Feedback und Bug-Reports kannst du uns via Reddit, Gitlab oder über unseren Discord-Server kontaktieren.
-    
+
     - Veloren hat die GPL 3 Open-Source Lizenz. Das heißt du kannst es kostenlos spielen,
     aber auch modifizieren (solange die Modifikation auch die selbe Lizenz trägt) und das Spiel an andere weiterschicken.
-    
+
     - Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
-    
+
     Wenn dir die Idee gefällt, dann schließe dich doch einfach unserem Dev- oder Art-Team an!
-    
+
     Danke, dass du dir die Zeit genommen hast diese Zeilen zu lesen und wir hoffen, dass dir Veloren gefällt!
-    
+
     ~ Die Entwickler*innen
 main-login_process =
     Informationen zum Login:
-    
+
     Bitte beachte, dass du einen Account benötigst,
     um auf Servern mit Authentifizierung zu spielen.
-    
+
     Du kannst deinen Account auf folgender Webseite erstellen:
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Server nicht gefunden
 main-login-authentication_error = Authentifizierung fehlgeschlagen
@@ -40,7 +40,7 @@ main-login-failed_auth_server_url_invalid = Verbindung zum Authentifikationsserv
 main-login-insecure_auth_scheme = Das HTTP Protokoll wird nicht unterstützt. Es ist unsicher! Für Entwicklungszwecke kann HTTP für 'localhost'- und debug-builds genutzt werden
 main-login-server_full = Server ist voll
 main-login-untrusted_auth_server = Auth. Server wird nicht vertraut
-main-login-outdated_client_or_server = Client- oder Serverversion ist veraltet 
+main-login-outdated_client_or_server = Client- oder Serverversion ist veraltet
 main-login-timeout = Zeitüberschreitung: Der Server hat nicht rechtzeitig geantwortet. (Überlastung oder Netzwerkprobleme).
 main-login-server_shut_down = Server wurde heruntergefahren
 main-login-network_error = Netzwerkfehler
@@ -94,3 +94,15 @@ loading-tips =
     .a19 = Du weißt nicht, was du mit einem gewissen Gegenstand anfangen sollst? Suche 'input:<Name des Gegenstandes>' im Crafting-Menü!
     .a20 = Unterstütze doch die Spielentwicklung und helfe mit! Egal ob Übersetzen, Programmieren oder das Entwickeln neuer Ideen - alles hilft!
     .a21 = Du siehst etwas Besonderes? Mach doch einen Screenshot! ({ $gameinput-screenshot })
+main-singleplayer-new = Neu
+main-singleplayer-world_name = Weltname
+main-singleplayer-delete = Löschen
+main-singleplayer-random_seed = Zufällig
+main-singleplayer-regenerate = Regenerieren
+main-singleplayer-invalid_name = Fehler: Ungültiger Name
+main-singleplayer-size_lg = Logarithmische Größe
+main-singleplayer-map_large_warning = Warnung: Große Welten brauchen beim ersten Mal eine lange Zeit zum Starten
+main-singleplayer-map_shape = Form
+main-singleplayer-map_erosion_quality = Erosionsqualität
+main-singleplayer-play = Spielen
+main-singleplayer-generate_and_play = Generieren & Spielen
