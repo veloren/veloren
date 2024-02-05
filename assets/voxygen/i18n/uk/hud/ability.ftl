@@ -251,7 +251,7 @@ common-abilities-sword-crippling_eviscerate = Потрошіння
     .desc =
         Роздирає рани, завдаючи більше шкоди покаліченим ворогам
         Для використання потрібна руйнівна стійка
-common-abilities-sword-crippling_bloody_gash = Кривава рана
+common-abilities-sword-crippling_bloody_gash = Кривавий Розріз
     .desc =
         Жорстокий удар по рані, що вже кровоточить, завдає більшої шкоди ворогам, що стікають кров'ю.
         Потребує стійки каліки.
