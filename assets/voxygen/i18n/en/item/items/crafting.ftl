@@ -90,9 +90,9 @@ sprite-crafting_ing-hide-tough_hide = Tough Hide
 
 sprite-crafting_ing-animal_misc-claw = Predator Claw
     .desc = 
-        Incredibly sharp claw from a predatory animal.
+        The nimble claw of a fierce predator.
         
-        This can be used when crafting weapons.
+        Can be used to craft fast and agile weapons.
 
 sprite-crafting_ing-animal_misc-fur = Soft Fur
     .desc = Soft fur from an animal.
@@ -102,9 +102,9 @@ sprite-crafting_ing-animal_misc-grim_eyeball = Grim Eyeball
 
 sprite-crafting_ing-animal_misc-large_horn = Large Horn
     .desc = 
-        A huge sharp horn from an animal.
+        A large horn from a fearsome beast.
         
-        This can be used when crafting weapons.
+        Weapons made with it have strengthened ability effects.
 
 sprite-crafting_ing-animal_misc-lively_vine = Lively Vine
     .desc = I think it just moved...
@@ -114,9 +114,9 @@ sprite-crafting_ing-animal_misc-phoenix_feather = Phoenix Feather
 
 sprite-crafting_ing-animal_misc-sharp_fang = Sharp Fang
     .desc = 
-        Incredibly sharp tooth from a predatory animal.
+        Razor-sharp tooth from a ferocious animal.
         
-        This can be used when crafting weapons.
+        Weapons made with it have more potent lasting effects.
 
 sprite-crafting_ing-animal_misc-venom_sac = Venom Sac
     .desc = A venomous sac from a poisonous creature.
@@ -217,27 +217,27 @@ object-glowing_remains = Glowing Remains
 
 object-elegant_crest = Elegant Crest
     .desc = 
-        A flawless crest from some majestic creature.
+        Bright plumage formerly part of a colorful creature.
         
-        This can be used when crafting weapons.
+        Can be used to craft quick and energy-efficient weapons.
 
 object-ice_shard = Icy Shard
     .desc = Looted from a frosty creature.
 
 object-long_tusk = Long Tusk
     .desc = 
-        A pointy tusk from some beast.
+        An impressively long tusk from a proud beast.
         
-        This can be used when crafting weapons.
+        Can be used to craft efficient, long-range weapons.
 
 object-raptor_feather = Raptor Feather
     .desc = A large colorful feather from a raptor.
 
 object-strong_pincer = Strong Pincer
     .desc = 
-        The pincer of some creature, it is very tough.
+        A powerful pincer from a hard-shelled creature.
         
-        This can be used when crafting weapons.
+        Has power-enhancing effects when crafting weapons.
 
 sprite-mineral-ore-bloodstone = Bloodstone Ore
     .desc = A deep red ore, it reminds you of blood.
