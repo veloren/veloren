@@ -274,8 +274,10 @@ const H_PAD: f64 = 10.0;
 const V_PAD_STATS: f64 = 6.0;
 /// Default portion of inner width that goes to an image
 const IMAGE_W_FRAC: f64 = 0.3;
-// Item icon size
+/// Item icon size
 const ICON_SIZE: [f64; 2] = [64.0, 64.0];
+/// Total item tooltip width
+const WIDTH: f64 = 320.0;
 
 /// A widget for displaying tooltips
 #[derive(Clone, WidgetCommon)]
@@ -1265,15 +1267,14 @@ impl<'a> Widget for ItemTooltip<'a> {
 
     /// Default width is based on the description font size unless the text is
     /// small enough to fit on a single line
-    fn default_x_dimension(&self, _ui: &Ui) -> Dimension { Dimension::Absolute(260.0) }
+    fn default_x_dimension(&self, _ui: &Ui) -> Dimension { Dimension::Absolute(WIDTH) }
 
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
         let item = &self.item;
 
-        // TODO: we do double work here, does it need optimization?
         let (_, desc) = util::item_text(item, self.localized_strings, self.item_i18n);
 
-        let (text_w, _image_w) = self.text_image_width(260.0);
+        let (text_w, _image_w) = self.text_image_width(WIDTH);
 
         // Item frame
         let frame_h = ICON_SIZE[1] + V_PAD;
