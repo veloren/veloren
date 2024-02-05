@@ -118,18 +118,13 @@ fn integrate_forces(
 }
 
 /// Simulates winds based on weather and terrain data for specific position
-// TODO: Consider refactoring and exporting if one wants to build nice visuals
-//
-// It pretty much does only depends on pos.
-// Character State is used to skip simulating wind_velocity for non-gliding
-// entities, which should be adapted before exporting to general use.
+// TODO: Consider exporting it if one wants to build nice visuals
 fn simulated_wind_vel(
     pos: &Pos,
     weather: &WeatherGrid,
     terrain: &TerrainGrid,
     time_of_day: &TimeOfDay,
-    state: &CharacterState,
-) -> Result<Option<Vec3<f32>>, ()> {
+) -> Result<Vec3<f32>, ()> {
     prof_span!(guard, "Apply Weather INIT");
 
     let pos_2d = pos.0.as_().xy();
@@ -139,11 +134,6 @@ fn simulated_wind_vel(
     };
 
     let meta = current_chunk.meta();
-
-    // Skip simulating for non-gliding entities
-    if !state.is_glide() || meta.alt() - 25. > pos.0.z {
-        return Ok(None);
-    }
 
     let interp_weather = weather.get_interpolated(pos.0.xy());
     // Weather sim wind
@@ -216,8 +206,8 @@ fn simulated_wind_vel(
     lift *= (above_ground / 15.).min(1.);
     lift *= (220. - above_ground / 20.).clamp(0.0, 1.0);
 
-    // TODO: Smooth this, and increase height some more (500 isnt that much higher than
-    // the spires)
+    // TODO: Smooth this, and increase height some more (500 isnt that much higher
+    // than the spires)
     if interp_alt > 500.0 {
         lift *= 0.8;
     }
@@ -269,7 +259,7 @@ fn simulated_wind_vel(
     // 600 here is compared to squared ~ 25. this limits the magnitude of the wind.
     wind_vel *= magn.min(600.) / magn;
 
-    Ok(Some(wind_vel))
+    Ok(wind_vel)
 }
 
 fn calc_z_limit(char_state_maybe: Option<&CharacterState>, collider: &Collider) -> (f32, f32) {
@@ -769,16 +759,35 @@ impl<'a> PhysicsData<'a> {
             )
                 .join()
             {
-                let Ok(air_vel) =
-                    simulated_wind_vel(pos, weather, &read.terrain, &read.time_of_day, state)
+                // Don't simulate for non-gliding, for now
+                if !state.is_glide() {
+                    continue;
+                }
+
+                let pos_2d = pos.0.as_().xy();
+                let chunk_pos: Vec2<i32> = pos_2d.wpos_to_cpos();
+                let Some(current_chunk) = &read.terrain.get_key(chunk_pos) else {
+                    // oopsie
+                    continue;
+                };
+
+                let meta = current_chunk.meta();
+
+                // Skip simulating for entites deeply under the ground
+                if pos.0.z < meta.alt() - 25.0 {
+                    continue;
+                }
+
+                // If couldn't simulate wind for some reason, skip
+                let Ok(wind_vel) =
+                    simulated_wind_vel(pos, weather, &read.terrain, &read.time_of_day)
                 else {
                     continue;
                 };
-                let air_vel = air_vel.unwrap_or_else(Vec3::zero);
 
                 phys.in_fluid = phys.in_fluid.map(|f| match f {
                     Fluid::Air { elevation, .. } => Fluid::Air {
-                        vel: Vel(air_vel),
+                        vel: Vel(wind_vel),
                         elevation,
                     },
                     fluid => fluid,
