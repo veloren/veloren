@@ -155,7 +155,7 @@ fn simulated_wind_vel(
         .unwrap_or(0.);
     let interp_town = terrain
         .get_interpolated(pos_2d, |c| match c.meta().site() {
-            Some(SiteKindMeta::Castle) | Some(SiteKindMeta::Settlement(_)) => 3.5,
+            Some(SiteKindMeta::Settlement(_)) => 3.5,
             _ => 1.0,
         })
         .unwrap_or(0.);
@@ -182,6 +182,9 @@ fn simulated_wind_vel(
     // === THERMALS ===
 
     // Sun angle of incidence.
+    //
+    // 0.0..1.0, 0.25 morning, 0.45 midday, 0.66 evening, 0.79 night, 0.0/1.0
+    // midnight
     let sun_dir = time_of_day.get_sun_dir().normalized();
     let mut lift = ((sun_dir - normal.normalized()).magnitude() - 0.5).max(0.2) * 3.;
 
@@ -213,10 +216,8 @@ fn simulated_wind_vel(
     lift *= (above_ground / 15.).min(1.);
     lift *= (220. - above_ground / 20.).clamp(0.0, 1.0);
 
-    // Smooth this, and increase height some more (500 isnt that much higher than
+    // TODO: Smooth this, and increase height some more (500 isnt that much higher than
     // the spires)
-    //
-    // plz, reviewers, I don't know what comment above means
     if interp_alt > 500.0 {
         lift *= 0.8;
     }
@@ -230,8 +231,6 @@ fn simulated_wind_vel(
         .unwrap_or(1.);
 
     drop(guard);
-
-    prof_span!(guard, "ridge lift");
 
     // === Ridge/Wave lift ===
 
@@ -255,7 +254,6 @@ fn simulated_wind_vel(
 
     // Height based fall-off (https://www.desmos.com/calculator/jijqfunchg)
     ridge_lift *= 1. / (1. + (1.3f32.powf(0.1 * above_ground - 15.)));
-    drop(guard);
 
     // More flat wind above ground (https://www.desmos.com/calculator/jryiyqsdnx)
     let wind_factor = 1. / (0.25 + (0.96f32.powf(0.1 * above_ground - 15.)));
@@ -763,8 +761,6 @@ impl<'a> PhysicsData<'a> {
 
         prof_span!(guard, "Apply Weather");
         if let Some(weather) = &read.weather {
-            // 0.0..1.0, 0.25 morning, 0.45 midday, 0.66 evening, 0.79 night, 0.0/1.0
-            // midnight
             for (_, state, pos, phys) in (
                 &read.entities,
                 &read.character_states,
