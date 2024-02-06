@@ -6,7 +6,10 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
-use common::comp::inventory::item::{Item, ItemDesc, ItemI18n, MaterialStatManifest, Quality};
+use common::{
+    comp::inventory::item::{Item, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
+    uid::Uid,
+};
 use conrod_core::{
     color,
     position::Dimension,
@@ -105,7 +108,7 @@ impl<'a> LootScroller<'a> {
 pub struct LootMessage {
     pub item: Item,
     pub amount: u32,
-    pub taken_by: String,
+    pub taken_by: Uid,
 }
 
 pub struct State {
@@ -322,7 +325,7 @@ impl<'a> Widget for LootScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let quality_col = get_quality_col(item);
+                let quality_col = get_quality_col(&item);
 
                 Image::new(self.imgs.pixel)
                     .color(Some(shade_color(quality_col.alpha(0.7))))
@@ -350,10 +353,51 @@ impl<'a> Widget for LootScroller<'a> {
                     &item_tooltip,
                 )
                 .set(state.ids.message_icons[i], ui);
+    
+
+    
+                // let info = self.client.player_list().get(&taken_by.unwrap()).unwrap();
+                // info.character.unwrap().gender;
+
+                // let you_uid = self.client.uid().unwrap();
+                
+                // // Based on voxygen/i18n-helpers/src/lib.rs gender_str function
+                // let gender_str = |uid: &Uid| {
+                //     if let Some(pi) = info.character.as_ref().unwrap().gender{
+                //         match pi {
+                //             common::comp::Gender::Feminine=> "she".to_owned(),
+                //             common::comp::Gender::Masculine=> "he".to_owned(),
+                //         }
+                //     } else {
+                //         "??".to_owned()
+                //     }
+                // };
+
+
+                // pub fn personalize_alias(&self, uid: Uid, alias: String) -> String {
+                //     let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
+
+                let (user_gender, actor, is_you) = match self.client.player_list().get(taken_by) {
+                    Some(player_info) => match player_info.character.as_ref() {
+                        Some(character_info) => (match character_info.gender {
+                            Some(common::comp::Gender::Feminine)=> "she".to_string(),
+                            Some(common::comp::Gender::Masculine)=> "he".to_string(),
+                            None => "??".to_string(),
+                        }, character_info.name.to_string(), self.client.uid().expect("Client doesn't have a Uid!!!") == *taken_by),
+                        None => ("??".to_string(), "Someone".to_string(), false),
+                    }
+                    None => ("??".to_string(), "Som!!".to_string(), false),
+                };
+                
+                // client_uid == uid;
+                // info.character.as_ref().unwrap().name.to_string()
+
                 let label = self.localized_strings.get_msg_ctx(
                     "hud-loot-pickup-msg",
                     &i18n::fluent_args! {
-                          "actor" => taken_by,
+                          "user_gender" => user_gender,
+                          "is_you" => is_you.to_string(),
+                          "actor" => actor,
                           "amount" => amount,
                           "item" => {
                               let (name, _) =
