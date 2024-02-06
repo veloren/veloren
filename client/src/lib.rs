@@ -68,16 +68,22 @@ use common_state::State;
 use common_systems::add_local_systems;
 use comp::BuffKind;
 use hashbrown::{HashMap, HashSet};
+use hickory_resolver::{
+    config::{ResolverConfig, ResolverOpts},
+    AsyncResolver,
+};
 use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
+use rustls::client::ServerCertVerified;
 use specs::Component;
 use std::{
     collections::{BTreeMap, VecDeque},
+    fmt::Debug,
     mem,
     sync::Arc,
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime},
 };
 use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
@@ -327,6 +333,50 @@ pub struct CharacterList {
     pub loading: bool,
 }
 
+async fn connect_quic(
+    network: &Network,
+    hostname: String,
+    override_port: Option<u16>,
+    prefer_ipv6: bool,
+    validate_tls: bool,
+) -> Result<network::Participant, crate::error::Error> {
+    let config = if validate_tls {
+        quinn::ClientConfig::with_native_roots()
+    } else {
+        warn!(
+            "skipping validation of server identity. There is no guarantee that the server you're \
+             connected to is the one you expect to be connecting to."
+        );
+        struct Verifier;
+        impl rustls::client::ServerCertVerifier for Verifier {
+            fn verify_server_cert(
+                &self,
+                _: &rustls::Certificate,
+                _: &[rustls::Certificate],
+                _: &rustls::ServerName,
+                _: &mut dyn Iterator<Item = &[u8]>,
+                _: &[u8],
+                _: SystemTime,
+            ) -> Result<ServerCertVerified, rustls::Error> {
+                Ok(ServerCertVerified::assertion())
+            }
+        }
+
+        let mut cfg = rustls::ClientConfig::builder()
+            .with_safe_defaults()
+            .with_custom_certificate_verifier(Arc::new(Verifier))
+            .with_no_client_auth();
+        cfg.enable_early_data = true;
+
+        quinn::ClientConfig::new(Arc::new(cfg))
+    };
+
+    addr::try_connect(network, &hostname, override_port, prefer_ipv6, |a| {
+        ConnectAddr::Quic(a, config.clone(), hostname.clone())
+    })
+    .await
+}
+
 impl Client {
     pub async fn new(
         addr: ConnectionArgs,
@@ -343,24 +393,132 @@ impl Client {
         let network = Network::new(Pid::new(), &runtime);
 
         init_stage_update(ClientInitStage::ConnectionEstablish);
+
         let mut participant = match addr {
+            ConnectionArgs::Srv {
+                hostname,
+                prefer_ipv6,
+                validate_tls,
+                use_quic,
+            } => {
+                // Try to create a resolver backed by /etc/resolv.conf or the Windows Registry
+                // first. If that fails, create a resolver being hard-coded to
+                // Google's 8.8.8.8 public resolver.
+                let resolver = AsyncResolver::tokio_from_system_conf().unwrap_or_else(|error| {
+                    error!("Failed to create DNS resolver using system configuration: {error:?}");
+                    warn!("Falling back to a default configured resolver.");
+                    AsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default())
+                });
+
+                let quic_service_host = format!("_veloren._udp.{hostname}");
+                let quic_lookup_future = resolver.srv_lookup(quic_service_host);
+                let tcp_service_host = format!("_veloren._tcp.{hostname}");
+                let tcp_lookup_future = resolver.srv_lookup(tcp_service_host);
+                let (quic_rr, tcp_rr) = tokio::join!(quic_lookup_future, tcp_lookup_future);
+
+                #[derive(Eq, PartialEq)]
+                enum ConnMode {
+                    Quic,
+                    Tcp,
+                }
+
+                // Push the results of both futures into `srv_rr`. This uses map_or_else purely
+                // for side effects.
+                let mut srv_rr = Vec::new();
+                let () = quic_rr.map_or_else(
+                    |error| {
+                        warn!("QUIC SRV lookup failed: {error:?}");
+                    },
+                    |srv_lookup| {
+                        srv_rr.extend(srv_lookup.iter().cloned().map(|srv| (ConnMode::Quic, srv)))
+                    },
+                );
+                let () = tcp_rr.map_or_else(
+                    |error| {
+                        warn!("TCP SRV lookup failed: {error:?}");
+                    },
+                    |srv_lookup| {
+                        srv_rr.extend(srv_lookup.iter().cloned().map(|srv| (ConnMode::Tcp, srv)))
+                    },
+                );
+
+                // SRV records have a priority; lowest priority hosts MUST be contacted first.
+                let srv_rr_slice = srv_rr.as_mut_slice();
+                srv_rr_slice.sort_by_key(|(_, srv)| srv.priority());
+
+                let mut iter = srv_rr_slice.iter();
+
+                // This loops exits as soon as the above iter over `srv_rr_slice` is exhausted
+                loop {
+                    if let Some((conn_mode, srv_rr)) = iter.next() {
+                        let hostname = format!("{}", srv_rr.target());
+                        let port = Some(srv_rr.port());
+                        let conn_result = match conn_mode {
+                            ConnMode::Quic => {
+                                connect_quic(&network, hostname, port, prefer_ipv6, validate_tls)
+                                    .await
+                            },
+                            ConnMode::Tcp => {
+                                addr::try_connect(
+                                    &network,
+                                    &hostname,
+                                    port,
+                                    prefer_ipv6,
+                                    ConnectAddr::Tcp,
+                                )
+                                .await
+                            },
+                        };
+                        match conn_result {
+                            Ok(c) => break c,
+                            Err(error) => {
+                                warn!("Failed to connect to host {}: {error:?}", srv_rr.target())
+                            },
+                        }
+                    } else {
+                        warn!(
+                            "No SRV hosts succeeded connection, falling back to direct connection"
+                        );
+                        // This case is also hit if no SRV host was returned from the query, so we
+                        // check for QUIC/TCP preference.
+                        let c = if use_quic {
+                            connect_quic(&network, hostname, None, prefer_ipv6, validate_tls)
+                                .await?
+                        } else {
+                            match addr::try_connect(
+                                &network,
+                                &hostname,
+                                None,
+                                prefer_ipv6,
+                                ConnectAddr::Tcp,
+                            )
+                            .await
+                            {
+                                Ok(c) => c,
+                                Err(error) => return Err(error),
+                            }
+                        };
+                        break c;
+                    }
+                }
+            },
             ConnectionArgs::Tcp {
                 hostname,
                 prefer_ipv6,
-            } => addr::try_connect(&network, &hostname, prefer_ipv6, ConnectAddr::Tcp).await?,
+            } => {
+                addr::try_connect(&network, &hostname, None, prefer_ipv6, ConnectAddr::Tcp).await?
+            },
             ConnectionArgs::Quic {
                 hostname,
                 prefer_ipv6,
+                validate_tls,
             } => {
                 warn!(
                     "QUIC is enabled. This is experimental and you won't be able to connect to \
                      TCP servers unless deactivated"
                 );
-                let config = quinn::ClientConfig::with_native_roots();
-                addr::try_connect(&network, &hostname, prefer_ipv6, |a| {
-                    ConnectAddr::Quic(a, config.clone(), hostname.clone())
-                })
-                .await?
+
+                connect_quic(&network, hostname, None, prefer_ipv6, validate_tls).await?
             },
             ConnectionArgs::Mpsc(id) => network.connect(ConnectAddr::Mpsc(id)).await?,
         };

@@ -9,7 +9,9 @@ pub struct NetworkingSettings {
     pub servers: Vec<String>,
     pub default_server: String,
     pub trusted_auth_servers: HashSet<String>,
+    pub use_srv: bool,
     pub use_quic: bool,
+    pub validate_tls: bool,
     pub player_physics_behavior: bool,
     pub lossy_terrain_compression: bool,
     pub enable_discord_integration: bool,
@@ -25,7 +27,9 @@ impl Default for NetworkingSettings {
                 .iter()
                 .map(|s| s.to_string())
                 .collect(),
+            use_srv: true,
             use_quic: false,
+            validate_tls: true,
             player_physics_behavior: false,
             lossy_terrain_compression: false,
             enable_discord_integration: true,
