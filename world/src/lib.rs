@@ -1,7 +1,7 @@
 #![allow(incomplete_features)]
 #![allow(
     clippy::option_map_unit_fn,
-    clippy::blocks_in_if_conditions,
+    clippy::blocks_in_conditions,
     clippy::identity_op,
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]

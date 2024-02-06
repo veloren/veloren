@@ -648,13 +648,16 @@ impl Floor {
                         ),
                         RoomKind::Peaceful | RoomKind::LavaPlatforming => {},
                     }
-                } else if let Some(Tile::UpStair(_, _)) = is_boss_tile && tile_wcenter.xy() == wpos2d {
+                } else if let Some(Tile::UpStair(_, _)) = is_boss_tile
+                    && tile_wcenter.xy() == wpos2d
+                {
                     // Create one teleporter at the top of the "stairs" and one at the botton
-                    let bottom_pos = tile_wcenter.map(|v| v as f32) ;
+                    let bottom_pos = tile_wcenter.map(|v| v as f32);
                     let top_pos =
                         (tile_wcenter + Vec3::unit_z() * self.total_depth()).map(|v| v as f32);
 
-                    // Move both a bit to the side to prevent teleportation loop, ideally we'd have the portals at another location
+                    // Move both a bit to the side to prevent teleportation loop, ideally we'd have
+                    // the portals at another location
                     supplement.add_entity(EntityInfo::at(top_pos).into_special(
                         SpecialEntity::Teleporter(PortalData {
                             target: bottom_pos + Vec3::unit_x() * 5.,
@@ -1187,7 +1190,9 @@ impl Floor {
 
             if let Some(room) = room.map(|i| self.rooms.get(*i)) {
                 height = height.min(room.height);
-                if let Tile::UpStair(_, kind) = tile && !self.final_level {
+                if let Tile::UpStair(_, kind) = tile
+                    && !self.final_level
+                {
                     // Construct the staircase that connects this tile to the matching DownStair
                     // tile on the floor above (or to the surface if this is the top floor), and a
                     // hollow bounding box to place air in
@@ -1203,10 +1208,13 @@ impl Floor {
                         StairsKind::WallSpiral => Primitive::Aabb(aabb),
                     });
 
-                    painter.fill(painter.prim(match kind {
-                        StairsKind::WallSpiral => Primitive::Aabb(outer_aabb),
-                        StairsKind::Spiral => Primitive::Cylinder(outer_aabb),
-                    }), Fill::Block(stone_wall));
+                    painter.fill(
+                        painter.prim(match kind {
+                            StairsKind::WallSpiral => Primitive::Aabb(outer_aabb),
+                            StairsKind::Spiral => Primitive::Cylinder(outer_aabb),
+                        }),
+                        Fill::Block(stone_wall),
+                    );
 
                     let stair = painter.prim(Primitive::sampling(bb, match kind {
                         StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),

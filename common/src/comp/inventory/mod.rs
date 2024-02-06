@@ -943,7 +943,6 @@ impl Inventory {
     /// account whether there will be free space in the inventory for the
     /// loadout item once any slots that were provided by it have been
     /// removed.
-    #[allow(clippy::blocks_in_if_conditions)]
     pub fn can_swap(&self, inv_slot_id: InvSlotId, equip_slot: EquipSlot) -> bool {
         // Check if loadout slot can hold item
         if !self.get(inv_slot_id).map_or(true, |item| {
@@ -1004,10 +1003,11 @@ impl Inventory {
         let (slots_mut, recently_unequipped_items) =
             self.slots_mut_with_mutable_recently_unequipped_items();
         slots_mut.filter_map(|slot| slot.as_mut()).for_each(|item| {
-            if item.durability_lost()
-                    .map_or(false, |dur| dur < Item::MAX_DURABILITY)
+            if item
+                .durability_lost()
+                .map_or(false, |dur| dur < Item::MAX_DURABILITY)
                 && let Some((_unequip_time, count)) =
-                   recently_unequipped_items.get_mut(&item.item_definition_id())
+                    recently_unequipped_items.get_mut(&item.item_definition_id())
                 && *count > 0
             {
                 *count -= 1;

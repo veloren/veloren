@@ -235,7 +235,7 @@ impl BotClient {
                 continue;
             }
 
-            let c = list.characters.get(0).unwrap();
+            let c = list.characters.first().unwrap();
             if let Some(id) = c.character.id {
                 client.request_character(id, common::ViewDistances {
                     terrain: 5,

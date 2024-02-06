@@ -61,23 +61,33 @@ impl Rule for Migrate {
                 }
             }
 
-            // Reassign NPCs to sites if their old one was deleted. If they were already homeless, no need to do anything.
+            // Reassign NPCs to sites if their old one was deleted. If they were already
+            // homeless, no need to do anything.
             for npc in data.npcs.values_mut() {
                 if let Some(home) = npc.home
                     && !data.sites.contains_key(home)
                 {
                     // Choose the closest habitable site as the new home for the NPC
-                    npc.home = data.sites.sites
+                    npc.home = data
+                        .sites
+                        .sites
                         .iter()
                         .filter(|(_, site)| {
                             // TODO: This is a bit silly, but needs to wait on the removal of site1
-                            site.world_site.map_or(false, |ws| matches!(&ctx.index.sites.get(ws).kind, SiteKind::Refactor(_)
-                                | SiteKind::CliffTown(_)
-                                | SiteKind::SavannahPit(_)
-                                | SiteKind::CoastalTown(_)
-                                | SiteKind::DesertCity(_)))
+                            site.world_site.map_or(false, |ws| {
+                                matches!(
+                                    &ctx.index.sites.get(ws).kind,
+                                    SiteKind::Refactor(_)
+                                        | SiteKind::CliffTown(_)
+                                        | SiteKind::SavannahPit(_)
+                                        | SiteKind::CoastalTown(_)
+                                        | SiteKind::DesertCity(_)
+                                )
+                            })
                         })
-                        .min_by_key(|(_, site)| site.wpos.as_().distance_squared(npc.wpos.xy()) as i32)
+                        .min_by_key(|(_, site)| {
+                            site.wpos.as_().distance_squared(npc.wpos.xy()) as i32
+                        })
                         .map(|(site_id, _)| site_id);
                 }
             }

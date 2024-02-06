@@ -110,11 +110,7 @@ fn rugged_ser_enum_map<
     map: &EnumMap<K, V>,
     ser: S,
 ) -> Result<S::Ok, S::Error> {
-    ser.collect_map(
-        map.iter()
-            .filter(|(_, v)| v != &&V::from(DEFAULT))
-            .map(|(k, v)| (k, v)),
-    )
+    ser.collect_map(map.iter().filter(|(_, v)| v != &&V::from(DEFAULT)))
 }
 
 fn rugged_de_enum_map<

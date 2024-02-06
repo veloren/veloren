@@ -53,7 +53,7 @@ pub fn snuff_lantern(storage: &mut WriteStorage<LightEmitter>, entity: EcsEntity
     storage.remove(entity);
 }
 
-#[allow(clippy::blocks_in_if_conditions)]
+#[allow(clippy::blocks_in_conditions)]
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
 

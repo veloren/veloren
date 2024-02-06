@@ -305,7 +305,7 @@ pub fn generate_mesh<'a>(
                         let wpos = range.min + Vec3::new(x, y, z);
                         let block = volume
                             .get(wpos)
-                            .map(|b| *b)
+                            .copied()
                             // TODO: Replace with None or some other more reasonable value,
                             // since it's not clear this will work properly with liquid.
                             .unwrap_or(AIR);

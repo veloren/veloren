@@ -22,6 +22,7 @@ use super::{
 };
 
 enum WeatherJobState {
+    #[allow(dead_code)]
     Working(SlowJob),
     Idle(WeatherSim),
     None,
@@ -108,7 +109,8 @@ impl<'a> System<'a> for Sys {
 
         if let Some(weather_job) = to_update {
             if matches!(weather_job.state, WeatherJobState::Working(_))
-            && let Ok((new_grid, new_lightning_cells, sim)) = weather_job.weather_rx.try_recv() {
+                && let Ok((new_grid, new_lightning_cells, sim)) = weather_job.weather_rx.try_recv()
+            {
                 *grid = new_grid;
                 *lightning_cells = new_lightning_cells;
                 let mut lazy_msg = None;
@@ -121,7 +123,6 @@ impl<'a> System<'a> for Sys {
                     lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
                 }
                 weather_job.state = WeatherJobState::Idle(sim);
-
             }
 
             if matches!(weather_job.state, WeatherJobState::Idle(_)) {

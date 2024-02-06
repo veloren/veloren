@@ -2042,9 +2042,14 @@ impl Hud {
                 && let Some((mat, _, _)) = pos.get_block_and_transform(
                     &ecs.read_resource(),
                     &ecs.read_resource(),
-                    |e| ecs.read_storage::<vcomp::Interpolated>().get(e).map(|interpolated| (comp::Pos(interpolated.pos), interpolated.ori)),
+                    |e| {
+                        ecs.read_storage::<vcomp::Interpolated>()
+                            .get(e)
+                            .map(|interpolated| (comp::Pos(interpolated.pos), interpolated.ori))
+                    },
                     &ecs.read_storage(),
-                ) {
+                )
+            {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
@@ -2129,7 +2134,12 @@ impl Hud {
                     BlockInteraction::Mount => {
                         let key = match block.get_sprite() {
                             Some(SpriteKind::Helm) => "hud-steer",
-                            Some(SpriteKind::Bed | SpriteKind::Bedroll | SpriteKind::BedrollSnow | SpriteKind::BedrollPirate) => "hud-lay",
+                            Some(
+                                SpriteKind::Bed
+                                | SpriteKind::Bedroll
+                                | SpriteKind::BedrollSnow
+                                | SpriteKind::BedrollPirate,
+                            ) => "hud-lay",
                             _ => "hud-sit",
                         };
                         vec![(Some(GameInput::Mount), i18n.get_msg(key).to_string())]
@@ -2141,7 +2151,12 @@ impl Hud {
                     // TODO: change to turn on/turn off?
                     BlockInteraction::LightToggle(enable) => vec![(
                         Some(GameInput::Interact),
-                        i18n.get_msg(if *enable { "hud-activate" } else { "hud-deactivate" }).to_string(),
+                        i18n.get_msg(if *enable {
+                            "hud-activate"
+                        } else {
+                            "hud-deactivate"
+                        })
+                        .to_string(),
                     )],
                 };
 
@@ -2170,7 +2185,11 @@ impl Hud {
                 // TODO: Handle this better. The items returned from `try_reclaim_from_block`
                 // are based on rng. We probably want some function to get only gauranteed items
                 // from `LootSpec`.
-                else if let Some((amount, mut item)) = Item::try_reclaim_from_block(*block).into_iter().flatten().next() {
+                else if let Some((amount, mut item)) = Item::try_reclaim_from_block(*block)
+                    .into_iter()
+                    .flatten()
+                    .next()
+                {
                     item.set_amount(amount.clamp(1, item.max_amount()))
                         .expect("amount >= 1 and <= max_amount is always a valid amount");
                     make_overitem(
@@ -2250,7 +2269,8 @@ impl Hud {
                                 "hud-activate"
                             } else {
                                 "hud-use"
-                            }).to_string(),
+                            })
+                            .to_string(),
                         )],
                     )
                     .x_y(0.0, 100.0)

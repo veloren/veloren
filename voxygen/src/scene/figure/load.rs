@@ -205,6 +205,7 @@ struct ArmorVoxSpec {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 enum ModularComponentSpec {
     /// item id, offset from origin to mount point
     Damage((String, [i32; 3])),

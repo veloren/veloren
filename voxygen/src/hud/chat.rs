@@ -719,7 +719,7 @@ impl<'a> Widget for Chat<'a> {
                 // Update the history
                 // Don't add if this is identical to the last message in the history
                 s.history_pos = 0;
-                if s.history.get(0).map_or(true, |h| h != &msg) {
+                if s.history.front().map_or(true, |h| h != &msg) {
                     s.history.push_front(msg.clone());
                     s.history.truncate(self.history_max);
                 }

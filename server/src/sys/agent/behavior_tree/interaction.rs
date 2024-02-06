@@ -89,15 +89,13 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
         let by_entity = get_entity_by_id(by, read_data);
 
         if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
-            if let Subject::Regular
-                | Subject::Mood
-                | Subject::Work = subject
+            if let Subject::Regular | Subject::Mood | Subject::Work = subject
                 && let Some(by_entity) = by_entity
-                && let Some(actor) = read_data.presences
+                && let Some(actor) = read_data
+                    .presences
                     .get(by_entity)
                     .and_then(|p| p.kind.character_id().map(Actor::Character))
-                    .or_else(|| Some(Actor::Npc(read_data.rtsim_entities
-                        .get(by_entity)?.0)))
+                    .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(by_entity)?.0)))
             {
                 rtsim_outbox.push_back(NpcInput::Interaction(actor, subject));
                 return false;

@@ -221,7 +221,9 @@ impl ChatForwarder {
         while let Some(msg) = self.chat_r.recv().await {
             let drop_older_than = msg.time.sub(self.keep_duration);
             let mut messages = self.messages.lock().await;
-            while let Some(msg) = messages.front() && msg.time < drop_older_than {
+            while let Some(msg) = messages.front()
+                && msg.time < drop_older_than
+            {
                 messages.pop_front();
             }
             messages.push_back(msg);

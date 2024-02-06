@@ -101,8 +101,8 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         state.mut_resource::<IdMaps>().remap_entity(uid, new_entity);
 
         let ecs = state.ecs();
-        // Note, we use `delete_entity_common` directly to avoid `delete_entity_recorded` from
-        // making any changes to the group.
+        // Note, we use `delete_entity_common` directly to avoid
+        // `delete_entity_recorded` from making any changes to the group.
         if let Some(group) = maybe_group {
             let mut group_manager = ecs.write_resource::<group::GroupManager>();
             if group_manager

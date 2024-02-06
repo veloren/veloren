@@ -549,7 +549,9 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
     // TODO: Do we need to do this if `should_delete` is true?
     // Modify durability on all equipped items
-    if !resists_durability && let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity) {
+    if !resists_durability
+        && let Some(mut inventory) = state.ecs().write_storage::<Inventory>().get_mut(entity)
+    {
         let ecs = state.ecs();
         let ability_map = ecs.read_resource::<AbilityMap>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
@@ -1406,7 +1408,9 @@ pub fn handle_parry_hook(
         }
     };
 
-    if let Some(attacker) = attacker && matches!(source, AttackSource::Melee){
+    if let Some(attacker) = attacker
+        && matches!(source, AttackSource::Melee)
+    {
         // When attacker is parried, add the parried debuff for 2 seconds, which slows
         // them
         let data = buff::BuffData::new(1.0, Some(Secs(2.0)));
