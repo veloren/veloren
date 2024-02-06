@@ -123,6 +123,8 @@ pub struct Scene {
     pub interpolated_time_of_day: Option<f64>,
     last_lightning: Option<(Vec3<f32>, f64)>,
     local_time: f64,
+
+    pub debug_vectors_enabled: bool,
 }
 
 pub struct SceneData<'a> {
@@ -362,6 +364,7 @@ impl Scene {
             interpolated_time_of_day: None,
             last_lightning: None,
             local_time: 0.0,
+            debug_vectors_enabled: false,
         }
     }
 
@@ -1649,7 +1652,7 @@ impl Scene {
         lines.fluid_vel.take().map(|id| self.debug.remove_shape(id));
         lines.wind.take().map(|id| self.debug.remove_shape(id));
         lines.vel.take().map(|id| self.debug.remove_shape(id));
-        if client.debug_vectors_enabled {
+        if self.debug_vectors_enabled {
             let ecs = client.state().ecs();
 
             let vels = &ecs.read_component::<comp::Vel>();

@@ -311,8 +311,6 @@ pub struct Client {
 
     flashing_lights_enabled: bool,
 
-    pub debug_vectors_enabled: bool,
-
     /// Terrrain view distance
     server_view_distance_limit: Option<u32>,
     view_distance: Option<u32>,
@@ -989,7 +987,6 @@ impl Client {
             dt_adjustment: 1.0,
 
             connected_server_constants: server_constants,
-            debug_vectors_enabled: false,
         })
     }
 

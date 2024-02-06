@@ -103,7 +103,7 @@ impl EguiState {
                     }
                 },
                 EguiAction::SetShowDebugVector(enabled) => {
-                    client.debug_vectors_enabled = enabled;
+                    scene.debug_vectors_enabled = enabled;
                 },
             });
 
