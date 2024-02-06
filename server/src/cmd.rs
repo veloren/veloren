@@ -129,7 +129,6 @@ fn do_command(
         ServerChatCommand::Adminify => handle_adminify,
         ServerChatCommand::Airship => handle_spawn_airship,
         ServerChatCommand::Alias => handle_alias,
-        ServerChatCommand::Alignment => handle_alignment,
         ServerChatCommand::AreaAdd => handle_area_add,
         ServerChatCommand::AreaList => handle_area_list,
         ServerChatCommand::AreaRemove => handle_area_remove,
@@ -618,59 +617,6 @@ fn handle_make_block(
     }
 }
 
-fn handle_alignment(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
-    args: Vec<String>,
-    action: &ServerChatCommand,
-) -> CmdResult<()> {
-    let (Some(alignment_spec), and_group) = parse_cmd_args!(args, String, bool) else {
-        return Err(Content::Plain(action.help_string()));
-    };
-    let and_group = and_group.is_some_and(|flag| flag);
-
-    let alignment = match alignment_spec.as_str() {
-        "wild" => Alignment::Wild,
-        "enemy" => Alignment::Enemy,
-        "npc" => Alignment::Npc,
-        "tame" => Alignment::Tame,
-        "owned" => {
-            // Switch to Owned by client
-            //
-            // If client = target, you'll be owned by yourself, and treated as
-            // Player.
-            //
-            // If client != target, target will be your pet now.
-            let uid = uid(server, client, "client")?;
-
-            Alignment::Owned(uid)
-        },
-        "passive" => Alignment::Passive,
-        _ => return Err(Content::Plain(action.help_string())),
-    };
-
-    insert_or_replace_component(server, target, alignment, "player")?;
-
-    if and_group {
-        let npc_group = match alignment {
-            Alignment::Enemy => Some(comp::group::ENEMY),
-            Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
-            Alignment::Wild | Alignment::Passive | Alignment::Owned(_) => None,
-        };
-
-        // Set the group or remove it
-        if let Some(group) = npc_group {
-            insert_or_replace_component(server, target, group, "player")?;
-        } else {
-            let ecs = server.state.ecs();
-            ecs.write_storage::<comp::Group>().remove(target);
-        }
-    }
-
-    Ok(())
-}
-
 fn handle_into_npc(
     server: &mut Server,
     client: EcsEntity,
@@ -688,12 +634,9 @@ fn handle_into_npc(
         );
     }
 
-    let (Some(entity_config), and_alignment, and_group) = parse_cmd_args!(args, String, bool, bool)
-    else {
+    let Some(entity_config) = parse_cmd_args!(args, String) else {
         return Err(Content::Plain(action.help_string()));
     };
-    let and_alignment = and_alignment.is_some_and(|flag| flag);
-    let and_group = and_group.is_some_and(|flag| flag);
 
     let config = match EntityConfig::load(&entity_config) {
         Ok(asset) => asset.read(),
@@ -723,7 +666,8 @@ fn handle_into_npc(
             health,
             body,
             scale,
-            alignment,
+            // changing alignments is cool idea, but needs more work
+            alignment: _,
             // we aren't interested in these (yet?)
             pos: _,
             agent: _,
@@ -742,26 +686,6 @@ fn handle_into_npc(
             insert_or_replace_component(server, target, body.density(), "player")?;
             insert_or_replace_component(server, target, body.collider(), "player")?;
             insert_or_replace_component(server, target, scale, "player")?;
-
-            if and_alignment || and_group {
-                insert_or_replace_component(server, target, alignment, "player")?;
-            }
-
-            if and_group {
-                let npc_group = match alignment {
-                    Alignment::Enemy => Some(comp::group::ENEMY),
-                    Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
-                    Alignment::Wild | Alignment::Passive | Alignment::Owned(_) => None,
-                };
-
-                // Set the group or remove it
-                if let Some(group) = npc_group {
-                    insert_or_replace_component(server, target, group, "player")?;
-                } else {
-                    let ecs = server.state.ecs();
-                    ecs.write_storage::<comp::Group>().remove(target);
-                }
-            }
         },
         NpcData::Waypoint(_) => {
             return Err(Content::localized("command-unimplemented-waypoint-spawn"));
@@ -775,11 +699,16 @@ fn handle_into_npc(
     //
     // Mainly needed to disable persistence
     {
+        // TODO: let Imbris work out some edge-cases:
+        // - error on PresenseKind::LoadingCharacter
+        // - handle active inventory actions
         let ecs = server.state.ecs();
         let mut presences = ecs.write_storage::<Presence>();
         let presence = presences.get_mut(target);
 
-        if let Some(presence) = presence && let PresenceKind::Character(id) = presence.kind {
+        if let Some(presence) = presence
+            && let PresenceKind::Character(id) = presence.kind
+        {
             server.state.ecs().write_resource::<IdMaps>().remove_entity(
                 Some(target),
                 None,

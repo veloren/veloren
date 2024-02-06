@@ -310,7 +310,6 @@ pub enum ServerChatCommand {
     Adminify,
     Airship,
     Alias,
-    Alignment,
     AreaAdd,
     AreaList,
     AreaRemove,
@@ -432,25 +431,6 @@ impl ServerChatCommand {
                 "Change your alias",
                 Some(Moderator),
             ),
-            ServerChatCommand::Alignment => cmd(
-                vec![
-                    Enum(
-                        "alignment",
-                        vec![
-                            "wild".to_owned(),
-                            "enemy".to_owned(),
-                            "npc".to_owned(),
-                            "tame".to_owned(),
-                            "owned".to_owned(),
-                            "passive".to_owned(),
-                        ],
-                        Required,
-                    ),
-                    Boolean("+group", "true".to_string(), Optional),
-                ],
-                "Change your alignment",
-                Some(Admin),
-            ),
             ServerChatCommand::Buff => cmd(
                 vec![
                     Enum("buff", BUFFS.clone(), Required),
@@ -487,16 +467,12 @@ impl ServerChatCommand {
 
             ),
             ServerChatCommand::IntoNpc => cmd(
-                vec![
-                    AssetPath(
-                        "entity_config",
-                        "common.entity.",
-                        ENTITY_CONFIGS.clone(),
-                        Required,
-                    ),
-                    Boolean("+alignment", "true".to_string(), Optional),
-                    Boolean("+group", "true".to_string(), Optional),
-                ],
+                vec![AssetPath(
+                    "entity_config",
+                    "common.entity.",
+                    ENTITY_CONFIGS.clone(),
+                    Required,
+                )],
                 "Convert yourself to an NPC. Be careful!",
                 Some(Admin),
             ),
@@ -976,7 +952,6 @@ impl ServerChatCommand {
             ServerChatCommand::Adminify => "adminify",
             ServerChatCommand::Airship => "airship",
             ServerChatCommand::Alias => "alias",
-            ServerChatCommand::Alignment => "alignment",
             ServerChatCommand::AreaAdd => "area_add",
             ServerChatCommand::AreaList => "area_list",
             ServerChatCommand::AreaRemove => "area_remove",
