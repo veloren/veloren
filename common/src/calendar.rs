@@ -31,7 +31,8 @@ impl Calendar {
         let now = match tz {
             Some(tz) => {
                 let utc = Utc::now().naive_utc();
-                DateTime::<Tz>::from_utc(utc, tz.offset_from_utc_datetime(&utc)).naive_local()
+                DateTime::<Tz>::from_naive_utc_and_offset(utc, tz.offset_from_utc_datetime(&utc))
+                    .naive_local()
             },
             None => Local::now().naive_local(),
         };
