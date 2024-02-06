@@ -46,6 +46,7 @@ shell-words = "1.0.0"
 tracing = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = [ "rc", "derive" ]}
+ratatui = { version = "0.26.0", features = ["crossterm"] }
 
 #HTTP
 axum = { version = "0.6.20" }
@@ -55,9 +56,3 @@ chrono = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 mimalloc = "0.1.29"
-
-[dependencies.tui]
-git = "https://github.com/fdehau/tui-rs.git"
-branch="paragraph-scroll"
-default-features = false
-features = ['crossterm']

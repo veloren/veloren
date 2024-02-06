@@ -1,9 +1,13 @@
+use ratatui::{
+    prelude::Line,
+    style::{Color, Modifier, Style},
+    text::{Span, Text},
+};
 use std::{
     io::{self, Write},
     sync::{Arc, Mutex},
 };
 use tracing::warn;
-use tui::text::Text;
 
 #[derive(Debug, Default, Clone)]
 pub struct TuiLog<'a> {
@@ -29,10 +33,6 @@ impl<'a> Write for TuiLog<'a> {
         // depend on an old version of nom. Alternatives to consider may include
         // `vte`, `anstyle-parse`, `vt100`, or others.
         use cansi::v3::categorise_text;
-        use tui::{
-            style::{Color, Modifier},
-            text::{Span, Spans},
-        };
 
         let line =
             core::str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -41,7 +41,7 @@ impl<'a> Write for TuiLog<'a> {
         let mut lines = Vec::new();
 
         for out in categorise_text(line) {
-            let mut style = tui::style::Style::default();
+            let mut style = Style::default();
             // NOTE: There are other values returned from cansi that we don't bother to use
             // for now including background color, italics, blinking, etc.
             style.fg = match out.fg {
@@ -72,12 +72,12 @@ impl<'a> Write for TuiLog<'a> {
                     spans.push(Span::styled(t.to_owned(), style));
                 }
                 if t.ends_with('\n') {
-                    lines.push(Spans(core::mem::take(&mut spans)));
+                    lines.push(Line::from(core::mem::take(&mut spans)));
                 }
             }
         }
         if !spans.is_empty() {
-            lines.push(Spans(spans));
+            lines.push(Line::from(spans));
         }
 
         self.inner.lock().unwrap().lines.append(&mut lines);
