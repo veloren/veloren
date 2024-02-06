@@ -215,6 +215,7 @@ pub fn localize_chat_message(
                 .get_msg_ctx(key, &i18n::fluent_args! {
                     "alias" => name_format(person_to_show),
                     "user_gender" => gender_str(person_to_show),
+                    "msg" => localization.get_content(msg.content()),
                 })
                 .into_owned()
         },
@@ -243,6 +244,7 @@ pub fn localize_chat_message(
             localization
                 .get_msg_ctx(key, &i18n::fluent_args! {
                     "alias" => name_format(person_to_show),
+                    "msg" => localization.get_content(msg.content()),
                 })
                 .into_owned()
         },
