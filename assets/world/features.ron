@@ -3,17 +3,17 @@
 
 (
     caverns: false, // TODO: Disabled by default until cave overhaul
-    caves: true,
-    rocks: true,
-    shrubs: true,
-    trees: true,
+    caves: false,
+    rocks: false,
+    shrubs: false,
+    trees: false,
     scatter: true,
-    paths: true,
-    spots: true,
-    site2_towns: true,
-    site2_giant_trees: true,
-    wildlife_density: 1.0,
-    peak_naming: true,
-    biome_naming: true,
+    paths: false,
+    spots: false,
+    site2_towns: false,
+    site2_giant_trees: false,
+    wildlife_density: 0.0,
+    peak_naming: false,
+    biome_naming: false,
     train_tracks: false, // TODO: train stations, train entities
 )

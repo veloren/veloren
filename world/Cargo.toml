@@ -39,7 +39,7 @@ packed_simd = { version = "0.3.9", optional = true }
 rayon = { workspace = true }
 serde = { workspace = true }
 ron = { workspace = true }
-inline_tweak = { workspace = true }
+inline_tweak = { workspace = true, features = ["derive"] }
 kiddo = "0.2"
 strum = { workspace = true }
 
