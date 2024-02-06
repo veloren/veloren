@@ -31,7 +31,7 @@ specs = { workspace = true, features = ["serde", "storage-event-control", "deriv
 # Plugins
 scopeguard = "1.1.0"
 serde = { workspace = true, optional = true }
-toml = { version = "0.7", optional = true }
+toml = { version = "0.8", optional = true }
 tar = { version = "0.4.37", optional = true }
 wasmer = { version = "4.0.0", optional = true, default-features = false, features = ["sys", "wat", "cranelift"] }
 bincode = { workspace = true, optional = true }

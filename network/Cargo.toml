@@ -31,7 +31,7 @@ tracing = { workspace = true }
 prometheus = { workspace = true, optional = true }
 #async
 futures-util = { workspace = true, features = ["std"] }
-async-channel = "1.6" #use for .close() channels
+async-channel = "2.1" #use for .close() channels
 #mpsc channel registry
 lazy_static = { workspace = true }
 rand = { workspace = true }
