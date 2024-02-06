@@ -982,6 +982,7 @@ const SLASHING_ENERGY_FRACTION: f32 = 0.5;
 const CRUSHING_POISE_FRACTION: f32 = 1.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Damage {
     pub source: DamageSource,
     pub kind: DamageKind,

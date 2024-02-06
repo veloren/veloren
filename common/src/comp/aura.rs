@@ -141,6 +141,7 @@ impl Auras {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct AuraBuffConstructor {
     pub kind: BuffKind,
     pub strength: f32,

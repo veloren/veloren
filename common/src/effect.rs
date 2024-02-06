@@ -12,6 +12,7 @@ pub enum Effect {
 
 /// A buff that may be applied to an entity
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BuffEffect {
     pub kind: comp::BuffKind,
     pub data: comp::BuffData,
