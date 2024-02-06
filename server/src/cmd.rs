@@ -15,6 +15,7 @@ use crate::{
     wiring::OutputFormula,
     Server, Settings, StateExt,
 };
+
 use assets::AssetExt;
 use authc::Uuid;
 use chrono::{NaiveTime, Timelike, Utc};
@@ -34,7 +35,8 @@ use common::{
         },
         invite::InviteKind,
         misc::PortalData,
-        AdminRole, ChatType, Content, Inventory, Item, LightEmitter, WaypointArea,
+        AdminRole, ChatType, Content, Inventory, Item, LightEmitter, Presence, PresenceKind,
+        WaypointArea,
     },
     depot,
     effect::Effect,
@@ -49,7 +51,7 @@ use common::{
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     tether::Tethered,
-    uid::Uid,
+    uid::{IdMaps, Uid},
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
@@ -127,15 +129,15 @@ fn do_command(
         ServerChatCommand::Adminify => handle_adminify,
         ServerChatCommand::Airship => handle_spawn_airship,
         ServerChatCommand::Alias => handle_alias,
+        ServerChatCommand::AreaAdd => handle_area_add,
+        ServerChatCommand::AreaList => handle_area_list,
+        ServerChatCommand::AreaRemove => handle_area_remove,
         ServerChatCommand::Ban => handle_ban,
         ServerChatCommand::BattleMode => handle_battlemode,
         ServerChatCommand::BattleModeForce => handle_battlemode_force,
         ServerChatCommand::Body => handle_body,
         ServerChatCommand::Buff => handle_buff,
         ServerChatCommand::Build => handle_build,
-        ServerChatCommand::AreaAdd => handle_area_add,
-        ServerChatCommand::AreaList => handle_area_list,
-        ServerChatCommand::AreaRemove => handle_area_remove,
         ServerChatCommand::Campfire => handle_spawn_campfire,
         ServerChatCommand::DebugColumn => handle_debug_column,
         ServerChatCommand::DebugWays => handle_debug_ways,
@@ -153,7 +155,7 @@ fn do_command(
         ServerChatCommand::GroupPromote => handle_group_promote,
         ServerChatCommand::Health => handle_health,
         ServerChatCommand::Help => handle_help,
-        ServerChatCommand::Respawn => handle_respawn,
+        ServerChatCommand::IntoNpc => handle_into_npc,
         ServerChatCommand::JoinFaction => handle_join_faction,
         ServerChatCommand::Jump => handle_jump,
         ServerChatCommand::Kick => handle_kick,
@@ -173,6 +175,7 @@ fn do_command(
         ServerChatCommand::Region => handle_region,
         ServerChatCommand::ReloadChunks => handle_reload_chunks,
         ServerChatCommand::RemoveLights => handle_remove_lights,
+        ServerChatCommand::Respawn => handle_respawn,
         ServerChatCommand::RevokeBuild => handle_revoke_build,
         ServerChatCommand::RevokeBuildAll => handle_revoke_build_all,
         ServerChatCommand::Safezone => handle_safezone,
@@ -612,6 +615,112 @@ fn handle_make_block(
     } else {
         Err(Content::Plain(action.help_string()))
     }
+}
+
+fn handle_into_npc(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if client != target {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::Plain("I hope you aren't abusing this!".to_owned()),
+            ),
+        );
+    }
+
+    let Some(entity_config) = parse_cmd_args!(args, String) else {
+        return Err(Content::Plain(action.help_string()));
+    };
+
+    let config = match EntityConfig::load(&entity_config) {
+        Ok(asset) => asset.read(),
+        Err(_err) => {
+            return Err(Content::localized_with_args(
+                "command-entity-load-failed",
+                [("config", entity_config)],
+            ));
+        },
+    };
+
+    let mut loadout_rng = thread_rng();
+    let dummy = Vec3::zero();
+    let entity_info = EntityInfo::at(dummy).with_entity_config(
+        config.clone(),
+        Some(&entity_config),
+        &mut loadout_rng,
+        None,
+    );
+
+    match NpcData::from_entity_info(entity_info) {
+        NpcData::Data {
+            inventory,
+            stats,
+            skill_set,
+            poise,
+            health,
+            body,
+            scale,
+            // changing alignments is cool idea, but needs more work
+            alignment: _,
+            // we aren't interested in these (yet?)
+            pos: _,
+            agent: _,
+            loot: _,
+        } => {
+            // Should do basically what StateExt::create_npc does
+            insert_or_replace_component(server, target, inventory, "player")?;
+            insert_or_replace_component(server, target, stats, "player")?;
+            insert_or_replace_component(server, target, skill_set, "player")?;
+            insert_or_replace_component(server, target, poise, "player")?;
+            if let Some(health) = health {
+                insert_or_replace_component(server, target, health, "player")?;
+            }
+            insert_or_replace_component(server, target, body, "player")?;
+            insert_or_replace_component(server, target, body.mass(), "player")?;
+            insert_or_replace_component(server, target, body.density(), "player")?;
+            insert_or_replace_component(server, target, body.collider(), "player")?;
+            insert_or_replace_component(server, target, scale, "player")?;
+        },
+        NpcData::Waypoint(_) => {
+            return Err(Content::localized("command-unimplemented-waypoint-spawn"));
+        },
+        NpcData::Teleporter(_, _) => {
+            return Err(Content::localized("command-unimplemented-teleporter-spawn"));
+        },
+    }
+
+    // Black magic
+    //
+    // Mainly needed to disable persistence
+    {
+        // TODO: let Imbris work out some edge-cases:
+        // - error on PresenseKind::LoadingCharacter
+        // - handle active inventory actions
+        let ecs = server.state.ecs();
+        let mut presences = ecs.write_storage::<Presence>();
+        let presence = presences.get_mut(target);
+
+        if let Some(presence) = presence
+            && let PresenceKind::Character(id) = presence.kind
+        {
+            server.state.ecs().write_resource::<IdMaps>().remove_entity(
+                Some(target),
+                None,
+                Some(id),
+                None,
+            );
+
+            presence.kind = PresenceKind::Possessor;
+        }
+    }
+    // End of black magic
+    Ok(())
 }
 
 fn handle_make_npc(

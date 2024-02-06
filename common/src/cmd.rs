@@ -340,6 +340,7 @@ pub enum ServerChatCommand {
     GroupPromote,
     Health,
     Help,
+    IntoNpc,
     JoinFaction,
     Jump,
     Kick,
@@ -465,6 +466,16 @@ impl ServerChatCommand {
                 None,
 
             ),
+            ServerChatCommand::IntoNpc => cmd(
+                vec![AssetPath(
+                    "entity_config",
+                    "common.entity.",
+                    ENTITY_CONFIGS.clone(),
+                    Required,
+                )],
+                "Convert yourself to an NPC. Be careful!",
+                Some(Admin),
+            ),
             ServerChatCommand::Body => cmd(
                 vec![Enum("body", ENTITIES.clone(), Required)],
                 "Change your body to different species",
@@ -507,12 +518,12 @@ impl ServerChatCommand {
             ServerChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::DebugWays => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column's ways",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::DisconnectAllPlayers => cmd(
                 vec![Any("confirm", Required)],
@@ -823,18 +834,18 @@ impl ServerChatCommand {
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
                 "Teleport to an rtsim npc",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::RtsimInfo => cmd(
                 vec![Integer("npc index", 0, Required)],
                 "Display information about an rtsim NPC",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::RtsimNpc => cmd(
                 vec![Any("query", Required), Integer("max number", 20, Optional)],
                 "List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of \
                  distance",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::RtsimPurge => cmd(
                 vec![Boolean(
@@ -848,7 +859,7 @@ impl ServerChatCommand {
             ServerChatCommand::RtsimChunk => cmd(
                 vec![],
                 "Display information about the current chunk from rtsim",
-                Some(Moderator),
+                Some(Admin),
             ),
             ServerChatCommand::Unban => cmd(
                 vec![PlayerName(Required)],
@@ -941,15 +952,15 @@ impl ServerChatCommand {
             ServerChatCommand::Adminify => "adminify",
             ServerChatCommand::Airship => "airship",
             ServerChatCommand::Alias => "alias",
+            ServerChatCommand::AreaAdd => "area_add",
+            ServerChatCommand::AreaList => "area_list",
+            ServerChatCommand::AreaRemove => "area_remove",
             ServerChatCommand::Ban => "ban",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
             ServerChatCommand::Body => "body",
             ServerChatCommand::Buff => "buff",
             ServerChatCommand::Build => "build",
-            ServerChatCommand::AreaAdd => "area_add",
-            ServerChatCommand::AreaList => "area_list",
-            ServerChatCommand::AreaRemove => "area_remove",
             ServerChatCommand::Campfire => "campfire",
             ServerChatCommand::DebugColumn => "debug_column",
             ServerChatCommand::DebugWays => "debug_ways",
@@ -963,11 +974,11 @@ impl ServerChatCommand {
             ServerChatCommand::Group => "group",
             ServerChatCommand::GroupInvite => "group_invite",
             ServerChatCommand::GroupKick => "group_kick",
-            ServerChatCommand::GroupPromote => "group_promote",
             ServerChatCommand::GroupLeave => "group_leave",
+            ServerChatCommand::GroupPromote => "group_promote",
             ServerChatCommand::Health => "health",
             ServerChatCommand::Help => "help",
-            ServerChatCommand::Respawn => "respawn",
+            ServerChatCommand::IntoNpc => "into_npc",
             ServerChatCommand::JoinFaction => "join_faction",
             ServerChatCommand::Jump => "jump",
             ServerChatCommand::Kick => "kick",
@@ -975,6 +986,7 @@ impl ServerChatCommand {
             ServerChatCommand::KillNpcs => "kill_npcs",
             ServerChatCommand::Kit => "kit",
             ServerChatCommand::Lantern => "lantern",
+            ServerChatCommand::Respawn => "respawn",
             ServerChatCommand::Light => "light",
             ServerChatCommand::MakeBlock => "make_block",
             ServerChatCommand::MakeNpc => "make_npc",
