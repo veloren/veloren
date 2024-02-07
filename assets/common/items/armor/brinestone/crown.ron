@@ -5,7 +5,7 @@ ItemDef(
         kind: Head,
         stats: Direct((
             protection: Some(Normal(8.0)),
-            poise_resilence: Some(Normal(4.0)),
+            poise_resilience: Some(Normal(4.0)),
             energy_reward: Some(0.15),
             precision_power: Some(-0.05),
         )),

@@ -99,6 +99,7 @@ impl Friction {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct Stats {
     /// Protection is non-linearly transformed (following summation) to a damage
     /// reduction using (prot / (60 + prot))
@@ -232,6 +233,7 @@ impl PartialOrd for Protection {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Armor {
     pub kind: ArmorKind,
     pub stats: StatsSource,

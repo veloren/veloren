@@ -4,7 +4,6 @@ ItemDef(
     kind: Utility(
         kind: Collar,
     ),
-    amount: 1,
     quality: Moderate,
     tags: [Utility],
 )

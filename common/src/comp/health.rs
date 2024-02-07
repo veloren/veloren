@@ -8,6 +8,7 @@ use std::{convert::TryFrom, ops::Mul};
 
 /// Specifies what and how much changed current health
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct HealthChange {
     /// The amount of the health change, negative is damage, positive is healing
     pub amount: f32,

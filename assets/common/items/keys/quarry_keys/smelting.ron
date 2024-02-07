@@ -4,7 +4,6 @@ ItemDef(
     kind: Utility(
         kind: Key,
     ),
-    amount: 1,
     quality: High,
     tags: [],
 )

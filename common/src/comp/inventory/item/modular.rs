@@ -236,6 +236,7 @@ impl ModularBase {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum ModularComponent {
     ToolPrimaryComponent {
         toolkind: ToolKind,

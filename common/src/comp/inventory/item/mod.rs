@@ -57,6 +57,7 @@ pub enum Utility {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Lantern {
     color: Rgb<u32>,
     strength_thousandths: u32,
@@ -335,6 +336,7 @@ impl Effects {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(Tool),
@@ -875,7 +877,7 @@ impl assets::Compound for ItemDef {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename = "ItemDef")]
+#[serde(rename = "ItemDef", deny_unknown_fields)]
 struct RawItemDef {
     legacy_name: String,
     legacy_description: String,

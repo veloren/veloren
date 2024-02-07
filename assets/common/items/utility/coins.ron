@@ -4,7 +4,6 @@ ItemDef(
     kind: Utility(
         kind: Coins,
     ),
-    amount: 1,
     quality: Common,
     tags: [],
 )
