@@ -73,6 +73,8 @@ impl<'a, T: ServerEvent> System<'a> for EventHandler<T> {
 }
 
 fn event_dispatch<T: ServerEvent>(builder: &mut DispatcherBuilder) {
+    // TODO: We currently don't consider the order of these event. But as
+    //       some events produce other events that might be worth doing.
     dispatch::<EventHandler<T>>(builder, &[])
 }
 
