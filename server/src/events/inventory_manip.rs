@@ -413,7 +413,6 @@ impl ServerEvent for InventoryManipEvent {
                                 ) + Vec3::one().with_z(0.0) * 0.5,
                             ),
                             vel: comp::Vel(Vec3::zero()),
-                            // TODO: Randomize
                             ori: data.orientations.get(entity).copied().unwrap_or_default(),
                             item,
                             loot_owner: Some(LootOwner::new(LootOwnerKind::Player(*uid), false)),

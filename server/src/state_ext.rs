@@ -72,6 +72,7 @@ pub trait StateExt {
     fn create_item_drop(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         vel: comp::Vel,
         item: Item,
         loot_owner: Option<LootOwner>,
@@ -338,6 +339,7 @@ impl StateExt for State {
     fn create_item_drop(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         vel: comp::Vel,
         item: Item,
         loot_owner: Option<LootOwner>,
@@ -400,6 +402,7 @@ impl StateExt for State {
                 .create_entity_synced()
                 .with(item)
                 .with(pos)
+                .with(ori)
                 .with(vel)
                 .with(item_drop.orientation(&mut thread_rng()))
                 .with(item_drop.mass())

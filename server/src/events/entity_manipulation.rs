@@ -6,9 +6,11 @@ use crate::{
         skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
     },
+    error,
     rtsim::RtSim,
+    state_ext::StateExt,
     sys::terrain::SAFE_ZONE_RADIUS,
-    Settings, SpawnPoint,
+    Server, Settings, SpawnPoint,
 };
 use common::{
     combat,
@@ -60,14 +62,13 @@ use tracing::{debug, warn};
 use vek::{Vec2, Vec3};
 use world::World;
 
-use super::{event_dispatch, trade::notify_agent_simple, ServerEvent};
+use super::{event_dispatch, ServerEvent};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<PoiseChangeEvent>(builder);
     event_dispatch::<HealthChangeEvent>(builder);
     event_dispatch::<KnockbackEvent>(builder);
     event_dispatch::<DestroyEvent>(builder);
-    event_dispatch::<DeleteEvent>(builder);
     event_dispatch::<LandOnGroundEvent>(builder);
     event_dispatch::<RespawnEvent>(builder);
     event_dispatch::<ExplosionEvent>(builder);
@@ -87,6 +88,13 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<RemoveLightEmitterEvent>(builder);
     event_dispatch::<TeleportToPositionEvent>(builder);
     event_dispatch::<StartTeleportingEvent>(builder);
+}
+
+pub fn handle_delete(server: &mut Server, DeleteEvent(entity): DeleteEvent) {
+    let _ = server
+        .state_mut()
+        .delete_entity_recorded(entity)
+        .map_err(|e| error!(?e, ?entity, "Failed to delete destroyed entity"));
 }
 
 #[derive(Hash, Eq, PartialEq)]
@@ -625,14 +633,14 @@ impl ServerEvent for DestroyEvent {
                         let mut item_offset_spiral =
                             Spiral2d::new().map(|offset| offset.as_::<f32>() * 0.5);
 
+                        let mut rng = rand::thread_rng();
                         let mut spawn_item = |item, loot_owner| {
                             let offset = item_offset_spiral.next().unwrap_or_default();
-                            // TODO: convert
                             create_item_drop.emit(CreateItemDropEvent {
                                 pos: Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
                                 vel: vel.copied().unwrap_or(comp::Vel(Vec3::zero())),
                                 // TODO: Random
-                                ori: comp::Ori::default(),
+                                ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                                 item,
                                 loot_owner: if let Some(loot_owner) = loot_owner {
                                     debug!(
@@ -732,86 +740,6 @@ impl ServerEvent for DestroyEvent {
 
             if should_delete {
                 delete_emitter.emit(DeleteEvent(ev.entity));
-            }
-        }
-    }
-}
-
-/// Delete an entity without any special actions (this is generally used for
-/// temporarily unloading an entity when it leaves the view distance). As much
-/// as possible, this function should simply make an entity cease to exist.
-impl ServerEvent for DeleteEvent {
-    type SystemData<'a> = (
-        Entities<'a>,
-        Write<'a, comp::group::GroupManager>,
-        Write<'a, Trades>,
-        Read<'a, IdMaps>,
-        WriteStorage<'a, Group>,
-        WriteStorage<'a, Agent>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Client>,
-        ReadStorage<'a, comp::MapMarker>,
-        ReadStorage<'a, Alignment>,
-    );
-
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (
-            entities,
-            mut group_manager,
-            mut trades,
-            id_maps,
-            mut groups,
-            mut agents,
-            uids,
-            clients,
-            map_markers,
-            alignments,
-        ): Self::SystemData<'_>,
-    ) {
-        // TODO: Deal with duplication here and state_ext::delete_entity_recorded and
-        // called functions there.
-        for ev in events {
-            // Remove entity from a group if they are in one.
-            group_manager.entity_deleted(
-                ev.0,
-                &mut groups,
-                &alignments,
-                &uids,
-                &entities,
-                &mut |entity, group_change| {
-                    clients
-                        .get(entity)
-                        .and_then(|c| {
-                            group_change
-                                .try_map_ref(|e| uids.get(*e).copied())
-                                .map(|g| (g, c))
-                        })
-                        .map(|(g, c)| {
-                            super::update_map_markers(&map_markers, &uids, c, &group_change);
-                            c.send_fallible(ServerGeneral::GroupUpdate(g));
-                        });
-                },
-            );
-
-            // Cancel trades
-            if let Some(uid) = uids.get(ev.0) {
-                let active_trade = match trades.entity_trades.get(uid) {
-                    Some(n) => *n,
-                    None => continue,
-                };
-
-                let to_notify = trades.decline_trade(active_trade, *uid);
-                to_notify.and_then(|u| id_maps.uid_entity(u)).map(|e| {
-                    if let Some(c) = clients.get(e) {
-                        c.send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
-                    }
-                    notify_agent_simple(
-                        &mut agents,
-                        e,
-                        AgentEvent::FinishedTrade(TradeResult::Declined),
-                    );
-                });
             }
         }
     }

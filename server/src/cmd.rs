@@ -493,6 +493,7 @@ fn handle_drop_all(
                 pos.0.y + rng.gen_range(5.0..10.0),
                 pos.0.z + 5.0,
             )),
+            comp::Ori::default(),
             comp::Vel(vel),
             item,
             None,

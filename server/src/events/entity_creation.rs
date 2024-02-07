@@ -12,9 +12,9 @@ use common::{
         WaypointArea,
     },
     event::{
-        CreateNpcEvent, CreateShipEvent, CreateTeleporterEvent, CreateWaypointEvent, EventBus,
-        InitializeCharacterEvent, InitializeSpectatorEvent, ShockwaveEvent, ShootEvent,
-        UpdateCharacterDataEvent,
+        CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent, CreateShipEvent,
+        CreateTeleporterEvent, CreateWaypointEvent, EventBus, InitializeCharacterEvent,
+        InitializeSpectatorEvent, ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
     },
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
     outcome::Outcome,
@@ -429,5 +429,36 @@ pub fn handle_create_teleporter(server: &mut Server, ev: CreateTeleporterEvent) 
     server
         .state
         .create_teleporter(comp::Pos(ev.0), ev.1)
+        .build();
+}
+
+pub fn handle_create_item_drop(server: &mut Server, ev: CreateItemDropEvent) {
+    println!("Handle item drop event.");
+    dbg!(ev.vel);
+    server
+        .state
+        .create_item_drop(ev.pos, ev.ori, ev.vel, ev.item, ev.loot_owner);
+}
+
+pub fn handle_create_object(
+    server: &mut Server,
+    CreateObjectEvent {
+        pos,
+        vel,
+        body,
+        object,
+        item,
+        light_emitter,
+        stats,
+    }: CreateObjectEvent,
+) {
+    server
+        .state
+        .create_object(pos, body)
+        .with(vel)
+        .maybe_with(object)
+        .maybe_with(item)
+        .maybe_with(light_emitter)
+        .maybe_with(stats)
         .build();
 }

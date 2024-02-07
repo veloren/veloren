@@ -16,10 +16,11 @@ pub(crate) use trade::cancel_trades_for;
 
 use self::{
     entity_creation::{
-        handle_create_npc, handle_create_ship, handle_create_teleporter, handle_create_waypoint,
-        handle_initialize_character, handle_initialize_spectator, handle_loaded_character_data,
-        handle_shockwave, handle_shoot,
+        handle_create_item_drop, handle_create_npc, handle_create_object, handle_create_ship,
+        handle_create_teleporter, handle_create_waypoint, handle_initialize_character,
+        handle_initialize_spectator, handle_loaded_character_data, handle_shockwave, handle_shoot,
     },
+    entity_manipulation::handle_delete,
     interaction::handle_tame_pet,
     mounting::{handle_mount, handle_mount_volume, handle_unmount},
     player::{
@@ -52,15 +53,18 @@ impl<T> Default for EventHandler<T> {
     fn default() -> Self { Self(PhantomData) }
 }
 
-impl<'a, T: ServerEvent> specs::System<'a> for EventHandler<T> {
+impl<'a, T: ServerEvent> common_ecs::System<'a> for EventHandler<T> {
     type SystemData = (
         ReadExpect<'a, crate::metrics::ServerEventMetrics>,
         WriteExpect<'a, EventBus<T>>,
         T::SystemData<'a>,
     );
 
-    fn run(&mut self, (metrics, mut ev, data): Self::SystemData) {
-        span!(_guard, "Run event system {}", T::NAME);
+    const NAME: &'static str = T::NAME;
+    const ORIGIN: common_ecs::Origin = common_ecs::Origin::Server;
+    const PHASE: common_ecs::Phase = common_ecs::Phase::Apply;
+
+    fn run(_job: &mut common_ecs::Job<Self>, (metrics, mut ev, data): Self::SystemData) {
         span!(guard, "Recv events");
         let events = ev.recv_all_mut();
         drop(guard);
@@ -81,7 +85,7 @@ impl<'a, T: ServerEvent> specs::System<'a> for EventHandler<T> {
 fn event_dispatch<T: ServerEvent>(builder: &mut DispatcherBuilder) {
     // TODO: We currently don't consider the order of these event. But as
     //       some events produce other events that might be worth doing.
-    builder.add(EventHandler::<T>::default(), T::NAME, &[]);
+    common_ecs::dispatch::<EventHandler<T>>(builder, &[]);
 }
 
 pub fn register_event_systems(builder: &mut DispatcherBuilder) {
@@ -136,6 +140,9 @@ impl Server {
         self.handle_serial_events(handle_shockwave);
         self.handle_serial_events(handle_create_waypoint);
         self.handle_serial_events(handle_create_teleporter);
+        self.handle_serial_events(handle_create_item_drop);
+        self.handle_serial_events(handle_create_object);
+        self.handle_serial_events(handle_delete);
 
         self.handle_serial_events(handle_character_delete);
         self.handle_serial_events(|this, ev: ExitIngameEvent| {
