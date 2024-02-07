@@ -8,11 +8,23 @@ pub enum ConnectionArgs {
     Quic {
         hostname: String,
         prefer_ipv6: bool,
+        validate_tls: bool,
     },
     ///hostname: (hostname|ip):[<port>]
     Tcp {
         hostname: String,
         prefer_ipv6: bool,
+    },
+    /// SRV lookup
+    ///
+    /// SRV lookups can not contain a port, but will be able to connect to
+    /// configured port automatically. If a connection with a port is given,
+    /// this will gracefully fall back to TCP.
+    Srv {
+        hostname: String,
+        prefer_ipv6: bool,
+        validate_tls: bool,
+        use_quic: bool,
     },
     Mpsc(u64),
 }
@@ -51,6 +63,7 @@ pub(crate) async fn resolve(
 pub(crate) async fn try_connect<F>(
     network: &network::Network,
     address: &str,
+    override_port: Option<u16>,
     prefer_ipv6: bool,
     f: F,
 ) -> Result<network::Participant, crate::error::Error>
@@ -59,10 +72,15 @@ where
 {
     use crate::error::Error;
     let mut participant = None;
-    for addr in resolve(address, prefer_ipv6)
+    for mut addr in resolve(address, prefer_ipv6)
         .await
         .map_err(Error::HostnameLookupFailed)?
     {
+        // Override the port if one was passed. Used for SRV lookups which get port info
+        // out-of-band
+        if let Some(port) = override_port {
+            addr.set_port(port);
+        }
         match network.connect(f(addr)).await {
             Ok(p) => {
                 participant = Some(Ok(p));

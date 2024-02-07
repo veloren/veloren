@@ -23,7 +23,9 @@ network = { package = "veloren-network", path = "../network", features = ["compr
 
 byteorder = "1.3.2"
 tokio = { workspace = true, features = ["rt-multi-thread"] }
-quinn = "0.10"
+quinn = { version = "0.10", features = ["rustls"] }
+rustls = { version = "0.21.6", features = ["dangerous_configuration"] }
+hickory-resolver = { version = "0.24.0", features = ["system-config", "tokio-runtime"] }
 image = { workspace = true }
 num = { workspace = true }
 tracing = { workspace = true }

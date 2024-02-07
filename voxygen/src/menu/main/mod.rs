@@ -334,7 +334,9 @@ impl PlayState for MainMenuState {
                     server_address,
                 } => {
                     let net_settings = &mut global_state.settings.networking;
+                    let use_srv = net_settings.use_srv;
                     let use_quic = net_settings.use_quic;
+                    let validate_tls = net_settings.validate_tls;
                     net_settings.username = username.clone();
                     net_settings.default_server = server_address.clone();
                     if !net_settings.servers.contains(&server_address) {
@@ -344,10 +346,18 @@ impl PlayState for MainMenuState {
                         .settings
                         .save_to_file_warn(&global_state.config_dir);
 
-                    let connection_args = if use_quic {
+                    let connection_args = if use_srv {
+                        ConnectionArgs::Srv {
+                            hostname: server_address,
+                            prefer_ipv6: false,
+                            validate_tls,
+                            use_quic,
+                        }
+                    } else if use_quic {
                         ConnectionArgs::Quic {
                             hostname: server_address,
                             prefer_ipv6: false,
+                            validate_tls,
                         }
                     } else {
                         ConnectionArgs::Tcp {
