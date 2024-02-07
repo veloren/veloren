@@ -159,8 +159,6 @@ clap = { version = "4.2",  features = ["derive"]}
 
 [patch.crates-io]
 vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986c5477341bea4456be26" }
-# ntapi 3.7 fails to compile under windows due to the bug https://github.com/MSxDOS/ntapi/pull/12
-ntapi = { git = "https://github.com/MSxDOS/ntapi.git", rev = "9f56b149c9e25796739157c0fce3e0007a7de6eb" }
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
 # This is needed because of an issue with spirv & naga in wgpu 0.18, and there's an issue
 # with uint in uniforms for gl.

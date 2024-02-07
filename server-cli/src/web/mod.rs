@@ -1,6 +1,6 @@
 use axum::{extract::State, response::IntoResponse, routing::get, Router};
 use core::{future::Future, ops::Deref};
-use hyper::{header, http, Body, StatusCode};
+use hyper::{body::Body, header, http, StatusCode};
 use prometheus::{Registry, TextEncoder};
 use server::chat::ChatCache;
 use std::net::SocketAddr;
@@ -16,7 +16,7 @@ pub async fn run<S, F, R>(
 ) -> Result<(), hyper::Error>
 where
     S: Into<SocketAddr>,
-    F: Future<Output = ()>,
+    F: Future<Output = ()> + Send,
     R: Deref<Target = Registry> + Clone + Send + Sync + 'static,
 {
     let metrics = Router::new()

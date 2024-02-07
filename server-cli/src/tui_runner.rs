@@ -4,6 +4,13 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use ratatui::{
+    backend::CrosstermBackend,
+    layout::Rect,
+    text::Text,
+    widgets::{Block, Borders, Paragraph},
+    Terminal,
+};
 use std::{
     io,
     sync::{
@@ -13,13 +20,6 @@ use std::{
     time::Duration,
 };
 use tracing::{debug, error, warn};
-use tui::{
-    backend::CrosstermBackend,
-    layout::Rect,
-    text::Text,
-    widgets::{Block, Borders, Paragraph, Wrap},
-    Terminal,
-};
 
 pub struct Tui {
     pub msg_r: mpsc::Receiver<Message>,
@@ -140,18 +140,8 @@ impl Tui {
 
                 let block = Block::default().borders(Borders::ALL);
 
-                let wrap = Wrap {
-                    scroll_callback: Some(Box::new(|text_area, lines| {
-                        LOG.resize(text_area.height as usize);
-                        let len = lines.len() as u16;
-                        (len.saturating_sub(text_area.height), 0)
-                    })),
-                    ..Default::default()
-                };
-
-                let logger = Paragraph::new(LOG.inner.lock().unwrap().clone())
-                    .block(block)
-                    .wrap(wrap);
+                LOG.resize(log_rect.height as usize);
+                let logger = Paragraph::new(LOG.inner.lock().unwrap().clone()).block(block);
                 f.render_widget(logger, log_rect);
 
                 let text: Text = input.as_str().into();
