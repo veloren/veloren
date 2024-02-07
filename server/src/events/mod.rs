@@ -7,7 +7,7 @@ use common::event::{
 };
 use common_base::span;
 use common_ecs::{dispatch, System};
-use specs::{DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt};
+use specs::{shred::SendDispatcher, DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt};
 
 pub use group_manip::update_map_markers;
 pub(crate) use trade::cancel_trades_for;
@@ -163,18 +163,10 @@ impl Server {
 
     pub fn handle_events(&mut self) -> Vec<Event> {
         let mut frontend_events = Vec::new();
-        span!(guard, "create event dispatcher");
-        // Run systems to handle events.
-        // Create and run a dispatcher for ecs systems.
-        let mut dispatch_builder =
-            DispatcherBuilder::new().with_pool(Arc::clone(self.state.thread_pool()));
-        register_event_systems(&mut dispatch_builder);
-        // This dispatches all the systems in parallel.
-        let mut dispatcher = dispatch_builder.build();
-        drop(guard);
 
         span!(guard, "run event systems");
-        dispatcher.dispatch(self.state.ecs());
+        // This dispatches all the systems in parallel.
+        self.event_dispatcher.dispatch(self.state.ecs());
         drop(guard);
 
         span!(guard, "handle serial events");
@@ -184,5 +176,18 @@ impl Server {
         self.state.maintain_ecs();
 
         frontend_events
+    }
+
+    pub fn create_event_dispatcher(pools: Arc<rayon::ThreadPool>) -> SendDispatcher<'static> {
+        span!(_guard, "create event dispatcher");
+        // Run systems to handle events.
+        // Create and run a dispatcher for ecs systems.
+        let mut dispatch_builder = DispatcherBuilder::new().with_pool(pools);
+        register_event_systems(&mut dispatch_builder);
+        dispatch_builder
+            .build()
+            .try_into_sendable()
+            .ok()
+            .expect("This should be sendable")
     }
 }

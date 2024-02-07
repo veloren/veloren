@@ -108,7 +108,9 @@ use persistence::{
     character_updater::CharacterUpdater,
 };
 use prometheus::Registry;
-use specs::{Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt};
+use specs::{
+    shred::SendDispatcher, Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt,
+};
 use std::{
     i32,
     ops::{Deref, DerefMut},
@@ -230,6 +232,7 @@ pub struct Server {
     disconnect_all_clients_requested: bool,
 
     server_constants: ServerConstants,
+    event_dispatcher: SendDispatcher<'static>,
 }
 
 impl Server {
@@ -314,7 +317,7 @@ impl Server {
         report_stage(ServerInitStage::StartingSystems);
 
         let mut state = State::server(
-            pools,
+            Arc::clone(&pools),
             world.sim().map_size_lg(),
             Arc::clone(&map.default_chunk),
             |dispatcher_builder| {
@@ -622,6 +625,8 @@ impl Server {
             disconnect_all_clients_requested: false,
 
             server_constants,
+
+            event_dispatcher: Self::create_event_dispatcher(pools),
         };
 
         debug!(?settings, "created veloren server with");

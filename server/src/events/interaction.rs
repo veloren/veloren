@@ -85,7 +85,6 @@ impl ServerEvent for SetLanternEvent {
                             flicker,
                             animated: true,
                         });
-
                     }
                 }
             }
@@ -115,8 +114,9 @@ impl ServerEvent for NpcInteractEvent {
                     })
             };
 
-            if within_range && let Some(agent) = agents
-                .get_mut(npc_entity) && agent.target.is_none()
+            if within_range
+                && let Some(agent) = agents.get_mut(npc_entity)
+                && agent.target.is_none()
             {
                 if let Some(interactor_uid) = uids.get(interactor) {
                     agent
@@ -411,9 +411,14 @@ impl ServerEvent for ToggleSpriteLightEvent {
     ) {
         for ev in events.into_iter() {
             if let Some(entity_pos) = positions.get(ev.entity)
-            && entity_pos.0.distance_squared(ev.pos.as_()) < MAX_INTERACT_RANGE.powi(2)
-            && block_change.can_set_block(ev.pos) {
-                if let Some(new_block) = terrain.get(ev.pos).ok().and_then(|block| block.with_toggle_light(ev.enable)) {
+                && entity_pos.0.distance_squared(ev.pos.as_()) < MAX_INTERACT_RANGE.powi(2)
+                && block_change.can_set_block(ev.pos)
+            {
+                if let Some(new_block) = terrain
+                    .get(ev.pos)
+                    .ok()
+                    .and_then(|block| block.with_toggle_light(ev.enable))
+                {
                     block_change.set(ev.pos, new_block);
                     // TODO: Emit outcome
                 }
