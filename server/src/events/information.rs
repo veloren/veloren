@@ -115,5 +115,5 @@ impl ServerEvent for RequestPluginsEvent {
 impl ServerEvent for RequestPluginsEvent {
     type SystemData<'a> = ();
 
-    fn handle(events: impl ExactSizeIterator<Item = Self>, _: Self::SystemData<'_>) {}
+    fn handle(_events: impl ExactSizeIterator<Item = Self>, _: Self::SystemData<'_>) {}
 }
