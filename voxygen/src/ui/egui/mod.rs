@@ -102,6 +102,9 @@ impl EguiState {
                         }
                     }
                 },
+                EguiAction::SetShowDebugVector(enabled) => {
+                    scene.debug_vectors_enabled = enabled;
+                },
             });
 
         new_render_mode.map(|rm| SettingsChange::Graphics(Graphics::ChangeRenderMode(Box::new(rm))))

@@ -1636,6 +1636,26 @@ impl WorldSim {
         TerrainChunk::water(CONFIG.sea_level as i32)
     }
 
+    pub fn approx_chunk_terrain_normal(&self, chunk_pos: Vec2<i32>) -> Option<Vec3<f32>> {
+        let curr_chunk = self.get(chunk_pos)?;
+        let downhill_chunk_pos = curr_chunk.downhill?.wpos_to_cpos();
+        let downhill_chunk = self.get(downhill_chunk_pos)?;
+        // special case if chunks are flat
+        if (curr_chunk.alt - downhill_chunk.alt) == 0. {
+            return Some(Vec3::unit_z());
+        }
+        let curr = chunk_pos.cpos_to_wpos_center().as_().with_z(curr_chunk.alt);
+        let down = downhill_chunk_pos
+            .cpos_to_wpos_center()
+            .as_()
+            .with_z(downhill_chunk.alt);
+        let downwards = curr - down;
+        let flat = downwards.with_z(down.z);
+        let mut res = downwards.cross(flat).cross(downwards);
+        res.normalize();
+        Some(res)
+    }
+
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
     pub fn get_map(&self, index: IndexRef, calendar: Option<&Calendar>) -> WorldMapMsg {

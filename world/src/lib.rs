@@ -36,6 +36,7 @@ pub use block::BlockGen;
 use civ::WorldCivStage;
 pub use column::ColumnSample;
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta};
+use common::terrain::CoordinateConversions;
 pub use index::{IndexOwned, IndexRef};
 use sim::WorldSimStage;
 
@@ -54,8 +55,7 @@ use common::{
     resources::TimeOfDay,
     rtsim::ChunkResource,
     terrain::{
-        Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunk, TerrainChunkMeta,
-        TerrainChunkSize, TerrainGrid,
+        Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -373,6 +373,7 @@ impl World {
             sim_chunk.tree_density,
             sim_chunk.cave.1.alt != 0.0,
             sim_chunk.river.is_river(),
+            sim_chunk.river.near_water(),
             sim_chunk.river.velocity,
             sim_chunk.temp,
             sim_chunk.humidity,
@@ -391,6 +392,9 @@ impl World {
                         .distance_squared(chunk_center_wpos2d)
                 })
                 .map(|id| index.sites[*id].kind.convert_to_meta().unwrap_or_default()),
+            self.sim.approx_chunk_terrain_normal(chunk_pos),
+            sim_chunk.rockiness,
+            sim_chunk.cliff_height,
         );
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);

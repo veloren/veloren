@@ -15,7 +15,8 @@ use common::{
         item::Reagent,
         object,
         shockwave::{self, ShockwaveDodgeable},
-        Beam, Body, CharacterActivity, CharacterState, Ori, Pos, Scale, Shockwave, Vel,
+        Beam, Body, CharacterActivity, CharacterState, Fluid, Ori, PhysicsState, Pos, Scale,
+        Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -916,16 +917,18 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
 
-        for (entity, interpolated, vel, character_state, body, ori, character_activity) in (
-            &ecs.entities(),
-            &ecs.read_storage::<Interpolated>(),
-            ecs.read_storage::<Vel>().maybe(),
-            &ecs.read_storage::<CharacterState>(),
-            &ecs.read_storage::<Body>(),
-            &ecs.read_storage::<Ori>(),
-            &ecs.read_storage::<CharacterActivity>(),
-        )
-            .join()
+        for (entity, interpolated, vel, character_state, body, ori, character_activity, physics) in
+            (
+                &ecs.entities(),
+                &ecs.read_storage::<Interpolated>(),
+                ecs.read_storage::<Vel>().maybe(),
+                &ecs.read_storage::<CharacterState>(),
+                &ecs.read_storage::<Body>(),
+                &ecs.read_storage::<Ori>(),
+                &ecs.read_storage::<CharacterActivity>(),
+                &ecs.read_storage::<PhysicsState>(),
+            )
+                .join()
         {
             match character_state {
                 CharacterState::Boost(_) => {
@@ -1315,6 +1318,61 @@ impl ParticleMgr {
                                 )
                             },
                         );
+                    }
+                },
+                CharacterState::Glide(_) => {
+                    if let Some(Fluid::Air {
+                        vel: air_vel,
+                        elevation: _,
+                    }) = physics.in_fluid
+                    {
+                        // Empirical observation is that air_vel is somewhere
+                        // between 0.0 and 13.0, but we are extending to be sure
+                        const MAX_AIR_VEL: f32 = 15.0;
+                        const MIN_AIR_VEL: f32 = -2.0;
+
+                        let minmax_norm = |val, min, max| (val - min) / (max - min);
+
+                        let wind_speed = air_vel.0.magnitude();
+
+                        // Less means more frequent particles
+                        let heartbeat = 200
+                            - Lerp::lerp(
+                                50u64,
+                                150,
+                                minmax_norm(wind_speed, MIN_AIR_VEL, MAX_AIR_VEL),
+                            );
+
+                        let new_count = self.particles.len()
+                            + usize::from(
+                                self.scheduler.heartbeats(Duration::from_millis(heartbeat)),
+                            );
+
+                        // More number, longer particles
+                        let duration = Lerp::lerp(
+                            0u64,
+                            1000,
+                            minmax_norm(wind_speed, MIN_AIR_VEL, MAX_AIR_VEL),
+                        );
+                        let duration = Duration::from_millis(duration);
+
+                        self.particles.resize_with(new_count, || {
+                            let start_pos = interpolated.pos
+                                + Vec3::new(
+                                    body.max_radius(),
+                                    body.max_radius(),
+                                    body.height() / 2.0,
+                                )
+                                .map(|d| d * rng.gen_range(-10.0..10.0));
+
+                            Particle::new_directed(
+                                duration,
+                                time,
+                                ParticleMode::Airflow,
+                                start_pos,
+                                start_pos + air_vel.0,
+                            )
+                        });
                     }
                 },
                 _ => {},

@@ -96,6 +96,7 @@ pub struct EguiInnerState {
     selected_entity_cylinder_height: f32,
     frame_times: Vec<f32>,
     windows: EguiWindows,
+    debug_vectors_enabled: bool,
 }
 
 #[derive(Clone, Default)]
@@ -118,6 +119,7 @@ impl Default for EguiInnerState {
             selected_entity_cylinder_height: 10.0,
             frame_times: Vec::new(),
             windows: EguiWindows::default(),
+            debug_vectors_enabled: false,
         }
     }
 }
@@ -142,6 +144,7 @@ pub enum EguiAction {
     },
     DebugShape(EguiDebugShapeAction),
     SetExperimentalShader(String, bool),
+    SetShowDebugVector(bool),
 }
 
 #[derive(Default)]
@@ -225,6 +228,7 @@ pub fn maintain_egui_inner(
     let mut max_entity_distance = egui_state.max_entity_distance;
     let mut selected_entity_cylinder_height = egui_state.selected_entity_cylinder_height;
     let mut windows = egui_state.windows.clone();
+    let mut debug_vectors_enabled_mut = egui_state.debug_vectors_enabled;
 
     // If a debug cylinder was added in the last frame, store it against the
     // selected entity
@@ -261,6 +265,7 @@ pub fn maintain_egui_inner(
                     ui.checkbox(&mut windows.ecs_entities, "ECS Entities");
                     ui.checkbox(&mut windows.frame_time, "Frame Time");
                     ui.checkbox(&mut windows.experimental_shaders, "Experimental Shaders");
+                    ui.checkbox(&mut debug_vectors_enabled_mut, "Show Debug Vectors");
                 });
             });
 
@@ -510,6 +515,12 @@ pub fn maintain_egui_inner(
             }
         }
     };
+    if debug_vectors_enabled_mut != egui_state.debug_vectors_enabled {
+        egui_actions
+            .actions
+            .push(EguiAction::SetShowDebugVector(debug_vectors_enabled_mut));
+        egui_state.debug_vectors_enabled = debug_vectors_enabled_mut;
+    }
 
     egui_state.max_entity_distance = max_entity_distance;
     egui_state.selected_entity_cylinder_height = selected_entity_cylinder_height;
@@ -754,8 +765,7 @@ fn selected_entity_window(
                                 two_col_row(ui, "On Wall", physics_state.on_wall.map_or("-".to_owned(), |x| format!("{:.1},{:.1},{:.1}", x.x, x.y, x.z )));
                                 two_col_row(ui, "Touching Entities", physics_state.touch_entities.len().to_string());
                                 two_col_row(ui, "In Fluid", match physics_state.in_fluid {
-
-                                    Some(Fluid::Air { elevation, .. }) => format!("Air (Elevation: {:.1})", elevation),
+                                    Some(Fluid::Air { elevation, vel, .. }) => format!("Air (Elevation: {:.1}), vel: ({:.1},{:.1},{:.1}) ({:.1} u/s)", elevation, vel.0.x, vel.0.y, vel.0.z, vel.0.magnitude()),
                                     Some(Fluid::Liquid { depth, kind, .. }) => format!("{:?} (Depth: {:.1})", kind, depth),
                                     _ => "None".to_owned() });
                                 });

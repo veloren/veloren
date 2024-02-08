@@ -95,6 +95,7 @@ const int ENERGY_PHOENIX = 55;
 const int PHOENIX_BEAM = 56;
 const int PHOENIX_BUILD_UP_AIM = 57;
 const int CLAY_SHRAPNEL = 58;
+const int AIRFLOW = 59;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -163,10 +164,24 @@ mat4 spin_in_axis(vec3 axis, float angle)
     float c = cos(angle);
     float oc = 1.0 - c;
 
-    return mat4(oc * axis.x * axis.x + c,  oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0,
-        oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c,          oc * axis.y * axis.z - axis.x * s, 0,
-        oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c,          0,
-        0,                                 0,                                 0,                                 1);
+    return mat4(
+        oc * axis.x * axis.x + c,
+        oc * axis.x * axis.y - axis.z * s,
+        oc * axis.z * axis.x + axis.y * s,
+        0,
+
+        oc * axis.x * axis.y + axis.z * s,
+        oc * axis.y * axis.y + c,
+        oc * axis.y * axis.z - axis.x * s,
+        0,
+
+        oc * axis.z * axis.x - axis.y * s,
+        oc * axis.y * axis.z + axis.x * s,
+        oc * axis.z * axis.z + c,
+        0,
+
+        0, 0, 0, 1
+    );
 }
 
 mat4 identity() {
@@ -984,6 +999,23 @@ void main() {
                 spin_in_axis(vec3(1,0,0),0)
             );
             break;
+        case AIRFLOW:
+            perp_axis = normalize(cross(inst_dir, vec3(1.0, 0.0, 0.0)));
+            attr = Attr(
+                // offsets
+                inst_dir * 0.2 * length(inst_dir) * percent() + inst_dir * percent() * 0.08,
+                // scale
+                vec3(
+                    0.3 * length(inst_dir),
+                    0.3 * length(inst_dir),
+                    3.0 * length(inst_dir) * percent() * (1 - percent())
+                ),
+                // color
+                vec4(1.1, 1.1, 1.1, 0.3),
+                // rotation
+                spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
+            );
+            break;
         default:
             attr = Attr(
                 linear_motion(
@@ -1008,7 +1040,14 @@ void main() {
 
     // First 3 normals are negative, next 3 are positive
     // TODO: Make particle normals match orientation
-    vec4 normals[6] = vec4[](vec4(-1,0,0,0), vec4(1,0,0,0), vec4(0,-1,0,0), vec4(0,1,0,0), vec4(0,0,-1,0), vec4(0,0,1,0));
+    vec4 normals[6] = vec4[](
+        vec4(-1,0,0,0),
+        vec4(1,0,0,0),
+        vec4(0,-1,0,0),
+        vec4(0,1,0,0),
+        vec4(0,0,-1,0),
+        vec4(0,0,1,0)
+    );
     f_norm =
         // inst_pos *
         normalize(((normals[(v_norm_ao >> 0) & 0x7u]) * attr.rot).xyz);

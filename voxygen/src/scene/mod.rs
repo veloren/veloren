@@ -27,6 +27,7 @@ use crate::{
         GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals,
         Renderer, Shadow, ShadowLocals, SkyboxVertex,
     },
+    session::PlayerDebugLines,
     settings::Settings,
     window::{AnalogGameInput, Event},
 };
@@ -38,9 +39,10 @@ use common::{
         tool::ToolKind,
     },
     outcome::Outcome,
-    resources::{DeltaTime, TimeScale},
+    resources::{DeltaTime, TimeOfDay, TimeScale},
     terrain::{BlockKind, TerrainChunk, TerrainGrid},
     vol::ReadVol,
+    weather::WeatherGrid,
 };
 use common_base::{prof_span, span};
 use common_state::State;
@@ -121,6 +123,8 @@ pub struct Scene {
     pub interpolated_time_of_day: Option<f64>,
     last_lightning: Option<(Vec3<f32>, f64)>,
     local_time: f64,
+
+    pub debug_vectors_enabled: bool,
 }
 
 pub struct SceneData<'a> {
@@ -148,11 +152,11 @@ pub struct SceneData<'a> {
 
 impl<'a> SceneData<'a> {
     pub fn get_sun_dir(&self) -> Vec3<f32> {
-        Globals::get_sun_dir(self.interpolated_time_of_day.unwrap_or(0.0))
+        TimeOfDay::new(self.interpolated_time_of_day.unwrap_or(0.0)).get_sun_dir()
     }
 
     pub fn get_moon_dir(&self) -> Vec3<f32> {
-        Globals::get_moon_dir(self.interpolated_time_of_day.unwrap_or(0.0))
+        TimeOfDay::new(self.interpolated_time_of_day.unwrap_or(0.0)).get_moon_dir()
     }
 }
 
@@ -360,6 +364,7 @@ impl Scene {
             interpolated_time_of_day: None,
             last_lightning: None,
             local_time: 0.0,
+            debug_vectors_enabled: false,
         }
     }
 
@@ -1541,7 +1546,7 @@ impl Scene {
                     for line in chunk.meta().debug_lines().iter() {
                         let shape_id = self
                             .debug
-                            .add_shape(DebugShape::Line([line.start, line.end]));
+                            .add_shape(DebugShape::Line([line.start, line.end], 0.1));
                         ret.push(shape_id);
                         self.debug
                             .set_context(shape_id, [0.0; 4], [1.0; 4], [0.0, 0.0, 0.0, 1.0]);
@@ -1637,5 +1642,88 @@ impl Scene {
             }
             keep
         });
+    }
+
+    pub fn maintain_debug_vectors(&mut self, client: &Client, lines: &mut PlayerDebugLines) {
+        lines
+            .chunk_normal
+            .take()
+            .map(|id| self.debug.remove_shape(id));
+        lines.fluid_vel.take().map(|id| self.debug.remove_shape(id));
+        lines.wind.take().map(|id| self.debug.remove_shape(id));
+        lines.vel.take().map(|id| self.debug.remove_shape(id));
+        if self.debug_vectors_enabled {
+            let ecs = client.state().ecs();
+
+            let vels = &ecs.read_component::<comp::Vel>();
+            let Some(vel) = vels.get(client.entity()) else {
+                return;
+            };
+
+            let phys_states = &ecs.read_component::<comp::PhysicsState>();
+            let Some(phys) = phys_states.get(client.entity()) else {
+                return;
+            };
+
+            let positions = &ecs.read_component::<comp::Pos>();
+            let Some(pos) = positions.get(client.entity()) else {
+                return;
+            };
+
+            let weather = ecs.read_resource::<WeatherGrid>();
+            // take id and remove to delete the previous lines.
+
+            const LINE_WIDTH: f32 = 0.05;
+            // Fluid Velocity
+            {
+                let Some(fluid) = phys.in_fluid else {
+                    return;
+                };
+                let shape = DebugShape::Line([pos.0, pos.0 + fluid.flow_vel().0 / 2.], LINE_WIDTH);
+                let id = self.debug.add_shape(shape);
+                lines.fluid_vel = Some(id);
+                self.debug
+                    .set_context(id, [0.0; 4], [0.18, 0.72, 0.87, 0.8], [0.0, 0.0, 0.0, 1.0]);
+            }
+            // Chunk Terrain Normal Vector
+            {
+                let Some(chunk) = client.current_chunk() else {
+                    return;
+                };
+                let shape = DebugShape::Line(
+                    [
+                        pos.0,
+                        pos.0
+                            + chunk
+                                .meta()
+                                .approx_chunk_terrain_normal()
+                                .unwrap_or(Vec3::unit_z())
+                                * 2.5,
+                    ],
+                    LINE_WIDTH,
+                );
+                let id = self.debug.add_shape(shape);
+                lines.chunk_normal = Some(id);
+                self.debug
+                    .set_context(id, [0.0; 4], [0.22, 0.63, 0.1, 0.8], [0.0, 0.0, 0.0, 1.0]);
+            }
+            // Wind
+            {
+                let wind = weather.get_interpolated(pos.0.xy()).wind_vel();
+                let shape = DebugShape::Line([pos.0, pos.0 + wind * 5.0], LINE_WIDTH);
+                let id = self.debug.add_shape(shape);
+                lines.wind = Some(id);
+                self.debug
+                    .set_context(id, [0.0; 4], [0.76, 0.76, 0.76, 0.8], [0.0, 0.0, 0.0, 1.0]);
+            }
+            // Player Vel
+            {
+                let shape = DebugShape::Line([pos.0, pos.0 + vel.0 / 2.0], LINE_WIDTH);
+                let id = self.debug.add_shape(shape);
+                lines.vel = Some(id);
+                self.debug
+                    .set_context(id, [0.0; 4], [0.98, 0.76, 0.01, 0.8], [0.0, 0.0, 0.0, 1.0]);
+            }
+        }
     }
 }
