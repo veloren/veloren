@@ -2,7 +2,7 @@ use crate::{comp::Alignment, uid::Uid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
-use specs::{Component, DerefFlaggedStorage, Join, LendJoin};
+use specs::{storage::GenericReadStorage, Component, DerefFlaggedStorage, Join, LendJoin};
 use tracing::{error, warn};
 
 // Primitive group system
@@ -82,7 +82,6 @@ impl<E> ChangeNotification<E> {
 }
 
 type GroupsMut<'a> = specs::WriteStorage<'a, Group>;
-type Groups<'a> = specs::ReadStorage<'a, Group>;
 type Alignments<'a> = specs::ReadStorage<'a, Alignment>;
 type Uids<'a> = specs::ReadStorage<'a, Uid>;
 
@@ -98,7 +97,7 @@ fn pets(
     entity: specs::Entity,
     uid: Uid,
     alignments: &Alignments,
-    entities: &specs::Entities,
+    entities: &specs::world::EntitiesRes,
 ) -> Vec<specs::Entity> {
     (entities, alignments)
         .join()
@@ -112,7 +111,7 @@ fn pets(
 pub fn members<'a>(
     group: Group,
     groups: impl Join<Type = &'a Group> + 'a,
-    entities: &'a specs::Entities,
+    entities: &'a specs::world::EntitiesRes,
     alignments: &'a Alignments,
     uids: &'a Uids,
 ) -> impl Iterator<Item = (specs::Entity, Role)> + 'a {
@@ -331,7 +330,7 @@ impl GroupManager {
         groups: &mut GroupsMut,
         alignments: &Alignments,
         uids: &Uids,
-        entities: &specs::Entities,
+        entities: &specs::world::EntitiesRes,
         notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
     ) {
         self.remove_from_group(member, groups, alignments, uids, entities, notifier, true);
@@ -346,7 +345,7 @@ impl GroupManager {
         groups: &mut GroupsMut,
         alignments: &Alignments,
         uids: &Uids,
-        entities: &specs::Entities,
+        entities: &specs::world::EntitiesRes,
         notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
         to_be_deleted: bool,
     ) {
@@ -493,13 +492,13 @@ impl GroupManager {
 
     // Assign new group leader
     // Does nothing if new leader is not part of a group
-    pub fn assign_leader(
+    pub fn assign_leader<'a>(
         &mut self,
         new_leader: specs::Entity,
-        groups: &Groups,
-        entities: &specs::Entities,
-        alignments: &Alignments,
-        uids: &Uids,
+        groups: impl GenericReadStorage<Component = Group> + Join<Type = &'a Group> + 'a,
+        entities: &'a specs::Entities,
+        alignments: &'a Alignments,
+        uids: &'a Uids,
         mut notifier: impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
     ) {
         let group = match groups.get(new_leader) {

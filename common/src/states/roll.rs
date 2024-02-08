@@ -4,7 +4,7 @@ use crate::{
         character_state::{AttackFilters, OutputEvents},
         CharacterState, StateUpdate,
     },
-    event::ServerEvent,
+    event::BuffEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -69,7 +69,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Remove burning effect if active
-                    output_events.emit_server(ServerEvent::Buff {
+                    output_events.emit_server(BuffEvent {
                         entity: data.entity,
                         buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
                     });

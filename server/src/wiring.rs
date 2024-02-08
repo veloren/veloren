@@ -1,6 +1,6 @@
 use common::{
     comp::{item::tool, object, Body, LightEmitter, PhysicsState, Pos, ProjectileConstructor},
-    event::{Emitter, ServerEvent},
+    event::{EmitExt, ShootEvent},
     terrain::{Block, TerrainChunkSize},
     util::Dir,
     vol::RectVolSize,
@@ -162,7 +162,7 @@ impl WiringAction {
         inputs: &HashMap<String, f32>,
         physics_state: Option<&PhysicsState>,
         entities_died_last_tick: &Vec<(Entity, Pos)>,
-        server_emitter: &mut Emitter<'_, ServerEvent>,
+        emitters: &mut impl EmitExt<ShootEvent>,
         pos: Option<&Pos>,
         block_change: &mut BlockChange,
         mut light_emitter: Option<&mut LightEmitter>,
@@ -183,7 +183,7 @@ impl WiringAction {
                 },
                 WiringActionEffect::SpawnProjectile { constr } => {
                     if let Some(&pos) = pos {
-                        server_emitter.emit(ServerEvent::Shoot {
+                        emitters.emit(ShootEvent {
                             entity,
                             pos,
                             dir: Dir::forward(),

@@ -7,7 +7,8 @@ use common::{
         Body, CharacterState, Combo, Energy, Health, Inventory, Poise, Pos, SkillSet, Stats,
         StatsModifier,
     },
-    event::{EventBus, ServerEvent},
+    event::{DestroyEvent, EmitExt},
+    event_emitters,
     resources::{DeltaTime, EntitiesDiedLastTick, Time},
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -19,12 +20,18 @@ const ENERGY_REGEN_ACCEL: f32 = 1.0;
 const SIT_ENERGY_REGEN_ACCEL: f32 = 2.5;
 const POISE_REGEN_ACCEL: f32 = 2.0;
 
+event_emitters! {
+    struct Events[Emitters] {
+        destroy: DestroyEvent,
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
     time: Read<'a, Time>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
+    events: Events<'a>,
     positions: ReadStorage<'a, Pos>,
     bodies: ReadStorage<'a, Body>,
     char_states: ReadStorage<'a, CharacterState>,
@@ -65,7 +72,7 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         entities_died_last_tick.0.clear();
-        let mut server_event_emitter = read_data.server_bus.emitter();
+        let mut emitters = read_data.events.get_emitters();
         let dt = read_data.dt.0;
 
         // Update stats
@@ -84,7 +91,7 @@ impl<'a> System<'a> for Sys {
             if set_dead {
                 let cloned_entity = (entity, *pos);
                 entities_died_last_tick.0.push(cloned_entity);
-                server_event_emitter.emit(ServerEvent::Destroy {
+                emitters.emit(DestroyEvent {
                     entity,
                     cause: health.last_change,
                 });

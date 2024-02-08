@@ -4,7 +4,8 @@ use common::{
         agent::{Sound, SoundKind},
         Body, BuffChange, Collider, ControlEvent, Controller, Pos, Scale,
     },
-    event::{EventBus, ServerEvent},
+    event::{self, EmitExt},
+    event_emitters,
     terrain::TerrainGrid,
     uid::IdMaps,
 };
@@ -12,11 +13,33 @@ use common_ecs::{Job, Origin, Phase, System};
 use specs::{shred, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage};
 use vek::*;
 
+event_emitters! {
+    struct Events[EventEmitters] {
+        mount: event::MountEvent,
+        mount_volume: event::MountVolumeEvent,
+        set_pet_stay: event::SetPetStayEvent,
+        unmount: event::UnmountEvent,
+        lantern: event::SetLanternEvent,
+        npc_interact: event::NpcInteractEvent,
+        initiate_invite: event::InitiateInviteEvent,
+        invite_response: event::InviteResponseEvent,
+        process_trade_action: event::ProcessTradeActionEvent,
+        inventory_manip: event::InventoryManipEvent,
+        group_manip: event::GroupManipEvent,
+        respawn: event::RespawnEvent,
+        sound: event::SoundEvent,
+        change_ability: event::ChangeAbilityEvent,
+        change_stance: event::ChangeStanceEvent,
+        start_teleporting: event::StartTeleportingEvent,
+        buff: event::BuffEvent,
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     id_maps: Read<'a, IdMaps>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
+    events: Events<'a>,
     terrain_grid: ReadExpect<'a, TerrainGrid>,
     positions: ReadStorage<'a, Pos>,
     bodies: ReadStorage<'a, Body>,
@@ -35,7 +58,7 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(_job: &mut Job<Self>, (read_data, mut controllers): Self::SystemData) {
-        let mut server_emitter = read_data.server_bus.emitter();
+        let mut emitters = read_data.events.get_emitters();
 
         for (entity, controller) in (&read_data.entities, &mut controllers).join() {
             // Sanitize inputs to avoid clients sending bad data
@@ -46,7 +69,7 @@ impl<'a> System<'a> for Sys {
                 match event {
                     ControlEvent::Mount(mountee_uid) => {
                         if let Some(mountee_entity) = read_data.id_maps.uid_entity(mountee_uid) {
-                            server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
+                            emitters.emit(event::MountEvent(entity, mountee_entity));
                         }
                     },
                     ControlEvent::MountVolume(volume) => {
@@ -56,51 +79,49 @@ impl<'a> System<'a> for Sys {
                             &read_data.colliders,
                         ) {
                             if block.is_mountable() {
-                                server_emitter.emit(ServerEvent::MountVolume(entity, volume));
+                                emitters.emit(event::MountVolumeEvent(entity, volume));
                             }
                         }
                     },
                     ControlEvent::SetPetStay(pet_uid, stay) => {
                         if let Some(pet_entity) = read_data.id_maps.uid_entity(pet_uid) {
-                            server_emitter.emit(ServerEvent::SetPetStay(entity, pet_entity, stay));
+                            emitters.emit(event::SetPetStayEvent(entity, pet_entity, stay));
                         }
                     },
                     ControlEvent::RemoveBuff(buff_id) => {
-                        server_emitter.emit(ServerEvent::Buff {
+                        emitters.emit(event::BuffEvent {
                             entity,
                             buff_change: BuffChange::RemoveFromController(buff_id),
                         });
                     },
-                    ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
+                    ControlEvent::Unmount => emitters.emit(event::UnmountEvent(entity)),
                     ControlEvent::EnableLantern => {
-                        server_emitter.emit(ServerEvent::EnableLantern(entity))
+                        emitters.emit(event::SetLanternEvent(entity, true))
                     },
                     ControlEvent::DisableLantern => {
-                        server_emitter.emit(ServerEvent::DisableLantern(entity))
+                        emitters.emit(event::SetLanternEvent(entity, false))
                     },
                     ControlEvent::Interact(npc_uid, subject) => {
                         if let Some(npc_entity) = read_data.id_maps.uid_entity(npc_uid) {
-                            server_emitter
-                                .emit(ServerEvent::NpcInteract(entity, npc_entity, subject));
+                            emitters.emit(event::NpcInteractEvent(entity, npc_entity, subject));
                         }
                     },
                     ControlEvent::InitiateInvite(inviter_uid, kind) => {
-                        server_emitter.emit(ServerEvent::InitiateInvite(entity, inviter_uid, kind));
+                        emitters.emit(event::InitiateInviteEvent(entity, inviter_uid, kind));
                     },
                     ControlEvent::InviteResponse(response) => {
-                        server_emitter.emit(ServerEvent::InviteResponse(entity, response));
+                        emitters.emit(event::InviteResponseEvent(entity, response));
                     },
                     ControlEvent::PerformTradeAction(trade_id, action) => {
-                        server_emitter
-                            .emit(ServerEvent::ProcessTradeAction(entity, trade_id, action));
+                        emitters.emit(event::ProcessTradeActionEvent(entity, trade_id, action));
                     },
                     ControlEvent::InventoryEvent(event) => {
-                        server_emitter.emit(ServerEvent::InventoryManip(entity, event.into()));
+                        emitters.emit(event::InventoryManipEvent(entity, event.into()));
                     },
                     ControlEvent::GroupManip(manip) => {
-                        server_emitter.emit(ServerEvent::GroupManip(entity, manip))
+                        emitters.emit(event::GroupManipEvent(entity, manip))
                     },
-                    ControlEvent::Respawn => server_emitter.emit(ServerEvent::Respawn(entity)),
+                    ControlEvent::Respawn => emitters.emit(event::RespawnEvent(entity)),
                     ControlEvent::Utterance(kind) => {
                         if let (Some(pos), Some(body), scale) = (
                             read_data.positions.get(entity),
@@ -114,7 +135,7 @@ impl<'a> System<'a> for Sys {
                                 8.0, // TODO: Come up with a better way of determining this
                                 1.0,
                             );
-                            server_emitter.emit(ServerEvent::Sound { sound });
+                            emitters.emit(event::SoundEvent { sound });
                         }
                     },
                     ControlEvent::ChangeAbility {
@@ -122,7 +143,7 @@ impl<'a> System<'a> for Sys {
                         auxiliary_key,
                         new_ability,
                     } => {
-                        server_emitter.emit(ServerEvent::ChangeAbility {
+                        emitters.emit(event::ChangeAbilityEvent {
                             entity,
                             slot,
                             auxiliary_key,
@@ -130,14 +151,14 @@ impl<'a> System<'a> for Sys {
                         });
                     },
                     ControlEvent::LeaveStance => {
-                        server_emitter.emit(ServerEvent::ChangeStance {
+                        emitters.emit(event::ChangeStanceEvent {
                             entity,
                             stance: Stance::None,
                         });
                     },
                     ControlEvent::ActivatePortal(portal_uid) => {
                         if let Some(portal) = read_data.id_maps.uid_entity(portal_uid) {
-                            server_emitter.emit(ServerEvent::StartTeleporting { entity, portal });
+                            emitters.emit(event::StartTeleportingEvent { entity, portal });
                         }
                     },
                 }

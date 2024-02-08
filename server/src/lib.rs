@@ -5,7 +5,14 @@
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(box_patterns, let_chains, never_type, option_zip, unwrap_infallible)]
+#![feature(
+    box_patterns,
+    let_chains,
+    never_type,
+    option_zip,
+    unwrap_infallible,
+    const_type_name
+)]
 
 pub mod automod;
 mod character_creator;
@@ -72,7 +79,10 @@ use common::{
     character::{CharacterId, CharacterItem},
     cmd::ServerChatCommand,
     comp,
-    event::{EventBus, ServerEvent},
+    event::{
+        register_event_busses, ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent,
+        EventBus, ExitIngameEvent, UpdateCharacterDataEvent,
+    },
     link::Is,
     mounting::{Volume, VolumeRider},
     region::RegionMap,
@@ -98,7 +108,9 @@ use persistence::{
     character_updater::CharacterUpdater,
 };
 use prometheus::Registry;
-use specs::{Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt};
+use specs::{
+    shred::SendDispatcher, Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt,
+};
 use std::{
     i32,
     ops::{Deref, DerefMut},
@@ -220,6 +232,7 @@ pub struct Server {
     disconnect_all_clients_requested: bool,
 
     server_constants: ServerConstants,
+    event_dispatcher: SendDispatcher<'static>,
 }
 
 impl Server {
@@ -304,7 +317,7 @@ impl Server {
         report_stage(ServerInitStage::StartingSystems);
 
         let mut state = State::server(
-            pools,
+            Arc::clone(&pools),
             world.sim().map_size_lg(),
             Arc::clone(&map.default_chunk),
             |dispatcher_builder| {
@@ -318,13 +331,15 @@ impl Server {
                 }
             },
         );
+        register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(battlemode_buffer);
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(editable_settings);
         state.ecs_mut().insert(DataDir {
             path: data_dir.to_owned(),
         });
-        state.ecs_mut().insert(EventBus::<ServerEvent>::default());
+
+        register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(Vec::<ChunkRequest>::new());
         state
             .ecs_mut()
@@ -610,6 +625,8 @@ impl Server {
             disconnect_all_clients_requested: false,
 
             server_constants,
+
+            event_dispatcher: Self::create_event_dispatcher(pools),
         };
 
         debug!(?settings, "created veloren server with");
@@ -989,7 +1006,7 @@ impl Server {
                             ),
                         },
                         CharacterScreenResponseKind::CharacterData(result) => {
-                            let message = match *result {
+                            match *result {
                                 Ok((character_data, skill_set_persistence_load_error)) => {
                                     let PersistedComponents {
                                         body,
@@ -1013,11 +1030,11 @@ impl Server {
                                     );
                                     // TODO: Does this need to be a server event? E.g. we could
                                     // just handle it here.
-                                    ServerEvent::UpdateCharacterData {
+                                    self.state.emit_event_now(UpdateCharacterDataEvent {
                                         entity: response.target_entity,
                                         components: character_data,
                                         metadata: skill_set_persistence_load_error,
-                                    }
+                                    })
                                 },
                                 Err(error) => {
                                     // We failed to load data for the character from the DB. Notify
@@ -1031,16 +1048,11 @@ impl Server {
                                     );
 
                                     // Clean up the entity data on the server
-                                    ServerEvent::ExitIngame {
+                                    self.state.emit_event_now(ExitIngameEvent {
                                         entity: response.target_entity,
-                                    }
+                                    })
                                 },
-                            };
-
-                            self.state
-                                .ecs()
-                                .read_resource::<EventBus<ServerEvent>>()
-                                .emit_now(message);
+                            }
                         },
                     }
                 },
@@ -1194,15 +1206,15 @@ impl Server {
             );
             for (_, entity) in (&clients, &entities).join() {
                 info!("Emitting client disconnect event for entity: {:?}", entity);
-                let event = if with_persistence {
-                    ServerEvent::ClientDisconnect(entity, comp::DisconnectReason::Kicked)
+                if with_persistence {
+                    self.state.emit_event_now(ClientDisconnectEvent(
+                        entity,
+                        comp::DisconnectReason::Kicked,
+                    ))
                 } else {
-                    ServerEvent::ClientDisconnectWithoutPersistence(entity)
+                    self.state
+                        .emit_event_now(ClientDisconnectWithoutPersistenceEvent(entity))
                 };
-                self.state
-                    .ecs()
-                    .read_resource::<EventBus<ServerEvent>>()
-                    .emit_now(event);
             }
 
             self.disconnect_all_clients_requested = false;

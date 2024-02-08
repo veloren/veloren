@@ -10,7 +10,7 @@ use crate::{
         },
         CharacterState, InventoryManip, StateUpdate,
     },
-    event::ServerEvent,
+    event::{BuffEvent, InventoryManipEvent},
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -141,11 +141,11 @@ impl CharacterBehavior for Data {
 
         if matches!(update.character, CharacterState::Roll(_)) {
             // Remove potion/saturation effect if left the use item state early by rolling
-            output_events.emit_server(ServerEvent::Buff {
+            output_events.emit_server(BuffEvent {
                 entity: data.entity,
                 buff_change: BuffChange::RemoveByKind(BuffKind::Potion),
             });
-            output_events.emit_server(ServerEvent::Buff {
+            output_events.emit_server(BuffEvent {
                 entity: data.entity,
                 buff_change: BuffChange::RemoveByKind(BuffKind::Saturation),
             });
@@ -217,6 +217,6 @@ fn use_item(data: &JoinData, output_events: &mut OutputEvents, state: &Data) {
     if item_is_same {
         // Create inventory manipulation event
         let inv_manip = InventoryManip::Use(Slot::Inventory(state.static_data.inv_slot));
-        output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
+        output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
     }
 }

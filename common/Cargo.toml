@@ -75,7 +75,7 @@ slotmap = { version = "1.0", features = ["serde"] }
 indexmap = { version = "1.9.3", features = ["rayon"] }
 
 # ECS
-specs = { workspace = true, features = ["serde", "storage-event-control"] }
+specs = { workspace = true, features = ["serde", "storage-event-control", "shred-derive"] }
 
 [dev-dependencies]
 #bench

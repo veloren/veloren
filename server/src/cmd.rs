@@ -40,7 +40,10 @@ use common::{
     },
     depot,
     effect::Effect,
-    event::{EventBus, ServerEvent},
+    event::{
+        ClientDisconnectEvent, CreateWaypointEvent, EventBus, ExplosionEvent, GroupManipEvent,
+        InitiateInviteEvent, TamePetEvent,
+    },
     generation::{EntityConfig, EntityInfo},
     link::Is,
     mounting::{Rider, Volume, VolumeRider},
@@ -490,6 +493,7 @@ fn handle_drop_all(
                 pos.0.y + rng.gen_range(5.0..10.0),
                 pos.0.z + 5.0,
             )),
+            comp::Ori::default(),
             comp::Vel(vel),
             item,
             None,
@@ -1804,9 +1808,7 @@ fn handle_spawn(
 
                 // Add to group system if a pet
                 if matches!(alignment, comp::Alignment::Owned { .. }) {
-                    let server_eventbus =
-                        server.state.ecs().read_resource::<EventBus<ServerEvent>>();
-                    server_eventbus.emit_now(ServerEvent::TamePet {
+                    server.state.emit_event_now(TamePetEvent {
                         owner_entity: target,
                         pet_entity: new_entity,
                     });
@@ -2079,8 +2081,8 @@ fn handle_spawn_campfire(
     server
         .state
         .ecs()
-        .read_resource::<EventBus<ServerEvent>>()
-        .emit_now(ServerEvent::CreateWaypoint(pos.0));
+        .read_resource::<EventBus<CreateWaypointEvent>>()
+        .emit_now(CreateWaypointEvent(pos.0));
 
     server.notify_client(
         client,
@@ -2907,26 +2909,23 @@ fn handle_explosion(
         .read_storage::<Uid>()
         .get(target)
         .copied();
-    server
-        .state
-        .mut_resource::<EventBus<ServerEvent>>()
-        .emit_now(ServerEvent::Explosion {
-            pos: pos.0,
-            explosion: Explosion {
-                effects: vec![
-                    RadiusEffect::Entity(Effect::Damage(Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: 100.0 * power,
-                    })),
-                    RadiusEffect::TerrainDestruction(power, Rgb::black()),
-                ],
-                radius: 3.0 * power,
-                reagent: None,
-                min_falloff: 0.0,
-            },
-            owner,
-        });
+    server.state.emit_event_now(ExplosionEvent {
+        pos: pos.0,
+        explosion: Explosion {
+            effects: vec![
+                RadiusEffect::Entity(Effect::Damage(Damage {
+                    source: DamageSource::Explosion,
+                    kind: DamageKind::Energy,
+                    value: 100.0 * power,
+                })),
+                RadiusEffect::TerrainDestruction(power, Rgb::black()),
+            ],
+            radius: 3.0 * power,
+            reagent: None,
+            min_falloff: 0.0,
+        },
+        owner,
+    });
     Ok(())
 }
 
@@ -3261,8 +3260,7 @@ fn handle_group_invite(
 
         server
             .state
-            .mut_resource::<EventBus<ServerEvent>>()
-            .emit_now(ServerEvent::InitiateInvite(target, uid, InviteKind::Group));
+            .emit_event_now(InitiateInviteEvent(target, uid, InviteKind::Group));
 
         if client != target {
             server.notify_client(
@@ -3301,8 +3299,7 @@ fn handle_group_kick(
 
         server
             .state
-            .mut_resource::<EventBus<ServerEvent>>()
-            .emit_now(ServerEvent::GroupManip(target, comp::GroupManip::Kick(uid)));
+            .emit_event_now(GroupManipEvent(target, comp::GroupManip::Kick(uid)));
         Ok(())
     } else {
         Err(Content::Plain(action.help_string()))
@@ -3318,8 +3315,7 @@ fn handle_group_leave(
 ) -> CmdResult<()> {
     server
         .state
-        .mut_resource::<EventBus<ServerEvent>>()
-        .emit_now(ServerEvent::GroupManip(target, comp::GroupManip::Leave));
+        .emit_event_now(GroupManipEvent(target, comp::GroupManip::Leave));
     Ok(())
 }
 
@@ -3337,11 +3333,7 @@ fn handle_group_promote(
 
         server
             .state
-            .mut_resource::<EventBus<ServerEvent>>()
-            .emit_now(ServerEvent::GroupManip(
-                target,
-                comp::GroupManip::AssignLeader(uid),
-            ));
+            .emit_event_now(GroupManipEvent(target, comp::GroupManip::AssignLeader(uid)));
         Ok(())
     } else {
         Err(Content::Plain(action.help_string()))
@@ -3944,8 +3936,8 @@ fn kick_player(
     );
     server
         .state
-        .mut_resource::<EventBus<ServerEvent>>()
-        .emit_now(ServerEvent::ClientDisconnect(
+        .mut_resource::<EventBus<ClientDisconnectEvent>>()
+        .emit_now(ClientDisconnectEvent(
             target_player,
             comp::DisconnectReason::Kicked,
         ));

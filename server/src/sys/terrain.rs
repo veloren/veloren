@@ -15,7 +15,10 @@ use common::{
         self, agent, biped_small, bird_medium, misc::PortalData, skillset::skills,
         BehaviorCapability, ForceUpdate, Pos, Presence, Waypoint,
     },
-    event::{EventBus, NpcBuilder, ServerEvent},
+    event::{
+        CreateNpcEvent, CreateTeleporterEvent, CreateWaypointEvent, EmitExt, EventBus, NpcBuilder,
+    },
+    event_emitters,
     generation::{EntityInfo, SpecialEntity},
     lottery::LootSpec,
     resources::{Time, TimeOfDay},
@@ -51,6 +54,14 @@ type RtSimData<'a> = WriteExpect<'a, rtsim::RtSim>;
 #[cfg(not(feature = "worldgen"))]
 type RtSimData<'a> = ();
 
+event_emitters! {
+    struct Events[Emitters] {
+        create_npc: CreateNpcEvent,
+        create_waypoint: CreateWaypointEvent,
+        create_teleporter: CreateTeleporterEvent,
+    }
+}
+
 /// This system will handle loading generated chunks and unloading
 /// unneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
@@ -62,7 +73,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Read<'a, EventBus<ServerEvent>>,
+        Events<'a>,
         Read<'a, Tick>,
         Read<'a, Settings>,
         Read<'a, TimeOfDay>,
@@ -94,7 +105,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
-            server_event_bus,
+            events,
             tick,
             server_settings,
             time_of_day,
@@ -119,7 +130,7 @@ impl<'a> System<'a> for Sys {
             time,
         ): Self::SystemData,
     ) {
-        let mut server_emitter = server_event_bus.emitter();
+        let mut emitters = events.get_emitters();
 
         // Generate requested chunks
         //
@@ -196,7 +207,7 @@ impl<'a> System<'a> for Sys {
                 let data = NpcData::from_entity_info(entity);
                 match data {
                     NpcData::Waypoint(pos) => {
-                        server_emitter.emit(ServerEvent::CreateWaypoint(pos));
+                        emitters.emit(CreateWaypointEvent(pos));
                     },
                     NpcData::Data {
                         pos,
@@ -211,7 +222,7 @@ impl<'a> System<'a> for Sys {
                         scale,
                         loot,
                     } => {
-                        server_emitter.emit(ServerEvent::CreateNpc {
+                        emitters.emit(CreateNpcEvent {
                             pos,
                             ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                             npc: NpcBuilder::new(stats, body, alignment)
@@ -227,7 +238,7 @@ impl<'a> System<'a> for Sys {
                         });
                     },
                     NpcData::Teleporter(pos, teleporter) => {
-                        server_emitter.emit(ServerEvent::CreateTeleporter(pos, teleporter));
+                        emitters.emit(CreateTeleporterEvent(pos, teleporter));
                     },
                 }
             }

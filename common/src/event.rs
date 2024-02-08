@@ -7,7 +7,7 @@ use crate::{
         dialogue::Subject,
         invite::{InviteKind, InviteResponse},
         misc::PortalData,
-        DisconnectReason, Ori, Pos,
+        DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
     },
     lottery::LootSpec,
     mounting::VolumePos,
@@ -20,7 +20,7 @@ use crate::{
     Explosion,
 };
 use serde::{Deserialize, Serialize};
-use specs::Entity as EcsEntity;
+use specs::{Entity as EcsEntity, World};
 use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
 use uuid::Uuid;
 use vek::*;
@@ -132,217 +132,281 @@ impl NpcBuilder {
     }
 }
 
-#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
-#[derive(strum::EnumDiscriminants)]
-#[strum_discriminants(repr(usize))]
-#[strum_discriminants(derive(strum::EnumVariantNames))]
-pub enum ServerEvent {
-    Explosion {
-        pos: Vec3<f32>,
-        explosion: Explosion,
-        owner: Option<Uid>,
-    },
-    Bonk {
-        pos: Vec3<f32>,
-        owner: Option<Uid>,
-        target: Option<Uid>,
-    },
-    HealthChange {
-        entity: EcsEntity,
-        change: comp::HealthChange,
-    },
-    PoiseChange {
-        entity: EcsEntity,
-        change: comp::PoiseChange,
-    },
-    Delete(EcsEntity),
-    Destroy {
-        entity: EcsEntity,
-        cause: comp::HealthChange,
-    },
-    InventoryManip(EcsEntity, comp::InventoryManip),
-    GroupManip(EcsEntity, comp::GroupManip),
-    Respawn(EcsEntity),
-    Shoot {
-        entity: EcsEntity,
-        pos: Pos,
-        dir: Dir,
-        body: comp::Body,
-        light: Option<comp::LightEmitter>,
-        projectile: comp::Projectile,
-        speed: f32,
-        object: Option<comp::Object>,
-    },
-    Shockwave {
-        properties: comp::shockwave::Properties,
-        pos: Pos,
-        ori: Ori,
-    },
-    Knockback {
-        entity: EcsEntity,
-        impulse: Vec3<f32>,
-    },
-    LandOnGround {
-        entity: EcsEntity,
-        vel: Vec3<f32>,
-        surface_normal: Vec3<f32>,
-    },
-    EnableLantern(EcsEntity),
-    DisableLantern(EcsEntity),
-    NpcInteract(EcsEntity, EcsEntity, Subject),
-    InviteResponse(EcsEntity, InviteResponse),
-    InitiateInvite(EcsEntity, Uid, InviteKind),
-    ProcessTradeAction(EcsEntity, TradeId, TradeAction),
-    Mount(EcsEntity, EcsEntity),
-    MountVolume(EcsEntity, VolumePos),
-    Unmount(EcsEntity),
-    SetPetStay(EcsEntity, EcsEntity, bool),
-    Possess(Uid, Uid),
-    /// Inserts default components for a character when loading into the game
-    InitCharacterData {
-        entity: EcsEntity,
-        character_id: CharacterId,
-        requested_view_distances: crate::ViewDistances,
-    },
-    InitSpectator(EcsEntity, crate::ViewDistances),
-    UpdateCharacterData {
-        entity: EcsEntity,
-        components: (
-            comp::Body,
-            comp::Stats,
-            comp::SkillSet,
-            comp::Inventory,
-            Option<comp::Waypoint>,
-            Vec<(comp::Pet, comp::Body, comp::Stats)>,
-            comp::ActiveAbilities,
-            Option<comp::MapMarker>,
-        ),
-        metadata: UpdateCharacterMetadata,
-    },
-    ExitIngame {
-        entity: EcsEntity,
-    },
-    // TODO: to avoid breakage when adding new fields, perhaps have an `NpcBuilder` type?
-    CreateNpc {
-        pos: Pos,
-        ori: Ori,
-        npc: NpcBuilder,
-        rider: Option<NpcBuilder>,
-    },
-    CreateShip {
-        pos: Pos,
-        ori: Ori,
-        ship: comp::ship::Body,
-        rtsim_entity: Option<RtSimEntity>,
-        driver: Option<NpcBuilder>,
-    },
-    CreateWaypoint(Vec3<f32>),
-    CreateTeleporter(Vec3<f32>, PortalData),
-    ClientDisconnect(EcsEntity, DisconnectReason),
-    ClientDisconnectWithoutPersistence(EcsEntity),
-    Command(EcsEntity, String, Vec<String>),
-    /// Send a chat message to the player from an npc or other player
-    Chat(comp::UnresolvedChatMsg),
-    Aura {
-        entity: EcsEntity,
-        aura_change: comp::AuraChange,
-    },
-    Buff {
-        entity: EcsEntity,
-        buff_change: comp::BuffChange,
-    },
-    EnergyChange {
-        entity: EcsEntity,
-        change: f32,
-    },
-    ComboChange {
-        entity: EcsEntity,
-        change: i32,
-    },
-    ParryHook {
-        defender: EcsEntity,
-        attacker: Option<EcsEntity>,
-        source: AttackSource,
-    },
-    RequestSiteInfo {
-        entity: EcsEntity,
-        id: SiteId,
-    },
-    // Attempt to mine a block, turning it into an item
-    MineBlock {
-        entity: EcsEntity,
-        pos: Vec3<i32>,
-        tool: Option<comp::tool::ToolKind>,
-    },
-    TeleportTo {
-        entity: EcsEntity,
-        target: Uid,
-        max_range: Option<f32>,
-    },
-    CreateSafezone {
-        range: Option<f32>,
-        pos: Pos,
-    },
-    Sound {
-        sound: Sound,
-    },
-    CreateSprite {
-        pos: Vec3<i32>,
-        sprite: SpriteKind,
-        del_timeout: Option<(f32, f32)>,
-    },
-    TamePet {
-        pet_entity: EcsEntity,
-        owner_entity: EcsEntity,
-    },
-    EntityAttackedHook {
-        entity: EcsEntity,
-        attacker: Option<EcsEntity>,
-    },
-    ChangeAbility {
-        entity: EcsEntity,
-        slot: usize,
-        auxiliary_key: comp::ability::AuxiliaryKey,
-        new_ability: comp::ability::AuxiliaryAbility,
-    },
-    UpdateMapMarker {
-        entity: EcsEntity,
-        update: comp::MapMarkerChange,
-    },
-    MakeAdmin {
-        entity: EcsEntity,
-        admin: comp::Admin,
-        uuid: Uuid,
-    },
-    DeleteCharacter {
-        entity: EcsEntity,
-        requesting_player_uuid: String,
-        character_id: CharacterId,
-    },
-    ChangeStance {
-        entity: EcsEntity,
-        stance: comp::Stance,
-    },
-    ChangeBody {
-        entity: EcsEntity,
-        new_body: comp::Body,
-    },
-    RemoveLightEmitter {
-        entity: EcsEntity,
-    },
-    TeleportToPosition {
-        entity: EcsEntity,
-        position: Vec3<f32>,
-    },
-    StartTeleporting {
-        entity: EcsEntity,
-        portal: EcsEntity,
-    },
-    ToggleSpriteLight {
-        entity: EcsEntity,
-        pos: Vec3<i32>,
-        enable: bool,
-    },
+pub struct ClientConnectedEvent {
+    pub entity: EcsEntity,
+}
+pub struct ClientDisconnectEvent(pub EcsEntity, pub DisconnectReason);
+pub struct ClientDisconnectWithoutPersistenceEvent(pub EcsEntity);
+
+pub struct ChatEvent(pub UnresolvedChatMsg);
+pub struct CommandEvent(pub EcsEntity, pub String, pub Vec<String>);
+
+// Entity Creation
+pub struct CreateWaypointEvent(pub Vec3<f32>);
+pub struct CreateTeleporterEvent(pub Vec3<f32>, pub PortalData);
+
+pub struct CreateNpcEvent {
+    pub pos: Pos,
+    pub ori: Ori,
+    pub npc: NpcBuilder,
+    pub rider: Option<NpcBuilder>,
+}
+
+pub struct CreateShipEvent {
+    pub pos: Pos,
+    pub ori: Ori,
+    pub ship: comp::ship::Body,
+    pub rtsim_entity: Option<RtSimEntity>,
+    pub driver: Option<NpcBuilder>,
+}
+
+pub struct CreateItemDropEvent {
+    pub pos: Pos,
+    pub vel: Vel,
+    pub ori: Ori,
+    pub item: comp::Item,
+    pub loot_owner: Option<LootOwner>,
+}
+pub struct CreateObjectEvent {
+    pub pos: Pos,
+    pub vel: Vel,
+    pub body: comp::object::Body,
+    pub object: Option<comp::Object>,
+    pub item: Option<comp::Item>,
+    pub light_emitter: Option<comp::LightEmitter>,
+    pub stats: Option<comp::Stats>,
+}
+
+pub struct ExplosionEvent {
+    pub pos: Vec3<f32>,
+    pub explosion: Explosion,
+    pub owner: Option<Uid>,
+}
+
+pub struct BonkEvent {
+    pub pos: Vec3<f32>,
+    pub owner: Option<Uid>,
+    pub target: Option<Uid>,
+}
+
+pub struct HealthChangeEvent {
+    pub entity: EcsEntity,
+    pub change: comp::HealthChange,
+}
+
+pub struct PoiseChangeEvent {
+    pub entity: EcsEntity,
+    pub change: comp::PoiseChange,
+}
+
+pub struct DeleteEvent(pub EcsEntity);
+
+pub struct DestroyEvent {
+    pub entity: EcsEntity,
+    pub cause: comp::HealthChange,
+}
+
+pub struct InventoryManipEvent(pub EcsEntity, pub comp::InventoryManip);
+
+pub struct GroupManipEvent(pub EcsEntity, pub comp::GroupManip);
+
+pub struct RespawnEvent(pub EcsEntity);
+
+pub struct ShootEvent {
+    pub entity: EcsEntity,
+    pub pos: Pos,
+    pub dir: Dir,
+    pub body: comp::Body,
+    pub light: Option<comp::LightEmitter>,
+    pub projectile: comp::Projectile,
+    pub speed: f32,
+    pub object: Option<comp::Object>,
+}
+
+pub struct ShockwaveEvent {
+    pub properties: comp::shockwave::Properties,
+    pub pos: Pos,
+    pub ori: Ori,
+}
+
+pub struct KnockbackEvent {
+    pub entity: EcsEntity,
+    pub impulse: Vec3<f32>,
+}
+
+pub struct LandOnGroundEvent {
+    pub entity: EcsEntity,
+    pub vel: Vec3<f32>,
+    pub surface_normal: Vec3<f32>,
+}
+
+pub struct SetLanternEvent(pub EcsEntity, pub bool);
+
+pub struct NpcInteractEvent(pub EcsEntity, pub EcsEntity, pub Subject);
+
+pub struct InviteResponseEvent(pub EcsEntity, pub InviteResponse);
+
+pub struct InitiateInviteEvent(pub EcsEntity, pub Uid, pub InviteKind);
+
+pub struct ProcessTradeActionEvent(pub EcsEntity, pub TradeId, pub TradeAction);
+
+pub struct MountEvent(pub EcsEntity, pub EcsEntity);
+
+pub struct MountVolumeEvent(pub EcsEntity, pub VolumePos);
+
+pub struct UnmountEvent(pub EcsEntity);
+
+pub struct SetPetStayEvent(pub EcsEntity, pub EcsEntity, pub bool);
+
+pub struct PossessEvent(pub Uid, pub Uid);
+
+pub struct InitializeCharacterEvent {
+    pub entity: EcsEntity,
+    pub character_id: CharacterId,
+    pub requested_view_distances: crate::ViewDistances,
+}
+
+pub struct InitializeSpectatorEvent(pub EcsEntity, pub crate::ViewDistances);
+
+pub struct UpdateCharacterDataEvent {
+    pub entity: EcsEntity,
+    pub components: (
+        comp::Body,
+        comp::Stats,
+        comp::SkillSet,
+        comp::Inventory,
+        Option<comp::Waypoint>,
+        Vec<(comp::Pet, comp::Body, comp::Stats)>,
+        comp::ActiveAbilities,
+        Option<comp::MapMarker>,
+    ),
+    pub metadata: UpdateCharacterMetadata,
+}
+
+pub struct ExitIngameEvent {
+    pub entity: EcsEntity,
+}
+
+pub struct AuraEvent {
+    pub entity: EcsEntity,
+    pub aura_change: comp::AuraChange,
+}
+
+pub struct BuffEvent {
+    pub entity: EcsEntity,
+    pub buff_change: comp::BuffChange,
+}
+
+pub struct EnergyChangeEvent {
+    pub entity: EcsEntity,
+    pub change: f32,
+}
+
+pub struct ComboChangeEvent {
+    pub entity: EcsEntity,
+    pub change: i32,
+}
+
+pub struct ParryHookEvent {
+    pub defender: EcsEntity,
+    pub attacker: Option<EcsEntity>,
+    pub source: AttackSource,
+}
+
+pub struct RequestSiteInfoEvent {
+    pub entity: EcsEntity,
+    pub id: SiteId,
+}
+
+// Attempt to mine a block, turning it into an item
+pub struct MineBlockEvent {
+    pub entity: EcsEntity,
+    pub pos: Vec3<i32>,
+    pub tool: Option<comp::tool::ToolKind>,
+}
+
+pub struct TeleportToEvent {
+    pub entity: EcsEntity,
+    pub target: Uid,
+    pub max_range: Option<f32>,
+}
+
+pub struct CreateSafezoneEvent {
+    pub range: Option<f32>,
+    pub pos: Pos,
+}
+
+pub struct SoundEvent {
+    pub sound: Sound,
+}
+
+pub struct CreateSpriteEvent {
+    pub pos: Vec3<i32>,
+    pub sprite: SpriteKind,
+    pub del_timeout: Option<(f32, f32)>,
+}
+
+pub struct TamePetEvent {
+    pub pet_entity: EcsEntity,
+    pub owner_entity: EcsEntity,
+}
+
+pub struct EntityAttackedHookEvent {
+    pub entity: EcsEntity,
+    pub attacker: Option<EcsEntity>,
+}
+
+pub struct ChangeAbilityEvent {
+    pub entity: EcsEntity,
+    pub slot: usize,
+    pub auxiliary_key: comp::ability::AuxiliaryKey,
+    pub new_ability: comp::ability::AuxiliaryAbility,
+}
+
+pub struct UpdateMapMarkerEvent {
+    pub entity: EcsEntity,
+    pub update: comp::MapMarkerChange,
+}
+
+pub struct MakeAdminEvent {
+    pub entity: EcsEntity,
+    pub admin: comp::Admin,
+    pub uuid: Uuid,
+}
+
+pub struct DeleteCharacterEvent {
+    pub entity: EcsEntity,
+    pub requesting_player_uuid: String,
+    pub character_id: CharacterId,
+}
+
+pub struct ChangeStanceEvent {
+    pub entity: EcsEntity,
+    pub stance: comp::Stance,
+}
+
+pub struct ChangeBodyEvent {
+    pub entity: EcsEntity,
+    pub new_body: comp::Body,
+}
+
+pub struct RemoveLightEmitterEvent {
+    pub entity: EcsEntity,
+}
+
+pub struct TeleportToPositionEvent {
+    pub entity: EcsEntity,
+    pub position: Vec3<f32>,
+}
+
+pub struct StartTeleportingEvent {
+    pub entity: EcsEntity,
+    pub portal: EcsEntity,
+}
+pub struct ToggleSpriteLightEvent {
+    pub entity: EcsEntity,
+    pub pos: Vec3<i32>,
+    pub enable: bool,
 }
 
 pub struct EventBus<E> {
@@ -370,11 +434,15 @@ impl<E> EventBus<E> {
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = E> {
         std::mem::take(self.queue.lock().unwrap().deref_mut()).into_iter()
     }
+
+    pub fn recv_all_mut(&mut self) -> impl ExactSizeIterator<Item = E> {
+        std::mem::take(self.queue.get_mut().unwrap()).into_iter()
+    }
 }
 
 pub struct Emitter<'a, E> {
     bus: &'a EventBus<E>,
-    events: VecDeque<E>,
+    pub events: VecDeque<E>,
 }
 
 impl<'a, E> Emitter<'a, E> {
@@ -393,5 +461,139 @@ impl<'a, E> Drop for Emitter<'a, E> {
         if !self.events.is_empty() {
             self.bus.queue.lock().unwrap().append(&mut self.events);
         }
+    }
+}
+
+pub trait EmitExt<E> {
+    fn emit(&mut self, event: E);
+    fn emit_many(&mut self, events: impl IntoIterator<Item = E>);
+}
+
+pub fn register_event_busses(ecs: &mut World) {
+    ecs.insert(EventBus::<ClientConnectedEvent>::default());
+    ecs.insert(EventBus::<ClientDisconnectEvent>::default());
+    ecs.insert(EventBus::<ClientDisconnectWithoutPersistenceEvent>::default());
+    ecs.insert(EventBus::<ChatEvent>::default());
+    ecs.insert(EventBus::<CommandEvent>::default());
+    ecs.insert(EventBus::<CreateWaypointEvent>::default());
+    ecs.insert(EventBus::<CreateTeleporterEvent>::default());
+    ecs.insert(EventBus::<CreateNpcEvent>::default());
+    ecs.insert(EventBus::<CreateShipEvent>::default());
+    ecs.insert(EventBus::<CreateItemDropEvent>::default());
+    ecs.insert(EventBus::<CreateObjectEvent>::default());
+    ecs.insert(EventBus::<ExplosionEvent>::default());
+    ecs.insert(EventBus::<BonkEvent>::default());
+    ecs.insert(EventBus::<HealthChangeEvent>::default());
+    ecs.insert(EventBus::<PoiseChangeEvent>::default());
+    ecs.insert(EventBus::<DeleteEvent>::default());
+    ecs.insert(EventBus::<DestroyEvent>::default());
+    ecs.insert(EventBus::<InventoryManipEvent>::default());
+    ecs.insert(EventBus::<GroupManipEvent>::default());
+    ecs.insert(EventBus::<RespawnEvent>::default());
+    ecs.insert(EventBus::<ShootEvent>::default());
+    ecs.insert(EventBus::<ShockwaveEvent>::default());
+    ecs.insert(EventBus::<KnockbackEvent>::default());
+    ecs.insert(EventBus::<LandOnGroundEvent>::default());
+    ecs.insert(EventBus::<SetLanternEvent>::default());
+    ecs.insert(EventBus::<NpcInteractEvent>::default());
+    ecs.insert(EventBus::<InviteResponseEvent>::default());
+    ecs.insert(EventBus::<InitiateInviteEvent>::default());
+    ecs.insert(EventBus::<ProcessTradeActionEvent>::default());
+    ecs.insert(EventBus::<MountEvent>::default());
+    ecs.insert(EventBus::<MountVolumeEvent>::default());
+    ecs.insert(EventBus::<UnmountEvent>::default());
+    ecs.insert(EventBus::<SetPetStayEvent>::default());
+    ecs.insert(EventBus::<PossessEvent>::default());
+    ecs.insert(EventBus::<InitializeCharacterEvent>::default());
+    ecs.insert(EventBus::<InitializeSpectatorEvent>::default());
+    ecs.insert(EventBus::<UpdateCharacterDataEvent>::default());
+    ecs.insert(EventBus::<ExitIngameEvent>::default());
+    ecs.insert(EventBus::<AuraEvent>::default());
+    ecs.insert(EventBus::<BuffEvent>::default());
+    ecs.insert(EventBus::<EnergyChangeEvent>::default());
+    ecs.insert(EventBus::<ComboChangeEvent>::default());
+    ecs.insert(EventBus::<ParryHookEvent>::default());
+    ecs.insert(EventBus::<RequestSiteInfoEvent>::default());
+    ecs.insert(EventBus::<MineBlockEvent>::default());
+    ecs.insert(EventBus::<TeleportToEvent>::default());
+    ecs.insert(EventBus::<CreateSafezoneEvent>::default());
+    ecs.insert(EventBus::<SoundEvent>::default());
+    ecs.insert(EventBus::<CreateSpriteEvent>::default());
+    ecs.insert(EventBus::<TamePetEvent>::default());
+    ecs.insert(EventBus::<EntityAttackedHookEvent>::default());
+    ecs.insert(EventBus::<ChangeAbilityEvent>::default());
+    ecs.insert(EventBus::<UpdateMapMarkerEvent>::default());
+    ecs.insert(EventBus::<MakeAdminEvent>::default());
+    ecs.insert(EventBus::<DeleteCharacterEvent>::default());
+    ecs.insert(EventBus::<ChangeStanceEvent>::default());
+    ecs.insert(EventBus::<ChangeBodyEvent>::default());
+    ecs.insert(EventBus::<RemoveLightEmitterEvent>::default());
+    ecs.insert(EventBus::<TeleportToPositionEvent>::default());
+    ecs.insert(EventBus::<StartTeleportingEvent>::default());
+    ecs.insert(EventBus::<ToggleSpriteLightEvent>::default());
+}
+
+/// Define ecs read data for event busses. And a way to convert them all to
+/// emitters.
+///
+/// # Example:
+/// ```
+/// mod some_mod_is_necessary_for_the_test {
+///     use veloren_common::event_emitters;
+///     pub struct Foo;
+///     pub struct Bar;
+///     pub struct Baz;
+///     event_emitters!(
+///       pub struct ReadEvents[EventEmitters] {
+///           foo: Foo, bar: Bar, baz: Baz,
+///       }
+///     );
+/// }
+/// ```
+#[macro_export]
+macro_rules! event_emitters {
+    ($($vis:vis struct $read_data:ident[$emitters:ident] { $($ev_ident:ident: $ty:ty),+ $(,)? })+) => {
+        mod event_emitters {
+            use super::*;
+            use specs::shred;
+            $(
+            #[derive(specs::SystemData)]
+            pub struct $read_data<'a> {
+                $($ev_ident: Option<specs::Read<'a, $crate::event::EventBus<$ty>>>),+
+            }
+
+            impl<'a> $read_data<'a> {
+                #[allow(unused)]
+                pub fn get_emitters(&self) -> $emitters {
+                    $emitters {
+                        $($ev_ident: self.$ev_ident.as_ref().map(|e| e.emitter())),+
+                    }
+                }
+            }
+
+            pub struct $emitters<'a> {
+                $($ev_ident: Option<$crate::event::Emitter<'a, $ty>>),+
+            }
+
+            impl<'a> $emitters<'a> {
+                #[allow(unused)]
+                pub fn append(&mut self, mut other: Self) {
+                    $(
+                        self.$ev_ident.as_mut().zip(other.$ev_ident).map(|(a, mut b)| a.append(&mut b.events));
+                    )+
+                }
+            }
+
+            $(
+                impl<'a> $crate::event::EmitExt<$ty> for $emitters<'a> {
+                    fn emit(&mut self, event: $ty) { self.$ev_ident.as_mut().map(|e| e.emit(event)); }
+                    fn emit_many(&mut self, events: impl IntoIterator<Item = $ty>) { self.$ev_ident.as_mut().map(|e| e.emit_many(events)); }
+                }
+            )+
+            )+
+        }
+        $(
+            $vis use event_emitters::{$read_data, $emitters};
+        )+
     }
 }

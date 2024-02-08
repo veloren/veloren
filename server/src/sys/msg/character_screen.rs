@@ -12,21 +12,35 @@ use crate::{
 };
 use common::{
     comp::{Admin, AdminRole, ChatType, Player, Presence, Waypoint},
-    event::{EventBus, ServerEvent},
+    event::{
+        ChatEvent, ClientDisconnectEvent, DeleteCharacterEvent, EmitExt, InitializeCharacterEvent,
+        InitializeSpectatorEvent,
+    },
+    event_emitters,
     resources::Time,
     terrain::TerrainChunkSize,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use specs::{Entities, Join, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::sync::{atomic::Ordering, Arc};
 use tracing::{debug, error};
+
+event_emitters! {
+    struct Events[Emitters] {
+        init_spectator: InitializeSpectatorEvent,
+        init_character_data: InitializeCharacterEvent,
+        delete_character: DeleteCharacterEvent,
+        client_disconnect: ClientDisconnectEvent,
+        chat: ChatEvent,
+    }
+}
 
 impl Sys {
     #[allow(clippy::too_many_arguments)] // Shhhh, go bother someone else clippy
     fn handle_client_character_screen_msg(
-        server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
+        emitters: &mut Emitters,
         entity: specs::Entity,
         client: &Client,
         character_loader: &ReadExpect<'_, CharacterLoader>,
@@ -65,9 +79,7 @@ impl Sys {
 
             if !client.login_msg_sent.load(Ordering::Relaxed) {
                 if let Some(player_uid) = uids.get(entity) {
-                    server_emitter.emit(ServerEvent::Chat(
-                        ChatType::Online(*player_uid).into_plain_msg(""),
-                    ));
+                    emitters.emit(ChatEvent(ChatType::Online(*player_uid).into_plain_msg("")));
 
                     client.login_msg_sent.store(true, Ordering::Relaxed);
                 }
@@ -82,8 +94,7 @@ impl Sys {
                 {
                     send_join_messages()?;
 
-                    server_emitter
-                        .emit(ServerEvent::InitSpectator(entity, requested_view_distances));
+                    emitters.emit(InitializeSpectatorEvent(entity, requested_view_distances));
                 } else {
                     debug!("dropped Spectate msg from unprivileged client")
                 }
@@ -131,7 +142,7 @@ impl Sys {
 
                         // Start inserting non-persisted/default components for the entity
                         // while we load the DB data
-                        server_emitter.emit(ServerEvent::InitCharacterData {
+                        emitters.emit(InitializeCharacterEvent {
                             entity,
                             character_id,
                             requested_view_distances,
@@ -242,7 +253,7 @@ impl Sys {
             },
             ClientGeneral::DeleteCharacter(character_id) => {
                 if let Some(player) = players.get(entity) {
-                    server_emitter.emit(ServerEvent::DeleteCharacter {
+                    emitters.emit(DeleteCharacterEvent {
                         entity,
                         requesting_player_uuid: player.uuid().to_string(),
                         character_id,
@@ -251,7 +262,7 @@ impl Sys {
             },
             _ => {
                 debug!("Kicking possibly misbehaving client due to invalid character request");
-                server_emitter.emit(ServerEvent::ClientDisconnect(
+                emitters.emit(ClientDisconnectEvent(
                     entity,
                     common::comp::DisconnectReason::NetworkError,
                 ));
@@ -267,7 +278,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        Read<'a, EventBus<ServerEvent>>,
+        Events<'a>,
         ReadExpect<'a, CharacterLoader>,
         WriteExpect<'a, CharacterUpdater>,
         ReadStorage<'a, Uid>,
@@ -291,7 +302,7 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             entities,
-            server_event_bus,
+            events,
             character_loader,
             mut character_updater,
             uids,
@@ -307,12 +318,12 @@ impl<'a> System<'a> for Sys {
             world,
         ): Self::SystemData,
     ) {
-        let mut server_emitter = server_event_bus.emitter();
+        let mut emitters = events.get_emitters();
 
         for (entity, client) in (&entities, &mut clients).join() {
             let _ = super::try_recv_all(client, 1, |client, msg| {
                 Self::handle_client_character_screen_msg(
-                    &mut server_emitter,
+                    &mut emitters,
                     entity,
                     client,
                     &character_loader,

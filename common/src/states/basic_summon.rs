@@ -9,7 +9,7 @@ use crate::{
         Body::Object,
         CharacterState, Projectile, StateUpdate,
     },
-    event::{LocalEvent, NpcBuilder, ServerEvent},
+    event::{CreateNpcEvent, LocalEvent, NpcBuilder},
     npc::NPC_NAMES,
     outcome::Outcome,
     skillset_builder::{self, SkillSetBuilder},
@@ -197,7 +197,7 @@ impl CharacterBehavior for Data {
 
                         let mut rng = rand::thread_rng();
                         // Send server event to create npc
-                        output_events.emit_server(ServerEvent::CreateNpc {
+                        output_events.emit_server(CreateNpcEvent {
                             pos: comp::Pos(
                                 collision_vector - Vec3::unit_z() * obstacle_z + extra_height,
                             ),

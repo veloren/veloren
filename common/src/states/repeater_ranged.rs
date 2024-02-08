@@ -4,7 +4,7 @@ use crate::{
         character_state::OutputEvents, Body, CharacterState, LightEmitter, Pos,
         ProjectileConstructor, StateUpdate,
     },
-    event::ServerEvent,
+    event::{EnergyChangeEvent, ShootEvent},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -144,7 +144,7 @@ impl CharacterBehavior for Data {
                         tool_stats,
                         self.static_data.damage_effect,
                     );
-                    output_events.emit_server(ServerEvent::Shoot {
+                    output_events.emit_server(ShootEvent {
                         entity: data.entity,
                         pos,
                         dir: direction,
@@ -156,7 +156,7 @@ impl CharacterBehavior for Data {
                     });
 
                     // Removes energy from character when arrow is fired
-                    output_events.emit_server(ServerEvent::EnergyChange {
+                    output_events.emit_server(EnergyChangeEvent {
                         entity: data.entity,
                         change: -self.static_data.energy_cost,
                     });

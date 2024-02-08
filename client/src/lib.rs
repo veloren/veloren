@@ -2140,12 +2140,7 @@ impl Client {
             &self.connected_server_constants,
             |_, _| {},
         );
-        // TODO: avoid emitting these in the first place
-        let _ = self
-            .state
-            .ecs()
-            .fetch::<EventBus<common::event::ServerEvent>>()
-            .recv_all();
+
         // TODO: avoid emitting these in the first place OR actually use outcomes
         // generated locally on the client (if they can be deduplicated from
         // ones that the server generates or if the client can reliably generate

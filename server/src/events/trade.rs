@@ -7,7 +7,8 @@ use common::{
             Inventory,
         },
     },
-    trade::{PendingTrade, ReducedInventory, TradeAction, TradeId, TradeResult, Trades},
+    event::ProcessTradeActionEvent,
+    trade::{PendingTrade, ReducedInventory, TradeAction, TradeResult, Trades},
 };
 use common_net::{
     msg::ServerGeneral,
@@ -19,8 +20,8 @@ use std::cmp::Ordering;
 use tracing::{error, trace};
 use world::IndexOwned;
 
-fn notify_agent_simple(
-    mut agents: specs::WriteStorage<Agent>,
+pub fn notify_agent_simple(
+    agents: &mut specs::WriteStorage<Agent>,
     entity: EcsEntity,
     event: AgentEvent,
 ) {
@@ -55,9 +56,7 @@ fn notify_agent_prices(
 /// Invoked when the trade UI is up, handling item changes, accepts, etc
 pub(super) fn handle_process_trade_action(
     server: &mut Server,
-    entity: EcsEntity,
-    trade_id: TradeId,
-    action: TradeAction,
+    ProcessTradeActionEvent(entity, trade_id, action): ProcessTradeActionEvent,
 ) {
     if let Some(uid) = server.state.ecs().uid_from_entity(entity) {
         let mut trades = server.state.ecs().write_resource::<Trades>();
@@ -68,7 +67,7 @@ pub(super) fn handle_process_trade_action(
                 .map(|e| {
                     server.notify_client(e, ServerGeneral::FinishedTrade(TradeResult::Declined));
                     notify_agent_simple(
-                        server.state.ecs().write_storage::<Agent>(),
+                        &mut server.state.ecs().write_storage(),
                         e,
                         AgentEvent::FinishedTrade(TradeResult::Declined),
                     );
@@ -95,7 +94,7 @@ pub(super) fn handle_process_trade_action(
                         if let Some(e) = server.state.ecs().entity_from_uid(*party) {
                             server.notify_client(e, ServerGeneral::FinishedTrade(result.clone()));
                             notify_agent_simple(
-                                server.state.ecs().write_storage::<Agent>(),
+                                &mut server.state.ecs().write_storage(),
                                 e,
                                 AgentEvent::FinishedTrade(result.clone()),
                             );
@@ -185,7 +184,7 @@ pub(crate) fn cancel_trades_for(state: &mut common_state::State, entity: EcsEnti
                 c.send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
             }
             notify_agent_simple(
-                ecs.write_storage::<Agent>(),
+                &mut ecs.write_storage::<Agent>(),
                 e,
                 AgentEvent::FinishedTrade(TradeResult::Declined),
             );

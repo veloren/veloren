@@ -42,7 +42,10 @@ use common_net::{
 };
 use common_state::State;
 use rand::prelude::*;
-use specs::{Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt};
+use specs::{
+    storage::{GenericReadStorage, GenericWriteStorage},
+    Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt, WriteStorage,
+};
 use std::time::{Duration, Instant};
 use tracing::{error, trace, warn};
 use vek::*;
@@ -69,6 +72,7 @@ pub trait StateExt {
     fn create_item_drop(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         vel: comp::Vel,
         item: Item,
         loot_owner: Option<LootOwner>,
@@ -335,6 +339,7 @@ impl StateExt for State {
     fn create_item_drop(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         vel: comp::Vel,
         item: Item,
         loot_owner: Option<LootOwner>,
@@ -397,6 +402,7 @@ impl StateExt for State {
                 .create_entity_synced()
                 .with(item)
                 .with(pos)
+                .with(ori)
                 .with(vel)
                 .with(item_drop.orientation(&mut thread_rng()))
                 .with(item_drop.mass())
@@ -1253,70 +1259,83 @@ impl StateExt for State {
         dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
     ) -> Result<T, Content> {
-        if dismount_volume {
-            self.ecs().write_storage::<Is<VolumeRider>>().remove(entity);
-        }
-
-        let entity = self
-            .read_storage::<Is<Rider>>()
-            .get(entity)
-            .and_then(|is_rider| {
-                self.ecs()
-                    .read_resource::<IdMaps>()
-                    .uid_entity(is_rider.mount)
-            })
-            .map(Ok)
-            .or_else(|| {
-                self.read_storage::<Is<VolumeRider>>()
-                    .get(entity)
-                    .and_then(|volume_rider| {
-                        Some(match volume_rider.pos.kind {
-                            common::mounting::Volume::Terrain => Err("Tried to move the world."),
-                            common::mounting::Volume::Entity(uid) => {
-                                Ok(self.ecs().read_resource::<IdMaps>().uid_entity(uid)?)
-                            },
-                        })
-                    })
-            })
-            .unwrap_or(Ok(entity))?;
-
-        let mut maybe_pos = None;
-
-        let res = self
-            .ecs()
-            .write_storage::<comp::Pos>()
-            .get_mut(entity)
-            .map(|pos| {
-                let res = f(pos);
-                maybe_pos = Some(pos.0);
-                res
-            })
-            .ok_or(Content::localized_with_args(
-                "command-position-unavailable",
-                [("target", "entity")],
-            ));
-
-        if let Some(pos) = maybe_pos {
-            if self
-                .ecs()
-                .read_storage::<Presence>()
-                .get(entity)
-                .map(|presence| presence.kind == PresenceKind::Spectator)
-                .unwrap_or(false)
-            {
-                self.read_storage::<Client>().get(entity).map(|client| {
-                    client.send_fallible(ServerGeneral::SpectatePosition(pos));
-                });
-            } else {
-                self.ecs()
-                    .write_storage::<comp::ForceUpdate>()
-                    .get_mut(entity)
-                    .map(|force_update| force_update.update());
-            }
-        }
-
-        res
+        let ecs = self.ecs_mut();
+        position_mut(
+            entity,
+            dismount_volume,
+            f,
+            &ecs.read_resource(),
+            &mut ecs.write_storage(),
+            ecs.write_storage(),
+            ecs.write_storage(),
+            ecs.read_storage(),
+            ecs.read_storage(),
+            ecs.read_storage(),
+        )
     }
+}
+
+pub fn position_mut<T>(
+    entity: EcsEntity,
+    dismount_volume: bool,
+    f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
+    id_maps: &IdMaps,
+    is_volume_riders: &mut WriteStorage<Is<VolumeRider>>,
+    mut positions: impl GenericWriteStorage<Component = comp::Pos>,
+    mut force_updates: impl GenericWriteStorage<Component = comp::ForceUpdate>,
+    is_riders: impl GenericReadStorage<Component = Is<Rider>>,
+    presences: impl GenericReadStorage<Component = Presence>,
+    clients: impl GenericReadStorage<Component = Client>,
+) -> Result<T, Content> {
+    if dismount_volume {
+        is_volume_riders.remove(entity);
+    }
+
+    let entity = is_riders
+        .get(entity)
+        .and_then(|is_rider| id_maps.uid_entity(is_rider.mount))
+        .map(Ok)
+        .or_else(|| {
+            is_volume_riders.get(entity).and_then(|volume_rider| {
+                Some(match volume_rider.pos.kind {
+                    common::mounting::Volume::Terrain => Err("Tried to move the world."),
+                    common::mounting::Volume::Entity(uid) => Ok(id_maps.uid_entity(uid)?),
+                })
+            })
+        })
+        .unwrap_or(Ok(entity))?;
+
+    let mut maybe_pos = None;
+
+    let res = positions
+        .get_mut(entity)
+        .map(|pos| {
+            let res = f(pos);
+            maybe_pos = Some(pos.0);
+            res
+        })
+        .ok_or(Content::localized_with_args(
+            "command-position-unavailable",
+            [("target", "entity")],
+        ));
+
+    if let Some(pos) = maybe_pos {
+        if presences
+            .get(entity)
+            .map(|presence| presence.kind == PresenceKind::Spectator)
+            .unwrap_or(false)
+        {
+            clients.get(entity).map(|client| {
+                client.send_fallible(ServerGeneral::SpectatePosition(pos));
+            });
+        } else {
+            force_updates
+                .get_mut(entity)
+                .map(|force_update| force_update.update());
+        }
+    }
+
+    res
 }
 
 fn send_to_group(g: &Group, ecs: &specs::World, msg: &comp::ChatMsg) {

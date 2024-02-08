@@ -4,7 +4,7 @@ use crate::{
         character_state::OutputEvents, controller::InputKind, item::ItemDefinitionIdOwned,
         slot::InvSlotId, CharacterState, InventoryManip, StateUpdate,
     },
-    event::{LocalEvent, ServerEvent},
+    event::{InventoryManipEvent, LocalEvent, ToggleSpriteLightEvent},
     outcome::Outcome,
     states::behavior::{CharacterBehavior, JoinData},
     terrain::SpriteKind,
@@ -117,17 +117,16 @@ impl CharacterBehavior for Data {
                             sprite_pos: self.static_data.sprite_pos,
                             required_item: inv_slot,
                         };
-
                         match self.static_data.sprite_kind {
                             SpriteInteractKind::ToggleLight(enable) => {
-                                output_events.emit_server(ServerEvent::ToggleSpriteLight {
+                                output_events.emit_server(ToggleSpriteLightEvent {
                                     entity: data.entity,
                                     pos: self.static_data.sprite_pos,
                                     enable,
                                 })
                             },
                             _ => output_events
-                                .emit_server(ServerEvent::InventoryManip(data.entity, inv_manip)),
+                                .emit_server(InventoryManipEvent(data.entity, inv_manip)),
                         }
 
                         if matches!(self.static_data.sprite_kind, SpriteInteractKind::Unlock) {

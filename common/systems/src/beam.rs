@@ -5,7 +5,8 @@ use common::{
         Alignment, Beam, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
         Player, Pos, Scale, Stats,
     },
-    event::{EventBus, ServerEvent},
+    event::{self, EmitExt, EventBus},
+    event_emitters,
     outcome::Outcome,
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
@@ -21,11 +22,24 @@ use specs::{
 };
 use vek::*;
 
+event_emitters! {
+    struct ReadAttackEvents[AttackEmitters] {
+        health_change: event::HealthChangeEvent,
+        energy_change: event::EnergyChangeEvent,
+        poise_change: event::PoiseChangeEvent,
+        sound: event::SoundEvent,
+        parry_hook: event::ParryHookEvent,
+        kockback: event::KnockbackEvent,
+        entity_attack_hoow: event::EntityAttackedHookEvent,
+        combo_change: event::ComboChangeEvent,
+        buff: event::BuffEvent,
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     players: ReadStorage<'a, Player>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
     dt: Read<'a, DeltaTime>,
     terrain: ReadExpect<'a, TerrainGrid>,
@@ -46,6 +60,7 @@ pub struct ReadData<'a> {
     character_states: ReadStorage<'a, CharacterState>,
     buffs: ReadStorage<'a, Buffs>,
     outcomes: Read<'a, EventBus<Outcome>>,
+    events: ReadAttackEvents<'a>,
 }
 
 /// This system is responsible for handling beams that heal or do damage
@@ -59,7 +74,6 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(job: &mut Job<Self>, (read_data, mut beams): Self::SystemData) {
-        let mut server_emitter = read_data.server_bus.emitter();
         let mut outcomes_emitter = read_data.outcomes.emitter();
 
         (
@@ -100,7 +114,8 @@ impl<'a> System<'a> for Sys {
         job.cpu_stats.measure(ParMode::Rayon);
 
         // Beams
-        let (server_events, add_hit_entities, new_outcomes) = (
+        // Emitters will append their events when dropped.
+        let (_emitters, add_hit_entities, new_outcomes) = (
             &read_data.entities,
             &read_data.positions,
             &read_data.orientations,
@@ -109,14 +124,14 @@ impl<'a> System<'a> for Sys {
         )
             .par_join()
             .fold(
-                || (Vec::new(), Vec::new(), Vec::new()),
-                |(mut server_events, mut add_hit_entities, mut outcomes),
+                || (read_data.events.get_emitters(), Vec::new(), Vec::new()),
+                |(mut emitters, mut add_hit_entities, mut outcomes),
                  (entity, pos, ori, uid, beam)| {
                     // Note: rayon makes it difficult to hold onto a thread-local RNG, if grabbing
                     // this becomes a bottleneck we can look into alternatives.
                     let mut rng = rand::thread_rng();
                     if rng.gen_bool(0.005) {
-                        server_events.push(ServerEvent::Sound {
+                        emitters.emit(event::SoundEvent {
                             sound: Sound::new(SoundKind::Beam, pos.0, 13.0, read_data.time.0),
                         });
                     }
@@ -273,7 +288,7 @@ impl<'a> System<'a> for Sys {
                                 1.0,
                                 AttackSource::Beam,
                                 *read_data.time,
-                                |e| server_events.push(e),
+                                &mut emitters,
                                 |o| outcomes.push(o),
                                 &mut rng,
                                 0,
@@ -282,14 +297,14 @@ impl<'a> System<'a> for Sys {
                             add_hit_entities.push((entity, target));
                         }
                     });
-                    (server_events, add_hit_entities, outcomes)
+                    (emitters, add_hit_entities, outcomes)
                 },
             )
             .reduce(
-                || (Vec::new(), Vec::new(), Vec::new()),
+                || (read_data.events.get_emitters(), Vec::new(), Vec::new()),
                 |(mut events_a, mut hit_entities_a, mut outcomes_a),
-                 (mut events_b, mut hit_entities_b, mut outcomes_b)| {
-                    events_a.append(&mut events_b);
+                 (events_b, mut hit_entities_b, mut outcomes_b)| {
+                    events_a.append(events_b);
                     hit_entities_a.append(&mut hit_entities_b);
                     outcomes_a.append(&mut outcomes_b);
                     (events_a, hit_entities_a, outcomes_a)
@@ -298,7 +313,6 @@ impl<'a> System<'a> for Sys {
         job.cpu_stats.measure(ParMode::Single);
 
         outcomes_emitter.emit_many(new_outcomes);
-        server_emitter.emit_many(server_events);
 
         for (entity, hit_entity) in add_hit_entities {
             if let Some(ref mut beam) = beams.get_mut(entity) {

@@ -5,7 +5,7 @@ use crate::{
         character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
-    event::ServerEvent,
+    event::{AuraEvent, ComboChangeEvent},
     resources::Secs,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -95,12 +95,12 @@ impl CharacterBehavior for Data {
                                         (self.static_data.combo_at_cast.max(1) as f32).sqrt();
                                 },
                             }
-                            output_events.emit_server(ServerEvent::ComboChange {
+                            output_events.emit_server(ComboChangeEvent {
                                 entity: data.entity,
                                 change: -(self.static_data.combo_at_cast as i32),
                             });
                         }
-                        output_events.emit_server(ServerEvent::Aura {
+                        output_events.emit_server(AuraEvent {
                             entity: data.entity,
                             aura_change: AuraChange::Add(aura),
                         });

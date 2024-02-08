@@ -5,7 +5,12 @@ use common::{
         projectile, Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health,
         Inventory, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
-    event::{Emitter, EventBus, ServerEvent},
+    event::{
+        BonkEvent, BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, Emitter, EnergyChangeEvent,
+        EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
+        ParryHookEvent, PoiseChangeEvent, PossessEvent, SoundEvent,
+    },
+    event_emitters,
     outcome::Outcome,
     resources::{DeltaTime, Time},
     uid::{IdMaps, Uid},
@@ -25,6 +30,24 @@ use vek::*;
 
 use common::terrain::TerrainGrid;
 
+event_emitters! {
+    struct Events[Emitters] {
+        sound: SoundEvent,
+        delete: DeleteEvent,
+        explosion: ExplosionEvent,
+        health_change: HealthChangeEvent,
+        energy_change: EnergyChangeEvent,
+        poise_change: PoiseChangeEvent,
+        parry_hook: ParryHookEvent,
+        kockback: KnockbackEvent,
+        entity_attack_hoow: EntityAttackedHookEvent,
+        combo_change: ComboChangeEvent,
+        buff: BuffEvent,
+        bonk: BonkEvent,
+        possess: PossessEvent,
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     time: Read<'a, Time>,
@@ -32,7 +55,7 @@ pub struct ReadData<'a> {
     players: ReadStorage<'a, Player>,
     dt: Read<'a, DeltaTime>,
     id_maps: Read<'a, IdMaps>,
-    server_bus: Read<'a, EventBus<ServerEvent>>,
+    events: Events<'a>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     alignments: ReadStorage<'a, Alignment>,
@@ -69,7 +92,7 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (read_data, mut orientations, mut projectiles, outcomes): Self::SystemData,
     ) {
-        let mut server_emitter = read_data.server_bus.emitter();
+        let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
         let mut rng = rand::thread_rng();
 
@@ -88,7 +111,7 @@ impl<'a> System<'a> for Sys {
                 .and_then(|uid| read_data.id_maps.uid_entity(uid));
 
             if physics.on_surface().is_none() && rng.gen_bool(0.05) {
-                server_emitter.emit(ServerEvent::Sound {
+                emitters.emit(SoundEvent {
                     sound: Sound::new(SoundKind::Projectile, pos.0, 4.0, read_data.time.0),
                 });
             }
@@ -174,7 +197,7 @@ impl<'a> System<'a> for Sys {
                         &read_data,
                         &mut projectile_vanished,
                         &mut outcomes_emitter,
-                        &mut server_emitter,
+                        &mut emitters,
                         &mut rng,
                     );
                 }
@@ -200,18 +223,18 @@ impl<'a> System<'a> for Sys {
                                 .get(entity)
                                 .map_or_else(Vec3::zero, |ori| ori.look_vec());
                             let offset = -0.2 * projectile_direction;
-                            server_emitter.emit(ServerEvent::Explosion {
+                            emitters.emit(ExplosionEvent {
                                 pos: pos.0 + offset,
                                 explosion: e,
                                 owner: projectile.owner,
                             });
                         },
                         projectile::Effect::Vanish => {
-                            server_emitter.emit(ServerEvent::Delete(entity));
+                            emitters.emit(DeleteEvent(entity));
                             projectile_vanished = true;
                         },
                         projectile::Effect::Bonk => {
-                            server_emitter.emit(ServerEvent::Bonk {
+                            emitters.emit(BonkEvent {
                                 pos: pos.0,
                                 owner: projectile.owner,
                                 target: None,
@@ -231,7 +254,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if projectile.time_left == Duration::default() {
-                server_emitter.emit(ServerEvent::Delete(entity));
+                emitters.emit(DeleteEvent(entity));
             }
             projectile.time_left = projectile
                 .time_left
@@ -264,7 +287,7 @@ fn dispatch_hit(
     read_data: &ReadData,
     projectile_vanished: &mut bool,
     outcomes_emitter: &mut Emitter<Outcome>,
-    server_emitter: &mut Emitter<ServerEvent>,
+    emitters: &mut Emitters,
     rng: &mut rand::rngs::ThreadRng,
 ) {
     match projectile_info.effect {
@@ -437,7 +460,7 @@ fn dispatch_hit(
                 1.0,
                 AttackSource::Projectile,
                 *read_data.time,
-                |e| server_emitter.emit(e),
+                emitters,
                 |o| outcomes_emitter.emit(o),
                 rng,
                 0,
@@ -446,7 +469,7 @@ fn dispatch_hit(
         projectile::Effect::Explode(e) => {
             let Pos(pos) = *projectile_info.pos;
             let owner_uid = projectile_info.owner_uid;
-            server_emitter.emit(ServerEvent::Explosion {
+            emitters.emit(ExplosionEvent {
                 pos,
                 explosion: e,
                 owner: owner_uid,
@@ -455,7 +478,7 @@ fn dispatch_hit(
         projectile::Effect::Bonk => {
             let Pos(pos) = *projectile_info.pos;
             let owner_uid = projectile_info.owner_uid;
-            server_emitter.emit(ServerEvent::Bonk {
+            emitters.emit(BonkEvent {
                 pos,
                 owner: owner_uid,
                 target: Some(projectile_target_info.uid),
@@ -463,7 +486,7 @@ fn dispatch_hit(
         },
         projectile::Effect::Vanish => {
             let entity = projectile_info.entity;
-            server_emitter.emit(ServerEvent::Delete(entity));
+            emitters.emit(DeleteEvent(entity));
             *projectile_vanished = true;
         },
         projectile::Effect::Possess => {
@@ -471,7 +494,7 @@ fn dispatch_hit(
             let owner_uid = projectile_info.owner_uid;
             if let Some(owner_uid) = owner_uid {
                 if target_uid != owner_uid {
-                    server_emitter.emit(ServerEvent::Possess(owner_uid, target_uid));
+                    emitters.emit(PossessEvent(owner_uid, target_uid));
                 }
             }
         },
