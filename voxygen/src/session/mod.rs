@@ -593,7 +593,7 @@ impl PlayState for SessionState {
                     .state()
                     .read_storage::<comp::CharacterState>()
                     .get(player_entity)
-                    .map(|cs| cs.is_aimed())
+                    .map(|cs| cs.is_wield())
                     .unwrap_or(false);
 
                 (

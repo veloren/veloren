@@ -44,7 +44,7 @@ impl Default for GameplaySettings {
             auto_camera: false,
             bow_zoom: true,
             zoom_lock: false,
-            aim_offset_x: 1.0,
+            aim_offset_x: 0.6,
             aim_offset_y: 0.0,
         }
     }
