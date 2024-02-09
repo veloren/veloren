@@ -16,7 +16,7 @@ float billow_noise_2d(vec2 pos) {
 }
 
 // Returns vec4(r, g, b, density)
-vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground) {
+vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_underground) {
     #ifdef EXPERIMENTAL_CURVEDWORLD
         pos.z += pow(distance(pos.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
     #endif
@@ -30,7 +30,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
     // bright, because it has to travel through an infinite amount of atmosphere. This doesn't happen in reality
     // because the earth has curvature and so there is an upper bound on the amount of atmosphere that a sunset must
     // travel through. We 'simulate' this by fading out the atmosphere density with distance.
-    float flat_earth_hack = 1.0 / (1.0 + dist * 0.0001);
+    float flat_earth_hack = max(0.0, 1.0 - dist * 0.00003 * pow(max(0.0, dir.z), 0.2));
     float air = 0.025 * clamp((atmosphere_alt - pos.z) / 20000, 0, 1) * flat_earth_hack;
 
     float alt = alt_at(pos.xy - focus_off.xy);
@@ -95,8 +95,8 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
         ;
 
         // Sample twice to allow for self-shadowing
-        float cloud_p0 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 250 - sun_dir.xyz * 250) * vec3(0.55, 0.55, 1) / (cloud_scale * 20000.0));
-        float cloud_p1 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 250 + sun_dir.xyz * 250) * vec3(0.55, 0.55, 1) / (cloud_scale * 20000.0));
+        float cloud_p0 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 150 - sun_dir.xyz * 150) * vec3(0.55, 0.55, 1) / (cloud_scale * 20000.0));
+        float cloud_p1 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 150 + sun_dir.xyz * 150) * vec3(0.55, 0.55, 1) / (cloud_scale * 20000.0));
 
         float cloud_factor = pow(max(((cloud_p0 + cloud_p1) * 0.5
             - 0.5
@@ -112,8 +112,8 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
         // Basically, just throw together a few values that roughly approximate this term and come up with an average
         cloud_sun_access = clamp(
             0.7
-                + pow(abs(cloud_p1 - cloud_p0), 0.5) * sign(cloud_p1 - cloud_p0) * 0.5
-                + (pos.z - cloud_alt) / CLOUD_DEPTH * 0.4
+                + pow(abs(cloud_p1 - cloud_p0), 0.5) * sign(cloud_p1 - cloud_p0) * 0.75
+                + (pos.z - cloud_alt) / CLOUD_DEPTH * 0.2
                 - pow(cloud * 10000000.0, 0.2) * 0.0075
             ,
             0.15,
@@ -182,7 +182,6 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
 #endif
 
 const float STEP_SCALE = DIST_CAP / (10.0 * float(QUALITY));
-const float CAST_DIST_CAP = 1000000;
 
 float step_to_dist(float step, float quality) {
     return pow(step, 2) * STEP_SCALE / quality;
@@ -198,7 +197,7 @@ float dist_to_step(float dist, float quality) {
 
 vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, float max_dist, const float quality) {
     // Limit the marching distance to reduce maximum jumps
-    max_dist = min(max_dist, CAST_DIST_CAP);
+    max_dist = min(max_dist, DIST_CAP);
 
     origin.xyz += focus_off.xyz;
 
@@ -245,7 +244,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, float max_dist, con
         float not_underground; // Used to prevent sunlight leaking underground
         vec3 pos = origin + dir * ldist * splay;
         // `sample` is a reserved keyword
-        vec4 sample_ = cloud_at(origin + dir * ldist * splay, ldist, emission, not_underground);
+        vec4 sample_ = cloud_at(origin + dir * ldist * splay, ldist, dir, emission, not_underground);
 
         // DEBUG
         // if (max_dist > ldist && max_dist < ldist * 1.02) {

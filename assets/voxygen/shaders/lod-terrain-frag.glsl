@@ -130,7 +130,7 @@ void main() {
         voxel_norm = normalize(mix(side_norm, top_norm, max(cam_dir.z, 0.0)));
     #else
         #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
-            float nz_offset = floor((noise_2d(round(f_pos.xy + focus_off.xy) * 0.01) - 0.5) * 3.0 / max(f_norm.z, 0.01));
+            float nz_offset = floor((noise_2d((floor(f_pos.xy) + focus_off.xy) * 0.01) - 0.5) * 3.0 / max(f_norm.z, 0.01));
         #else
             const float nz_offset = 0.0;
         #endif
