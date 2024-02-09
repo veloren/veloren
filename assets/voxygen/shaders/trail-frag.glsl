@@ -20,8 +20,6 @@
 
 #include <globals.glsl>
 
-layout(location = 0) in vec3 f_pos;
-
 layout(location = 0) out vec4 tgt_color;
 
 #include <sky.glsl>

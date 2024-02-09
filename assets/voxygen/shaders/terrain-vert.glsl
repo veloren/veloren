@@ -49,7 +49,6 @@ uniform u_locals {
 layout(location = 0) out vec3 f_pos;
 // #ifdef FLUID_MODE_SHINY
 layout(location = 1) flat out uint f_pos_norm;
-layout(location = 2) flat out float f_load_time;
 
 // #if (SHADOW_MODE == SHADOW_MODE_MAP)
 // out vec4 sun_pos;
@@ -76,8 +75,6 @@ void main() {
     vec3 f_chunk_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
 
     f_pos = (model_mat * vec4(f_chunk_pos, 1.0)).xyz - focus_off.xyz;
-
-    f_load_time = load_time;
 
     vec3 v_pos = f_pos;
 
