@@ -130,8 +130,7 @@ coverage:
   - source $HOME/.cargo/env
   - cargo --version
   - rustup toolchain list
-  - rustup toolchain install stable-x86_64-apple-darwin
-  - rustup toolchain install stable-aarch64-apple-darwin
+  - rustup target add aarch64-apple-darwin
   - export DISABLE_GIT_LFS_CHECK=true
   - export VELOREN_ASSETS="$(pwd)/assets"
   - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
