@@ -20,7 +20,7 @@ hud-chat-tell-from-npc = From [{ $alias }]: { $msg }
 hud-chat-message = [{ $alias }]: { $msg }
 hud-chat-message-with-name = [{ $alias }] { $name }: { $msg }
 hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
-hud-chat-message-with-name-in-group = ({ $group }) [{ $alias }] { $name }: { $msg }
+hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }: { $msg }
 
 ## PvP Buff deaths, both $attacker_gender and $victim_gender are available
 
