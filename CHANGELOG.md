@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Camera no longer jumps on first mouse event after cursor grab is released on macos
 - Updated wgpu. Now supports OpenGL. Dx11 no longer supported.
 - Changes center_cursor to be reset_cursor_position so the cursor is effectively grabbed
+- Plugin interface based on WASI 0.2 WIT, wasmtime executes these components
 
 ### Removed
 - Medium and large potions from all loot tables

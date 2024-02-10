@@ -1,0 +1,56 @@
+package veloren:plugin@0.0.1;
+
+interface types {
+    enum game-mode {
+        server,
+        client,
+        single-player,
+    }
+    type uid = u64;
+    type player-id = tuple<u64, u64>;
+
+    record health {
+        current: f32,
+        base-max: f32,
+        maximum: f32,
+    }
+
+    variant join-result {
+        kick(string),
+        none,
+    }
+}
+
+interface events {
+    use types.{game-mode, uid, player-id, join-result};
+
+    load: func(mode: game-mode);
+    join: func(player-name: string, player-id: player-id) -> join-result;
+    command: func(command: string, command-args: list<string>, player: uid) -> result<list<string>, string>;
+}
+
+interface actions {
+    use types.{uid};
+
+    register-command: func(name: string);
+    player-send-message: func(uid: uid, text: string);
+    // for print use the normal WASI stdout
+}
+
+interface information {
+    use types.{uid, health};
+
+    resource entity {
+        // fallible constructor
+        find-entity: static func(uid: uid) -> result<entity>;
+
+        health: func() -> health;
+        name: func() -> string;
+    }
+}
+
+world plugin {
+    export events;
+    import actions;
+    import information;
+}

@@ -40,7 +40,7 @@ quinn = { version = "0.10", optional = true }
 rustls = "0.21"
 lz-fear = { version = "0.1.1", optional = true }
 # async traits
-async-trait = "0.1.42"
+async-trait = { workspace = true }
 bytes = "^1"
 # faster HashMaps
 hashbrown = { workspace = true }

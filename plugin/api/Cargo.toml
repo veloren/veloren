@@ -1,9 +1,0 @@
-[package]
-name = "veloren-plugin-api"
-version = "0.1.0"
-authors = ["ccgauche <gaucheron.laurent@gmail.com>"]
-edition = "2021"
-
-[dependencies]
-serde = { workspace = true }
-common = { package = "veloren-common", path = "../../common", features = ["no-assets"] }

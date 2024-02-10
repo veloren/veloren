@@ -22,7 +22,7 @@ prometheus = { workspace = true, optional = true }
 bitflags = { workspace = true }
 rand = { workspace = true }
 # async traits
-async-trait = "0.1.42"
+async-trait = { workspace = true }
 bytes = "^1"
 hashbrown = { workspace = true }
 

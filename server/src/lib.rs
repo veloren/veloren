@@ -1315,66 +1315,45 @@ impl Server {
                     );
                     return;
                 };
-                let rs = plugin_manager.execute_event(
-                    &ecs_world,
-                    &plugin_api::event::ChatCommandEvent {
-                        command: name.clone(),
-                        command_args: args.clone(),
-                        player: plugin_api::event::Player { id: uid },
-                    },
-                );
-                match rs {
-                    Ok(e) => {
-                        if e.is_empty() {
-                            self.notify_client(
-                                entity,
-                                ServerGeneral::server_msg(
-                                    comp::ChatType::CommandError,
-                                    format!(
-                                        "Unknown command '/{}'.\nType '/help' for available \
-                                         commands",
-                                        name
-                                    ),
+                match plugin_manager.command_event(&ecs_world, &name, args.as_slice(), uid) {
+                    Err(common_state::plugin::CommandResults::UnknownCommand) => self
+                        .notify_client(
+                            entity,
+                            ServerGeneral::server_msg(
+                                comp::ChatType::CommandError,
+                                format!(
+                                    "Unknown command '/{name}'.\nType '/help' for available \
+                                     commands",
                                 ),
-                            );
-                        } else {
-                            e.into_iter().for_each(|e| match e {
-                                Ok(e) => {
-                                    if !e.is_empty() {
-                                        self.notify_client(
-                                            entity,
-                                            ServerGeneral::server_msg(
-                                                comp::ChatType::CommandInfo,
-                                                e.join("\n"),
-                                            ),
-                                        );
-                                    }
-                                },
-                                Err(e) => {
-                                    self.notify_client(
-                                        entity,
-                                        ServerGeneral::server_msg(
-                                            comp::ChatType::CommandError,
-                                            format!(
-                                                "Error occurred while executing command '/{}'.\n{}",
-                                                name, e
-                                            ),
-                                        ),
-                                    );
-                                },
-                            });
-                        }
+                            ),
+                        ),
+                    Ok(value) => {
+                        self.notify_client(
+                            entity,
+                            ServerGeneral::server_msg(
+                                comp::ChatType::CommandInfo,
+                                value.join("\n"),
+                            ),
+                        );
                     },
-                    Err(e) => {
-                        error!(?e, "Can't execute command {} {:?}", name, args);
+                    Err(common_state::plugin::CommandResults::PluginError(err)) => {
+                        self.notify_client(
+                            entity,
+                            ServerGeneral::server_msg(
+                                comp::ChatType::CommandError,
+                                format!("Error occurred while executing command '/{name}'.\n{err}"),
+                            ),
+                        );
+                    },
+                    Err(common_state::plugin::CommandResults::HostError(err)) => {
+                        error!(?err, ?name, ?args, "Can't execute command");
                         self.notify_client(
                             entity,
                             ServerGeneral::server_msg(
                                 comp::ChatType::CommandError,
                                 format!(
-                                    "Internal error while executing '/{}'.\nContact the server \
-                                     administrator",
-                                    name
+                                    "Internal error {err:?} while executing '/{name}'.\nContact \
+                                     the server administrator",
                                 ),
                             ),
                         );
