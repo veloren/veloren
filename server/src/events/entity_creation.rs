@@ -433,8 +433,6 @@ pub fn handle_create_teleporter(server: &mut Server, ev: CreateTeleporterEvent) 
 }
 
 pub fn handle_create_item_drop(server: &mut Server, ev: CreateItemDropEvent) {
-    println!("Handle item drop event.");
-    dbg!(ev.vel);
     server
         .state
         .create_item_drop(ev.pos, ev.ori, ev.vel, ev.item, ev.loot_owner);
