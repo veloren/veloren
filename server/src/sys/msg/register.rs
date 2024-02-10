@@ -6,7 +6,7 @@ use crate::{
     EditableSettings, Settings,
 };
 use common::{
-    comp::{self, Admin, Health, Player, Stats},
+    comp::{self, Admin, Player, Stats},
     event::{ClientDisconnectEvent, EventBus, MakeAdminEvent},
     recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
     resources::TimeOfDay,
