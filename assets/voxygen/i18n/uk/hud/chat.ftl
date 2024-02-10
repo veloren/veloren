@@ -163,33 +163,12 @@ hud-chat-chat_tab_hover_tooltip = Правий клік для налаштув�
 
 ## HUD Pickup message
 
-# hud-loot-pickup-msg = {$actor} підняли { $amount ->
-#    [1] { $item }
-#    *[other] {$amount}x {$item}
-# }
-
-# hud-loot-pickup-msg = { $user_gender ->
-#     [she] { $actor } підняла { $amount ->
-#         [1] { $item }
-#         *[other] { $amount }x { $item }
-#     }
-#     [he] { $actor } підняв { $amount ->
-#         [1] { $item }
-#         *[other] { $amount }x { $item }
-#     }
-#     *[other] { $actor } підняло { $amount ->
-#         [1] { $item }
-#         *[other] { $amount }x { $item }
-#     }
-# }
-
 hud-loot-pickup-msg = { $is_you ->
     [true] Ви підняли { $amount ->
         [1] { $item }
         *[other] {$amount}x {$item}
     }
-
-    *[false] { $user_gender ->
+    *[false] { $gender ->
         [she] { $actor } підняла { $amount ->
             [1] { $item }
             *[other] { $amount }x { $item }

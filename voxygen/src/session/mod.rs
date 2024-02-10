@@ -289,7 +289,7 @@ impl SessionState {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
                 },
-                client::Event::GroupInventoryUpdate(item, taker, uid) => {
+                client::Event::GroupInventoryUpdate(item, uid) => {
                     self.hud.new_loot_message(LootMessage {
                         amount: item.amount(),
                         item,

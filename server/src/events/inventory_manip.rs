@@ -269,7 +269,6 @@ impl ServerEvent for InventoryManipEvent {
                                     &data.uids,
                                     &data.groups,
                                     &data.alignments,
-                                    &data.stats,
                                     &data.entities,
                                     &data.ability_map,
                                     &data.msm,
@@ -322,7 +321,6 @@ impl ServerEvent for InventoryManipEvent {
                                                     &data.uids,
                                                     &data.groups,
                                                     &data.alignments,
-                                                    &data.stats,
                                                     &data.entities,
                                                     &data.ability_map,
                                                     &data.msm,
@@ -1081,7 +1079,6 @@ fn announce_loot_to_group(
     uids: &ReadStorage<Uid>,
     groups: &ReadStorage<comp::Group>,
     alignments: &ReadStorage<comp::Alignment>,
-    stats: &ReadStorage<comp::Stats>,
     entities: &Entities,
     ability_map: &AbilityMap,
     msm: &MaterialStatManifest,
@@ -1090,14 +1087,12 @@ fn announce_loot_to_group(
         members(*group_id, groups, entities, alignments, uids)
             .filter(|(member_e, _)| member_e != &entity)
             .for_each(|(e, _)| {
-                clients.get(e).and_then(|c| {
-                    stats.get(entity).map(|stats| {
-                        c.send_fallible(ServerGeneral::GroupInventoryUpdate(
-                            item.duplicate(ability_map, msm),
-                            stats.name.to_string(),
-                            *uid,
-                        ))
-                    })
+                clients.get(e).map(|c| {
+                    c.send_fallible(ServerGeneral::GroupInventoryUpdate(
+                        item.duplicate(ability_map, msm),
+                        *uid,
+                    ));
+                    Some(())
                 });
             });
     }

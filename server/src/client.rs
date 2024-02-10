@@ -183,7 +183,7 @@ impl Client {
                     | ServerGeneral::InviteComplete { .. }
                     | ServerGeneral::ExitInGameSuccess
                     | ServerGeneral::InventoryUpdate(_, _)
-                    | ServerGeneral::GroupInventoryUpdate(_, _, _)
+                    | ServerGeneral::GroupInventoryUpdate(_, _)
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)

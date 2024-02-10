@@ -53,10 +53,25 @@ hud-chat-default_death_msg = { "[" }{ $name }] умер
 
 hud-chat-all = Все
 hud-chat-chat_tab_hover_tooltip = ПКМ для настроек
-hud-loot-pickup-msg =
-    { $actor } подобрал { $amount ->
-        [one] { $item }
-       *[other] { $amount }x { $item }
+hud-loot-pickup-msg = { $is_you ->
+    [true] Вы подобрали { $amount ->
+        [1] { $item }
+        *[other] {$amount}x {$item}
     }
+    *[false] { $gender ->
+        [she] { $actor } подобрала { $amount ->
+            [1] { $item }
+            *[other] { $amount }x { $item }
+        }
+        [he] { $actor } подобрал { $amount ->
+            [1] { $item }
+            *[other] { $amount }x { $item }
+        }
+        *[other] { $actor } подняло { $amount ->
+            [1] { $item }
+            *[other] { $amount }x { $item }
+        }
+    }
+}
 hud-chat-goodbye = До свидания!
 hud-chat-connection_lost = Соединение потеряно. Выход через { $time } секунд.

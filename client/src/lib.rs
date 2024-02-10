@@ -96,7 +96,7 @@ const PING_ROLLING_AVERAGE_SECS: usize = 10;
 #[derive(Debug)]
 pub enum Event {
     Chat(comp::ChatMsg),
-    GroupInventoryUpdate(comp::Item, String, Uid),
+    GroupInventoryUpdate(comp::Item, Uid),
     InviteComplete {
         target: Uid,
         answer: InviteAnswer,
@@ -2657,8 +2657,8 @@ impl Client {
                     kind,
                 });
             },
-            ServerGeneral::GroupInventoryUpdate(item, taker, uid) => {
-                frontend_events.push(Event::GroupInventoryUpdate(item, taker, uid));
+            ServerGeneral::GroupInventoryUpdate(item, uid) => {
+                frontend_events.push(Event::GroupInventoryUpdate(item, uid));
             },
             // Cleanup for when the client goes back to the `presence = None`
             ServerGeneral::ExitInGameSuccess => {
