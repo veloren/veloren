@@ -2916,8 +2916,6 @@ impl Client {
             && self.state.get_program_time() - self.last_server_pong
                 > self.client_timeout.as_secs() as f64
         {
-            dbg!(self.state.get_program_time());
-            dbg!(self.last_server_pong);
             return Err(Error::ServerTimeout);
         }
 
