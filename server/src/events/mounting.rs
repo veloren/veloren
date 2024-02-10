@@ -7,9 +7,8 @@ use common::{
     link::Is,
     mounting::{Mounting, Rider, VolumeMounting, VolumeRider},
     rtsim::RtSimEntity,
-    uid::IdMaps,
+    uid::{IdMaps, Uid},
 };
-use plugin_api::Uid;
 use specs::WorldExt;
 
 use crate::{rtsim::RtSim, state_ext::StateExt, Server};

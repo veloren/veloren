@@ -1,11 +1,9 @@
 pub mod errors;
-pub mod exports;
 pub mod memory_manager;
 pub mod module;
-pub mod wasm_env;
 
 use bincode::ErrorKind;
-use common::assets::ASSETS_PATH;
+use common::{assets::ASSETS_PATH, uid::Uid};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
@@ -14,20 +12,12 @@ use std::{
     path::{Path, PathBuf},
 };
 use tracing::{error, info};
-use wasmer::Memory64;
-
-use plugin_api::Event;
 
 use self::{
-    errors::PluginError,
+    errors::{PluginError, PluginModuleError},
     memory_manager::EcsWorld,
-    module::{PluginModule, PreparedEventQuery},
-    wasm_env::HostFunctionException,
+    module::PluginModule,
 };
-
-use rayon::prelude::*;
-
-pub type MemoryModel = Memory64;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PluginData {
@@ -90,53 +80,36 @@ impl Plugin {
         })
     }
 
-    pub fn execute_prepared<T>(
+    pub fn load_event(
         &mut self,
         ecs: &EcsWorld,
-        event: &PreparedEventQuery<T>,
-    ) -> Result<Vec<T::Response>, PluginError>
-    where
-        T: Event,
-    {
+        mode: common::resources::GameMode,
+    ) -> Result<(), PluginModuleError> {
         self.modules
             .iter_mut()
-            .flat_map(|module| {
-                module.try_execute(ecs, event).map(|x| {
-                    x.map_err(|e| {
-                        if let errors::PluginModuleError::RunFunction(runtime_err) = &e {
-                            if let Some(host_except) =
-                                runtime_err.downcast_ref::<HostFunctionException>()
-                            {
-                                match host_except {
-                                    HostFunctionException::ProcessExit(code) => {
-                                        module.exit_code = Some(*code);
-                                        tracing::warn!(
-                                            "Module {} binary {} exited with {}",
-                                            self.data.name,
-                                            module.name(),
-                                            *code
-                                        );
-                                        return PluginError::ProcessExit;
-                                    },
-                                }
-                            }
-                        }
-                        PluginError::PluginModuleError(
-                            self.data.name.to_owned(),
-                            event.get_function_name().to_owned(),
-                            e,
-                        )
-                    })
-                })
-            })
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| {
-                if matches!(e, PluginError::ProcessExit) {
-                    // remove the executable from the module which called process exit
-                    self.modules.retain(|m| m.exit_code.is_none())
-                }
-                e
-            })
+            .try_for_each(|module| module.load_event(ecs, mode))
+    }
+
+    pub fn command_event(
+        &mut self,
+        ecs: &EcsWorld,
+        name: &str,
+        args: &[String],
+        player: common::uid::Uid,
+    ) -> Result<Vec<String>, CommandResults> {
+        let mut result = Err(CommandResults::UnknownCommand);
+        self.modules.iter_mut().for_each(|module| {
+            match module.command_event(ecs, name, args, player) {
+                Ok(res) => result = Ok(res),
+                Err(CommandResults::UnknownCommand) => (),
+                Err(err) => {
+                    if result.is_err() {
+                        result = Err(err)
+                    }
+                },
+            }
+        });
+        result
     }
 }
 
@@ -151,35 +124,6 @@ impl PluginMgr {
         assets_path.push("plugins");
         info!("Searching {:?} for plugins...", assets_path);
         Self::from_dir(assets_path)
-    }
-
-    pub fn execute_prepared<T>(
-        &mut self,
-        ecs: &EcsWorld,
-        event: &PreparedEventQuery<T>,
-    ) -> Result<Vec<T::Response>, PluginError>
-    where
-        T: Event,
-    {
-        Ok(self
-            .plugins
-            .par_iter_mut()
-            .map(|plugin| plugin.execute_prepared(ecs, event))
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()
-            .flatten()
-            .collect())
-    }
-
-    pub fn execute_event<T>(
-        &mut self,
-        ecs: &EcsWorld,
-        event: &T,
-    ) -> Result<Vec<T::Response>, PluginError>
-    where
-        T: Event,
-    {
-        self.execute_prepared(ecs, &PreparedEventQuery::new(event)?)
     }
 
     pub fn from_dir<P: AsRef<Path>>(path: P) -> Result<Self, PluginError> {
@@ -224,4 +168,44 @@ impl PluginMgr {
 
         Ok(Self { plugins })
     }
+
+    pub fn load_event(
+        &mut self,
+        ecs: &EcsWorld,
+        mode: common::resources::GameMode,
+    ) -> Result<(), PluginModuleError> {
+        self.plugins
+            .iter_mut()
+            .try_for_each(|plugin| plugin.load_event(ecs, mode))
+    }
+
+    pub fn command_event(
+        &mut self,
+        ecs: &EcsWorld,
+        name: &str,
+        args: &[String],
+        player: Uid,
+    ) -> Result<Vec<String>, CommandResults> {
+        // return last value or last error
+        let mut result = Err(CommandResults::UnknownCommand);
+        self.plugins.iter_mut().for_each(|plugin| {
+            match plugin.command_event(ecs, name, args, player) {
+                Ok(val) => result = Ok(val),
+                Err(CommandResults::UnknownCommand) => (),
+                Err(err) => {
+                    if result.is_err() {
+                        result = Err(err);
+                    }
+                },
+            }
+        });
+        result
+    }
+}
+
+/// Error returned by plugin based server commands
+pub enum CommandResults {
+    UnknownCommand,
+    HostError(wasmtime::Error),
+    PluginError(String),
 }

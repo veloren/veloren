@@ -349,11 +349,7 @@ impl State {
                     id_maps: &ecs.read_resource::<IdMaps>().into(),
                     player: ecs.read_component().into(),
                 };
-                if let Err(e) = plugin_mgr
-                    .execute_event(&ecs_world, &plugin_api::event::PluginLoadEvent {
-                        game_mode,
-                    })
-                {
+                if let Err(e) = plugin_mgr.load_event(&ecs_world, game_mode) {
                     tracing::debug!(?e, "Failed to run plugin init");
                     tracing::info!("Plugins disabled, enable debug logging for more information.");
                     PluginMgr::default()

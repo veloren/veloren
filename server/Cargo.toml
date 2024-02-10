@@ -67,6 +67,4 @@ censor = "0.3"
 rusqlite = { version = "0.28.0", features = ["array", "vtab", "bundled", "trace"] }
 refinery = { version = "0.8.8", features = ["rusqlite"] }
 
-# Plugins
-plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}
 schnellru = "0.2.1"

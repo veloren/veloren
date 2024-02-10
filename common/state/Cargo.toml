@@ -6,7 +6,7 @@ version = "0.10.0"
 
 [features]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-assets/plugins", "toml", "tar", "wasmer", "wasmer-wasix-types", "bincode", "plugin-api", "serde"]
+plugins = ["common-assets/plugins", "toml", "wasmtime", "tar", "bincode", "serde"]
 
 default = ["simd"]
 
@@ -33,11 +33,13 @@ scopeguard = "1.1.0"
 serde = { workspace = true, optional = true }
 toml = { version = "0.8", optional = true }
 tar = { version = "0.4.37", optional = true }
-wasmer = { version = "4.0.0", optional = true, default-features = false, features = ["sys", "wat", "cranelift"] }
 bincode = { workspace = true, optional = true }
-plugin-api = { package = "veloren-plugin-api", path = "../../plugin/api", optional = true }
 timer-queue = "0.1.0"
-wasmer-wasix-types = { version = "0.9.0", optional = true, default-features = false }
+wasmtime = { version = "17.0.0", optional = true , features = ["component-model", "async"] }
+wasmtime-wasi = "17.0.0"
+async-trait = { workspace = true }
+bytes = "^1"
+futures = "0.3.30"
 
 # Tweak running code
 #inline_tweak = { version = "1.0.8", features = ["release_tweak"] }

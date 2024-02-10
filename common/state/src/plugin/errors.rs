@@ -1,5 +1,4 @@
 use bincode::ErrorKind;
-use wasmer::{CompileError, ExportError, InstantiationError, RuntimeError};
 
 #[derive(Debug)]
 pub enum PluginError {
@@ -14,20 +13,21 @@ pub enum PluginError {
 
 #[derive(Debug)]
 pub enum PluginModuleError {
-    InstantiationError(Box<InstantiationError>),
-    InvalidPointer,
-    MemoryAllocation(MemoryAllocationError),
-    MemoryUninit(ExportError),
-    FindFunction(ExportError),
-    RunFunction(RuntimeError),
-    InvalidArgumentType(),
-    Encoding(Box<ErrorKind>),
-    CompileError(CompileError),
+    Wasmtime(wasmtime::Error),
 }
 
 #[derive(Debug)]
-pub enum MemoryAllocationError {
-    InvalidReturnType,
-    AllocatorNotFound(ExportError),
-    CantAllocate(RuntimeError),
+pub enum EcsAccessError {
+    EcsPointerNotAvailable,
+    EcsComponentNotFound(common::uid::Uid, String),
+    EcsResourceNotFound(String),
+    EcsEntityNotFound(common::uid::Uid),
 }
+
+impl std::fmt::Display for EcsAccessError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+
+impl std::error::Error for EcsAccessError {}

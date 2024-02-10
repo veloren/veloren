@@ -6,7 +6,7 @@ use crate::{
     EditableSettings, Settings,
 };
 use common::{
-    comp::{self, Admin, Player, Stats},
+    comp::{self, Admin, Health, Player, Stats},
     event::{ClientDisconnectEvent, EventBus, MakeAdminEvent},
     recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
     resources::TimeOfDay,
@@ -21,7 +21,6 @@ use common_net::msg::{
 };
 use hashbrown::{hash_map, HashMap};
 use itertools::Either;
-use plugin_api::Health;
 use rayon::prelude::*;
 use specs::{
     shred, Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,

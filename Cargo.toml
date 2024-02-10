@@ -15,9 +15,6 @@ members = [
     "common/frontend",
     "client",
     "client/i18n",
-    "plugin/api",
-    "plugin/derive",
-    "plugin/rt",
     "rtsim",
     "server",
     "server/agent",
@@ -156,6 +153,7 @@ image = { version = "0.24", default-features = false, features = ["png"] }
 rayon = { version = "1.5" }
 
 clap = { version = "4.2",  features = ["derive"]}
+async-trait = "0.1.42"
 
 [patch.crates-io]
 vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986c5477341bea4456be26" }
