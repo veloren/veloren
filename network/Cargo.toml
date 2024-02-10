@@ -38,7 +38,7 @@ rand = { workspace = true }
 #quic support
 quinn = { version = "0.10", optional = true }
 rustls = "0.21"
-lz-fear = { version = "0.1.1", optional = true }
+lz-fear = { version = "0.2", optional = true }
 # async traits
 async-trait = { workspace = true }
 bytes = "^1"
