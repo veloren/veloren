@@ -141,7 +141,7 @@ crossbeam-channel = { version = "0.5"}
 ordered-float = { version = "3", default-features = true }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
-vek = { version = "0.15.8", features = ["serde"] }
+vek = { version = "0.16.1", features = ["serde"] }
 itertools = { version = "0.10" }
 
 serde = { version = "1.0.118", features = ["derive"] }
@@ -156,7 +156,6 @@ clap = { version = "4.2",  features = ["derive"]}
 async-trait = "0.1.42"
 
 [patch.crates-io]
-vek = { git = "https://github.com/yoanlcq/vek.git", rev = "84d5cb65841d46599a986c5477341bea4456be26" }
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
 # This is needed because of an issue with spirv & naga in wgpu 0.18, and there's an issue
 # with uint in uniforms for gl.

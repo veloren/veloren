@@ -6869,15 +6869,15 @@ dependencies = [
 
 [[package]]
 name = "vek"
-version = "0.15.8"
-source = "git+https://github.com/yoanlcq/vek.git?rev=84d5cb65841d46599a986c5477341bea4456be26#84d5cb65841d46599a986c5477341bea4456be26"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c85158043f3bc1fac596d59a77e07948da340b9951b451ed4cb4a8c480aa2157"
 dependencies = [
  "approx 0.5.1",
  "num-integer",
  "num-traits",
  "rustc_version 0.4.0",
  "serde",
- "static_assertions",
 ]
 
 [[package]]
@@ -6901,7 +6901,7 @@ dependencies = [
  "specs",
  "tokio",
  "tracing",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-client-i18n",
  "veloren-common",
  "veloren-common-base",
@@ -6972,7 +6972,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common-assets",
  "veloren-common-base",
  "veloren-common-i18n",
@@ -7057,7 +7057,7 @@ dependencies = [
  "specs",
  "sum_type",
  "tracing",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
 ]
 
@@ -7079,7 +7079,7 @@ dependencies = [
  "timer-queue",
  "toml 0.8.10",
  "tracing",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
  "veloren-common-assets",
  "veloren-common-base",
@@ -7099,7 +7099,7 @@ dependencies = [
  "rayon",
  "specs",
  "tracing",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-ecs",
@@ -7171,7 +7171,7 @@ dependencies = [
  "serde",
  "slotmap",
  "tracing",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
  "veloren-world",
 ]
@@ -7214,7 +7214,7 @@ dependencies = [
  "strum 0.24.1",
  "tokio",
  "tracing",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-ecs",
@@ -7235,7 +7235,7 @@ dependencies = [
  "lazy_static",
  "rand 0.8.5",
  "specs",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
  "veloren-common-dynlib",
  "veloren-rtsim",
@@ -7327,7 +7327,7 @@ dependencies = [
  "tokio",
  "tracing",
  "treeculler",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-client",
  "veloren-client-i18n",
  "veloren-common",
@@ -7355,7 +7355,7 @@ version = "0.10.0"
 dependencies = [
  "bytemuck",
  "lazy_static",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
  "veloren-common-dynlib",
 ]
@@ -7423,7 +7423,7 @@ dependencies = [
  "svg_fmt",
  "tracing",
  "tracing-subscriber",
- "vek 0.15.8",
+ "vek 0.16.1",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-dynlib",
