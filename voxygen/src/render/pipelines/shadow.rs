@@ -234,7 +234,7 @@ impl PointShadowPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Point shadow pipeline layout"),
                 push_constant_ranges: &[wgpu::PushConstantRange {
-                    stages: wgpu::ShaderStages::all(),
+                    stages: wgpu::ShaderStages::VERTEX_FRAGMENT,
                     range: 0..64,
                 }],
                 bind_group_layouts: &[&global_layout.globals, &terrain_layout.locals],
