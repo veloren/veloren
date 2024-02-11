@@ -11,16 +11,13 @@ use specs::{
     WriteExpect,
 };
 
-pub use group_manip::update_map_markers;
-pub(crate) use trade::cancel_trades_for;
-
 use self::{
     entity_creation::{
         handle_create_item_drop, handle_create_npc, handle_create_object, handle_create_ship,
         handle_create_teleporter, handle_create_waypoint, handle_initialize_character,
         handle_initialize_spectator, handle_loaded_character_data, handle_shockwave, handle_shoot,
     },
-    entity_manipulation::handle_delete,
+    entity_manipulation::{handle_delete, handle_transform},
     interaction::handle_tame_pet,
     mounting::{handle_mount, handle_mount_volume, handle_unmount},
     player::{
@@ -39,6 +36,14 @@ mod invite;
 mod mounting;
 mod player;
 mod trade;
+
+pub(crate) mod shared {
+    pub(crate) use super::{
+        entity_manipulation::{transform_entity, TransformEntityError},
+        group_manip::update_map_markers,
+        trade::cancel_trades_for,
+    };
+}
 
 pub trait ServerEvent: Send + Sync + 'static {
     type SystemData<'a>: specs::SystemData<'a>;
@@ -165,6 +170,7 @@ impl Server {
             ));
         });
         self.handle_serial_events(handle_possess);
+        self.handle_serial_events(handle_transform);
         self.handle_serial_events(|this, ev: CommandEvent| {
             this.process_command(ev.0, ev.1, ev.2);
         });

@@ -2,7 +2,7 @@ use crate::{
     automod::AutoMod,
     chat::ChatExporter,
     client::Client,
-    events::{self, update_map_markers},
+    events::{self, shared::update_map_markers},
     persistence::PersistedComponents,
     pet::restore_pet,
     presence::RepositionOnChunkLoad,
@@ -1212,7 +1212,7 @@ impl StateExt for State {
         }
 
         // Cancel extant trades
-        events::cancel_trades_for(self, entity);
+        events::shared::cancel_trades_for(self, entity);
 
         // NOTE: We expect that these 3 components are never removed from an entity (nor
         // mutated) (at least not without updating the relevant mappings)!
