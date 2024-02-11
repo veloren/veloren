@@ -658,7 +658,7 @@ impl<'frame> Drawer<'frame> {
 
                 (0../*20*/1).for_each(|point_light| {
                     render_pass.set_push_constants(
-                        wgpu::ShaderStages::all(),
+                        wgpu::ShaderStages::VERTEX_FRAGMENT,
                         0,
                         &data[(6 * (point_light + 1) * STRIDE + face as usize * STRIDE)
                             ..(6 * (point_light + 1) * STRIDE + (face + 1) as usize * STRIDE)],
