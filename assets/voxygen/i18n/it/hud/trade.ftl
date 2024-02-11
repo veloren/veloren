@@ -3,8 +3,8 @@ hud-trade-phase1_description =
     Trascina gli oggetti che vuoi commerciare
      nell'area corrispondente.
 hud-trade-phase2_description =
-    Lo scambio è ora bloccato per darti
-     tempo di revisionarlo.
+    Lo scambio è ora sospeso per darti
+     il tempo di revisionarlo.
 hud-trade-phase3_description = Lo scambio sta venendo processato.
 hud-trade-persons_offer = Offerta di { $playername }
 hud-trade-has_accepted =
