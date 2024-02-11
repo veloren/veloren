@@ -32,12 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New model for admin vroom glider.
 - Transform death effect used by the Vampire castle boss
 - Balanced Terracotta, Dwarven mines, Haniwa and Vampire castle dungeons and other balance changes
-<<<<<<< HEAD
 - Craftable kora instrument
 - Added "recipes" to /kit command.
-=======
 - Added Golemite armor
->>>>>>> 77d858b1ad (fixes and added to changelogs)
 
 ### Changed
 
@@ -58,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sword animations.
 - Beam collision.
 - Complete Taiwanese(zh-Hant) translation
+- Require multiple hits to mine ores
+
 ### Removed
 
 - Obsolete localization keys
