@@ -405,8 +405,8 @@ impl MiningTreeModifiers {
     const fn get() -> Self {
         Self {
             speed: 1.1,
-            gem_gain: 0.05,
-            ore_gain: 0.05,
+            gem_gain: 0.1,
+            ore_gain: 0.1,
         }
     }
 }

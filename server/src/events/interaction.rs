@@ -1,3 +1,5 @@
+use std::{f32::consts::PI, ops::Mul};
+
 use common_state::{BlockChange, ScheduledBlockChange};
 use specs::{DispatcherBuilder, Join, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use vek::*;
@@ -6,7 +8,7 @@ use common::{
     assets::{self, Concatenate},
     comp::{
         self,
-        agent::{AgentEvent, SoundKind},
+        agent::{AgentEvent, Sound, SoundKind},
         inventory::slot::EquipSlot,
         item::{flatten_counted_items, MaterialStatManifest},
         loot_owner::LootOwnerKind,
@@ -21,7 +23,7 @@ use common::{
     mounting::Mount,
     outcome::Outcome,
     resources::ProgramTime,
-    terrain::{Block, SpriteKind, TerrainGrid},
+    terrain::{self, Block, SpriteKind, TerrainGrid},
     uid::Uid,
     util::Dir,
     vol::ReadVol,
@@ -33,7 +35,6 @@ use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use std::iter::FromIterator;
 
 use super::{event_dispatch, mounting::within_mounting_range, ServerEvent};
 
@@ -194,8 +195,10 @@ impl ServerEvent for MineBlockEvent {
         ReadExpect<'a, MaterialStatManifest>,
         ReadExpect<'a, AbilityMap>,
         ReadExpect<'a, EventBus<CreateItemDropEvent>>,
+        ReadExpect<'a, EventBus<SoundEvent>>,
         ReadExpect<'a, EventBus<Outcome>>,
         ReadExpect<'a, ProgramTime>,
+        ReadExpect<'a, Time>,
         WriteStorage<'a, comp::SkillSet>,
         ReadStorage<'a, Uid>,
     );
@@ -208,8 +211,10 @@ impl ServerEvent for MineBlockEvent {
             msm,
             ability_map,
             create_item_drop_events,
+            sound_events,
             outcomes,
             program_time,
+            time,
             mut skill_sets,
             uids,
         ): Self::SystemData<'_>,
@@ -217,32 +222,71 @@ impl ServerEvent for MineBlockEvent {
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let mut create_item_drop_emitter = create_item_drop_events.emitter();
+        let mut sound_event_emitter = sound_events.emitter();
         let mut outcome_emitter = outcomes.emitter();
         for ev in events {
             if block_change.can_set_block(ev.pos) {
                 let block = terrain.get(ev.pos).ok().copied();
-                if let Some(block) =
+                if let Some(mut block) =
                     block.filter(|b| b.mine_tool().map_or(false, |t| Some(t) == ev.tool))
                 {
-                    // Drop item if one is recoverable from the block
-                    if let Some(items) = comp::Item::try_reclaim_from_block(block) {
+                    // Attempt to increase the resource's damage
+                    let damage = if let Ok(damage) = block.get_attr::<terrain::sprite::Damage>() {
+                        let updated_damage = damage.0.saturating_add(1);
+                        block
+                            .set_attr(terrain::sprite::Damage(updated_damage))
+                            .expect(
+                                "We just read the Damage attribute from the block, writing should \
+                                 be possible too",
+                            );
+
+                        Some(updated_damage)
+                    } else {
+                        None
+                    };
+
+                    let sprite = block.get_sprite();
+
+                    // Maximum damage has reached, destroy the block
+                    let is_broken = damage
+                        .and_then(|damage| Some((sprite?.required_mine_damage(), damage)))
+                        .map_or(false, |(required_damage, damage)| {
+                            required_damage.map_or(true, |required| damage >= required)
+                        });
+
+                    // Stage changes happen in damage interval of `mine_drop_intevral`
+                    let stage_changed = damage
+                        .and_then(|damage| Some((sprite?.mine_drop_interval(), damage)))
+                        .map_or(false, |(interval, damage)| damage % interval == 0);
+
+                    if (stage_changed || is_broken)
+                        && let Some(items) = comp::Item::try_reclaim_from_block(block)
+                    {
                         let mut items: Vec<_> =
                             flatten_counted_items(&items, &ability_map, &msm).collect();
                         let maybe_uid = uids.get(ev.entity).copied();
 
                         if let Some(mut skillset) = skill_sets.get_mut(ev.entity) {
-                            if let (Some(tool), Some(uid), exp_reward @ 1..) = (
-                                ev.tool,
-                                maybe_uid,
-                                items
-                                    .iter()
-                                    .filter_map(|item| {
-                                        item.item_definition_id().itemdef_id().and_then(|id| {
-                                            RESOURCE_EXPERIENCE_MANIFEST.read().0.get(id).copied()
+                            use common::comp::skills::{MiningSkill, Skill, SKILL_MODIFIERS};
+
+                            if is_broken
+                                && let (Some(tool), Some(uid), exp_reward @ 1..) = (
+                                    ev.tool,
+                                    maybe_uid,
+                                    items
+                                        .iter()
+                                        .filter_map(|item| {
+                                            item.item_definition_id().itemdef_id().and_then(|id| {
+                                                RESOURCE_EXPERIENCE_MANIFEST
+                                                    .read()
+                                                    .0
+                                                    .get(id)
+                                                    .copied()
+                                            })
                                         })
-                                    })
-                                    .sum(),
-                            ) {
+                                        .sum(),
+                                )
+                            {
                                 let skill_group = comp::SkillGroupKind::Weapon(tool);
                                 if let Some(level_outcome) =
                                     skillset.add_experience(skill_group, exp_reward)
@@ -256,48 +300,55 @@ impl ServerEvent for MineBlockEvent {
                                 outcome_emitter.emit(Outcome::ExpChange {
                                     uid,
                                     exp: exp_reward,
-                                    xp_pools: HashSet::from_iter(vec![skill_group]),
+                                    xp_pools: HashSet::from([skill_group]),
                                 });
                             }
-                            use common::comp::skills::{MiningSkill, Skill, SKILL_MODIFIERS};
 
-                            let need_double_ore = |rng: &mut rand::rngs::ThreadRng| {
-                                let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.ore_gain);
-                                let skill_level = skillset
-                                    .skill_level(Skill::Pick(MiningSkill::OreGain))
-                                    .unwrap_or(0);
+                            let do_drop_ore = |rng: &mut rand::rngs::ThreadRng| {
+                                is_broken || {
+                                    let chance_mod =
+                                        f64::from(SKILL_MODIFIERS.mining_tree.ore_gain);
+                                    let skill_level = skillset
+                                        .skill_level(Skill::Pick(MiningSkill::OreGain))
+                                        .unwrap_or(0);
 
-                                rng.gen_bool(chance_mod * f64::from(skill_level))
-                            };
-                            let need_double_gem = |rng: &mut rand::rngs::ThreadRng| {
-                                let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.gem_gain);
-                                let skill_level = skillset
-                                    .skill_level(Skill::Pick(MiningSkill::GemGain))
-                                    .unwrap_or(0);
-
-                                rng.gen_bool(chance_mod * f64::from(skill_level))
-                            };
-                            for item in items.iter_mut() {
-                                let double_gain =
-                                    item.item_definition_id().itemdef_id().map_or(false, |id| {
-                                        (id.contains("mineral.ore.") && need_double_ore(&mut rng))
-                                            || (id.contains("mineral.gem.")
-                                                && need_double_gem(&mut rng))
-                                    });
-
-                                if double_gain {
-                                    // Ignore non-stackable errors
-                                    let _ = item.increase_amount(1);
+                                    rng.gen_bool(
+                                        (0.5 + chance_mod * f64::from(skill_level)).min(1.0),
+                                    )
                                 }
-                            }
+                            };
+                            let do_drop_gem = |rng: &mut rand::rngs::ThreadRng| {
+                                is_broken || {
+                                    let chance_mod =
+                                        f64::from(SKILL_MODIFIERS.mining_tree.gem_gain);
+                                    let skill_level = skillset
+                                        .skill_level(Skill::Pick(MiningSkill::GemGain))
+                                        .unwrap_or(0);
+
+                                    rng.gen_bool(
+                                        (0.5 + chance_mod * f64::from(skill_level)).min(1.0),
+                                    )
+                                }
+                            };
+                            items.retain(|item| {
+                                item.item_definition_id().itemdef_id().is_some_and(|id| {
+                                    (id.contains("mineral.ore.") && do_drop_ore(&mut rng))
+                                        || (id.contains("mineral.gem.") && do_drop_gem(&mut rng))
+                                })
+                            });
                         }
                         for item in items {
                             let loot_owner = maybe_uid
                                 .map(LootOwnerKind::Player)
                                 .map(|owner| comp::LootOwner::new(owner, false));
                             create_item_drop_emitter.emit(CreateItemDropEvent {
-                                pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
-                                vel: comp::Vel(Vec3::zero()),
+                                pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::broadcast(0.5)),
+                                vel: comp::Vel(
+                                    Vec2::unit_x()
+                                        .rotated_z(rng.gen::<f32>() * PI * 2.0)
+                                        .mul(4.0)
+                                        .with_z(rng.gen_range(5.0..10.0)),
+                                ),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                                 item: comp::PickupItem::new(item, *program_time),
                                 loot_owner,
@@ -305,10 +356,28 @@ impl ServerEvent for MineBlockEvent {
                         }
                     }
 
-                    block_change.set(ev.pos, block.into_vacant());
-                    outcome_emitter.emit(Outcome::BreakBlock {
-                        pos: ev.pos,
-                        color: block.get_color(),
+                    if damage.is_some() && !is_broken {
+                        block_change.set(ev.pos, block);
+                    } else {
+                        block_change.set(ev.pos, block.into_vacant());
+                    }
+                    outcome_emitter.emit(if is_broken {
+                        Outcome::BreakBlock {
+                            pos: ev.pos,
+                            tool: ev.tool,
+                            color: block.get_color(),
+                        }
+                    } else {
+                        Outcome::DamagedBlock {
+                            pos: ev.pos,
+                            stage_changed,
+                            tool: ev.tool,
+                        }
+                    });
+
+                    // Emit mining sound
+                    sound_event_emitter.emit(SoundEvent {
+                        sound: Sound::new(SoundKind::Mine, ev.pos.as_(), 20.0, time.0),
                     });
                 }
             }

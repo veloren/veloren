@@ -234,12 +234,27 @@ impl ParticleMgr {
                 // TODO: Use color field when particle colors are a thing
                 self.particles.resize_with(self.particles.len() + 30, || {
                     Particle::new(
-                        Duration::from_millis(100),
+                        Duration::from_millis(200),
                         time,
                         ParticleMode::Shrapnel,
                         pos.map(|e| e as f32 + 0.5),
                     )
                 });
+            },
+            Outcome::DamagedBlock {
+                pos, stage_changed, ..
+            } => {
+                self.particles.resize_with(
+                    self.particles.len() + if *stage_changed { 30 } else { 10 },
+                    || {
+                        Particle::new(
+                            Duration::from_millis(if *stage_changed { 200 } else { 100 }),
+                            time,
+                            ParticleMode::Shrapnel,
+                            pos.map(|e| e as f32 + 0.5),
+                        )
+                    },
+                );
             },
             Outcome::SpriteUnlocked { .. } => {},
             Outcome::FailedSpriteUnlock { pos } => {

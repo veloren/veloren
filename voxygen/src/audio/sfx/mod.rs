@@ -150,6 +150,9 @@ pub enum SfxEvent {
     Parry,
     Block,
     BreakBlock,
+    PickaxeDamage,
+    PickaxeDamageStrong,
+    PickaxeBreakBlock,
     SceptreBeam,
     SkillPointGain,
     ArrowHit,
@@ -750,12 +753,38 @@ impl SfxMgr {
                     underwater,
                 );
             },
-            Outcome::BreakBlock { pos, .. } => {
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::BreakBlock);
+            Outcome::BreakBlock { pos, tool, .. } => {
+                let sfx_trigger_item =
+                    triggers.get_key_value(&if matches!(tool, Some(ToolKind::Pick)) {
+                        SfxEvent::PickaxeBreakBlock
+                    } else {
+                        SfxEvent::BreakBlock
+                    });
                 audio.emit_sfx(
                     sfx_trigger_item,
                     pos.map(|e| e as f32 + 0.5),
                     Some(3.0),
+                    underwater,
+                );
+            },
+            Outcome::DamagedBlock {
+                pos,
+                stage_changed,
+                tool,
+                ..
+            } => {
+                let sfx_trigger_item = triggers.get_key_value(&match (stage_changed, tool) {
+                    (false, Some(ToolKind::Pick)) => SfxEvent::PickaxeDamage,
+                    (true, Some(ToolKind::Pick)) => SfxEvent::PickaxeDamageStrong,
+                    // SFX already emitted by ability
+                    (_, Some(ToolKind::Shovel)) => return,
+                    (_, _) => SfxEvent::BreakBlock,
+                });
+
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e as f32 + 0.5),
+                    Some(if *stage_changed { 3.0 } else { 2.0 }),
                     underwater,
                 );
             },

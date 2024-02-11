@@ -518,6 +518,7 @@ pub enum SoundKind {
     Explosion,
     Beam,
     Shockwave,
+    Mine,
     Trap,
 }
 

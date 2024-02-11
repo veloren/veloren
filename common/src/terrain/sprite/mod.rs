@@ -253,6 +253,26 @@ sprites! {
     // TODO: Remove small variants, make deposit size be an attribute
     Resources = 4 {
         // Gems and ores
+        // Woods and twigs
+        Twigs     = 0x00,
+        Wood      = 0x01,
+        Bamboo    = 0x02,
+        Hardwood  = 0x03,
+        Ironwood  = 0x04,
+        Frostwood = 0x05,
+        Eldwood   = 0x06,
+        // Other
+        Apple       = 0x20,
+        Coconut     = 0x21,
+        Stones      = 0x22,
+        Seashells   = 0x23,
+        Beehive     = 0x24,
+        Bowl        = 0x25,
+        PotionMinor = 0x26,
+        PotionDummy = 0x27,
+        VialEmpty   = 0x28,
+    },
+    MineableResource = 5 has Damage {
         Amethyst      = 0x00,
         AmethystSmall = 0x01,
         Ruby          = 0x02,
@@ -275,27 +295,9 @@ sprites! {
         Gold          = 0x13,
         Velorite      = 0x14,
         VeloriteFrag  = 0x15,
-        // Woods and twigs
-        Twigs     = 0x20,
-        Wood      = 0x21,
-        Bamboo    = 0x22,
-        Hardwood  = 0x23,
-        Ironwood  = 0x24,
-        Frostwood = 0x25,
-        Eldwood   = 0x26,
-        // Other
-        Apple       = 0x30,
-        Coconut     = 0x31,
-        Stones      = 0x32,
-        Seashells   = 0x33,
-        Beehive     = 0x34,
-        Bowl        = 0x35,
-        PotionMinor = 0x36,
-        PotionDummy = 0x37,
-        VialEmpty   = 0x38,
     },
     // Structural elements including doors and building parts
-    Structural = 5 has Ori {
+    Structural = 6 has Ori {
         // Doors and keyholes
         Door         = 0x00,
         DoorDark     = 0x01,
@@ -346,7 +348,7 @@ sprites! {
         MetalChain = 0x48,
     },
     // Decorative items, both natural and artificial
-    Decor = 6 has Ori {
+    Decor = 7 has Ori {
         // Natural
         Bones          = 0x00,
         IceCrystal     = 0x01,
@@ -378,7 +380,7 @@ sprites! {
         SeaDecorPillar   = 0x1E,
         MagicalSeal      = 0x1F,
     },
-    Lamp = 7 has Ori, LightEnabled {
+    Lamp = 8 has Ori, LightEnabled {
         // Standalone lights
         Lantern         = 0,
         StreetLamp      = 1,
@@ -393,6 +395,7 @@ attributes! {
     Ori { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
     Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
     LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
+    Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
 }
 
 // The orientation of the sprite, 0..16
@@ -414,6 +417,9 @@ pub struct LightEnabled(pub bool);
 impl Default for LightEnabled {
     fn default() -> Self { Self(true) }
 }
+// Damage of an ore
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+pub struct Damage(pub u8);
 
 impl SpriteKind {
     #[inline]
@@ -798,6 +804,50 @@ impl SpriteKind {
             | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
             SpriteKind::Grave | SpriteKind::Mud => Some(ToolKind::Shovel),
             _ => None,
+        }
+    }
+
+    pub fn required_mine_damage(&self) -> Option<u8> {
+        Some(match self {
+            SpriteKind::Gold => 6,
+            SpriteKind::Silver => 6,
+            SpriteKind::Bloodstone => 6,
+            SpriteKind::Cobalt => 6,
+            SpriteKind::Coal => 6,
+            SpriteKind::Iron => 6,
+            SpriteKind::Copper => 3,
+            SpriteKind::Tin => 3,
+            SpriteKind::Amethyst => 2,
+            SpriteKind::AmethystSmall => 1,
+            SpriteKind::Ruby => 3,
+            SpriteKind::RubySmall => 2,
+            SpriteKind::Sapphire => 2,
+            SpriteKind::SapphireSmall => 2,
+            SpriteKind::Emerald => 2,
+            SpriteKind::EmeraldSmall => 2,
+            SpriteKind::Topaz => 2,
+            SpriteKind::TopazSmall => 1,
+            SpriteKind::Diamond => 6,
+            SpriteKind::DiamondSmall => 5,
+            SpriteKind::Velorite => 2,
+            SpriteKind::VeloriteFrag => 1,
+            _ => return None,
+        })
+    }
+
+    /// Defines how much damage it takes for a mined resource to possibly
+    /// make an extra drop.
+    pub fn mine_drop_interval(&self) -> u8 {
+        match self {
+            SpriteKind::Gold => 2,
+            SpriteKind::Silver => 2,
+            SpriteKind::Bloodstone => 2,
+            SpriteKind::Cobalt => 2,
+            SpriteKind::Coal => 2,
+            SpriteKind::Iron => 2,
+            SpriteKind::Copper => 1,
+            SpriteKind::Tin => 1,
+            _ => 1,
         }
     }
 

@@ -1,4 +1,10 @@
-use crate::{combat::DamageContributor, comp, terrain::SpriteKind, uid::Uid, DamageSource};
+use crate::{
+    combat::DamageContributor,
+    comp::{self, item::ToolKind},
+    terrain::SpriteKind,
+    uid::Uid,
+    DamageSource,
+};
 use comp::{beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind, UtteranceKind};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
@@ -63,7 +69,13 @@ pub enum Outcome {
     },
     BreakBlock {
         pos: Vec3<i32>,
+        tool: Option<ToolKind>,
         color: Option<Rgb<u8>>,
+    },
+    DamagedBlock {
+        pos: Vec3<i32>,
+        tool: Option<ToolKind>,
+        stage_changed: bool,
     },
     SummonedCreature {
         pos: Vec3<f32>,
@@ -215,6 +227,7 @@ impl Outcome {
             | Outcome::ClayGolemDash { pos }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
+            | Outcome::DamagedBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }
             | Outcome::SpriteDelete { pos, .. }
             | Outcome::FailedSpriteUnlock { pos } => Some(pos.map(|e| e as f32 + 0.5)),
