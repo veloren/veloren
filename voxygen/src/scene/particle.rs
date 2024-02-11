@@ -1384,6 +1384,38 @@ impl ParticleMgr {
                         });
                     }
                 },
+                CharacterState::Transform(data) => {
+                    if matches!(data.stage_section, StageSection::Buildup)
+                        && let Some(specifier) = data.static_data.specifier
+                    {
+                        match specifier {
+                            states::transform::FrontendSpecifier::Evolve => {
+                                self.particles.resize_with(
+                                    self.particles.len()
+                                        + usize::from(
+                                            self.scheduler.heartbeats(Duration::from_millis(10)),
+                                        ),
+                                    || {
+                                        let start_pos = interpolated.pos
+                                            + (Vec2::unit_y()
+                                                * rng.gen::<f32>()
+                                                * body.max_radius())
+                                            .rotated_z(rng.gen_range(0.0..(PI * 2.0)))
+                                            .with_z(body.height() * rng.gen::<f32>());
+
+                                        Particle::new_directed(
+                                            Duration::from_millis(100),
+                                            time,
+                                            ParticleMode::BarrelOrgan,
+                                            start_pos,
+                                            start_pos + Vec3::unit_z() * 2.0,
+                                        )
+                                    },
+                                )
+                            },
+                        }
+                    }
+                },
                 _ => {},
             }
         }

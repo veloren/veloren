@@ -1,0 +1,6 @@
+Transform(
+	buildup_duration: 2.0,
+	recover_duration: 0.5,
+	target: "common.entity.wild.peaceful.crab",
+	specifier: Some(Evolve),
+)

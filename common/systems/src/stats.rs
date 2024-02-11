@@ -209,6 +209,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Stunned(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::UseItem(_)
+                | CharacterState::Transform(_)
                 | CharacterState::SpriteInteract(_) => {},
             }
         });

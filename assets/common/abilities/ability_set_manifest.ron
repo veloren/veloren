@@ -930,6 +930,7 @@
         secondary: Simple(None, "common.abilities.debug.upboost"),
         abilities: [
             Simple(None, "common.abilities.debug.possess"),
+            Simple(None, "common.abilities.debug.evolve"),
         ],
     ),
     Tool(Farming): (

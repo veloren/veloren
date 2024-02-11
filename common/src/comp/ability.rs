@@ -646,6 +646,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::UseItem(_)
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
+            | CharacterState::Transform(_)
             | CharacterState::Wallrun(_) => Self::Other,
         }
     }
@@ -997,6 +998,15 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    Transform {
+        buildup_duration: f32,
+        recover_duration: f32,
+        target: String,
+        #[serde(default)]
+        specifier: Option<transform::FrontendSpecifier>,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -1115,7 +1125,8 @@ impl CharacterAbility {
                 | CharacterAbility::Blink { .. }
                 | CharacterAbility::Music { .. }
                 | CharacterAbility::BasicSummon { .. }
-                | CharacterAbility::SpriteSummon { .. } => true,
+                | CharacterAbility::SpriteSummon { .. }
+                | CharacterAbility::Transform { .. } => true,
             }
     }
 
@@ -1662,6 +1673,16 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
+            Transform {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                target: _,
+                specifier: _,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+            },
         }
         self
     }
@@ -1702,7 +1723,8 @@ impl CharacterAbility {
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
-            | SpriteSummon { .. } => 0.0,
+            | SpriteSummon { .. }
+            | Transform { .. } => 0.0,
         }
     }
 
@@ -1750,7 +1772,8 @@ impl CharacterAbility {
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
-            | SpriteSummon { .. } => 0,
+            | SpriteSummon { .. }
+            | Transform { .. } => 0,
         }
     }
 
@@ -1782,7 +1805,8 @@ impl CharacterAbility {
             | Music { meta, .. }
             | DiveMelee { meta, .. }
             | RiposteMelee { meta, .. }
-            | RapidMelee { meta, .. } => *meta,
+            | RapidMelee { meta, .. }
+            | Transform { meta, .. } => *meta,
         }
     }
 
@@ -2934,6 +2958,23 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 current_strike: 1,
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+            }),
+            CharacterAbility::Transform {
+                buildup_duration,
+                recover_duration,
+                target,
+                specifier,
+                meta: _,
+            } => CharacterState::Transform(transform::Data {
+                static_data: transform::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    specifier: *specifier,
+                    target: target.to_owned(),
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
             }),
         }
     }

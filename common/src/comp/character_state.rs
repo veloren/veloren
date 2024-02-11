@@ -51,6 +51,7 @@ event_emitters! {
         energy_change: event::EnergyChangeEvent,
         knockback: event::KnockbackEvent,
         sprite_light: event::ToggleSpriteLightEvent,
+        transform: event::TransformEvent,
     }
 }
 
@@ -172,6 +173,8 @@ pub enum CharacterState {
     /// A series of consecutive, identical attacks that only go through buildup
     /// and recover once for the entire state
     RapidMelee(rapid_melee::Data),
+    /// Transforms an entity into another
+    Transform(transform::Data),
 }
 
 impl CharacterState {
@@ -518,6 +521,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => data.behavior(j, output_events),
             CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
             CharacterState::RapidMelee(data) => data.behavior(j, output_events),
+            CharacterState::Transform(data) => data.behavior(j, output_events),
         }
     }
 
@@ -573,6 +577,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RapidMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::Transform(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -625,6 +630,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RapidMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::Transform(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -669,6 +675,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.stage_section),
             CharacterState::RiposteMelee(data) => Some(data.stage_section),
             CharacterState::RapidMelee(data) => Some(data.stage_section),
+            CharacterState::Transform(data) => Some(data.stage_section),
         }
     }
 
@@ -857,6 +864,11 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
+            CharacterState::Transform(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
         }
     }
 
@@ -901,6 +913,7 @@ impl CharacterState {
             CharacterState::DiveMelee(data) => Some(data.timer),
             CharacterState::RiposteMelee(data) => Some(data.timer),
             CharacterState::RapidMelee(data) => Some(data.timer),
+            CharacterState::Transform(data) => Some(data.timer),
         }
     }
 
@@ -960,6 +973,7 @@ impl CharacterState {
             CharacterState::DiveMelee(_) => Some(AttackSource::Melee),
             CharacterState::RiposteMelee(_) => Some(AttackSource::Melee),
             CharacterState::RapidMelee(_) => Some(AttackSource::Melee),
+            CharacterState::Transform(_) => None,
         }
     }
 }
