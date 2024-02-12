@@ -355,18 +355,25 @@ impl<'a> Widget for LootScroller<'a> {
                 )
                 .set(state.ids.message_icons[i], ui);
 
-                let target_name = match self.client.player_list().get(taken_by) {
-                    Some(info) => info.player_alias.clone(),
-                    None => match self.client.state().ecs().entity_from_uid(*taken_by) {
-                        Some(entity) => {
-                            let stats = self.client.state().read_storage::<common::comp::Stats>();
-                            stats
-                                .get(entity)
-                                .map_or(format!("<entity {}>", *taken_by), |e| e.name.to_owned())
+                let target_name = self
+                    .client
+                    .player_list()
+                    .get(taken_by)
+                    .map_or_else(
+                        || {
+                            self.client
+                                .state()
+                                .ecs()
+                                .entity_from_uid(*taken_by)
+                                .and_then(|entity| {
+                                    let stats =
+                                        self.client.state().read_storage::<common::comp::Stats>();
+                                    stats.get(entity).map(|e| e.name.clone())
+                                })
                         },
-                        None => format!("<uid {}>", *taken_by),
-                    },
-                };
+                        |info| Some(info.player_alias.clone()),
+                    )
+                    .unwrap_or_else(|| format!("<uid {}>", *taken_by));
 
                 let (user_gender, is_you) = match self.client.player_list().get(taken_by) {
                     Some(player_info) => match player_info.character.as_ref() {
@@ -383,20 +390,38 @@ impl<'a> Widget for LootScroller<'a> {
                     None => ("??".to_string(), false),
                 };
 
-                let label = self.localized_strings.get_msg_ctx(
-                    "hud-loot-pickup-msg",
-                    &i18n::fluent_args! {
-                          "is_you" => is_you.to_string(),
-                          "gender" => user_gender,
-                          "actor" => target_name,
-                          "amount" => amount,
-                          "item" => {
-                              let (name, _) =
-                                  util::item_text(&item, self.localized_strings, self.item_i18n);
-                              name
-                          },
-                    },
-                );
+                let label = match is_you  {
+                    true => {
+                        self.localized_strings.get_msg_ctx(
+                            "hud-loot-pickup-msg-you",
+                            &i18n::fluent_args! {
+                                  "gender" => user_gender,
+                                  "amount" => amount,
+                                  "item" => {
+                                      let (name, _) =
+                                          util::item_text(&item, self.localized_strings, self.item_i18n);
+                                      name
+                                  },
+                            },
+                        )
+                    }
+                    false => {
+                        self.localized_strings.get_msg_ctx(
+                            "hud-loot-pickup-msg",
+                            &i18n::fluent_args! {
+                                  "gender" => user_gender,
+                                  "actor" => target_name,
+                                  "amount" => amount,
+                                  "item" => {
+                                      let (name, _) =
+                                          util::item_text(&item, self.localized_strings, self.item_i18n);
+                                      name
+                                  },
+                            },
+                        )
+                    }
+                };
+
                 let label_font_size = 20;
 
                 Text::new(&label)
