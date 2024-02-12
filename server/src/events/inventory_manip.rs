@@ -1092,7 +1092,6 @@ fn announce_loot_to_group(
                         item.duplicate(ability_map, msm),
                         *uid,
                     ));
-                    Some(())
                 });
             });
     }

@@ -297,6 +297,8 @@ impl<'a> Widget for LootScroller<'a> {
                     .set(state.ids.scrollbar, ui);
             }
 
+            let stats = self.client.state().read_storage::<common::comp::Stats>();
+
             while let Some(list_message) = list_messages.next(ui) {
                 let i = list_message.i;
 
@@ -365,11 +367,7 @@ impl<'a> Widget for LootScroller<'a> {
                                 .state()
                                 .ecs()
                                 .entity_from_uid(*taken_by)
-                                .and_then(|entity| {
-                                    let stats =
-                                        self.client.state().read_storage::<common::comp::Stats>();
-                                    stats.get(entity).map(|e| e.name.clone())
-                                })
+                                .and_then(|entity| stats.get(entity).map(|e| e.name.clone()))
                         },
                         |info| Some(info.player_alias.clone()),
                     )
@@ -390,9 +388,8 @@ impl<'a> Widget for LootScroller<'a> {
                     None => ("??".to_string(), false),
                 };
 
-                let label = match is_you  {
-                    true => {
-                        self.localized_strings.get_msg_ctx(
+                let label = if is_you {
+                    self.localized_strings.get_msg_ctx(
                             "hud-loot-pickup-msg-you",
                             &i18n::fluent_args! {
                                   "gender" => user_gender,
@@ -404,9 +401,8 @@ impl<'a> Widget for LootScroller<'a> {
                                   },
                             },
                         )
-                    }
-                    false => {
-                        self.localized_strings.get_msg_ctx(
+                } else {
+                    self.localized_strings.get_msg_ctx(
                             "hud-loot-pickup-msg",
                             &i18n::fluent_args! {
                                   "gender" => user_gender,
@@ -419,7 +415,6 @@ impl<'a> Widget for LootScroller<'a> {
                                   },
                             },
                         )
-                    }
                 };
 
                 let label_font_size = 20;
