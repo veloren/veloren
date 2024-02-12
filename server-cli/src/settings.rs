@@ -6,6 +6,15 @@ use std::{
 };
 use tracing::warn;
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[repr(i32)]
+#[allow(clippy::upper_case_acronyms)]
+pub enum ShutdownSignal {
+    SIGUSR1 = signal_hook::consts::SIGUSR1,
+    SIGUSR2 = signal_hook::consts::SIGUSR2,
+    SIGTERM = signal_hook::consts::SIGTERM,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -15,6 +24,7 @@ pub struct Settings {
     /// SECRET API HEADER used to access the chat api, if disabled the API is
     /// unreachable
     pub web_chat_secret: Option<String>,
+    pub shutdown_signals: Vec<ShutdownSignal>,
 }
 
 impl Default for Settings {
@@ -24,6 +34,7 @@ impl Default for Settings {
             update_shutdown_message: "The server is restarting for an update".to_owned(),
             web_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             web_chat_secret: None,
+            shutdown_signals: vec![ShutdownSignal::SIGUSR1],
         }
     }
 }
