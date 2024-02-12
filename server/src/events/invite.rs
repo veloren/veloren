@@ -78,7 +78,7 @@ impl ServerEvent for InitiateInviteEvent {
                             "Invite failed, target does not exist.",
                         ));
                     }
-                    return;
+                    continue;
                 },
             };
 
@@ -88,13 +88,13 @@ impl ServerEvent for InitiateInviteEvent {
                 .map_or(false, |inviter_uid| *inviter_uid == invitee_uid)
             {
                 warn!("Entity tried to invite themselves into a group/trade");
-                return;
+                continue;
             }
 
             if matches!(kind, InviteKind::Trade) {
                 // Check whether the inviter is in range of the invitee
                 if !within_trading_range(positions.get(inviter), positions.get(invitee)) {
-                    return;
+                    continue;
                 }
             }
 
@@ -108,7 +108,7 @@ impl ServerEvent for InitiateInviteEvent {
                     inviter,
                     invitee,
                 ) {
-                    return;
+                    continue;
                 }
             } else {
                 // cancel current trades for inviter before inviting someone else to trade
@@ -141,7 +141,7 @@ impl ServerEvent for InitiateInviteEvent {
                         "This player already has a pending invite.",
                     ));
                 }
-                return;
+                continue;
             }
 
             let mut invite_sent = false;
