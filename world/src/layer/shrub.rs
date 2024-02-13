@@ -46,7 +46,7 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 && col.spawn_rate > 0.9
                 && col.path.map_or(true, |(d, _, _, _)| d > 6.0)
                 && !tunnel_bounds_at(wpos, &info, &info.land())
-                    .any(|(_, z_range, _, _)| z_range.contains(&(col.alt as i32 - 1)))
+                    .any(|(_, z_range, _, _, _, _)| z_range.contains(&(col.alt as i32 - 1)))
             {
                 let kind = *info
                     .chunks()
