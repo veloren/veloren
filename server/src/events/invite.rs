@@ -10,7 +10,7 @@ use common::{
         agent::{Agent, AgentEvent},
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
-        ChatType, Group, Pos,
+        ChatType, Group, Health, Pos,
     },
     consts::MAX_TRADE_RANGE,
     event::{InitiateInviteEvent, InviteResponseEvent},
@@ -48,6 +48,7 @@ impl ServerEvent for InitiateInviteEvent {
         ReadStorage<'a, Client>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Group>,
+        ReadStorage<'a, Health>,
     );
 
     fn handle(
@@ -64,6 +65,7 @@ impl ServerEvent for InitiateInviteEvent {
             clients,
             positions,
             groups,
+            healths,
         ): Self::SystemData<'_>,
     ) {
         for InitiateInviteEvent(inviter, invitee_uid, kind) in events {
@@ -78,7 +80,7 @@ impl ServerEvent for InitiateInviteEvent {
                             "Invite failed, target does not exist.",
                         ));
                     }
-                    return;
+                    continue;
                 },
             };
 
@@ -88,13 +90,16 @@ impl ServerEvent for InitiateInviteEvent {
                 .map_or(false, |inviter_uid| *inviter_uid == invitee_uid)
             {
                 warn!("Entity tried to invite themselves into a group/trade");
-                return;
+                continue;
             }
 
             if matches!(kind, InviteKind::Trade) {
-                // Check whether the inviter is in range of the invitee
-                if !within_trading_range(positions.get(inviter), positions.get(invitee)) {
-                    return;
+                // Check whether the inviter is in range of the invitee or dead
+                if !within_trading_range(positions.get(inviter), positions.get(invitee))
+                    || healths.get(inviter).is_some_and(|h| h.is_dead)
+                    || healths.get(invitee).is_some_and(|h| h.is_dead)
+                {
+                    continue;
                 }
             }
 
@@ -108,7 +113,7 @@ impl ServerEvent for InitiateInviteEvent {
                     inviter,
                     invitee,
                 ) {
-                    return;
+                    continue;
                 }
             } else {
                 // cancel current trades for inviter before inviting someone else to trade
@@ -141,7 +146,7 @@ impl ServerEvent for InitiateInviteEvent {
                         "This player already has a pending invite.",
                     ));
                 }
-                return;
+                continue;
             }
 
             let mut invite_sent = false;

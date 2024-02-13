@@ -93,6 +93,8 @@ pub fn register_event_systems(builder: &mut DispatcherBuilder) {
     entity_manipulation::register_event_systems(builder);
     interaction::register_event_systems(builder);
     invite::register_event_systems(builder);
+    group_manip::register_event_systems(builder);
+    information::register_event_systems(builder);
 }
 
 pub enum Event {

@@ -10,9 +10,13 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_net::msg::ServerGeneral;
-use specs::{world::Entity, Entities, Read, ReadStorage, Write, WriteStorage};
+use specs::{world::Entity, DispatcherBuilder, Entities, Read, ReadStorage, Write, WriteStorage};
 
-use super::ServerEvent;
+use super::{event_dispatch, ServerEvent};
+
+pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
+    event_dispatch::<GroupManipEvent>(builder);
+}
 
 pub fn can_invite(
     clients: &ReadStorage<'_, Client>,
@@ -159,7 +163,7 @@ impl ServerEvent for GroupManipEvent {
                                     "Kick failed, target does not exist.",
                                 ));
                             }
-                            return;
+                            continue;
                         },
                     };
 
@@ -172,7 +176,7 @@ impl ServerEvent for GroupManipEvent {
                                 "Kick failed, you can't kick pets.",
                             ));
                         }
-                        return;
+                        continue;
                     }
                     // Can't kick yourself
                     if uids.get(entity).map_or(false, |u| *u == uid) {
@@ -182,7 +186,7 @@ impl ServerEvent for GroupManipEvent {
                                 "Kick failed, you can't kick yourself.",
                             ));
                         }
-                        return;
+                        continue;
                     }
 
                     // Make sure kicker is the group leader
@@ -264,7 +268,7 @@ impl ServerEvent for GroupManipEvent {
                                     "Leadership transfer failed, target does not exist",
                                 ));
                             }
-                            return;
+                            continue;
                         },
                     };
                     // Make sure assigner is the group leader

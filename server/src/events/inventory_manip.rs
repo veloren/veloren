@@ -167,7 +167,7 @@ impl ServerEvent for InventoryManipEvent {
                         // of the world from the first pickup
                         // attempt was processed.
                         debug!("Failed to get entity for item Uid: {}", pickup_uid);
-                        return;
+                        continue;
                     };
                     let entity_cylinder = get_cylinder(entity);
 
@@ -177,7 +177,7 @@ impl ServerEvent for InventoryManipEvent {
                             ?entity_cylinder,
                             "Failed to pick up item as not within range, Uid: {}", pickup_uid
                         );
-                        return;
+                        continue;
                     }
 
                     // If there's a loot owner for the item being picked up, then
@@ -214,7 +214,7 @@ impl ServerEvent for InventoryManipEvent {
                             });
 
                     if !ownership_check_passed {
-                        return;
+                        continue;
                     }
 
                     // First, we remove the item, assuming picking it up will succeed (we do this to
@@ -231,7 +231,7 @@ impl ServerEvent for InventoryManipEvent {
                             "Failed to delete item component for entity, Uid: {}",
                             pickup_uid
                         );
-                        return;
+                        continue;
                     };
 
                     // NOTE: We dup the item for message purposes.
@@ -700,7 +700,7 @@ impl ServerEvent for InventoryManipEvent {
                         if let Some(source_item) = inventory.get(source_inv_slot_id) {
                             if let Some(target_item) = inventory.get(target_inv_slot_id) {
                                 if source_item != target_item {
-                                    return;
+                                    continue;
                                 }
                             }
                         }

@@ -6,7 +6,7 @@ version = "0.10.0"
 
 [features]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-assets/plugins", "toml", "wasmtime", "tar", "bincode", "serde"]
+plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tar", "bincode", "serde"]
 
 default = ["simd"]
 
@@ -36,7 +36,7 @@ tar = { version = "0.4.37", optional = true }
 bincode = { workspace = true, optional = true }
 timer-queue = "0.1.0"
 wasmtime = { version = "17.0.0", optional = true , features = ["component-model", "async"] }
-wasmtime-wasi = "17.0.0"
+wasmtime-wasi = { version = "17.0.0", optional = true }
 async-trait = { workspace = true }
 bytes = "^1"
 futures = "0.3.30"

@@ -597,14 +597,12 @@ impl ServerEvent for DestroyEvent {
                 {
                     // Only drop loot if entity has agency (not a player),
                     // and if it is not owned by another entity (not a pet)
-                    if !matches!(alignment, Some(Alignment::Owned(_))) {
-                        let Some(items) = data
+                    if !matches!(alignment, Some(Alignment::Owned(_)))
+                        && let Some(items) = data
                             .item_drops
                             .remove(ev.entity)
                             .map(|comp::ItemDrops(item)| item)
-                        else {
-                            continue;
-                        };
+                    {
                         // Remove entries where zero exp was awarded - this happens because some
                         // entities like Object bodies don't give EXP.
                         let mut item_receivers = HashMap::new();
