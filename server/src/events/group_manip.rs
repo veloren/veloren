@@ -10,9 +10,13 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_net::msg::ServerGeneral;
-use specs::{world::Entity, Entities, Read, ReadStorage, Write, WriteStorage};
+use specs::{world::Entity, DispatcherBuilder, Entities, Read, ReadStorage, Write, WriteStorage};
 
-use super::ServerEvent;
+use super::{event_dispatch, ServerEvent};
+
+pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
+    event_dispatch::<GroupManipEvent>(builder);
+}
 
 pub fn can_invite(
     clients: &ReadStorage<'_, Client>,

@@ -1,11 +1,15 @@
 use crate::client::Client;
 use common::event::RequestSiteInfoEvent;
 use common_net::msg::{world_msg::EconomyInfo, ServerGeneral};
-use specs::{ReadExpect, ReadStorage};
+use specs::{DispatcherBuilder, ReadExpect, ReadStorage};
 use std::collections::HashMap;
 use world::IndexOwned;
 
-use super::ServerEvent;
+use super::{event_dispatch, ServerEvent};
+
+pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
+    event_dispatch::<RequestSiteInfoEvent>(builder);
+}
 
 #[cfg(not(feature = "worldgen"))]
 impl ServerEvent for RequestSiteInfoEvent {
