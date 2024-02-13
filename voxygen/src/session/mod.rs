@@ -289,11 +289,11 @@ impl SessionState {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
                 },
-                client::Event::GroupInventoryUpdate(item, taker, uid) => {
+                client::Event::GroupInventoryUpdate(item, uid) => {
                     self.hud.new_loot_message(LootMessage {
                         amount: item.amount(),
                         item,
-                        taken_by: client.personalize_alias(uid, taker),
+                        taken_by: uid,
                     });
                 },
                 client::Event::InviteComplete {
@@ -391,7 +391,7 @@ impl SessionState {
                                 self.hud.new_loot_message(LootMessage {
                                     amount: item.amount(),
                                     item,
-                                    taken_by: "You".to_string(),
+                                    taken_by: client.uid().expect("Client doesn't have a Uid!!!"),
                                 });
                             },
                             _ => {},

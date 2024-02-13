@@ -81,7 +81,11 @@ hud-chat-chat_tab_hover_tooltip = Right click for settings
 
 ## HUD Pickup message
 
+hud-loot-pickup-msg-you = { $amount ->
+    [1] You picked up { $item }
+    *[other] You picked up {$amount}x {$item}
+}
 hud-loot-pickup-msg = { $amount ->
-   [one] { $actor } picked up { $item }
-   *[other] { $actor } picked up {$amount}x {$item}
+    [1] { $actor } picked up { $item }
+    *[other] { $actor } picked up { $amount }x { $item }
 }

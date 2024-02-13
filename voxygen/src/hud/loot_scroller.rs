@@ -6,7 +6,11 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
-use common::comp::inventory::item::{Item, ItemDesc, ItemI18n, MaterialStatManifest, Quality};
+use common::{
+    comp::inventory::item::{Item, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
+    uid::Uid,
+};
+use common_net::sync::WorldSyncExt;
 use conrod_core::{
     color,
     position::Dimension,
@@ -105,7 +109,7 @@ impl<'a> LootScroller<'a> {
 pub struct LootMessage {
     pub item: Item,
     pub amount: u32,
-    pub taken_by: String,
+    pub taken_by: Uid,
 }
 
 pub struct State {
@@ -293,6 +297,8 @@ impl<'a> Widget for LootScroller<'a> {
                     .set(state.ids.scrollbar, ui);
             }
 
+            let stats = self.client.state().read_storage::<common::comp::Stats>();
+
             while let Some(list_message) = list_messages.next(ui) {
                 let i = list_message.i;
 
@@ -322,7 +328,7 @@ impl<'a> Widget for LootScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let quality_col = get_quality_col(item);
+                let quality_col = get_quality_col(&item);
 
                 Image::new(self.imgs.pixel)
                     .color(Some(shade_color(quality_col.alpha(0.7))))
@@ -350,18 +356,67 @@ impl<'a> Widget for LootScroller<'a> {
                     &item_tooltip,
                 )
                 .set(state.ids.message_icons[i], ui);
-                let label = self.localized_strings.get_msg_ctx(
-                    "hud-loot-pickup-msg",
-                    &i18n::fluent_args! {
-                          "actor" => taken_by,
-                          "amount" => amount,
-                          "item" => {
-                              let (name, _) =
-                                  util::item_text(&item, self.localized_strings, self.item_i18n);
-                              name
-                          },
+
+                let target_name = self
+                    .client
+                    .player_list()
+                    .get(taken_by)
+                    .map_or_else(
+                        || {
+                            self.client
+                                .state()
+                                .ecs()
+                                .entity_from_uid(*taken_by)
+                                .and_then(|entity| stats.get(entity).map(|e| e.name.clone()))
+                        },
+                        |info| Some(info.player_alias.clone()),
+                    )
+                    .unwrap_or_else(|| format!("<uid {}>", *taken_by));
+
+                let (user_gender, is_you) = match self.client.player_list().get(taken_by) {
+                    Some(player_info) => match player_info.character.as_ref() {
+                        Some(character_info) => (
+                            match character_info.gender {
+                                Some(common::comp::Gender::Feminine) => "she".to_string(),
+                                Some(common::comp::Gender::Masculine) => "he".to_string(),
+                                None => "??".to_string(),
+                            },
+                            self.client.uid().expect("Client doesn't have a Uid!!!") == *taken_by,
+                        ),
+                        None => ("??".to_string(), false),
                     },
-                );
+                    None => ("??".to_string(), false),
+                };
+
+                let label = if is_you {
+                    self.localized_strings.get_msg_ctx(
+                            "hud-loot-pickup-msg-you",
+                            &i18n::fluent_args! {
+                                  "gender" => user_gender,
+                                  "amount" => amount,
+                                  "item" => {
+                                      let (name, _) =
+                                          util::item_text(&item, self.localized_strings, self.item_i18n);
+                                      name
+                                  },
+                            },
+                        )
+                } else {
+                    self.localized_strings.get_msg_ctx(
+                            "hud-loot-pickup-msg",
+                            &i18n::fluent_args! {
+                                  "gender" => user_gender,
+                                  "actor" => target_name,
+                                  "amount" => amount,
+                                  "item" => {
+                                      let (name, _) =
+                                          util::item_text(&item, self.localized_strings, self.item_i18n);
+                                      name
+                                  },
+                            },
+                        )
+                };
+
                 let label_font_size = 20;
 
                 Text::new(&label)
