@@ -13,8 +13,8 @@ use std::{
 use tracing::{error, info};
 
 /// Coordinates the shutdown procedure for the server, which can be initiated by
-/// either the TUI console interface or by sending the server the SIGUSR1 signal
-/// which indicates the server is restarting due to an update.
+/// either the TUI console interface or by sending the server the SIGUSR1 (or
+/// others) signal which indicates the server is restarting due to an update.
 pub(crate) struct ShutdownCoordinator {
     /// The instant that the last shutdown message was sent, used for
     /// calculating when to send the next shutdown message
@@ -28,19 +28,19 @@ pub(crate) struct ShutdownCoordinator {
     /// The message to use for the shutdown warning message that is sent to all
     /// connected players
     shutdown_message: String,
-    /// Provided by `signal_hook` to allow observation of the SIGUSR1 signal
-    sigusr1_signal: Arc<AtomicBool>,
+    /// Provided by `signal_hook` to allow observation of a shutdown signal
+    shutdown_signal: Arc<AtomicBool>,
 }
 
 impl ShutdownCoordinator {
-    pub fn new(sigusr1_signal: Arc<AtomicBool>) -> Self {
+    pub fn new(shutdown_signal: Arc<AtomicBool>) -> Self {
         Self {
             last_shutdown_msg: Instant::now(),
             msg_interval: Duration::from_secs(30),
             shutdown_initiated_at: None,
             shutdown_grace_period: Duration::from_secs(0),
             shutdown_message: String::new(),
-            sigusr1_signal,
+            shutdown_signal,
         }
     }
 
@@ -81,8 +81,8 @@ impl ShutdownCoordinator {
     /// returns `true` which triggers the loop in `main.rs` to break and
     /// exit the server process.
     pub fn check(&mut self, server: &mut Server, settings: &Settings) -> bool {
-        // Check whether SIGUSR1 has been set
-        self.check_sigusr1_signal(server, settings);
+        // Check whether shutdown has been set
+        self.check_shutdown_signal(server, settings);
 
         // If a shutdown is in progress, check whether it's time to send another warning
         // message or shut down if the grace period has expired.
@@ -109,14 +109,14 @@ impl ShutdownCoordinator {
         false
     }
 
-    /// Checks whether the SIGUSR1 signal has been set, which is used to trigger
-    /// a graceful shutdown for an update. [Watchtower](https://containrrr.dev/watchtower/) is configured on the main
+    /// Checks whether a shutdown (SIGUSR1 by default) signal has been set,
+    /// which is used to trigger a graceful shutdown for an update. [Watchtower](https://containrrr.dev/watchtower/) is configured on the main
     /// Veloren server to send SIGUSR1 instead of SIGTERM which allows us to
     /// react specifically to shutdowns that are for an update.
     /// NOTE: SIGUSR1 is not supported on Windows
-    fn check_sigusr1_signal(&mut self, server: &mut Server, settings: &Settings) {
-        if self.sigusr1_signal.load(Ordering::Relaxed) && self.shutdown_initiated_at.is_none() {
-            info!("Received SIGUSR1 signal, initiating graceful shutdown");
+    fn check_shutdown_signal(&mut self, server: &mut Server, settings: &Settings) {
+        if self.shutdown_signal.load(Ordering::Relaxed) && self.shutdown_initiated_at.is_none() {
+            info!("Received shutdown signal, initiating graceful shutdown");
             let grace_period =
                 Duration::from_secs(u64::from(settings.update_shutdown_grace_period_secs));
             let shutdown_message = settings.update_shutdown_message.to_owned();
@@ -124,7 +124,7 @@ impl ShutdownCoordinator {
 
             // Reset the SIGUSR1 signal indicator in case shutdown is aborted and we need to
             // trigger shutdown again
-            self.sigusr1_signal.store(false, Ordering::Relaxed);
+            self.shutdown_signal.store(false, Ordering::Relaxed);
         }
     }
 
