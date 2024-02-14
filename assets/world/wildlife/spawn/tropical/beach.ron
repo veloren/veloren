@@ -4,8 +4,8 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (3, (1, 3, "common.entity.wild.aggressive.sea_crocodile")),
-                (3, (8, 16, "common.entity.wild.peaceful.crab")),
+                (2, (1, 3, "common.entity.wild.aggressive.sea_crocodile")),
+                (4, (8, 16, "common.entity.wild.peaceful.crab")),
                 (1, (1, 1, "common.entity.wild.aggressive.reefsnapper")),
             ],
             spawn_mode: Land,

@@ -14,7 +14,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: Low,
+    quality: Common,
     tags: [],
     ability_spec: Some(Custom("Quad Small Basic")),
 )

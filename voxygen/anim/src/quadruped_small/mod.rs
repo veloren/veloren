@@ -308,6 +308,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Porcupine, _) => 0.65,
                 (Hare, _) => 0.65,
                 (Seal, _) => 0.9,
+                (MossySnail, _) => 1.0,
                 _ => 0.8,
             },
             tempo: match (body.species, body.body_type) {

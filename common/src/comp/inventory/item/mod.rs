@@ -1790,9 +1790,15 @@ mod tests {
     fn ensure_item_localization() {
         let manifest = ItemI18n::new_expect();
         let items = all_items_expect();
+        let mut errs = vec![];
         for item in items {
             let item_key: ItemKey = (&item).into();
-            let _ = manifest.item_text_opt(item_key).unwrap();
+            if manifest.item_text_opt(item_key.clone()).is_none() {
+                errs.push(item_key)
+            }
+        }
+        if !errs.is_empty() {
+            panic!("item i18n manifest misses translation-id for following items {errs:#?}")
         }
     }
 }

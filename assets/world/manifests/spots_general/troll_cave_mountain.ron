@@ -10,7 +10,7 @@
             242: Sprite(Mushroom),
             243: Sprite(CommonLockedChest),
             244: Sprite(Bones),
-            245: EntitySpawner("common.entity.wild.aggressive.bat", 0.4),
+            245: EntitySpawner("common.entity.wild.peaceful.bat", 0.4),
          },
     ),
 ]

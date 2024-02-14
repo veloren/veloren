@@ -141,6 +141,10 @@ pub enum ProjectileConstructor {
         radius: f32,
         min_falloff: f32,
     },
+    Pebble {
+        damage: f32,
+        knockback: f32,
+    },
 }
 
 impl ProjectileConstructor {
@@ -948,6 +952,40 @@ impl ProjectileConstructor {
                     is_point: false,
                 }
             },
+            Pebble { damage, knockback } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Projectile,
+                        kind: DamageKind::Crushing,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                );
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_precision(precision_mult)
+                    .with_effect(knockback);
+
+                Projectile {
+                    hit_solid: vec![Effect::Vanish, Effect::Vanish],
+                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: false,
+                    is_point: false,
+                }
+            },
         }
     }
 
@@ -1092,6 +1130,9 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
+            Pebble { ref mut damage, .. } => {
+                *damage *= power;
+            },
         }
         self
     }
@@ -1117,6 +1158,7 @@ impl ProjectileConstructor {
             LaserBeam { .. } => true,
             Trap { .. } => false,
             Mine { .. } => true,
+            Pebble { .. } => false,
         }
     }
 }

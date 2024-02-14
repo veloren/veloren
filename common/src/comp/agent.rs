@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        arthropod, biped_large, biped_small, bird_medium, humanoid, quadruped_low,
-        quadruped_medium, quadruped_small, ship, Body, UtteranceKind,
+        biped_large, biped_small, bird_medium, humanoid, quadruped_low, quadruped_medium,
+        quadruped_small, ship, Body, UtteranceKind,
     },
     path::Chaser,
     rtsim::{NpcInput, RtSimController},
@@ -278,51 +278,75 @@ impl<'a> From<&'a Body> for Psyche {
                 },
                 Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                     quadruped_small::Species::Pig => 0.5,
-                    quadruped_small::Species::Fox => 0.7,
-                    quadruped_small::Species::Sheep => 0.6,
+                    quadruped_small::Species::Fox => 0.3,
+                    quadruped_small::Species::Sheep => 0.25,
                     quadruped_small::Species::Boar => 0.1,
                     quadruped_small::Species::Skunk => 0.4,
-                    quadruped_small::Species::Cat => 0.9,
+                    quadruped_small::Species::Cat => 0.99,
                     quadruped_small::Species::Batfox => 0.1,
-                    quadruped_small::Species::Raccoon => 0.6,
-                    quadruped_small::Species::Hyena => 0.2,
+                    quadruped_small::Species::Raccoon => 0.4,
+                    quadruped_small::Species::Hyena => 0.1,
                     quadruped_small::Species::Dog => 0.8,
-                    quadruped_small::Species::Rabbit => 0.7,
-                    quadruped_small::Species::Truffler => 0.2,
+                    quadruped_small::Species::Rabbit | quadruped_small::Species::Jackalope => 0.25,
+                    quadruped_small::Species::Truffler => 0.08,
                     quadruped_small::Species::Hare => 0.3,
-                    quadruped_small::Species::Goat => 0.5,
-                    quadruped_small::Species::Porcupine => 0.7,
-                    quadruped_small::Species::Turtle => 0.7,
-                    quadruped_small::Species::Beaver => 0.7,
+                    quadruped_small::Species::Goat => 0.3,
+                    quadruped_small::Species::Porcupine => 0.2,
+                    quadruped_small::Species::Turtle => 0.4,
+                    quadruped_small::Species::Beaver => 0.2,
                     // FIXME: This is to balance for enemy rats in dungeons
                     // Normal rats should probably always flee.
                     quadruped_small::Species::Rat
                     | quadruped_small::Species::TreantSapling
                     | quadruped_small::Species::Holladon
-                    | quadruped_small::Species::Jackalope => 0.0,
+                    | quadruped_small::Species::MossySnail => 0.0,
                     _ => 1.0,
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                    quadruped_medium::Species::Frostfang => 0.1,
-                    quadruped_medium::Species::Catoblepas => 0.2,
-                    quadruped_medium::Species::Darkhound => 0.1,
-                    quadruped_medium::Species::Dreadhorn => 0.2,
-                    quadruped_medium::Species::Bonerattler => 0.0,
-                    quadruped_medium::Species::Tiger => 0.1,
-                    quadruped_medium::Species::Roshwalr => 0.0,
-                    quadruped_medium::Species::ClaySteed => 0.0,
-                    _ => 0.3,
+                    // T1
+                    quadruped_medium::Species::Antelope => 0.15,
+                    quadruped_medium::Species::Donkey => 0.05,
+                    quadruped_medium::Species::Horse => 0.15,
+                    quadruped_medium::Species::Mouflon => 0.1,
+                    quadruped_medium::Species::Zebra => 0.1,
+                    // T2
+                    // Should probably not have non-grouped, hostile animals flee until fleeing is
+                    // improved.
+                    quadruped_medium::Species::Barghest
+                    | quadruped_medium::Species::Bear
+                    | quadruped_medium::Species::Bristleback
+                    | quadruped_medium::Species::Bonerattler => 0.0,
+                    quadruped_medium::Species::Cattle => 0.1,
+                    quadruped_medium::Species::Frostfang => 0.07,
+                    quadruped_medium::Species::Grolgar => 0.0,
+                    quadruped_medium::Species::Highland => 0.05,
+                    quadruped_medium::Species::Kelpie => 0.35,
+                    quadruped_medium::Species::Lion => 0.0,
+                    quadruped_medium::Species::Moose => 0.15,
+                    quadruped_medium::Species::Panda => 0.35,
+                    quadruped_medium::Species::Saber
+                    | quadruped_medium::Species::Tarasque
+                    | quadruped_medium::Species::Tiger => 0.0,
+                    quadruped_medium::Species::Tuskram => 0.1,
+                    quadruped_medium::Species::Wolf => 0.2,
+                    quadruped_medium::Species::Yak => 0.09,
+                    // T3A
+                    quadruped_medium::Species::Akhlut
+                    | quadruped_medium::Species::Catoblepas
+                    | quadruped_medium::Species::ClaySteed
+                    | quadruped_medium::Species::Dreadhorn
+                    | quadruped_medium::Species::Hirdrasil
+                    | quadruped_medium::Species::Mammoth
+                    | quadruped_medium::Species::Ngoubou
+                    | quadruped_medium::Species::Roshwalr => 0.0,
+                    _ => 0.15,
                 },
                 Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-                    quadruped_low::Species::Salamander | quadruped_low::Species::Elbst => 0.2,
-                    quadruped_low::Species::Monitor => 0.3,
-                    quadruped_low::Species::Pangolin => 0.6,
-                    quadruped_low::Species::Tortoise => 0.2,
-                    quadruped_low::Species::Rocksnapper => 0.05,
-                    quadruped_low::Species::Rootsnapper => 0.05,
-                    quadruped_low::Species::Reefsnapper => 0.05,
-                    quadruped_low::Species::Asp => 0.05,
-                    quadruped_low::Species::HermitAlligator => 0.0,
+                    // T1
+                    quadruped_low::Species::Pangolin => 0.3,
+                    // T2,
+                    quadruped_low::Species::Tortoise => 0.1,
+                    // There are a lot of hostile, solo entities.
                     _ => 0.0,
                 },
                 Body::BipedSmall(biped_small) => match biped_small.species {
@@ -334,7 +358,8 @@ impl<'a> From<&'a Body> for Psyche {
                     biped_small::Species::Husk
                     | biped_small::Species::Boreal
                     | biped_small::Species::Clockwork
-                    | biped_small::Species::Flamekeeper => 0.0,
+                    | biped_small::Species::Flamekeeper
+                    | biped_small::Species::Irrwurz => 0.0,
 
                     _ => 0.5,
                 },
@@ -366,21 +391,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::Theropod(_) => 0.0,
                 Body::Ship(_) => 0.0,
                 Body::Dragon(_) => 0.0,
-                Body::Arthropod(arthropod) => match arthropod.species {
-                    arthropod::Species::Tarantula => 0.0,
-                    arthropod::Species::Blackwidow => 0.0,
-                    arthropod::Species::Antlion => 0.0,
-                    arthropod::Species::Hornbeetle => 0.1,
-                    arthropod::Species::Leafbeetle => 0.1,
-                    arthropod::Species::Stagbeetle => 0.1,
-                    arthropod::Species::Weevil => 0.0,
-                    arthropod::Species::Cavespider => 0.0,
-                    arthropod::Species::Moltencrawler => 0.2,
-                    arthropod::Species::Mosscrawler => 0.2,
-                    arthropod::Species::Sandcrawler => 0.2,
-                    arthropod::Species::Dagonite => 0.2,
-                    arthropod::Species::Emberfly => 0.1,
-                },
+                Body::Arthropod(_) => 0.0,
                 Body::Crustacean(_) => 0.0,
             },
             sight_dist: match body {

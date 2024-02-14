@@ -4,11 +4,11 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 1, "common.entity.wild.aggressive.snow_raptor")),
-                (1, (1, 1, "common.entity.wild.aggressive.wendigo")),
-                (1, (2, 6, "common.entity.wild.peaceful.mammoth")),
-                (1, (1, 3, "common.entity.wild.peaceful.yak")),
-                (1, (1, 1, "common.entity.wild.aggressive.mountain_troll")),
+                (3, (2, 4, "common.entity.wild.aggressive.snow_raptor")),
+                (2, (1, 1, "common.entity.wild.aggressive.wendigo")),
+                (1, (2, 3, "common.entity.wild.peaceful.mammoth")),
+                (3, (2, 6, "common.entity.wild.peaceful.yak")),
+                (2, (1, 1, "common.entity.wild.aggressive.mountain_troll")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

@@ -5,16 +5,16 @@ SpawnEntry (
         Pack(
             groups: [
                 // Aggressive
-                (5, (1, 1, "common.entity.wild.aggressive.weevil")),
+                (4, (1, 1, "common.entity.wild.aggressive.weevil")),
                 // Peaceful
                 (5, (1, 1, "common.entity.wild.peaceful.skunk")),
                 (5, (1, 4, "common.entity.wild.peaceful.crow")),
-                (5, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
-                (5, (1, 7, "common.entity.wild.peaceful.deer")),
+                (4, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
+                (4, (1, 7, "common.entity.wild.peaceful.deer")),
                 (5, (1, 7, "common.entity.wild.peaceful.rabbit")),
                 (5, (1, 2, "common.entity.wild.peaceful.squirrel")),
-                (5, (1, 1, "common.entity.wild.peaceful.mossy_snail")),
-                (5, (1, 1, "common.entity.wild.peaceful.treant_sapling")),
+                (4, (1, 1, "common.entity.wild.peaceful.mossy_snail")),
+                (4, (1, 1, "common.entity.wild.peaceful.treant_sapling")),
                 (5, (1, 1, "common.entity.wild.peaceful.raccoon")),
                 (5, (1, 1, "common.entity.wild.peaceful.turtle")),
                 (5, (1, 2, "common.entity.wild.peaceful.frog")),
@@ -27,11 +27,13 @@ SpawnEntry (
         Pack(
             groups: [
                 // Solitary
-                (1, (1, 1, "common.entity.wild.peaceful.forest_fox")),
+                (20, (1, 1, "common.entity.wild.peaceful.forest_fox")),
+                (1, (1, 1, "common.entity.wild.peaceful.hirdrasil")),
                 // Pack
-                (1, (1, 3, "common.entity.wild.peaceful.rat")),
-                (1, (1, 3, "common.entity.wild.peaceful.squirrel")),
-                (1, (1, 3, "common.entity.wild.peaceful.raccoon")),
+                (20, (1, 3, "common.entity.wild.peaceful.rat")),
+                (20, (1, 3, "common.entity.wild.peaceful.squirrel")),
+                (20, (1, 3, "common.entity.wild.peaceful.raccoon")),
+                (20, (1, 2, "common.entity.wild.peaceful.fungome")),
             ],
             spawn_mode: Land,
             day_period: [Night],

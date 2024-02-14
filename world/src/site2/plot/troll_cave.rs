@@ -82,7 +82,7 @@ impl Structure for TrollCave {
         // bat
         painter.spawn(
             EntityInfo::at((center - 2).with_z(base + 5).as_()).with_asset_expect(
-                "common.entity.wild.aggressive.bat",
+                "common.entity.wild.peaceful.bat",
                 &mut thread_rng,
                 None,
             ),

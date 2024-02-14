@@ -116,6 +116,7 @@ make_case_elim!(
         FireRainDrop = 101,
         ArrowClay = 102,
         GrenadeClay = 103,
+        Pebble = 104,
     }
 );
 
@@ -126,7 +127,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 104] = [
+pub const ALL_OBJECTS: [Body; 105] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -231,6 +232,7 @@ pub const ALL_OBJECTS: [Body; 104] = [
     Body::FireRainDrop,
     Body::ArrowClay,
     Body::GrenadeClay,
+    Body::Pebble,
 ];
 
 impl From<Body> for super::Body {
@@ -344,6 +346,7 @@ impl Body {
             Body::FireRainDrop => "fire_rain_drop",
             Body::ArrowClay => "arrow_clay",
             Body::GrenadeClay => "grenade_clay",
+            Body::Pebble => "pebble",
         }
     }
 
@@ -379,6 +382,7 @@ impl Body {
             Body::Scarecrow => 900.0,
             Body::TrainingDummy => 2000.0,
             Body::Snowball => 0.9 * WATER_DENSITY,
+            Body::Pebble => 1000.0,
             // let them sink
             _ => 1.1 * WATER_DENSITY,
         };
@@ -393,7 +397,7 @@ impl Body {
             Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow | Body::Dart => {
                 0.003
             },
-            Body::ArrowClay => 1.0,
+            Body::ArrowClay | Body::Pebble => 1.0,
             Body::SpectralSwordSmall => 0.5,
             Body::SpectralSwordLarge => 50.0,
             Body::BedBlue => 50.0,
@@ -510,6 +514,7 @@ impl Body {
             Body::Mine => Vec3::new(0.8, 0.8, 0.5),
             Body::LightningBolt | Body::SpearIcicle => Vec3::new(1.0, 1.0, 1.0),
             Body::FireRainDrop => Vec3::new(0.01, 0.01, 0.02),
+            Body::Pebble => Vec3::new(0.4, 0.4, 0.4),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

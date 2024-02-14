@@ -97,7 +97,7 @@ impl Animation for ComboAnimation {
                 },
                 Some(
                     "common.abilities.custom.asp.singlestrike"
-                    | "comon.abilities.custom.maneater.singlestrike"
+                    | "common.abilities.custom.maneater.singlestrike"
                     | "common.abilities.custom.quadlowbasic.singlestrike",
                 ) => {
                     quadruped_low_alpha(

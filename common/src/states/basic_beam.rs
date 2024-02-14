@@ -82,6 +82,17 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.4);
         handle_jump(data, output_events, &mut update, 1.0);
 
+        // Velocity relative to the current ground
+        let rel_vel = data.vel.0 - data.physics.ground_vel;
+        // Gets offsets
+        let body_offsets = beam_offsets(
+            data.body,
+            data.inputs.look_dir,
+            update.ori.look_vec(),
+            rel_vel,
+            data.physics.on_ground,
+        );
+
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
@@ -140,13 +151,14 @@ impl CharacterBehavior for Data {
                         hit_durations: HashMap::new(),
                         specifier: self.static_data.specifier,
                         bezier: QuadraticBezier3 {
-                            start: data.pos.0,
-                            ctrl: data.pos.0,
-                            end: data.pos.0,
+                            start: data.pos.0 + body_offsets,
+                            ctrl: data.pos.0 + body_offsets,
+                            end: data.pos.0 + body_offsets,
                         },
                     });
                     // Build up
                     update.character = CharacterState::BasicBeam(Data {
+                        beam_offset: body_offsets,
                         timer: Duration::default(),
                         stage_section: StageSection::Action,
                         ..*self
@@ -184,16 +196,6 @@ impl CharacterBehavior for Data {
                         ))
                         .prerotated(pitch)
                     };
-                    // Velocity relative to the current ground
-                    let rel_vel = data.vel.0 - data.physics.ground_vel;
-                    // Gets offsets
-                    let body_offsets = beam_offsets(
-                        data.body,
-                        data.inputs.look_dir,
-                        update.ori.look_vec(),
-                        rel_vel,
-                        data.physics.on_ground,
-                    );
 
                     update.character = CharacterState::BasicBeam(Data {
                         beam_offset: body_offsets,

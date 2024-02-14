@@ -1,9 +1,9 @@
 SelfBuff(
-    buildup_duration: 0.4,
-    cast_duration: 0.8,
-    recover_duration: 0.3,
+    buildup_duration: 1.1,
+    cast_duration: 0.4,
+    recover_duration: 0.7,
     buff_kind: ProtectingWard,
-    buff_strength: 1.5,
-    buff_duration: Some(10.0),
+    buff_strength: 0.32,
+    buff_duration: Some(6.0),
     energy_cost: 0,
 )

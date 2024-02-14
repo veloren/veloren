@@ -6,7 +6,7 @@ ItemDef(
         hands: Two,
         stats: (
             equip_time_secs: 0.01,
-            power: 0.5,
+            power: 1.0,
             effect_power: 1.0,
             speed: 1.0,
             range: 1.0,
@@ -14,7 +14,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: Epic,
+    quality: High,
     tags: [],
     ability_spec: Some(Custom("Antlion")),
 )

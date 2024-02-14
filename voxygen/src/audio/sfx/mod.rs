@@ -611,7 +611,9 @@ impl SfxMgr {
                         audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                     }
                 },
-                Body::Object(object::Body::AdletTrap | object::Body::Mine) => {
+                Body::Object(
+                    object::Body::AdletTrap | object::Body::Mine | object::Body::Pebble,
+                ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);
                         audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);

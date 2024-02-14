@@ -1,15 +1,15 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0.6,
-    recover_duration: 1.0,
+    buildup_duration: 1.0,
+    recover_duration: 0.6,
     projectile: Frostball(
-        damage: 30.0,
-        radius: 3.0,
+        damage: 35.0,
+        radius: 4.0,
         min_falloff: 0.1,
     ),
     projectile_body: Object(IceBomb),
     projectile_speed: 25.0,
-    num_projectiles: 3,
-    projectile_spread: 0.07,
-    move_efficiency: 0.75,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+    move_efficiency: 0.3,
 )

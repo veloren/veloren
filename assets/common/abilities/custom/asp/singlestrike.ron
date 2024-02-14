@@ -2,23 +2,23 @@ ComboMelee2(
     strikes: [
         (
             melee_constructor: (
-                kind: Bash(
-                    damage: 28,
-                    poise: 28,
+                kind: Stab(
+                    damage: 31,
+                    poise: 10,
                     knockback: 3,
                     energy_regen: 0,
                 ),
-                range: 3.5,
-                angle: 60.0,
+                range: 4.0,
+                angle: 30.0,
             ),
-            buildup_duration: 1.2,
-            swing_duration: 0.1,
+            buildup_duration: 0.9,
+            swing_duration: 0.5,
             hit_timing: 0.5,
             recover_duration: 0.4,
             movement: (
-                swing: Some(Forward(2.0)),
+                swing: Some(Forward(0.1)),
             ),
-            ori_modifier: 0.65,
+            ori_modifier: 0.55,
         ),
     ],
     energy_cost_per_strike: 0,

@@ -5,13 +5,13 @@ SpawnEntry (
         Pack(
             groups: [
                 // Casual
-                (100, (1, 1, "common.entity.wild.aggressive.sandshark")),
-                (80, (1, 1, "common.entity.wild.peaceful.eagle")),
+                (5, (1, 1, "common.entity.wild.aggressive.sandshark")),
+                (4, (1, 1, "common.entity.wild.peaceful.eagle")),
                 // Rare
-                (20, (1, 1, "common.entity.wild.aggressive.archaeos")),
-                (20, (1, 1, "common.entity.wild.aggressive.ntouka")),
-                (20, (1, 1, "common.entity.wild.aggressive.tarantula")),
-                (20, (1, 1, "common.entity.wild.aggressive.ogre")),
+                (1, (1, 1, "common.entity.wild.aggressive.archaeos")),
+                (1, (1, 1, "common.entity.wild.aggressive.ntouka")),
+                (1, (1, 1, "common.entity.wild.aggressive.tarantula")),
+                (2, (1, 1, "common.entity.wild.aggressive.ogre")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
