@@ -6,8 +6,8 @@ use super::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle,
             postprocess, rope, shadow, skybox, sprite, terrain, trail, ui,
         },
-        AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, ReflectionMode,
-        RenderError, ShadowMode,
+        AaMode, BloomMode, CloudMode, ExperimentalShader, FluidMode, LightingMode, PipelineModes,
+        ReflectionMode, RenderError, ShadowMode,
     },
     shaders::Shaders,
     ImmutableLayouts, Layouts,
@@ -283,25 +283,15 @@ impl ShaderModules {
 
         let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
         let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-        use std::sync::OnceLock;
-        static OPTS: OnceLock<bool> = OnceLock::new();
-        let shaderc_opts = *OPTS.get_or_init(|| {
-            match std::env::var("VOXYGEN_SHADERC_OPTS").as_ref().map(|s| &**s) {
-                Ok("0" | "no") => {
-                    info!("Disabled optimization by shaderc.");
-                    false
-                },
-                Ok("1" | "yes") | Ok(_) | Err(_) => {
-                    info!("Enabled optimization by shaderc.");
-                    true
-                },
-            }
-        });
-
+        let shaderc_opts = !pipeline_modes
+            .experimental_shaders
+            .contains(&ExperimentalShader::DisableShadercOptimization);
         if shaderc_opts {
             options.set_optimization_level(OptimizationLevel::Performance);
+            info!("Enabled optimization by shaderc.");
         } else {
             options.set_optimization_level(OptimizationLevel::Zero);
+            info!("Disabled optimization by shaderc.");
         }
         options.set_forced_version_profile(430, shaderc::GlslProfile::Core);
         // options.set_generate_debug_info();
