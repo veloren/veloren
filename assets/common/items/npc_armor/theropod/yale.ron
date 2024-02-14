@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Yale Armor",
+    legacy_description: "Floofy to to fend off the cold.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(5.0)),
+            poise_resilience: Some(Normal(20.0)),
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

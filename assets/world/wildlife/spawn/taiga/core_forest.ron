@@ -12,7 +12,7 @@ SpawnEntry (
         Pack(
             groups: [
                 (1, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
-                (1, (1, 1, "common.entity.wild.aggressive.irrwurz")),
+                (4, (1, 1, "common.entity.wild.aggressive.irrwurz")),
             ],
             spawn_mode: Land,
             day_period: [Night],

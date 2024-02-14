@@ -92,7 +92,7 @@ impl Animation for ComboAnimation {
             next.leg_bl.position = Vec3::new(-s_a.leg_b.0, s_a.leg_b.1, s_a.leg_b.2);
             next.leg_br.position = Vec3::new(s_a.leg_b.0, s_a.leg_b.1, s_a.leg_b.2);
         } else {
-            next.chest.scale = Vec3::one() / s_a.scaler;
+            next.chest.scale = Vec3::one() * s_a.scaler;
             next.chest.orientation = Quaternion::rotation_x(movement2abs * 0.3)
                 * Quaternion::rotation_z((movement1abs * 4.0 * PI).sin() * 0.02);
 

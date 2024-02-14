@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Crocodylia Armor",
+    legacy_description: "Scaly.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(36.0)),
+            poise_resilience: Some(Normal(15.0)),
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

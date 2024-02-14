@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Drake Armor",
+    legacy_description: "Adaptive to temperature.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(111.0)),
+            poise_resilience: Some(Normal(20.0)),
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

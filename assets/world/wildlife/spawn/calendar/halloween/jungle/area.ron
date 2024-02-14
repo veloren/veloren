@@ -5,7 +5,7 @@ SpawnEntry (
         Pack(
             groups: [
                 (1, (1, 1, "common.entity.calendar.halloween.aggressive.halloween_harvester")),
-                (4, (4, 8, "common.entity.wild.aggressive.bat")),
+                (4, (4, 8, "common.entity.wild.peaceful.bat")),
                 (4, (3, 6, "common.entity.calendar.halloween.aggressive.trickster")),
             ],
             spawn_mode: Land,

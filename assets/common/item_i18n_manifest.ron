@@ -25,6 +25,21 @@
             "common.items.npc_armor.quadruped_low.shell",
         ): "common-items-npc_armor-quadruped_low-shell",
         Simple(
+            "common.items.npc_armor.quadruped_low.basilisk",
+        ): "common-items-npc_armor-quadruped_low-basilisk",
+        Simple(
+            "common.items.npc_armor.quadruped_low.crocodylia",
+        ): "common-items-npc_armor-quadruped_low-crocodylia",
+        Simple(
+            "common.items.npc_armor.quadruped_low.drake",
+        ): "common-items-npc_armor-quadruped_low-drake",
+        Simple(
+            "common.items.npc_armor.quadruped_low.sandshark",
+        ): "common-items-npc_armor-quadruped_low-sandshark",
+        Simple(
+            "common.items.npc_armor.quadruped_low.snapper",
+        ): "common-items-npc_armor-quadruped_low-snapper",
+        Simple(
             "common.items.npc_armor.bird_large.phoenix",
         ): "common-items-npc_armor-bird_large-phoenix",
         Simple(
@@ -520,6 +535,12 @@
             "common.items.npc_armor.arthropod.generic",
         ): "common-items-npc_armor-arthropod-generic",
         Simple(
+            "common.items.npc_armor.arthropod.leafbeetle",
+        ): "common-items-npc_armor-arthropod-leafbeetle",
+        Simple(
+            "common.items.npc_armor.arthropod.weevil",
+        ): "common-items-npc_armor-arthropod-weevil",
+        Simple(
             "common.items.npc_armor.quadruped_medium.frostfang",
         ): "common-items-npc_armor-quadruped_medium-frostfang",
         Simple(
@@ -529,8 +550,41 @@
             "common.items.npc_armor.quadruped_medium.claysteed",
         ): "common-items-npc_armor-quadruped_medium-claysteed",
         Simple(
+            "common.items.npc_armor.quadruped_medium.bonerattler",
+        ): "common-items-npc_armor-quadruped_medium-bonerattler",
+        Simple(
+            "common.items.npc_armor.quadruped_medium.broad",
+        ): "common-items-npc_armor-quadruped_medium-broad",
+        Simple(
+            "common.items.npc_armor.quadruped_medium.catoblepas",
+        ): "common-items-npc_armor-quadruped_medium-catoblepas",
+        Simple(
+            "common.items.npc_armor.quadruped_medium.dreadhorn",
+        ): "common-items-npc_armor-quadruped_medium-dreadhorn",
+        Simple(
+            "common.items.npc_armor.quadruped_medium.equus",
+        ): "common-items-npc_armor-quadruped_medium-equus",
+        Simple(
+            "common.items.npc_armor.quadruped_medium.hirdrasil",
+        ): "common-items-npc_armor-quadruped_medium-hirdrasil",
+        Simple(
+            "common.items.npc_armor.quadruped_small.boar",
+        ): "common-items-npc_armor-quadruped_small-boar",
+        Simple(
+            "common.items.npc_armor.quadruped_small.hyena",
+        ): "common-items-npc_armor-quadruped_small-hyena",
+        Simple(
+            "common.items.npc_armor.quadruped_small.mossysnail",
+        ): "common-items-npc_armor-quadruped_small-mossysnail",
+        Simple(
             "common.items.npc_armor.theropod.rugged",
         ): "common-items-npc_armor-theropod-rugged",
+        Simple(
+            "common.items.npc_armor.theropod.raptor",
+        ): "common-items-npc_armor-theropod-raptor",
+        Simple(
+            "common.items.npc_armor.theropod.yale",
+        ): "common-items-npc_armor-theropod-yale",
         Simple(
             "common.items.npc_armor.back.backpack_blue",
         ): "armor-misc-back-backpack",
@@ -2407,12 +2461,6 @@
             "common.items.npc_weapons.unique.akhlut",
         ): "common-items-npc_weapons-unique-akhlut",
         Simple(
-            "common.items.npc_weapons.unique.asp",
-        ): "common-items-npc_weapons-unique-asp",
-        Simple(
-            "common.items.npc_weapons.unique.basilisk",
-        ): "common-items-npc_weapons-unique-basilisk",
-        Simple(
             "common.items.npc_weapons.unique.beast_claws",
         ): "common-items-npc_weapons-unique-beast_claws",
         Simple(
@@ -2452,9 +2500,6 @@
             "common.items.npc_weapons.unique.dagon",
         ): "common-items-npc_weapons-unique-dagon",
         Simple(
-            "common.items.npc_weapons.unique.deadwood",
-        ): "common-items-npc_weapons-unique-deadwood",
-        Simple(
             "common.items.npc_weapons.unique.driggle",
         ): "common-items-npc_weapons-unique-driggle",
         Simple(
@@ -2491,20 +2536,74 @@
             "common.items.npc_weapons.unique.husk_brute",
         ): "common-items-npc_weapons-unique-husk_brute",
         Simple(
-            "common.items.npc_weapons.unique.icedrake",
-        ): "common-items-npc_weapons-unique-icedrake",
-        Simple(
             "common.items.npc_weapons.unique.irrwurz",
         ): "common-items-npc_weapons-unique-irrwurz",
-        Simple(
-            "common.items.npc_weapons.unique.maneater",
-        ): "common-items-npc_weapons-unique-maneater",
         Simple(
             "common.items.npc_weapons.unique.mossysnail",
         ): "common-items-npc_weapons-unique-mossysnail",
         Simple(
             "common.items.npc_weapons.unique.organ",
         ): "common-items-npc_weapons-unique-organ",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.hakulaq",
+        ): "common-items-npc_weapons-unique-quadruped_low-hakulaq",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.tortoise",
+        ): "common-items-npc_weapons-unique-quadruped_low-tortoise",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.alpaca",
+        ): "common-items-npc_weapons-unique-quadruped_medium-alpaca",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.antelope",
+        ): "common-items-npc_weapons-unique-quadruped_medium-antelope",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.donkey",
+        ): "common-items-npc_weapons-unique-quadruped_medium-donkey",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.grolgar",
+        ): "common-items-npc_weapons-unique-quadruped_medium-grolgar",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.horse",
+        ): "common-items-npc_weapons-unique-quadruped_medium-horse",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.moose",
+        ): "common-items-npc_weapons-unique-quadruped_medium-moose",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.mouflon",
+        ): "common-items-npc_weapons-unique-quadruped_medium-mouflon",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.asp",
+        ): "common-items-npc_weapons-unique-quadruped_low-asp",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.basilisk",
+        ): "common-items-npc_weapons-unique-quadruped_low-basilisk",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.deadwood",
+        ): "common-items-npc_weapons-unique-quadruped_low-deadwood",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.icedrake",
+        ): "common-items-npc_weapons-unique-quadruped_low-icedrake",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.lavadrake",
+        ): "common-items-npc_weapons-unique-quadruped_low-lavadrake",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_low.maneater",
+        ): "common-items-npc_weapons-unique-quadruped_low-maneater",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_small.boar",
+        ): "common-items-npc_weapons-unique-quadruped_small-boar",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_small.hyena",
+        ): "common-items-npc_weapons-unique-quadruped_small-hyena",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_small.rodent",
+        ): "common-items-npc_weapons-unique-quadruped_small-rodent",
+        Simple(
+            "common.items.npc_weapons.unique.theropod.yale",
+        ): "common-items-npc_weapons-unique-theropod-yale",
+        Simple(
+            "common.items.npc_weapons.unique.theropod",
+        ): "common-items-npc_weapons-unique-theropod",
         Simple(
             "common.items.npc_weapons.unique.quadlowbasic",
         ): "common-items-npc_weapons-unique-quadlowbasic",
@@ -2622,6 +2721,9 @@
         Simple(
             "common.items.npc_weapons.unique.arthropods.leafbeetle",
         ): "common-items-npc_weapons-unique-arthropods-leafbeetle",
+        Simple(
+            "common.items.npc_weapons.unique.arthropods.moltencrawler",
+        ): "common-items-npc_weapons-unique-arthropods-moltencrawler",
         Simple(
             "common.items.npc_weapons.unique.arthropods.mosscrawler",
         ): "common-items-npc_weapons-unique-arthropods-mosscrawler",

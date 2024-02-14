@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Raptor Hide",
+    legacy_description: "stronk.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(49.0)),
+            poise_resilience: Some(Normal(15.0)),
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

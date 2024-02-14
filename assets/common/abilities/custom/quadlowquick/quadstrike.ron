@@ -11,14 +11,14 @@ ComboMelee2(
                 range: 2.5,
                 angle: 30.0,
             ),
-            buildup_duration: 1.2,
-            swing_duration: 0.1,
+            buildup_duration: 0.75,
+            swing_duration: 0.45,
             hit_timing: 0.5,
             recover_duration: 0.2,
             movement: (
-                swing: Some(Forward(1.5)),
+                swing: Some(Forward(0.3)),
             ),
-            ori_modifier: 0.8,
+            ori_modifier: 0.7,
         ),
         (
             melee_constructor: (
@@ -31,14 +31,14 @@ ComboMelee2(
                 range: 2.5,
                 angle: 30.0,
             ),
-            buildup_duration: 0.3,
-            swing_duration: 0.07,
+            buildup_duration: 0.45,
+            swing_duration: 0.3,
             hit_timing: 0.5,
             recover_duration: 0.2,
             movement: (
-                swing: Some(Forward(0.8)),
+                swing: Some(Forward(0.08)),
             ),
-            ori_modifier: 0.8,
+            ori_modifier: 0.7,
         ),
         (
             melee_constructor: (
@@ -52,13 +52,13 @@ ComboMelee2(
                 angle: 30.0,
             ),
             buildup_duration: 0.4,
-            swing_duration: 0.07,
+            swing_duration: 0.3,
             hit_timing: 0.5,
             recover_duration: 0.2,
             movement: (
-                swing: Some(Forward(0.8)),
+                swing: Some(Forward(0.08)),
             ),
-            ori_modifier: 0.8,
+            ori_modifier: 0.7,
         ),
         (
             melee_constructor: (
@@ -72,13 +72,13 @@ ComboMelee2(
                 angle: 30.0,
             ),
             buildup_duration: 0.4,
-            swing_duration: 0.07,
+            swing_duration: 0.3,
             hit_timing: 0.5,
             recover_duration: 0.2,
             movement: (
-                swing: Some(Forward(0.8)),
+                swing: Some(Forward(0.08)),
             ),
-            ori_modifier: 0.8,
+            ori_modifier: 0.7,
         ),
     ],
     energy_cost_per_strike: 0,

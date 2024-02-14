@@ -2,7 +2,7 @@
 (
     name: Automatic,
     body: RandomWith("bat"),
-    alignment: Alignment(Enemy),
+    alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.bat"),
     inventory: (
         loadout: FromBody,

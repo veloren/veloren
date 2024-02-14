@@ -4,8 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Chest,
         stats: Direct((
-            protection: Some(Normal(60.0)),
-            poise_resilience: Some(Normal(1.0)),
+            protection: Some(Normal(83.0)),
+            poise_resilience: Some(Normal(20.0)),
         )),
     )),
     quality: Legendary,

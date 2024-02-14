@@ -19,10 +19,10 @@ DashMelee(
     ),
     energy_drain: 0,
     forward_speed: 1.8,
-    buildup_duration: 1.5,
+    buildup_duration: 0.85,
     charge_duration: 1.2,
-    swing_duration: 0.1,
+    swing_duration: 0.65,
     recover_duration: 2.0,
-    ori_modifier: 0.3,
+    ori_modifier: 0.1,
     charge_through: false,
 )

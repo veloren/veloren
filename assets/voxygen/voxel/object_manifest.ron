@@ -1041,4 +1041,14 @@
             central: ("armor.empty"),
         )
     ),
+    Pebble: (
+        bone0: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("weapon.projectile.pebble"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

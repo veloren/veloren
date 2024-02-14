@@ -115,12 +115,6 @@ common-items-npc_weapons-sword-haniwa_general_sword = Haniwa General Sword
 common-items-npc_weapons-unique-akhlut = Quad Med Basic
     .desc = testing123
 
-common-items-npc_weapons-unique-asp = Asp
-    .desc = testing123
-
-common-items-npc_weapons-unique-basilisk = Basilisk
-    .desc = testing123
-
 common-items-npc_weapons-unique-beast_claws = Beast Claws
     .desc = Was attached to a beast.
 
@@ -331,6 +325,9 @@ common-items-npc_weapons-unique-arthropods-hornbeetle = Horn Beetle
 common-items-npc_weapons-unique-arthropods-leafbeetle = Leaf Beetle
     .desc = testing123
 
+common-items-npc_weapons-unique-arthropods-moltencrawler = Molten Crawler
+    .desc = testing123
+
 common-items-npc_weapons-unique-arthropods-mosscrawler = Moss Crawler
     .desc = testing123
 
@@ -338,6 +335,63 @@ common-items-npc_weapons-unique-arthropods-tarantula = Tarantula
     .desc = testing123
 
 common-items-npc_weapons-unique-arthropods-weevil = Weevil
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-asp = Asp
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-basilisk = Basilisk
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-deadwood = Deadwood
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-hakulaq = Hakulaq
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-icedrake = Ice Drake
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-lavadrake = Lava Drake
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-maneater = Maneater
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_low-tortoise = Tortoise
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-alpaca = Alpaca
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-antelope = Antelope
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-donkey = Donkey
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-grolgar = Grolgar
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-horse = Horse
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-moose = Moose
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-mouflon = Mouflon
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_small-boar = Boar
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_small-hyena = Hyena
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_small-rodent = Rodent
+    .desc = testing123
+
+common-items-npc_weapons-unique-theropod-yale = Yale
     .desc = testing123
 
 common-items-npc_weapons-hammer-bipedlarge-cultist = Giant Cultist Warhammer

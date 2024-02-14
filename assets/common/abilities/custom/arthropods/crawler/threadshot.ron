@@ -1,0 +1,19 @@
+BasicBeam(
+    buildup_duration: 0.55,
+    recover_duration: 0.8,
+    beam_duration: 1.0,
+    damage: 1.32,
+    tick_rate: 15.0,
+    range: 30.0,
+    max_angle: 1.0,
+    damage_effect: Some(Buff((
+        kind: Frozen,
+        dur_secs: 4.0,
+        strength: Value(1.0),
+        chance: 1.0,
+    ))),
+    energy_regen: 0.0,
+    energy_drain: 0,
+    ori_rate: 0.95,
+    specifier: WebStrand,
+)

@@ -3,7 +3,7 @@ BasicRanged(
     buildup_duration: 1.5,
     recover_duration: 1.0,
      projectile: Magicball(
-        damage: 8.0,
+        damage: 22.0,
         radius: 3.0,
         energy_regen: 0,
         min_falloff: 0.5,

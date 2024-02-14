@@ -4,13 +4,13 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (5, (1, 2, "common.entity.wild.aggressive.male_lion")),
-                (5, (1, 3, "common.entity.wild.aggressive.hyena")),
-                (5, (3, 6, "common.entity.wild.peaceful.zebra")),
-                (5, (3, 6, "common.entity.wild.peaceful.antelope")),
-                (5, (1, 1, "common.entity.wild.peaceful.porcupine")),
-                (5, (1, 1, "common.entity.wild.peaceful.pangolin")),
-                (5, (1, 1, "common.entity.wild.aggressive.tarantula")),
+                (5, (2, 3, "common.entity.wild.aggressive.male_lion")),
+                (5, (2, 5, "common.entity.wild.aggressive.hyena")),
+                (6, (3, 6, "common.entity.wild.peaceful.zebra")),
+                (6, (3, 6, "common.entity.wild.peaceful.antelope")),
+                (6, (1, 1, "common.entity.wild.peaceful.porcupine")),
+                (6, (1, 1, "common.entity.wild.peaceful.pangolin")),
+                (4, (1, 1, "common.entity.wild.aggressive.tarantula")),
                 (1, (1, 1, "common.entity.wild.aggressive.ngoubou")),
             ],
             spawn_mode: Land,

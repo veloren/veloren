@@ -85,6 +85,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated wgpu. Now supports OpenGL. Dx11 no longer supported.
 - Changes center_cursor to be reset_cursor_position so the cursor is effectively grabbed
 - Plugin interface based on WASI 0.2 WIT, wasmtime executes these components
+- Balance changes; Smoother entity progression consisting of larger variety in (effective) health pools, dps, entity flee_health alterations, and minor weight distribution changes for entity spawns.
+- Made power of weapon tiers scale non-linearly.
+- Sword Changes; Pommel Strike has been nerfed -> increased energy cost, increased _durations, and decreased poise damage. Heavy Sweep has been nerfed -> decreased poise damage and stun vulnerability damage. Pillar Thrust has been altered -> decreased maximum base damage with an increase in stun vulnerability damage.
 
 ### Removed
 - Medium and large potions from all loot tables

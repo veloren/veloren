@@ -7,22 +7,22 @@ DiveMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Slash(
-            damage: 25,
+            damage: 16,
             poise: 40,
             knockback: 0,
             energy_regen: 0,
         ),
         scaled: Some((
             kind: Slash(
-                damage: 10,
-                poise: 10,
+                damage: 8,
+                poise: 11,
                 knockback: 0,
                 energy_regen: 0,
             ))),
         range: 2.0,
         angle: 45.0,
         multi_target: Some(Normal),
-        damage_effect: Some(StunnedVulnerable(0.5)),
+        damage_effect: Some(StunnedVulnerable(0.9)),
     ),
     max_scaling: 3,
     meta: (

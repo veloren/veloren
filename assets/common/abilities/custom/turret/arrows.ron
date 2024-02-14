@@ -1,6 +1,6 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0.1,
+    buildup_duration: 1.2,
     recover_duration: 0.5,
     projectile: Arrow(
         damage: 30.0,

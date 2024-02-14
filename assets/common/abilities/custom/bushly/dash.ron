@@ -9,7 +9,7 @@ DashMelee(
         ),
         scaled: Some((
             kind: Bash(
-                damage: 6.0,
+                damage: 9.0,
                 poise: 20.0,
                 knockback: 6.0,
                 energy_regen: 0.0,

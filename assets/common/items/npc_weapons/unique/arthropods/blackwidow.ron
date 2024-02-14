@@ -14,7 +14,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: Epic,
+    quality: High,
     tags: [],
     ability_spec: Some(Custom("Black Widow")),
 )

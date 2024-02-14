@@ -464,7 +464,7 @@
     ),
     Custom("Quad Low Tail"): (
         primary: Simple(None, "common.abilities.custom.quadlowtail.charged"),
-        secondary: Simple(None, "common.abilities.custom.quadlowtail.triplestrike"),
+        secondary: Simple(None, "common.abilities.custom.quadlowtail.singlestrike"),
         abilities: [],
     ),
     Custom("Quad Low Quick"): (
@@ -496,7 +496,7 @@
     ),
     Custom("Mossy Snail"): (
         primary: Simple(None, "common.abilities.custom.mossy_snail.headbutt"),
-        secondary: Simple(None, "common.abilities.custom.mossy_snail.hastened"),
+        secondary: Simple(None, "common.abilities.custom.mossy_snail.harden"),
         abilities: [],
     ),
     Custom("Treant Sapling"): (
@@ -561,6 +561,13 @@
         secondary: Simple(None, "common.abilities.custom.arthropods.weevil.harden"),
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.weevil.threadshot"),
+        ],
+    ),
+    Custom("Crawler"): (
+        primary: Simple(None, "common.abilities.custom.arthropods.crawler.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.arthropods.crawler.harden"),
+        abilities: [
+            Simple(None, "common.abilities.custom.arthropods.crawler.threadshot"),
         ],
     ),
     Custom("Dagonite"): (

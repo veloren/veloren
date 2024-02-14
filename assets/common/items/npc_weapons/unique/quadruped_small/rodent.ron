@@ -1,20 +1,20 @@
 ItemDef(
-    legacy_name: "Ice Drake",
+    legacy_name: "Rodent",
     legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
         hands: Two,
         stats: (
             equip_time_secs: 0.01,
-            power: 1.0,
+            power: 0.07,
             effect_power: 1.0,
-            speed: 1.0,
-            range: 1.0,
+            speed: 1.8,
+            range: 0.8,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
         ),
     )),
     quality: Low,
     tags: [],
-    ability_spec: Some(Custom("Ice Drake")),
+    ability_spec: Some(Custom("Quad Small Basic")),
 )

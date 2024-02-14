@@ -563,20 +563,31 @@ fn default_main_tool(body: &Body) -> Item {
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-            quadruped_medium::Species::Wolf | quadruped_medium::Species::Grolgar => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadmedquick"),
-            ),
-            quadruped_medium::Species::Donkey
-            | quadruped_medium::Species::Horse
-            | quadruped_medium::Species::Zebra
-            | quadruped_medium::Species::Kelpie
-            | quadruped_medium::Species::Hirdrasil
-            | quadruped_medium::Species::Deer
-            | quadruped_medium::Species::Antelope
-            | quadruped_medium::Species::Llama
-            | quadruped_medium::Species::Alpaca => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedhoof",
+            quadruped_medium::Species::Wolf => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadmedquick",
             )),
+            // Below uniques still follow quadmedhoof just with stat alterations
+            quadruped_medium::Species::Alpaca | quadruped_medium::Species::Llama => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.quadruped_medium.alpaca",
+                ))
+            },
+            quadruped_medium::Species::Antelope | quadruped_medium::Species::Deer => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.quadruped_medium.antelope",
+                ))
+            },
+            quadruped_medium::Species::Donkey | quadruped_medium::Species::Zebra => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.quadruped_medium.donkey",
+                ))
+            },
+            // Provide Kelpie with unique water-centered abilities
+            quadruped_medium::Species::Horse | quadruped_medium::Species::Kelpie => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.quadruped_medium.horse",
+                ))
+            },
             quadruped_medium::Species::ClaySteed => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.claysteed",
             )),
@@ -587,12 +598,23 @@ fn default_main_tool(body: &Body) -> Item {
             | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedjump",
             )),
-            quadruped_medium::Species::Tuskram
-            | quadruped_medium::Species::Moose
+            // Below uniques still follow quadmedcharge just with stat alterations
+            quadruped_medium::Species::Moose | quadruped_medium::Species::Tuskram => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.quadruped_medium.moose",
+                ))
+            },
+            quadruped_medium::Species::Mouflon => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_medium.mouflon",
+            )),
+            quadruped_medium::Species::Akhlut
             | quadruped_medium::Species::Dreadhorn
             | quadruped_medium::Species::Mammoth
             | quadruped_medium::Species::Ngoubou => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedcharge",
+            )),
+            quadruped_medium::Species::Grolgar => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_medium.grolgar",
             )),
             quadruped_medium::Species::Roshwalr => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.roshwalr",
@@ -601,9 +623,6 @@ fn default_main_tool(body: &Body) -> Item {
             | quadruped_medium::Species::Cattle
             | quadruped_medium::Species::Yak => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedbasicgentle",
-            )),
-            quadruped_medium::Species::Akhlut => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.akhlut",
             )),
             quadruped_medium::Species::Frostfang => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.frostfang",
@@ -614,10 +633,10 @@ fn default_main_tool(body: &Body) -> Item {
         },
         Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
             quadruped_low::Species::Maneater => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.maneater",
+                "common.items.npc_weapons.unique.quadruped_low.maneater",
             )),
             quadruped_low::Species::Asp => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.asp",
+                "common.items.npc_weapons.unique.quadruped_low.asp",
             )),
             quadruped_low::Species::Dagon => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.dagon",
@@ -636,16 +655,22 @@ fn default_main_tool(body: &Body) -> Item {
                 Item::new_from_asset_expect("common.items.npc_weapons.unique.quadlowquick"),
             ),
             quadruped_low::Species::Lavadrake => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadlowbreathe",
+                "common.items.npc_weapons.unique.quadruped_low.lavadrake",
             )),
             quadruped_low::Species::Deadwood => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.deadwood",
+                "common.items.npc_weapons.unique.quadruped_low.deadwood",
             )),
             quadruped_low::Species::Basilisk => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.basilisk",
+                "common.items.npc_weapons.unique.quadruped_low.basilisk",
             )),
             quadruped_low::Species::Icedrake => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.icedrake",
+                "common.items.npc_weapons.unique.quadruped_low.icedrake",
+            )),
+            quadruped_low::Species::Hakulaq => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_low.hakulaq",
+            )),
+            quadruped_low::Species::Tortoise => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_low.tortoise",
             )),
             quadruped_low::Species::Driggle => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.driggle",
@@ -661,19 +686,35 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_small::Species::MossySnail => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.mossysnail",
             )),
-            _ => Some(Item::new_from_asset_expect(
+            quadruped_small::Species::Boar | quadruped_small::Species::Truffler => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadruped_small.boar"),
+            ),
+            quadruped_small::Species::Hyena => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_small.hyena",
+            )),
+            quadruped_small::Species::Beaver
+            | quadruped_small::Species::Dog
+            | quadruped_small::Species::Cat
+            | quadruped_small::Species::Goat
+            | quadruped_small::Species::Holladon
+            | quadruped_small::Species::Sheep
+            | quadruped_small::Species::Seal => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadsmallbasic",
+            )),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_small.rodent",
             )),
         },
         Body::Theropod(theropod) => match theropod.species {
             theropod::Species::Sandraptor
             | theropod::Species::Snowraptor
             | theropod::Species::Woodraptor
-            | theropod::Species::Axebeak => Some(Item::new_from_asset_expect(
+            | theropod::Species::Axebeak
+            | theropod::Species::Sunlizard => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.theropodbird",
             )),
             theropod::Species::Yale => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.theropodcharge",
+                "common.items.npc_weapons.unique.theropod.yale",
             )),
             theropod::Species::Dodarock => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.theropodsmall",
@@ -699,9 +740,12 @@ fn default_main_tool(body: &Body) -> Item {
                     "common.items.npc_weapons.unique.arthropods.mosscrawler",
                 ))
             },
-            arthropod::Species::Moltencrawler | arthropod::Species::Weevil => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.arthropods.weevil"),
-            ),
+            arthropod::Species::Moltencrawler => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropods.moltencrawler",
+            )),
+            arthropod::Species::Weevil => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropods.weevil",
+            )),
             arthropod::Species::Blackwidow => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropods.blackwidow",
             )),
@@ -1057,22 +1101,32 @@ impl LoadoutBuilder {
                 _ => None,
             },
             Body::QuadrupedLow(body) => match body.species {
-                quadruped_low::Species::Basilisk
-                | quadruped_low::Species::Asp
-                | quadruped_low::Species::Lavadrake
-                | quadruped_low::Species::Maneater
+                quadruped_low::Species::Basilisk => {
+                    Some("common.items.npc_armor.quadruped_low.basilisk")
+                },
+                quadruped_low::Species::Alligator
+                | quadruped_low::Species::Crocodile
+                | quadruped_low::Species::SeaCrocodile => {
+                    Some("common.items.npc_armor.quadruped_low.crocodylia")
+                },
+                quadruped_low::Species::Sandshark => {
+                    Some("common.items.npc_armor.quadruped_low.sandshark")
+                },
+                quadruped_low::Species::Reefsnapper
                 | quadruped_low::Species::Rocksnapper
-                | quadruped_low::Species::Rootsnapper
-                | quadruped_low::Species::Reefsnapper
-                | quadruped_low::Species::Sandshark
-                | quadruped_low::Species::Icedrake => {
-                    Some("common.items.npc_armor.quadruped_low.generic")
+                | quadruped_low::Species::Rootsnapper => {
+                    Some("common.items.npc_armor.quadruped_low.snapper")
+                },
+                quadruped_low::Species::Icedrake
+                | quadruped_low::Species::Lavadrake
+                | quadruped_low::Species::Mossdrake => {
+                    Some("common.items.npc_armor.quadruped_low.drake")
                 },
                 quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
                 quadruped_low::Species::Tortoise => {
                     Some("common.items.npc_armor.quadruped_low.shell")
                 },
-                _ => None,
+                _ => Some("common.items.npc_armor.quadruped_low.generic"),
             },
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Frostfang => {
@@ -1084,16 +1138,58 @@ impl LoadoutBuilder {
                 quadruped_medium::Species::ClaySteed => {
                     Some("common.items.npc_armor.quadruped_medium.claysteed")
                 },
-                _ => None,
+                quadruped_medium::Species::Hirdrasil | quadruped_medium::Species::Akhlut => {
+                    Some("common.items.npc_armor.quadruped_medium.hirdrasil")
+                },
+                quadruped_medium::Species::Catoblepas | quadruped_medium::Species::Ngoubou => {
+                    Some("common.items.npc_armor.quadruped_medium.catoblepas")
+                },
+                quadruped_medium::Species::Dreadhorn | quadruped_medium::Species::Mammoth => {
+                    Some("common.items.npc_armor.quadruped_medium.dreadhorn")
+                },
+                quadruped_medium::Species::Bonerattler | quadruped_medium::Species::Grolgar => {
+                    Some("common.items.npc_armor.quadruped_medium.bonerattler")
+                },
+                quadruped_medium::Species::Antelope
+                | quadruped_medium::Species::Donkey
+                | quadruped_medium::Species::Deer
+                | quadruped_medium::Species::Horse
+                | quadruped_medium::Species::Kelpie
+                | quadruped_medium::Species::Zebra => {
+                    Some("common.items.npc_armor.quadruped_medium.equus")
+                },
+                _ => Some("common.items.npc_armor.quadruped_medium.broad"),
             },
             Body::Theropod(body) => match body.species {
                 theropod::Species::Archaeos
-                | theropod::Species::Yale
                 | theropod::Species::Ntouka
                 | theropod::Species::Odonto => Some("common.items.npc_armor.theropod.rugged"),
+                theropod::Species::Yale => Some("common.items.npc_armor.theropod.yale"),
+                _ => Some("common.items.npc_armor.theropod.raptor"),
+            },
+            // TODO: Check over
+            Body::Arthropod(body) => match body.species {
+                arthropod::Species::Leafbeetle | arthropod::Species::Cavespider => {
+                    Some("common.items.npc_armor.arthropod.leafbeetle")
+                },
+                arthropod::Species::Weevil => Some("common.items.npc_armor.arthropod.weevil"),
+                arthropod::Species::Moltencrawler
+                | arthropod::Species::Mosscrawler
+                | arthropod::Species::Sandcrawler => None,
+                _ => Some("common.items.npc_armor.arthropod.generic"),
+            },
+            Body::QuadrupedSmall(body) => match body.species {
+                quadruped_small::Species::Boar | quadruped_small::Species::Truffler => {
+                    Some("common.items.npc_armor.quadruped_small.boar")
+                },
+                quadruped_small::Species::Hyena => {
+                    Some("common.items.npc_armor.quadruped_small.hyena")
+                },
+                quadruped_small::Species::MossySnail => {
+                    Some("common.items.npc_armor.quadruped_small.mossysnail")
+                },
                 _ => None,
             },
-            Body::Arthropod(_) => Some("common.items.npc_armor.arthropod.generic"),
             _ => None,
         };
 

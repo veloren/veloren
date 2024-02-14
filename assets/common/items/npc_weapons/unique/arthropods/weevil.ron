@@ -14,7 +14,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: High,
+    quality: Common,
     tags: [],
     ability_spec: Some(Custom("Weevil")),
 )

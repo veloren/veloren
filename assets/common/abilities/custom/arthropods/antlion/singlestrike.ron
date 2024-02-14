@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Bash(
-                    damage: 74,
+                    damage: 39,
                     poise: 27.5,
                     knockback: 9,
                     energy_regen: 0,
@@ -17,10 +17,10 @@ ComboMelee2(
                     chance: 0.6,
                 ))),
             ),
-            buildup_duration: 1.4,
-            swing_duration: 0.1,
+            buildup_duration: 0.65,
+            swing_duration: 0.15,
             hit_timing: 0.5,
-            recover_duration: 0.8,
+            recover_duration: 0.5,
             movement: (
                 swing: Some(Forward(1.0)),
             ),

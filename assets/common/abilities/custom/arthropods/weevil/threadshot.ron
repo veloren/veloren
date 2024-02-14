@@ -1,19 +1,15 @@
-BasicBeam(
-    buildup_duration: 0.4,
-    recover_duration: 0.4,
-    beam_duration: 1.0,
-    damage: 1.2,
-    tick_rate: 15.0,
-    range: 30.0,
-    max_angle: 1.0,
-    damage_effect: Some(Buff((
-        kind: Frozen,
-        dur_secs: 4.0,
-        strength: DamageFraction(1.0),
-        chance: 1.0,
-    ))),
-    energy_regen: 0.0,
-    energy_drain: 0,
-    ori_rate: 0.95,
-    specifier: WebStrand,
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.6,
+    recover_duration: 0.9,
+    projectile: Pebble(
+        damage: 8,
+        knockback: 2,
+    ),
+    projectile_body: Object(Pebble),
+    projectile_light: None,
+    projectile_speed: 70.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+    move_efficiency: 0.3,
 )

@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Stab(
-                    damage: 60,
+                    damage: 36,
                     poise: 21,
                     knockback: 3,
                     energy_regen: 0,
@@ -17,12 +17,12 @@ ComboMelee2(
                     chance: 0.8,
                 ))),
             ),
-            buildup_duration: 0.8,
-            swing_duration: 0.1,
+            buildup_duration: 0.6,
+            swing_duration: 0.3,
             hit_timing: 0.5,
             recover_duration: 0.8,
             movement: (
-                swing: Some(Forward(1.0)),
+                swing: Some(Forward(0.1)),
             ),
             ori_modifier: 0.8,
         ),

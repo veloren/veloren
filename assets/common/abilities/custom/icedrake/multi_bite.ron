@@ -2,61 +2,61 @@ ComboMelee2(
     strikes: [
         (
             melee_constructor: (
-                kind: Bash(
-                    damage: 28,
-                    poise: 15,
+                kind: Stab(
+                    damage: 16,
+                    poise: 5,
                     knockback: 3,
                     energy_regen: 0,
                 ),
                 range: 2.2,
                 angle: 30.0,
+            ),
+            buildup_duration: 0.7,
+            swing_duration: 0.3,
+            hit_timing: 0.5,
+            recover_duration: 0.6,
+            movement: (
+                swing: Some(Forward(0.15)),
+            ),
+            ori_modifier: 0.65,
+        ),
+        (
+            melee_constructor: (
+                kind: Stab(
+                    damage: 16,
+                    poise: 5,
+                    knockback: 3,
+                    energy_regen: 0,
+                ),
+                range: 2.2,
+                angle: 30.0,
+            ),
+            buildup_duration: 0.5,
+            swing_duration: 0.3,
+            hit_timing: 0.5,
+            recover_duration: 0.6,
+            movement: (
+                swing: Some(Forward(0.1)),
+            ),
+            ori_modifier: 0.65,
+        ),
+        (
+            melee_constructor: (
+                kind: Bash(
+                    damage: 44,
+                    poise: 25,
+                    knockback: 3,
+                    energy_regen: 0,
+                ),
+                range: 2.2,
+                angle: 260.0,
             ),
             buildup_duration: 1.3,
-            swing_duration: 0.07,
+            swing_duration: 0.4,
             hit_timing: 0.5,
-            recover_duration: 0.6,
+            recover_duration: 0.8,
             movement: (
-                swing: Some(Forward(2.0)),
-            ),
-            ori_modifier: 0.65,
-        ),
-        (
-            melee_constructor: (
-                kind: Bash(
-                    damage: 28,
-                    poise: 18,
-                    knockback: 3,
-                    energy_regen: 0,
-                ),
-                range: 2.2,
-                angle: 30.0,
-            ),
-            buildup_duration: 0.8,
-            swing_duration: 0.07,
-            hit_timing: 0.5,
-            recover_duration: 0.6,
-            movement: (
-                swing: Some(Forward(1.5)),
-            ),
-            ori_modifier: 0.65,
-        ),
-        (
-            melee_constructor: (
-                kind: Bash(
-                    damage: 28,
-                    poise: 20,
-                    knockback: 3,
-                    energy_regen: 0,
-                ),
-                range: 2.2,
-                angle: 30.0,
-            ),
-            buildup_duration: 0.8,
-            swing_duration: 0.07,
-            hit_timing: 0.5,
-            recover_duration: 0.6,
-            movement: (
-                swing: Some(Forward(1.5)),
+                swing: Some(Forward(0.5)),
             ),
             ori_modifier: 0.65,
         ),

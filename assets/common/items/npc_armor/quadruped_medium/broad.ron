@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Quadruped Medium Generalised Armor",
+    legacy_description: "testing123",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(48.0)),
+            poise_resilience: Some(Normal(15.0)),
+            energy_max: Some(10),
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

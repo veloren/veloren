@@ -1067,7 +1067,7 @@ impl<'a> AgentData<'a> {
                             // Arthropods
                             "Antlion" => Tactic::ArthropodMelee,
                             "Tarantula" | "Horn Beetle" => Tactic::ArthropodAmbush,
-                            "Weevil" | "Black Widow" => Tactic::ArthropodRanged,
+                            "Weevil" | "Black Widow" | "Crawler" => Tactic::ArthropodRanged,
                             "Theropod Charge" => Tactic::CircleCharge {
                                 radius: 6,
                                 circle_time: 1,

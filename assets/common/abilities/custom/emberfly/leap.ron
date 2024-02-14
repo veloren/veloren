@@ -6,8 +6,8 @@ LeapMelee(
     recover_duration: 0.4,
     melee_constructor: (
         kind: Bash(
-            damage: 6.0,
-            poise: 20.0,
+            damage: 3.5,
+            poise: 2.0,
             knockback: 5.0,
             energy_regen: 0.0,
         ),

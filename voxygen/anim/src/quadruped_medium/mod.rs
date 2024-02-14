@@ -683,6 +683,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Akhlut, _) => 1.4,
                 (Bristleback, _) => 1.1,
                 (ClaySteed, _) => 1.75,
+                (Frostfang, _) => 1.0,
                 _ => 0.9,
             },
             startangle: match (body.species, body.body_type) {

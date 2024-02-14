@@ -18,7 +18,7 @@
             241: EntitySpawner("common.entity.spot.wizard.wizard_haku", 1.0),
             242: EntitySpawner("common.entity.spot.wizard.novice", 1.0),
             243: EntitySpawner("common.entity.spot.wizard.adept", 1.0),
-            245: EntitySpawner("common.entity.wild.aggressive.bat", 0.4),
+            245: EntitySpawner("common.entity.wild.peaceful.bat", 0.4),
             246: Sprite(WallLampWizard),
             249: RotatedSprite(DoorDark, 8),
             250: RotatedSprite(DoorDark, 4),

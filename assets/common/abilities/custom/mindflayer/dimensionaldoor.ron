@@ -1,5 +1,5 @@
 Blink(
     buildup_duration: 0.75,
     recover_duration: 0.25,
-    max_range: 100.0,
+    max_range: 150.0,
 )

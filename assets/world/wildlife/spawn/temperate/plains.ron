@@ -14,7 +14,6 @@ SpawnEntry (
                 (5, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
                 (5, (1, 1, "common.entity.wild.peaceful.bushly")),
                 (5, (1, 1, "common.entity.wild.peaceful.driggle")),
-                (1, (1, 1, "common.entity.wild.aggressive.ogre")),
             ],
             spawn_mode: Land,
             day_period: [Morning, Noon, Evening],

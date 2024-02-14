@@ -1,0 +1,20 @@
+ItemDef(
+    legacy_name: "Molten Crawler",
+    legacy_description: "testing123",
+    kind: Tool((
+        kind: Natural,
+        hands: Two,
+        stats: (
+            equip_time_secs: 0.01,
+            power: 2.15,
+            effect_power: 0.9,
+            speed: 0.8,
+            range: 0.8,
+            energy_efficiency: 1.0,
+            buff_strength: 1.4,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+    ability_spec: Some(Custom("Crawler")),
+)

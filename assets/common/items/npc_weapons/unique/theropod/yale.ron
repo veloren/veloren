@@ -1,0 +1,20 @@
+ItemDef(
+    legacy_name: "Yale",
+    legacy_description: "testing123",
+    kind: Tool((
+        kind: Natural,
+        hands: Two,
+        stats: (
+            equip_time_secs: 0.01,
+            power: 0.76,
+            effect_power: 0.84,
+            speed: 0.9,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        ),
+    )),
+    quality: High,
+    tags: [],
+    ability_spec: Some(Custom("Theropod Charge")),
+)

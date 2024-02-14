@@ -1,5 +1,5 @@
 ItemDef(
-    legacy_name: "Deadwood",
+    legacy_name: "Maneater",
     legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
@@ -14,7 +14,7 @@ ItemDef(
             buff_strength: 1.0,
         ),
     )),
-    quality: Low,
+    quality: High,
     tags: [],
-    ability_spec: Some(Custom("Deadwood")),
+    ability_spec: Some(Custom("Maneater")),
 )

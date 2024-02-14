@@ -1,5 +1,5 @@
 ItemDef(
-    legacy_name: "Asp",
+    legacy_name: "Alpaca",
     legacy_description: "testing123",
     kind: Tool((
         kind: Natural,
@@ -7,14 +7,15 @@ ItemDef(
         stats: (
             equip_time_secs: 0.01,
             power: 1.0,
-            effect_power: 1.0,
+            effect_power: 1.05,
             speed: 1.0,
-            range: 1.0,
+            crit_chance: 0.125,
+            range: 1.1,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
         ),
     )),
-    quality: Low,
+    quality: Common,
     tags: [],
-    ability_spec: Some(Custom("Asp")),
+    ability_spec: Some(Custom("Quad Med Hoof")),
 )

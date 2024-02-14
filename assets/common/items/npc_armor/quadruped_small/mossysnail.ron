@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Mossy Shell",
+    legacy_description: "The sturdy home of a lil fella.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(90.0)),
+            poise_resilience: Some(Normal(10.0)),
+        )),
+    )),
+    quality: Common,
+    tags: [],
+)

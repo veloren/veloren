@@ -2,8 +2,8 @@ SelfBuff(
     buildup_duration: 0.1,
     cast_duration: 0.1,
     recover_duration: 0.4,
-    buff_kind: Hastened,
-    buff_strength: 0.8,
+    buff_kind: ProtectingWard,
+    buff_strength: 0.1,
     buff_duration: Some(6.0),
     energy_cost: 0,
 )

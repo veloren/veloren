@@ -1,18 +1,25 @@
-BasicMelee(
-    energy_cost: 0,
-    buildup_duration: 0.6,
-    swing_duration: 0.15,
-    hit_timing: 0.5,
-    recover_duration: 0.6,
-    melee_constructor: (
-        kind: Bash(
-            damage: 6,
-            poise: 10,
-            knockback: 1,
-            energy_regen: 0,
+ComboMelee2(
+    strikes: [
+        (
+            melee_constructor: (
+                kind: Bash(
+                    damage: 9,
+                    poise: 3,
+                    knockback: 1,
+                    energy_regen: 0,
+                ),
+                range: 1.5,
+                angle: 50.0,
+            ),
+            buildup_duration: 0.9,
+            swing_duration: 0.5,
+            hit_timing: 0.5,
+            recover_duration: 1.1,
+            movement: (
+                swing: Some(Forward(0.35)),
+            ),
+            ori_modifier: 0.6,
         ),
-        range: 1.5,
-        angle: 50.0,
-    ),
-    ori_modifier: 0.7,
+    ],
+    energy_cost_per_strike: 0,
 )
