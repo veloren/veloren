@@ -7,12 +7,22 @@ use std::{
 use tracing::warn;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[repr(i32)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum ShutdownSignal {
-    SIGUSR1 = signal_hook::consts::SIGUSR1,
-    SIGUSR2 = signal_hook::consts::SIGUSR2,
-    SIGTERM = signal_hook::consts::SIGTERM,
+    SIGUSR1,
+    SIGUSR2,
+    SIGTERM,
+}
+
+impl ShutdownSignal {
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    pub fn to_signal(self) -> core::ffi::c_int {
+        match self {
+            Self::SIGUSR1 => signal_hook::consts::SIGUSR1,
+            Self::SIGUSR2 => signal_hook::consts::SIGUSR2,
+            Self::SIGTERM => signal_hook::consts::SIGTERM,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -34,7 +44,11 @@ impl Default for Settings {
             update_shutdown_message: "The server is restarting for an update".to_owned(),
             web_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             web_chat_secret: None,
-            shutdown_signals: vec![ShutdownSignal::SIGUSR1],
+            shutdown_signals: if cfg!(any(target_os = "linux", target_os = "macos")) {
+                vec![ShutdownSignal::SIGUSR1]
+            } else {
+                Vec::new()
+            },
         }
     }
 }

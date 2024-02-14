@@ -69,11 +69,16 @@ fn main() -> io::Result<()> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
         for signal in &settings.shutdown_signals {
-            let _ = signal_hook::flag::register(
-                *signal as core::ffi::c_int,
-                Arc::clone(&shutdown_signal),
-            );
+            let _ = signal_hook::flag::register(signal.to_signal(), Arc::clone(&shutdown_signal));
         }
+    }
+
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    if !settings.shutdown_signals.is_empty() {
+        tracing::warn!(
+            "Server configuration contains shutdown signals, but your platform does not support \
+             them"
+        );
     }
 
     // Determine folder to save server data in
