@@ -230,24 +230,24 @@ impl Tunnel {
             let mushroom = underground
                 * close(humidity, 1.0, 0.7)
                 * close(temp, 0.25, 1.0)
-                * close(depth, 0.7, 1.0);
+                * close(depth, 0.8, 0.5);
             // Extremely hot and dry areas deep underground
             let fire = underground
-                * close(humidity, 0.0, 0.9)
+                * close(humidity, 0.0, 0.7)
                 * close(temp, 2.5, 1.5)
                 * close(depth, 1.0, 0.65);
             // Overgrown with plants that need a moderate climate to survive
             let leafy = underground
-                * close(humidity, 0.5, 0.7)
+                * close(humidity, 0.6, 0.4)
                 * close(temp, 0.6, 0.9)
-                * close(depth, 0.1, 0.7);
+                * close(depth, 0.1, 0.6);
             // Cool temperature, dry and devoid of value
             let dusty =
                 close(humidity, 0.0, 0.4) * close(temp, -0.3, 0.65) * close(mineral, -0.5, 1.5);
             // Deep underground and freezing cold
             let icy = underground * close(temp, -1.0, 0.3) * close(depth, 1.0, 0.5);
             // Rocky cold cave that appear near the surface
-            let snowy = close(temp, -0.7, 0.5) * close(depth, 0.1, 0.4);
+            let snowy = close(temp, -0.6, 0.3) * close(depth, 0.1, 0.4);
             // Crystals grow deep underground in areas rich with minerals. They are present
             // in areas with colder temperatures and low humidity
             let crystal = underground
@@ -504,14 +504,29 @@ fn write_column<R: Rng>(
 
     let ceiling_cover = if (biome.leafy - 0.3)
         .max(biome.mushroom - 0.5)
-        .max(biome.snowy - 0.6)
-        .max(biome.crystal - 0.9)
+        .max(biome.icy - 0.6)
         .max(biome.sandy - 0.5)
+        .max(biome.fire - 0.5)
         > 0.0
     {
-        1.0.mul(((col.alt - z_range.end as f32) / 8.0).clamped(0.0, 1.0))
-            .mul(4.0 * (dist_cave_center / (cave_width)).powf(3.33) as f32)
+        1.0.mul(((col.alt as f64 - z_range.end as f64) / 8.0).clamped(0.0, 1.0))
+            .mul(cavern_height * (dist_cave_center / (cave_width)).powf(3.33))
             .max(1.0)
+            .sub(
+                if col.marble_mid
+                    > biome
+                        .fire
+                        .max(biome.icy - 0.6)
+                        .max(biome.sandy - 0.3)
+                        .max(biome.leafy - 0.4)
+                        .max(biome.mushroom - 0.5)
+                {
+                    cavern_height * col.marble_mid as f64
+                } else {
+                    0.0
+                },
+            )
+            .max(0.0)
     } else {
         0.0
     };
@@ -546,8 +561,8 @@ fn write_column<R: Rng>(
         0.0
     };
 
-    let height_factor = (max_height / 24.0).clamped(0.0, 1.0).powf(2.0);
-    let width_factor = (cave_width / 16.0).clamped(0.0, 1.0).powf(2.0);
+    let height_factor = (max_height / 32.0).clamped(0.0, 1.0).powf(2.0);
+    let width_factor = (cave_width / 32.0).clamped(0.0, 1.0).powf(2.0);
     let ridge = info
         .index()
         .noise
@@ -564,7 +579,7 @@ fn write_column<R: Rng>(
                     * (close(
                         dist_cave_center as f32,
                         cave_width as f32,
-                        cave_width as f32 * 0.75,
+                        cave_width as f32 * 0.7,
                     )) as f64,
         );
 
@@ -594,12 +609,12 @@ fn write_column<R: Rng>(
     let is_ice = biome.icy + col.marble * 0.2 > 0.5 && col.marble > 0.6;
     let is_snow = biome.snowy + col.marble_mid * 0.2 > 0.5 && col.marble_mid > 0.6;
 
-    let dirt = 1 + (!is_ice) as i32 + (is_snow) as i32;
+    let dirt = 1 + (!is_ice) as i32 + is_snow as i32;
     let bedrock = z_range.start + lava as i32;
     let ridge_bedrock = bedrock + (ridge * 0.7) as i32;
     let base = ridge_bedrock + (stalactite * 0.4) as i32;
     let floor = base + dirt + (ridge * 0.3) as i32 + bump as i32;
-    let ceiling = z_range.end - stalactite as i32 - ceiling_cover as i32;
+    let ceiling = z_range.end - stalactite.max(ceiling_cover) as i32;
 
     let mut get_structure = |wpos: Vec3<i32>, dynamic_rng: &mut R| {
         for (wpos2d, seed) in StructureGen2d::new(34537, 24, 8).get(wpos.xy()) {
@@ -1189,7 +1204,7 @@ fn write_column<R: Rng>(
                     } else if rand.chance(wpos2d.with_z(4), biome.leafy * 0.015) {
                         [
                             (SpriteKind::Liana, 1.0),
-                            (SpriteKind::Orb, 1.7),
+                            (SpriteKind::Orb, 0.5),
                             (SpriteKind::CrystalHigh, 0.1),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
