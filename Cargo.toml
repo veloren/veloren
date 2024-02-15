@@ -157,13 +157,14 @@ async-trait = "0.1.42"
 
 [patch.crates-io]
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }
-# This is needed because of an issue with spirv & naga in wgpu 0.18, and there's an issue
-# with uint in uniforms for gl.
-wgpu = { git = "https://github.com/IsseW/wgpu", rev = "5ea160164" }
+# This is needed because of:
+# * an issue with spirv & naga in wgpu 0.18 (I assume this is fixed upstream but not in 0.18)
+# * an issue with uint in uniforms for gl. (potentially fixed in 0.19?)
+# * an issue with releasing current context on Windows opengl (fixed in 0.19.1)
+# * another spirv issue: unused builtins not always being removed.  (upstream PR open)
+wgpu = { git = "https://github.com/Imberflur/wgpu.git", tag = "0.18-with-fixes-for-veloren-v1" }
+# wgpu = { path = "../wgpu/wgpu" }
 
-# # use the latest fixes in naga (remove when updates trickle down to wgpu-rs)
-# naga = { git = "https://github.com/gfx-rs/naga.git", rev = "3a0f0144112ff621dd7f731bf455adf6cab19164" }
-# naga = { path = "../naga" }
 # keyboard-keynames = { git = "https://gitlab.com/Capucho/keyboard-keynames.git", rev = "7b1375ee4ea01d0e0b80c419cb27f0498e67df3a" }
 
 # # Uncomment this to use a local fork of winit (for testing purposes)
@@ -174,6 +175,5 @@ wgpu = { git = "https://github.com/IsseW/wgpu", rev = "5ea160164" }
 # wgpu-hal = { path = "../wgpu/wgpu-hal" }
 # wgpu-core = { path = "../wgpu/wgpu-core" }
 # wgpu-types = { path = "../wgpu/wgpu-types" }
+# naga = { path = "../wgpu/naga" }
 
-[patch."https://github.com/gfx-rs/naga"]
-# naga = { path = "../naga" }

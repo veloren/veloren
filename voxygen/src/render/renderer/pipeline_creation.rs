@@ -6,14 +6,15 @@ use super::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle,
             postprocess, rope, shadow, skybox, sprite, terrain, trail, ui,
         },
-        AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, ReflectionMode,
-        RenderError, ShadowMode,
+        AaMode, BloomMode, CloudMode, ExperimentalShader, FluidMode, LightingMode, PipelineModes,
+        ReflectionMode, RenderError, ShadowMode,
     },
     shaders::Shaders,
     ImmutableLayouts, Layouts,
 };
 use common_base::{prof_span, prof_span_alloc};
 use std::sync::Arc;
+use tracing::info;
 
 /// All the pipelines
 pub struct Pipelines {
@@ -282,7 +283,16 @@ impl ShaderModules {
 
         let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
         let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-        options.set_optimization_level(OptimizationLevel::Zero);
+        let shaderc_opts = !pipeline_modes
+            .experimental_shaders
+            .contains(&ExperimentalShader::DisableShadercOptimization);
+        if shaderc_opts {
+            options.set_optimization_level(OptimizationLevel::Performance);
+            info!("Enabled optimization by shaderc.");
+        } else {
+            options.set_optimization_level(OptimizationLevel::Zero);
+            info!("Disabled optimization by shaderc.");
+        }
         options.set_forced_version_profile(430, shaderc::GlslProfile::Core);
         // options.set_generate_debug_info();
         options.set_include_callback(move |name, _, shader_name, _| {
