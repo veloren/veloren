@@ -90,5 +90,11 @@
         "common.items.npc_armor.biped_small.flamekeeper.chest.flamekeeper": (
             vox_spec: ("npc.flamekeeper.chest", (-6.0, -11.0, -5.5)),
         ),
+        "common.items.npc_armor.biped_small.shamanic_spirit.chest.shamanic_spirit": (
+            vox_spec: ("npc.shamanic_spirit.chest", (-7.0, -4.0, -4.0)),
+        ),
+        "common.items.npc_armor.biped_small.jiangshi.chest.jiangshi": (
+            vox_spec: ("npc.jiangshi.chest", (-7.0, -4.0, -4.0)),
+        ),
     },
 ))

@@ -37,8 +37,8 @@ weapon-tool-washboard = Washboard
 weapon-tool-wildskin_drum = Wildskin Drum
     .desc = one, two, you know what to do!
 
-weapon-tool-steeldrum = Steeldrum
-    .desc = Steeldrum.
+weapon-tool-steeltonguedrum = Steeltongue Drum
+    .desc = Steeltongue Drum.
 
 weapon-tool-shamisen = Shamisen
     .desc = Shamisen.

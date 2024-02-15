@@ -1,0 +1,8 @@
+[
+    // Weapons
+    (3.0, LootTable("common.loot_tables.weapons.tier-5")),
+    // Armor
+    (3.0, LootTable("common.loot_tables.armor.tier-5")),
+    // Misc
+    (0.25, Item("common.items.tool.instruments.steeltonguedrum")),
+]

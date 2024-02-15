@@ -151,7 +151,9 @@ impl Animation for ComboAnimation {
                 },
                 Some(
                     "common.abilities.custom.dullahan.melee"
-                    | "common.abilities.swordsimple.doublestrike",
+                    | "common.abilities.swordsimple.doublestrike"
+                    | "common.abilities.custom.terracotta_pursuer.doublestrike"
+                    | "common.abilities.custom.terracotta_demolisher.triplestrike",
                 ) => {
                     let speed = Vec2::<f32>::from(velocity).magnitude();
                     match strike {
@@ -219,6 +221,21 @@ impl Animation for ComboAnimation {
                         },
                         _ => {},
                     }
+                },
+                Some("common.abilities.custom.terracotta_besieger.doublestrike") => {
+                    let speed = Vec2::<f32>::from(velocity).magnitude();
+                    let (move1base, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(6)),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1 = move1base * pullback;
+                    let move2 = move2base * pullback;
+
+                    init_biped_large_beta(&mut next, s_a, speed, acc_vel, move1);
+                    biped_large_beta_axe(&mut next, s_a, move1, move2);
                 },
                 _ => {},
             }

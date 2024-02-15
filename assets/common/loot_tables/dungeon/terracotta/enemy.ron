@@ -1,0 +1,6 @@
+[
+    // Consumables
+    (1.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
+    // Nothing
+    (2.0, Nothing),
+]

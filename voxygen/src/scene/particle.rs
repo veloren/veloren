@@ -396,6 +396,15 @@ impl ParticleMgr {
                     *pos + Vec3::new(0.0, 0.0, 1.5 + 0.5 * rng.gen_range(0.0..0.2)),
                 ));
             },
+            Outcome::TerracottaStatueCharge { pos } => {
+                self.particles.push(Particle::new_directed(
+                    Duration::from_secs_f32(rng.gen_range(0.1..0.2)),
+                    time,
+                    ParticleMode::FireworkYellow,
+                    *pos + Vec3::new(0.0, 0.0, 4.0),
+                    *pos + Vec3::new(0.0, 0.0, 5.0 + 0.5 * rng.gen_range(0.3..0.8)),
+                ));
+            },
             Outcome::Death { pos, .. } => {
                 self.particles.resize_with(self.particles.len() + 40, || {
                     Particle::new(

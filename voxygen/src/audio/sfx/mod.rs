@@ -86,7 +86,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam, biped_large, biped_small, bird_large, humanoid,
+        beam, biped_large, biped_small, bird_large, golem, humanoid,
         item::{item_key::ItemKey, AbilitySpec, ItemDefinitionId, ItemKind, ToolKind},
         object,
         poise::PoiseState,
@@ -166,6 +166,7 @@ pub enum SfxEvent {
     Utterance(UtteranceKind, VoiceKind),
     Lightning,
     CyclopsCharge,
+    TerracottaStatueCharge,
     LaserBeam,
     Steam,
     FuseCharge,
@@ -469,7 +470,8 @@ impl SfxMgr {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::CyclopsCharge);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
-            Outcome::FlamethrowerCharge { pos, .. } => {
+            Outcome::FlamethrowerCharge { pos, .. }
+            | Outcome::TerracottaStatueCharge { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::CyclopsCharge);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
@@ -490,6 +492,29 @@ impl SfxMgr {
                         },
                         biped_small::Species::Boreal => {
                             let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GigaRoar);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                        },
+                        biped_small::Species::ShamanicSpirit | biped_small::Species::Jiangshi => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                        },
+                        _ => {},
+                    },
+                    Body::BipedLarge(body) => match body.species {
+                        biped_large::Species::Cursekeeper => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Swoosh);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                        },
+                        biped_large::Species::TerracottaBesieger
+                        | biped_large::Species::TerracottaPursuer => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                        },
+                        _ => {},
+                    },
+                    Body::Golem(body) => match body.species {
+                        golem::Species::Mogwai => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);
                             audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                         },
                         _ => {},
@@ -547,6 +572,7 @@ impl SfxMgr {
                         | object::Body::ArrowSnake
                         | object::Body::ArrowTurret
                         | object::Body::ArrowClay
+                        | object::Body::BoltBesieger
                         | object::Body::SpectralSwordSmall
                         | object::Body::SpectralSwordLarge,
                     ) => {
@@ -565,8 +591,11 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FireShot);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
-                    Body::Object(object::Body::LaserBeam)
-                    | Body::Object(object::Body::LightningBolt) => {
+                    Body::Object(
+                        object::Body::LaserBeam
+                        | object::Body::LaserBeamSmall
+                        | object::Body::LightningBolt,
+                    ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::LaserBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
@@ -592,6 +621,7 @@ impl SfxMgr {
                     | object::Body::ArrowSnake
                     | object::Body::ArrowTurret
                     | object::Body::ArrowClay
+                    | object::Body::BoltBesieger
                     | object::Body::SpectralSwordSmall
                     | object::Body::SpectralSwordLarge,
                 ) => {

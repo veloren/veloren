@@ -30,6 +30,7 @@ impl Site {
             // Evil
             SiteKind::Dungeon(_)
             | SiteKind::ChapelSite(_)
+            | SiteKind::Terracotta(_)
             | SiteKind::Gnarling(_)
             | SiteKind::PirateHideout(_)
             | SiteKind::JungleRuin(_)

@@ -15,6 +15,9 @@ pub enum DungeonKindMeta {
     Old,
     Gnarling,
     Adlet,
+    Haniwa,
+    SeaChapel,
+    Terracotta,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]

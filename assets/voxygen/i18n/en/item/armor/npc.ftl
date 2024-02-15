@@ -25,6 +25,9 @@ common-items-npc_armor-golem-ancienteffigy = Ancient Effigy Armor
 common-items-npc_armor-golem-gravewarden = Grave Warden Armor
     .desc = Worn by grave warden.
 
+common-items-npc_armor-golem-mogwai = Mogwai Armor
+    .desc = Worn by mogwai.
+
 common-items-npc_armor-biped_small-myrmidon-foot-hoplite = Myrmidon Hoplite
     .desc = Ceremonial attire used by members.
 
@@ -493,6 +496,33 @@ common-items-npc_armor-biped_small-gnoll-tail-shaman = Gnoll Shaman
 common-items-npc_armor-biped_small-gnoll-tail-trapper = Gnoll Trapper
     .desc = Ceremonial attire used by members.
 
+common-items-npc_armor-biped_small-jiangshi-head-jiangshi = Jiangshi
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-jiangshi-chest-jiangshi = Jiangshi
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-jiangshi-pants-jiangshi = Jiangshi
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-jiangshi-hand-jiangshi = Jiangshi
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-jiangshi-foot-jiangshi = Jiangshi
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-shamanic_spirit-head-shamanic_spirit = Shamanic Spirit
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-shamanic_spirit-chest-shamanic_spirit = Shamanic Spirit
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-shamanic_spirit-pants-shamanic_spirit = Shamanic Spirit
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-shamanic_spirit-hand-shamanic_spirit = Shamanic Spirit
+    .desc = Ceremonial attire used by members.
+
 common-items-npc_armor-chest-plate_red = Iron Chestplate
     .desc = A chestplate forged from iron.
 
@@ -612,6 +642,9 @@ common-items-npc_armor-biped_large-yeti = Yeti Hide
 
 common-items-npc_armor-biped_large-haniwageneral = Haniwa General Uniform
     .desc = Has seen combat.
+
+common-items-npc_armor-biped_large-terracotta = Terracotta Armor
+    .desc = A little dusty, that's all.
 
 armor-leather_blue-pants = Blue Leather Cuirass
     .desc = {""}

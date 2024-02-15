@@ -44,7 +44,27 @@ impl Body {
             Species::Blueoni => "body-npc-speech-biped_large-blue_oni",
             Species::Redoni => "body-npc-speech-biped_large-red_oni",
             Species::Tursus => "body-npc-speech-biped_large-tursus",
-            _ => return None,
+            Species::Dullahan => "body-npc-speech-biped_large-dullahan",
+            Species::Occultsaurok => "body-npc-speech-biped_large-occult_saurok",
+            Species::Mightysaurok => "body-npc-speech-biped_large-mighty_saurok",
+            Species::Slysaurok => "body-npc-speech-biped_large-sly_saurok",
+            Species::Mindflayer => "body-npc-speech-biped_large-mindflayer",
+            Species::Minotaur => "body-npc-speech-biped_large-minotaur",
+            Species::Tidalwarrior => "body-npc-speech-biped_large-tidal_warrior",
+            Species::Yeti => "body-npc-speech-biped_large-yeti",
+            Species::Harvester => "body-npc-speech-biped_large-harvester",
+            Species::Cultistwarlord => "body-npc-speech-biped_large-cultist_warlord",
+            Species::Cultistwarlock => "body-npc-speech-biped_large-cultist_warlock",
+            Species::Huskbrute => "body-npc-speech-biped_large-husk_brute",
+            Species::Gigasfrost => "body-npc-speech-biped_large-gigas_frost",
+            Species::AdletElder => "body-npc-speech-biped_large-adlet_elder",
+            Species::SeaBishop => "body-npc-speech-biped_large-sea_bishop",
+            Species::HaniwaGeneral => "body-npc-speech-biped_large-haniwa_general",
+            Species::TerracottaBesieger => "body-npc-speech-biped_large-terracotta_besieger",
+            Species::TerracottaDemolisher => "body-npc-speech-biped_large-terracotta_demolisher",
+            Species::TerracottaPunisher => "body-npc-speech-biped_large-terracotta_punisher",
+            Species::TerracottaPursuer => "body-npc-speech-biped_large-terracotta_pursuer",
+            Species::Cursekeeper => "body-npc-speech-biped_large-cursekeeper",
         };
 
         Some(Content::localized(key))
@@ -86,6 +106,11 @@ make_case_elim!(
         AdletElder = 23,
         SeaBishop = 24,
         HaniwaGeneral = 25,
+        TerracottaBesieger = 26,
+        TerracottaDemolisher = 27,
+        TerracottaPunisher = 28,
+        TerracottaPursuer = 29,
+        Cursekeeper = 30,
     }
 );
 
@@ -120,6 +145,11 @@ pub struct AllSpecies<SpeciesMeta> {
     pub adlet_elder: SpeciesMeta,
     pub sea_bishop: SpeciesMeta,
     pub haniwa_general: SpeciesMeta,
+    pub terracotta_besieger: SpeciesMeta,
+    pub terracotta_demolisher: SpeciesMeta,
+    pub terracotta_punisher: SpeciesMeta,
+    pub terracotta_pursuer: SpeciesMeta,
+    pub cursekeeper: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -154,11 +184,16 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::AdletElder => &self.adlet_elder,
             Species::SeaBishop => &self.sea_bishop,
             Species::HaniwaGeneral => &self.haniwa_general,
+            Species::TerracottaBesieger => &self.terracotta_besieger,
+            Species::TerracottaDemolisher => &self.terracotta_demolisher,
+            Species::TerracottaPunisher => &self.terracotta_punisher,
+            Species::TerracottaPursuer => &self.terracotta_pursuer,
+            Species::Cursekeeper => &self.cursekeeper,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 26] = [
+pub const ALL_SPECIES: [Species; 31] = [
     Species::Ogre,
     Species::Cyclops,
     Species::Wendigo,
@@ -185,6 +220,11 @@ pub const ALL_SPECIES: [Species; 26] = [
     Species::AdletElder,
     Species::SeaBishop,
     Species::HaniwaGeneral,
+    Species::TerracottaBesieger,
+    Species::TerracottaDemolisher,
+    Species::TerracottaPunisher,
+    Species::TerracottaPursuer,
+    Species::Cursekeeper,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

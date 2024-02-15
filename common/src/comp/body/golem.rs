@@ -41,6 +41,7 @@ make_case_elim!(
         CoralGolem = 4,
         Gravewarden = 5,
         AncientEffigy = 6,
+        Mogwai = 7,
     }
 );
 
@@ -56,6 +57,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub coralgolem: SpeciesMeta,
     pub gravewarden: SpeciesMeta,
     pub ancienteffigy: SpeciesMeta,
+    pub mogwai: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -71,11 +73,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::CoralGolem => &self.coralgolem,
             Species::Gravewarden => &self.gravewarden,
             Species::AncientEffigy => &self.ancienteffigy,
+            Species::Mogwai => &self.mogwai,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 7] = [
+pub const ALL_SPECIES: [Species; 8] = [
     Species::StoneGolem,
     Species::Treant,
     Species::ClayGolem,
@@ -83,6 +86,7 @@ pub const ALL_SPECIES: [Species; 7] = [
     Species::CoralGolem,
     Species::Gravewarden,
     Species::AncientEffigy,
+    Species::Mogwai,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

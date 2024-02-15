@@ -85,5 +85,11 @@
         "common.items.npc_armor.biped_small.flamekeeper.head.flamekeeper": (
             vox_spec: ("npc.flamekeeper.head", (-8.0, -7.0, -10.0)),
         ),
+        "common.items.npc_armor.biped_small.shamanic_spirit.head.shamanic_spirit": (
+            vox_spec: ("npc.shamanic_spirit.head", (-8.0, -6.5, -8.5)),
+        ),
+        "common.items.npc_armor.biped_small.jiangshi.head.jiangshi": (
+            vox_spec: ("npc.jiangshi.head", (-8.0, -9.0, -8.5)),
+        ),
     },
 ))

@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Jiangshi Pants",
+    legacy_description: "Jiangshi Pants",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(6.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

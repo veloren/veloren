@@ -90,5 +90,11 @@
         "common.items.npc_armor.biped_small.flamekeeper.pants.flamekeeper": (
             vox_spec: ("npc.flamekeeper.pants", (-6.0, -2.5, 0.0)),
         ),
+        "common.items.npc_armor.biped_small.shamanic_spirit.pants.shamanic_spirit": (
+            vox_spec: ("npc.shamanic_spirit.pants", (-5.0, -4.0, -5.5)),
+        ),
+        "common.items.npc_armor.biped_small.jiangshi.pants.jiangshi": (
+            vox_spec: ("npc.jiangshi.pants", (-5.0, -4.5, -3.5)),
+        ),
     },
 ))

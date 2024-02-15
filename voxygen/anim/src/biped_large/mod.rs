@@ -266,7 +266,12 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gigasfrost, _) => (-1.5, 5.0),
                 (AdletElder, _) => (-8.0, 10.0),
                 (SeaBishop, _) => (0.0, 9.5),
-                (HaniwaGeneral, _) => (-8.0, 10.0),
+                (HaniwaGeneral, _) => (-1.5, 10.0),
+                (TerracottaBesieger, _) => (-2.5, 16.0),
+                (TerracottaDemolisher, _) => (-2.5, 10.0),
+                (TerracottaPunisher, _) => (-2.5, 10.0),
+                (TerracottaPursuer, _) => (-2.0, 13.5),
+                (Cursekeeper, _) => (2.0, 6.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -295,6 +300,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (10.5, -7.0),
                 (SeaBishop, _) => (5.0, -4.5),
                 (HaniwaGeneral, _) => (10.5, -7.0),
+                (TerracottaBesieger, _) => (10.5, -7.0),
+                (TerracottaDemolisher, _) => (10.5, -7.0),
+                (TerracottaPunisher, _) => (10.5, -7.0),
+                (TerracottaPursuer, _) => (10.5, -7.0),
+                (Cursekeeper, _) => (10.5, -7.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -324,6 +334,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (3.0, 19.0),
                 (SeaBishop, _) => (0.0, 15.0),
                 (HaniwaGeneral, _) => (3.0, 16.0),
+                (TerracottaBesieger, _) => (3.0, 21.5),
+                (TerracottaDemolisher, _) => (3.0, 16.5),
+                (TerracottaPunisher, _) => (3.0, 15.5),
+                (TerracottaPursuer, _) => (3.0, 15.5),
+                (Cursekeeper, _) => (-4.0, 20.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -353,6 +368,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (0.0, -4.0),
                 (SeaBishop, _) => (0.0, -1.0),
                 (HaniwaGeneral, _) => (-1.0, -3.5),
+                (TerracottaBesieger, _) => (-1.0, -4.5),
+                (TerracottaDemolisher, _) => (-2.0, -3.5),
+                (TerracottaPunisher, _) => (-1.5, -2.5),
+                (TerracottaPursuer, _) => (-1.5, -2.5),
+                (Cursekeeper, _) => (-1.5, -4.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -391,6 +411,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (8.5, 1.0, 2.5),
                 (SeaBishop, _) => (7.0, 0.0, 1.0),
                 (HaniwaGeneral, _) => (9.0, -1.0, 4.5),
+                (TerracottaBesieger, _) => (13.0, -1.0, 2.0),
+                (TerracottaDemolisher, _) => (9.0, -1.0, 3.0),
+                (TerracottaPunisher, _) => (9.0, -1.0, 4.0),
+                (TerracottaPursuer, _) => (9.0, -1.0, 4.0),
+                (Cursekeeper, _) => (9.5, -0.5, 2.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -420,6 +445,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (8.0, 1.5, -2.5),
                 (SeaBishop, _) => (10.0, 0.0, -3.0),
                 (HaniwaGeneral, _) => (10.0, -1.0, -3.0),
+                (TerracottaBesieger, _) => (13.5, -1.0, -3.5),
+                (TerracottaDemolisher, _) => (10.0, -1.0, -1.5),
+                (TerracottaPunisher, _) => (10.0, -1.0, -1.5),
+                (TerracottaPursuer, _) => (10.0, -1.0, -1.5),
+                (Cursekeeper, _) => (11.0, -1.0, -4.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -449,6 +479,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (3.0, -1.5, -4.0),
                 (SeaBishop, _) => (3.0, 1.0, -14.0),
                 (HaniwaGeneral, _) => (3.0, 0.0, -5.0),
+                (TerracottaBesieger, _) => (5.0, 0.5, -6.0),
+                (TerracottaDemolisher, _) => (3.5, 1.5, -5.0),
+                (TerracottaPunisher, _) => (3.5, 1.0, -5.0),
+                (TerracottaPursuer, _) => (3.5, 1.0, -5.0),
+                (Cursekeeper, _) => (5.0, 0.5, -6.0),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -478,6 +513,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (4.0, 3.5, -10.0),
                 (SeaBishop, _) => (5.5, 3.0, -6.5),
                 (HaniwaGeneral, _) => (3.0, 1.0, -10.0),
+                (TerracottaBesieger, _) => (5.5, 2.5, -13.0),
+                (TerracottaDemolisher, _) => (3.5, 3.0, -10.5),
+                (TerracottaPunisher, _) => (3.5, 2.0, -10.5),
+                (TerracottaPursuer, _) => (3.5, 2.5, -10.5),
+                (Cursekeeper, _) => (5.5, 2.5, -13.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
@@ -507,6 +547,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => 1.0,
                 (SeaBishop, _) => 1.0,
                 (HaniwaGeneral, _) => 1.0,
+                (TerracottaBesieger, _) => 1.0,
+                (TerracottaDemolisher, _) => 1.0,
+                (TerracottaPunisher, _) => 1.0,
+                (TerracottaPursuer, _) => 1.0,
+                (Cursekeeper, _) => 1.0,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -517,6 +562,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Swamptroll, _) => 0.9,
                 (Dullahan, _) => 0.8,
                 (Minotaur, _) => 0.8,
+                (TerracottaBesieger, _) => 0.7,
+                (TerracottaDemolisher, _) => 0.8,
+                (TerracottaPunisher, _) => 0.8,
+                (TerracottaPursuer, _) => 0.7,
+                (Cursekeeper, _) => 0.8,
                 _ => 1.0,
             },
             grip: match (body.species, body.body_type) {
@@ -547,6 +597,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (AdletElder, _) => (10.0, 0.0),
                 (SeaBishop, _) => (6.0, 0.0),
                 (HaniwaGeneral, _) => (10.0, 0.0),
+                (TerracottaBesieger, _) => (5.0, 0.0),
+                (TerracottaDemolisher, _) => (6.0, 0.0),
+                (TerracottaPunisher, _) => (6.0, 0.0),
+                (TerracottaPursuer, _) => (6.0, 0.0),
+                (Cursekeeper, _) => (14.0, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
@@ -606,7 +661,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 _ => (-7.0, 3.0, -8.0, 0.0, 0.0, 0.0),
             },
             beast: matches!((body.species, body.body_type), (Werewolf, _)),
-            float: matches!((body.species, body.body_type), (Mindflayer, _)),
+            float: matches!(
+                (body.species, body.body_type),
+                (Mindflayer, _) | (Cursekeeper, _)
+            ),
             height: comp::Body::BipedLarge(*body).dimensions().z,
         }
     }
@@ -641,6 +699,11 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (AdletElder, _) => (0.0, 0.0, -1.0),
         (SeaBishop, _) => (0.0, 0.0, -1.0),
         (HaniwaGeneral, _) => (0.0, 0.0, -1.0),
+        (TerracottaBesieger, _) => (0.0, 0.0, -1.0),
+        (TerracottaDemolisher, _) => (0.0, 0.0, -1.0),
+        (TerracottaPunisher, _) => (0.0, 0.0, -1.0),
+        (TerracottaPursuer, _) => (0.0, 0.0, -1.0),
+        (Cursekeeper, _) => (0.0, 0.0, -1.0),
     }
     .into()
 }

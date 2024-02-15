@@ -240,5 +240,13 @@
                  vox_spec: ("npc.flamekeeper.foot_r", (-2.5, -4.5, -7.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.jiangshi.foot.jiangshi": (
+            left: (
+                vox_spec: ("npc.jiangshi.foot_r", (-2.0, -3.0, -8.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.jiangshi.foot_r", (-2.0, -3.0, -8.0)),
+            )
+        ),
     },
 ))

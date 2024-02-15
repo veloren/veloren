@@ -407,6 +407,17 @@ pub fn block_from_structure(
                 }),
             ));
         },
+        StructureBlock::TerracottaKeyhole(consumes) => {
+            return Some((
+                Block::air(SpriteKind::TerracottaKeyhole),
+                Some(SpriteCfg {
+                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                        consumes.clone(),
+                    ))),
+                    ..SpriteCfg::default()
+                }),
+            ));
+        },
     };
 
     Some((block?, None))

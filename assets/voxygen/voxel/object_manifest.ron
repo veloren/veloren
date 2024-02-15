@@ -39,6 +39,16 @@
             central: ("armor.empty"),
         )
     ),
+    TerracottaDemolisherBomb: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("object.terracotta_demolisher_bomb"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     FireworkBlue: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
@@ -729,6 +739,16 @@
             central: ("armor.empty"),
         )
     ),
+    BoltBesieger: (
+        bone0: (
+            offset: (-2.5, -10.0, -2.5),
+            central: ("weapon.projectile.besieger_bolt"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     SilverOre: (
         bone0: (
             offset: (-4.5, -5.0, 0.0),
@@ -981,6 +1001,16 @@
             central: ("armor.empty"),
         )
     ),
+    LaserBeamSmall: (
+        bone0: (
+            offset: (-1.0, -9.0, -3.0),
+            central: ("weapon.projectile.laser_beam_small"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     LightningBolt: (
         bone0: (
             offset: (-4.5, -80.0, -3.0),
@@ -1015,6 +1045,16 @@
         bone0: (
             offset: (-4.5, -2.5, 0.0),
             central: ("weapon.projectile.adlet-trap"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    TerracottaStatue: (
+        bone0: (
+            offset: (-28.0, -28.0, -0.0),
+            central: ("sprite.furniture.terracotta_statue_4"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),

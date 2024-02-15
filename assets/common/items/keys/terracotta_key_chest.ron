@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Terracotta Chest Key",
+    legacy_description: "Used to open chests in Terracotta Ruins. Will break after use.",
+    kind: Utility(
+        kind: Key,
+    ),
+    quality: Epic,
+    tags: [Utility],
+)
+

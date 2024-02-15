@@ -1,0 +1,8 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.jiangshi.head.jiangshi"),
+    chest: Item("common.items.npc_armor.biped_small.jiangshi.chest.jiangshi"),
+    gloves: Item("common.items.npc_armor.biped_small.jiangshi.hand.jiangshi"),
+    legs: Item("common.items.npc_armor.biped_small.jiangshi.pants.jiangshi"),
+    feet: Item("common.items.npc_armor.biped_small.jiangshi.foot.jiangshi"),
+)

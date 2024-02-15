@@ -1,0 +1,19 @@
+BasicSummon(
+    buildup_duration: 0.2,
+    cast_duration: 0.3,
+    recover_duration: 4.0,
+    summon_amount: 1,
+    summon_distance: (4, 4),
+    summon_info: (
+        body: BipedLarge((
+            species: TerracottaPursuer,
+            body_type: Male,
+        )),
+        scale: None,
+        use_npc_name: true,
+        has_health: true,
+        loadout_config: None,
+        skillset_config: Some(Rank3),
+    ),
+    duration: None,
+)

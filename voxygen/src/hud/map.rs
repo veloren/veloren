@@ -922,7 +922,8 @@ impl<'a> Widget for Map<'a> {
                         SiteKind::Cave => i18n.get_msg("hud-map-cave"),
                         SiteKind::Tree => i18n.get_msg("hud-map-tree"),
                         SiteKind::Gnarling => i18n.get_msg("hud-map-gnarling"),
-                        SiteKind::ChapelSite => i18n.get_msg("hud-map-chapel_Site"),
+                        SiteKind::ChapelSite => i18n.get_msg("hud-map-chapel_site"),
+                        SiteKind::Terracotta => i18n.get_msg("hud-map-terracotta"),
                         SiteKind::Bridge => i18n.get_msg("hud-map-bridge"),
                         SiteKind::Adlet => i18n.get_msg("hud-map-adlet"),
                         SiteKind::Haniwa => i18n.get_msg("hud-map-haniwa"),
@@ -951,6 +952,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cave => (None, i18n.get_msg("hud-map-cave")),
                 SiteKind::Tree => (None, i18n.get_msg("hud-map-tree")),
                 SiteKind::Gnarling => (Some(0), i18n.get_msg("hud-map-gnarling")),
+                SiteKind::Terracotta => (Some(5), i18n.get_msg("hud-map-terracotta")),
                 SiteKind::ChapelSite => (Some(4), i18n.get_msg("hud-map-chapel_site")),
                 SiteKind::Bridge => (None, i18n.get_msg("hud-map-bridge")),
                 SiteKind::Adlet => (Some(1), i18n.get_msg("hud-map-adlet")),
@@ -961,6 +963,7 @@ impl<'a> Widget for Map<'a> {
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town,
                 SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
+                SiteKind::Terracotta => self.imgs.mmap_site_terracotta,
                 SiteKind::Castle => self.imgs.mmap_site_castle,
                 SiteKind::Cave => self.imgs.mmap_site_cave,
                 SiteKind::Tree => self.imgs.mmap_site_tree,
@@ -984,6 +987,7 @@ impl<'a> Widget for Map<'a> {
             .hover_image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town_hover,
                 SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel_hover,
+                SiteKind::Terracotta => self.imgs.mmap_site_terracotta_hover,
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
                 SiteKind::Cave => self.imgs.mmap_site_cave_hover,
                 SiteKind::Tree => self.imgs.mmap_site_tree_hover,
@@ -1008,6 +1012,7 @@ impl<'a> Widget for Map<'a> {
                     SiteKind::Dungeon { .. }
                     | SiteKind::Gnarling
                     | SiteKind::ChapelSite
+                    | SiteKind::Terracotta
                     | SiteKind::Adlet
                     | SiteKind::Haniwa
                     | SiteKind::DwarvenMine => match difficulty {
@@ -1038,6 +1043,7 @@ impl<'a> Widget for Map<'a> {
                 | SiteKind::ChapelSite
                 | SiteKind::DwarvenMine
                 | SiteKind::Haniwa
+                | SiteKind::Terracotta
                 | SiteKind::Adlet => show_dungeons,
                 SiteKind::Castle => show_castles,
                 SiteKind::Cave => show_caves,
@@ -1099,6 +1105,7 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::Gnarling
                     | SiteKind::ChapelSite
                     | SiteKind::Haniwa
+                    | SiteKind::Terracotta
                     | SiteKind::Adlet => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)

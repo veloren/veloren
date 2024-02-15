@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Shamanic Spirit Chest",
+    legacy_description: "Shamanic Spirit Chest",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(16.0)),
+            poise_resilience: Some(Normal(3.0)),
+            precision_power: Some(0.06),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

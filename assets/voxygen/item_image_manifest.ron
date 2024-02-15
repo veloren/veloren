@@ -1662,8 +1662,8 @@
         "voxel.weapon.tool.wooden_lute",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
-    Simple("common.items.tool.instruments.steeldrum"): VoxTrans(
-        "voxel.weapon.tool.steeldrum",
+    Simple("common.items.tool.instruments.steeltonguedrum"): VoxTrans(
+        "voxel.weapon.tool.steeltonguedrum",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
     Simple("common.items.tool.instruments.shamisen"): VoxTrans(
@@ -4972,6 +4972,14 @@
     ),
     Simple("common.items.keys.quarry_keys.smelting"): VoxTrans(
         "voxel.object.key_rusty-0",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.terracotta_key_chest"): VoxTrans(
+        "voxel.object.key_terracotta_chest",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
+    Simple("common.items.keys.terracotta_key_door"): VoxTrans(
+        "voxel.object.key_terracotta_door",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
     // Lockpicks

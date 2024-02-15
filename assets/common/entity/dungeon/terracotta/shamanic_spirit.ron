@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Name("Shamanic Spirit"),
+    body: RandomWith("shamanic_spirit"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.terracotta.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.terracotta.shamanic_spirit"),
+            active_hands: InHands((Item("common.items.npc_weapons.unique.shamanic_spirit"), None)),
+            )),
+    ),
+    meta: [],
+)

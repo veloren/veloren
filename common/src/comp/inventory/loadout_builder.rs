@@ -560,6 +560,9 @@ fn default_main_tool(body: &Body) -> Item {
             golem::Species::AncientEffigy => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.ancient_effigy_eyes",
             )),
+            golem::Species::Mogwai => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.mogwai",
+            )),
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -843,6 +846,21 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::HaniwaGeneral, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.sword.haniwa_general_sword",
             )),
+            (biped_large::Species::TerracottaBesieger, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.bow.terracotta_besieger_bow",
+            )),
+            (biped_large::Species::TerracottaDemolisher, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.terracotta_demolisher_fist",
+            )),
+            (biped_large::Species::TerracottaPunisher, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.hammer.terracotta_punisher_club",
+            )),
+            (biped_large::Species::TerracottaPursuer, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.sword.terracotta_pursuer_sword",
+            )),
+            (biped_large::Species::Cursekeeper, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.cursekeeper_sceptre",
+            )),
         },
         Body::Object(body) => match body {
             object::Body::Crossbow => Some(Item::new_from_asset_expect(
@@ -853,6 +871,9 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             object::Body::BarrelOrgan => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.organ",
+            )),
+            object::Body::TerracottaStatue => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.terracotta_statue",
             )),
             object::Body::HaniwaSentry => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.haniwa_sentry",
@@ -895,6 +916,12 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             (biped_small::Species::Clockwork, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.clockwork",
+            )),
+            (biped_small::Species::ShamanicSpirit, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.shamanic_spirit",
+            )),
+            (biped_small::Species::Jiangshi, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.jiangshi",
             )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.adlet.hunter",
@@ -971,6 +998,8 @@ pub enum Preset {
     HuskSummon,
     BorealSummon,
     ClockworkSummon,
+    ShamanicSpiritSummon,
+    JiangshiSummon,
 }
 
 impl LoadoutBuilder {
@@ -1080,6 +1109,13 @@ impl LoadoutBuilder {
                 biped_large::Species::HaniwaGeneral => {
                     Some("common.items.npc_armor.biped_large.haniwageneral")
                 },
+                biped_large::Species::TerracottaBesieger
+                | biped_large::Species::TerracottaDemolisher
+                | biped_large::Species::TerracottaPunisher
+                | biped_large::Species::TerracottaPursuer
+                | biped_large::Species::Cursekeeper => {
+                    Some("common.items.npc_armor.biped_large.terracotta")
+                },
                 _ => None,
             },
             Body::BirdLarge(body) => match body.species {
@@ -1098,6 +1134,7 @@ impl LoadoutBuilder {
                 golem::Species::Gravewarden => Some("common.items.npc_armor.golem.gravewarden"),
                 golem::Species::WoodGolem => Some("common.items.npc_armor.golem.woodgolem"),
                 golem::Species::AncientEffigy => Some("common.items.npc_armor.golem.ancienteffigy"),
+                golem::Species::Mogwai => Some("common.items.npc_armor.golem.mogwai"),
                 _ => None,
             },
             Body::QuadrupedLow(body) => match body.species {
@@ -1217,6 +1254,17 @@ impl LoadoutBuilder {
                     rng,
                     None,
                 );
+            },
+            Preset::ShamanicSpiritSummon => {
+                self = self.with_asset_expect(
+                    "common.loadout.dungeon.terracotta.shamanic_spirit",
+                    rng,
+                    None,
+                );
+            },
+            Preset::JiangshiSummon => {
+                self =
+                    self.with_asset_expect("common.loadout.dungeon.terracotta.jiangshi", rng, None);
             },
         }
 

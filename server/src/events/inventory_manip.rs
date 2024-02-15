@@ -349,6 +349,9 @@ impl ServerEvent for InventoryManipEvent {
                                 Some(SpriteKind::HaniwaKeyhole) => Some(SpriteKind::HaniwaKeyDoor),
                                 Some(SpriteKind::GlassKeyhole) => Some(SpriteKind::GlassBarrier),
                                 Some(SpriteKind::KeyholeBars) => Some(SpriteKind::DoorBars),
+                                Some(SpriteKind::TerracottaKeyhole) => {
+                                    Some(SpriteKind::TerracottaKeyDoor)
+                                },
                                 _ => None,
                             } {
                                 let dirs = [

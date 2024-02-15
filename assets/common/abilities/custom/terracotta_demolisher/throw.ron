@@ -1,0 +1,18 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 1.0,
+    recover_duration: 1.5,
+    projectile: FireDroplet(
+        damage: 30.0,
+        radius: 10.0,
+        min_falloff: 0.5,
+        energy_regen: 0,
+        reagent: Some(Yellow),
+    ),
+    projectile_body: Object(TerracottaDemolisherBomb),
+    projectile_light: None,
+    projectile_speed: 20.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+    move_efficiency: 0.3,
+)

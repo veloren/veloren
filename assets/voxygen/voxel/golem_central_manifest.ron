@@ -263,4 +263,46 @@
             central: ("npc.coralgolem.male.chest_lower"),
         ),
     ),
+    (Mogwai, Male): (
+        head: (
+            offset: (-14.0, -9.5, -10.5),
+            central: ("npc.mogwai.male.mogwai"),
+            model_index: 0,
+        ),
+        jaw: (
+            offset: (-8.0, 8.0, -3.5),
+            central: ("npc.mogwai.male.mogwai"),
+            model_index: 1,
+        ),
+        torso_upper: (
+            offset: (-11.5, -5.0, -5.5),
+            central: ("armor.empty"),
+
+        ),
+        torso_lower: (
+            offset: (-7.5, -5.5, -5.5),
+            central: ("armor.empty"),
+        ),
+    ),
+    (Mogwai, Female): (
+        head: (
+            offset: (-14.0, -9.5, -10.5),
+            central: ("npc.mogwai.male.mogwai"),
+            model_index: 0,
+        ),
+        jaw: (
+            offset: (-8.0, 8.0, -3.5),
+            central: ("npc.mogwai.male.mogwai"),
+            model_index: 1,
+        ),
+        torso_upper: (
+            offset: (-11.5, -5.0, -5.5),
+            central: ("armor.empty"),
+
+        ),
+        torso_lower: (
+            offset: (-7.5, -5.5, -5.5),
+            central: ("armor.empty"),
+        ),
+    ),
 })

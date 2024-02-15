@@ -1,0 +1,19 @@
+BasicSummon(
+    buildup_duration: 0.3,
+    cast_duration: 0.3,
+    recover_duration: 1.0,
+    summon_amount: 1,
+    summon_distance: (2, 2),
+    summon_info: (
+        body: BipedSmall((
+            species: ShamanicSpirit,
+            body_type: Male,
+        )),
+        scale: None,
+        use_npc_name: true,
+        has_health: true,
+        loadout_config: Some(ShamanicSpiritSummon),
+        skillset_config: Some(Rank5),
+    ),
+    duration: None,
+)

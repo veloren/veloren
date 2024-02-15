@@ -1,0 +1,57 @@
+ComboMelee2(
+    strikes: [
+        (
+            melee_constructor: (
+                kind: Bash(
+                    damage: 18,
+                    poise: 0,
+                    knockback: 4,
+                    energy_regen: 0,
+                ),
+                range: 3.5,
+                angle: 50.0,
+                damage_effect: Some(Buff((
+                    kind: Bleeding,
+                    dur_secs: 10.0,
+                    strength: DamageFraction(0.1),
+                    chance: 0.1,
+                ))),
+            ),
+            buildup_duration: 1.2,
+            swing_duration: 0.12,
+            hit_timing: 0.5,
+            recover_duration: 1.2,
+            movement: (
+                swing: Some(Forward(1.5)),
+            ),
+            ori_modifier: 0.6,
+        ),
+        (
+            melee_constructor: (
+                kind: Bash(
+                    damage: 26,
+                    poise: 0,
+                    knockback: 16,
+                    energy_regen: 0,
+                ),
+                range: 5.5,
+                angle: 15.0,
+                damage_effect: Some(Buff((
+                    kind: Bleeding,
+                    dur_secs: 10.0,
+                    strength: DamageFraction(0.1),
+                    chance: 0.1,
+                ))),
+            ),
+            buildup_duration: 1.0,
+            swing_duration: 0.15,
+            hit_timing: 0.5,
+            recover_duration: 2.4,
+            movement: (
+                swing: Some(Forward(2.5)),
+            ),
+            ori_modifier: 0.6,
+        ),
+    ],
+    energy_cost_per_strike: 0,
+)

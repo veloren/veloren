@@ -5351,7 +5351,8 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::DungeonChest2
         | SpriteKind::DungeonChest3
         | SpriteKind::DungeonChest4
-        | SpriteKind::DungeonChest5 => "common-sprite-chest",
+        | SpriteKind::DungeonChest5
+        | SpriteKind::TerracottaChest => "common-sprite-chest",
         SpriteKind::Mud => "common-sprite-mud",
         SpriteKind::Grave => "common-sprite-grave",
         SpriteKind::ChairSingle | SpriteKind::ChairDouble => "common-sprite-chair",

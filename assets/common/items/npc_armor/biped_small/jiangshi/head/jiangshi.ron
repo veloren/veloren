@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Jiangshi Head",
+    legacy_description: "Jiangshi Head",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(8.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

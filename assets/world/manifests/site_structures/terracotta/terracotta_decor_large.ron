@@ -1,0 +1,20 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.terracotta.decor.terracotta_decor-4",
+        center: (17, 17, 0),
+        custom_indices: {
+            129: Filled(Water, (r: 53, g: 112, b: 137)),
+         },   
+    ),
+    (
+        specifier: "world.structure.terracotta.decor.terracotta_decor-5",
+        center: (17, 17, 0),
+        custom_indices: {
+            130: Sprite(JungleRedGrass),
+            131: Sprite(JungleLeafyPlant),
+            132: Sprite(JungleFern),
+        },
+    ),
+]

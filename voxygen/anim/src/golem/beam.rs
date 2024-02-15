@@ -6,7 +6,7 @@ use common::{states::utils::StageSection, util::Dir};
 pub struct BeamAnimation;
 
 impl Animation for BeamAnimation {
-    type Dependency<'a> = (Option<StageSection>, f32, f32, Dir);
+    type Dependency<'a> = (Option<StageSection>, f32, f32, Dir, Option<&'a str>);
     type Skeleton = GolemSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +16,7 @@ impl Animation for BeamAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (stage_section, _global_time, _timer, look_dir): Self::Dependency<'_>,
+        (stage_section, _global_time, _timer, look_dir, ability_id): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -34,41 +34,50 @@ impl Animation for BeamAnimation {
         let move1 = move1base * pullback;
         let move2 = move2base * pullback;
 
-        next.head.orientation = Quaternion::rotation_x(move1iso * 0.5 + move2 * (look_dir.z * 1.0));
-        next.head.position = Vec3::new(
-            0.0,
-            s_a.head.0,
-            s_a.head.1 - move2 * 5.0 * (look_dir.z * 1.0).min(0.0),
-        );
+        match ability_id {
+            Some("common.abilities.custom.mogwai.breathe") => {
+                next.jaw.orientation = Quaternion::rotation_x(-0.3 * move1);
+            },
+            _ => {
+                next.head.orientation =
+                    Quaternion::rotation_x(move1iso * 0.5 + move2 * (look_dir.z * 1.0));
+                next.head.position = Vec3::new(
+                    0.0,
+                    s_a.head.0,
+                    s_a.head.1 - move2 * 5.0 * (look_dir.z * 1.0).min(0.0),
+                );
 
-        next.upper_torso.orientation =
-            Quaternion::rotation_x(move1iso * 0.3) * Quaternion::rotation_z(0.0);
+                next.upper_torso.orientation =
+                    Quaternion::rotation_x(move1iso * 0.3) * Quaternion::rotation_z(0.0);
 
-        next.lower_torso.orientation =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1iso * -0.3);
+                next.lower_torso.orientation =
+                    Quaternion::rotation_z(0.0) * Quaternion::rotation_x(move1iso * -0.3);
 
-        next.shoulder_l.orientation =
-            Quaternion::rotation_x(move1 * 0.8) * Quaternion::rotation_y(move1 * -0.5);
+                next.shoulder_l.orientation =
+                    Quaternion::rotation_x(move1 * 0.8) * Quaternion::rotation_y(move1 * -0.5);
 
-        next.shoulder_r.orientation =
-            Quaternion::rotation_x(move1 * 0.8) * Quaternion::rotation_y(move1 * 0.5);
-        next.shoulder_l.position = Vec3::new(
-            -s_a.shoulder.0,
-            s_a.shoulder.1 + move1 * 2.0,
-            s_a.shoulder.2 + move1 * -2.0,
-        );
-        next.shoulder_r.position = Vec3::new(
-            s_a.shoulder.0,
-            s_a.shoulder.1 + move1 * 2.0,
-            s_a.shoulder.2 + move1 * -2.0,
-        );
+                next.shoulder_r.orientation =
+                    Quaternion::rotation_x(move1 * 0.8) * Quaternion::rotation_y(move1 * 0.5);
+                next.shoulder_l.position = Vec3::new(
+                    -s_a.shoulder.0,
+                    s_a.shoulder.1 + move1 * 2.0,
+                    s_a.shoulder.2 + move1 * -2.0,
+                );
+                next.shoulder_r.position = Vec3::new(
+                    s_a.shoulder.0,
+                    s_a.shoulder.1 + move1 * 2.0,
+                    s_a.shoulder.2 + move1 * -2.0,
+                );
 
-        next.hand_l.orientation =
-            Quaternion::rotation_z(0.0) * Quaternion::rotation_y(move1 * -1.1);
+                next.hand_l.orientation =
+                    Quaternion::rotation_z(0.0) * Quaternion::rotation_y(move1 * -1.1);
 
-        next.hand_r.orientation = Quaternion::rotation_y(0.0) * Quaternion::rotation_y(move1 * 1.1);
+                next.hand_r.orientation =
+                    Quaternion::rotation_y(0.0) * Quaternion::rotation_y(move1 * 1.1);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
+                next.torso.position = Vec3::new(0.0, 0.0, 0.0);
+            },
+        }
         next
     }
 }

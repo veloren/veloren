@@ -1,0 +1,7 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.shamanic_spirit.head.shamanic_spirit"),
+    chest: Item("common.items.npc_armor.biped_small.shamanic_spirit.chest.shamanic_spirit"),
+    gloves: Item("common.items.npc_armor.biped_small.shamanic_spirit.hand.shamanic_spirit"),
+    legs: Item("common.items.npc_armor.biped_small.shamanic_spirit.pants.shamanic_spirit"),
+)

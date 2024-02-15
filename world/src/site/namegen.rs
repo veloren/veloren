@@ -556,7 +556,9 @@ impl<'a, R: Rng> NameGen<'a, R> {
             if !vowel.is_empty() {
                 name += vowel.choose(self.rng).unwrap()
             };
-            name += middle.choose(self.rng).unwrap();
+            if !middle.is_empty() {
+                name += middle.choose(self.rng).unwrap();
+            }
         }
         name += end.choose(self.rng).unwrap();
 
@@ -697,6 +699,29 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "tami", "yoro", "hiro", "ki", "kai", "gato", "mizu", "gin", "gon", "ppu", "matsu",
             "yake", "koku", "miya", "zawa", "sen", "shiro", "kuro", "ppo", "kata", "riku", "sha",
             "ishi", "yoko", "su", "gi", "ko", "hagi", "wa",
+        ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
+    }
+
+    // chinese inspired location names for terracotta ruins
+    pub fn generate_terracotta(&mut self) -> String {
+        let start = [
+            "wang", "li", "zhang", "liu", "chen", "yang", "gong", "zhao", "wu", "zhou", "ming",
+            "jin", "xiao", "feng", "ho", "xiang", "yuan", "yu", "chien", "xi", "qin", "dao", "bao",
+            "ping", "qu", "yan", "deng", "ku", "ko", "la", "ge", "fu", "gao", "yong", "wo", "qi",
+            "mo", "gong", "shi", "xing", "xian", "biao", "kai", "bei", "ga", "zhou", "liu", "ba",
+            "fei", "tui", "de", "teng", "shou", "xiong", "diao", "lei", "shan", "shin", "pin",
+            "gin", "gen", "huen", "san", "hong", "long", "kon", "jing", "meng", "mei",
+        ];
+        let middle = [];
+        let vowel = [];
+        let end = [
+            "tian", "shi", "zhong", "xie", "biao", "neng", "zuo", "ze", "zhi", "hao", "pao",
+            "liang", "yong", "chou", "zhou", "peng", "yang", "huang", "bo", "yao", "fu", "xia",
+            "chen", "ling", "jia", "xu", "gou", "ya", "lang", "he", "ho", "nan", "hua", "xue",
+            "ji", "jian", "jiu", "xi", "ling", "dan", "dian", "shin", "gao", "yi", "zuo", "san",
+            "jie", "hua", "jin", "zhi", "zhe", "sing", "zai", "hun", "fen", "nen", "huan", "bian",
+            "cha", "wu", "wei", "jiao", "hu", "he", "bao", "bi",
         ];
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }

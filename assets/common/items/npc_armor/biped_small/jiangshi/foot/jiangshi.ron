@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Jiangshi Foot",
+    legacy_description: "Jiangshi Foot.",
+    kind: Armor((
+        kind: Foot,
+        stats: Direct((
+            protection: Some(Normal(4.0)),
+            energy_max: Some(1.8),
+            energy_reward: Some(0.018),
+            precision_power: Some(0.016),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

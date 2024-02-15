@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Mogwai Armor",
+    legacy_description: "Worn by mogwai.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(80.0)),
+            poise_resilience: Some(Normal(5.0)),
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)

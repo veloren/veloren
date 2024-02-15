@@ -78,7 +78,7 @@ impl Animation for ComboAnimation {
                 },
                 Some(
                     "common.abilities.axesimple.doublestrike"
-                    | "common.abilities.custom.boreal_warrior.hammer",
+                    | "common.abilities.custom.boreal_warrior.hammer.singlestrike",
                 ) => {
                     let anim_time = anim_time.min(1.0);
                     let (move1base, move2base, move3) = match stage_section {

@@ -278,7 +278,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..105) {
+                let (loc, kind) = match ctx.rng.gen_range(0..115) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -394,7 +394,17 @@ impl Civs {
                         )?,
                         SiteKind::Haniwa,
                     ),
-                    /*75..=80 => (
+                    75..=85 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.terracotta_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::Terracotta,
+                        )?,
+                        SiteKind::Terracotta,
+                    ),
+                    /*86..=91 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -404,7 +414,7 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),
-                    81..=86 => (
+                    92..=97 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -415,7 +425,7 @@ impl Civs {
                         )?,
                         SiteKind::Castle,
                     ),
-                    87..=92 => (SiteKind::Citadel, (&castle_enemies, 20)),
+                    98..=103 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     */
                     _ => (
                         find_site_loc(
@@ -457,6 +467,7 @@ impl Civs {
                 SiteKind::JungleRuin => (8i32, 3.0),
                 SiteKind::DesertCity => (64i32, 25.0),
                 SiteKind::ChapelSite => (36i32, 10.0),
+                SiteKind::Terracotta => (64i32, 35.0),
                 SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
@@ -625,6 +636,9 @@ impl Civs {
                     )),*/
                     SiteKind::ChapelSite => WorldSite::chapel_site(
                         site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    ),
+                    SiteKind::Terracotta => WorldSite::terracotta(
+                        site2::Site::generate_terracotta(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
                     SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
                         &Land::from_sim(ctx.sim),
@@ -1529,6 +1543,13 @@ impl Civs {
         })
     }
 
+    fn terracotta_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
     fn dungeon_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Tree | SiteKind::GiantTree => None,
@@ -1933,6 +1954,7 @@ pub enum SiteKind {
     CoastalTown,
     DesertCity,
     ChapelSite,
+    Terracotta,
     Tree,
     GiantTree,
     Gnarling,
@@ -2046,6 +2068,14 @@ impl SiteKind {
                 SiteKind::ChapelSite => {
                     matches!(chunk.get_biome(), BiomeKind::Ocean)
                         && CONFIG.sea_level < chunk.alt + 1.0
+                },
+                SiteKind::Terracotta => {
+                    (0.9..1.0).contains(&chunk.temp)
+                        && on_land()
+                        && (chunk.water_alt - CONFIG.sea_level) > 50.0
+                        && on_flat_terrain()
+                        && !chunk.river.near_water()
+                        && !chunk.near_cliffs()
                 },
                 SiteKind::Castle => {
                     if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {

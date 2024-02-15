@@ -695,6 +695,7 @@ impl<'a> Widget for MiniMap<'a> {
                 let difficulty = match &site.kind {
                     SiteKind::Town => None,
                     SiteKind::ChapelSite => Some(4),
+                    SiteKind::Terracotta => Some(5),
                     SiteKind::Dungeon { difficulty } => Some(*difficulty),
                     SiteKind::Castle => None,
                     SiteKind::Cave => None,
@@ -709,6 +710,7 @@ impl<'a> Widget for MiniMap<'a> {
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town_bg,
                     SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel_bg,
+                    SiteKind::Terracotta => self.imgs.mmap_site_terracotta_bg,
                     SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_bg,
                     SiteKind::Castle => self.imgs.mmap_site_castle_bg,
                     SiteKind::Cave => self.imgs.mmap_site_cave_bg,
@@ -738,6 +740,7 @@ impl<'a> Widget for MiniMap<'a> {
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town,
                     SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
+                    SiteKind::Terracotta => self.imgs.mmap_site_terracotta,
                     SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
                     SiteKind::Castle => self.imgs.mmap_site_castle,
                     SiteKind::Cave => self.imgs.mmap_site_cave,

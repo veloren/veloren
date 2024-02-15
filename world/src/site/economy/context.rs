@@ -135,6 +135,7 @@ impl Environment {
                     SiteKind::JungleRuin(_) => {},
                     SiteKind::ChapelSite(_) => {},
                     SiteKind::DwarvenMine(_) => {},
+                    SiteKind::Terracotta(_) => {},
                     SiteKind::Bridge(_) => {},
                     SiteKind::PirateHideout(_) => {},
                     SiteKind::RockCircle(_) => {},

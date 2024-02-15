@@ -213,6 +213,7 @@ impl World {
                                 civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,
                                 //civ::SiteKind::DwarvenMine => world_msg::SiteKind::DwarvenMine,
                                 civ::SiteKind::ChapelSite => world_msg::SiteKind::ChapelSite,
+                                civ::SiteKind::Terracotta => world_msg::SiteKind::Terracotta,
                                 civ::SiteKind::Citadel => world_msg::SiteKind::Castle,
                                 civ::SiteKind::Bridge(_, _) => world_msg::SiteKind::Bridge,
                                 civ::SiteKind::Adlet => world_msg::SiteKind::Adlet,

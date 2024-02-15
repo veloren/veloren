@@ -86,6 +86,14 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
+                    // Send local event used for frontend shenanigans
+                    if self.static_data.sprite == SpriteKind::Empty {
+                        output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::TerracottaStatueCharge {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            },
+                        ));
+                    }
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpriteSummon(Data {
@@ -154,15 +162,22 @@ impl CharacterBehavior for Data {
                                     })
                                     .cast();
 
-                                // z height relative to caster
-                                let z = sprite_pos.z
-                                    + if let (SpriteSummonAnchor::Target, Ok(None)) =
-                                        (&self.static_data.anchor, obstale_z_result)
-                                    {
-                                        0
-                                    } else {
-                                        (10.5 - obstacle_z).ceil() as i32
-                                    };
+                                let z = match self.static_data.sprite {
+                                    // z height - 1 to delete sprite layer below caster
+                                    SpriteKind::Empty => {
+                                        sprite_pos.z + (10.5 - obstacle_z).ceil() as i32 - 1
+                                    },
+                                    _ => {
+                                        sprite_pos.z
+                                            + if let (SpriteSummonAnchor::Target, Ok(None)) =
+                                                (&self.static_data.anchor, obstale_z_result)
+                                            {
+                                                0
+                                            } else {
+                                                (10.5 - obstacle_z).ceil() as i32
+                                            }
+                                    },
+                                };
 
                                 // Location sprite will be created
                                 let sprite_pos = Vec3::new(sprite_pos.x, sprite_pos.y, z);
@@ -189,15 +204,27 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     // Send local event used for frontend shenanigans
-                    if self.static_data.sprite == SpriteKind::IceSpike {
-                        let summoner_pos =
-                            data.pos.0 + *data.ori.look_dir() * data.body.max_radius();
-                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::IceCrack {
-                            pos: match self.static_data.anchor {
-                                SpriteSummonAnchor::Summoner => summoner_pos,
-                                SpriteSummonAnchor::Target => target_pos().unwrap_or(summoner_pos),
-                            },
-                        }));
+                    match self.static_data.sprite {
+                        SpriteKind::IceSpike => {
+                            let summoner_pos =
+                                data.pos.0 + *data.ori.look_dir() * data.body.max_radius();
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::IceCrack {
+                                    pos: match self.static_data.anchor {
+                                        SpriteSummonAnchor::Summoner => summoner_pos,
+                                        SpriteSummonAnchor::Target => {
+                                            target_pos().unwrap_or(summoner_pos)
+                                        },
+                                    },
+                                },
+                            ));
+                        },
+                        SpriteKind::IronSpike => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Whoosh {
+                                pos: data.pos.0,
+                            }));
+                        },
+                        _ => {},
                     }
                 } else {
                     // Transitions to recover section of stage

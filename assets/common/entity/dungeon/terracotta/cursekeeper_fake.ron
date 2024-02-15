@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Name("Cursekeeper"),
+    body: RandomWith("cursekeeper"),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.keys.terracotta_key_chest"),
+    inventory: (
+        loadout: Inline((
+            active_hands: InHands((Item("common.items.npc_weapons.unique.cursekeeper_sceptre_fake"), None)),
+        )),    ),
+    meta: [],
+)

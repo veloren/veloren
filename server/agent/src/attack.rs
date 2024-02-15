@@ -4795,6 +4795,136 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    pub fn handle_cursekeeper_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+
+        enum ActionStateTimers {
+            TimerBeam,
+            TimerSummon,
+            SelectSummon,
+        }
+        if tgt_data.pos.0.z - self.pos.0.z > 5.0 {
+            controller.push_action(ControlAction::StartInput {
+                input: InputKind::Ability(5),
+                target_entity: agent
+                    .target
+                    .as_ref()
+                    .and_then(|t| read_data.uids.get(t.target))
+                    .copied(),
+                select_pos: None,
+            });
+        } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] > 10.0 {
+            agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] = 0.0;
+        } else {
+            agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] += read_data.dt.0;
+        }
+
+        if matches!(self.char_state, CharacterState::BasicSummon(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] = 0.0;
+            agent.combat_state.timers[ActionStateTimers::SelectSummon as usize] =
+                rng.gen_range(0..=4) as f32;
+        } else {
+            agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] += read_data.dt.0;
+        }
+
+        if line_of_sight_with_target() {
+            if agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] > 45.0 {
+                match agent.combat_state.timers[ActionStateTimers::SelectSummon as usize] as i32 {
+                    0 => controller.push_basic_input(InputKind::Ability(0)),
+                    1 => controller.push_basic_input(InputKind::Ability(1)),
+                    2 => controller.push_basic_input(InputKind::Ability(2)),
+                    3 => controller.push_basic_input(InputKind::Ability(3)),
+                    _ => controller.push_basic_input(InputKind::Ability(4)),
+                }
+            } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 6.0 {
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        }
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Partial,
+            None,
+        );
+    }
+
+    pub fn handle_shamanic_spirit_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if tgt_data.pos.0.z - self.pos.0.z > 5.0 {
+            controller.push_action(ControlAction::StartInput {
+                input: InputKind::Secondary,
+                target_entity: agent
+                    .target
+                    .as_ref()
+                    .and_then(|t| read_data.uids.get(t.target))
+                    .copied(),
+                select_pos: None,
+            });
+        } else if attack_data.in_min_range() && attack_data.angle < 30.0 {
+            controller.push_basic_input(InputKind::Primary);
+            controller.inputs.move_dir = Vec2::zero();
+        } else {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Full,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_cursekeeper_fake_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+    ) {
+        enum Conditions {
+            AttackToggle = 0,
+        }
+        if attack_data.dist_sqrd < 15_f32.powi(2) {
+            if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
+                controller.push_basic_input(InputKind::Primary);
+                if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+                {
+                    agent.combat_state.conditions[Conditions::AttackToggle as usize] = true;
+                }
+            } else {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        }
+    }
+
     pub fn handle_dagon_attack(
         &self,
         agent: &mut Agent,
@@ -6231,5 +6361,57 @@ impl<'a> AgentData<'a> {
                 None,
             );
         }
+    }
+
+    pub fn handle_terracotta_statue_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+    ) {
+        enum Conditions {
+            AttackToggle = 0,
+        }
+        // always begin with sprite summon
+        if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
+            controller.push_basic_input(InputKind::Primary);
+        } else {
+            controller.inputs.move_dir = Vec2::zero();
+            if attack_data.dist_sqrd < 8.5f32.powi(2) {
+                // sprite summon
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                // projectile
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        }
+        if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+        {
+            agent.combat_state.conditions[Conditions::AttackToggle as usize] = true;
+        }
+    }
+
+    pub fn handle_jiangshi_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        if tgt_data.pos.0.z - self.pos.0.z > 5.0 {
+            controller.push_basic_input(InputKind::Secondary);
+        } else if attack_data.dist_sqrd < 12.0f32.powi(2) {
+            controller.push_basic_input(InputKind::Primary);
+        }
+
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Full,
+            None,
+        );
     }
 }

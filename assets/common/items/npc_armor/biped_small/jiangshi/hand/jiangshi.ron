@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Jiangshi Hand",
+    legacy_description: "Jiangshi Hand",
+    kind: Armor((
+        kind: Hand,
+        stats: Direct((
+            protection: Some(Normal(5.0)),
+            precision_power: Some(0.016),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

@@ -914,9 +914,9 @@
         secondary: Simple(None, "common.abilities.music.sitar"),
         abilities: [],
     ),
-    Custom("Steeldrum"): (
-        primary: Simple(None, "common.abilities.music.steeldrum"),
-        secondary: Simple(None, "common.abilities.music.steeldrum"),
+    Custom("Steeltonguedrum"): (
+        primary: Simple(None, "common.abilities.music.steeltonguedrum"),
+        secondary: Simple(None, "common.abilities.music.steeltonguedrum"),
         abilities: [],
     ),
     Custom("Shamisen"): (
@@ -996,5 +996,63 @@
         abilities: [
             Simple(None, "common.abilities.haniwa.archer.explosive")
         ],
+    ),
+    // Terracotta
+    Custom("TerracottaBesieger"): (
+        primary: Simple(None, "common.abilities.custom.terracotta_besieger.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.terracotta_besieger.multishot"),
+        abilities: [],
+    ),
+    Custom("TerracottaDemolisher"): (
+        primary: Simple(None, "common.abilities.custom.terracotta_demolisher.drop"),
+        secondary: Simple(None, "common.abilities.custom.terracotta_demolisher.throw"),
+        abilities: [],
+    ),
+    Custom("TerracottaPursuer"): (
+        primary: Simple(None, "common.abilities.custom.terracotta_pursuer.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.terracotta_pursuer.dash"),
+        abilities: [],
+    ),
+    Custom("TerracottaPunisher"): (
+        primary: Simple(None, "common.abilities.custom.terracotta_punisher.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.terracotta_punisher.doublestrike"),
+        abilities: [],
+    ),
+    Custom("TerracottaStatue"): (
+        primary: Simple(None, "common.abilities.custom.terracotta_statue.trap"),
+        secondary: Simple(None, "common.abilities.custom.terracotta_statue.blast"),
+        abilities: [],
+    ),
+    Custom("Mogwai"): (
+        primary: Simple(None, "common.abilities.custom.mogwai.breathe"),
+        secondary: Simple(None, "common.abilities.custom.mogwai.breathe"),
+        abilities: [],
+    ),
+    Custom("Cursekeeper"): (
+        primary: Simple(None, "common.abilities.custom.cursekeeper.beam"),
+        secondary: Simple(None, "common.abilities.custom.cursekeeper.trap"),
+        abilities: [
+            Simple(None, "common.abilities.custom.cursekeeper.summonmogwai"),
+            Simple(None, "common.abilities.custom.cursekeeper.summonbesieger"),
+            Simple(None, "common.abilities.custom.cursekeeper.summonpursuer"),
+            Simple(None, "common.abilities.custom.cursekeeper.summonshamanicspirit"),
+            Simple(None, "common.abilities.custom.cursekeeper.summonjiangshi"),
+            Simple(None, "common.abilities.custom.cursekeeper.teleport"),
+        ],
+    ),
+    Custom("CursekeeperFake"): (
+        primary: Simple(None, "common.abilities.custom.cursekeeper.summonshamanicspirit"),
+        secondary: Simple(None, "common.abilities.custom.cursekeeper.unlive"),
+        abilities: [],
+    ),
+    Custom("ShamanicSpirit"): (
+        primary: Simple(None, "common.abilities.custom.shamanic_spirit.ironspikes"),
+        secondary: Simple(None, "common.abilities.custom.shamanic_spirit.teleport"),
+        abilities: [],
+    ),
+    Custom("Jiangshi"): (
+        primary: Simple(None, "common.abilities.custom.jiangshi.poisonshockwave"),
+        secondary: Simple(None, "common.abilities.custom.jiangshi.teleport"),
+        abilities: [],
     ),
 })
