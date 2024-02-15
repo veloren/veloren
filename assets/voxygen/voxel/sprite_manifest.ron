@@ -1086,6 +1086,92 @@ HaniwaTrapTriggered: Some((
      ],
     wind_sway: 0.0,
 )),
+// Terracotta Door, Keyhole, Chest, Statue
+TerracottaKeyDoor: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_keydoor",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TerracottaKeyhole: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_keyhole",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TerracottaChest: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_terracotta",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TerracottaStatue: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_statue_0",
+            offset: (-22.0, -18.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_statue_1",
+            offset: (-22.0, -18.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_statue_2",
+            offset: (-22.0, -18.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TerracottaBlock: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-0",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-1",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-2",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-3",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-5",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-6",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Welwitch
 Welwitch: Some((
     variations: [

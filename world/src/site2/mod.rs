@@ -110,6 +110,9 @@ impl Site {
                 PlotKind::Adlet(ad) => Some(ad.spawn_rules(wpos)),
                 PlotKind::SeaChapel(p) => Some(p.spawn_rules(wpos)),
                 PlotKind::Haniwa(ha) => Some(ha.spawn_rules(wpos)),
+                PlotKind::TerracottaPalace(tp) => Some(tp.spawn_rules(wpos)),
+                PlotKind::TerracottaHouse(th) => Some(th.spawn_rules(wpos)),
+                PlotKind::TerracottaYard(ty) => Some(ty.spawn_rules(wpos)),
                 //PlotKind::DwarvenMine(m) => Some(m.spawn_rules(wpos)),
                 _ => None,
             })
@@ -544,6 +547,131 @@ impl Site {
             plot: Some(plot),
             hard_alt: None,
         });
+        site
+    }
+
+    pub fn generate_terracotta(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let gen_name = NameGen::location(&mut rng).generate_terracotta();
+        let suffix = [
+            "Tombs",
+            "Necropolis",
+            "Ruins",
+            "Mausoleum",
+            "Cemetery",
+            "Burial Grounds",
+            "Remains",
+            "Temples",
+        ]
+        .choose(&mut rng)
+        .unwrap();
+        let name = match rng.gen_range(0..2) {
+            0 => format!("{} {}", gen_name, suffix),
+            _ => format!("{} of {}", suffix, gen_name),
+        };
+        let mut site = Site {
+            origin,
+            name,
+            ..Site::default()
+        };
+
+        site.make_plaza(land, &mut rng);
+
+        let size = 15.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let terracotta_palace =
+                plot::TerracottaPalace::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let terracotta_palace_alt = terracotta_palace.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::TerracottaPalace(terracotta_palace),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(terracotta_palace_alt),
+            });
+        }
+        let build_chance = Lottery::from(vec![(12.0, 1), (4.0, 2)]);
+        for _ in 0..16 {
+            match *build_chance.choose_seeded(rng.gen()) {
+                1 => {
+                    // TerracottaHouse
+                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, _, _)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            9..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let terracotta_house = plot::TerracottaHouse::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            aabr,
+                        );
+                        let terracotta_house_alt = terracotta_house.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::TerracottaHouse(terracotta_house),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(terracotta_house_alt),
+                        });
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+
+                2 => {
+                    // TerracottaYard
+                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, _, _)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            9..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let terracotta_yard = plot::TerracottaYard::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            aabr,
+                        );
+                        let terracotta_yard_alt = terracotta_yard.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::TerracottaYard(terracotta_yard),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(terracotta_yard_alt),
+                        });
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                _ => {},
+            }
+        }
         site
     }
 
@@ -1946,6 +2074,15 @@ impl Site {
                 },
                 //PlotKind::DwarvenMine(_dwarven_mine) => dwarven_mine.render_collect(self,
                 // canvas),
+                PlotKind::TerracottaPalace(terracotta_palace) => {
+                    terracotta_palace.render_collect(self, canvas)
+                },
+                PlotKind::TerracottaHouse(terracotta_house) => {
+                    terracotta_house.render_collect(self, canvas)
+                },
+                PlotKind::TerracottaYard(terracotta_yard) => {
+                    terracotta_yard.render_collect(self, canvas)
+                },
                 PlotKind::DesertCityMultiPlot(desert_city_multi_plot) => {
                     desert_city_multi_plot.render_collect(self, canvas)
                 },

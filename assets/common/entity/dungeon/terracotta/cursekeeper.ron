@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Cursekeeper"),
+    body: RandomWith("cursekeeper"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.terracotta.cursekeeper"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

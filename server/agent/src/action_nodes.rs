@@ -1086,6 +1086,15 @@ impl<'a> AgentData<'a> {
                             },
                             "Clay Golem" => Tactic::ClayGolem,
                             "Ancient Effigy" => Tactic::AncientEffigy,
+                            "TerracottaStatue" | "Mogwai" => Tactic::TerracottaStatue,
+                            "TerracottaBesieger" => Tactic::Bow,
+                            "TerracottaDemolisher" => Tactic::SimpleDouble,
+                            "TerracottaPunisher" => Tactic::SimpleMelee,
+                            "TerracottaPursuer" => Tactic::SwordSimple,
+                            "Cursekeeper" => Tactic::Cursekeeper,
+                            "CursekeeperFake" => Tactic::CursekeeperFake,
+                            "ShamanicSpirit" => Tactic::ShamanicSpirit,
+                            "Jiangshi" => Tactic::Jiangshi,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Flamekeeper" => Tactic::Flamekeeper,
                             "Minotaur" => Tactic::Minotaur,
@@ -1507,6 +1516,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::Jiangshi => {
+                self.handle_jiangshi_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::ClayGolem => {
                 self.handle_clay_golem_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
@@ -1520,6 +1532,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::TerracottaStatue => {
+                self.handle_terracotta_statue_attack(agent, controller, &attack_data)
+            },
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
@@ -1566,6 +1581,19 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
                 rng,
+            ),
+            Tactic::Cursekeeper => {
+                self.handle_cursekeeper_attack(agent, controller, tgt_data, read_data, rng)
+            },
+            Tactic::CursekeeperFake => {
+                self.handle_cursekeeper_fake_attack(agent, controller, &attack_data)
+            },
+            Tactic::ShamanicSpirit => self.handle_shamanic_spirit_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
             ),
             Tactic::Dagon => {
                 self.handle_dagon_attack(agent, controller, &attack_data, tgt_data, read_data)

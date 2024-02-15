@@ -2,7 +2,7 @@ use crate::{
     combat::{self, CombatEffect},
     comp::{
         character_state::OutputEvents,
-        object::Body::{GrenadeClay, LaserBeam},
+        object::Body::{GrenadeClay, LaserBeam, LaserBeamSmall},
         Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
     },
     event::{LocalEvent, ShootEvent},
@@ -84,6 +84,14 @@ impl CharacterBehavior for Data {
                                 Outcome::FuseCharge {
                                     pos: data.pos.0
                                         + *data.ori.look_dir() * (2.5 * data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        Body::Object(LaserBeamSmall) => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::TerracottaStatueCharge {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
                                 },
                             ));
                         },

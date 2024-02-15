@@ -112,6 +112,9 @@ pub enum Outcome {
     FuseCharge {
         pos: Vec3<f32>,
     },
+    TerracottaStatueCharge {
+        pos: Vec3<f32>,
+    },
     Utterance {
         pos: Vec3<f32>,
         body: comp::Body,
@@ -187,6 +190,7 @@ impl Outcome {
             | Outcome::CyclopsCharge { pos }
             | Outcome::FlamethrowerCharge { pos }
             | Outcome::FuseCharge { pos }
+            | Outcome::TerracottaStatueCharge { pos }
             | Outcome::LaserBeam { pos }
             | Outcome::GroundDig { pos }
             | Outcome::PortalActivated { pos }

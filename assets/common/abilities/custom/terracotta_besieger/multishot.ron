@@ -1,0 +1,16 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 1.0,
+    recover_duration: 2.5,
+    projectile: Arrow(
+        damage: 25.0,
+        knockback: 12.0,
+        energy_regen: 4.0,
+    ),
+    projectile_body: Object(BoltBesieger),
+    projectile_light: None,
+    projectile_speed: 60.0,
+    num_projectiles: 4,
+    projectile_spread: 0.05,
+    move_efficiency: 0.3,
+)

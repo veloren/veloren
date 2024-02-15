@@ -1,0 +1,9 @@
+SelfBuff(
+    buildup_duration: 0.1,
+    cast_duration: 0.1,
+    recover_duration: 0.1,
+    buff_kind: Burning,
+    buff_strength: 2000.0,
+    buff_duration: Some(60.0),
+    energy_cost: 0,
+)

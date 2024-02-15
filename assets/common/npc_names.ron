@@ -989,6 +989,26 @@
             haniwa_general: (
                 keyword: "haniwa_general",
                 generic: "Haniwa General"
+            ),
+            terracotta_besieger: (
+                keyword: "terracotta_besieger",
+                generic: "Terracotta Besieger"
+            ),
+            terracotta_demolisher: (
+                keyword: "terracotta_demolisher",
+                generic: "Terracotta Demolisher"
+            ),
+            terracotta_punisher: (
+                keyword: "terracotta_punisher",
+                generic: "Terracotta Punisher"
+            ),
+            terracotta_pursuer: (
+                keyword: "terracotta_pursuer",
+                generic: "Terracotta Pursuer"
+            ),
+            cursekeeper: (
+                keyword: "cursekeeper",
+                generic: "Cursekeeper"
             )
         )
     ),
@@ -1023,6 +1043,10 @@
             ancienteffigy: (
                 keyword: "ancienteffigy",
                 generic: "Ancient Effigy"
+            ),
+            mogwai: (
+                keyword: "mogwai",
+                generic: "Mogwai"
             ),
             coralgolem: (
                 keyword: "coralgolem",
@@ -1188,6 +1212,14 @@
             irrwurz: (
                 keyword: "irrwurz",
                 generic: "Irrwurz",
+            ),
+            shamanic_spirit: (
+                keyword: "shamanic_spirit",
+                generic: "Shamanic Spirit",
+            ),
+            jiangshi: (
+                keyword: "jiangshi",
+                generic: "Jiangshi",
             ),
         )
     ),

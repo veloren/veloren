@@ -497,7 +497,7 @@ impl Animation for WieldAnimation {
                                 next.shoulder_r.orientation =
                                     Quaternion::rotation_y(0.4) * Quaternion::rotation_x(0.4);
                             },
-                            "Husk Brute" => {
+                            "Husk Brute" | "TerracottaDemolisher" => {
                                 if speed > 0.1 {
                                     next.hand_l.position =
                                         Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);

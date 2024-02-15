@@ -1,0 +1,17 @@
+BasicRanged(
+    energy_cost: 0.0,
+    buildup_duration: 1.5,
+    recover_duration: 1.5,
+    projectile: LaserBeam(
+        damage: 50.0,
+        radius: 20.0,
+        knockback: 50.0,
+        energy_regen: 0.0,
+        min_falloff: 0.0,
+    ),
+    projectile_body: Object(LaserBeamSmall),
+    projectile_speed: 45.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+    move_efficiency: 0.3,
+)

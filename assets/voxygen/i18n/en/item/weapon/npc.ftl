@@ -73,6 +73,9 @@ common-items-npc_weapons-bow-bipedlarge-velorite = Giant Velorite Bow
 common-items-npc_weapons-bow-saurok_bow = Saurok bow
     .desc = Placeholder
 
+common-items-npc_weapons-bow-terracotta_besieger_bow = Terracotta Besieger Bow
+    .desc = Placeholder
+
 common-items-npc_weapons-axe-gigas_frost_axe = Frost Gigas Axe
     .desc = Placeholder
 
@@ -110,6 +113,9 @@ common-items-npc_weapons-sword-saurok_sword = Saurok Sword
     .desc = Placeholder
 
 common-items-npc_weapons-sword-haniwa_general_sword = Haniwa General Sword
+    .desc = Placeholder
+
+common-items-npc_weapons-sword-terracotta_pursuer_sword = Terracotta Pursuer Sword
     .desc = Placeholder
 
 common-items-npc_weapons-unique-akhlut = Quad Med Basic
@@ -168,6 +174,27 @@ common-items-npc_weapons-unique-fiery_tornado = FieryTornado
 
 common-items-npc_weapons-unique-flamekeeper_staff = Flamekeeper Staff
     .desc = Flamekeeper Staff
+
+common-items-npc_weapons-unique-cursekeeper_sceptre = Cursekeeper Sceptre
+    .desc = Cursekeeper Sceptre
+
+common-items-npc_weapons-unique-cursekeeper_sceptre_fake = Cursekeeper Sceptre
+    .desc = Cursekeeper Sceptre
+
+common-items-npc_weapons-unique-jiangshi = Jiangshi Magic
+    .desc = Jiangshi Magic
+
+common-items-npc_weapons-unique-mogwai = Mogwai Magic
+    .desc = Mogwai Magic
+
+common-items-npc_weapons-unique-shamanic_spirit = Shamanic Spirit
+    .desc = Shamanic Spirit
+
+common-items-npc_weapons-unique-terracotta_demolisher_fist = Terracotta Demolisher Fist
+    .desc = Terracotta Demolisher Fist
+
+common-items-npc_weapons-unique-terracotta_statue = Terracotta Statue
+    .desc = Terracotta Statue
 
 common-items-npc_weapons-unique-flamethrower = Flamethrower
     .desc = Throwing Flames
@@ -416,4 +443,7 @@ common-items-npc_weapons-hammer-wendigo_hammer = Wendigo Hammer
     .desc = Placeholder
 
 common-items-npc_weapons-hammer-yeti_hammer = Yeti Hammer
+    .desc = Placeholder
+
+common-items-npc_weapons-hammer-terracotta_punisher_club = Terracotta Punisher Club
     .desc = Placeholder

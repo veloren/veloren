@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Name("Jiangshi"),
+    body: RandomWith("jiangshi"),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.terracotta.jiangshi"),
+            active_hands: InHands((Item("common.items.npc_weapons.unique.jiangshi"), None)),
+            )),
+    ),
+    meta: [],
+)

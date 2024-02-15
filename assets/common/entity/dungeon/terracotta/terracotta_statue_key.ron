@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Terracotta Statue"),
+    body: Exact(Object(TerracottaStatue)),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.keys.terracotta_key_chest"),
+    inventory: (
+        loadout: FromBody
+    ),
+    meta: [],
+)

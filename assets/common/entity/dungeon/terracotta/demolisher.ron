@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("terracotta_demolisher"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.terracotta.enemy"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

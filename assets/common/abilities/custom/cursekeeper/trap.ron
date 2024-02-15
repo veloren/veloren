@@ -1,0 +1,10 @@
+SpriteSummon(
+    buildup_duration: 1.5,
+    cast_duration: 0.1,
+    recover_duration: 3.0,
+    sprite: Empty,
+    del_timeout: Some((8, 5)),
+    summon_distance: (2, 50),
+    sparseness: 0.0,
+    angle: 360,
+)

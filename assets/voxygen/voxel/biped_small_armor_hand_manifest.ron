@@ -240,5 +240,21 @@
                  vox_spec: ("npc.flamekeeper.hand_r", (0.0, -2.5, -6.5)),
             )
         ),
+        "common.items.npc_armor.biped_small.shamanic_spirit.hand.shamanic_spirit": (
+            left: (
+                vox_spec: ("npc.shamanic_spirit.hand_r", (-4.0, -2.0, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.shamanic_spirit.hand_r", (0.0, -2.0, -9.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.jiangshi.hand.jiangshi": (
+            left: (
+                vox_spec: ("npc.jiangshi.hand_r", (-5.0, -2.0, -11.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.jiangshi.hand_r", (0.0, -2.0, -11.0)),
+            )
+        ),
     }
 ))

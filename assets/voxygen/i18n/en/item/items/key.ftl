@@ -33,3 +33,9 @@ object-key-cyclops_eyeball = Cyclops Eye
 
 object-key-haniwa = Haniwa Keystone
     .desc = Used to open doors. Will break after use.
+
+object-key-terracotta_chest = Terracotta Chest Key
+    .desc = Used to open chests. Will break after use.
+
+object-key-terracotta_door = Terracotta Door Key
+    .desc = Used to open doors. Will break after use.

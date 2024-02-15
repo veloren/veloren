@@ -119,7 +119,8 @@ impl Animation for MusicAnimation {
                         "common.abilities.music.lyre"
                         | "common.abilities.music.icy_talharpa"
                         | "common.abilities.music.shamisen"
-                        | "common.abilities.music.kalimba",
+                        | "common.abilities.music.kalimba"
+                        | "common.abilities.music.steeltonguedrum",
                     ) => 0.3,
                     _ => 1.0,
                 };
@@ -202,7 +203,7 @@ impl Animation for MusicAnimation {
                     Some(
                         "common.abilities.music.lyre"
                         | "common.abilities.music.wildskin_drum"
-                        | "common.abilities.music.steeldrum"
+                        | "common.abilities.music.steeltonguedrum"
                         | "common.abilities.music.icy_talharpa",
                     ) => {
                         next.hand_l.position = Vec3::new(

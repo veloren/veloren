@@ -149,6 +149,7 @@ pub enum SiteKind {
     Tree,
     Gnarling,
     ChapelSite,
+    Terracotta,
     Bridge,
     Adlet,
     Haniwa,

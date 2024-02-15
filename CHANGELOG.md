@@ -46,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A flag argument type for commands
 - The ability to turn lamp-like sprites on and off
 - Added Autumn Forests, Cherry Blossom Forests, and Maple Trees.
+- Added reworked dungeon: Haniwa Catacombs
+- Added dungeon: Terracotta Ruins
 
 ### Changed
 

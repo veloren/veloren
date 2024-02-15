@@ -1,0 +1,6 @@
+[
+    // Key
+    (1.0, Item("common.items.keys.terracotta_key_chest")),
+    // Nothing
+    (5.0, Nothing),
+]

@@ -58,6 +58,9 @@
             "common.items.npc_armor.golem.gravewarden",
         ): "common-items-npc_armor-golem-gravewarden",
         Simple(
+            "common.items.npc_armor.golem.mogwai",
+        ): "common-items-npc_armor-golem-mogwai",
+        Simple(
             "common.items.npc_armor.biped_small.myrmidon.foot.hoplite",
         ): "common-items-npc_armor-biped_small-myrmidon-foot-hoplite",
         Simple(
@@ -526,6 +529,33 @@
             "common.items.npc_armor.biped_small.gnoll.tail.trapper",
         ): "common-items-npc_armor-biped_small-gnoll-tail-trapper",
         Simple(
+            "common.items.npc_armor.biped_small.jiangshi.head.jiangshi",
+        ): "common-items-npc_armor-biped_small-jiangshi-head-jiangshi",
+        Simple(
+            "common.items.npc_armor.biped_small.jiangshi.chest.jiangshi",
+        ): "common-items-npc_armor-biped_small-jiangshi-chest-jiangshi",
+        Simple(
+            "common.items.npc_armor.biped_small.jiangshi.pants.jiangshi",
+        ): "common-items-npc_armor-biped_small-jiangshi-pants-jiangshi",
+        Simple(
+            "common.items.npc_armor.biped_small.jiangshi.hand.jiangshi",
+        ): "common-items-npc_armor-biped_small-jiangshi-hand-jiangshi",
+        Simple(
+            "common.items.npc_armor.biped_small.jiangshi.foot.jiangshi",
+        ): "common-items-npc_armor-biped_small-jiangshi-foot-jiangshi",
+        Simple(
+            "common.items.npc_armor.biped_small.shamanic_spirit.head.shamanic_spirit",
+        ): "common-items-npc_armor-biped_small-shamanic_spirit-head-shamanic_spirit",
+        Simple(
+            "common.items.npc_armor.biped_small.shamanic_spirit.chest.shamanic_spirit",
+        ): "common-items-npc_armor-biped_small-shamanic_spirit-chest-shamanic_spirit",
+        Simple(
+            "common.items.npc_armor.biped_small.shamanic_spirit.pants.shamanic_spirit",
+        ): "common-items-npc_armor-biped_small-shamanic_spirit-pants-shamanic_spirit",
+        Simple(
+            "common.items.npc_armor.biped_small.shamanic_spirit.hand.shamanic_spirit",
+        ): "common-items-npc_armor-biped_small-shamanic_spirit-hand-shamanic_spirit",
+        Simple(
             "common.items.npc_armor.chest.leather_blue",
         ): "armor-leather_blue-pants",
         Simple(
@@ -631,11 +661,20 @@
             "common.items.npc_armor.biped_large.haniwageneral",
         ): "common-items-npc_armor-biped_large-haniwageneral",
         Simple(
+            "common.items.npc_armor.biped_large.terracotta",
+        ): "common-items-npc_armor-biped_large-terracotta",
+        Simple(
             "common.items.keys.bone_key",
         ): "object-key-bone",
         Simple(
             "common.items.keys.haniwa_key",
         ): "object-key-haniwa",
+        Simple(
+            "common.items.keys.terracotta_key_chest",
+        ): "object-key-terracotta_chest",
+        Simple(
+            "common.items.keys.terracotta_key_door",
+        ): "object-key-terracotta_door",
         Simple(
             "common.items.keys.glass_key",
         ): "object-key-glass",
@@ -2319,8 +2358,8 @@
             "common.items.tool.instruments.wildskin_drum",
         ): "weapon-tool-wildskin_drum",
         Simple(
-            "common.items.tool.instruments.steeldrum",
-        ): "weapon-tool-steeldrum",
+            "common.items.tool.instruments.steeltonguedrum",
+        ): "weapon-tool-steeltonguedrum",
         Simple(
             "common.items.tool.instruments.shamisen",
         ): "weapon-tool-shamisen",
@@ -2419,6 +2458,9 @@
             "common.items.npc_weapons.bow.saurok_bow",
         ): "common-items-npc_weapons-bow-saurok_bow",
         Simple(
+            "common.items.npc_weapons.bow.terracotta_besieger_bow",
+        ): "common-items-npc_weapons-bow-terracotta_besieger_bow",
+        Simple(
             "common.items.npc_weapons.axe.gigas_frost_axe",
         ): "common-items-npc_weapons-axe-gigas_frost_axe",
         Simple(
@@ -2457,6 +2499,9 @@
         Simple(
             "common.items.npc_weapons.sword.haniwa_general_sword",
         ): "common-items-npc_weapons-sword-haniwa_general_sword",
+        Simple(
+            "common.items.npc_weapons.sword.terracotta_pursuer_sword",
+        ): "common-items-npc_weapons-sword-terracotta_pursuer_sword",
         Simple(
             "common.items.npc_weapons.unique.akhlut",
         ): "common-items-npc_weapons-unique-akhlut",
@@ -2511,6 +2556,27 @@
         Simple(
             "common.items.npc_weapons.unique.flamekeeper_staff",
         ): "common-items-npc_weapons-unique-flamekeeper_staff",
+        Simple(
+            "common.items.npc_weapons.unique.jiangshi",
+        ): "common-items-npc_weapons-unique-jiangshi",
+        Simple(
+            "common.items.npc_weapons.unique.mogwai",
+        ): "common-items-npc_weapons-unique-mogwai",
+        Simple(
+            "common.items.npc_weapons.unique.shamanic_spirit",
+        ): "common-items-npc_weapons-unique-shamanic_spirit",
+        Simple(
+            "common.items.npc_weapons.unique.terracotta_demolisher_fist",
+        ): "common-items-npc_weapons-unique-terracotta_demolisher_fist",
+        Simple(
+            "common.items.npc_weapons.unique.cursekeeper_sceptre",
+        ): "common-items-npc_weapons-unique-cursekeeper_sceptre",
+        Simple(
+            "common.items.npc_weapons.unique.cursekeeper_sceptre_fake",
+        ): "common-items-npc_weapons-unique-cursekeeper_sceptre_fake",
+        Simple(
+            "common.items.npc_weapons.unique.terracotta_statue",
+        ): "common-items-npc_weapons-unique-terracotta_statue",
         Simple(
             "common.items.npc_weapons.unique.flamethrower",
         ): "common-items-npc_weapons-unique-flamethrower",
@@ -2757,6 +2823,9 @@
         Simple(
             "common.items.npc_weapons.hammer.yeti_hammer",
         ): "common-items-npc_weapons-hammer-yeti_hammer",
+        Simple(
+            "common.items.npc_weapons.hammer.terracotta_punisher_club",
+        ): "common-items-npc_weapons-hammer-terracotta_punisher_club",
         Simple(
             "common.items.modular.weapon.primary.bow.bow",
         ): "common-items-modular-weapon-primary-bow-bow",

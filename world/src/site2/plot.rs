@@ -24,6 +24,9 @@ mod savannah_pit;
 mod savannah_workshop;
 mod sea_chapel;
 pub mod tavern;
+mod terracotta_house;
+mod terracotta_palace;
+mod terracotta_yard;
 mod troll_cave;
 mod workshop;
 
@@ -36,7 +39,8 @@ pub use self::{
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
     pirate_hideout::PirateHideout, rock_circle::RockCircle, savannah_hut::SavannahHut,
     savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
-    tavern::Tavern, troll_cave::TrollCave, workshop::Workshop,
+    tavern::Tavern, terracotta_house::TerracottaHouse, terracotta_palace::TerracottaPalace,
+    terracotta_yard::TerracottaYard, troll_cave::TrollCave, workshop::Workshop,
 };
 
 use super::*;
@@ -107,4 +111,7 @@ pub enum PlotKind {
     TrollCave(TrollCave),
     Camp(Camp),
     //DwarvenMine(DwarvenMine),
+    TerracottaPalace(TerracottaPalace),
+    TerracottaHouse(TerracottaHouse),
+    TerracottaYard(TerracottaYard),
 }

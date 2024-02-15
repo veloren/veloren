@@ -1783,4 +1783,416 @@
             model_index: 10,
         ),
     ),
+    (TerracottaBesieger, Male): (
+        shoulder_l: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.5, -4.0, -11.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.5, -4.0, -11.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 10,
+        ),
+    ),
+    (TerracottaBesieger, Female): (
+        shoulder_l: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.5, -4.0, -11.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.5, -4.0, -11.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("npc.terracotta.terracotta_besieger"),
+            model_index: 10,
+        ),
+    ),
+    (TerracottaDemolisher, Male): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 10,
+        ),
+    ),
+    (TerracottaDemolisher, Female): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_demolisher"),
+            model_index: 10,
+        ),
+    ),
+    (TerracottaPunisher, Male): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 10,
+        ),
+    ),
+    (TerracottaPunisher, Female): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_punisher"),
+            model_index: 10,
+        ),
+    ),
+    (TerracottaPursuer, Male): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 10,
+        ),
+    ),
+    (TerracottaPursuer, Female): (
+        shoulder_l: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -4.0, -7.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.0, -2.0, -9.0),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 7,
+        ),
+        leg_r: (
+            offset: (-3.0, -3.0, -3.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 8,
+        ),
+        foot_l: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 9,
+        ),
+        foot_r: (
+            offset: (-2.0, -3.5, -2.5),
+            lateral: ("npc.terracotta.terracotta_pursuer"),
+            model_index: 10,
+        ),
+    ),
+    (Cursekeeper, Male): (
+        shoulder_l: (
+            offset: (-3.0, -2.0, -7.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -2.0, -7.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_r: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+    ),
+    (Cursekeeper, Female): (
+        shoulder_l: (
+            offset: (-3.0, -2.0, -7.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 3,
+        ),
+        shoulder_r: (
+            offset: (-3.0, -2.0, -7.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 4,
+        ),
+        hand_l: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 5,
+        ),
+        hand_r: (
+            offset: (-3.5, -3.5, -14.0),
+            lateral: ("npc.terracotta.cursekeeper"),
+            model_index: 6,
+        ),
+        leg_l: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (-4.0, -3.5, -4.5),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_r: (
+            offset: (-2.5, -4.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+    ),
 })

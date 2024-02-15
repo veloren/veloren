@@ -412,7 +412,7 @@
         (Item("common.items.tool.instruments.sitar"),1),
         (Item("common.items.tool.instruments.washboard"),1),
         (Item("common.items.tool.instruments.wildskin_drum"),1),
-        (Item("common.items.tool.instruments.steeldrum"),1),
+        (Item("common.items.tool.instruments.steeltonguedrum"),1),
         (Item("common.items.tool.instruments.shamisen"),1),
     ],
 })

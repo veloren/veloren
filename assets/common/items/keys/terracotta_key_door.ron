@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Terracotta Door Key",
+    legacy_description: "Used to open doors in Terracotta Ruins. Will break after use.",
+    kind: Utility(
+        kind: Key,
+    ),
+    quality: Epic,
+    tags: [Utility],
+)
+

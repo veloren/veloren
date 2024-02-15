@@ -57,7 +57,8 @@ impl TrailMgr {
                                 | object::Body::MultiArrow
                                 | object::Body::ArrowSnake
                                 | object::Body::ArrowTurret
-                                | object::Body::ArrowClay,
+                                | object::Body::ArrowClay
+                                | object::Body::BoltBesieger,
                         )
                     )
                 {

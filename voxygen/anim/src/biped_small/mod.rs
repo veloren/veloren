@@ -10,6 +10,7 @@ pub mod ripostemelee;
 pub mod run;
 pub mod shockwave;
 pub mod shoot;
+pub mod spritesummon;
 pub mod stunned;
 pub mod summon;
 pub mod wield;
@@ -19,8 +20,8 @@ pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, block::BlockAnimation, combomelee::ComboAnimation,
     dash::DashAnimation, idle::IdleAnimation, leapmelee::LeapAnimation,
     rapidmelee::RapidMeleeAnimation, ripostemelee::RiposteMeleeAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, shoot::ShootAnimation, stunned::StunnedAnimation,
-    summon::SummonAnimation, wield::WieldAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spritesummon::SpriteSummonAnimation,
+    stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -164,6 +165,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => (-1.0, 9.0),
                 (Clockwork, _) => (3.0, 3.5),
                 (Flamekeeper, _) => (3.0, 3.5),
+                (ShamanicSpirit, _) => (-0.5, 4.5),
+                (Jiangshi, _) => (-1.0, 6.5),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -182,6 +185,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => (0.0, 6.0),
                 (Clockwork, _) => (0.0, 14.0),
                 (Flamekeeper, _) => (0.0, 14.0),
+                (ShamanicSpirit, _) => (0.0, 14.5),
+                (Jiangshi, _) => (0.0, 14.0),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -200,6 +205,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => (-5.5, -0.5),
                 (Clockwork, _) => (-1.0, -8.0),
                 (Flamekeeper, _) => (-1.0, -8.0),
+                (ShamanicSpirit, _) => (0.0, -8.0),
+                (Jiangshi, _) => (0.5, -6.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -218,6 +225,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => (0.0, -1.0),
                 (Clockwork, _) => (0.0, 0.0),
                 (Flamekeeper, _) => (0.0, 0.0),
+                (ShamanicSpirit, _) => (0.0, 0.0),
+                (Jiangshi, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -236,6 +245,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => (3.5, 2.0, 3.0),
                 (Clockwork, _) => (4.0, 1.5, -3.5),
                 (Flamekeeper, _) => (4.0, 1.5, -3.5),
+                (ShamanicSpirit, _) => (5.0, 0.0, 1.0),
+                (Jiangshi, _) => (5.0, -1.0, 3.0),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -254,6 +265,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => (4.0, 0.0, 6.0),
                 (Clockwork, _) => (3.5, 3.0, 7.0),
                 (Flamekeeper, _) => (3.5, 3.0, 7.0),
+                (ShamanicSpirit, _) => (3.5, 3.0, 7.0),
+                (Jiangshi, _) => (3.0, 0.0, 8.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -272,6 +285,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => (0.0, 0.0, 7.0),
                 (Clockwork, _) => (0.0, 0.0, 8.0),
                 (Flamekeeper, _) => (0.0, 0.0, 8.0),
+                (ShamanicSpirit, _) => (0.0, 0.0, 8.0),
+                (Jiangshi, _) => (0.0, 0.0, 8.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -290,6 +305,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Irrwurz, _) => 1.0,
                 (Clockwork, _) => 1.5,
                 (Flamekeeper, _) => 4.0,
+                (ShamanicSpirit, _) => 1.0,
+                (Jiangshi, _) => 1.0,
             },
         }
     }

@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Terracotta Armor",
+    legacy_description: "Worn by terracotta enemies.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(50.0)),
+            poise_resilience: Some(Normal(20.0)),
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

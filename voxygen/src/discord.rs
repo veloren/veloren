@@ -114,6 +114,9 @@ impl ActivityUpdate {
                 let location = match site {
                     Dungeon(Old) => format!("Battling evil in {chunk_name}"),
                     Dungeon(Gnarling) => format!("Hunting Gnarlings in {chunk_name}"),
+                    Dungeon(Adlet) => format!("Finding the Yeti in {chunk_name}"),
+                    Dungeon(SeaChapel) => format!("Gathering sea treasures in {chunk_name}"),
+                    Dungeon(Terracotta) => format!("Exploring ruins in {chunk_name}"),
                     Cave => "In a Cave".to_string(),
                     Settlement(Default) => format!("Visiting {chunk_name}"),
                     Settlement(CliffTown) => format!("Climbing the towers of {chunk_name}"),

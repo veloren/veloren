@@ -367,6 +367,7 @@ impl Block {
                 | SpriteKind::DungeonChest5
                 | SpriteKind::CoralChest
                 | SpriteKind::HaniwaUrn
+                | SpriteKind::TerracottaChest
                 | SpriteKind::Crate => Some(rtsim::ChunkResource::Loot),
             _ => None,
         }
@@ -416,6 +417,7 @@ impl Block {
                 | SpriteKind::EmeraldSmall
                 | SpriteKind::SapphireSmall => 3,
                 SpriteKind::Lantern => 24,
+                SpriteKind::TerracottaStatue => 8,
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
                 SpriteKind::SeaDecorEmblem => 12,
                 SpriteKind::SeaDecorBlock | SpriteKind::HaniwaKeyDoor => 10,
@@ -516,6 +518,7 @@ impl Block {
                 | SpriteKind::HaniwaTrap
                 | SpriteKind::HaniwaTrapTriggered
                 | SpriteKind::ChestBuried
+                | SpriteKind::TerracottaChest
                 | SpriteKind::SeaDecorBlock
                 | SpriteKind::SeaDecorChain
                 | SpriteKind::SeaDecorWindowHor
@@ -525,7 +528,11 @@ impl Block {
                 | SpriteKind::HotSurface
                 | SpriteKind::FireBlock
                 | SpriteKind::GlassBarrier
-                | SpriteKind::GlassKeyhole => None,
+                | SpriteKind::GlassKeyhole
+                | SpriteKind::TerracottaKeyDoor
+                | SpriteKind::TerracottaKeyhole
+                | SpriteKind::TerracottaStatue
+                | SpriteKind::TerracottaBlock => None,
                 SpriteKind::EnsnaringVines
                 | SpriteKind::EnsnaringWeb
                 | SpriteKind::SeaUrchin

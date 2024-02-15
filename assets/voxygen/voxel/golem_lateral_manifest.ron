@@ -493,4 +493,74 @@
             lateral: ("npc.coralgolem.male.foot_r"),
         )
     ),
+    (Mogwai, Male): (
+        shoulder_l: (
+            offset: (-9.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+
+        ),
+        shoulder_r: (
+            offset: (0.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_l: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_r: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_l: (
+            offset: (-7.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_r: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+    ),
+    (Mogwai, Female): (
+        shoulder_l: (
+            offset: (-9.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+
+        ),
+        shoulder_r: (
+            offset: (0.0, -2.5, -4.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_l: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        hand_r: (
+            offset: (-5.5, -5.0, -18.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_l: (
+            offset: (-7.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_l: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+        foot_r: (
+            offset: (-4.0, -5.0, -7.0),
+            lateral: ("armor.empty"),
+        ),
+    ),
 })

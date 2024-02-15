@@ -5,7 +5,7 @@ use crate::{
     },
     comp::{
         beam,
-        body::{biped_large, bird_large},
+        body::{biped_large, bird_large, golem},
         character_state::OutputEvents,
         object::Body::Flamethrower,
         Body, CharacterState, Ori, StateUpdate,
@@ -260,13 +260,18 @@ fn height_offset(body: &Body, look_dir: Dir, velocity: Vec3<f32>, on_ground: Opt
                     0.0
                 }
         },
-        Body::Golem(_) => {
+        Body::Golem(b) => {
+            let height_factor = match b.species {
+                golem::Species::Mogwai => 0.4,
+                _ => 0.9,
+            };
             const DIR_COEFF: f32 = 2.0;
-            body.height() * 0.9 + look_dir.z * DIR_COEFF
+            body.height() * height_factor + look_dir.z * DIR_COEFF
         },
         Body::BipedLarge(b) => match b.species {
             biped_large::Species::Mindflayer => body.height() * 0.6,
             biped_large::Species::SeaBishop => body.height() * 0.4,
+            biped_large::Species::Cursekeeper => body.height() * 0.8,
             _ => body.height() * 0.5,
         },
         _ => body.height() * 0.5,

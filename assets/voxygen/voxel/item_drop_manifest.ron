@@ -408,7 +408,7 @@
     Simple("common.items.tool.instruments.kalimba"): "voxel.weapon.tool.wooden_kalimba",
     Simple("common.items.tool.instruments.melodica"): "voxel.weapon.tool.melodica",
     Simple("common.items.tool.instruments.lute"): "voxel.weapon.tool.wooden_lute",
-    Simple("common.items.tool.instruments.steeldrum"): "voxel.weapon.tool.steeldrum",
+    Simple("common.items.tool.instruments.steeltonguedrum"): "voxel.weapon.tool.steeltonguedrum",
     Simple("common.items.tool.instruments.shamisen"): "voxel.weapon.tool.shamisen",
     Simple("common.items.tool.instruments.sitar"): "voxel.weapon.tool.wooden_sitar",
     Simple("common.items.tool.instruments.guitar"): "voxel.weapon.tool.wooden_guitar",
@@ -959,6 +959,8 @@
     Simple("common.items.keys.quarry_keys.smelting"): "voxel.object.key_rusty-0",
     Simple("common.items.keys.quarry_keys.flamekeeper_left"): "element.items.keeper_goggle",
     Simple("common.items.keys.quarry_keys.flamekeeper_right"): "element.items.keeper_goggle",
+    Simple("common.items.keys.terracotta_key_chest"): "voxel.object.key_terracotta_chest",
+    Simple("common.items.keys.terracotta_key_door"): "voxel.object.key_terracotta_door",
     // Gliders
     Simple("common.items.glider.cloverleaf"): "voxel.glider.cloverleaf",
     Simple("common.items.glider.basic_white"): "voxel.glider.basic_white",

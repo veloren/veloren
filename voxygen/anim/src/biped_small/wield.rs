@@ -3,13 +3,13 @@ use super::{
     biped_small_wield_bow, biped_small_wield_spear, biped_small_wield_sword, BipedSmallSkeleton,
     SkeletonAttr,
 };
-use common::comp::item::ToolKind;
+use common::comp::item::tool::{AbilitySpec, ToolKind};
 use std::f32::consts::PI;
 
 pub struct WieldAnimation;
 
-type WieldAnimationDependency = (
-    Option<ToolKind>,
+type WieldAnimationDependency<'a> = (
+    (Option<ToolKind>, Option<&'a AbilitySpec>),
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
@@ -19,7 +19,7 @@ type WieldAnimationDependency = (
 );
 
 impl Animation for WieldAnimation {
-    type Dependency<'a> = WieldAnimationDependency;
+    type Dependency<'a> = WieldAnimationDependency<'a>;
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -29,7 +29,15 @@ impl Animation for WieldAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, velocity, _orientation, _last_ori, _global_time, _avg_vel, acc_vel): Self::Dependency<'_>,
+        (
+            (active_tool_kind, active_tool_spec),
+            velocity,
+            _orientation,
+            _last_ori,
+            _global_time,
+            _avg_vel,
+            acc_vel,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -154,6 +162,25 @@ impl Animation for WieldAnimation {
             },
             Some(ToolKind::Dagger | ToolKind::Sword) => {
                 biped_small_wield_sword(&mut next, s_a, speednorm, slow);
+            },
+            Some(ToolKind::Natural) => {
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    match spec.as_str() {
+                        "ShamanicSpirit" => {
+                            next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                            next.hand_l.orientation = Quaternion::rotation_x(1.2);
+                            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                            next.hand_r.orientation = Quaternion::rotation_x(1.2);
+                            next.main.position = Vec3::new(0.0, 12.0, 5.0);
+                        },
+                        _ => {
+                            next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                            next.hand_l.orientation = Quaternion::rotation_x(1.2);
+                            next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                            next.hand_r.orientation = Quaternion::rotation_x(1.2);
+                        },
+                    }
+                }
             },
             _ => {
                 next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);

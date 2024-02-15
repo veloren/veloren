@@ -121,6 +121,48 @@ impl Animation for SummonAnimation {
                 next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * 1.0)
                     * Quaternion::rotation_y(-0.1 + move2 * -0.8);
             },
+            Some(ToolKind::Sceptre) => {
+                next.shoulder_l.position = Vec3::new(
+                    -s_a.shoulder.0,
+                    s_a.shoulder.1,
+                    s_a.shoulder.2 - foothorir * 1.0,
+                );
+                next.shoulder_l.orientation = Quaternion::rotation_x(
+                    move1 * 0.8 + 0.6 * speednorm + (footrotr * -0.2) * speednorm,
+                );
+
+                next.shoulder_r.position = Vec3::new(
+                    s_a.shoulder.0,
+                    s_a.shoulder.1,
+                    s_a.shoulder.2 - foothoril * 1.0,
+                );
+                next.shoulder_r.orientation = Quaternion::rotation_x(
+                    move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2) * speednorm,
+                );
+                next.head.orientation = Quaternion::rotation_x(0.0);
+                next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
+                next.control_r.position = Vec3::new(
+                    1.0 + move1 * 3.0 + move2 * 20.0,
+                    2.0 + move1 * -5.0 + move2 * 5.0,
+                    2.0 + move1 * 15.0 + move2 * 0.0,
+                );
+
+                next.control.position = Vec3::new(
+                    -3.0 + move2 * 9.0,
+                    3.0 + s_a.grip.0 / 1.2 + move1 * 8.0 + move2 * 2.0,
+                    -11.0 + -s_a.grip.0 / 2.0 + move1 * 8.0 + move2 * -12.0,
+                );
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 - move1 * 0.2)
+                    * Quaternion::rotation_y(-0.5 + move2 * -0.4)
+                    * Quaternion::rotation_z(move1 * 0.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.2)
+                    * Quaternion::rotation_y(0.5 + move1 * 0.5 + move2 * 0.0)
+                    * Quaternion::rotation_z(move1 * 0.5 + move2 * 0.8);
+
+                next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * 1.0)
+                    * Quaternion::rotation_y(-0.1 + move2 * -0.8);
+            },
             Some(ToolKind::Natural) => match ability_id {
                 Some("common.abilities.custom.tidalwarrior.totem") => {
                     let (move1base, move2base, move3) = match stage_section {

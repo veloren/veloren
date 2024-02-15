@@ -1,0 +1,20 @@
+ItemDef(
+    legacy_name: "Terracotta Pursuer Sword",
+    legacy_description: "",
+    kind: Tool((
+        kind: Sword,
+        hands: One,
+        stats: (
+            equip_time_secs: 0.5,
+            power: 1.5,
+            effect_power: 1.0,
+            speed: 0.75,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        ),
+    )),
+    quality: Low,
+    tags: [],
+    ability_spec: Some(Custom("TerracottaPursuer")),
+)
