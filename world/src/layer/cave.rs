@@ -238,9 +238,9 @@ impl Tunnel {
                 * close(depth, 1.0, 0.65);
             // Overgrown with plants that need a moderate climate to survive
             let leafy = underground
-                * close(humidity, 0.6, 0.4)
+                * close(humidity, 0.5, 0.3)
                 * close(temp, 0.6, 0.9)
-                * close(depth, 0.1, 0.6);
+                * close(depth, 0.1, 0.5);
             // Cool temperature, dry and devoid of value
             let dusty =
                 close(humidity, 0.0, 0.4) * close(temp, -0.3, 0.65) * close(mineral, -0.5, 1.5);
@@ -924,8 +924,40 @@ fn write_column<R: Rng>(
         None
     };
 
+    let ceiling_mold = |wpos: Vec3<f32>| {
+        let wpos = wpos + wpos.xy().yx().with_z(0.0) * 0.2;
+        let dims = Vec2::new(3.0, 24.0);
+        let vine_posf = wpos + Vec2::unit_y() * (wpos.x / dims.x).floor() * 71.0 / dims;
+        let vine_pos = vine_posf.map(|e| e.floor() as i32);
+        let mut rng = RandomPerm::new(((vine_pos.x << 16) | vine_pos.y) as u32);
+
+        if rng.gen_bool(
+            0.15 * close(biome.mushroom, 1.0, 0.2) as f64
+                * close(max_height as f32, 64.0, 56.0) as f64,
+        ) && ceiling_cover > 0.0
+        {
+            let vine_base = z_range.end as f32;
+            let vine_y = (vine_posf.y.fract() - 0.5).abs() * 2.0 * dims.y;
+            let vine_reach = (vine_y * 0.05).powf(2.0).min(32.0);
+            let vine_z = vine_base - vine_reach;
+
+            if Vec2::new(vine_posf.x.fract() * 2.0 - 1.0, (vine_z - wpos.z) / 4.0)
+                .magnitude_squared()
+                < 1.0f32
+            {
+                let kind = BlockKind::GlowingMushroom;
+                Some(Block::new(kind, Rgb::new(0, 95, 200)))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    };
+
     for z in bedrock..z_range.end {
         let wpos = wpos2d.with_z(z);
+        let wposf = wpos.map(|e| e as f32);
         let mut try_spawn_entity = false;
         canvas.map_resource(wpos, |_block| {
             if z < z_range.start - 4 && !void_below {
@@ -1219,8 +1251,14 @@ fn write_column<R: Rng>(
                 .flatten()
             {
                 Block::air(sprite)
+            } else if let Some(vine) =
+                ceiling_mold(wposf).or_else(|| ceiling_mold(wposf.xy().yx().with_z(wposf.z)))
+            {
+                vine
+            } else if let Some(structure_block) = get_structure(wpos, rng) {
+                structure_block
             } else {
-                get_structure(wpos, rng).unwrap_or(Block::air(SpriteKind::Empty))
+                Block::empty()
             }
         });
 
