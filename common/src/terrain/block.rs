@@ -354,7 +354,10 @@ impl Block {
                 | SpriteKind::Turnip => Some(rtsim::ChunkResource::Vegetable),
             SpriteKind::Mushroom
                 | SpriteKind::CaveMushroom
-                | SpriteKind::CeilingMushroom => Some(rtsim::ChunkResource::Mushroom),
+                | SpriteKind::CeilingMushroom
+                | SpriteKind::RockyMushroom
+                | SpriteKind::LushMushroom
+                | SpriteKind::GlowMushroom => Some(rtsim::ChunkResource::Mushroom),
 
             SpriteKind::Chest
                 | SpriteKind::ChestBuried
@@ -393,15 +396,21 @@ impl Block {
                 SpriteKind::DiamondLight => 30,
                 SpriteKind::Velorite
                 | SpriteKind::VeloriteFrag
-                | SpriteKind::CavernGrassBlueShort
-                | SpriteKind::CavernGrassBlueMedium
-                | SpriteKind::CavernGrassBlueLong
+                | SpriteKind::GrassBlueShort
+                | SpriteKind::GrassBlueMedium
+                | SpriteKind::GrassBlueLong
                 | SpriteKind::CavernLillypadBlue
-                | SpriteKind::CavernMycelBlue
+                | SpriteKind::MycelBlue
+                | SpriteKind::Mold
                 | SpriteKind::CeilingMushroom => 6,
                 SpriteKind::CaveMushroom
+                | SpriteKind::GlowMushroom
                 | SpriteKind::CookingPot
                 | SpriteKind::CrystalHigh
+                | SpriteKind::LanternFlower
+                | SpriteKind::CeilingLanternFlower
+                | SpriteKind::LanternPlant
+                | SpriteKind::CeilingLanternPlant
                 | SpriteKind::CrystalLow => 10,
                 SpriteKind::SewerMushroom => 16,
                 SpriteKind::Amethyst

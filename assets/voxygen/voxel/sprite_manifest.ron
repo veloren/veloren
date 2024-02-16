@@ -610,6 +610,139 @@ SewerMushroom: Some((
     ],
     wind_sway: 0.0,
 )),
+// Lush cave biome mushrooms
+LushMushroom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-0",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-1",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-2",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-4",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-5",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-6",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-9",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-1",
+            offset: (-5.0, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Rocky cave biome mushrooms
+RockyMushroom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-0",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-9",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-10",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-11",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Mushroom cave biome mushrooms
+GlowMushroom: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-3",
+            offset: (-2.5, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-4",
+            offset: (-1.5, -1.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-6",
+            offset: (-8.5, -8.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-7",
+            offset: (-11.5, -11.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.mushroom-8",
+            offset: (-12.5, -15.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-3",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-7",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-8",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.mushrooms.mushroom-10",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Cave Mushrooms
 CaveMushroom: Some((
     variations: [
@@ -679,6 +812,11 @@ CeilingMushroom: Some((
             offset: (-11.5, -11.5, -17.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+    ],
+    wind_sway: 0.0,
+)),
+Mold: Some((
+    variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mold-0",
             offset: (-5.5, -5.5, 0.0),
@@ -696,22 +834,217 @@ CeilingMushroom: Some((
         ),
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mold-3",
-            offset: (-5.5, -5.5, 2.0),
+            offset: (-5.5, -5.5, -2.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mold-4",
-            offset: (-2.0, -2.0, -49.0),
+            offset: (-5.5, -5.5, -13.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mold-5",
-            offset: (-2.0, -2.0, -79.0),
+            offset: (-5.5, -5.5, -19.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mold-6",
-            offset: (-2.0, -2.0, -79.0),
+            offset: (-5.5, -5.5, -24.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Root: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.root-0",
+            offset: (-3.0, -2.5, -22.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.root-1",
+            offset: (-2.5, -2.5, -34.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.root-2",
+            offset: (-2.5, -2.5, -31.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.root-3",
+            offset: (-2.5, -2.5, -24.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.root-4",
+            offset: (-2.5, -2.5, -16.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.root-5",
+            offset: (-2.5, -2.5, -16.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.root-6",
+            offset: (-2.5, -2.5, -33.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CeilingLanternPlant: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.cave_lantern_plant-0",
+            offset: (-7.5, -5.5, -23.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.cave_lantern_plant-1",
+            offset: (-7.5, -5.5, -16.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CeilingLanternFlower: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.cave_lantern_flower-0",
+            offset: (-7.5, -7.5, 3.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.cave_lantern_flower-1",
+            offset: (-6.5, -6.5, 1.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.ceiling.cave_lantern_flower-2",
+            offset: (-7.5, -7.5, 4.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CeilingJungleLeafyPlant: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant_ceiling-0",
+            offset: (-5.5, -1.5, -1.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant_ceiling-1",
+            offset: (-6.5, -2.5, -3.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant_ceiling-2",
+            offset: (-6.5, -2.5, -5.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant_ceiling-3",
+            offset: (-7.5, -2.5, -5.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant_ceiling-4",
+            offset: (-7.5, -5.5, -11.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.4,
+)),
+LushFlower: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.cave_flower-0",
+            offset: (-5.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.cave_flower-1",
+            offset: (-5.5, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.cave_flower-2",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.cave_flower-3",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+LanternFlower: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.cave_lantern_flower-0",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.cave_lantern_flower-1",
+            offset: (-11.5, -11.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.cave_lantern_flower-2",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+LanternPlant: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.cave_lantern_plant-0",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.cave_lantern_plant-1",
+            offset: (-11.5, -11.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.cave_lantern_plant-2",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+SporeReed: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cave.spore_reed-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.spore_reed-1",
+            offset: (-4.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.spore_reed-2",
+            offset: (-4.5, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cave.spore_reed-3",
+            offset: (-3.0, -2.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -1588,6 +1921,32 @@ DeadBush: Some((
         ),
         (
             model: "voxygen.voxel.sprite.dead_bush.4",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.2,
+)),
+// Dead Plant
+DeadPlant: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.dead_plant.dead_plant-0",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.dead_plant.dead_plant-1",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.dead_plant.dead_plant-2",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.dead_plant.dead_plant-3",
             offset: (-6.0, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -4113,103 +4472,103 @@ Bones: Some((
     ],
     wind_sway: 0.0,
 )),
-// Short Cavern Grass Blue
-CavernGrassBlueShort: Some((
+// Short Grass Blue
+GrassBlueShort: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.cavern.grass_short-0",
+            model: "voxygen.voxel.sprite.cave.grass_blue_short-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_short-1",
+            model: "voxygen.voxel.sprite.cave.grass_blue_short-1",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_short-2",
+            model: "voxygen.voxel.sprite.cave.grass_blue_short-2",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_short-3",
+            model: "voxygen.voxel.sprite.cave.grass_blue_short-3",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_short-4",
+            model: "voxygen.voxel.sprite.cave.grass_blue_short-4",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
     ],
     wind_sway: 0.0,
 )),
-// Medium Cavern Grass Blue
-CavernGrassBlueMedium: Some((
+// Medium Grass Blue
+GrassBlueMedium: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.cavern.grass_med-0",
+            model: "voxygen.voxel.sprite.cave.grass_blue_med-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_med-1",
+            model: "voxygen.voxel.sprite.cave.grass_blue_med-1",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_med-2",
+            model: "voxygen.voxel.sprite.cave.grass_blue_med-2",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_med-3",
+            model: "voxygen.voxel.sprite.cave.grass_blue_med-3",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
     ],
     wind_sway: 0.0,
 )),
-// Long Cavern Grass Blue
-CavernGrassBlueLong: Some((
+// Long Grass Blue
+GrassBlueLong: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-0",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-0",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-1",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-1",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-2",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-2",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-3",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-3",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-4",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-4",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-5",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-5",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-6",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-6",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.grass_long-7",
+            model: "voxygen.voxel.sprite.cave.grass_blue_long-7",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
@@ -4247,27 +4606,27 @@ CavernLillypadBlue: Some((
     ],
     wind_sway: 0.0,
 )),
-// Cavern Hanging Mycel Blue
-CavernMycelBlue: Some((
+// Cave Hanging Mycel Blue
+MycelBlue: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.cavern.mycel-0",
-            offset: (-0.5, -0.5, -21.0),
+            model: "voxygen.voxel.sprite.cave.ceiling.mycel-0",
+            offset: (-1.0, -1.0, -12.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.mycel-1",
-            offset: (-0.5, -0.5, -31.0),
+            model: "voxygen.voxel.sprite.cave.ceiling.mycel-1",
+            offset: (-1.0, -1.0, -25.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.mycel-2",
-            offset: (-0.5, -0.5, -14.0),
+            model: "voxygen.voxel.sprite.cave.ceiling.mycel-2",
+            offset: (-1.0, -1.0, -18.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.cavern.mycel-3",
-            offset: (-0.5, -0.5, -40.0),
+            model: "voxygen.voxel.sprite.cave.ceiling.mycel-3",
+            offset: (-1.0, -1.0, -29.0),
             lod_axes: (0.0, 0.0, 1.0),
         ),
     ],

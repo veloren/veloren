@@ -778,8 +778,13 @@ fn write_column<R: Rng>(
                         {
                             if head_dist < 0.85 {
                                 let radial = (rpos.x.atan2(rpos.y) * 10.0).sin() * 0.5 + 0.5;
+                                let block_kind = if head_dist < 0.5 {
+                                    BlockKind::GlowingMushroom
+                                } else {
+                                    BlockKind::Rock
+                                };
                                 return Some(Block::new(
-                                    BlockKind::GlowingMushroom,
+                                    block_kind,
                                     Rgb::new(
                                         30,
                                         50 + (radial * 100.0) as u8,
@@ -806,7 +811,7 @@ fn write_column<R: Rng>(
                             let sprites = if dynamic_rng.gen_bool(0.1) {
                                 &[Beehive, Lantern] as &[_]
                             } else {
-                                &[Orb, CavernMycelBlue, CavernMycelBlue] as &[_]
+                                &[/* Orb, */ MycelBlue, MycelBlue] as &[_]
                             };
                             return Some(Block::air(*sprites.choose(dynamic_rng).unwrap()));
                         }
@@ -932,7 +937,8 @@ fn write_column<R: Rng>(
         let mut rng = RandomPerm::new(((vine_pos.x << 16) | vine_pos.y) as u32);
 
         if rng.gen_bool(
-            0.15 * close(biome.mushroom, 1.0, 0.2) as f64
+            0.025
+                * close(biome.mushroom, 1.0, 0.2) as f64
                 * close(max_height as f32, 64.0, 56.0) as f64,
         ) && ceiling_cover > 0.0
         {
@@ -1011,7 +1017,8 @@ fn write_column<R: Rng>(
                 );
                 Block::new(
                     if rand.chance(wpos, (biome.mushroom * biome.mineral * 0.5).max(biome.icy)) {
-                        BlockKind::GlowingWeakRock
+                        // BlockKind::GlowingWeakRock
+                        BlockKind::WeakRock
                     } else if rand.chance(wpos, biome.sandy) {
                         BlockKind::Sand
                     } else {
@@ -1096,20 +1103,26 @@ fn write_column<R: Rng>(
                 }
             } else if let Some(sprite) = (z == floor && !void_below && !sky_above)
                 .then(|| {
-                    if rand.chance(wpos2d.with_z(1), biome.mushroom * 0.05) {
+                    if rand.chance(
+                        wpos2d.with_z(1),
+                        biome.mushroom
+                            * 0.3
+                            * col.marble_mid
+                            * (col.marble_mid > 0.55) as u32 as f32,
+                    ) {
                         [
-                            (SpriteKind::CaveMushroom, 0.15),
+                            (SpriteKind::GlowMushroom, 0.5),
                             (SpriteKind::Mushroom, 0.25),
-                            (SpriteKind::GrassBlue, 1.0),
-                            (SpriteKind::CavernGrassBlueShort, 1.0),
-                            (SpriteKind::CavernGrassBlueMedium, 1.0),
-                            (SpriteKind::CavernGrassBlueLong, 1.0),
+                            (SpriteKind::GrassBlue, 0.0),
+                            (SpriteKind::GrassBlueMedium, 1.5),
+                            (SpriteKind::GrassBlueLong, 2.0),
                             (SpriteKind::Moonbell, 0.01),
+                            (SpriteKind::SporeReed, 2.5),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .map(|s| s.0)
-                    } else if rand.chance(wpos2d.with_z(15), biome.leafy * 0.05) {
+                    } else if rand.chance(wpos2d.with_z(15), biome.leafy * 0.05 * col.marble_mid) {
                         [
                             (SpriteKind::LongGrass, 1.0),
                             (SpriteKind::MediumGrass, 2.0),
@@ -1123,6 +1136,10 @@ fn write_column<R: Rng>(
                             (SpriteKind::LeafyPlant, 0.8),
                             (SpriteKind::Twigs, 0.07),
                             (SpriteKind::Wood, 0.03),
+                            (SpriteKind::LanternPlant, 1.0),
+                            (SpriteKind::LanternFlower, 0.6),
+                            (SpriteKind::LushFlower, 0.75),
+                            (SpriteKind::LushMushroom, 0.5),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
@@ -1132,6 +1149,7 @@ fn write_column<R: Rng>(
                             (SpriteKind::Bones, 0.5),
                             (SpriteKind::Stones, 1.5),
                             (SpriteKind::DeadBush, 1.0),
+                            (SpriteKind::DeadPlant, 1.5),
                             (SpriteKind::EnsnaringWeb, 0.5),
                             (SpriteKind::Mud, 0.025),
                         ]
@@ -1140,8 +1158,11 @@ fn write_column<R: Rng>(
                         .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(14), biome.barren * 0.003) {
                         [
+                            (SpriteKind::Bones, 0.5),
                             (SpriteKind::Welwitch, 0.5),
                             (SpriteKind::DeadBush, 1.5),
+                            (SpriteKind::DeadPlant, 1.5),
+                            (SpriteKind::RockyMushroom, 1.5),
                             (SpriteKind::Crate, 0.005),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
@@ -1224,24 +1245,32 @@ fn write_column<R: Rng>(
             } else if let Some(sprite) = (z == ceiling - 1 && !void_above)
                 .then(|| {
                     if rand.chance(wpos2d.with_z(3), biome.mushroom * 0.01) {
-                        Some(
-                            *[
-                                SpriteKind::CavernMycelBlue,
-                                SpriteKind::CeilingMushroom,
-                                SpriteKind::Orb,
-                            ]
-                            .choose(rng)
-                            .unwrap(),
-                        )
+                        [
+                            (SpriteKind::MycelBlue, 0.0),
+                            (SpriteKind::CeilingMushroom, 0.0),
+                            // (SpriteKind::Orb, 0.25),
+                            (SpriteKind::Mold, 0.9),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(4), biome.leafy * 0.015) {
                         [
                             (SpriteKind::Liana, 1.0),
-                            (SpriteKind::Orb, 0.5),
+                            (SpriteKind::CeilingLanternPlant, 1.5),
+                            (SpriteKind::CeilingLanternFlower, 1.25),
+                            (SpriteKind::CeilingJungleLeafyPlant, 1.0),
+                            // (SpriteKind::Orb, 0.0),
                             (SpriteKind::CrystalHigh, 0.1),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .map(|s| s.0)
+                    } else if rand.chance(wpos2d.with_z(5), biome.barren * 0.015) {
+                        [(SpriteKind::Root, 1.5)]
+                            .choose_weighted(rng, |(_, w)| *w)
+                            .ok()
+                            .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(5), biome.mineral * 0.005) {
                         Some(*[SpriteKind::CrystalHigh].choose(rng).unwrap())
                     } else {

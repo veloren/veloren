@@ -933,7 +933,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     let sprites = if dynamic_rng.gen_bool(0.1) {
                         &[Beehive, Lantern] as &[_]
                     } else {
-                        &[Orb, CavernMycelBlue, CavernMycelBlue] as &[_]
+                        &[Orb, MycelBlue, MycelBlue] as &[_]
                     };
                     return Some(Block::air(*sprites.choose(dynamic_rng).unwrap()));
                 }
@@ -1091,11 +1091,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 Block::air(
                     *if dynamic_rng.gen_bool(0.9) {
                         // High density
-                        &[
-                            CavernGrassBlueShort,
-                            CavernGrassBlueMedium,
-                            CavernGrassBlueLong,
-                        ] as &[_]
+                        &[GrassBlueShort, GrassBlueMedium, GrassBlueLong] as &[_]
                     } else if dynamic_rng.gen_bool(0.5) {
                         // Medium density
                         &[CaveMushroom] as &[_]
@@ -1108,7 +1104,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 )
             } else if z == cavern_top - 1 && dynamic_rng.gen_bool(0.001) {
                 Block::air(
-                    *[CrystalHigh, CeilingMushroom, Orb, CavernMycelBlue]
+                    *[CrystalHigh, CeilingMushroom, Orb, MycelBlue]
                         .choose(dynamic_rng)
                         .unwrap(),
                 )
