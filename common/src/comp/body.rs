@@ -1204,8 +1204,13 @@ impl Body {
                 quadruped_low::Species::HermitAlligator => 2.0,
                 _ => 1.0,
             },
+            Body::QuadrupedSmall(b) => match b.species {
+                quadruped_small::Species::Axolotl | quadruped_small::Species::Gecko => 0.6,
+                _ => 1.0,
+            },
             Body::FishMedium(_) => 0.6,
             Body::FishSmall(_) => 0.6,
+            #[allow(unreachable_patterns)] // TODO: Remove when more crustacean species are added
             Body::Crustacean(b) => match b.species {
                 crustacean::Species::Crab => 0.6,
                 _ => 1.0,
