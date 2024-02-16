@@ -11,10 +11,10 @@ ComboMelee2(
                 range: 5.5,
                 angle: 60.0,
             ),
-            buildup_duration: 0.5,
+            buildup_duration: 0.7,
             swing_duration: 0.2,
             hit_timing: 0.5,
-            recover_duration: 0.3,
+            recover_duration: 0.5,
             movement: (
                 swing: Some(Forward(0.25)),
             ),
