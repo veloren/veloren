@@ -816,8 +816,9 @@ impl Buffs {
         };
 
         // If another buff with the same fields is found, update end_time and effects
-        let key = if let Some((other_buff, key)) =
-            other_key.and_then(|key| Some((self.buffs.get_mut(key)?, key)))
+        let key = if !kind.stacks()
+            && let Some((other_buff, key)) =
+                other_key.and_then(|key| Some((self.buffs.get_mut(key)?, key)))
         {
             other_buff.end_time = buff.end_time;
             other_buff.effects = buff.effects;
