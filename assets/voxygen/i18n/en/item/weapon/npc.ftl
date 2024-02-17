@@ -400,6 +400,9 @@ common-items-npc_weapons-unique-quadruped_medium-donkey = Donkey
 common-items-npc_weapons-unique-quadruped_medium-grolgar = Grolgar
     .desc = testing123
 
+common-items-npc_weapons-unique-quadruped_medium-highland = Highland
+    .desc = testing123
+
 common-items-npc_weapons-unique-quadruped_medium-horse = Horse
     .desc = testing123
 
@@ -407,6 +410,9 @@ common-items-npc_weapons-unique-quadruped_medium-moose = Moose
     .desc = testing123
 
 common-items-npc_weapons-unique-quadruped_medium-mouflon = Mouflon
+    .desc = testing123
+
+common-items-npc_weapons-unique-quadruped_medium-wolf = Wolf
     .desc = testing123
 
 common-items-npc_weapons-unique-quadruped_small-boar = Boar

@@ -567,7 +567,7 @@ fn default_main_tool(body: &Body) -> Item {
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
             quadruped_medium::Species::Wolf => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedquick",
+                "common.items.npc_weapons.unique.quadruped_medium.wolf",
             )),
             // Below uniques still follow quadmedhoof just with stat alterations
             quadruped_medium::Species::Alpaca | quadruped_medium::Species::Llama => {
@@ -622,9 +622,12 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_medium::Species::Roshwalr => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.roshwalr",
             )),
-            quadruped_medium::Species::Cattle
-            | quadruped_medium::Species::Yak => Some(Item::new_from_asset_expect(
+            quadruped_medium::Species::Cattle => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedbasicgentle",
+            )),
+            quadruped_medium::Species::Highland
+            | quadruped_medium::Species::Yak => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_medium.highland",
             )),
             quadruped_medium::Species::Frostfang => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.frostfang",

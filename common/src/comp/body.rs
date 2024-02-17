@@ -1016,9 +1016,9 @@ impl Body {
                 quadruped_low::Species::Lavadrake => 460,
                 quadruped_low::Species::Maneater => 800,
                 quadruped_low::Species::Mossdrake => 720,
-                quadruped_low::Species::Rocksnapper => 480,
-                quadruped_low::Species::Reefsnapper => 490,
-                quadruped_low::Species::Rootsnapper => 500,
+                quadruped_low::Species::Rocksnapper => 380,
+                quadruped_low::Species::Reefsnapper => 390,
+                quadruped_low::Species::Rootsnapper => 400,
                 quadruped_low::Species::Sandshark => 550,
                 // T3B
                 quadruped_low::Species::Basilisk => 1300,

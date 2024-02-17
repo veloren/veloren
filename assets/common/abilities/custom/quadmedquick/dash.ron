@@ -2,16 +2,16 @@ DashMelee(
     energy_cost: 0,
     melee_constructor: (
         kind: Bash(
-            damage: 10.0,
-            poise: 20.0,
+            damage: 15.0,
+            poise: 28.0,
             knockback: 3.0,
             energy_regen: 0.0,
         ),
         scaled: Some((
             kind: Bash(
                 damage: 4.0,
-                poise: 20.0,
-                knockback: 6.0,
+                poise: 28.0,
+                knockback: 7.0,
                 energy_regen: 0.0,
             ))),
         range: 2.0,
