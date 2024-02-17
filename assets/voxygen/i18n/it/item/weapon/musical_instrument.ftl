@@ -37,8 +37,8 @@ weapon-tool-washboard = Battipanni
 weapon-tool-wildskin_drum = Tamburo di pelle selvaggia
     .desc = Uno, due, continua tu!
 
-weapon-tool-steeldrum = Rullante in acciaio
-    .desc = Rullante in acciaio.
+weapon-tool-steeltonguedrum = Tamburo a lingue d'acciaio
+    .desc = Tamburo a lingue d'acciaio.
 
 weapon-tool-shamisen = Shamisen
     .desc = Shamisen.

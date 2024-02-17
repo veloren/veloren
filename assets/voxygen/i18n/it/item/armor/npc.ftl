@@ -4,15 +4,6 @@ common-items-npc_armor-pants-leather_blue = Protezioni in pelle blu
 common-items-npc_armor-pants-plate_red = Paragambali di ferro
     .desc = Paragambali forgiati dal ferro.
 
-common-items-npc_armor-quadruped_low-dagon = Scaglie di Dagon
-    .desc = Abbastanza rigide da resistere alla pressione dell'oceano profondo.
-
-common-items-npc_armor-quadruped_low-generic = Generico quadrupede basso
-    .desc = Squamoso.
-
-common-items-npc_armor-quadruped_low-shell = Quadrupede basso con guscio
-    .desc = Guscio.
-
 common-items-npc_armor-bird_large-phoenix = Armatura di fenice
     .desc = La piuma più spessa che tu abbia mai visto!
 
@@ -30,6 +21,9 @@ common-items-npc_armor-golem-ancienteffigy = Armatura dell'antica effigie
 
 common-items-npc_armor-golem-gravewarden = Armatura del custode di tombe
     .desc = Indossata dal custode di tombe.
+
+common-items-npc_armor-golem-mogwai = Armatura Mogwai
+    .desc = Indossata dai mogwai.
 
 common-items-npc_armor-biped_small-myrmidon-foot-hoplite = Mirmidone oplita
     .desc = Abito cerimoniale usato dai membri.
@@ -499,23 +493,113 @@ common-items-npc_armor-biped_small-gnoll-tail-shaman = Gnoll sciamano
 common-items-npc_armor-biped_small-gnoll-tail-trapper = Gnoll trappolatore
     .desc = Abito cerimoniale usato dai membri.
 
+common-items-npc_armor-biped_small-jiangshi-head-jiangshi = Jiangshi
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-jiangshi-chest-jiangshi = Jiangshi
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-jiangshi-pants-jiangshi = Jiangshi
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-jiangshi-hand-jiangshi = Jiangshi
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-jiangshi-foot-jiangshi = Jiangshi
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-shamanic_spirit-head-shamanic_spirit = Spirito sciamanico
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-shamanic_spirit-chest-shamanic_spirit = Spirito sciamanico
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-shamanic_spirit-pants-shamanic_spirit = Spirito sciamanico
+    .desc = Abito cerimoniale usato dai membri.
+
+common-items-npc_armor-biped_small-shamanic_spirit-hand-shamanic_spirit = Spirito sciamanico
+    .desc = Abito cerimoniale usato dai membri.
+
 common-items-npc_armor-chest-plate_red = Pettorale di ferro
     .desc = Un pettorale forgiato dal ferro.
 
 common-items-npc_armor-arthropod-generic = Armatura di artropode
     .desc = Indossata dagli artropodi.
 
+common-items-npc_armor-arthropod-leafbeetle = Armatura del coleottero foglia
+    .desc = Indossata dagli artropodi.
+
+common-items-npc_armor-arthropod-weevil = Armatura di coleottero
+    .desc = Indossata dagli artropodi.
+
+common-items-npc_armor-quadruped_low-basilisk = Armatura di basilisco
+    .desc = Composta da piastre spesse e pesanti.
+
+common-items-npc_armor-quadruped_low-crocodylia = Armatura di coccodrillo
+    .desc = Squamoso.
+
+common-items-npc_armor-quadruped_low-dagon = Scaglie di Dagon
+    .desc = Abbastanza rigide da resistere alla pressione dell'oceano profondo.
+
+common-items-npc_armor-quadruped_low-drake = Armatura di drago
+    .desc = Adattabile alla temperatura.
+
+common-items-npc_armor-quadruped_low-generic = Generico quadrupede basso
+    .desc = Squamoso.
+
+common-items-npc_armor-quadruped_low-sandshark = Armatura di squalo della sabbia
+    .desc = Come va sulla terra?
+
+common-items-npc_armor-quadruped_low-shell = Quadrupede basso con guscio
+    .desc = Guscio.
+
+common-items-npc_armor-quadruped_low-snapper = Guscio di testuggine
+    .desc = È solo un guscio.
+
+common-items-npc_armor-quadruped_medium-bonerattler = Armatura di scuotiossa
+    .desc = Realizzata con le ossa delle sue prede per proteggere la sua pelle flessibile.
+
+common-items-npc_armor-quadruped_medium-broad = Armatura generica media di quadrupede
+    .desc = Testing123
+
+common-items-npc_armor-quadruped_medium-catoblepas = Armatura di catoblepa
+    .desc = Spesso e rigido.
+
+common-items-npc_armor-quadruped_medium-claysteed = Pelle spessa dei destrieri d'argilla.
+    .desc = Testing123
+
+common-items-npc_armor-quadruped_medium-dreadhorn = Armatura del Cornoterrore
+    .desc = Spesso e rigido.
+
+common-items-npc_armor-quadruped_medium-equus = Armatura di cavallo
+    .desc = Testing123
+
 common-items-npc_armor-quadruped_medium-frostfang = Pelle spessa di zanne di ghiaccio
+    .desc = Testing123
+
+common-items-npc_armor-quadruped_medium-hirdrasil = Benedizione di hirdrasil
     .desc = Testing123
 
 common-items-npc_armor-quadruped_medium-roshwalr = Pelle spessa di roshwalr
     .desc = Testing123
 
-common-items-npc_armor-quadruped_medium-claysteed = Pelle Spessa dei destrieri d'argilla.
-    .desc = Testing123
+common-items-npc_armor-quadruped_small-boar = Armatura di cinghiale
+    .desc = Indossata da piccole creature.
+
+common-items-npc_armor-quadruped_small-hyena = Armatura di iena
+    .desc = Indossata da piccole creature.
+
+common-items-npc_armor-quadruped_small-mossysnail = Guscio muschioso
+    .desc = La robusta casa di un piccolo amico.
+
+common-items-npc_armor-theropod-raptor = Pelle di rapace
+    .desc = Forte.
 
 common-items-npc_armor-theropod-rugged = Teropode robusto
     .desc = Forte.
+
+common-items-npc_armor-theropod-yale = Armatura di yak
+    .desc = Sofficissimo per difendersi dal freddo.
 
 common-items-npc_armor-biped_large-cyclops = Armatura del ciclope
     .desc = Fatta di misteri.
@@ -555,6 +639,9 @@ common-items-npc_armor-biped_large-yeti = Pelle di yeti
 
 common-items-npc_armor-biped_large-haniwageneral = Uniforme generale Haniwa
     .desc = Ha visto il combattimento.
+
+common-items-npc_armor-biped_large-terracotta = Armatura di terracotta
+    .desc = Solo un po' polverosa, è tutto.
 
 armor-leather_blue-pants = Corazza in pelle blu
     .desc = {""}
@@ -640,7 +727,7 @@ common-items-armor-alchemist-pants = Pantaloni dell'alchimista
 common-items-armor-misc-head-headband = Fascia per la fronte
     .desc = Una semplice fascia per la fronte, niente di speciale.
 
-common-items-armor-witch-back = Mantello della strega
+common-items-armor-witch-back = Cappa della strega
     .desc = {""}
 
 common-items-armor-witch-belt = Cintura della strega

@@ -34,3 +34,9 @@ object-key-cyclops_eyeball = Occhio del ciclope
 object-key-haniwa = Chiave Haniwa
     .desc = Usata per aprire porte. Si romperà dopo l'uso.
 
+object-key-terracotta_chest = Chiave del baule di terracotta
+    .desc = Usata per aprire i bauletti. Si romperà dopo l'uso.
+
+object-key-terracotta_door = Chiave della porta di terracotta
+    .desc = Usata per aprire porte. Si romperà dopo l'uso.
+
