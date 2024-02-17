@@ -150,7 +150,7 @@ impl Attack {
         damage: Damage,
         msm: &MaterialStatManifest,
         time: Time,
-        emitters: &mut impl EmitExt<ParryHookEvent>,
+        emitters: &mut (impl EmitExt<ParryHookEvent> + EmitExt<PoiseChangeEvent>),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
         if damage.value > 0.0 {
@@ -182,7 +182,7 @@ impl Attack {
                             attacker: attacker.map(|a| a.entity),
                             source,
                         });
-                        emit(ServerEvent::PoiseChange {
+                        emitters.emit(PoiseChangeEvent {
                             entity: target.entity,
                             change: PoiseChange {
                                 amount: -poise_change,
@@ -208,7 +208,7 @@ impl Attack {
                             pos: target.pos,
                             uid: target.uid,
                         });
-                        emit(ServerEvent::PoiseChange {
+                        emitters.emit(PoiseChangeEvent {
                             entity: target.entity,
                             change: PoiseChange {
                                 amount: -poise_change,

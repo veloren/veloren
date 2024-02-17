@@ -820,13 +820,13 @@ impl ServerEvent for LandOnGroundEvent {
                 let change = damage.calculate_health_change(
                     damage_reduction,
                     0.0,
-            None,
-            None,
-            0.0,
-            1.0,
-            *time,
-            rand::random(),
-        );
+                    None,
+                    None,
+                    0.0,
+                    1.0,
+                    *time,
+                    rand::random(),
+                );
 
                 health_change_emitter.emit(HealthChangeEvent {
                     entity: ev.entity,
@@ -1402,6 +1402,7 @@ pub fn emit_effect_events(
         common::effect::Effect::Damage(damage) => {
             let change = damage.calculate_health_change(
                 combat::Damage::compute_damage_reduction(Some(damage), inventory, stats, msm),
+                0.0,
                 damage_contributor,
                 None,
                 0.0,
