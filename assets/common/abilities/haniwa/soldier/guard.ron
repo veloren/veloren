@@ -10,7 +10,6 @@ BasicBlock(
     energy_cost: 0,
     energy_regen: 0,
     can_hold: true,
-    can_use_block_priority: true,
     blocked_attacks: (
         melee: true,
         projectiles: true,

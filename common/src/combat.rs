@@ -58,8 +58,9 @@ pub const MAX_HEADSHOT_PRECISION: f32 = 1.0;
 pub const MAX_TOP_HEADSHOT_PRECISION: f32 = 0.5;
 pub const MAX_BEAM_DUR_PRECISION: f32 = 0.25;
 pub const MAX_MELEE_POISE_PRECISION: f32 = 0.5;
-pub const MAX_BLOCK_POISE_COST: f32 = 25.0;
+pub const MAX_BLOCK_POISE_COST: f32 = 50.0;
 pub const PARRY_BONUS_MULTIPLIER: f32 = 2.0;
+pub const BLOCK_STRENGTH_MULTIPLIER: f32 = 5.0;
 
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
@@ -144,6 +145,7 @@ impl Attack {
 
     pub fn compute_block_damage_decrement(
         attacker: Option<&AttackerInfo>,
+        damage_reduction: f32,
         target: &TargetInfo,
         source: AttackSource,
         dir: Dir,
@@ -157,6 +159,7 @@ impl Attack {
             if let (Some(char_state), Some(ori), Some(inventory)) =
                 (target.char_state, target.ori, target.inventory)
             {
+                let damage_value = damage.value * (1.0 - damage_reduction);
                 let block_strength = block_strength(inventory, char_state);
                 if ori.look_vec().angle_between(-dir.with_z(0.0)) < char_state.block_angle()
                     && block_strength > 0.0
@@ -164,7 +167,7 @@ impl Attack {
                     if char_state.is_parry(source) {
                         let final_block_strength = block_strength * PARRY_BONUS_MULTIPLIER;
                         let poise_change = Poise::apply_poise_reduction(
-                            (damage.value.min(final_block_strength) * MAX_BLOCK_POISE_COST)
+                            (damage_value.min(final_block_strength) * MAX_BLOCK_POISE_COST)
                                 / final_block_strength,
                             target.inventory,
                             msm,
@@ -192,12 +195,11 @@ impl Attack {
                                 time,
                             },
                         });
-                        damage.value.min(final_block_strength)
+                        final_block_strength
                     } else if char_state.is_block(source) {
-                        let final_block_strength = block_strength;
                         let poise_change = Poise::apply_poise_reduction(
-                            (damage.value.min(final_block_strength) * MAX_BLOCK_POISE_COST)
-                                / final_block_strength,
+                            (damage_value.min(block_strength) * MAX_BLOCK_POISE_COST)
+                                / block_strength,
                             target.inventory,
                             msm,
                             target.char_state,
@@ -218,7 +220,7 @@ impl Attack {
                                 time,
                             },
                         });
-                        damage.value.min(final_block_strength)
+                        block_strength
                     } else {
                         0.0
                     }
@@ -324,6 +326,7 @@ impl Attack {
 
             let block_damage_decrement = Attack::compute_block_damage_decrement(
                 attacker.as_ref(),
+                damage_reduction,
                 target,
                 attack_source,
                 dir,
@@ -1124,10 +1127,10 @@ impl Damage {
             | DamageSource::Energy => {
                 // Precise hit
                 damage += precise_damage;
-                // Block
-                damage -= block_damage_decrement;
                 // Armor
                 damage *= 1.0 - damage_reduction;
+                // Block
+                damage -= f32::min(damage, block_damage_decrement);
 
                 HealthChange {
                     amount: -damage,
@@ -1561,89 +1564,43 @@ pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>
 }
 
 pub fn block_strength(inventory: &Inventory, char_state: &CharacterState) -> f32 {
-    let equip_slot = if let CharacterState::BasicBlock(data) = char_state {
-        if data.static_data.can_use_block_priority {
-            get_block_equip_slot_by_priority(Some(inventory))
-        } else {
-            get_block_equip_slot_by_tool(Some(inventory), data.static_data.ability_info.tool)
-        }
-    } else {
-        get_block_equip_slot_by_tool(
-            Some(inventory),
-            char_state.ability_info().and_then(|t| t.tool),
-        )
-    };
+    let equip_slot = get_equip_slot_by_tool(
+        Some(inventory),
+        char_state.ability_info().and_then(|t| t.tool),
+    );
 
-    inventory
-        .equipped(equip_slot)
+    inventory.equipped(equip_slot)
         .map(|item| match &*item.kind() {
-            ItemKind::Tool(tool) => tool.stats(item.stats_durability_multiplier()).power * 10.0,
+            ItemKind::Tool(tool) => tool.stats(item.stats_durability_multiplier()).power,
             _ => 0.0,
         })
-        .map_or(0.0, |weapon_block_strength| match char_state {
-            CharacterState::BasicBlock(data) => {
-                weapon_block_strength * data.static_data.block_strength
-            },
-            CharacterState::ComboMelee2(data) => {
-                let capabilities = data.static_data.ability_info.ability_meta.capabilities;
+        .map_or(0.0, |tool_block_strength| match char_state {
+            CharacterState::BasicBlock(data) => data.static_data.block_strength,
+            CharacterState::RiposteMelee(_) => tool_block_strength,
+            _ => char_state
+                .ability_info()
+                .map(|ability| ability.ability_meta.capabilities)
+                .map_or(0.0, |capabilities| {
+                    if capabilities.contains(Capability::PARRIES)
+                        || capabilities.contains(Capability::PARRIES_MELEE)
+                    {
+                        return tool_block_strength;
+                    }
 
-                if capabilities.contains(Capability::PARRIES)
-                    || capabilities.contains(Capability::PARRIES_MELEE)
-                {
-                    return weapon_block_strength;
-                }
+                    if capabilities.contains(Capability::BLOCKS) {
+                        return tool_block_strength * 0.5;
+                    }
 
-                if capabilities.contains(Capability::BLOCKS) {
-                    return weapon_block_strength * 0.5;
-                }
-
-                0.0
-            },
-            CharacterState::RiposteMelee(_) => weapon_block_strength,
-            CharacterState::Idle(_)
-            | CharacterState::Climb(_)
-            | CharacterState::Sit
-            | CharacterState::Dance
-            | CharacterState::Talk
-            | CharacterState::Glide(_)
-            | CharacterState::GlideWield(_)
-            | CharacterState::Stunned(_)
-            | CharacterState::Equipping(_)
-            | CharacterState::Wielding(_)
-            | CharacterState::Roll(_)
-            | CharacterState::BasicMelee(_)
-            | CharacterState::BasicRanged(_)
-            | CharacterState::Boost(_)
-            | CharacterState::DashMelee(_)
-            | CharacterState::ComboMeleeDeprecated(_)
-            | CharacterState::LeapMelee(_)
-            | CharacterState::LeapShockwave(_)
-            | CharacterState::ChargedRanged(_)
-            | CharacterState::ChargedMelee(_)
-            | CharacterState::RepeaterRanged(_)
-            | CharacterState::Shockwave(_)
-            | CharacterState::BasicBeam(_)
-            | CharacterState::BasicAura(_)
-            | CharacterState::Blink(_)
-            | CharacterState::BasicSummon(_)
-            | CharacterState::SelfBuff(_)
-            | CharacterState::SpriteSummon(_)
-            | CharacterState::UseItem(_)
-            | CharacterState::SpriteInteract(_)
-            | CharacterState::Wallrun(_)
-            | CharacterState::Skate(_)
-            | CharacterState::Music(_)
-            | CharacterState::FinisherMelee(_)
-            | CharacterState::DiveMelee(_)
-            | CharacterState::RapidMelee(_) => 0.0,
-        })
+                    0.0
+                }),
+        } * BLOCK_STRENGTH_MULTIPLIER)
 }
 
-pub fn get_block_equip_slot_by_priority(inventory: Option<&Inventory>) -> EquipSlot {
+pub fn get_equip_slot_by_block_priority(inventory: Option<&Inventory>) -> EquipSlot {
     inventory
         .map(get_weapon_kinds)
         .map_or(
-            EquipSlot::ActiveOffhand,
+            EquipSlot::ActiveMainhand,
             |weapon_kinds| match weapon_kinds {
                 (Some(mainhand), Some(offhand)) => {
                     if mainhand.block_priority() >= offhand.block_priority() {
@@ -1654,19 +1611,19 @@ pub fn get_block_equip_slot_by_priority(inventory: Option<&Inventory>) -> EquipS
                 },
                 (Some(_), None) => EquipSlot::ActiveMainhand,
                 (None, Some(_)) => EquipSlot::ActiveOffhand,
-                (None, None) => EquipSlot::ActiveOffhand,
+                (None, None) => EquipSlot::ActiveMainhand,
             },
         )
 }
 
-pub fn get_block_equip_slot_by_tool(
+pub fn get_equip_slot_by_tool(
     inventory: Option<&Inventory>,
     tool_kind: Option<ToolKind>,
 ) -> EquipSlot {
     inventory
         .map(get_weapon_kinds)
         .map_or(
-            EquipSlot::ActiveOffhand,
+            EquipSlot::ActiveMainhand,
             |weapon_kinds| match weapon_kinds {
                 (mainhand, Some(_)) => {
                     if mainhand == tool_kind {

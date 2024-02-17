@@ -37,8 +37,6 @@ pub struct StaticData {
     pub energy_regen: f32,
     /// Whether block can be held
     pub can_hold: bool,
-    /// Whether can choose higher priority weapon block
-    pub can_use_block_priority: bool,
     /// What kinds of attacks the block applies to
     pub blocked_attacks: AttackFilters,
 }

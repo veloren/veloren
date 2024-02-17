@@ -146,14 +146,13 @@ impl CombatEventMapper {
         previous_state: &PreviousEntityState,
         inventory: &Inventory,
     ) -> SfxEvent {
-        let hand_info = character_state.ability_info().and_then(|a| a.hand);
-
-        let equip_slot = match hand_info {
-            Some(HandInfo::TwoHanded) => EquipSlot::ActiveMainhand,
-            Some(HandInfo::MainHand) => EquipSlot::ActiveMainhand,
-            Some(HandInfo::OffHand) => EquipSlot::ActiveOffhand,
-            None => EquipSlot::ActiveMainhand,
-        };
+        let equip_slot = character_state
+            .ability_info()
+            .and_then(|ability| ability.hand)
+            .map_or(EquipSlot::ActiveMainhand, |hand| match hand {
+                HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
+                HandInfo::OffHand => EquipSlot::ActiveOffhand,
+            });
 
         if let Some(item) = inventory.equipped(equip_slot) {
             if let ItemKind::Tool(data) = &*item.kind() {
