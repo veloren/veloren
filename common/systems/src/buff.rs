@@ -1,5 +1,5 @@
 use common::{
-    combat::DamageContributor,
+    combat::{self, DamageContributor},
     comp::{
         agent::{Sound, SoundKind},
         aura::Auras,
@@ -10,8 +10,8 @@ use common::{
         },
         fluid_dynamics::{Fluid, LiquidKind},
         item::MaterialStatManifest,
-        Energy, Group, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState,
-        Pos, Stats,
+        Alignment, Energy, Group, Health, HealthChange, Inventory, LightEmitter, ModifierKind,
+        PhysicsState, Player, Pos, Stats,
     },
     event::{
         BuffEvent, ChangeBodyEvent, CreateSpriteEvent, EmitExt, EnergyChangeEvent,
@@ -64,6 +64,9 @@ pub struct ReadData<'a> {
     positions: ReadStorage<'a, Pos>,
     bodies: ReadStorage<'a, Body>,
     light_emitters: ReadStorage<'a, LightEmitter>,
+    alignments: ReadStorage<'a, Alignment>,
+    players: ReadStorage<'a, Player>,
+    uids: ReadStorage<'a, Uid>,
 }
 
 #[derive(Default)]
@@ -147,13 +150,45 @@ impl<'a> System<'a> for Sys {
             &read_data.bodies,
             &read_data.healths,
             &read_data.energies,
+            read_data.uids.maybe(),
             read_data.physics_states.maybe(),
         )
             .lend_join();
         buff_join.for_each(|comps| {
-            let (entity, buff_comp, mut stat, body, health, energy, physics_state) = comps;
+            let (entity, buff_comp, mut stat, body, health, energy, uid, physics_state) = comps;
             // Apply buffs to entity based off of their current physics_state
             if let Some(physics_state) = physics_state {
+                // Set nearby entities on fire if burning
+                if let Some((_, burning)) = buff_comp.iter_kind(BuffKind::Burning).next() {
+                    for t_entity in physics_state.touch_entities.keys().filter_map(|te_uid| {
+                        read_data.id_maps.uid_entity(*te_uid).filter(|te| {
+                            combat::may_harm(
+                                &read_data.alignments,
+                                &read_data.players,
+                                &read_data.id_maps,
+                                Some(entity),
+                                *te,
+                            )
+                        })
+                    }) {
+                        let duration = burning.data.duration.map(|d| d * 0.9);
+                        if duration.map_or(true, |d| d.0 >= 1.0) {
+                            let source =
+                                uid.map_or(BuffSource::World, |u| BuffSource::Character { by: *u });
+                            emitters.emit(BuffEvent {
+                                entity: t_entity,
+                                buff_change: BuffChange::Add(Buff::new(
+                                    BuffKind::Burning,
+                                    BuffData::new(burning.data.strength, duration),
+                                    vec![BuffCategory::Natural],
+                                    source,
+                                    *read_data.time,
+                                    None,
+                                )),
+                            });
+                        }
+                    }
+                }
                 if matches!(
                     physics_state.on_ground.and_then(|b| b.get_sprite()),
                     Some(SpriteKind::EnsnaringVines) | Some(SpriteKind::EnsnaringWeb)
