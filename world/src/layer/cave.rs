@@ -229,7 +229,7 @@ impl Tunnel {
             // temperatures
             let mushroom = underground
                 * close(humidity, 1.0, 0.7)
-                * close(temp, 0.25, 1.0)
+                * close(temp, 0.25, 2.0)
                 * close(depth, 0.8, 0.5);
             // Extremely hot and dry areas deep underground
             let fire = underground
@@ -519,7 +519,7 @@ fn write_column<R: Rng>(
                         .max(biome.icy - 0.6)
                         .max(biome.sandy - 0.3)
                         .max(biome.leafy - 0.4)
-                        .max(biome.mushroom - 0.5)
+                        .max(biome.mushroom - 0.4)
                 {
                     cavern_height * col.marble_mid as f64
                 } else {
@@ -787,8 +787,8 @@ fn write_column<R: Rng>(
                                     block_kind,
                                     Rgb::new(
                                         30,
-                                        50 + (radial * 100.0) as u8,
-                                        100 - (radial * 50.0) as u8,
+                                        120 + (radial * 30.0) as u8,
+                                        180 - (radial * 30.0) as u8,
                                     ),
                                 ));
                             } else if head_dist < 1.0 {
@@ -951,8 +951,8 @@ fn write_column<R: Rng>(
                 .magnitude_squared()
                 < 1.0f32
             {
-                let kind = BlockKind::GlowingMushroom;
-                Some(Block::new(kind, Rgb::new(0, 95, 200)))
+                let kind = BlockKind::GlowingRock;
+                Some(Block::new(kind, Rgb::new(10, 70, 148)))
             } else {
                 None
             }
@@ -987,8 +987,8 @@ fn write_column<R: Rng>(
                         Lerp::lerp(
                             Lerp::lerp(
                                 Lerp::lerp(
-                                    Rgb::new(80, 100, 150),
-                                    Rgb::new(0, 75, 200),
+                                    Rgb::new(20, 21, 49),
+                                    Rgb::new(23, 44, 88),
                                     biome.mushroom,
                                 ),
                                 Lerp::lerp(
@@ -1006,8 +1006,8 @@ fn write_column<R: Rng>(
                             biome.sandy,
                         ),
                         Lerp::lerp(
-                            Rgb::new(0, 100, 50),
-                            Rgb::new(80, 100, 20),
+                            Rgb::new(0, 73, 12),
+                            Rgb::new(49, 63, 12),
                             col.marble_small,
                         ),
                         biome.leafy,
