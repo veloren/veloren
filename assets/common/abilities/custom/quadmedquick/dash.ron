@@ -2,7 +2,7 @@ DashMelee(
     energy_cost: 0,
     melee_constructor: (
         kind: Bash(
-            damage: 11.0,
+            damage: 10.0,
             poise: 20.0,
             knockback: 3.0,
             energy_regen: 0.0,

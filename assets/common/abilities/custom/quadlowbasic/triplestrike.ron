@@ -44,7 +44,7 @@ ComboMelee2(
             melee_constructor: (
                 kind: Bash(
                     damage: 28,
-                    poise: 28,
+                    poise: 36,
                     knockback: 3,
                     energy_regen: 0,
                 ),
