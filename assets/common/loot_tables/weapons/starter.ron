@@ -5,4 +5,5 @@
     (1.0, Item("common.items.weapons.axe.starter_axe")),
     (1.0, Item("common.items.weapons.staff.starter_staff")),
     (1.0, Item("common.items.weapons.sceptre.starter_sceptre")),
+    (1.0, Item("common.items.weapons.shield.starter_shield")),
 ]

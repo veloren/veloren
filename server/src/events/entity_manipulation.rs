@@ -819,13 +819,14 @@ impl ServerEvent for LandOnGroundEvent {
                 );
                 let change = damage.calculate_health_change(
                     damage_reduction,
-                    None,
-                    None,
                     0.0,
-                    1.0,
-                    *time,
-                    rand::random(),
-                );
+            None,
+            None,
+            0.0,
+            1.0,
+            *time,
+            rand::random(),
+        );
 
                 health_change_emitter.emit(HealthChangeEvent {
                     entity: ev.entity,
@@ -1677,7 +1678,7 @@ impl ServerEvent for ParryHookEvent {
                             entity: ev.defender,
                             change: c.static_data.energy_regen,
                         });
-                        true
+                        false
                     },
                     _ => false,
                 };

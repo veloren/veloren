@@ -138,12 +138,12 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
                 + armor_stats.protection.is_some() as usize
                 + (item.num_slots() > 0) as usize
         },
-        ItemKind::Tool(_) => 6,
+        ItemKind::Tool(_) => 7,
         ItemKind::Consumable { effects, .. } => match effects {
             Effects::Any(_) | Effects::One(_) => 1,
             Effects::All(effects) => effects.len(),
         },
-        ItemKind::ModularComponent { .. } => 6,
+        ItemKind::ModularComponent { .. } => 7,
         _ => 0,
     };
     if item.has_durability() {
@@ -563,8 +563,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.sceptre.healingaura" => imgs.skill_sceptre_heal,
         "common.abilities.sceptre.wardingaura" => imgs.skill_sceptre_aura,
         // Shield
-        "common.abilities.shield.tempbasic" => imgs.onehshield_m1,
-        "common.abilities.shield.block" => imgs.onehshield_m2,
+        "common.abilities.shield.singlestrike" => imgs.onehshield_m1,
         // Dagger
         "common.abilities.dagger.tempbasic" => imgs.onehdagger_m1,
         // Pickaxe

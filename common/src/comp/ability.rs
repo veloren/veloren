@@ -195,34 +195,31 @@ impl ActiveAbilities {
         };
 
         match ability {
-            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| {
-                    abilities
-                        .guard(Some(skill_set), context)
-                        .map(|(a, i)| (a.ability.clone(), i))
-                })
-                .map(|(ability, i)| {
-                    (
-                        scale_ability(ability, EquipSlot::ActiveMainhand),
-                        true,
-                        spec_ability(i),
-                    )
-                })
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveOffhand)
-                        .and_then(|abilities| {
-                            abilities
-                                .guard(Some(skill_set), context)
-                                .map(|(a, i)| (a.ability.clone(), i))
-                        })
-                        .map(|(ability, i)| {
-                            (
-                                scale_ability(ability, EquipSlot::ActiveOffhand),
-                                false,
-                                spec_ability(i),
-                            )
-                        })
-                }),
+            Ability::ToolGuard => {
+                let equip_slot = combat::get_block_equip_slot(inv);
+                ability_set(equip_slot)
+                    .and_then(|abilities| {
+                        abilities
+                            .guard(Some(skill_set), context)
+                            .map(|(a, i)| (a.ability.clone(), i))
+                    })
+                    .map(|(ability, i)| (scale_ability(ability, equip_slot), true, spec_ability(i)))
+                    .or_else(|| {
+                        ability_set(EquipSlot::ActiveOffhand)
+                            .and_then(|abilities| {
+                                abilities
+                                    .guard(Some(skill_set), context)
+                                    .map(|(a, i)| (a.ability.clone(), i))
+                            })
+                            .map(|(ability, i)| {
+                                (
+                                    scale_ability(ability, EquipSlot::ActiveOffhand),
+                                    false,
+                                    spec_ability(i),
+                                )
+                            })
+                    })
+            },
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
@@ -396,7 +393,7 @@ impl Ability {
         };
 
         match self {
-            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
+            Ability::ToolGuard => ability_set(combat::get_block_equip_slot(inv))
                 .and_then(|abilities| {
                     abilities
                         .guard(skillset, context)
@@ -524,7 +521,7 @@ impl SpecifiedAbility {
                     ability_set(EquipSlot::ActiveMainhand)
                         .map(|abilities| ability_id(self, &abilities.secondary))
                 }),
-            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
+            Ability::ToolGuard => ability_set(combat::get_block_equip_slot(inv))
                 .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
                 .or_else(|| {
                     ability_set(EquipSlot::ActiveOffhand)
@@ -3014,7 +3011,9 @@ bitflags::bitflags! {
         // WHen in the ability, an entity only receives half as much knockback
         const KNOCKBACK_RESISTANT = 0b00010000;
         // The ability will parry melee attacks in the buildup portion
-        const PARRIES             = 0b00100000;
+        const PARRIES_MELEE       = 0b00100000;
+        // The ability will parry all blockable attacks in the buildup portion
+        const PARRIES             = 0b01000000;
     }
 }
 

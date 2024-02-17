@@ -497,6 +497,18 @@ impl Animation for WieldAnimation {
                         }
                     }
                 },
+                Some(ToolKind::Shield) => {
+                    next.hand_l.position = Vec3::new(0.0, -2.0, 0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                    next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(2.0);
+
+                    next.control.position = Vec3::new(0.0, 7.0, 4.0);
+                    next.control.orientation =
+                        Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(-1.25);
+                },
                 _ => {},
             },
             ((_, _), _, _) => {},

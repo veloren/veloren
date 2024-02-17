@@ -954,7 +954,7 @@
             threshold: 0.5,
             subtitle: "subtitle-unwield_shield",
         ),
-        Attack(BasicMelee(Action), Shield): (
+        Attack(ComboMelee2(Action), Shield): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],

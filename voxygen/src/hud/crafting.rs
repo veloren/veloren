@@ -1131,6 +1131,7 @@ impl<'a> Widget for Crafting<'a> {
                         RecipeKind::Component(ToolKind::Bow) => self.imgs.icon_log,
                         RecipeKind::Component(ToolKind::Staff) => self.imgs.icon_log,
                         RecipeKind::Component(ToolKind::Sceptre) => self.imgs.icon_log,
+                        RecipeKind::Component(ToolKind::Shield) => self.imgs.icon_ingot,
                         _ => self.imgs.not_found,
                     };
 

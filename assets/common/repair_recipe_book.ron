@@ -8,6 +8,7 @@ recipes: {
     ItemDefId("common.items.weapons.staff.starter_staff"): ( inputs: [], ),
     ItemDefId("common.items.weapons.sceptre.starter_sceptre"): ( inputs: [], ),
     ItemDefId("common.items.weapons.sword_1h.starter"): ( inputs: [], ),
+    ItemDefId("common.items.weapons.shield.starter_shield"): ( inputs: [], ),
     ModularWeapon(material: "common.items.mineral.ingot.bronze"): (
         inputs: [
             (Item("common.items.mineral.ingot.bronze"), 1),

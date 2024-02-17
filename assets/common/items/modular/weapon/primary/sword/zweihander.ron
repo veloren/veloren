@@ -12,6 +12,7 @@ ItemDef(
                 range: 1.3,
                 energy_efficiency: 0.9,
                 buff_strength: 0.8,
+                block_strength: 1.2,
             ),
             hand_restriction: Some(Two),
             weapon_name: Universal("Zweihander"),

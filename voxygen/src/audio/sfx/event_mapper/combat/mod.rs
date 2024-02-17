@@ -14,6 +14,7 @@ use common::{
         inventory::slot::EquipSlot, item::ItemKind, CharacterAbilityType, CharacterState,
         Inventory, Pos,
     },
+    states::utils::HandInfo,
     terrain::TerrainChunk,
     vol::ReadVol,
 };
@@ -145,7 +146,16 @@ impl CombatEventMapper {
         previous_state: &PreviousEntityState,
         inventory: &Inventory,
     ) -> SfxEvent {
-        if let Some(item) = inventory.equipped(EquipSlot::ActiveMainhand) {
+        let hand_info = character_state.ability_info().and_then(|a| a.hand);
+
+        let equip_slot = match hand_info {
+            Some(HandInfo::TwoHanded) => EquipSlot::ActiveMainhand,
+            Some(HandInfo::MainHand) => EquipSlot::ActiveMainhand,
+            Some(HandInfo::OffHand) => EquipSlot::ActiveOffhand,
+            None => EquipSlot::ActiveMainhand,
+        };
+
+        if let Some(item) = inventory.equipped(equip_slot) {
             if let ItemKind::Tool(data) = &*item.kind() {
                 if character_state.is_attack() {
                     return SfxEvent::Attack(

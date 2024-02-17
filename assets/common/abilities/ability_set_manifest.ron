@@ -351,8 +351,9 @@
         abilities: [],
     ),
     Tool(Shield): (
-        primary: Simple(None, "common.abilities.shield.tempbasic"),
-        secondary: Simple(None, "common.abilities.shield.block"),
+        guard: Some(Simple(None, "common.abilities.shield.basic_guard")),
+        primary: Simple(None, "common.abilities.shield.singlestrike"),
+        secondary: Simple(None, "common.abilities.shield.singlestrike"),
         abilities: [],
     ),
     Custom("Stone Golem"): (

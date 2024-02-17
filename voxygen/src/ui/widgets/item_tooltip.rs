@@ -682,6 +682,15 @@ impl<'a> Widget for ItemTooltip<'a> {
                     5,
                 );
 
+                // Block Strength
+                stat_text(
+                    format!(
+                        "{} : {:+.0}",
+                        i18n.get_msg("common-stats-block_strength"),
+                        stats.block_strength * 10.0
+                    ),
+                    6,
+                );
                 if item.has_durability() {
                     let durability = Item::MAX_DURABILITY - item.durability_lost().unwrap_or(0);
                     stat_text(
@@ -691,7 +700,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             durability,
                             Item::MAX_DURABILITY
                         ),
-                        6,
+                        7,
                     )
                 }
 
@@ -718,6 +727,10 @@ impl<'a> Widget for ItemTooltip<'a> {
                         let buff_strength_diff = util::comparison(
                             tool_stats.buff_strength,
                             equipped_tool_stats.buff_strength,
+                        );
+                        let block_strength_diff = util::comparison(
+                            tool_stats.block_strength,
+                            equipped_tool_stats.block_strength,
                         );
 
                         let tool_durability =
@@ -774,13 +787,21 @@ impl<'a> Widget for ItemTooltip<'a> {
                             );
                             diff_text(text, buff_strength_diff.1, 5)
                         }
+                        if diff.block_strength.abs() > f32::EPSILON {
+                            let text = format!(
+                                "{} {:.1}",
+                                &block_strength_diff.0,
+                                &diff.block_strength * 10.0
+                            );
+                            diff_text(text, block_strength_diff.1, 6)
+                        }
                         if tool_durability != equipped_durability && item.has_durability() {
                             let text = format!(
                                 "{} {}",
                                 &durability_diff.0,
                                 tool_durability as i32 - equipped_durability as i32
                             );
-                            diff_text(text, durability_diff.1, 6)
+                            diff_text(text, durability_diff.1, 7)
                         }
                     }
                 }
@@ -1190,6 +1211,28 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .color(text_color)
                         .down_from(state.ids.stats[4], V_PAD_STATS)
                         .set(state.ids.stats[5], ui);
+
+                    // Block Strength
+                    let block_str_text = if is_primary {
+                        format!(
+                            "{} : {:.0}",
+                            i18n.get_msg("common-stats-block_strength"),
+                            stats.block_strength * 10.0
+                        )
+                    } else {
+                        format!(
+                            "{} : x{:.2}",
+                            i18n.get_msg("common-stats-block_strength"),
+                            stats.block_strength
+                        )
+                    };
+                    widget::Text::new(&block_str_text)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[5], V_PAD_STATS)
+                        .set(state.ids.stats[6], ui);
                 }
             },
             _ => (),

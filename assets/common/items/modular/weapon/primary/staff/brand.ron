@@ -12,6 +12,7 @@ ItemDef(
                 range: 1.0,
                 energy_efficiency: 0.8,
                 buff_strength: 0.8,
+                block_strength: 0.0,
             ),
             hand_restriction: Some(Two),
             weapon_name: Universal("Brand"),

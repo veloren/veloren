@@ -1145,7 +1145,7 @@ impl<'a> Widget for Diary<'a> {
                 events
             },
             DiarySection::Stats => {
-                const STATS: [&str; 12] = [
+                const STATS: [&str; 13] = [
                     "Hitpoints",
                     "Energy",
                     "Poise",
@@ -1158,6 +1158,7 @@ impl<'a> Widget for Diary<'a> {
                     "Weapon Power",
                     "Weapon Speed",
                     "Weapon Effect Power",
+                    "Weapon Block Strength",
                 ];
 
                 // Background Art
@@ -1299,6 +1300,19 @@ impl<'a> Widget for Diary<'a> {
                             },
                             (Some(stats), None) | (None, Some(stats)) => {
                                 format!("{}", stats.effect_power * 10.0)
+                            },
+                            (None, None) => String::new(),
+                        },
+                        "Weapon Block Strength" => match (main_weap_stats, off_weap_stats) {
+                            (Some(m_stats), Some(o_stats)) => {
+                                format!(
+                                    "{}   {}",
+                                    m_stats.block_strength * 10.0,
+                                    o_stats.block_strength * 10.0
+                                )
+                            },
+                            (Some(stats), None) | (None, Some(stats)) => {
+                                format!("{}", stats.block_strength * 10.0)
                             },
                             (None, None) => String::new(),
                         },

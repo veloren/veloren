@@ -202,6 +202,7 @@ impl StateExt for State {
                         stats.get(entity),
                         &msm,
                     ),
+                    0.0,
                     damage_contributor,
                     None,
                     0.0,

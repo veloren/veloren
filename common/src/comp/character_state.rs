@@ -308,53 +308,32 @@ impl CharacterState {
         )
     }
 
-    pub fn block_strength(&self, attack_source: AttackSource) -> Option<f32> {
-        let from_capability = if let AttackSource::Melee = attack_source {
-            if let Some(capabilities) = self
-                .ability_info()
-                .map(|a| a.ability_meta)
-                .map(|m| m.capabilities)
-            {
-                (capabilities.contains(Capability::BLOCKS)
-                    && matches!(
-                        self.stage_section(),
-                        Some(StageSection::Buildup | StageSection::Action)
-                    ))
-                .then_some(0.5)
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-        let from_state = match self {
-            CharacterState::BasicBlock(c) => c
-                .static_data
-                .blocked_attacks
-                .applies(attack_source)
-                .then_some(c.static_data.block_strength),
-            _ => None,
-        };
-        match (from_capability, from_state) {
-            (Some(a), Some(b)) => Some(a.max(b)),
-            (Some(a), None) | (None, Some(a)) => Some(a),
-            (None, None) => None,
-        }
-    }
-
     pub fn is_parry(&self, attack_source: AttackSource) -> bool {
         let melee = matches!(attack_source, AttackSource::Melee);
-        let from_capability = melee
+        let from_capability_melee = melee
             && self
                 .ability_info()
                 .map(|a| a.ability_meta.capabilities)
                 .map_or(false, |c| {
-                    c.contains(Capability::PARRIES)
+                    c.contains(Capability::PARRIES_MELEE)
                         && matches!(
                             self.stage_section(),
                             Some(StageSection::Buildup | StageSection::Action)
                         )
                 });
+        let from_capability = !matches!(
+            attack_source,
+            AttackSource::GroundShockwave | AttackSource::UndodgeableShockwave
+        ) && self
+            .ability_info()
+            .map(|a| a.ability_meta.capabilities)
+            .map_or(false, |c| {
+                c.contains(Capability::PARRIES)
+                    && matches!(
+                        self.stage_section(),
+                        Some(StageSection::Buildup | StageSection::Action)
+                    )
+            });
         let from_state = match self {
             CharacterState::BasicBlock(c) => c.is_parry(attack_source),
             CharacterState::RiposteMelee(c) => {
@@ -366,7 +345,30 @@ impl CharacterState {
             },
             _ => false,
         };
-        from_capability || from_state
+        from_capability_melee || from_capability || from_state
+    }
+
+    pub fn is_block(&self, attack_source: AttackSource) -> bool {
+        match self {
+            CharacterState::BasicBlock(data) => {
+                data.static_data.blocked_attacks.applies(attack_source)
+            },
+            _ => false,
+        }
+    }
+
+    pub fn is_half_block(&self, attack_source: AttackSource) -> bool {
+        matches!(attack_source, AttackSource::Melee)
+            && self
+                .ability_info()
+                .map(|a| a.ability_meta.capabilities)
+                .map_or(false, |c| {
+                    c.contains(Capability::BLOCKS)
+                        && matches!(
+                            self.stage_section(),
+                            Some(StageSection::Buildup | StageSection::Action)
+                        )
+                })
     }
 
     /// In radians

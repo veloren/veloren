@@ -9,8 +9,9 @@
             speed: 1.0,
             range: 1.0,
             energy_efficiency: 1.0,
-            buff_strength: 1.0,
-        ),
+            buff_strength: 0.75,
+			block_strength: 1.0,
+		),
         "common.items.mineral.ingot.iron": (
             equip_time_secs: 1.0,
             power: 1.0,
@@ -19,6 +20,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 1.0,
         ),
         "common.items.mineral.ingot.steel": (
             equip_time_secs: 1.0,
@@ -28,6 +30,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 1.25,
         ),
         "common.items.mineral.ingot.cobalt": (
             equip_time_secs: 1.0,
@@ -37,6 +40,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 1.5,
         ),
         "common.items.mineral.ingot.bloodsteel": (
             equip_time_secs: 1.0,
@@ -46,6 +50,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 1.75,
         ),
         "common.items.mineral.ingot.orichalcum": (
             equip_time_secs: 1.0,
@@ -55,6 +60,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 2.0,
         ),
         // Woods
         "common.items.log.wood": (
@@ -65,6 +71,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 0.0,
         ),
         "common.items.log.bamboo": (
             equip_time_secs: 1.0,
@@ -74,6 +81,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 0.0,
         ),
         "common.items.log.hardwood": (
             equip_time_secs: 1.0,
@@ -83,6 +91,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 0.0,
         ),
         "common.items.log.ironwood": (
             equip_time_secs: 1.0,
@@ -92,6 +101,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 0.0,
         ),
         "common.items.log.frostwood": (
             equip_time_secs: 1.0,
@@ -101,6 +111,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 0.0,
         ),
         "common.items.log.eldwood": (
             equip_time_secs: 1.0,
@@ -110,6 +121,7 @@
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+			block_strength: 0.0,
         ),
     },
     armor_stats: {

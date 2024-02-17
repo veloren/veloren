@@ -114,6 +114,7 @@ pub struct Stats {
     pub range: f32,
     pub energy_efficiency: f32,
     pub buff_strength: f32,
+    pub block_strength: f32,
 }
 
 impl Stats {
@@ -126,6 +127,7 @@ impl Stats {
             range: 0.0,
             energy_efficiency: 0.0,
             buff_strength: 0.0,
+            block_strength: 0.0,
         }
     }
 
@@ -138,6 +140,7 @@ impl Stats {
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
+            block_strength: 1.0,
         }
     }
 
@@ -163,6 +166,7 @@ impl Stats {
             range: self.range * less_scaled,
             energy_efficiency: self.energy_efficiency * less_scaled,
             buff_strength: self.buff_strength * dur_mult.0,
+            block_strength: self.block_strength * dur_mult.0,
         }
     }
 }
@@ -185,6 +189,7 @@ impl Add<Stats> for Stats {
             range: self.range + other.range,
             energy_efficiency: self.energy_efficiency + other.energy_efficiency,
             buff_strength: self.buff_strength + other.buff_strength,
+            block_strength: self.block_strength + other.block_strength,
         }
     }
 }
@@ -205,6 +210,7 @@ impl Sub<Stats> for Stats {
             range: self.range - other.range,
             energy_efficiency: self.energy_efficiency - other.energy_efficiency,
             buff_strength: self.buff_strength - other.buff_strength,
+            block_strength: self.block_strength - other.block_strength,
         }
     }
 }
@@ -221,6 +227,7 @@ impl Mul<Stats> for Stats {
             range: self.range * other.range,
             energy_efficiency: self.energy_efficiency * other.energy_efficiency,
             buff_strength: self.buff_strength * other.buff_strength,
+            block_strength: self.block_strength * other.block_strength,
         }
     }
 }
@@ -241,6 +248,7 @@ impl Div<f32> for Stats {
             range: self.range / scalar,
             energy_efficiency: self.energy_efficiency / scalar,
             buff_strength: self.buff_strength / scalar,
+            block_strength: self.block_strength / scalar,
         }
     }
 }
@@ -276,6 +284,7 @@ impl Tool {
                 range: 1.0,
                 energy_efficiency: 1.0,
                 buff_strength: 1.0,
+                block_strength: 0.0,
             },
         }
     }

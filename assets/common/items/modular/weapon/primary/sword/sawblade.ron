@@ -12,6 +12,7 @@ ItemDef(
                 range: 0.9,
                 energy_efficiency: 0.8,
                 buff_strength: 1.4,
+                block_strength: 0.9,
             ),
             hand_restriction: None,
             weapon_name: HandednessDependent(
