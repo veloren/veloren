@@ -32,8 +32,9 @@ hud-map-toggle_minimap_voxel = Abilità la visione della minimappa con i voxel
 hud-map-zoom_minimap_explanation =
     Ingrandisci la minimappa per vedere
     l'area intorno a te più dettagliata
-hud-map-gnarling = Fortificazioni Gnarling
+hud-map-gnarling = Fortificazione Gnarling
 hud-map-chapel_site = Cappella del mare
 hud-map-adlet = Fortezza degli Adlet
 hud-map-haniwa = Catacomba Haniwa
+hud-map-terracotta = Rovine di terracotta
 hud-map-placed_by = Piazzato da { $name }

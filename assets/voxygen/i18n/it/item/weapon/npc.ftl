@@ -70,6 +70,9 @@ common-items-npc_weapons-bow-bipedlarge-velorite = Arco gigante di velorite
 common-items-npc_weapons-bow-saurok_bow = Arco Saurok
     .desc = Segnaposto
 
+common-items-npc_weapons-bow-terracotta_besieger_bow = Arco dell'assediante di terracotta
+    .desc = Segnaposto
+
 common-items-npc_weapons-axe-gigas_frost_axe = Ascia del gigante del gelo
     .desc = Segnaposto
 
@@ -109,13 +112,10 @@ common-items-npc_weapons-sword-saurok_sword = Spada Saurok
 common-items-npc_weapons-sword-haniwa_general_sword = Spada del generale Haniwa
     .desc = Segnaposto
 
+common-items-npc_weapons-sword-terracotta_pursuer_sword = Spada del perseguitatore di terracotta
+    .desc = Segnaposto
+
 common-items-npc_weapons-unique-akhlut = Semplice quadrupede medio
-    .desc = {""}
-
-common-items-npc_weapons-unique-asp = Asp
-    .desc = {""}
-
-common-items-npc_weapons-unique-basilisk = Basilisco
     .desc = {""}
 
 common-items-npc_weapons-unique-beast_claws = Artigli di bestia
@@ -171,6 +171,27 @@ common-items-npc_weapons-unique-fiery_tornado = Tornado infuocato
 
 common-items-npc_weapons-unique-flamekeeper_staff = Bastone del guardiano della fiamma
     .desc = Bastone del guardiano della fiamma
+
+common-items-npc_weapons-unique-cursekeeper_sceptre = Scettro del custode della maledizione
+    .desc = Scettro del custode della maledizione
+
+common-items-npc_weapons-unique-cursekeeper_sceptre_fake = Scettro del custode della maledizione
+    .desc = Scettro del custode della maledizione
+
+common-items-npc_weapons-unique-jiangshi = Magia Jiangshi
+    .desc = Magia Jiangshi
+
+common-items-npc_weapons-unique-mogwai = Magia Mogwai
+    .desc = Magia Mogwai
+
+common-items-npc_weapons-unique-shamanic_spirit = Spirito sciamanico
+    .desc = Spirito sciamanico
+
+common-items-npc_weapons-unique-terracotta_demolisher_fist = Pugno del demolitore di terracotta
+    .desc = Pugno del demolitore di terracotta
+
+common-items-npc_weapons-unique-terracotta_statue = Statua di terracotta
+    .desc = Statua di terracotta
 
 common-items-npc_weapons-unique-flamethrower = Lanciafiamme
     .desc = Colpisce con il fuoco
@@ -328,6 +349,9 @@ common-items-npc_weapons-unique-arthropods-hornbeetle = Scarabeo cornuto
 common-items-npc_weapons-unique-arthropods-leafbeetle = Scarabeo foglia
     .desc = {""}
 
+common-items-npc_weapons-unique-arthropods-moltencrawler = Lumacone di lava
+    .desc = {""}
+
 common-items-npc_weapons-unique-arthropods-mosscrawler = Ramino muschioso
     .desc = {""}
 
@@ -335,6 +359,63 @@ common-items-npc_weapons-unique-arthropods-tarantula = Tarantola
     .desc = {""}
 
 common-items-npc_weapons-unique-arthropods-weevil = Coleottero
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-asp = Asp
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-basilisk = Basilisco
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-deadwood = Legno morto
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-hakulaq = Hakulaq
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-icedrake = Drago del ghiaccio
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-lavadrake = Drago della lava
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-maneater = Mangiatore di uomini
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_low-tortoise = Tartaruga
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-alpaca = Alpaca
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-antelope = Antilope
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-donkey = Asino
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-grolgar = Grolgar
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-horse = Cavallo
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-moose = Alce
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-mouflon = Mouflone
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_small-boar = Cinghiale
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_small-hyena = Iena
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_small-rodent = Roditore
+    .desc = {""}
+
+common-items-npc_weapons-unique-theropod-yale = Yale
     .desc = {""}
 
 common-items-npc_weapons-hammer-bipedlarge-cultist = Martello da guerra del cultista gigante
@@ -359,5 +440,8 @@ common-items-npc_weapons-hammer-wendigo_hammer = Martello del windigo
     .desc = Segnaposto
 
 common-items-npc_weapons-hammer-yeti_hammer = Martello dello yeti
+    .desc = Segnaposto
+
+common-items-npc_weapons-hammer-terracotta_punisher_club = Mazza del punitore di terracotta
     .desc = Segnaposto
 

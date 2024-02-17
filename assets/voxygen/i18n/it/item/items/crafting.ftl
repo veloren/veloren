@@ -90,9 +90,9 @@ sprite-crafting_ing-hide-tough_hide = Pelle resistente
 
 sprite-crafting_ing-animal_misc-claw = Artiglio di oredatore
     .desc = 
-        Artiglio incredibilmente affilato proveniente da un animale predatore.
+        L'agile artiglio di un feroce predatore.
         
-        Può essere utilizzato per costruire armi.
+        Può essere usato per creare armi veloci ed agili.
 
 sprite-crafting_ing-animal_misc-fur = Pelliccia morbida
     .desc = Pelliccia morbida proveniente da un animale.
@@ -102,9 +102,9 @@ sprite-crafting_ing-animal_misc-grim_eyeball = Occhio sinistro
 
 sprite-crafting_ing-animal_misc-large_horn = Corno grande
     .desc = 
-        Un enorme corno affilato proveniente da un animale.
+        Un grande corno di una temibile bestia.
         
-        Può essere utilizzato per costruire armi.
+        Le armi fatte con questo hanno effetti potenziati.
 
 sprite-crafting_ing-animal_misc-lively_vine = Vite animata
     .desc = Penso che si sia appena mosso...
@@ -114,9 +114,9 @@ sprite-crafting_ing-animal_misc-phoenix_feather = Piuma di fenice
 
 sprite-crafting_ing-animal_misc-sharp_fang = Zanna affilata
     .desc = 
-        Dente incredibilmente affilato proveniente da un animale predatore.
+        Dente affilato come una lama da un feroce animale.
         
-        Può essere utilizzato per costruire armi.
+        Le armi fatte con questo hanno effetti duraturi più potenti.
 
 sprite-crafting_ing-animal_misc-venom_sac = Sacca di Veleno
     .desc = Una sacca velenosa proveniente da una creatura velenosa.
@@ -217,27 +217,27 @@ object-glowing_remains = Resti Luminosi
 
 object-elegant_crest = Stemma elegante
     .desc = 
-        Uno stemma impeccabile di qualche creatura maestosa.
+        Piumaggio luminoso un tempo appartenente a una varipinta creatura.
         
-        Può essere utilizzato nella creazione di armi.
+        Può essere usato per creare armi rapide ed energetiche.
 
 object-ice_shard = Frammento gelido
     .desc = Depredato da una creatura ghiacciata.
 
 object-long_tusk = Zanna lunga
     .desc = 
-        Una zanna appuntita di qualche bestia.
+        Un impressionante lunga zanna di bestia orgogliosa.
         
-        Può essere utilizzata per costruire armi.
+        Può essere usato per creare armi efficienti a lungo raggio.
 
 object-raptor_feather = Piuma di rapace
     .desc = Una grande piuma colorata di un rapace.
 
 object-strong_pincer = Chela forte
     .desc = 
-        La chela di qualche creatura, è molto resistente.
+        Una poderosa pinza da una creatura dal guscio duro.
         
-        Può essere utilizzata per costruire armi.
+        Ha effetti di potenziamento quando si creano armi.
 
 sprite-mineral-ore-bloodstone = Minerale di pietrasangue
     .desc = Un minerale rosso intenso che ti ricorda il sangue.

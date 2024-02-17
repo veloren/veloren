@@ -1,9 +1,9 @@
 npc-speech-villager =
     .a0 = Amo il formaggio.
 npc-speech-villager_open =
-    .a0 = Mi chiedo cosa pensino i Catoblepa quando mangiano l'erba.
+    .a0 = Mi chiedo cosa pensino i catoblepa quando mangiano l'erba.
     .a1 = Cosa pensi che renda i Resti Splendenti splendenti?
-    .a2 = Hai mai sentito dei feroci Squali di Terra? Ho sentito dire che vivono nei deserti.
+    .a2 = Hai mai sentito dei feroci squali di terra? Ho sentito dire che vivono nei deserti.
     .a3 = Mi chiedo cosa ci sia dall'altro lato delle montagne.
     .a4 = Ho lasciato del formaggio ad una persona. Ora non so se esista o meno. Io lo chiamo il formaggio di Schrödinger.
     .a5 = Hai mai catturato una lucciola?

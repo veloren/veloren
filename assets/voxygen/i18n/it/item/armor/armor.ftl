@@ -388,16 +388,16 @@ armor-misc-ring-topaz = Anello di topazio
 armor-misc-back-backpack-traveler = Zaino del viaggiatore
     .desc = Comodo e abbastanza capiente, è il miglior amico dell'accumulatore.
 
-armor-misc-back-dungeon_purple = Mantello del cultista viola
+armor-misc-back-dungeon_purple = Cappa del cultista viola
     .desc = Profuma di magia oscura e candele.
 
-armor-misc-back-short-0 = Mantello corto di pelle
+armor-misc-back-short-0 = Cappa corta di pelle
     .desc = Probabilmente fatto della miglior pelle.
 
 armor-misc-back-short-1 = Coperta verde
     .desc = Mantiene caldi i tuoi spalle.
 
-armor-savage-back = Mantello selvaggio
+armor-savage-back = Cappa selvaggia
     .desc = Porta la furia dei barbari.
 
 armor-savage-belt = Cintura selvaggia
@@ -499,7 +499,7 @@ armor-mail-bloodsteel-pants = Gambali in ferrosangue
 armor-mail-bloodsteel-shoulder = Paraspalle in ferrosangue
     .desc = Forgiata per preservare la vita, al costo di un'altra.
 
-armor-mail-cobalt-back = Mantello di cobalto
+armor-mail-cobalt-back = Cappa di cobalto
     .desc = Ornamentale e impenetrabile, il metallo non si appannerà mai.
 
 armor-mail-cobalt-belt = Cintura di cobalto
@@ -562,7 +562,7 @@ armor-mail-orichalcum-1 = Schinieri di oricalco
 armor-mail-orichalcum-5 = Mantello di oricalco
     .desc = Un antico lega. I miti narrano di eroi che una volta indossavano questa armatura.
 
-armor-mail-steel-back = Mantello d'acciaio
+armor-mail-steel-back = Cappa d'acciaio
     .desc = Piastre interconnesse di lega metallica per migliorare la protezione.
 
 armor-mail-steel-belt = Cintura d'acciaio

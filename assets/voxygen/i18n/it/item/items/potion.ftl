@@ -19,12 +19,12 @@ object-potion_med = Pozione media
 object-potion_minor = Pozione minore
     .desc = Una piccola pozione con mele e miele mescolati.
 
-object-burning_charm = Incantesimo del fuoco
+object-burning_charm = Amuleto ardente
     .desc = Il fuoco è il tuo alleato, sfrutta il suo potere per bruciare i tuoi nemici.
 
-object-frozen_charm = Incantesimo del gelo
+object-frozen_charm = Amuleto gelido
     .desc = Fai sentire ai tuoi nemici il pungiglione del freddo mentre li congeli sul posto.
 
-object-lifesteal_charm = Incantesimo risucchia vita
+object-lifesteal_charm = Amuleto risucchia vita
     .desc = Risucchia la vita del tuo bersaglio e usala a tuo vantaggio.
 
