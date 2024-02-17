@@ -765,6 +765,11 @@ pub fn may_harm(
     let attacker = owner_if_pet(attacker);
     let target = owner_if_pet(target);
 
+    // Prevent owners from attacking their pets and vice versa
+    if attacker == target {
+        return false;
+    }
+
     // Get player components
     let attacker_info = players.get(attacker);
     let target_info = players.get(target);
