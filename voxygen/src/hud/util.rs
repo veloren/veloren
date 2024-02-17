@@ -138,12 +138,12 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
                 + armor_stats.protection.is_some() as usize
                 + (item.num_slots() > 0) as usize
         },
-        ItemKind::Tool(_) => 7,
+        ItemKind::Tool(_) => 6,
         ItemKind::Consumable { effects, .. } => match effects {
             Effects::Any(_) | Effects::One(_) => 1,
             Effects::All(effects) => effects.len(),
         },
-        ItemKind::ModularComponent { .. } => 7,
+        ItemKind::ModularComponent { .. } => 6,
         _ => 0,
     };
     if item.has_durability() {

@@ -97,7 +97,6 @@ common-stats-effect-power = Effect Power
 common-stats-range = Range
 common-stats-energy_efficiency = Energy Efficiency
 common-stats-buff_strength = Buff/Debuff Strength
-common-stats-block_strength = Block Strength
 common-stats-precision_mult = Crit Mult
 common-stats-armor = Armor
 common-stats-poise_res = Stun Res

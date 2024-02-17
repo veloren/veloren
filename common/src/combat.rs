@@ -218,7 +218,7 @@ impl Attack {
                                 time,
                             },
                         });
-                        damage.value.min(block_strength)
+                        damage.value.min(final_block_strength)
                     } else {
                         0.0
                     }
@@ -1309,7 +1309,6 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
     const EQUIP_TIME_WEIGHT: f32 = 0.0;
     const ENERGY_EFFICIENCY_WEIGHT: f32 = 1.5;
     const BUFF_STRENGTH_WEIGHT: f32 = 1.5;
-    const BLOCK_STRENGTH_WEIGHT: f32 = 0.0;
 
     let rating = if let ItemKind::Tool(tool) = &*item.kind() {
         let stats = tool.stats(item.stats_durability_multiplier());
@@ -1325,7 +1324,6 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
         let equip_time_rating = 0.5 - stats.equip_time_secs;
         let energy_efficiency_rating = stats.energy_efficiency - 1.0;
         let buff_strength_rating = stats.buff_strength - 1.0;
-        let block_strength_rating = stats.block_strength;
 
         power_rating * POWER_WEIGHT
             + speed_rating * SPEED_WEIGHT
@@ -1334,7 +1332,6 @@ fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
             + equip_time_rating * EQUIP_TIME_WEIGHT
             + energy_efficiency_rating * ENERGY_EFFICIENCY_WEIGHT
             + buff_strength_rating * BUFF_STRENGTH_WEIGHT
-            + block_strength_rating * BLOCK_STRENGTH_WEIGHT
     } else {
         0.0
     };
@@ -1580,11 +1577,7 @@ pub fn block_strength(inventory: &Inventory, char_state: &CharacterState) -> f32
     inventory
         .equipped(equip_slot)
         .map(|item| match &*item.kind() {
-            ItemKind::Tool(tool) => {
-                tool.stats(item.stats_durability_multiplier())
-                    .block_strength
-                    * 10.0
-            },
+            ItemKind::Tool(tool) => tool.stats(item.stats_durability_multiplier()).power * 10.0,
             _ => 0.0,
         })
         .map_or(0.0, |weapon_block_strength| match char_state {

@@ -12,7 +12,6 @@ ItemDef(
                 range: 0.9,
                 energy_efficiency: 0.9,
                 buff_strength: 1.2,
-                block_strength: 1.2,
             ),
             hand_restriction: Some(Two),
             weapon_name: Universal("Greataxe"),

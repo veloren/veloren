@@ -12,7 +12,6 @@ ItemDef(
                 range: 1.1,
                 energy_efficiency: 0.9,
                 buff_strength: 1.1,
-                block_strength: 1.2,
             ),
             hand_restriction: Some(Two),
         )

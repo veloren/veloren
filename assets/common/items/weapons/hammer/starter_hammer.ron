@@ -12,7 +12,6 @@ ItemDef(
             range: 0.95,
             energy_efficiency: 1.0,
             buff_strength: 0.9,
-            block_strength: 0.6,
         ),
     )),
     quality: Low,

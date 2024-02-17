@@ -12,7 +12,6 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-			block_strength: 2.2,
         ),
     )),
     quality: Epic,
