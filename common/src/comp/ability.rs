@@ -2907,7 +2907,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct AbilityMeta {
     #[serde(default)]
@@ -2987,9 +2987,14 @@ impl Stance {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum AbilityInitEvent {
     EnterStance(Stance),
+    GainBuff {
+        kind: buff::BuffKind,
+        strength: f32,
+        duration: Option<Secs>,
+    },
 }
 
 impl Default for Stance {

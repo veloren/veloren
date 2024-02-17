@@ -18,8 +18,7 @@ use crate::{
 #[cfg(feature = "worldgen")]
 use common::rtsim::{Actor, RtSimEntity};
 use common::{
-    combat,
-    combat::{AttackSource, DamageContributor},
+    combat::{self, AttackSource, DamageContributor, DeathEffect},
     comp::{
         self,
         aura::{self, EnteredAuras},
@@ -332,6 +331,7 @@ pub struct DestroyEventData<'a> {
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
     #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
+    buff_events: Read<'a, EventBus<BuffEvent>>,
 }
 
 /// Handle an entity dying. If it is a player, it will send a message to all
@@ -346,6 +346,7 @@ impl ServerEvent for DestroyEvent {
         let mut create_item_drop = data.create_item_drop.emitter();
         let mut delete_emitter = data.delete_event.emitter();
         let mut outcomes_emitter = data.outcomes.emitter();
+        let mut buff_emitter = data.buff_events.emitter();
         for ev in events {
             // TODO: Investigate duplicate `Destroy` events (but don't remove this).
             // If the entity was already deleted, it can't be destroyed again.
@@ -381,6 +382,40 @@ impl ServerEvent for DestroyEvent {
                 .get(ev.entity, &data.entities)
             {
                 outcomes_emitter.emit(Outcome::Death { pos: pos.0 });
+            }
+
+            // Handle any effects on death
+            if let Some(killed_stats) = data.stats.get(ev.entity) {
+                let attacker_entity = ev.cause.by.and_then(|x| data.id_maps.uid_entity(x.uid()));
+                let killed_uid = data.uids.get(ev.entity);
+                let attacker_stats = attacker_entity.and_then(|e| data.stats.get(e));
+                for effect in killed_stats.effects_on_death.iter() {
+                    match effect {
+                        DeathEffect::AttackerBuff {
+                            kind,
+                            strength,
+                            duration,
+                        } => {
+                            if let Some(attacker) = attacker_entity {
+                                buff_emitter.emit(BuffEvent {
+                                    entity: attacker,
+                                    buff_change: buff::BuffChange::Add(buff::Buff::new(
+                                        *kind,
+                                        buff::BuffData::new(*strength, *duration),
+                                        vec![],
+                                        if let Some(uid) = killed_uid {
+                                            BuffSource::Character { by: *uid }
+                                        } else {
+                                            BuffSource::World
+                                        },
+                                        *data.time,
+                                        attacker_stats,
+                                    )),
+                                });
+                            }
+                        },
+                    }
+                }
             }
 
             // Chat message

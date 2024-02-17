@@ -2,7 +2,7 @@
 use crate::{
     combat::{
         AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
-        DamagedEffect,
+        DamagedEffect, DeathEffect,
     },
     comp::{aura::AuraKey, Stats},
     resources::{Secs, Time},
@@ -127,6 +127,12 @@ pub enum BuffKind {
     /// non-linearly with strength, 0.5 is a 12.5% increase, 1.0 is a 16.7%
     /// increase decrease.
     Berserk,
+    /// Increases poise resistance and energy reward. However if killed, buffs
+    /// killer with Reckless buff. Poise resistance scales non-linearly with
+    /// strength, 0.5 is 50% and 1.0 is 67%. Energy reward scales linearly with
+    /// strength, 0.5 is +50% and 1.0 is +100% strength. Reckless buff reward
+    /// strength is equal to scornful taunt buff strength.
+    ScornfulTaunt,
     // Debuffs
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
@@ -221,7 +227,8 @@ impl BuffKind {
             | BuffKind::Sunderer
             | BuffKind::Defiance
             | BuffKind::Bloodfeast
-            | BuffKind::Berserk => BuffDescriptor::SimplePositive,
+            | BuffKind::Berserk
+            | BuffKind::ScornfulTaunt => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -463,6 +470,15 @@ impl BuffKind {
                 BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength) * 0.5),
                 BuffEffect::EnergyReward((1.0 - nn_scaling(data.strength) * 3.0).max(-1.0)),
             ],
+            BuffKind::ScornfulTaunt => vec![
+                BuffEffect::PoiseReduction(nn_scaling(data.strength)),
+                BuffEffect::EnergyReward(1.0 + data.strength),
+                BuffEffect::DeathEffect(DeathEffect::AttackerBuff {
+                    kind: BuffKind::Reckless,
+                    strength: data.strength,
+                    duration: data.duration,
+                }),
+            ],
         }
     }
 
@@ -612,6 +628,8 @@ pub enum BuffEffect {
     EnergyReward(f32),
     /// Add an effect to the entity when damaged by an attack
     DamagedEffect(DamagedEffect),
+    /// Add an effect to the entity when killed
+    DeathEffect(DeathEffect),
 }
 
 /// Actual de/buff.

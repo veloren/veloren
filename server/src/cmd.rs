@@ -4550,7 +4550,8 @@ fn build_buff(
             | BuffKind::Poisoned
             | BuffKind::Parried
             | BuffKind::PotionSickness
-            | BuffKind::Heatstroke => {
+            | BuffKind::Heatstroke
+            | BuffKind::ScornfulTaunt => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

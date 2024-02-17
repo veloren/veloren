@@ -792,5 +792,6 @@ fn execute_effect(
             stat.energy_reward_modifier *= er;
         },
         BuffEffect::DamagedEffect(effect) => stat.effects_on_damaged.push(effect.clone()),
+        BuffEffect::DeathEffect(effect) => stat.effects_on_death.push(effect.clone()),
     };
 }

@@ -383,3 +383,6 @@ common-abilities-hammer-solid_smash = Solid Smash
 common-abilities-hammer-wide_wallop = Wide Wallop
     .desc =
         Pull back and send them flying
+common-abilities-hammer-scornful_swipe = Scornful Swipe
+    .desc = 
+        Bolster your fortitude and stamina by taunting your enemies before striking at them. If you fall to an enemy they become empowered.

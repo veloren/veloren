@@ -197,6 +197,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Defiance => "buff-defiance",
         BuffKind::Bloodfeast => "buff-bloodfeast",
         BuffKind::Berserk => "buff-berserk",
+        BuffKind::ScornfulTaunt => "buff-scornfultaunt",
         // Debuffs
         BuffKind::Bleeding => "buff-bleed",
         BuffKind::Cursed => "buff-cursed",
@@ -318,7 +319,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Defiance
                         | BuffKind::Bloodfeast
                         | BuffKind::Berserk
-                        | BuffKind::Heatstroke => Cow::Borrowed(""),
+                        | BuffKind::Heatstroke
+                        | BuffKind::ScornfulTaunt => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -368,7 +370,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::Defiance
                             | BuffKind::Bloodfeast
                             | BuffKind::Berserk
-                            | BuffKind::Heatstroke => Cow::Borrowed(""),
+                            | BuffKind::Heatstroke
+                            | BuffKind::ScornfulTaunt => Cow::Borrowed(""),
                         }
                     } else if let BuffKind::Saturation
                     | BuffKind::Regeneration
@@ -621,6 +624,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         // Hammer
         "common.abilities.hammer.solid_smash" => imgs.hammer_solid_smash,
         "common.abilities.hammer.wide_wallop" => imgs.hammer_wide_wallop,
+        "common.abilities.hammer.scornful_swipe" => imgs.hammer_scornful_swipe,
         // Bow
         "common.abilities.bow.charged" => imgs.bow_m1,
         "common.abilities.bow.repeater" => imgs.bow_m2,

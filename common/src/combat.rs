@@ -1013,6 +1013,16 @@ pub enum DamagedEffect {
     Combo(i32),
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum DeathEffect {
+    /// Adds buff to the attacker that killed this entity
+    AttackerBuff {
+        kind: BuffKind,
+        strength: f32,
+        duration: Option<Secs>,
+    },
+}
+
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum DamageContributor {
     Solo(Uid),

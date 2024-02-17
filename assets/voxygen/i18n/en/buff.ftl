@@ -121,8 +121,9 @@ buff-berserk = Berserk
 ## Heatstroke
 buff-heatstroke = Heatstroke
     .desc = You were exposed to heat and now suffer from heatstroke. Your energy reward and movement speed are cut down. Chill.
-
-
+## Scornful Taunt
+buff-scornfultaunt = Scornful Taunt
+    .desc = You scornfully taunt your enemies, granting you bolstered fortitude and stamina. However, your death will bolster your killer.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

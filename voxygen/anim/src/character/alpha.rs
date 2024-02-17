@@ -62,6 +62,33 @@ impl Animation for AlphaAnimation {
                 next.control.orientation.rotate_x(move2 * -1.9);
                 next.control.orientation.rotate_z(move2 * 0.6);
             },
+            Some("common.abilities.hammer.scornful_swipe") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+                let move1_pre = move1.min(0.5) * 2.0;
+                let move1_shake = ((move1.max(0.3) - 0.3) * 15.0).sin();
+                let move1_late = move1.powi(4);
+
+                next.control.orientation.rotate_x(move1_pre * 2.3);
+                next.control.position += Vec3::new(0.0, 2.0, 16.0) * move1_pre;
+                next.control.position += Vec3::new(0.0, 0.0, 4.0) * move1_shake;
+                next.control.orientation.rotate_y(move1_late * 1.6);
+                next.control.position += Vec3::new(-8.0, 0.0, -8.0) * move1_late;
+                twist_back(&mut next, move1_late, 1.0, 0.4, 0.2, 0.7);
+                next.control.orientation.rotate_z(move1_late * 1.2);
+
+                twist_forward(&mut next, move2, 1.9, 0.9, 0.6, 1.1);
+                next.control.orientation.rotate_y(move2 * -1.7);
+                next.control.orientation.rotate_z(move2 * -2.7);
+            },
             _ => {
                 let (move1, move2, _move3, move2h) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),

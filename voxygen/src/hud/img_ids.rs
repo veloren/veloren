@@ -317,6 +317,7 @@ image_ids! {
         // Hammer
         hammer_solid_smash: "voxygen.element.skills.hammer.solid_smash",
         hammer_wide_wallop: "voxygen.element.skills.hammer.wide_wallop",
+        hammer_scornful_swipe: "voxygen.element.skills.hammer.scornful_swipe",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -791,6 +792,7 @@ image_ids! {
         buff_lifesteal: "voxygen.element.de_buffs.buff_lifesteal",
         buff_flame: "voxygen.element.de_buffs.buff_flame",
         buff_frigid: "voxygen.element.de_buffs.buff_frigid",
+        buff_scornfultaunt: "voxygen.element.de_buffs.buff_scornfultaunt",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
