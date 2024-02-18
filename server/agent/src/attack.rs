@@ -3000,6 +3000,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             AttackTimer1,
             AttackTimer2,
+            WaterTimer,
         }
 
         let attack_timer_1 =
@@ -3053,7 +3054,20 @@ impl<'a> AgentData<'a> {
         // Flee from the ground! The internet told me it was lava!
         // If on the ground, jump with every last ounce of energy, holding onto
         // all that is dear in life and straining for the wide open skies.
-        if self.physics_state.on_ground.is_some() {
+
+        // Don't stay in water
+        if matches!(self.physics_state.in_fluid, Some(Fluid::Liquid { .. })) {
+            agent.combat_state.timers[ActionStateTimers::WaterTimer as usize] = 2.0;
+        };
+        if agent.combat_state.timers[ActionStateTimers::WaterTimer as usize] > 0.0 {
+            agent.combat_state.timers[ActionStateTimers::WaterTimer as usize] -= read_data.dt.0;
+            if agent.combat_state.timers[ActionStateTimers::WaterTimer as usize] > 1.0 {
+                controller.inputs.move_z = 1.0
+            } else {
+                // heat laser
+                controller.push_basic_input(InputKind::Ability(3))
+            }
+        } else if self.physics_state.on_ground.is_some() {
             controller.push_basic_input(InputKind::Jump);
         } else {
             // Use a proportional controller with a coefficient of 1.0 to
