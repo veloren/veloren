@@ -228,33 +228,33 @@ impl Tunnel {
             // Mushrooms grow underground and thrive in a humid environment with moderate
             // temperatures
             let mushroom = underground
-                * close(humidity, 1.0, 0.7)
-                * close(temp, 0.25, 2.0)
-                * close(depth, 0.8, 0.5);
+                * close(humidity, 1.0, 0.70)
+                * close(temp, 1.2, 1.0)
+                * close(depth, 1.0, 0.7);
             // Extremely hot and dry areas deep underground
             let fire = underground
-                * close(humidity, 0.0, 0.7)
+                * close(humidity, 0.0, 0.6)
                 * close(temp, 2.5, 1.5)
-                * close(depth, 1.0, 0.65);
+                * close(depth, 1.0, 0.55);
             // Overgrown with plants that need a moderate climate to survive
             let leafy = underground
-                * close(humidity, 0.5, 0.3)
-                * close(temp, 0.6, 0.9)
-                * close(depth, 0.1, 0.5);
+                * close(humidity, 0.5, 0.7)
+                * close(temp, 0.8, 0.7)
+                * close(depth, 0.0, 0.75);
             // Cool temperature, dry and devoid of value
             let dusty =
-                close(humidity, 0.0, 0.4) * close(temp, -0.3, 0.65) * close(mineral, -0.5, 1.5);
+                close(humidity, 0.0, 0.5) * close(temp, -0.1, 0.6) * close(mineral, -1.0, 2.0);
             // Deep underground and freezing cold
-            let icy = underground * close(temp, -1.0, 0.3) * close(depth, 1.0, 0.5);
+            let icy = underground * close(temp, -1.0, 0.6) * close(depth, 1.0, 0.5);
             // Rocky cold cave that appear near the surface
-            let snowy = close(temp, -0.6, 0.3) * close(depth, 0.1, 0.4);
+            let snowy = close(temp, -0.5, 0.3) * close(depth, 0.0, 0.5);
             // Crystals grow deep underground in areas rich with minerals. They are present
             // in areas with colder temperatures and low humidity
             let crystal = underground
                 * close(humidity, 0.0, 0.65)
-                * close(temp, -0.1, 1.0)
-                * close(depth, 1.0, 0.45)
-                * close(mineral, 1.5, 1.0);
+                * close(temp, -0.3, 0.9)
+                * close(depth, 1.0, 0.6)
+                * close(mineral, 1.5, 1.5);
             // Hot, dry and shallow
             let sandy = close(humidity, 0.0, 0.2) * close(temp, 0.7, 0.8) * close(depth, 0.1, 0.5);
 
@@ -437,6 +437,11 @@ enum CaveStructure {
     Mushroom(Mushroom),
     Crystal(CrystalCluster),
     Flower(Flower),
+    GiantRoot {
+        pos: Vec3<i32>,
+        radius: f32,
+        height: f32,
+    },
 }
 
 struct Mushroom {
@@ -462,6 +467,8 @@ struct Flower {
     stalk: f32,
     petals: usize,
     petal_height: f32,
+    petal_radius: f32,
+    rotation: Mat3<f32>,
 }
 
 #[inline_tweak::tweak_fn]
@@ -622,7 +629,7 @@ fn write_column<R: Rng>(
                 .entry((tunnel.a.wpos.with_z(tunnel.a.depth), wpos2d))
                 .or_insert_with(|| {
                     let mut rng = RandomPerm::new(seed);
-                    let (z_range, _, vertical, _) =
+                    let (z_range, horizontal, vertical, _) =
                         tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), info)?;
                     let pos = wpos2d.with_z(z_range.start);
 
@@ -633,10 +640,11 @@ fn write_column<R: Rng>(
                         return None;
                     }
 
-                    if rng.gen_bool(
-                        0.5 * close(vertical as f32, 64.0, 48.0) as f64
-                            * close(biome.mushroom, 1.0, 0.7) as f64,
-                    ) && biome.mushroom > 0.5
+                    if biome.mushroom > 0.7
+                        && rng.gen_bool(
+                            0.5 * close(vertical as f32, 64.0, 48.0) as f64
+                                * close(biome.mushroom, 1.0, 0.7) as f64,
+                        )
                     {
                         let purp = rng.gen_range(0..50);
                         Some(CaveStructure::Mushroom(Mushroom {
@@ -651,7 +659,9 @@ fn write_column<R: Rng>(
                                 rng.gen_range(80..200) + purp,
                             ),
                         }))
-                    } else if rng.gen_bool(0.6 * close(biome.crystal, 1.0, 0.7) as f64) {
+                    } else if biome.crystal > 0.5
+                        && rng.gen_bool(0.6 * close(biome.crystal, 1.0, 0.7) as f64)
+                    {
                         let colors = [
                             Rgb::new(209, 106, 255),
                             Rgb::new(187, 86, 240),
@@ -715,20 +725,41 @@ fn write_column<R: Rng>(
                             crystals,
                             color,
                         }))
-                    } else if rng.gen_bool(
-                        0.2 * close(vertical as f32, 64.0, 48.0) as f64
-                            * close(biome.leafy, 1.5, 0.8) as f64,
-                    ) && biome.leafy > 0.8
+                    } else if biome.leafy > 0.8
+                        && rng.gen_bool(
+                            0.2 * close(vertical as f32, 64.0, 52.0) as f64
+                                * close(biome.leafy, 1.0, 0.2) as f64,
+                        )
                     {
                         Some(CaveStructure::Flower(Flower {
                             pos,
-                            stalk: 4.0
+                            stalk: 8.0
                                 + rng.gen::<f32>().powf(2.0)
                                     * (z_range.end - z_range.start - 8) as f32
-                                    * 0.6,
+                                    * 0.8,
                             petals: rng.gen_range(1..5) * 2 + 1,
                             petal_height: rng.gen_range(4.0..8.0),
+                            petal_radius: rng.gen_range(10.0..18.0),
+                            rotation: (Mat3::rotation_x(
+                                -(rng.gen_bool(1.0) as u32 as f32) * std::f32::consts::PI
+                                    / rng.gen_range(3.0..16.0),
+                            ) * Mat3::rotation_y(
+                                std::f32::consts::PI / rng.gen_range(3.0..16.0),
+                            ))
+                            .transposed(),
                         }))
+                    } else if biome.leafy > 0.5
+                        && rng.gen_bool(0.6 * close(biome.leafy, 1.0, 0.5) as f64)
+                    {
+                        Some(CaveStructure::GiantRoot {
+                            pos,
+                            radius: rng.gen_range(
+                                3.0..(6.0
+                                    + close(vertical as f32, 64.0, 32.0) * 2.0
+                                    + close(horizontal as f32, 64.0, 32.0) * 2.0),
+                            ),
+                            height: (z_range.end - z_range.start) as f32,
+                        })
                     } else {
                         None
                     }
@@ -811,7 +842,7 @@ fn write_column<R: Rng>(
                             let sprites = if dynamic_rng.gen_bool(0.1) {
                                 &[Beehive, Lantern] as &[_]
                             } else {
-                                &[/* Orb, */ MycelBlue, MycelBlue] as &[_]
+                                &[MycelBlue, MycelBlue] as &[_]
                             };
                             return Some(Block::air(*sprites.choose(dynamic_rng).unwrap()));
                         }
@@ -860,41 +891,64 @@ fn write_column<R: Rng>(
                     }
                 },
                 CaveStructure::Flower(flower) => {
-                    let wposf = wpos.map(|e| e as f64);
-                    let warp_freq = 1.0 / 32.0;
-                    let warp_amp = Vec3::new(4.0, 4.0, 4.0);
-                    let wposf_warped = wposf.map(|e| e as f32)
-                        + Vec3::new(
-                            FastNoise::new(seed).get(wposf * warp_freq),
-                            FastNoise::new(seed + 1).get(wposf * warp_freq),
-                            FastNoise::new(seed + 2).get(wposf * warp_freq),
-                        ) * warp_amp
-                            * (wposf.z as f32 - flower.pos.z as f32)
-                                .mul(0.1)
-                                .clamped(0.0, 1.0);
+                    let wposf = wpos.map(|e| e as f32);
 
-                    let rpos = wposf_warped - flower.pos.map(|e| e as f32);
+                    let rpos = wposf - flower.pos.map(|e| e as f32);
 
                     let stalk_radius = 2.5f32;
-                    let petal_radius = 12.0f32;
+                    let petal_radius = flower.petal_radius;
                     let petal_thickness = 2.5;
 
-                    let dist = rpos.xy().magnitude_squared();
-                    let petal_radius = petal_radius.powi(2);
-                    if dist < petal_radius {
-                        let petal_height_at = (dist / petal_radius).powf(1.5) * flower.petal_height;
-                        if rpos.z > flower.stalk + petal_height_at - 1.0
-                            && rpos.z <= flower.stalk + petal_height_at + petal_thickness
+                    let dist_sq = rpos.xy().magnitude_squared();
+                    if rpos.z < flower.stalk
+                        && dist_sq
+                            < (stalk_radius * Lerp::lerp(1.0, 0.75, rpos.z / flower.stalk)).powi(2)
+                    {
+                        return Some(Block::new(BlockKind::Wood, Rgb::new(0, 108, 0)));
+                    }
+
+                    let rpos = wposf - flower.pos.map(|e| e as f32) - Vec3::unit_z() * flower.stalk;
+                    let rpos = flower.rotation * (rpos - 0.5);
+                    let dist_sq = rpos.xy().magnitude_squared();
+                    let petal_radius_sq = petal_radius.powi(2);
+                    if dist_sq < petal_radius_sq {
+                        let petal_height_at =
+                            (dist_sq / petal_radius_sq).powf(1.5) * flower.petal_height;
+                        if rpos.z > petal_height_at - 1.0
+                            && rpos.z <= petal_height_at + petal_thickness
                         {
-                            let away = dist / petal_radius;
-                            if away > 0.3 {
-                                let near = (rpos.x.atan2(rpos.y))
-                                    .rem_euclid(std::f32::consts::TAU / flower.petals as f32);
-                                let inset = close(near, -1.0, 0.85).max(close(near, 1.0, 0.85));
-                                if dist / petal_radius < inset {
+                            let dist_ratio = dist_sq / petal_radius_sq;
+                            let yellow = (60.0 * dist_ratio) as u8;
+                            if dist_ratio < 0.175 && rpos.z > petal_height_at {
+                                let near = (rpos.x.atan2(rpos.y)).rem_euclid(
+                                    std::f32::consts::TAU / (flower.petals as f32 * 1.5),
+                                );
+                                let inset = close(near, 0.0, 0.475);
+                                let inset2 = close(near, 0.0, 0.3);
+                                if dist_ratio > inset {
                                     return Some(Block::new(
                                         BlockKind::Wood,
-                                        Rgb::new(240, 50, 50),
+                                        Rgb::new(240, 80 - yellow, 80 - yellow),
+                                    ));
+                                } else if dist_ratio > inset2 {
+                                    return Some(Block::new(
+                                        BlockKind::Wood,
+                                        Rgb::new(33, 74, 238),
+                                    ));
+                                } else {
+                                    return Some(Block::new(
+                                        BlockKind::Wood,
+                                        Rgb::new(249, 213, 237),
+                                    ));
+                                }
+                            } else if dist_ratio > 0.3 {
+                                let near = (rpos.x.atan2(rpos.y))
+                                    .rem_euclid(std::f32::consts::TAU / flower.petals as f32);
+                                let inset = close(near, -1.0, 0.9).max(close(near, 1.0, 0.9));
+                                if dist_ratio < inset {
+                                    return Some(Block::new(
+                                        BlockKind::Wood,
+                                        Rgb::new(240, 80 - yellow, 80 - yellow),
                                     ));
                                 }
                             } else {
@@ -902,26 +956,48 @@ fn write_column<R: Rng>(
                             }
                         }
 
-                        let above_stalk = rpos.z - flower.stalk;
-                        if above_stalk < 0.0
-                            && dist
-                                < (stalk_radius * Lerp::lerp(1.0, 0.75, rpos.z / flower.stalk))
-                                    .powi(2)
-                        {
-                            return Some(Block::new(BlockKind::Wood, Rgb::new(0, 108, 0)));
-                        }
-
                         // pollen
                         let pollen_height = 5.0;
-                        if above_stalk > 0.0
-                            && above_stalk < pollen_height
-                            && dist
-                                < (stalk_radius
-                                    * Lerp::lerp(0.5, 1.25, above_stalk / pollen_height))
-                                .powi(2)
+                        if rpos.z > 0.0
+                            && rpos.z < pollen_height
+                            && dist_sq
+                                < (stalk_radius * Lerp::lerp(0.5, 1.25, rpos.z / pollen_height))
+                                    .powi(2)
                         {
-                            return Some(Block::new(BlockKind::Wood, Rgb::new(239, 192, 0)));
+                            return Some(Block::new(
+                                BlockKind::GlowingMushroom,
+                                Rgb::new(239, 192, 0),
+                            ));
                         }
+                    }
+                },
+                CaveStructure::GiantRoot {
+                    pos,
+                    radius,
+                    height,
+                } => {
+                    let wposf = wpos.map(|e| e as f64);
+                    let warp_freq = 1.0 / 32.0;
+                    let warp_amp = Vec3::new(20.0, 20.0, 20.0);
+                    let wposf_warped = wposf.map(|e| e as f32)
+                        + Vec3::new(
+                            FastNoise::new(seed).get(wposf * warp_freq),
+                            FastNoise::new(seed + 1).get(wposf * warp_freq),
+                            FastNoise::new(seed + 2).get(wposf * warp_freq),
+                        ) * warp_amp;
+                    let rpos = wposf_warped - pos.map(|e| e as f32);
+                    let dist_sq = rpos.xy().magnitude_squared();
+                    if dist_sq < radius.powi(2) {
+                        if col.marble_mid
+                            > (std::f32::consts::PI * rpos.z / *height)
+                                .sin()
+                                .powf(2.0)
+                                .mul(0.25)
+                                .add(col.marble_small)
+                        {
+                            return Some(Block::new(BlockKind::Wood, Rgb::new(0, 73, 12)));
+                        }
+                        return Some(Block::new(BlockKind::Wood, Rgb::new(111, 78, 55)));
                     }
                 },
             }
@@ -931,28 +1007,26 @@ fn write_column<R: Rng>(
 
     let ceiling_mold = |wpos: Vec3<f32>| {
         let wpos = wpos + wpos.xy().yx().with_z(0.0) * 0.2;
-        let dims = Vec2::new(3.0, 24.0);
-        let vine_posf = wpos + Vec2::unit_y() * (wpos.x / dims.x).floor() * 71.0 / dims;
-        let vine_pos = vine_posf.map(|e| e.floor() as i32);
-        let mut rng = RandomPerm::new(((vine_pos.x << 16) | vine_pos.y) as u32);
+        let dims = Vec2::new(4.0, 32.0);
+        let mold_posf = wpos + Vec2::unit_y() * (wpos.x / dims.x).floor() * 89.0 / dims;
+        let mold_pos = mold_posf.map(|e| e.floor() as i32);
+        let mut rng = RandomPerm::new(((mold_pos.x << 16) | mold_pos.y) as u32);
 
-        if rng.gen_bool(
-            0.025
-                * close(biome.mushroom, 1.0, 0.2) as f64
-                * close(max_height as f32, 64.0, 56.0) as f64,
-        ) && ceiling_cover > 0.0
+        if biome.mushroom > 0.7
+            && ceiling_cover > 0.0
+            && rng.gen_bool(0.025 * close(biome.mushroom, 1.0, 0.3) as f64)
         {
-            let vine_base = z_range.end as f32;
-            let vine_y = (vine_posf.y.fract() - 0.5).abs() * 2.0 * dims.y;
-            let vine_reach = (vine_y * 0.05).powf(2.0).min(32.0);
-            let vine_z = vine_base - vine_reach;
+            let mold_length = ((mold_posf.y.fract() - 0.5).abs() * 2.0 * dims.y)
+                .mul(0.05)
+                .powf(2.0)
+                .min(8.0);
+            let mold_z = z_range.end as f32 - mold_length;
 
-            if Vec2::new(vine_posf.x.fract() * 2.0 - 1.0, (vine_z - wpos.z) / 4.0)
+            if Vec2::new(mold_posf.x.fract() * 2.0 - 1.0, (mold_z - wpos.z) / 4.0)
                 .magnitude_squared()
                 < 1.0f32
             {
-                let kind = BlockKind::GlowingRock;
-                Some(Block::new(kind, Rgb::new(10, 70, 148)))
+                Some(Block::new(BlockKind::GlowingRock, Rgb::new(10, 70, 148)))
             } else {
                 None
             }
@@ -1005,11 +1079,7 @@ fn write_column<R: Rng>(
                             ),
                             biome.sandy,
                         ),
-                        Lerp::lerp(
-                            Rgb::new(0, 73, 12),
-                            Rgb::new(49, 63, 12),
-                            col.marble_small,
-                        ),
+                        Lerp::lerp(Rgb::new(0, 73, 12), Rgb::new(49, 63, 12), col.marble_small),
                         biome.leafy,
                     ),
                     Lerp::lerp(Rgb::new(100, 150, 255), Rgb::new(100, 120, 255), col.marble),
@@ -1122,28 +1192,55 @@ fn write_column<R: Rng>(
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .map(|s| s.0)
-                    } else if rand.chance(wpos2d.with_z(15), biome.leafy * 0.05 * col.marble_mid) {
-                        [
-                            (SpriteKind::LongGrass, 1.0),
-                            (SpriteKind::MediumGrass, 2.0),
-                            (SpriteKind::ShortGrass, 2.0),
-                            (SpriteKind::JungleFern, 0.5),
-                            (SpriteKind::JungleLeafyPlant, 0.5),
-                            (SpriteKind::JungleRedGrass, 0.35),
-                            (SpriteKind::Mushroom, 0.15),
-                            (SpriteKind::EnsnaringVines, 0.2),
-                            (SpriteKind::Fern, 0.75),
-                            (SpriteKind::LeafyPlant, 0.8),
-                            (SpriteKind::Twigs, 0.07),
-                            (SpriteKind::Wood, 0.03),
-                            (SpriteKind::LanternPlant, 1.0),
-                            (SpriteKind::LanternFlower, 0.6),
-                            (SpriteKind::LushFlower, 0.75),
-                            (SpriteKind::LushMushroom, 0.5),
-                        ]
-                        .choose_weighted(rng, |(_, w)| *w)
-                        .ok()
-                        .map(|s| s.0)
+                    } else if rand.chance(
+                        wpos2d.with_z(15),
+                        biome.leafy * 0.45 * col.marble_mid * (col.marble_mid > 0.6) as u32 as f32,
+                    ) {
+                        let mixed = col.marble.add(col.marble_small.sub(0.5).mul(0.25));
+                        if (0.25..0.45).contains(&mixed) || (0.55..0.75).contains(&mixed) {
+                            return [
+                                (SpriteKind::LongGrass, 1.0),
+                                (SpriteKind::MediumGrass, 2.0),
+                                (SpriteKind::ShortGrass, 2.0),
+                                (SpriteKind::JungleFern, 0.5),
+                                (SpriteKind::JungleRedGrass, 0.35),
+                                (SpriteKind::Fern, 0.75),
+                                (SpriteKind::LeafyPlant, 0.8),
+                                (SpriteKind::JungleLeafyPlant, 0.5),
+                                (SpriteKind::LanternPlant, 0.1),
+                                (SpriteKind::LanternFlower, 0.1),
+                                (SpriteKind::LushFlower, 0.2),
+                            ]
+                            .choose_weighted(rng, |(_, w)| *w)
+                            .ok()
+                            .map(|s| s.0);
+                        } else if (0.0..0.25).contains(&mixed) {
+                            return Some(SpriteKind::LanternPlant);
+                        } else if (0.75..1.0).contains(&mixed) {
+                            return Some(SpriteKind::LushFlower);
+                        } else {
+                            return [
+                                (SpriteKind::LongGrass, 1.0),
+                                (SpriteKind::MediumGrass, 2.0),
+                                (SpriteKind::ShortGrass, 2.0),
+                                (SpriteKind::JungleFern, 0.5),
+                                (SpriteKind::JungleLeafyPlant, 0.5),
+                                (SpriteKind::JungleRedGrass, 0.35),
+                                (SpriteKind::Mushroom, 0.15),
+                                (SpriteKind::EnsnaringVines, 0.2),
+                                (SpriteKind::Fern, 0.75),
+                                (SpriteKind::LeafyPlant, 0.8),
+                                (SpriteKind::Twigs, 0.07),
+                                (SpriteKind::Wood, 0.03),
+                                (SpriteKind::LanternPlant, 0.3),
+                                (SpriteKind::LanternFlower, 0.3),
+                                (SpriteKind::LushFlower, 0.5),
+                                (SpriteKind::LushMushroom, 1.0),
+                            ]
+                            .choose_weighted(rng, |(_, w)| *w)
+                            .ok()
+                            .map(|s| s.0);
+                        }
                     } else if rand.chance(wpos2d.with_z(2), biome.dusty.max(biome.sandy) * 0.01) {
                         [
                             (SpriteKind::Bones, 0.5),
@@ -1245,22 +1342,16 @@ fn write_column<R: Rng>(
             } else if let Some(sprite) = (z == ceiling - 1 && !void_above)
                 .then(|| {
                     if rand.chance(wpos2d.with_z(3), biome.mushroom * 0.01) {
-                        [
-                            (SpriteKind::MycelBlue, 0.0),
-                            (SpriteKind::CeilingMushroom, 0.0),
-                            // (SpriteKind::Orb, 0.25),
-                            (SpriteKind::Mold, 0.9),
-                        ]
-                        .choose_weighted(rng, |(_, w)| *w)
-                        .ok()
-                        .map(|s| s.0)
+                        [(SpriteKind::MycelBlue, 0.75), (SpriteKind::Mold, 1.0)]
+                            .choose_weighted(rng, |(_, w)| *w)
+                            .ok()
+                            .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(4), biome.leafy * 0.015) {
                         [
                             (SpriteKind::Liana, 1.0),
                             (SpriteKind::CeilingLanternPlant, 1.5),
                             (SpriteKind::CeilingLanternFlower, 1.25),
                             (SpriteKind::CeilingJungleLeafyPlant, 1.0),
-                            // (SpriteKind::Orb, 0.0),
                             (SpriteKind::CrystalHigh, 0.1),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
