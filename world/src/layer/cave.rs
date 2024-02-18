@@ -1,7 +1,7 @@
 use super::scatter::close;
 
 use crate::{
-    util::{sampler::Sampler, FastNoise, RandomField, RandomPerm, StructureGen2d, LOCALITY},
+    util::{sampler::Sampler, FastNoise2d, RandomField, RandomPerm, StructureGen2d, LOCALITY},
     Canvas, CanvasInfo, ColumnSample, Land,
 };
 use common::{
@@ -774,11 +774,14 @@ fn write_column<R: Rng>(
                     let wposf = wpos.map(|e| e as f64);
                     let warp_freq = 1.0 / 32.0;
                     let warp_amp = Vec3::new(12.0, 12.0, 12.0);
+                    let xy = wposf.xy();
+                    let xz = Vec2::new(wposf.x, wposf.z);
+                    let yz = Vec2::new(wposf.y, wposf.z);
                     let wposf_warped = wposf.map(|e| e as f32)
                         + Vec3::new(
-                            FastNoise::new(seed).get(wposf * warp_freq),
-                            FastNoise::new(seed + 1).get(wposf * warp_freq),
-                            FastNoise::new(seed + 2).get(wposf * warp_freq),
+                            FastNoise2d::new(seed).get(yz * warp_freq),
+                            FastNoise2d::new(seed).get(xz * warp_freq),
+                            FastNoise2d::new(seed).get(xy * warp_freq),
                         ) * warp_amp
                             * (wposf.z as f32 - mushroom.pos.z as f32)
                                 .mul(0.1)
@@ -809,7 +812,7 @@ fn write_column<R: Rng>(
                         {
                             if head_dist < 0.85 {
                                 let radial = (rpos.x.atan2(rpos.y) * 10.0).sin() * 0.5 + 0.5;
-                                let block_kind = if head_dist < 0.5 {
+                                let block_kind = if dynamic_rng.gen_bool(0.1) {
                                     BlockKind::GlowingMushroom
                                 } else {
                                     BlockKind::Rock
@@ -979,11 +982,14 @@ fn write_column<R: Rng>(
                     let wposf = wpos.map(|e| e as f64);
                     let warp_freq = 1.0 / 32.0;
                     let warp_amp = Vec3::new(20.0, 20.0, 20.0);
+                    let xy = wposf.xy();
+                    let xz = Vec2::new(wposf.x, wposf.z);
+                    let yz = Vec2::new(wposf.y, wposf.z);
                     let wposf_warped = wposf.map(|e| e as f32)
                         + Vec3::new(
-                            FastNoise::new(seed).get(wposf * warp_freq),
-                            FastNoise::new(seed + 1).get(wposf * warp_freq),
-                            FastNoise::new(seed + 2).get(wposf * warp_freq),
+                            FastNoise2d::new(seed).get(yz * warp_freq),
+                            FastNoise2d::new(seed).get(xz * warp_freq),
+                            FastNoise2d::new(seed).get(xy * warp_freq),
                         ) * warp_amp;
                     let rpos = wposf_warped - pos.map(|e| e as f32);
                     let dist_sq = rpos.xy().magnitude_squared();
@@ -1086,9 +1092,10 @@ fn write_column<R: Rng>(
                     biome.icy,
                 );
                 Block::new(
-                    if rand.chance(wpos, (biome.mushroom * biome.mineral * 0.5).max(biome.icy)) {
-                        // BlockKind::GlowingWeakRock
-                        BlockKind::WeakRock
+                    if rand.chance(wpos, biome.mushroom * 0.01) {
+                        BlockKind::GlowingWeakRock
+                    } else if rand.chance(wpos, biome.icy) {
+                        BlockKind::GlowingWeakRock
                     } else if rand.chance(wpos, biome.sandy) {
                         BlockKind::Sand
                     } else {
@@ -1164,7 +1171,11 @@ fn write_column<R: Rng>(
                         } else if biome.fire.max(biome.snowy) > 0.5 {
                             BlockKind::Rock
                         } else if biome.crystal > 0.5 {
-                            BlockKind::GlowingRock
+                            if rand.chance(wpos, biome.crystal * 0.05) {
+                                BlockKind::GlowingRock
+                            } else {
+                                BlockKind::Rock
+                            }
                         } else {
                             BlockKind::Sand
                         },
