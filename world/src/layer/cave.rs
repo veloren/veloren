@@ -933,12 +933,12 @@ fn write_column<R: Rng>(
                                 } else if dist_ratio > inset2 {
                                     return Some(Block::new(
                                         BlockKind::Wood,
-                                        Rgb::new(33, 74, 238),
+                                        Rgb::new(200, 14, 132),
                                     ));
                                 } else {
                                     return Some(Block::new(
                                         BlockKind::Wood,
-                                        Rgb::new(249, 213, 237),
+                                        Rgb::new(249, 156, 218),
                                     ));
                                 }
                             } else if dist_ratio > 0.3 {
@@ -995,9 +995,9 @@ fn write_column<R: Rng>(
                                 .mul(0.25)
                                 .add(col.marble_small)
                         {
-                            return Some(Block::new(BlockKind::Wood, Rgb::new(0, 73, 12)));
+                            return Some(Block::new(BlockKind::Wood, Rgb::new(48, 70, 25)));
                         }
-                        return Some(Block::new(BlockKind::Wood, Rgb::new(111, 78, 55)));
+                        return Some(Block::new(BlockKind::Wood, Rgb::new(66, 41, 26)));
                     }
                 },
             }
@@ -1201,7 +1201,7 @@ fn write_column<R: Rng>(
                             return [
                                 (SpriteKind::LongGrass, 1.0),
                                 (SpriteKind::MediumGrass, 2.0),
-                                (SpriteKind::ShortGrass, 2.0),
+                                (SpriteKind::ShortGrass, 0.0),
                                 (SpriteKind::JungleFern, 0.5),
                                 (SpriteKind::JungleRedGrass, 0.35),
                                 (SpriteKind::Fern, 0.75),
@@ -1222,7 +1222,7 @@ fn write_column<R: Rng>(
                             return [
                                 (SpriteKind::LongGrass, 1.0),
                                 (SpriteKind::MediumGrass, 2.0),
-                                (SpriteKind::ShortGrass, 2.0),
+                                (SpriteKind::ShortGrass, 0.0),
                                 (SpriteKind::JungleFern, 0.5),
                                 (SpriteKind::JungleLeafyPlant, 0.5),
                                 (SpriteKind::JungleRedGrass, 0.35),
