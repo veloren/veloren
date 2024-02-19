@@ -353,7 +353,7 @@
     Tool(Shield): (
         guard: Some(Simple(None, "common.abilities.shield.basic_guard")),
         primary: Simple(None, "common.abilities.shield.singlestrike"),
-        secondary: Simple(None, "common.abilities.shield.singlestrike"),
+        secondary: Simple(None, "common.abilities.shield.power_guard"),
         abilities: [],
     ),
     Custom("Stone Golem"): (

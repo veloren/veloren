@@ -210,21 +210,6 @@ impl ActiveAbilities {
                             spec_ability(i),
                         )
                     })
-                    .or_else(|| {
-                        ability_set(EquipSlot::ActiveMainhand)
-                            .and_then(|abilities| {
-                                abilities
-                                    .guard(Some(skill_set), context)
-                                    .map(|(a, i)| (a.ability.clone(), i))
-                            })
-                            .map(|(ability, i)| {
-                                (
-                                    scale_ability(ability, EquipSlot::ActiveMainhand),
-                                    false,
-                                    spec_ability(i),
-                                )
-                            })
-                    })
             },
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
@@ -410,19 +395,6 @@ impl Ability {
                                 .as_ref()
                                 .and_then(|g| contextual_id(Some(g)))
                         })
-                })
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
-                        abilities
-                            .guard(skillset, context)
-                            .map(|a| a.0.id.as_str())
-                            .or_else(|| {
-                                abilities
-                                    .guard
-                                    .as_ref()
-                                    .and_then(|g| contextual_id(Some(g)))
-                            })
-                    })
                 }),
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                 abilities
@@ -528,11 +500,7 @@ impl SpecifiedAbility {
                         .map(|abilities| ability_id(self, &abilities.secondary))
                 }),
             Ability::ToolGuard => ability_set(combat::get_equip_slot_by_block_priority(inv))
-                .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveMainhand)
-                        .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
-                }),
+                .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a))),
             Ability::SpeciesMovement => None, // TODO: Make not None
             Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| abilities.abilities.get(index).map(|a| ability_id(self, a))),
@@ -3015,7 +2983,7 @@ bitflags::bitflags! {
         const PARRIES             = 0b00000001;
         // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT     = 0b00000010;
-        // When the ability is in the buildup section, it counts as a block with 50% DR
+        // The ability will block melee attacks in the buildup portion
         const BLOCKS              = 0b00000100;
         // When in the ability, an entity only receives half as much poise damage
         const POISE_RESISTANT     = 0b00001000;

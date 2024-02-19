@@ -20,7 +20,7 @@ use crate::{
     },
     outcome::Outcome,
     resources::{Secs, Time},
-    states::utils::{HandInfo, StageSection},
+    states::utils::StageSection,
     uid::{IdMaps, Uid},
     util::Dir,
 };
@@ -1544,41 +1544,35 @@ pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>
 }
 
 pub fn block_strength(inventory: &Inventory, char_state: &CharacterState) -> f32 {
-    char_state
-        .ability_info()
-        .and_then(|a| match a.hand {
-            Some(HandInfo::TwoHanded | HandInfo::MainHand) => Some(EquipSlot::ActiveMainhand),
-            Some(HandInfo::OffHand) => Some(EquipSlot::ActiveOffhand),
-            None => None,
-        })
-        .and_then(|slot| inventory.equipped(slot))
-        .map(|item| match &*item.kind() {
-            ItemKind::Tool(tool) => tool.stats(item.stats_durability_multiplier()).power,
-            _ => 0.0,
-        })
-        .map_or(0.0, |tool_block_strength| match char_state {
-            CharacterState::BasicBlock(data) => data.static_data.block_strength,
-            CharacterState::RiposteMelee(data) => data.static_data.block_strength,
-            _ => {
-                char_state
-                    .ability_info()
-                    .map(|ability| ability.ability_meta.capabilities)
-                    .map_or(0.0, |capabilities| {
-                        if capabilities.contains(Capability::PARRIES)
-                            || capabilities.contains(Capability::PARRIES_MELEE)
-                        {
-                            return tool_block_strength;
-                        }
-
-                        if capabilities.contains(Capability::BLOCKS) {
-                            return tool_block_strength * 0.5;
-                        }
-
+    match char_state {
+        CharacterState::BasicBlock(data) => data.static_data.block_strength,
+        CharacterState::RiposteMelee(data) => data.static_data.block_strength,
+        _ => char_state
+            .ability_info()
+            .map(|ability| (ability.ability_meta.capabilities, ability.hand))
+            .map(|(capabilities, hand)| {
+                (
+                    if capabilities.contains(Capability::PARRIES)
+                        || capabilities.contains(Capability::PARRIES_MELEE)
+                        || capabilities.contains(Capability::BLOCKS)
+                    {
+                        FALLBACK_BLOCK_STRENGTH
+                    } else {
                         0.0
-                    })
-                    * FALLBACK_BLOCK_STRENGTH
-            },
-        })
+                    },
+                    hand.and_then(|hand| inventory.equipped(hand.to_equip_slot()))
+                        .map_or(1.0, |item| match &*item.kind() {
+                            ItemKind::Tool(tool) => {
+                                tool.stats(item.stats_durability_multiplier()).power
+                            },
+                            _ => 1.0,
+                        }),
+                )
+            })
+            .map_or(0.0, |(capability_strength, tool_block_strength)| {
+                capability_strength * tool_block_strength
+            }),
+    }
 }
 
 pub fn get_equip_slot_by_block_priority(inventory: Option<&Inventory>) -> EquipSlot {

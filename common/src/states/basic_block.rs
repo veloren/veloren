@@ -25,7 +25,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
-    /// What percentage of power is effective
+    /// Base value that incoming damage is reduced by and converted to poise
+    /// damage
     pub block_strength: f32,
     /// What durations are considered a parry
     pub parry_window: ParryWindow,

@@ -14,7 +14,6 @@ use common::{
         inventory::slot::EquipSlot, item::ItemKind, CharacterAbilityType, CharacterState,
         Inventory, Pos,
     },
-    states::utils::HandInfo,
     terrain::TerrainChunk,
     vol::ReadVol,
 };
@@ -149,10 +148,7 @@ impl CombatEventMapper {
         let equip_slot = character_state
             .ability_info()
             .and_then(|ability| ability.hand)
-            .map_or(EquipSlot::ActiveMainhand, |hand| match hand {
-                HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
-                HandInfo::OffHand => EquipSlot::ActiveOffhand,
-            });
+            .map_or(EquipSlot::ActiveMainhand, |hand| hand.to_equip_slot());
 
         if let Some(item) = inventory.equipped(equip_slot) {
             if let ItemKind::Tool(data) = &*item.kind() {

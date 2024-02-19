@@ -56,7 +56,8 @@ impl Animation for BlockAnimation {
             | Some("common.abilities.axe.basic_guard")
             | Some("common.abilities.hammer.basic_guard")
             | Some("common.abilities.sword.defensive_guard")
-            | Some("common.abilities.shield.basic_guard") => {
+            | Some("common.abilities.shield.basic_guard")
+            | Some("common.abilities.shield.power_guard") => {
                 let speed = Vec2::<f32>::from(velocity).magnitude();
 
                 let (movement1base, move2, movement3) = match stage_section {

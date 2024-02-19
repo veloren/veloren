@@ -1402,10 +1402,7 @@ pub fn get_hands(data: &JoinData<'_>) -> (Option<Hands>, Option<Hands>) {
 
 pub fn get_tool_stats(data: &JoinData<'_>, ai: AbilityInfo) -> tool::Stats {
     ai.hand
-        .map(|hand| match hand {
-            HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
-            HandInfo::OffHand => EquipSlot::ActiveOffhand,
-        })
+        .map(|hand| hand.to_equip_slot())
         .and_then(|slot| data.inventory.and_then(|inv| inv.equipped(slot)))
         .and_then(|item| {
             if let ItemKind::Tool(tool) = &*item.kind() {
@@ -1605,6 +1602,13 @@ impl HandInfo {
                     Self::MainHand
                 }
             },
+        }
+    }
+
+    pub fn to_equip_slot(&self) -> EquipSlot {
+        match self {
+            HandInfo::TwoHanded | HandInfo::MainHand => EquipSlot::ActiveMainhand,
+            HandInfo::OffHand => EquipSlot::ActiveOffhand,
         }
     }
 }
