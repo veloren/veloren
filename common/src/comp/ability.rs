@@ -203,7 +203,13 @@ impl ActiveAbilities {
                             .guard(Some(skill_set), context)
                             .map(|(a, i)| (a.ability.clone(), i))
                     })
-                    .map(|(ability, i)| (scale_ability(ability, equip_slot), true, spec_ability(i)))
+                    .map(|(ability, i)| {
+                        (
+                            scale_ability(ability, equip_slot),
+                            matches!(equip_slot, EquipSlot::ActiveOffhand),
+                            spec_ability(i),
+                        )
+                    })
                     .or_else(|| {
                         ability_set(EquipSlot::ActiveMainhand)
                             .and_then(|abilities| {
@@ -1003,6 +1009,7 @@ pub enum CharacterAbility {
         buildup_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
+        block_strength: f32,
         melee_constructor: MeleeConstructor,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1657,6 +1664,7 @@ impl CharacterAbility {
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
+                ref mut block_strength,
                 ref mut melee_constructor,
                 meta: _,
             } => {
@@ -1664,6 +1672,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
+                *block_strength *= stats.power;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             RapidMelee {
@@ -2911,6 +2920,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buildup_duration,
                 swing_duration,
                 recover_duration,
+                block_strength,
                 melee_constructor,
                 meta: _,
             } => CharacterState::RiposteMelee(riposte_melee::Data {
@@ -2918,6 +2928,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
+                    block_strength: *block_strength,
                     melee_constructor: *melee_constructor,
                     ability_info,
                 },

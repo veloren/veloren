@@ -321,9 +321,13 @@ impl CharacterState {
                             Some(StageSection::Buildup | StageSection::Action)
                         )
                 });
-        let from_capability = !matches!(
+        let from_capability = matches!(
             attack_source,
-            AttackSource::GroundShockwave | AttackSource::UndodgeableShockwave
+            AttackSource::Melee
+                | AttackSource::Projectile
+                | AttackSource::Beam
+                | AttackSource::AirShockwave
+                | AttackSource::Explosion
         ) && self
             .ability_info()
             .map(|a| a.ability_meta.capabilities)
