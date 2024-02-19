@@ -127,7 +127,7 @@ impl Tunnel {
         let _start = self.a.wpos.map(|e| e as f64 + 0.5);
         let _end = self.b.wpos.map(|e| e as f64 + 0.5);
         if let Some((t, closest, dist)) = self.possibly_near(wposf, 1.0) {
-            let horizontal = Lerp::lerp(
+            let horizontal = Lerp::lerp_unclamped(
                 Self::RADIUS_RANGE.start,
                 Self::RADIUS_RANGE.end,
                 (info.index().noise.cave_fbm_nz.get(
@@ -137,7 +137,7 @@ impl Tunnel {
                     .clamped(0.0, 1.0)
                     .powf(3.0),
             );
-            let vertical = Lerp::lerp(
+            let vertical = Lerp::lerp_unclamped(
                 Self::RADIUS_RANGE.start,
                 Self::RADIUS_RANGE.end,
                 (info.index().noise.cave_fbm_nz.get(
@@ -158,7 +158,7 @@ impl Tunnel {
                     * 96.0
                     * ((1.0 - (t - 0.5).abs() * 2.0) * 8.0).min(1.0);
                 let alt_here = info.land().get_alt_approx(closest.map(|e| e as i32));
-                let base = (Lerp::lerp(
+                let base = (Lerp::lerp_unclamped(
                     alt_here as f64 - self.a.depth as f64,
                     alt_here as f64 - self.b.depth as f64,
                     t,
@@ -191,7 +191,7 @@ impl Tunnel {
 
         // TODO think about making rate of change of humidity and temp noise higher to
         // effectively increase biome size
-        let humidity = Lerp::lerp(
+        let humidity = Lerp::lerp_unclamped(
             col.humidity,
             FastNoise2d::new(41)
                 .get(wpos.xy().map(|e| e as f64 / 768.0))
@@ -199,7 +199,7 @@ impl Tunnel {
             below,
         );
 
-        let temp = Lerp::lerp(
+        let temp = Lerp::lerp_unclamped(
             col.temp,
             FastNoise2d::new(42)
                 .get(wpos.xy().map(|e| e as f64 / 1536.0))
@@ -390,7 +390,7 @@ fn tunnel_bounds_at_from<'a>(
             tunnels.filter_map(move |(level, tunnel)| {
                 let (z_range, horizontal, vertical, dist) = tunnel.z_range_at(wposf, *info)?;
                 // Avoid cave entrances intersecting water
-                let z_range = Lerp::lerp(
+                let z_range = Lerp::lerp_unclamped(
                     z_range.end,
                     z_range.start,
                     1.0 - (1.0
@@ -728,11 +728,8 @@ fn write_column<R: Rng>(
                         let mut crystals: Vec<Crystal> = Vec::new();
                         let max_length = (48.0 * close(vertical, MAX_RADIUS, 42.0)).max(12.0);
                         let length = rng.gen_range(8.0..max_length);
-                        let radius = Lerp::lerp_unclamped(
-                            2.0,
-                            4.5,
-                            length / max_length + rng.gen_range(-0.1..0.1),
-                        );
+                        let radius =
+                            Lerp::lerp(2.0, 4.5, length / max_length + rng.gen_range(-0.1..0.1));
                         let dir = Vec3::new(
                             rng.gen_range(-3.0..3.0),
                             rng.gen_range(-3.0..3.0),
@@ -851,8 +848,8 @@ fn write_column<R: Rng>(
                             / Vec2::broadcast(head_radius).with_z(head_height))
                         .magnitude();
 
-                        let stalk =
-                            mushroom.stalk + Lerp::lerp(head_height * 0.5, 0.0, dist / head_radius);
+                        let stalk = mushroom.stalk
+                            + Lerp::lerp_unclamped(head_height * 0.5, 0.0, dist / head_radius);
 
                         // Head
                         if rpos.z > stalk
@@ -928,14 +925,18 @@ fn write_column<R: Rng>(
 
                             let crystal_radius = if taper > peak_cutoff {
                                 let taper = (taper - peak_cutoff) * 5.0;
-                                Lerp::lerp(
+                                Lerp::lerp_unclamped(
                                     crystal.radius * taper_factor,
                                     crystal.radius * peak_taper,
                                     taper,
                                 )
                             } else {
                                 let taper = taper * 1.25;
-                                Lerp::lerp(crystal.radius, crystal.radius * taper_factor, taper)
+                                Lerp::lerp_unclamped(
+                                    crystal.radius,
+                                    crystal.radius * taper_factor,
+                                    taper,
+                                )
                             };
 
                             if dist_sq < crystal_radius.powi(2) {
@@ -960,7 +961,9 @@ fn write_column<R: Rng>(
                     let dist_sq = rpos.xy().magnitude_squared();
                     if rpos.z < flower.stalk
                         && dist_sq
-                            < (stalk_radius * Lerp::lerp(1.0, 0.75, rpos.z / flower.stalk)).powi(2)
+                            < (stalk_radius
+                                * Lerp::lerp_unclamped(1.0, 0.75, rpos.z / flower.stalk))
+                            .powi(2)
                     {
                         return Some(Block::new(BlockKind::Wood, Rgb::new(0, 108, 0)));
                     }
@@ -1019,8 +1022,9 @@ fn write_column<R: Rng>(
                         if rpos.z > 0.0
                             && rpos.z < pollen_height
                             && dist_sq
-                                < (stalk_radius * Lerp::lerp(0.5, 1.25, rpos.z / pollen_height))
-                                    .powi(2)
+                                < (stalk_radius
+                                    * Lerp::lerp_unclamped(0.5, 1.25, rpos.z / pollen_height))
+                                .powi(2)
                         {
                             return Some(Block::new(
                                 BlockKind::GlowingMushroom,
@@ -1114,34 +1118,41 @@ fn write_column<R: Rng>(
             } else if z < ridge_bedrock && !void_below {
                 Block::new(BlockKind::Rock, col.stone_col)
             } else if (z < base && !void_below) || (z >= ceiling && !void_above) {
-                let stalactite: Rgb<i16> = Lerp::lerp(
-                    Lerp::lerp(
-                        Lerp::lerp(
-                            Lerp::lerp(
-                                Lerp::lerp(
-                                    // Rgb::new(20, 21, 49),
+                let stalactite: Rgb<i16> = Lerp::lerp_unclamped(
+                    Lerp::lerp_unclamped(
+                        Lerp::lerp_unclamped(
+                            Lerp::lerp_unclamped(
+                                Lerp::lerp_unclamped(
                                     Rgb::new(80, 100, 150),
                                     Rgb::new(23, 44, 88),
                                     biome.mushroom,
                                 ),
-                                Lerp::lerp(
+                                Lerp::lerp_unclamped(
                                     Rgb::new(100, 40, 40),
                                     Rgb::new(100, 75, 100),
                                     col.marble_small,
                                 ),
                                 biome.fire,
                             ),
-                            Lerp::lerp(
+                            Lerp::lerp_unclamped(
                                 Rgb::new(238, 198, 139),
                                 Rgb::new(111, 99, 64),
                                 col.marble_mid,
                             ),
                             biome.sandy,
                         ),
-                        Lerp::lerp(Rgb::new(0, 73, 12), Rgb::new(49, 63, 12), col.marble_small),
+                        Lerp::lerp_unclamped(
+                            Rgb::new(0, 73, 12),
+                            Rgb::new(49, 63, 12),
+                            col.marble_small,
+                        ),
                         biome.leafy,
                     ),
-                    Lerp::lerp(Rgb::new(100, 150, 255), Rgb::new(100, 120, 255), col.marble),
+                    Lerp::lerp_unclamped(
+                        Rgb::new(100, 150, 255),
+                        Rgb::new(100, 120, 255),
+                        col.marble,
+                    ),
                     biome.icy,
                 );
                 Block::new(
@@ -1157,23 +1168,39 @@ fn write_column<R: Rng>(
             } else if z >= base && z < floor && !void_below && !sky_above {
                 let (net_col, total) = [
                     (
-                        Lerp::lerp(Rgb::new(68, 62, 58), Rgb::new(97, 95, 85), col.marble_small),
+                        Lerp::lerp_unclamped(
+                            Rgb::new(68, 62, 58),
+                            Rgb::new(97, 95, 85),
+                            col.marble_small,
+                        ),
                         0.05,
                     ),
                     (
-                        Lerp::lerp(Rgb::new(66, 37, 30), Rgb::new(88, 62, 45), col.marble_mid),
+                        Lerp::lerp_unclamped(
+                            Rgb::new(66, 37, 30),
+                            Rgb::new(88, 62, 45),
+                            col.marble_mid,
+                        ),
                         biome.dusty,
                     ),
                     (
-                        Lerp::lerp(Rgb::new(20, 65, 175), Rgb::new(20, 100, 80), col.marble_mid),
+                        Lerp::lerp_unclamped(
+                            Rgb::new(20, 65, 175),
+                            Rgb::new(20, 100, 80),
+                            col.marble_mid,
+                        ),
                         biome.mushroom,
                     ),
                     (
-                        Lerp::lerp(Rgb::new(120, 50, 20), Rgb::new(50, 5, 40), col.marble_small),
+                        Lerp::lerp_unclamped(
+                            Rgb::new(120, 50, 20),
+                            Rgb::new(50, 5, 40),
+                            col.marble_small,
+                        ),
                         biome.fire,
                     ),
                     (
-                        Lerp::lerp(
+                        Lerp::lerp_unclamped(
                             Rgb::new(0, 100, 50),
                             Rgb::new(80, 100, 20),
                             col.marble_small,
@@ -1182,7 +1209,7 @@ fn write_column<R: Rng>(
                     ),
                     (Rgb::new(170, 195, 255), biome.icy),
                     (
-                        Lerp::lerp(
+                        Lerp::lerp_unclamped(
                             Rgb::new(105, 25, 131),
                             Rgb::new(251, 238, 255),
                             col.marble_mid,
@@ -1190,7 +1217,7 @@ fn write_column<R: Rng>(
                         biome.crystal,
                     ),
                     (
-                        Lerp::lerp(
+                        Lerp::lerp_unclamped(
                             Rgb::new(201, 174, 116),
                             Rgb::new(244, 239, 227),
                             col.marble_small,
@@ -1199,7 +1226,11 @@ fn write_column<R: Rng>(
                     ),
                     (
                         // Same as barren
-                        Lerp::lerp(Rgb::new(68, 62, 58), Rgb::new(97, 95, 85), col.marble_small),
+                        Lerp::lerp_unclamped(
+                            Rgb::new(68, 62, 58),
+                            Rgb::new(97, 95, 85),
+                            col.marble_small,
+                        ),
                         biome.snowy,
                     ),
                 ]
