@@ -625,6 +625,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.hammer.solid_smash" => imgs.hammer_solid_smash,
         "common.abilities.hammer.wide_wallop" => imgs.hammer_wide_wallop,
         "common.abilities.hammer.scornful_swipe" => imgs.hammer_scornful_swipe,
+        "common.abilities.hammer.tremor" => imgs.hammer_tremor,
         // Bow
         "common.abilities.bow.charged" => imgs.bow_m1,
         "common.abilities.bow.repeater" => imgs.bow_m2,

@@ -15,4 +15,6 @@ Shockwave(
     damage_kind: Crushing,
     specifier: Ground,
     ori_rate: 1.0,
+    timing: PostBuildup,
+    emit_outcome: true,
 )

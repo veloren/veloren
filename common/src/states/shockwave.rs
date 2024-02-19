@@ -53,8 +53,12 @@ pub struct StaticData {
     pub damage_kind: DamageKind,
     /// Used to specify the shockwave to the frontend
     pub specifier: shockwave::FrontendSpecifier,
+    /// Controls outcome emission
+    pub emit_outcome: bool,
     /// How fast enemy can rotate
     pub ori_rate: f32,
+    /// Timing of shockwave
+    pub timing: Timing,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -85,50 +89,9 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Attack
-                    let poise = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Poise(self.static_data.poise_damage),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let knockback = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Knockback(self.static_data.knockback),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let mut damage = AttackDamage::new(
-                        Damage {
-                            source: DamageSource::Shockwave,
-                            kind: self.static_data.damage_kind,
-                            value: self.static_data.damage,
-                        },
-                        Some(GroupTarget::OutOfGroup),
-                        rand::random(),
-                    );
-                    if let Some(effect) = self.static_data.damage_effect {
-                        damage = damage.with_effect(effect);
+                    if matches!(self.static_data.timing, Timing::PostBuildup) {
+                        self.attack(data, output_events);
                     }
-                    let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let attack = Attack::default()
-                        .with_damage(damage)
-                        .with_precision(precision_mult)
-                        .with_effect(poise)
-                        .with_effect(knockback)
-                        .with_combo_increment();
-                    let properties = shockwave::Properties {
-                        angle: self.static_data.shockwave_angle,
-                        vertical_angle: self.static_data.shockwave_vertical_angle,
-                        speed: self.static_data.shockwave_speed,
-                        duration: self.static_data.shockwave_duration,
-                        attack,
-                        dodgeable: self.static_data.dodgeable,
-                        owner: Some(*data.uid),
-                        specifier: self.static_data.specifier,
-                    };
-                    output_events.emit_server(ShockwaveEvent {
-                        properties,
-                        pos: *data.pos,
-                        ori: *data.ori,
-                    });
 
                     // Transitions to swing
                     update.character = CharacterState::Shockwave(Data {
@@ -146,43 +109,56 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     // Send local event used for frontend shenanigans
-                    match self.static_data.specifier {
-                        shockwave::FrontendSpecifier::IceSpikes => {
-                            output_events.emit_local(LocalEvent::CreateOutcome(
-                                Outcome::FlashFreeze {
-                                    pos: data.pos.0
-                                        + *data.ori.look_dir() * (data.body.max_radius()),
-                                },
-                            ));
-                        },
-                        shockwave::FrontendSpecifier::Ground => {
-                            output_events.emit_local(LocalEvent::CreateOutcome(
-                                Outcome::GroundSlam {
-                                    pos: data.pos.0
-                                        + *data.ori.look_dir() * (data.body.max_radius()),
-                                },
-                            ));
-                        },
-                        shockwave::FrontendSpecifier::Steam => {
-                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Steam {
-                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                            }));
-                        },
-                        shockwave::FrontendSpecifier::Fire => {
-                            output_events.emit_local(LocalEvent::CreateOutcome(
-                                Outcome::FireShockwave {
-                                    pos: data.pos.0
-                                        + *data.ori.look_dir() * (data.body.max_radius()),
-                                },
-                            ));
-                        },
-                        _ => {
-                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Swoosh {
-                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                            }));
-                        },
+                    if self.static_data.emit_outcome {
+                        match self.static_data.specifier {
+                            shockwave::FrontendSpecifier::IceSpikes => {
+                                output_events.emit_local(LocalEvent::CreateOutcome(
+                                    Outcome::FlashFreeze {
+                                        pos: data.pos.0
+                                            + *data.ori.look_dir() * (data.body.max_radius()),
+                                    },
+                                ));
+                            },
+                            shockwave::FrontendSpecifier::Ground => {
+                                output_events.emit_local(LocalEvent::CreateOutcome(
+                                    Outcome::GroundSlam {
+                                        pos: data.pos.0
+                                            + *data.ori.look_dir() * (data.body.max_radius()),
+                                    },
+                                ));
+                            },
+                            shockwave::FrontendSpecifier::Steam => {
+                                output_events.emit_local(LocalEvent::CreateOutcome(
+                                    Outcome::Steam {
+                                        pos: data.pos.0
+                                            + *data.ori.look_dir() * (data.body.max_radius()),
+                                    },
+                                ));
+                            },
+                            shockwave::FrontendSpecifier::Fire => {
+                                output_events.emit_local(LocalEvent::CreateOutcome(
+                                    Outcome::FireShockwave {
+                                        pos: data.pos.0
+                                            + *data.ori.look_dir() * (data.body.max_radius()),
+                                    },
+                                ));
+                            },
+                            _ => {
+                                output_events.emit_local(LocalEvent::CreateOutcome(
+                                    Outcome::Swoosh {
+                                        pos: data.pos.0
+                                            + *data.ori.look_dir() * (data.body.max_radius()),
+                                    },
+                                ));
+                            },
+                        }
                     }
                 } else {
+                    // Attack
+                    if matches!(self.static_data.timing, Timing::PostAction) {
+                        self.attack(data, output_events);
+                    }
+
                     // Transitions to recover
                     update.character = CharacterState::Shockwave(Data {
                         timer: Duration::default(),
@@ -214,4 +190,59 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+impl Data {
+    fn attack(&self, data: &JoinData, output_events: &mut OutputEvents) {
+        let poise = AttackEffect::new(
+            Some(GroupTarget::OutOfGroup),
+            CombatEffect::Poise(self.static_data.poise_damage),
+        )
+        .with_requirement(CombatRequirement::AnyDamage);
+        let knockback = AttackEffect::new(
+            Some(GroupTarget::OutOfGroup),
+            CombatEffect::Knockback(self.static_data.knockback),
+        )
+        .with_requirement(CombatRequirement::AnyDamage);
+        let mut damage = AttackDamage::new(
+            Damage {
+                source: DamageSource::Shockwave,
+                kind: self.static_data.damage_kind,
+                value: self.static_data.damage,
+            },
+            Some(GroupTarget::OutOfGroup),
+            rand::random(),
+        );
+        if let Some(effect) = self.static_data.damage_effect {
+            damage = damage.with_effect(effect);
+        }
+        let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
+        let attack = Attack::default()
+            .with_damage(damage)
+            .with_precision(precision_mult)
+            .with_effect(poise)
+            .with_effect(knockback)
+            .with_combo_increment();
+        let properties = shockwave::Properties {
+            angle: self.static_data.shockwave_angle,
+            vertical_angle: self.static_data.shockwave_vertical_angle,
+            speed: self.static_data.shockwave_speed,
+            duration: self.static_data.shockwave_duration,
+            attack,
+            dodgeable: self.static_data.dodgeable,
+            owner: Some(*data.uid),
+            specifier: self.static_data.specifier,
+        };
+        output_events.emit_server(ShockwaveEvent {
+            properties,
+            pos: *data.pos,
+            ori: *data.ori,
+        });
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Timing {
+    PostBuildup,
+    PostAction,
 }

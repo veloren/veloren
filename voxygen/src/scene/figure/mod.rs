@@ -1652,13 +1652,7 @@ impl FigureMgr {
                             };
                             anim::character::ShockwaveAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
-                                    hands,
-                                    time,
-                                    rel_vel.magnitude(),
-                                    Some(s.stage_section),
-                                ),
+                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1678,15 +1672,11 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
+
+                            // ? Aura confirmed just shockwave
                             anim::character::ShockwaveAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
-                                    hands,
-                                    time,
-                                    rel_vel.magnitude(),
-                                    Some(s.stage_section),
-                                ),
+                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,

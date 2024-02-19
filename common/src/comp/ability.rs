@@ -933,6 +933,8 @@ pub enum CharacterAbility {
         specifier: comp::shockwave::FrontendSpecifier,
         ori_rate: f32,
         damage_effect: Option<CombatEffect>,
+        timing: shockwave::Timing,
+        emit_outcome: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1532,6 +1534,8 @@ impl CharacterAbility {
                 specifier: _,
                 ori_rate: _,
                 ref mut damage_effect,
+                timing: _,
+                emit_outcome: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2572,6 +2576,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 specifier,
                 ori_rate,
                 damage_effect,
+                timing,
+                emit_outcome,
                 meta: _,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
@@ -2592,6 +2598,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     damage_kind: *damage_kind,
                     specifier: *specifier,
                     ori_rate: *ori_rate,
+                    timing: *timing,
+                    emit_outcome: *emit_outcome,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

@@ -21,4 +21,6 @@ Shockwave(
         strength: DamageFraction(0.06),
         chance: 1,
     ))),
+    timing: PostBuildup,
+    emit_outcome: true,
 )
