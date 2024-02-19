@@ -3,7 +3,8 @@ use super::scatter::close;
 use crate::{
     site::SiteKind,
     util::{
-        sampler::Sampler, FastNoise2d, RandomField, RandomPerm, StructureGen2d, LOCALITY, SQUARE_4,
+        sampler::Sampler, FastNoise2d, RandomField, RandomPerm, SmallCache, StructureGen2d,
+        LOCALITY, SQUARE_4,
     },
     Canvas, CanvasInfo, ColumnSample, Land,
 };
@@ -20,7 +21,6 @@ use noise::NoiseFn;
 use rand::prelude::*;
 use std::{
     cmp::Ordering,
-    collections::HashMap,
     f64::consts::PI,
     ops::{Add, Mul, Range, Sub},
 };
@@ -453,7 +453,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             .max_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
             .unwrap_or(0.0)
             .clamp(0.0, 1.0);
-        let mut structure_cache = HashMap::new();
+        let mut structure_cache = SmallCache::default();
         canvas.foreach_col(|canvas, wpos2d, col| {
             let tunnel_bounds =
                 tunnel_bounds_at_from(wpos2d, &info, &land, tunnels.iter().copied())
@@ -549,7 +549,7 @@ fn write_column<R: Rng>(
     tunnel: Tunnel,
     dimensions: (f32, f32, f32),
     giant_tree_factor: f32,
-    structure_cache: &mut HashMap<(Vec3<i32>, Vec2<i32>), Option<CaveStructure>>,
+    structure_cache: &mut SmallCache<Vec3<i32>, Option<CaveStructure>>,
     rng: &mut R,
 ) {
     let info = canvas.info();
@@ -681,9 +681,8 @@ fn write_column<R: Rng>(
 
     let mut get_structure = |wpos: Vec3<i32>, dynamic_rng: &mut R| {
         for (wpos2d, seed) in StructureGen2d::new(34537, 24, 8).get(wpos.xy()) {
-            let structure = if let Some(structure) = structure_cache
-                .entry((tunnel.a.wpos.with_z(tunnel.a.depth), wpos2d))
-                .or_insert_with(|| {
+            let structure = if let Some(structure) =
+                structure_cache.get(wpos2d.with_z(tunnel.a.depth), |_| {
                     let mut rng = RandomPerm::new(seed);
                     let (z_range, horizontal, vertical, _) =
                         tunnel.z_range_at(wpos2d.map(|e| e as f64 + 0.5), info)?;

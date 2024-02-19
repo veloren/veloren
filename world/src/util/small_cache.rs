@@ -1,23 +1,22 @@
 use arr_macro::arr;
-use vek::*;
 
-fn calc_idx(v: Vec2<i32>) -> usize {
-    let mut x = v.x as u32;
-    let mut y = v.y as u32;
-    x = x.wrapping_mul(0x6eed0e9d);
-    y = y.wrapping_mul(0x2f72b421);
-    (x ^ y) as usize
+fn calc_idx(v: impl Iterator<Item = i32>) -> usize {
+    let mut r = 0;
+    for (e, h) in v.zip([0x6eed0e9d, 0x2f72b421, 0x18132f72, 0x891e2fba].into_iter()) {
+        r ^= (e as u32).wrapping_mul(h);
+    }
+    r as usize
 }
 
 // NOTE: Use 128 if TerrainChunkSize::RECT_SIZE.x = 128.
 const CACHE_LEN: usize = 32;
 
-pub struct SmallCache<V: Default> {
-    index: [Option<Vec2<i32>>; CACHE_LEN + 9],
+pub struct SmallCache<K, V: Default> {
+    index: [Option<K>; CACHE_LEN + 9],
     data: [V; CACHE_LEN + 9],
     random: u32,
 }
-impl<V: Default> Default for SmallCache<V> {
+impl<K: Copy, V: Default> Default for SmallCache<K, V> {
     fn default() -> Self {
         Self {
             index: [None; CACHE_LEN + 9],
@@ -26,9 +25,9 @@ impl<V: Default> Default for SmallCache<V> {
         }
     }
 }
-impl<V: Default> SmallCache<V> {
-    pub fn get<F: FnOnce(Vec2<i32>) -> V>(&mut self, key: Vec2<i32>, f: F) -> &V {
-        let idx = calc_idx(key) % CACHE_LEN;
+impl<K: Copy + Eq + IntoIterator<Item = i32>, V: Default> SmallCache<K, V> {
+    pub fn get<F: FnOnce(K) -> V>(&mut self, key: K, f: F) -> &V {
+        let idx = calc_idx(key.into_iter()) % CACHE_LEN;
 
         // Search
         if self.index[idx].as_ref().map(|k| k == &key).unwrap_or(false) {

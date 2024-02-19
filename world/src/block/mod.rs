@@ -34,7 +34,7 @@ impl<'a> BlockGen<'a> {
 
     pub fn sample_column<'b>(
         column_gen: &ColumnGen<'a>,
-        cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
+        cache: &'b mut SmallCache<Vec2<i32>, Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
         index: IndexRef<'a>,
         calendar: Option<&'a Calendar>,
