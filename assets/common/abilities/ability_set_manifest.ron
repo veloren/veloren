@@ -198,7 +198,7 @@
         abilities: [
             Simple(Hammer(ScornfulSwipe), "common.abilities.hammer.scornful_swipe"),
             Simple(Hammer(Tremor), "common.abilities.hammer.tremor"),
-            // Simple(Hammer(VigorousBash), "common.abilities.hammer.vigorous_bash"),
+            Simple(Hammer(VigorousBash), "common.abilities.hammer.vigorous_bash"),
             // Simple(Hammer(Retaliate), "common.abilities.hammer.retaliate"),
             // Simple(Hammer(SpineCracker), "common.abilities.hammer.spine_cracker"),
             // Simple(Hammer(Breach), "common.abilities.hammer.breach"),

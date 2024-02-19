@@ -14,7 +14,7 @@ use crate::{
             slot::EquipSlot,
             Inventory,
         },
-        melee::{MeleeConstructor, MeleeConstructorKind},
+        melee::{CustomCombo, MeleeConstructor, MeleeConstructorKind},
         projectile::ProjectileConstructor,
         skillset::{
             skills::{self, Skill, SKILL_MODIFIERS},
@@ -889,8 +889,7 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
         damage_effect: Option<CombatEffect>,
-        #[serde(default)]
-        additional_combo: i32,
+        custom_combo: Option<CustomCombo>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1112,7 +1111,7 @@ impl Default for CharacterAbility {
                 multi_target: None,
                 damage_effect: None,
                 simultaneous_hits: 1,
-                combo_gain: 1,
+                custom_combo: None,
             },
             ori_modifier: 1.0,
             frontend_specifier: None,
@@ -1466,7 +1465,7 @@ impl CharacterAbility {
                 specifier: _,
                 ref mut damage_effect,
                 meta: _,
-                additional_combo: _,
+                custom_combo: _,
             } => {
                 *swing_duration /= stats.speed;
                 *buildup_strike = buildup_strike
@@ -2450,7 +2449,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 specifier,
                 damage_effect,
-                additional_combo,
+                custom_combo,
                 meta: _,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
@@ -2466,7 +2465,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                     specifier: *specifier,
                     damage_effect: *damage_effect,
-                    additional_combo: *additional_combo,
+                    custom_combo: *custom_combo,
                 },
                 stage_section: if buildup_strike.is_some() {
                     StageSection::Buildup

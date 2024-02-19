@@ -1,6 +1,9 @@
 use crate::{
     combat::{self, CombatEffect},
-    comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
+    comp::{
+        character_state::OutputEvents, melee::CustomCombo, CharacterState, MeleeConstructor,
+        StateUpdate,
+    },
     event::LocalEvent,
     outcome::Outcome,
     states::{
@@ -38,7 +41,7 @@ pub struct StaticData {
     /// Adds an effect onto the main damage of the attack
     pub damage_effect: Option<CombatEffect>,
     /// The actual additional combo is modified by duration of charge
-    pub additional_combo: i32,
+    pub custom_combo: Option<CustomCombo>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -156,15 +159,21 @@ impl CharacterBehavior for Data {
 
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
-                    let additional_combo =
-                        (self.charge_amount * self.static_data.additional_combo as f32 + 0.5)
-                            .floor() as i32;
+                    let custom_combo = self.static_data.custom_combo.map(|c| {
+                        let additional =
+                            (self.charge_amount * c.additional as f32 + 0.5).floor() as i32;
+
+                        CustomCombo {
+                            additional,
+                            requirement: c.requirement,
+                        }
+                    });
 
                     data.updater.insert(
                         data.entity,
                         self.static_data
                             .melee_constructor
-                            .with_combo(1 + additional_combo)
+                            .custom_combo(custom_combo)
                             .handle_scaling(self.charge_amount)
                             .create_melee(precision_mult, tool_stats),
                     );

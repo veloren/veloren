@@ -136,11 +136,15 @@ impl Attack {
     }
 
     #[must_use]
-    pub fn with_combo(self, combo: i32) -> Self {
+    pub fn with_combo_requirement(self, combo: i32, requirement: CombatRequirement) -> Self {
         self.with_effect(
-            AttackEffect::new(None, CombatEffect::Combo(combo))
-                .with_requirement(CombatRequirement::AnyDamage),
+            AttackEffect::new(None, CombatEffect::Combo(combo)).with_requirement(requirement),
         )
+    }
+
+    #[must_use]
+    pub fn with_combo(self, combo: i32) -> Self {
+        self.with_combo_requirement(combo, CombatRequirement::AnyDamage)
     }
 
     #[must_use]
@@ -648,6 +652,9 @@ impl Attack {
                 CombatRequirement::TargetHasBuff(buff) => {
                     target.buffs.map_or(false, |buffs| buffs.contains(*buff))
                 },
+                CombatRequirement::TargetPoised => {
+                    target.char_state.map_or(false, |cs| cs.is_stunned())
+                },
             });
             if requirements_met {
                 is_applied = true;
@@ -1000,12 +1007,13 @@ impl CombatEffect {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CombatRequirement {
     AnyDamage,
     Energy(f32),
     Combo(u32),
     TargetHasBuff(BuffKind),
+    TargetPoised,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

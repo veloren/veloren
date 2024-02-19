@@ -319,6 +319,7 @@ image_ids! {
         hammer_wide_wallop: "voxygen.element.skills.hammer.wide_wallop",
         hammer_scornful_swipe: "voxygen.element.skills.hammer.scornful_swipe",
         hammer_tremor: "voxygen.element.skills.hammer.tremor",
+        hammer_vigorous_bash: "voxygen.element.skills.hammer.vigorous_bash",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
