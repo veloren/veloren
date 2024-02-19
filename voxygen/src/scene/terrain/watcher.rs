@@ -163,7 +163,6 @@ impl BlocksOfInterest {
                             SpriteKind::StreetLampTall => fire_bowls.push(pos + Vec3::unit_z() * 4),
                             SpriteKind::WallSconce => fire_bowls.push(pos + Vec3::unit_z()),
                             SpriteKind::Beehive => beehives.push(pos),
-                            SpriteKind::CrystalHigh => fireflies.push(pos),
                             SpriteKind::Reed => {
                                 reeds.push(pos);
                                 fireflies.push(pos);
