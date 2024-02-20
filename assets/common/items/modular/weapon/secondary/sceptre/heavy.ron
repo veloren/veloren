@@ -5,11 +5,11 @@ ItemDef(
         ToolSecondaryComponent(
             toolkind: Sceptre,
             stats: (
-                equip_time_secs: 1.0,
-                power: 1.25,
+                equip_time_secs: 1.1,
+                power: 1.15,
                 effect_power: 1.1,
                 speed: 0.8,
-                range: 1.2,
+                range: 1.1,
                 energy_efficiency: 0.9,
                 buff_strength: 1.1,
             ),

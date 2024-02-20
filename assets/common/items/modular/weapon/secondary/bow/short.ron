@@ -5,11 +5,11 @@ ItemDef(
         ToolSecondaryComponent(
             toolkind: Bow,
             stats: (
-                equip_time_secs: 1.0,
-                power: 0.8,
+                equip_time_secs: 0.9,
+                power: 0.85,
                 effect_power: 0.9,
-                speed: 1.2,
-                range: 0.85,
+                speed: 1.1,
+                range: 0.9,
                 energy_efficiency: 1.1,
                 buff_strength: 0.9,
             ),

@@ -43,8 +43,8 @@ pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 impl Body {
     pub fn base_accel(&self) -> f32 {
         match self {
-            // Note: Entities have been slowed down relative to humanoid speeds, but it may be worth reverting/increasing
-            // speed once we've established slower AI.
+            // Note: Entities have been slowed down relative to humanoid speeds, but it may be worth
+            // reverting/increasing speed once we've established slower AI.
             Body::Humanoid(_) => 100.0,
             Body::QuadrupedSmall(body) => match body.species {
                 quadruped_small::Species::Turtle => 30.0,

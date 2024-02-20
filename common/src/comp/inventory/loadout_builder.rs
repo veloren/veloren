@@ -625,10 +625,11 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_medium::Species::Cattle => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedbasicgentle",
             )),
-            quadruped_medium::Species::Highland
-            | quadruped_medium::Species::Yak => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_medium.highland",
-            )),
+            quadruped_medium::Species::Highland | quadruped_medium::Species::Yak => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.quadruped_medium.highland",
+                ))
+            },
             quadruped_medium::Species::Frostfang => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.frostfang",
             )),

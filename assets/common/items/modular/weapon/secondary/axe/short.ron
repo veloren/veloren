@@ -6,7 +6,7 @@ ItemDef(
             toolkind: Axe,
             stats: (
                 equip_time_secs: 0.9,
-                power: 0.9,
+                power: 0.85,
                 effect_power: 0.9,
                 speed: 1.1,
                 range: 0.9,
