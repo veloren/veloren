@@ -7,7 +7,7 @@ RapidMelee(
             damage: 2,
             poise: 1,
             knockback: 0,
-            energy_regen: 2,
+            energy_regen: 4,
         ),
         range: 4.0,
         angle: 5.0,
