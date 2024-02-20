@@ -5,14 +5,14 @@ SpawnEntry (
         Pack(
             groups: [
                 // Pack animals
-                (2, (1, 7, "common.entity.wild.peaceful.boar")),
+                (3, (1, 7, "common.entity.wild.peaceful.boar")),
                 // Solitary
-                (2, (1, 1, "common.entity.wild.peaceful.mossy_snail")),
-                (2, (1, 1, "common.entity.wild.peaceful.treant_sapling")),
+                (3, (1, 1, "common.entity.wild.peaceful.mossy_snail")),
+                (3, (1, 1, "common.entity.wild.peaceful.treant_sapling")),
                 (2, (1, 1, "common.entity.wild.peaceful.peacock")),
-                (2, (1, 1, "common.entity.wild.peaceful.turtle")),
-                (2, (1, 1, "common.entity.wild.peaceful.truffler")),
-                (2, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
+                (4, (1, 1, "common.entity.wild.peaceful.turtle")),
+                (4, (1, 1, "common.entity.wild.peaceful.truffler")),
+                (3, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
                 (2, (1, 1, "common.entity.wild.aggressive.weevil")),
             ],
             spawn_mode: Land,

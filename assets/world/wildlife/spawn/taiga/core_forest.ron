@@ -4,6 +4,7 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
+                // We need more entities to fill this out
                 (1, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
             ],
             spawn_mode: Land,
