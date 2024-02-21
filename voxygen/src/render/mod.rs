@@ -563,6 +563,6 @@ pub enum ExperimentalShader {
     Cinematic,
     /// Glittering snow.
     SnowGlitter,
-    /// Disables any optimizations done via shaderc.
-    DisableShadercOptimization,
+    /// Enables optimizations when shaderc is processing shaders.
+    EnableShadercOptimization,
 }
