@@ -679,7 +679,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => 0.95,
                 (Snowleopard, _) => 0.95,
                 (Mammoth, _) => 3.0,
-                (Ngoubou, _) => 1.0,
+                (Ngoubou, _) => 1.2,
                 (Akhlut, _) => 1.4,
                 (Bristleback, _) => 1.1,
                 (ClaySteed, _) => 1.75,

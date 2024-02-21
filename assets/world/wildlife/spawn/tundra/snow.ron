@@ -6,8 +6,8 @@ SpawnEntry (
             groups: [
                 (1, (2, 3, "common.entity.wild.aggressive.frostfang")),
                 (1, (2, 4, "common.entity.wild.aggressive.snow_raptor")),
-                (1, (1, 1, "common.entity.wild.peaceful.snowy_owl")),
-                (1, (1, 1, "common.entity.wild.peaceful.arctic_fox")),
+                (3, (1, 1, "common.entity.wild.peaceful.snowy_owl")),
+                (2, (1, 1, "common.entity.wild.peaceful.arctic_fox")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

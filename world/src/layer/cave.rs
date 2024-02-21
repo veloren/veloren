@@ -831,7 +831,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Leafy biome
             (
                 Some("common.entity.wild.peaceful.holladon"),
-                (biome.leafy + 0.05) * 0.5,
+                (biome.leafy.max(biome.barren) + 0.1) * 0.5,
             ),
             (
                 Some("common.entity.wild.peaceful.turtle"),
@@ -847,11 +847,11 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.maneater"),
-                (biome.leafy + 0.05) * 0.1,
+                (biome.leafy + 0.0) * 0.05,
             ),
             (
                 Some("common.entity.wild.aggressive.batfox"),
-                (biome.leafy.max(biome.barren) + 0.3) * 0.35,
+                (biome.leafy.max(biome.barren) + 0.15) * 0.35,
             ),
             (
                 Some("common.entity.wild.aggressive.rocksnapper"),
@@ -859,11 +859,11 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.cave_salamander"),
-                (biome.leafy + 0.0) * 0.2,
+                (biome.leafy + 0.1) * 0.2,
             ),
             (
                 Some("common.entity.wild.aggressive.asp"),
-                (biome.leafy + 0.1) * 0.15,
+                (biome.leafy + 0.1) * 0.1,
             ),
             (
                 Some("common.entity.wild.aggressive.swamp_troll"),
@@ -880,7 +880,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.cave_spider"),
-                (biome.dusty + 0.0) * 0.25,
+                (biome.dusty + 0.0) * 0.05,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_troll"),
@@ -888,15 +888,15 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.antlion"),
-                (biome.dusty.max(biome.barren) + 0.1) * 0.05,
+                (biome.dusty.min(biome.depth) + 0.0) * 0.01,
             ),
             (
                 Some("common.entity.wild.peaceful.rat"),
-                (biome.dusty + 0.1) * 0.3,
+                (biome.dusty.max(biome.barren) + 0.15) * 0.3,
             ),
             (
                 Some("common.entity.wild.peaceful.bat"),
-                (biome.dusty + 0.1) * 0.25,
+                (biome.dusty.max(biome.barren) + 0.1) * 0.25,
             ),
             // Icy biome
             (
@@ -905,7 +905,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             (
                 Some("common.entity.wild.aggressive.icedrake"),
-                (biome.icy + 0.0) * 0.1,
+                (biome.icy + 0.0) * 0.04,
             ),
             (
                 Some("common.entity.wild.aggressive.wendigo"),
@@ -914,15 +914,11 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Lava biome
             (
                 Some("common.entity.wild.aggressive.lavadrake"),
-                (biome.fire + 0.0) * 0.2,
-            ),
-            (
-                Some("common.entity.wild.aggressive.basilisk"),
-                (biome.fire + 0.1) * 0.01,
+                (biome.fire + 0.0) * 0.15,
             ),
             (
                 Some("common.entity.wild.peaceful.crawler_molten"),
-                (biome.fire + 0.0) * 0.75,
+                (biome.fire + 0.0) * 0.35,
             ),
             (
                 Some("common.entity.wild.aggressive.red_oni"),
@@ -936,6 +932,10 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             (
                 Some("common.entity.wild.aggressive.ogre"),
                 (biome.depth + 0.0) * 0.02,
+            ),
+            (
+                Some("common.entity.wild.aggressive.basilisk"),
+                (biome.depth + 0.1) * 0.005,
             ),
             (None, 100.0),
         ]

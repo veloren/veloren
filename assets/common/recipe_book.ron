@@ -270,14 +270,14 @@
    "iron_ingot": (
         output: ("common.items.mineral.ingot.iron", 1),
         inputs: [
-            (Item("common.items.mineral.ore.iron"), 2, false),
+            (Item("common.items.mineral.ore.iron"), 1, false),
         ],
         craft_sprite: Some(Forge),
     ),
     "cobalt_ingot": (
         output: ("common.items.mineral.ingot.cobalt", 1),
         inputs: [
-            (Item("common.items.mineral.ore.cobalt"), 2, false),
+            (Item("common.items.mineral.ore.cobalt"), 1, false),
         ],
         craft_sprite: Some(Forge),
     ),

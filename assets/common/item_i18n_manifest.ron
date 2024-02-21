@@ -598,6 +598,9 @@
             "common.items.npc_armor.quadruped_medium.hirdrasil",
         ): "common-items-npc_armor-quadruped_medium-hirdrasil",
         Simple(
+            "common.items.npc_armor.quadruped_medium.wolf",
+        ): "common-items-npc_armor-quadruped_medium-wolf",
+        Simple(
             "common.items.npc_armor.quadruped_small.boar",
         ): "common-items-npc_armor-quadruped_small-boar",
         Simple(
@@ -2628,6 +2631,9 @@
         Simple(
             "common.items.npc_weapons.unique.quadruped_medium.grolgar",
         ): "common-items-npc_weapons-unique-quadruped_medium-grolgar",
+	Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.highland",
+        ): "common-items-npc_weapons-unique-quadruped_medium-highland",
         Simple(
             "common.items.npc_weapons.unique.quadruped_medium.horse",
         ): "common-items-npc_weapons-unique-quadruped_medium-horse",
@@ -2637,6 +2643,9 @@
         Simple(
             "common.items.npc_weapons.unique.quadruped_medium.mouflon",
         ): "common-items-npc_weapons-unique-quadruped_medium-mouflon",
+        Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.wolf",
+        ): "common-items-npc_weapons-unique-quadruped_medium-wolf",
         Simple(
             "common.items.npc_weapons.unique.quadruped_low.asp",
         ): "common-items-npc_weapons-unique-quadruped_low-asp",

@@ -4,10 +4,10 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (2, (2, 3, "common.entity.wild.aggressive.frostfang")),
-                (3, (1, 1, "common.entity.wild.aggressive.snow_leopard")),
+                (7, (2, 3, "common.entity.wild.aggressive.frostfang")),
+                (11, (1, 1, "common.entity.wild.aggressive.snow_leopard")),
                 (1, (1, 1, "common.entity.wild.aggressive.yale")),
-                (2, (1, 1, "common.entity.wild.aggressive.grolgar")),
+                (1, (1, 1, "common.entity.wild.aggressive.grolgar")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

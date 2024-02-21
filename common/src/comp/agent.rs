@@ -361,7 +361,8 @@ impl<'a> From<&'a Body> for Psyche {
                     | biped_small::Species::Flamekeeper
                     | biped_small::Species::Irrwurz
                     | biped_small::Species::ShamanicSpirit
-                    | biped_small::Species::Jiangshi => 0.0,
+                    | biped_small::Species::Jiangshi
+                    | biped_small::Species::Bushly => 0.0,
 
                     _ => 0.5,
                 },

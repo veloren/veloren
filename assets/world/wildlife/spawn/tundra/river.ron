@@ -5,7 +5,7 @@ SpawnEntry (
         Pack(
             groups: [
                 (1, (1, 1, "common.entity.wild.aggressive.hakulaq")),
-                (1, (1, 2, "common.entity.wild.aggressive.icepike")),
+                (4, (2, 5, "common.entity.wild.aggressive.icepike")),
             ],
             spawn_mode: Water,
             day_period: [Night, Morning, Noon, Evening],

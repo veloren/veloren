@@ -635,22 +635,22 @@ pub fn apply_caves_supplement<'a>(
                                     }
                                 }
                             } else if cave_depth < 70.0 {
-                                match dynamic_rng.gen_range(0..4) {
-                                    0 => "common.entity.wild.peaceful.truffler",
-                                    1 => "common.entity.wild.aggressive.dodarock",
-                                    2 => "common.entity.wild.peaceful.holladon",
-                                    _ => "common.entity.wild.aggressive.batfox",
+                                match dynamic_rng.gen_range(0..9) {
+                                    0..=1 => "common.entity.wild.peaceful.truffler",
+                                    2 => "common.entity.wild.aggressive.dodarock",
+                                    3..=4 => "common.entity.wild.peaceful.holladon",
+                                    5..=6 => "common.entity.wild.aggressive.batfox",
+                                    _ => "common.entity.wild.peaceful.rat",
                                 }
                             } else if cave_depth < 120.0 {
-                                match dynamic_rng.gen_range(0..10) {
-                                    2 => "common.entity.wild.aggressive.rocksnapper",
-                                    5 => "common.entity.wild.aggressive.cave_salamander",
-                                    7 => "common.entity.wild.aggressive.cave_spider",
-                                    8 => "common.entity.wild.peaceful.crawler_molten",
+                                match dynamic_rng.gen_range(0..5) {
+                                    0..=1 => "common.entity.wild.aggressive.cave_salamander",
+                                    2 => "common.entity.wild.aggressive.cave_spider",
+                                    3..=4 => "common.entity.wild.peaceful.crawler_molten",
                                     _ => "common.entity.wild.aggressive.asp",
                                 }
                             } else if cave_depth < 190.0 {
-                                match dynamic_rng.gen_range(0..5) {
+                                match dynamic_rng.gen_range(0..4) {
                                     1 => "common.entity.wild.aggressive.rocksnapper",
                                     2 => "common.entity.wild.aggressive.lavadrake",
                                     3 => "common.entity.wild.aggressive.black_widow",
