@@ -283,9 +283,9 @@ impl ShaderModules {
 
         let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
         let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-        let shaderc_opts = !pipeline_modes
+        let shaderc_opts = pipeline_modes
             .experimental_shaders
-            .contains(&ExperimentalShader::DisableShadercOptimization);
+            .contains(&ExperimentalShader::EnableShadercOptimization);
         if shaderc_opts {
             options.set_optimization_level(OptimizationLevel::Performance);
             info!("Enabled optimization by shaderc.");
