@@ -598,6 +598,9 @@
             "common.items.npc_armor.quadruped_medium.hirdrasil",
         ): "common-items-npc_armor-quadruped_medium-hirdrasil",
         Simple(
+            "common.items.npc_armor.quadruped_medium.wolf",
+        ): "common-items-npc_armor-quadruped_medium-wolf",
+        Simple(
             "common.items.npc_armor.quadruped_small.boar",
         ): "common-items-npc_armor-quadruped_small-boar",
         Simple(

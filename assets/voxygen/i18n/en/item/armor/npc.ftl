@@ -586,6 +586,9 @@ common-items-npc_armor-quadruped_medium-hirdrasil = Hirdrasil's Blessing
 common-items-npc_armor-quadruped_medium-roshwalr = Roshwalr's Thick Skin
     .desc = Testing123.
 
+common-items-npc_armor-quadruped_medium-wolf = Wolf Armor
+    .desc = Testing123.
+
 common-items-npc_armor-quadruped_small-boar = Boar Armor
     .desc = Worn by small beasties.
 

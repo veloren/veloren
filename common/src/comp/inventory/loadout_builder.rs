@@ -1198,6 +1198,9 @@ impl LoadoutBuilder {
                 | quadruped_medium::Species::Zebra => {
                     Some("common.items.npc_armor.quadruped_medium.equus")
                 },
+                quadruped_medium::Species::Wolf => {
+                    Some("common.items.npc_armor.quadruped_medium.wolf")
+                },
                 _ => Some("common.items.npc_armor.quadruped_medium.broad"),
             },
             Body::Theropod(body) => match body.species {

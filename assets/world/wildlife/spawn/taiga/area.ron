@@ -15,7 +15,7 @@ SpawnEntry (
                 (8, (2, 5, "common.entity.wild.peaceful.boar")),
                 (10, (5, 10, "common.entity.wild.peaceful.sheep")),
                 (14, (1, 2, "common.entity.wild.peaceful.squirrel")),
-                (9, (5, 10, "common.entity.wild.peaceful.goat")),
+                (8, (2, 6, "common.entity.wild.peaceful.goat")),
                 (7, (3, 8, "common.entity.wild.peaceful.llama")),
                 (7, (1, 2, "common.entity.wild.peaceful.donkey")),
                 (8, (1, 1, "common.entity.wild.peaceful.skunk")),

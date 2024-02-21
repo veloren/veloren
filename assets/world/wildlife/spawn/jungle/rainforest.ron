@@ -27,7 +27,7 @@ SpawnEntry (
                 (28, (1, 1, "common.entity.wild.aggressive.deadwood")),
                 (24, (1, 1, "common.entity.wild.aggressive.tiger")),
                 (10, (1, 1, "common.entity.wild.aggressive.maneater")),
-                (8, (1, 1, "common.entity.wild.aggressive.mossdrake")),)
+                (8, (1, 1, "common.entity.wild.aggressive.mossdrake")),
                 (2, (1, 1, "common.entity.wild.aggressive.cockatrice")),
                 (1, (1, 1, "common.entity.wild.aggressive.odonto")),
             ],
