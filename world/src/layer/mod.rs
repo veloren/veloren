@@ -616,7 +616,7 @@ pub fn apply_caves_supplement<'a>(
                             .map_or(true, |b| b.is_fluid())
                     })
                 }) {
-                    if RandomField::new(index.seed).chance(wpos2d.into(), 0.14)
+                    if RandomField::new(index.seed).chance(wpos2d.into(), 0.0014)
                         && cave_base < surface_z - 40
                     {
                         let entity = EntityInfo::at(wpos2d.map(|e| e as f32).with_z(z as f32));
