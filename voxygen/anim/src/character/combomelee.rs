@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::states::utils::{AbilityInfo, StageSection};
+use common::states::utils::{AbilityInfo, HandInfo, StageSection};
 use core::f32::consts::{PI, TAU};
 
 pub struct ComboAnimation;
@@ -1132,6 +1132,81 @@ impl Animation for ComboAnimation {
                     next.control.orientation.rotate_y(move2 * 2.5);
                     next.control.orientation.rotate_x(move2 * -1.2);
                     next.control.position += Vec3::new(move2 * 8.0, 0.0, 0.0);
+                },
+                Some("common.abilities.shield.singlestrike") => {
+                    let move1 = if strike == current_strike {
+                        match stage_section {
+                            Some(StageSection::Buildup) => anim_time,
+                            Some(StageSection::Action) => 1.0,
+                            Some(StageSection::Recover) => 1.0,
+                            _ => 0.0,
+                        }
+                    } else {
+                        1.0
+                    };
+                    let move1 = move1 * multi_strike_pullback;
+
+                    if let Some(ability_info) = _ability_info {
+                        match ability_info.hand {
+                            Some(HandInfo::TwoHanded) => {
+                                next.main.orientation = Quaternion::rotation_x(0.0);
+                                next.chest.orientation = Quaternion::rotation_z(move1 * -0.3);
+                                next.torso.orientation = Quaternion::rotation_z(move1 * -1.0);
+                                next.head.orientation = Quaternion::rotation_z(move1 * 0.75);
+                                next.head.position = Vec3::new(0.5, s_a.head.0 + 0.5, s_a.head.1);
+
+                                next.control.position = Vec3::new(move1 * -10.0, 6.0, move1 * 6.0);
+                                next.control.orientation = Quaternion::rotation_z(-0.25);
+
+                                next.hand_l.position = Vec3::new(0.0, -2.0, 0.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
+                                    * Quaternion::rotation_y(PI / 2.0);
+                            },
+                            Some(HandInfo::MainHand) => {
+                                next.main.orientation = Quaternion::rotation_x(0.0);
+                                next.chest.orientation = Quaternion::rotation_z(move1 * -0.3);
+                                next.torso.orientation = Quaternion::rotation_z(move1 * -1.2);
+                                next.head.orientation = Quaternion::rotation_z(move1 * 0.75);
+                                next.head.position = Vec3::new(0.5, s_a.head.0 + 0.5, s_a.head.1);
+
+                                next.control_l.position =
+                                    Vec3::new(move1 * -12.0, 4.0, move1 * 6.0);
+                                next.control_l.orientation = Quaternion::rotation_x(move1 * 0.0)
+                                    * Quaternion::rotation_y(0.0)
+                                    * Quaternion::rotation_z(-0.25);
+                                next.hand_l.position = Vec3::new(0.0, -1.5, 0.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                                next.control_r.position = Vec3::new(9.0, -1.0, 0.0);
+                                next.control_r.orientation = Quaternion::rotation_x(-1.75);
+                                next.hand_r.position = Vec3::new(0.0, 0.5, 0.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                            },
+                            Some(HandInfo::OffHand) => {
+                                next.main.orientation = Quaternion::rotation_x(0.0);
+                                next.chest.orientation = Quaternion::rotation_z(move1 * 0.3);
+                                next.torso.orientation = Quaternion::rotation_z(move1 * 1.2);
+                                next.head.orientation = Quaternion::rotation_z(move1 * -0.75);
+                                next.head.position = Vec3::new(-0.5, s_a.head.0 + -0.5, s_a.head.1);
+
+                                next.control_r.position = Vec3::new(move1 * 12.0, 4.0, move1 * 6.0);
+                                next.control_r.orientation = Quaternion::rotation_x(move1 * 0.0)
+                                    * Quaternion::rotation_y(0.0)
+                                    * Quaternion::rotation_z(0.25);
+                                next.hand_r.position = Vec3::new(0.0, -1.5, 0.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                                next.control_l.position = Vec3::new(-9.0, -1.0, 0.0);
+                                next.control_l.orientation = Quaternion::rotation_x(-1.75);
+                                next.hand_l.position = Vec3::new(0.0, 0.5, 0.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            },
+                            _ => {},
+                        }
+                    }
                 },
                 _ => {},
             }

@@ -1,0 +1,32 @@
+ComboMelee2(
+    strikes: [
+        (
+            melee_constructor: (
+                kind: Bash(
+                    damage: 6,
+                    poise: 5,
+                    knockback: 0,
+                    energy_regen: 5,
+                ),
+                range: 1.5,
+                angle: 45.0,
+                damage_effect: Some(BuffsVulnerable(0.5, Parried)),
+            ),
+            buildup_duration: 0.15,
+            swing_duration: 0.2,
+            hit_timing: 0.1,
+            recover_duration: 0.15,
+            ori_modifier: 0.1,
+            movement: (
+                buildup: Some(Forward(0.1)),
+                swing: None,
+                recover: None,
+            ),
+        ),
+    ],
+    energy_cost_per_strike: 0,
+    meta: (
+        // The ability will parry all blockable attacks in the buildup portion
+        capabilities: ("PARRIES"),
+    ),
+)

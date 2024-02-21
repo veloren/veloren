@@ -195,34 +195,22 @@ impl ActiveAbilities {
         };
 
         match ability {
-            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| {
-                    abilities
-                        .guard(Some(skill_set), context)
-                        .map(|(a, i)| (a.ability.clone(), i))
-                })
-                .map(|(ability, i)| {
-                    (
-                        scale_ability(ability, EquipSlot::ActiveMainhand),
-                        true,
-                        spec_ability(i),
-                    )
-                })
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveOffhand)
-                        .and_then(|abilities| {
-                            abilities
-                                .guard(Some(skill_set), context)
-                                .map(|(a, i)| (a.ability.clone(), i))
-                        })
-                        .map(|(ability, i)| {
-                            (
-                                scale_ability(ability, EquipSlot::ActiveOffhand),
-                                false,
-                                spec_ability(i),
-                            )
-                        })
-                }),
+            Ability::ToolGuard => {
+                let equip_slot = combat::get_equip_slot_by_block_priority(inv);
+                ability_set(equip_slot)
+                    .and_then(|abilities| {
+                        abilities
+                            .guard(Some(skill_set), context)
+                            .map(|(a, i)| (a.ability.clone(), i))
+                    })
+                    .map(|(ability, i)| {
+                        (
+                            scale_ability(ability, equip_slot),
+                            matches!(equip_slot, EquipSlot::ActiveOffhand),
+                            spec_ability(i),
+                        )
+                    })
+            },
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| {
                     abilities
@@ -396,7 +384,7 @@ impl Ability {
         };
 
         match self {
-            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
+            Ability::ToolGuard => ability_set(combat::get_equip_slot_by_block_priority(inv))
                 .and_then(|abilities| {
                     abilities
                         .guard(skillset, context)
@@ -407,19 +395,6 @@ impl Ability {
                                 .as_ref()
                                 .and_then(|g| contextual_id(Some(g)))
                         })
-                })
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveOffhand).and_then(|abilities| {
-                        abilities
-                            .guard(skillset, context)
-                            .map(|a| a.0.id.as_str())
-                            .or_else(|| {
-                                abilities
-                                    .guard
-                                    .as_ref()
-                                    .and_then(|g| contextual_id(Some(g)))
-                            })
-                    })
                 }),
             Ability::ToolPrimary => ability_set(EquipSlot::ActiveMainhand).and_then(|abilities| {
                 abilities
@@ -524,12 +499,8 @@ impl SpecifiedAbility {
                     ability_set(EquipSlot::ActiveMainhand)
                         .map(|abilities| ability_id(self, &abilities.secondary))
                 }),
-            Ability::ToolGuard => ability_set(EquipSlot::ActiveMainhand)
-                .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
-                .or_else(|| {
-                    ability_set(EquipSlot::ActiveOffhand)
-                        .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a)))
-                }),
+            Ability::ToolGuard => ability_set(combat::get_equip_slot_by_block_priority(inv))
+                .and_then(|abilities| abilities.guard.as_ref().map(|a| ability_id(self, a))),
             Ability::SpeciesMovement => None, // TODO: Make not None
             Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| abilities.abilities.get(index).map(|a| ability_id(self, a))),
@@ -1006,6 +977,7 @@ pub enum CharacterAbility {
         buildup_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
+        block_strength: f32,
         melee_constructor: MeleeConstructor,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1279,8 +1251,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 // Do we want angle to be adjusted by range?
                 max_angle: _,
-                // Block strength explicitly not modified by power, that will be a separate stat
-                block_strength: _,
+                ref mut block_strength,
                 parry_window: _,
                 ref mut energy_cost,
                 energy_regen: _,
@@ -1291,6 +1262,7 @@ impl CharacterAbility {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
+                *block_strength *= stats.power;
             },
             Roll {
                 ref mut energy_cost,
@@ -1660,6 +1632,7 @@ impl CharacterAbility {
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
+                ref mut block_strength,
                 ref mut melee_constructor,
                 meta: _,
             } => {
@@ -1667,6 +1640,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
+                *block_strength *= stats.power;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             RapidMelee {
@@ -2914,6 +2888,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buildup_duration,
                 swing_duration,
                 recover_duration,
+                block_strength,
                 melee_constructor,
                 meta: _,
             } => CharacterState::RiposteMelee(riposte_melee::Data {
@@ -2921,6 +2896,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
+                    block_strength: *block_strength,
                     melee_constructor: *melee_constructor,
                     ability_info,
                 },
@@ -3003,18 +2979,18 @@ bitflags::bitflags! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
     // If more are ever needed, first check if any not used anymore, as some were only used in intermediary stages so may be free
     pub struct Capability: u8 {
-        // There used to be a capability here, to keep ordering the same below this is now a placeholder
-        const PLACEHOLDER         = 0b00000001;
+        // The ability will parry all blockable attacks in the buildup portion
+        const PARRIES             = 0b00000001;
         // Allows blocking to interrupt the ability at any point
         const BLOCK_INTERRUPT     = 0b00000010;
-        // When the ability is in the buildup section, it counts as a block with 50% DR
+        // The ability will block melee attacks in the buildup portion
         const BLOCKS              = 0b00000100;
         // When in the ability, an entity only receives half as much poise damage
         const POISE_RESISTANT     = 0b00001000;
         // WHen in the ability, an entity only receives half as much knockback
         const KNOCKBACK_RESISTANT = 0b00010000;
         // The ability will parry melee attacks in the buildup portion
-        const PARRIES             = 0b00100000;
+        const PARRIES_MELEE       = 0b00100000;
     }
 }
 

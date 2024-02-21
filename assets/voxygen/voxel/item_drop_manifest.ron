@@ -376,6 +376,7 @@
     Simple("common.items.weapons.dagger.cultist_0"): "voxel.weapon.dagger.dagger_cult-0",
     // Shields
     Simple("common.items.weapons.shield.shield_1"): "voxel.weapon.shield.wood-0",
+    Simple("common.items.weapons.shield.starter_shield"): "voxel.weapon.shield.wood-1",
     // Lanterns
     Simple("common.items.lantern.black_0"): "voxel.lantern.black-0",
     Simple("common.items.lantern.green_0"): "voxel.lantern.green-0",

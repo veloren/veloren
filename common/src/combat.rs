@@ -58,6 +58,9 @@ pub const MAX_HEADSHOT_PRECISION: f32 = 1.0;
 pub const MAX_TOP_HEADSHOT_PRECISION: f32 = 0.5;
 pub const MAX_BEAM_DUR_PRECISION: f32 = 0.25;
 pub const MAX_MELEE_POISE_PRECISION: f32 = 0.5;
+pub const MAX_BLOCK_POISE_COST: f32 = 50.0;
+pub const PARRY_BONUS_MULTIPLIER: f32 = 2.0;
+pub const FALLBACK_BLOCK_STRENGTH: f32 = 5.0;
 
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
@@ -140,15 +143,84 @@ impl Attack {
 
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
-    pub fn compute_damage_reduction(
+    pub fn compute_block_damage_decrement(
         attacker: Option<&AttackerInfo>,
+        damage_reduction: f32,
         target: &TargetInfo,
         source: AttackSource,
         dir: Dir,
         damage: Damage,
         msm: &MaterialStatManifest,
-        emitters: &mut impl EmitExt<ParryHookEvent>,
+        time: Time,
+        emitters: &mut (impl EmitExt<ParryHookEvent> + EmitExt<PoiseChangeEvent>),
         mut emit_outcome: impl FnMut(Outcome),
+    ) -> f32 {
+        if damage.value > 0.0 {
+            if let (Some(char_state), Some(ori), Some(inventory)) =
+                (target.char_state, target.ori, target.inventory)
+            {
+                let is_parry = char_state.is_parry(source);
+                let is_block = char_state.is_block(source);
+                let damage_value = damage.value * (1.0 - damage_reduction);
+                let mut block_strength = block_strength(inventory, char_state);
+
+                if ori.look_vec().angle_between(-dir.with_z(0.0)) < char_state.block_angle()
+                    && (is_parry || is_block)
+                    && block_strength > 0.0
+                {
+                    if is_parry {
+                        block_strength *= PARRY_BONUS_MULTIPLIER;
+
+                        emitters.emit(ParryHookEvent {
+                            defender: target.entity,
+                            attacker: attacker.map(|a| a.entity),
+                            source,
+                        });
+                    }
+
+                    let poise_cost =
+                        (damage_value / block_strength).min(1.0) * MAX_BLOCK_POISE_COST;
+
+                    let poise_change = Poise::apply_poise_reduction(
+                        poise_cost,
+                        target.inventory,
+                        msm,
+                        target.char_state,
+                        target.stats,
+                    );
+
+                    emit_outcome(Outcome::Block {
+                        parry: is_parry,
+                        pos: target.pos,
+                        uid: target.uid,
+                    });
+                    emitters.emit(PoiseChangeEvent {
+                        entity: target.entity,
+                        change: PoiseChange {
+                            amount: -poise_change,
+                            impulse: *dir,
+                            by: attacker.map(|x| (*x).into()),
+                            cause: Some(damage.source),
+                            time,
+                        },
+                    });
+                    block_strength
+                } else {
+                    0.0
+                }
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        }
+    }
+
+    pub fn compute_damage_reduction(
+        attacker: Option<&AttackerInfo>,
+        target: &TargetInfo,
+        damage: Damage,
+        msm: &MaterialStatManifest,
     ) -> f32 {
         if damage.value > 0.0 {
             let attacker_penetration = attacker
@@ -157,39 +229,7 @@ impl Attack {
                 .clamp(0.0, 1.0);
             let raw_damage_reduction =
                 Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
-            let damage_reduction = (1.0 - attacker_penetration) * raw_damage_reduction;
-            let block_reduction =
-                if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
-                    if ori.look_vec().angle_between(-dir.with_z(0.0)) < char_state.block_angle() {
-                        if char_state.is_parry(source) {
-                            emit_outcome(Outcome::Block {
-                                parry: true,
-                                pos: target.pos,
-                                uid: target.uid,
-                            });
-                            emitters.emit(ParryHookEvent {
-                                defender: target.entity,
-                                attacker: attacker.map(|a| a.entity),
-                                source,
-                            });
-                            1.0
-                        } else if let Some(block_strength) = char_state.block_strength(source) {
-                            emit_outcome(Outcome::Block {
-                                parry: false,
-                                pos: target.pos,
-                                uid: target.uid,
-                            });
-                            block_strength
-                        } else {
-                            0.0
-                        }
-                    } else {
-                        0.0
-                    }
-                } else {
-                    0.0
-                };
-            1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
+            (1.0 - attacker_penetration) * raw_damage_reduction
         } else {
             0.0
         }
@@ -260,18 +300,26 @@ impl Attack {
         {
             let damage_instance = damage.instance + damage_instance_offset;
             is_applied = true;
-            let damage_reduction = Attack::compute_damage_reduction(
+
+            let damage_reduction =
+                Attack::compute_damage_reduction(attacker.as_ref(), target, damage.damage, msm);
+
+            let block_damage_decrement = Attack::compute_block_damage_decrement(
                 attacker.as_ref(),
+                damage_reduction,
                 target,
                 attack_source,
                 dir,
                 damage.damage,
                 msm,
+                time,
                 emitters,
                 &mut emit_outcome,
             );
+
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
+                block_damage_decrement,
                 attacker.map(|x| x.into()),
                 precision_mult,
                 self.precision_multiplier,
@@ -1046,6 +1094,7 @@ impl Damage {
     pub fn calculate_health_change(
         self,
         damage_reduction: f32,
+        block_damage_decrement: f32,
         damage_contributor: Option<DamageContributor>,
         precision_mult: Option<f32>,
         precision_power: f32,
@@ -1065,6 +1114,8 @@ impl Damage {
                 damage += precise_damage;
                 // Armor
                 damage *= 1.0 - damage_reduction;
+                // Block
+                damage = f32::max(damage - block_damage_decrement, 0.0);
 
                 HealthChange {
                     amount: -damage,
@@ -1495,4 +1546,56 @@ pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>
         Some(angle) if angle < PARTIAL_FLANK_ANGLE => Some(MAX_SIDE_FLANK_PRECISION),
         Some(_) | None => None,
     }
+}
+
+pub fn block_strength(inventory: &Inventory, char_state: &CharacterState) -> f32 {
+    match char_state {
+        CharacterState::BasicBlock(data) => data.static_data.block_strength,
+        CharacterState::RiposteMelee(data) => data.static_data.block_strength,
+        _ => char_state
+            .ability_info()
+            .map(|ability| (ability.ability_meta.capabilities, ability.hand))
+            .map(|(capabilities, hand)| {
+                (
+                    if capabilities.contains(Capability::PARRIES)
+                        || capabilities.contains(Capability::PARRIES_MELEE)
+                        || capabilities.contains(Capability::BLOCKS)
+                    {
+                        FALLBACK_BLOCK_STRENGTH
+                    } else {
+                        0.0
+                    },
+                    hand.and_then(|hand| inventory.equipped(hand.to_equip_slot()))
+                        .map_or(1.0, |item| match &*item.kind() {
+                            ItemKind::Tool(tool) => {
+                                tool.stats(item.stats_durability_multiplier()).power
+                            },
+                            _ => 1.0,
+                        }),
+                )
+            })
+            .map_or(0.0, |(capability_strength, tool_block_strength)| {
+                capability_strength * tool_block_strength
+            }),
+    }
+}
+
+pub fn get_equip_slot_by_block_priority(inventory: Option<&Inventory>) -> EquipSlot {
+    inventory
+        .map(get_weapon_kinds)
+        .map_or(
+            EquipSlot::ActiveMainhand,
+            |weapon_kinds| match weapon_kinds {
+                (Some(mainhand), Some(offhand)) => {
+                    if mainhand.block_priority() >= offhand.block_priority() {
+                        EquipSlot::ActiveMainhand
+                    } else {
+                        EquipSlot::ActiveOffhand
+                    }
+                },
+                (Some(_), None) => EquipSlot::ActiveMainhand,
+                (None, Some(_)) => EquipSlot::ActiveOffhand,
+                (None, None) => EquipSlot::ActiveMainhand,
+            },
+        )
 }

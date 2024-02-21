@@ -1,6 +1,9 @@
 weapon-shield-wood-0 = A Tattered Targe
     .desc = Should withstand a few more hits, hopefully...
 
+weapon-shield-starter = Wooden Shield
+    .desc = May not withstand fire
+
 weapon-dagger-dagger_basic-0 = Suspicious Paper Knife
     .desc = Opens letters quickly.
 

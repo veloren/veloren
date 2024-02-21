@@ -709,6 +709,9 @@
             "common.items.weapons.shield.shield_1",
         ): "weapon-shield-wood-0",
         Simple(
+            "common.items.weapons.shield.starter_shield",
+        ): "weapon-shield-starter",
+        Simple(
             "common.items.weapons.dagger.basic_0",
         ): "weapon-dagger-dagger_basic-0",
         Simple(

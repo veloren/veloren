@@ -819,6 +819,7 @@ impl ServerEvent for LandOnGroundEvent {
                 );
                 let change = damage.calculate_health_change(
                     damage_reduction,
+                    0.0,
                     None,
                     None,
                     0.0,
@@ -1401,6 +1402,7 @@ pub fn emit_effect_events(
         common::effect::Effect::Damage(damage) => {
             let change = damage.calculate_health_change(
                 combat::Damage::compute_damage_reduction(Some(damage), inventory, stats, msm),
+                0.0,
                 damage_contributor,
                 None,
                 0.0,
@@ -1677,7 +1679,7 @@ impl ServerEvent for ParryHookEvent {
                             entity: ev.defender,
                             change: c.static_data.energy_regen,
                         });
-                        true
+                        false
                     },
                     _ => false,
                 };

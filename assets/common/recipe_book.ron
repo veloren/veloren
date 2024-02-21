@@ -2357,4 +2357,12 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
+    "shield": (
+        output: ("common.items.weapons.shield.starter_shield", 1),
+        inputs: [
+             (Item("common.items.log.wood"), 5, false),
+             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false)
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
 }

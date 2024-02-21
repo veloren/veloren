@@ -22,6 +22,6 @@ ComboMelee2(
     energy_cost_per_strike: 5,
     meta: (
         // The ability will parry melee attacks in the buildup & swing portion
-        capabilities: ("PARRIES"),
+        capabilities: ("PARRIES_MELEE"),
     ),
 )

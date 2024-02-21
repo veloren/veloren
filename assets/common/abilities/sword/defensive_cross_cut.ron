@@ -41,6 +41,6 @@ ComboMelee2(
     auto_progress: true,
     meta: (
         // The ability will parry melee attacks in the buildup & swing portion
-        capabilities: ("PARRIES"),
+        capabilities: ("PARRIES_MELEE"),
     ),
 )

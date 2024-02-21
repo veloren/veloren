@@ -563,8 +563,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.sceptre.healingaura" => imgs.skill_sceptre_heal,
         "common.abilities.sceptre.wardingaura" => imgs.skill_sceptre_aura,
         // Shield
-        "common.abilities.shield.tempbasic" => imgs.onehshield_m1,
-        "common.abilities.shield.block" => imgs.onehshield_m2,
+        "common.abilities.shield.singlestrike" => imgs.onehshield_m1,
+        "common.abilities.shield.power_guard" => imgs.onehshield_m1,
         // Dagger
         "common.abilities.dagger.tempbasic" => imgs.onehdagger_m1,
         // Pickaxe

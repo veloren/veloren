@@ -55,7 +55,9 @@ impl Animation for BlockAnimation {
             | Some("common.abilities.sword.basic_guard")
             | Some("common.abilities.axe.basic_guard")
             | Some("common.abilities.hammer.basic_guard")
-            | Some("common.abilities.sword.defensive_guard") => {
+            | Some("common.abilities.sword.defensive_guard")
+            | Some("common.abilities.shield.basic_guard")
+            | Some("common.abilities.shield.power_guard") => {
                 let speed = Vec2::<f32>::from(velocity).magnitude();
 
                 let (movement1base, move2, movement3) = match stage_section {
@@ -215,53 +217,95 @@ impl Animation for BlockAnimation {
                                     * Quaternion::rotation_y(0.6)
                                     * Quaternion::rotation_z(0.0);
                             },
+                            Some(ToolKind::Shield) => {
+                                next.control.position = Vec3::new(2.0, 9.0, 8.0);
+                                next.control.orientation =
+                                    Quaternion::rotation_x(0.25) * Quaternion::rotation_z(-1.5);
+
+                                next.hand_l.position = Vec3::new(0.0, -2.0, 0.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                                next.hand_r.position = Vec3::new(0.0, 0.0, 0.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
+                                    * Quaternion::rotation_y(PI / 2.0);
+                            },
                             _ => {},
+                        }
+                    },
+                    ((Some(Hands::One), Some(Hands::One)), _, Some(ToolKind::Shield)) => {
+                        next.control_r.position = Vec3::new(-1.5, 8.0, 4.0 + move1 * 3.0);
+                        next.control_r.orientation = Quaternion::rotation_x(0.25)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(1.5);
+                        next.hand_r.position = Vec3::new(0.0, -2.0, 0.0);
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                        next.control_l.position = Vec3::new(-9.0, -5.0, 0.0);
+                        next.control_l.orientation =
+                            Quaternion::rotation_x(-1.75) * Quaternion::rotation_y(-0.3);
+                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                        next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                    },
+                    ((Some(Hands::One), _), Some(ToolKind::Shield), _) => {
+                        next.control_l.position = Vec3::new(1.5, 8.0, 4.0 + move1 * 3.0);
+                        next.control_l.orientation = Quaternion::rotation_x(0.25)
+                            * Quaternion::rotation_y(0.0)
+                            * Quaternion::rotation_z(-1.5);
+                        next.hand_l.position = Vec3::new(0.0, -2.0, 0.0);
+                        next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                        next.control_r.position = Vec3::new(9.0, -5.0, 0.0);
+                        next.control_r.orientation =
+                            Quaternion::rotation_x(-1.75) * Quaternion::rotation_y(0.3);
+                        next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
+                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                    },
+                    ((Some(Hands::One), _), _, _) => {
+                        match hands {
+                            (Some(Hands::One), _) => {
+                                next.control_l.position =
+                                    Vec3::new(-7.0, 8.0 + move1 * 3.0, 2.0 + move1 * 3.0);
+                                next.control_l.orientation = Quaternion::rotation_x(-0.3)
+                                    * Quaternion::rotation_y(move1 * 1.0);
+                                next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                                next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                            },
+                            (_, _) => {},
+                        };
+                        match hands {
+                            (None | Some(Hands::One), Some(Hands::One)) => {
+                                next.control_r.position =
+                                    Vec3::new(7.0, 8.0 + move1 * 3.0, 2.0 + move1 * 3.0);
+                                next.control_r.orientation = Quaternion::rotation_x(-0.3)
+                                    * Quaternion::rotation_y(move1 * -1.0);
+                                next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
+                                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
+                            },
+                            (_, _) => {},
+                        };
+                        match hands {
+                            (None, None) | (None, Some(Hands::One)) => {
+                                next.hand_l.position = Vec3::new(-4.5, 8.0, 5.0);
+                                next.hand_l.orientation =
+                                    Quaternion::rotation_x(1.9) * Quaternion::rotation_y(-0.5)
+                            },
+                            (_, _) => {},
+                        };
+                        match hands {
+                            (None, None) | (Some(Hands::One), None) => {
+                                next.hand_r.position = Vec3::new(4.5, 8.0, 5.0);
+                                next.hand_r.orientation =
+                                    Quaternion::rotation_x(1.9) * Quaternion::rotation_y(0.5)
+                            },
+                            (_, _) => {},
+                        };
+
+                        if let (None, Some(Hands::Two)) = hands {
+                            next.second = next.main;
                         }
                     },
                     ((_, _), _, _) => {},
                 };
-                match hands {
-                    (Some(Hands::One), _) => {
-                        next.control_l.position =
-                            Vec3::new(-7.0, 8.0 + move1 * 3.0, 2.0 + move1 * 3.0);
-                        next.control_l.orientation =
-                            Quaternion::rotation_x(-0.3) * Quaternion::rotation_y(move1 * 1.0);
-                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0)
-                    },
-                    (_, _) => {},
-                };
-                match hands {
-                    (None | Some(Hands::One), Some(Hands::One)) => {
-                        next.control_r.position =
-                            Vec3::new(7.0, 8.0 + move1 * 3.0, 2.0 + move1 * 3.0);
-                        next.control_r.orientation =
-                            Quaternion::rotation_x(-0.3) * Quaternion::rotation_y(move1 * -1.0);
-                        next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
-                    },
-                    (_, _) => {},
-                };
-                match hands {
-                    (None, None) | (None, Some(Hands::One)) => {
-                        next.hand_l.position = Vec3::new(-4.5, 8.0, 5.0);
-                        next.hand_l.orientation =
-                            Quaternion::rotation_x(1.9) * Quaternion::rotation_y(-0.5)
-                    },
-                    (_, _) => {},
-                };
-                match hands {
-                    (None, None) | (Some(Hands::One), None) => {
-                        next.hand_r.position = Vec3::new(4.5, 8.0, 5.0);
-                        next.hand_r.orientation =
-                            Quaternion::rotation_x(1.9) * Quaternion::rotation_y(0.5)
-                    },
-                    (_, _) => {},
-                };
-
-                if let (None, Some(Hands::Two)) = hands {
-                    next.second = next.main;
-                }
             },
             Some("common.abilities.sword.defensive_deflect") => {
                 let (move1, move2, move3) = match stage_section {

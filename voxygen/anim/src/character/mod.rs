@@ -360,6 +360,11 @@ impl CharacterSkeleton {
                     self.main.orientation =
                         Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(PI / 2.0);
                 },
+                Some(ToolKind::Shield) => {
+                    self.main.position = Vec3::new(-2.0, -3.0 - self.back_carry_offset, 1.0);
+                    self.main.orientation =
+                        Quaternion::rotation_y(-0.75) * Quaternion::rotation_z(PI / 2.0);
+                },
                 _ => {
                     self.main.position = Vec3::new(-7.0, -5.0 - self.back_carry_offset, 15.0);
                     self.main.orientation =
@@ -382,7 +387,7 @@ impl CharacterSkeleton {
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
                 },
                 Some(ToolKind::Shield) => {
-                    self.main.position = Vec3::new(-0.0, -4.0 - self.back_carry_offset, 3.0);
+                    self.main.position = Vec3::new(-2.0, -4.0 - self.back_carry_offset, 3.0);
                     self.main.orientation =
                         Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
                 },
@@ -403,7 +408,7 @@ impl CharacterSkeleton {
                         Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(-PI / 2.0);
                 },
                 Some(ToolKind::Shield) => {
-                    self.second.position = Vec3::new(0.0, -4.0 - self.back_carry_offset, 3.0);
+                    self.second.position = Vec3::new(1.5, -4.0 - self.back_carry_offset, 3.0);
                     self.second.orientation =
                         Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
                 },
