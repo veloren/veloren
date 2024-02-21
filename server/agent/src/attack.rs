@@ -6414,7 +6414,15 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
     ) {
         if tgt_data.pos.0.z - self.pos.0.z > 5.0 {
-            controller.push_basic_input(InputKind::Secondary);
+            controller.push_action(ControlAction::StartInput {
+                input: InputKind::Secondary,
+                target_entity: agent
+                    .target
+                    .as_ref()
+                    .and_then(|t| read_data.uids.get(t.target))
+                    .copied(),
+                select_pos: None,
+            });
         } else if attack_data.dist_sqrd < 12.0f32.powi(2) {
             controller.push_basic_input(InputKind::Primary);
         }

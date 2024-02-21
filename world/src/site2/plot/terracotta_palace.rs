@@ -620,12 +620,12 @@ impl Structure for TerracottaPalace {
             // floor decor in chamber rooms
             painter
                 .cylinder(Aabb {
-                    min: (room_center - 3).with_z(base - 16 - (room_size / 2) - (room_size / 16)),
+                    min: (room_center - 3).with_z(base - 24 - (room_size / 2) - (room_size / 16)),
                     max: (room_center + 3).with_z(base - 6 - (room_size / 2) - (room_size / 16)),
                 })
                 .clear();
             // npcs in chamber rooms
-            let npc_pos = room_center.with_z(base - 16 - (room_size / 2) - (room_size / 16));
+            let npc_pos = room_center.with_z(base - 24 - (room_size / 2) - (room_size / 16));
             let npc = chamber_npcs
                 .swap_remove(RandomField::new(0).get(npc_pos) as usize % chamber_npcs.len());
 
@@ -876,7 +876,7 @@ impl Structure for TerracottaPalace {
                 .fill(clay_broken.clone());
 
             let pillar_npc_pos = (center + dir * ((size / 2) + 9)).with_z(base + 6);
-            let statue_pos = (center + dir * ((size / 2) + 8)).with_z(base + 6);
+            let statue_pos = (center + dir * ((size / 2) + 5)).with_z(base + 6);
 
             spawn_random_entity(pillar_npc_pos, painter, 1..=1);
 
