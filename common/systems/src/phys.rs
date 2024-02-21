@@ -145,7 +145,7 @@ fn simulated_wind_vel(
         .unwrap_or(0.);
     let interp_town = terrain
         .get_interpolated(pos_2d, |c| match c.meta().site() {
-            Some(SiteKindMeta::Settlement(_)) => 3.5,
+            Some(SiteKindMeta::Settlement(_)) => 2.7,
             _ => 1.0,
         })
         .unwrap_or(0.);
@@ -176,7 +176,7 @@ fn simulated_wind_vel(
     // 0.0..1.0, 0.25 morning, 0.45 midday, 0.66 evening, 0.79 night, 0.0/1.0
     // midnight
     let sun_dir = time_of_day.get_sun_dir().normalized();
-    let mut lift = ((sun_dir - normal.normalized()).magnitude() - 0.5).max(0.2) * 3.;
+    let mut lift = ((sun_dir - normal.normalized()).magnitude() - 0.5).max(0.2) * 2.3;
 
     // TODO: potential source of harsh edges in wind speed.
     let temperatures = surrounding_chunks_metas.iter().map(|m| m.temp()).minmax();
@@ -235,7 +235,7 @@ fn simulated_wind_vel(
         angle = (angle - 1.3).max(0.0);
 
         // the ridge lift is based on the angle and the velocity of the wind
-        angle * steepness * wind_velocity.magnitude() * 2.5
+        angle * steepness * wind_velocity.magnitude() * 2.0
     };
 
     // Cliffs mean more lift

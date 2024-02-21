@@ -49,7 +49,7 @@ impl From<&JoinData<'_>> for Data {
             //
             // A span/chord ratio of 4.5 gives an AR of ~5.73.
             // A span/chord ratio of 3.0 gives an ARI of ~3.82.
-            span_length: scale * 3.0,
+            span_length: scale * 4.5,
             chord_length: scale,
             ori: *data.ori,
         }
