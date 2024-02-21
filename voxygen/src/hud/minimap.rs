@@ -137,7 +137,11 @@ impl VoxelMinimap {
                 // since otherwise trees would cause ceiling removal to trigger
                 // when running under a branch.
                 let is_filled = block.map_or(true, |b| {
-                    b.is_filled() && !matches!(b.kind(), BlockKind::Leaves | BlockKind::Wood)
+                    b.is_filled()
+                        && !matches!(
+                            b.kind(),
+                            BlockKind::Leaves | BlockKind::ArtLeaves | BlockKind::Wood
+                        )
                 });
                 let rgba = rgba.unwrap_or_else(|| Rgba::new(0, 0, 0, 255));
                 (rgba, is_filled)

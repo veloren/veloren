@@ -55,6 +55,7 @@ make_case_elim!(
         Leaves = 0x41,
         GlowingMushroom = 0x42,
         Ice = 0x43,
+        ArtLeaves = 0x44,
         // 0x43 <= x < 0x50 is reserved for future tree parts
         // Covers all other cases (we sometimes have bizarrely coloured misc blocks, and also we
         // often want to experiment with new kinds of block without allocating them a
@@ -451,6 +452,7 @@ impl Block {
         match self.kind() {
             BlockKind::Water => (0, 0.4),
             BlockKind::Leaves => (9, 255.0),
+            BlockKind::ArtLeaves => (9, 255.0),
             BlockKind::Wood => (6, 2.0),
             BlockKind::Snow => (6, 2.0),
             BlockKind::ArtSnow => (6, 2.0),
@@ -488,6 +490,7 @@ impl Block {
         // so all is good for empty fluids.
         match self.kind() {
             BlockKind::Leaves => Some(0.25),
+            BlockKind::ArtLeaves => Some(0.25),
             BlockKind::Grass => Some(0.5),
             BlockKind::WeakRock => Some(0.75),
             BlockKind::Snow => Some(0.1),
