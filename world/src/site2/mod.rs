@@ -562,6 +562,7 @@ impl Site {
             "Burial Grounds",
             "Remains",
             "Temples",
+            "Gardens",
         ]
         .choose(&mut rng)
         .unwrap();
