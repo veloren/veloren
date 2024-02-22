@@ -1574,19 +1574,15 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Leafy biome
             (
                 Some("common.entity.wild.peaceful.holladon"),
-                (biome.leafy.max(biome.barren) + 0.1) * 0.5,
+                (biome.leafy.max(biome.dusty) + 0.05) * 0.3,
             ),
             (
-                Some("common.entity.wild.peaceful.turtle"),
-                (biome.leafy + 0.05) * 0.5,
+                Some("common.entity.dungeon.gnarling.mandragora"),
+                (biome.leafy + 0.05) * 0.2,
             ),
             (
                 Some("common.entity.wild.aggressive.rootsnapper"),
-                (biome.leafy + 0.05) * 0.02,
-            ),
-            (
-                Some("common.entity.wild.peaceful.axolotl"),
-                (biome.leafy + 0.05) * 0.5,
+                (biome.leafy + 0.05) * 0.1,
             ),
             (
                 Some("common.entity.wild.aggressive.maneater"),
@@ -1603,25 +1599,31 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                     * 0.35,
             ),
             (
-                Some("common.entity.wild.aggressive.cave_salamander"),
+                Some("common.entity.wild.aggressive.asp"),
                 (biome.leafy + 0.1) * 0.2,
             ),
             (
-                Some("common.entity.wild.aggressive.asp"),
-                (biome.leafy + 0.1) * 0.1,
-            ),
-            (
                 Some("common.entity.wild.aggressive.swamp_troll"),
-                (biome.leafy + 0.0) * 0.1,
+                (biome.leafy + 0.0) * 0.05,
             ),
             (
                 Some("common.entity.wild.peaceful.bat"),
                 (biome.leafy + 0.1) * 0.25,
             ),
+            (
+                Some("common.entity.wild.peaceful.crawler_moss"),
+                (biome.leafy + 0.05) * 0.25,
+            ),
             // Dusty biome
             (
                 Some("common.entity.wild.aggressive.dodarock"),
-                (biome.dusty.max(biome.barren).max(biome.snowy) + 0.05) * 0.05,
+                (biome
+                    .dusty
+                    .max(biome.barren)
+                    .max(biome.crystal)
+                    .max(biome.snowy)
+                    + 0.05)
+                    * 0.05,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_spider"),
@@ -1641,52 +1643,72 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             // Icy biome
             (
-                Some("common.entity.wild.aggressive.blue_oni"),
-                (biome.icy + 0.0) * 0.03,
-            ),
-            (
                 Some("common.entity.wild.aggressive.icedrake"),
                 (biome.icy + 0.0) * 0.04,
+            ),
+            (
+                Some("common.entity.wild.aggressive.roshwalr"),
+                (biome.icy + 0.0) * 0.1,
             ),
             (
                 Some("common.entity.wild.aggressive.wendigo"),
                 (biome.icy.min(biome.depth) + 0.0) * 0.02,
             ),
+            (
+                Some("common.entity.wild.aggressive.frostfang"),
+                (biome.icy + 0.0) * 0.2,
+            ),
+            (
+                Some("common.entity.wild.aggressive.tursus"),
+                (biome.icy + 0.0) * 0.03,
+            ),
             // Lava biome
             (
                 Some("common.entity.wild.aggressive.lavadrake"),
-                (biome.fire + 0.0) * 0.5,
+                (biome.fire + 0.0) * 0.25,
             ),
             (
                 Some("common.entity.wild.peaceful.crawler_molten"),
-                (biome.fire + 0.0) * 0.35,
+                (biome.fire + 0.0) * 0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.cave_salamander"),
+                (biome.fire + 0.0) * 0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.red_oni"),
-                (biome.fire + 0.0) * 0.05,
+                (biome.fire + 0.0) * 0.03,
             ),
             // Crystal biome
             (
                 Some("common.entity.wild.aggressive.basilisk"),
                 (biome.crystal + 0.1) * 0.1,
             ),
+            (
+                Some("common.entity.wild.aggressive.blue_oni"),
+                (biome.crystal + 0.0) * 0.03,
+            ),
             // Sandy biome
             (
                 Some("common.entity.wild.aggressive.antlion"),
-                (biome.sandy.max(biome.dusty) + 0.1) * 0.025,
+                (biome.sandy.max(biome.dusty) + 0.1) * 0.050,
             ),
             (
                 Some("common.entity.wild.aggressive.sandshark"),
-                (biome.sandy + 0.1) * 0.025,
+                (biome.sandy + 0.1) * 0.050,
+            ),
+            (
+                Some("common.entity.wild.peaceful.crawler_sand"),
+                (biome.sandy + 0.1) * 0.2,
             ),
             // Snowy biome
             (
                 Some("common.entity.wild.aggressive.akhlut"),
-                (biome.snowy.max(biome.icy) + 0.1) * 0.05,
+                (biome.snowy.max(biome.icy) + 0.1) * 0.03,
             ),
             (
                 Some("common.entity.wild.aggressive.rocksnapper"),
-                ((biome.barren).max(biome.snowy) + 0.1) * 0.1,
+                (biome.barren.max(biome.crystal).max(biome.snowy) + 0.1) * 0.1,
             ),
             // With depth
             (
