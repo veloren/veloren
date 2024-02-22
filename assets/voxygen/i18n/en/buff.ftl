@@ -9,31 +9,29 @@ buff-desc-potion = Drinking...
 buff-title-agility = Agility
 buff-desc-agility = Your movement is faster, but you deal less damage, and take more damage.
 buff-stat-agility = 
-    Increases movement speed by { $strength }%.
-    but decreases your damage by 100%,
-    and increases your damage vulnerability
-    by 100%.
+    Increases movement speed by { $strength } %.
+    In return, your attack power and defense decrease dramatically.
 ## Saturation
 buff-title-saturation = Saturation
 buff-desc-saturation = Gain health over time from consumables.
 ## Campfire
 buff-title-campfire_heal = Campfire Heal
-buff-desc-campfire_heal = Resting at a campfire heals { $rate }% per second.
-## Energy Regen
-buff-title-energy_regen = Energy Regeneration
-buff-desc-energy_regen = Faster energy regeneration
-buff-stat-energy_regen = Restores { $str_total } Energy
+buff-desc-campfire_heal = Resting at a campfire heals { $rate } % HP per second.
+## Stamina Regen
+buff-title-energy_regen = Stamina Regeneration
+buff-desc-energy_regen = Faster stamina regeneration.
+buff-stat-energy_regen = Restores { $str_total } stamina
 ## Health Increase
 buff-title-increase_max_health = Increase Max Health
-buff-desc-increase_max_health = Raise your max health cap
+buff-desc-increase_max_health = Your maximum HP is increased.
 buff-stat-increase_max_health =
     Raises maximum health
     by { $strength }
-## Energy Increase
-buff-title-increase_max_energy = Increase Max Energy
-buff-desc-increase_max_energy = Raise your max energy cap
+## Stamina Increase
+buff-title-increase_max_energy = Increase Max Stamina
+buff-desc-increase_max_energy = Your maximum stamina is increased.
 buff-stat-increase_max_energy =
-    Raises maximum energy
+    Raises maximum stamina
     by { $strength }
 ## Invulnerability
 buff-title-invulnerability = Invulnerability
@@ -56,7 +54,7 @@ buff-title-cursed = Cursed
 buff-desc-cursed = You are cursed.
 ## Burning
 buff-title-burn = On Fire
-buff-desc-burn = You are burning alive
+buff-desc-burn = You are burning alive.
 ## Crippled
 buff-title-crippled = Crippled
 buff-desc-crippled = Your movement is crippled as your legs are heavily injured.
@@ -80,7 +78,7 @@ buff-title-potionsickness = Potion sickness
 buff-desc-potionsickness = Potions have less positive effect on you after recently consuming a potion.
 buff-stat-potionsickness =
     Decreases the positive effects of
-    subsequent potions by { $strength }%.
+    subsequent potions by { $strength } %.
 ## Reckless
 buff-title-reckless = Reckless
 buff-desc-reckless = Your attacks are more powerful. However, you are leaving your defenses open.
@@ -104,22 +102,22 @@ buff-title-imminentcritical = Imminent Critical
 buff-desc-imminentcritical = Your next attack will critically hit the enemy.
 ## Fury
 buff-title-fury = Fury
-buff-desc-fury = With your fury, your strikes generate more combo
+buff-desc-fury = With your fury, your strikes generate more combo.
 ## Sunderer
 buff-title-sunderer = Sunderer
-buff-desc-sunderer = Your attacks can break through your foes' defences and refresh you with more energy.
+buff-desc-sunderer = Your attacks can break through your foes' defences and refresh you with more stamina.
 ## Sunderer
 buff-title-defiance = Defiance
 buff-desc-defiance = You can withstand mightier and more staggering blows and generate combo by being hit, however you are slower.
 ## Bloodfeast
 buff-title-bloodfeast = Bloodfeast
-buff-desc-bloodfeast = You restore life on attacks against bleeding enemies
+buff-desc-bloodfeast = You restore life on attacks against bleeding enemies.
 ## Berserk
 buff-title-berserk = Berserk
 buff-desc-berserk = You are in a berserking rage, causing your attacks to be more powerful and swift, and increasing your speed. However, as a result your defensive capability is less.
 ## Heatstroke
 buff-title-heatstroke = Heatstroke
-buff-desc-heatstroke = You were exposed to heat and now suffer from heatstroke. Your energy reward and movement speed are cut down. Chill.
+buff-desc-heatstroke = You were exposed to heat and now suffer from heatstroke. Your stamina reward and movement speed are cut down. Chill.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

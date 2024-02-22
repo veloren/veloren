@@ -906,4 +906,3 @@ armor-misc-foot-jackalope = Fluffy Jackalope Slippers
 
 armor-misc-foot-ski = Wooden skis
     .desc = Best used downhill on snow.
-    

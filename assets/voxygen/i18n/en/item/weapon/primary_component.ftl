@@ -753,4 +753,3 @@ weapon-component-sword-ornate-cobalt = Cobalt Ornate Sword Blade
 
 weapon-component-sword-sabre-cobalt = Cobalt Sabre Blade
     .desc = {""}
-

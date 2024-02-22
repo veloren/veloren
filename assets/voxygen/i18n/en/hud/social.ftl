@@ -3,7 +3,12 @@ hud-social-online = Online:
 hud-social-friends = Friends
 hud-social-not_yet_available = Not yet available
 hud-social-faction = Faction
-hud-social-play_online_fmt = { $nb_player } player(s) online
+hud-social-play_online_fmt =
+  { $nb_player ->
+   [one] 1 player online
+   *[other] { $nb_player } player(s)s online
+  }
+
 hud-social-name = Name
 hud-social-level = Level
 hud-social-zone = Zone

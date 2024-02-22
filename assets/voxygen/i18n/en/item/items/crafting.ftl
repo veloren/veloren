@@ -219,7 +219,7 @@ object-elegant_crest = Elegant Crest
     .desc = 
         Bright plumage formerly part of a colorful creature.
         
-        Can be used to craft quick and energy-efficient weapons.
+        Can be used to craft quick and stamina-efficient weapons.
 
 object-ice_shard = Icy Shard
     .desc = Looted from a frosty creature.

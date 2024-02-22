@@ -51,4 +51,3 @@ weapon-sword-frost-admin_sword = Admin Greatsword
 
 weapon-bow-velorite-debug = Admin Velorite Bow
     .desc = Infused with Velorite power.
-    

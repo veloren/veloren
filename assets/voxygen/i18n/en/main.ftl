@@ -12,26 +12,23 @@ main-notice =
 
     - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
 
-    - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
+    - If you have constructive feedback or bug reports, you can contact us on our GitLab repository and on our Discord or Matrix server.
 
-    - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
-     you wish (provided derived work is also under GPL 3).
+    - Veloren is open source. You are free to play, modify, and redistribute the game in accordance to version 3 of the GNU General Public license.
 
     - Veloren is a non-profit community project, and everybody working on it is a volunteer.
-    If you like what you see, you're welcome to join the development or art teams!
+    If you like what you see, you are welcome to join any of our working groups!
 
     Thanks for taking the time to read this notice, we hope you enjoy the game!
 
-    ~ The Veloren Devs
+    ~ The development team
 main-login_process =
-    Information on the Login Process:
+    About multiplayer mode:
 
-    Please note that you need an account
-    to play on auth-enabled servers.
+    Please note that you need an account to play on servers with authentication enabled.
 
-    You can create an account over at
-
-    https://veloren.net/account/.
+    You can create an account at:
+    https://veloren.net/account/
 main-singleplayer-new = New
 main-singleplayer-delete = Delete
 main-singleplayer-regenerate = Regenerate
@@ -41,38 +38,38 @@ main-singleplayer-seed = Seed
 main-singleplayer-day_length = Day duration
 main-singleplayer-random_seed = Random
 main-singleplayer-size_lg = Logarithmic size
-main-singleplayer-map_large_warning = Warning: Large worlds will take a long time to start for the first time
+main-singleplayer-map_large_warning = Warning: Large worlds will take a long time to start for the first time.
 main-singleplayer-world_name = World name
 main-singleplayer-map_scale = Vertical scaling
 main-singleplayer-map_erosion_quality = Erosion quality
 main-singleplayer-map_shape = Shape
 main-singleplayer-play = Play
 main-singleplayer-generate_and_play = Generate & Play
-menu-singleplayer-confirm_delete = Are you sure you want to delete "{ $world_name }"
-menu-singleplayer-confirm_regenerate = Are you sure you want to regenerate "{ $world_name }"
-main-login-server_not_found = Server not found
-main-login-authentication_error = Auth error on server
-main-login-internal_error = Internal error on client (most likely, player character was deleted)
-main-login-failed_auth_server_url_invalid = Failed to connect to auth server
-main-login-insecure_auth_scheme = The auth Scheme HTTP is NOT supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds
-main-login-server_full = Server is full
-main-login-untrusted_auth_server = Auth server not trusted
+menu-singleplayer-confirm_delete = Are you sure you want to delete "{ $world_name }"?
+menu-singleplayer-confirm_regenerate = Are you sure you want to regenerate "{ $world_name }"?
+main-login-server_not_found = Server not found.
+main-login-authentication_error = Authentication error on server.
+main-login-internal_error = Internal error on client. Hint: The player character might have been deleted.
+main-login-failed_auth_server_url_invalid = Failed to connect to auth server.
+main-login-insecure_auth_scheme = The HTTP authentication scheme is not supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds.
+main-login-server_full = Server is full.
+main-login-untrusted_auth_server = Authentication server not trusted.
 main-login-outdated_client_or_server = ServerWentMad: Probably versions are incompatible, check for updates.
-main-login-timeout = Timeout: Server did not respond in time. (Overloaded or network issues).
-main-login-server_shut_down = Server shut down
-main-login-network_error = Network error
-main-login-network_wrong_version = Mismatched server and client version, please update your game client.
-main-login-failed_sending_request = Request to Auth server failed
-main-login-invalid_character = The selected character is invalid
-main-login-client_crashed = Client crashed
-main-login-not_on_whitelist = You need a Whitelist entry by an Admin to join
-main-login-banned = You have been banned with the following reason
-main-login-kicked = You have been kicked with the following reason
+main-login-timeout = Timeout: Server did not respond in time. Hint: the server might be currently overloaded or there are issues on the network.
+main-login-server_shut_down = Server shut down.
+main-login-network_error = Network error.
+main-login-network_wrong_version = Mismatched server and client version. Hint: You might need to update your game client.
+main-login-failed_sending_request = Request to authentication server failed.
+main-login-invalid_character = The selected character is invalid.
+main-login-client_crashed = Client crashed.
+main-login-not_on_whitelist = You are not a member in the whitelist of the server you attempted to join.
+main-login-banned = You have been banned with the following reason:
+main-login-kicked = You have been kicked with the following reason:
 main-login-select_language = Select a language
-main-login-client_version = Client Version
-main-login-server_version = Server Version
+main-login-client_version = Client version
+main-login-server_version = Server version
 main-login-client_init_failed = Client failed to initialize: { $init_fail_reason }
-main-login-username_bad_characters = Username contains invalid characters! (Only alphanumeric, '_' and '-' are allowed)
+main-login-username_bad_characters = Username contains invalid characters! (Only alphanumeric, '_' and '-' are allowed).
 main-login-username_too_long = Username is too long! Max length is: { $max_len }
 main-servers-select_server = Select a server
 main-servers-singleplayer_error = Failed to connect to internal server: { $sp_error }
