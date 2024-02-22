@@ -6,11 +6,11 @@ ComboMelee2(
                 kind: Slash(
                     damage: 23,
                     poise: 20,
-                    knockback: 20,
+                    knockback: 15,
                     energy_regen: 0,
                 ),
                 range: 4.0,
-                angle: 15.0,
+                angle: 30.0,
                 multi_target: Some(Normal),
             ),
             buildup_duration: 0.2,
