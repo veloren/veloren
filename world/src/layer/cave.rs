@@ -17,6 +17,7 @@ use common::{
     vol::RectVolSize,
 };
 use inline_tweak::tweak_fn;
+use itertools::Itertools;
 use noise::NoiseFn;
 use rand::prelude::*;
 use std::{
@@ -210,7 +211,7 @@ impl Tunnel {
                 .mul(2.0)
                 .sub(1.0)
                 .add(
-                    ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32 * 0.5))
+                    ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32 * 0.75))
                         .clamped(0.0, 2.5),
                 ),
             below,
@@ -247,27 +248,27 @@ impl Tunnel {
             // Extremely hot and dry areas deep underground
             let fire = underground
                 * close(humidity, 0.0, 0.6)
-                * close(temp, 2.5, 1.4)
+                * close(temp, 2.0, 1.3)
                 * close(depth, 1.0, 0.5);
             // Overgrown with plants that need a moderate climate to survive
             let leafy = underground
                 * close(humidity, 0.8, 0.8)
-                * close(temp, 0.85, 0.9)
+                * close(temp, 0.95, 0.85)
                 * close(depth, 0.0, 0.6);
             // Cool temperature, dry and devoid of value
             let dusty = close(humidity, 0.0, 0.5) * close(temp, -0.1, 0.6);
             // Deep underground and freezing cold
             let icy = underground
-                * close(temp, -1.0, 0.6)
-                * close(depth, 1.0, 0.5)
+                * close(temp, -1.5, 1.3)
+                * close(depth, 1.0, 0.65)
                 * close(humidity, 1.0, 0.7);
             // Rocky cold cave that appear near the surface
             let snowy = close(temp, -0.5, 0.3) * close(depth, 0.0, 0.4);
             // Crystals grow deep underground in areas rich with minerals. They are present
             // in areas with colder temperatures and low humidity
             let crystal = underground
-                * close(humidity, 0.0, 0.7)
-                * close(temp, -0.5, 0.8)
+                * close(humidity, 0.0, 0.5)
+                * close(temp, -0.6, 0.75)
                 * close(depth, 1.0, 0.55)
                 * close(mineral, 1.5, 1.0);
             // Hot, dry and shallow
@@ -583,9 +584,10 @@ fn write_column<R: Rng>(
 
     let ceiling_cover = if biome.leafy > 0.3
         || biome.mushroom > 0.5
-        || biome.icy > 0.7
-        || biome.sandy > 0.5
-        || biome.fire > 0.5
+        || biome.icy > 0.6
+        || biome.sandy > 0.4
+        || biome.fire > 0.4
+        || biome.crystal > 0.75
     {
         // 1.0 because at some point we maybe want to use some noise value here instead
         1.0.mul(((col.alt - z_range.end as f32) / 32.0).clamped(0.0, 1.0))
@@ -599,6 +601,7 @@ fn write_column<R: Rng>(
                         .max(biome.sandy - 0.3)
                         .max(biome.leafy - 0.4)
                         .max(biome.mushroom - 0.4)
+                        .max(biome.crystal - 0.5)
                 {
                     max_height * col.marble_mid
                 } else {
@@ -1179,40 +1182,53 @@ fn write_column<R: Rng>(
                         Lerp::lerp_unclamped(
                             Lerp::lerp_unclamped(
                                 Lerp::lerp_unclamped(
-                                    Rgb::new(80, 100, 150),
-                                    Rgb::new(23, 44, 88),
-                                    biome.mushroom,
+                                    Lerp::lerp_unclamped(
+                                        Rgb::new(80, 100, 150),
+                                        Rgb::new(23, 44, 88),
+                                        biome.mushroom,
+                                    ),
+                                    Lerp::lerp_unclamped(
+                                        Rgb::new(100, 40, 40),
+                                        Rgb::new(100, 75, 100),
+                                        col.marble_small,
+                                    ),
+                                    biome.fire,
                                 ),
                                 Lerp::lerp_unclamped(
-                                    Rgb::new(100, 40, 40),
-                                    Rgb::new(100, 75, 100),
-                                    col.marble_small,
+                                    Rgb::new(238, 198, 139),
+                                    Rgb::new(111, 99, 64),
+                                    col.marble_mid,
                                 ),
-                                biome.fire,
+                                biome.sandy,
                             ),
                             Lerp::lerp_unclamped(
-                                Rgb::new(238, 198, 139),
-                                Rgb::new(111, 99, 64),
-                                col.marble_mid,
+                                Rgb::new(0, 73, 12),
+                                Rgb::new(49, 63, 12),
+                                col.marble_small,
                             ),
-                            biome.sandy,
+                            biome.leafy,
                         ),
                         Lerp::lerp_unclamped(
-                            Rgb::new(0, 73, 12),
-                            Rgb::new(49, 63, 12),
-                            col.marble_small,
+                            Rgb::new(100, 150, 255),
+                            Rgb::new(100, 120, 255),
+                            col.marble,
                         ),
-                        biome.leafy,
+                        biome.icy,
                     ),
                     Lerp::lerp_unclamped(
-                        Rgb::new(100, 150, 255),
-                        Rgb::new(100, 120, 255),
-                        col.marble,
+                        Rgb::new(105, 25, 131),
+                        Rgb::new(251, 238, 255),
+                        col.marble_mid,
                     ),
-                    biome.icy,
+                    biome.crystal,
                 );
                 Block::new(
-                    if rand.chance(wpos, (biome.mushroom * 0.01).max(biome.icy * 0.1)) {
+                    if rand.chance(
+                        wpos,
+                        (biome.mushroom * 0.01)
+                            .max(biome.icy * 0.1)
+                            .max(biome.crystal * 0.005),
+                    ) {
                         BlockKind::GlowingWeakRock
                     } else if rand.chance(wpos, biome.sandy) {
                         BlockKind::Sand
@@ -1556,175 +1572,220 @@ fn write_column<R: Rng>(
 }
 
 fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Biome, rng: &mut R) {
-    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.05) {
+    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.025) {
         if let Some(entity_asset) = [
             // Mushroom biome
             (
                 Some("common.entity.wild.peaceful.truffler"),
-                (biome.mushroom + 0.02) * 0.35,
+                biome.mushroom + 0.02,
+                0.35,
+                0.5,
             ),
             (
                 Some("common.entity.wild.peaceful.fungome"),
-                (biome.mushroom + 0.02) * 0.5,
+                biome.mushroom + 0.02,
+                0.5,
+                0.5,
             ),
             (
-                Some("common.entity.wild.peaceful.bat"),
-                (biome.mushroom + 0.1) * 0.25,
+                Some("common.entity.wild.aggressive.bat"),
+                biome.mushroom + 0.1,
+                0.25,
+                0.5,
             ),
             // Leafy biome
             (
                 Some("common.entity.wild.peaceful.holladon"),
-                (biome.leafy.max(biome.dusty) + 0.05) * 0.3,
+                biome.leafy + 0.05,
+                0.5,
+                0.5,
             ),
             (
-                Some("common.entity.dungeon.gnarling.mandragora"),
-                (biome.leafy + 0.05) * 0.2,
+                Some("common.entity.wild.peaceful.turtle"),
+                biome.leafy + 0.05,
+                0.5,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.rootsnapper"),
-                (biome.leafy + 0.05) * 0.1,
+                biome.leafy + 0.05,
+                0.05,
+                0.5,
+            ),
+            (
+                Some("common.entity.wild.peaceful.axolotl"),
+                biome.leafy + 0.05,
+                0.5,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.maneater"),
-                (biome.leafy + 0.0) * 0.05,
+                biome.leafy + 0.05,
+                0.1,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.batfox"),
-                (biome
+                biome
                     .leafy
                     .max(biome.barren)
                     .max(biome.sandy)
                     .max(biome.snowy)
-                    + 0.3)
-                    * 0.35,
+                    + 0.3,
+                0.35,
+                0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.cave_salamander"),
+                biome.leafy + 0.0,
+                0.3,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.asp"),
-                (biome.leafy + 0.1) * 0.2,
+                biome.leafy + 0.1,
+                0.25,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.swamp_troll"),
-                (biome.leafy + 0.0) * 0.05,
+                biome.leafy + 0.0,
+                0.1,
+                0.5,
             ),
             (
-                Some("common.entity.wild.peaceful.bat"),
-                (biome.leafy + 0.1) * 0.25,
-            ),
-            (
-                Some("common.entity.wild.peaceful.crawler_moss"),
-                (biome.leafy + 0.05) * 0.25,
+                Some("common.entity.wild.aggressive.bat"),
+                biome.leafy + 0.1,
+                0.25,
+                0.5,
             ),
             // Dusty biome
             (
                 Some("common.entity.wild.aggressive.dodarock"),
-                (biome
-                    .dusty
-                    .max(biome.barren)
-                    .max(biome.crystal)
-                    .max(biome.snowy)
-                    + 0.05)
-                    * 0.05,
+                biome.dusty.max(biome.barren).max(biome.snowy) + 0.05,
+                0.05,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_spider"),
-                (biome.dusty + 0.0) * 0.05,
+                biome.dusty + 0.0,
+                0.4,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.cave_troll"),
-                (biome.dusty + 0.1) * 0.05,
+                biome.dusty + 0.1,
+                0.05,
+                0.5,
             ),
             (
                 Some("common.entity.wild.peaceful.rat"),
-                (biome.dusty.max(biome.barren) + 0.15) * 0.3,
+                biome.dusty + 0.1,
+                0.3,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.bat"),
-                (biome.dusty.max(biome.sandy).max(biome.snowy) + 0.1) * 0.25,
+                biome.dusty.max(biome.sandy).max(biome.snowy) + 0.1,
+                0.25,
+                0.5,
             ),
             // Icy biome
             (
-                Some("common.entity.wild.aggressive.icedrake"),
-                (biome.icy + 0.0) * 0.04,
+                Some("common.entity.wild.aggressive.blue_oni"),
+                biome.icy + 0.0,
+                0.03,
+                0.5,
             ),
             (
-                Some("common.entity.wild.aggressive.roshwalr"),
-                (biome.icy + 0.0) * 0.1,
+                Some("common.entity.wild.aggressive.icedrake"),
+                biome.icy + 0.0,
+                0.1,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.wendigo"),
-                (biome.icy.min(biome.depth) + 0.0) * 0.02,
-            ),
-            (
-                Some("common.entity.wild.aggressive.frostfang"),
-                (biome.icy + 0.0) * 0.2,
-            ),
-            (
-                Some("common.entity.wild.aggressive.tursus"),
-                (biome.icy + 0.0) * 0.03,
+                biome.icy.min(biome.depth) + 0.0,
+                0.02,
+                0.5,
             ),
             // Lava biome
             (
                 Some("common.entity.wild.aggressive.lavadrake"),
-                (biome.fire + 0.0) * 0.25,
+                biome.fire + 0.0,
+                0.5,
+                0.5,
             ),
             (
                 Some("common.entity.wild.peaceful.crawler_molten"),
-                (biome.fire + 0.0) * 0.5,
-            ),
-            (
-                Some("common.entity.wild.aggressive.cave_salamander"),
-                (biome.fire + 0.0) * 0.5,
+                biome.fire + 0.0,
+                0.75,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.red_oni"),
-                (biome.fire + 0.0) * 0.03,
+                biome.fire + 0.0,
+                0.05,
+                0.5,
             ),
             // Crystal biome
             (
                 Some("common.entity.wild.aggressive.basilisk"),
-                (biome.crystal + 0.1) * 0.1,
-            ),
-            (
-                Some("common.entity.wild.aggressive.blue_oni"),
-                (biome.crystal + 0.0) * 0.03,
+                biome.crystal + 0.1,
+                0.1,
+                0.5,
             ),
             // Sandy biome
             (
                 Some("common.entity.wild.aggressive.antlion"),
-                (biome.sandy.max(biome.dusty) + 0.1) * 0.050,
+                biome.sandy.max(biome.dusty) + 0.1,
+                0.025,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.sandshark"),
-                (biome.sandy + 0.1) * 0.050,
-            ),
-            (
-                Some("common.entity.wild.peaceful.crawler_sand"),
-                (biome.sandy + 0.1) * 0.2,
+                biome.sandy + 0.1,
+                0.025,
+                0.5,
             ),
             // Snowy biome
             (
                 Some("common.entity.wild.aggressive.akhlut"),
-                (biome.snowy.max(biome.icy) + 0.1) * 0.03,
+                biome.snowy.max(biome.icy) + 0.1,
+                0.05,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.rocksnapper"),
-                (biome.barren.max(biome.crystal).max(biome.snowy) + 0.1) * 0.1,
+                biome.barren.max(biome.snowy) + 0.1,
+                0.1,
+                0.5,
             ),
             // With depth
             (
                 Some("common.entity.wild.aggressive.black_widow"),
-                (biome.depth + 0.0) * 0.01,
+                biome.depth + 0.0,
+                0.02,
+                0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.ogre"),
-                (biome.depth + 0.0) * 0.02,
+                biome.depth + 0.0,
+                0.02,
+                0.5,
             ),
-            (
-                Some("common.entity.wild.aggressive.basilisk"),
-                (biome.depth + 0.1) * 0.005,
-            ),
-            (None, 100.0),
+            (None, 100.0, 0.0, 0.0),
         ]
+        .iter()
+        .filter_map(|(entity, biome_modifier, chance, cutoff)| {
+            if let Some(entity) = entity {
+                let close = close_fast(1.0, *biome_modifier, *cutoff, 2);
+                (close > 0.0).then(|| (Some(entity), close * chance))
+            } else {
+                Some((None, 100.0))
+            }
+        })
+        .collect_vec()
         .choose_weighted(rng, |(_, w)| *w)
         .ok()
         .and_then(|s| s.0)
