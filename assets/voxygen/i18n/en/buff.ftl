@@ -10,7 +10,7 @@ buff-title-agility = Agility
 buff-desc-agility = Your movement is faster, but you deal less damage, and take more damage.
 buff-stat-agility = 
     Increases movement speed by { $strength } %.
-    In return, your attack power and defense decrease dramatically.
+    In return, your attack power and defense decrease drastically.
 ## Saturation
 buff-title-saturation = Saturation
 buff-desc-saturation = Gain health over time from consumables.
