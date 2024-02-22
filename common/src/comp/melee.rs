@@ -133,8 +133,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -183,8 +182,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -225,8 +223,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -272,8 +269,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: pull,
                         direction: KnockbackDir::Towards,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -310,8 +306,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: pull,
                         direction: KnockbackDir::Towards,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -347,8 +342,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -581,52 +575,59 @@ impl MeleeConstructorKind {
             Slash {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
                 energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
             Stab {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
                 energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
             Bash {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
                 energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
             Hook {
                 ref mut damage,
                 ref mut poise,
-                pull: _,
+                ref mut pull,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *pull *= stats.effect_power;
             },
             NecroticVortex {
                 ref mut damage,
-                pull: _,
-                lifesteal: _,
+                ref mut pull,
+                ref mut lifesteal,
             } => {
                 *damage *= stats.power;
+                *pull *= stats.effect_power;
+                *lifesteal *= stats.effect_power;
             },
             SonicWave {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
         }
         self

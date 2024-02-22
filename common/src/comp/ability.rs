@@ -805,7 +805,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
-        charge_through: bool,
+        auto_charge: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1331,7 +1331,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 ori_modifier: _,
-                charge_through: _,
+                auto_charge: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2271,13 +2271,13 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 melee_constructor,
                 ori_modifier,
-                charge_through,
+                auto_charge,
                 meta: _,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
                     energy_drain: *energy_drain,
                     forward_speed: *forward_speed,
-                    charge_through: *charge_through,
+                    auto_charge: *auto_charge,
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
@@ -2288,9 +2288,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 auto_charge: false,
                 timer: Duration::default(),
-                charge_end_timer: Duration::from_secs_f32(*charge_duration),
                 stage_section: StageSection::Buildup,
-                exhausted: false,
             }),
             CharacterAbility::BasicBlock {
                 buildup_duration,
@@ -2924,6 +2922,44 @@ pub struct AbilityMeta {
     pub init_event: Option<AbilityInitEvent>,
     #[serde(default)]
     pub requirements: AbilityRequirements,
+    /// Adjusts stats of ability when activated based on context.
+    // If we ever add more, I guess change to a vec? Or maybe just an array if we want to keep
+    // AbilityMeta small?
+    pub contextual_stats: Option<StatAdj>,
+}
+
+impl StatAdj {
+    pub fn equivalent_stats(&self, data: &JoinData) -> Stats {
+        let mut stats = Stats::one();
+        let add = match self.context {
+            StatContext::PoiseResilience(base) => {
+                let poise_res = combat::compute_poise_resilience(data.inventory, data.msm);
+                poise_res.unwrap_or(0.0) / base
+            },
+        };
+        match self.field {
+            StatField::EffectPower => {
+                stats.effect_power += add;
+            },
+        }
+        stats
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StatAdj {
+    pub context: StatContext,
+    pub field: StatField,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum StatContext {
+    PoiseResilience(f32),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum StatField {
+    EffectPower,
 }
 
 // TODO: Later move over things like energy and combo into here

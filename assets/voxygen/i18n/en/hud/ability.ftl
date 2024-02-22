@@ -398,3 +398,9 @@ common-abilities-hammer-heavy_whorl = Heavy Whorl
 common-abilities-hammer-dual_heavy_whorl = Heavy Whorl
     .desc =
         You strike all foes surrounding you with your hammers.
+common-abilities-hammer-intercept = Intercept
+    .desc =
+        Charge forward with your hammer throwing your weight behind your strike.
+common-abilities-hammer-dual_intercept = Intercept
+    .desc =
+        Charge forward with your hammers throwing your weight behind your strike.

@@ -225,13 +225,13 @@
                     ((), (Hammer(HeavyWhorl), "common.abilities.hammer.heavy_whorl")),
                 ],
             ),
-            // Contextualized(
-            //     pseudo_id: "common.abilities.hammer.intercept",
-            //     abilities: [
-            //         ((dual_wielding_same_kind: true), (Hammer(Intercept), "common.abilities.hammer.dual_intercept")),
-            //         ((), (Hammer(Intercept), "common.abilities.hammer.intercept")),
-            //     ],
-            // ),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.intercept",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(Intercept), "common.abilities.hammer.dual_intercept")),
+                    ((), (Hammer(Intercept), "common.abilities.hammer.intercept")),
+                ],
+            ),
             // Simple(Hammer(PileDriver), "common.abilities.hammer.pile_driver"),
             // Simple(Hammer(LungPummel), "common.abilities.hammer.lung_pummel"),
             // Simple(Hammer(HelmCrusher), "common.abilities.hammer.helm_crusher"),

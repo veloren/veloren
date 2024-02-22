@@ -1300,6 +1300,12 @@ fn handle_ability(
                     &context,
                 )
             })
+            .map(|(mut a, f, s)| {
+                if let Some(contextual_stats) = a.ability_meta().contextual_stats {
+                    a = a.adjusted_by_stats(contextual_stats.equivalent_stats(data))
+                }
+                (a, f, s)
+            })
             .filter(|(ability, _, _)| ability.requirements_paid(data, update))
         {
             update.character = CharacterState::from((

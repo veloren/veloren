@@ -1603,6 +1603,32 @@ pub fn compute_protection(
     })
 }
 
+/// Computes the total resilience provided from armor. Is used to determine the
+/// reduction applied to poise damage received by an entity. None indicates that
+/// the armor equipped makes the entity invulnerable to poise damage.
+pub fn compute_poise_resilience(
+    inventory: Option<&Inventory>,
+    msm: &MaterialStatManifest,
+) -> Option<f32> {
+    inventory.map_or(Some(0.0), |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &*item.kind() {
+                    armor
+                        .stats(msm, item.stats_durability_multiplier())
+                        .poise_resilience
+                } else {
+                    None
+                }
+            })
+            .map(|protection| match protection {
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
+            })
+            .sum::<Option<f32>>()
+    })
+}
+
 /// Used to compute the precision multiplier achieved by flanking a target
 pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>) -> Option<f32> {
     let angle = target_ori.map(|t_ori| t_ori.look_dir().angle_between(attack_dir));

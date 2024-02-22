@@ -1611,9 +1611,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
+                                StageSection::Charge => stage_time,
                                 StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
@@ -1624,13 +1622,7 @@ impl FigureMgr {
                             };
                             anim::character::DashAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    hands,
-                                    ability_id,
-                                    time,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                (ability_id, s.stage_section),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,

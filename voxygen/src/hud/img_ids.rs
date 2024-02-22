@@ -321,6 +321,7 @@ image_ids! {
         hammer_tremor: "voxygen.element.skills.hammer.tremor",
         hammer_vigorous_bash: "voxygen.element.skills.hammer.vigorous_bash",
         hammer_heavy_whorl: "voxygen.element.skills.hammer.heavy_whorl",
+        hammer_intercept: "voxygen.element.skills.hammer.intercept",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
