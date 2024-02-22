@@ -1,6 +1,6 @@
 use super::{
     super::{vek::*, Animation},
-    hammer_start, twist_back, twist_forward, CharacterSkeleton, SkeletonAttr,
+    dual_wield_start, hammer_start, twist_back, twist_forward, CharacterSkeleton, SkeletonAttr,
 };
 use common::{
     comp::item::{Hands, ToolKind},
@@ -88,6 +88,50 @@ impl Animation for AlphaAnimation {
                 twist_forward(&mut next, move2, 1.9, 0.9, 0.6, 1.1);
                 next.control.orientation.rotate_y(move2 * -1.7);
                 next.control.orientation.rotate_z(move2 * -2.7);
+            },
+            Some("common.abilities.hammer.heavy_whorl") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2base = move2;
+                let move2 = move2 * pullback;
+
+                twist_back(&mut next, move1, 2.0, 0.8, 0.4, 1.4);
+                next.control.orientation.rotate_x(move1 * 0.6);
+
+                next.torso.orientation.rotate_z(move2base * -2.0 * PI);
+                twist_forward(&mut next, move2, 3.4, 1.2, 0.8, 1.8);
+                next.control.orientation.rotate_z(move2 * -2.3);
+                next.control.position += Vec3::new(6.0, 0.0, 6.0) * move2;
+            },
+            Some("common.abilities.hammer.dual_heavy_whorl") => {
+                dual_wield_start(&mut next);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2base = move2;
+                let move2 = move2 * pullback;
+
+                twist_back(&mut next, move1, 2.0, 0.8, 0.4, 1.4);
+                next.control_l.orientation.rotate_y(move1 * -PI / 2.0);
+                next.control_r.orientation.rotate_y(move1 * -PI / 2.0);
+                next.control.position += Vec3::new(0.0, 0.0, 4.0) * move1;
+
+                next.torso.orientation.rotate_z(move2base * -2.0 * PI);
+                twist_forward(&mut next, move2, 3.4, 1.2, 0.8, 1.8);
+                next.control_l.orientation.rotate_z(move2 * -2.3);
+                next.control_r.orientation.rotate_z(move2 * -2.3);
             },
             _ => {
                 let (move1, move2, _move3, move2h) = match stage_section {

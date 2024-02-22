@@ -23,5 +23,5 @@ ComboMelee2(
             custom_combo: Some((additional: 9, requirement: Some(TargetPoised))),
         ),
     ],
-    energy_cost_per_strike: 0,
+    energy_cost_per_strike: 10,
 )

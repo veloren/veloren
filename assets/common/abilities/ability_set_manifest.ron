@@ -218,13 +218,13 @@
             // ),
             // Simple(Hammer(Thunderclap), "common.abilities.hammer.thunderclap"),
             // Simple(Hammer(SeismicShock), "common.abilities.hammer.seismic_shock"),
-            // Contextualized(
-            //     pseudo_id: "common.abilities.hammer.heavy_whorl",
-            //     abilities: [
-            //         ((dual_wielding_same_kind: true), (Hammer(HeavyWhorl), "common.abilities.hammer.dual_heavy_whorl")),
-            //         ((), (Hammer(HeavyWhorl), "common.abilities.hammer.heavy_whorl")),
-            //     ],
-            // ),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.heavy_whorl",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(HeavyWhorl), "common.abilities.hammer.dual_heavy_whorl")),
+                    ((), (Hammer(HeavyWhorl), "common.abilities.hammer.heavy_whorl")),
+                ],
+            ),
             // Contextualized(
             //     pseudo_id: "common.abilities.hammer.intercept",
             //     abilities: [

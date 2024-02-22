@@ -499,3 +499,30 @@ pub fn twist_forward(next: &mut CharacterSkeleton, move2: f32, c: f32, h: f32, b
     next.belt.orientation.rotate_z(move2 * b);
     next.shorts.orientation.rotate_z(move2 * s);
 }
+
+pub fn dual_wield_start(next: &mut CharacterSkeleton) {
+    next.main.position = Vec3::new(0.0, 0.0, 0.0);
+    next.main.orientation = Quaternion::rotation_z(0.0);
+    next.second.position = Vec3::new(0.0, 0.0, 0.0);
+    next.second.orientation = Quaternion::rotation_z(0.0);
+
+    next.control_l.position =
+        next.hand_l.position * Vec3::new(0.5, 0.5, 0.3) + Vec3::new(-4.0, 0.0, 0.0);
+    next.control_l.orientation = Quaternion::lerp(
+        next.hand_l.orientation,
+        Quaternion::rotation_x(PI * -0.5),
+        0.65,
+    );
+    next.hand_l.position = Vec3::new(0.0, -2.0, 0.0);
+    next.hand_l.orientation = Quaternion::rotation_x(PI * 0.5);
+
+    next.control_r.position =
+        next.hand_r.position * Vec3::new(0.5, 0.5, 0.3) + Vec3::new(4.0, 0.0, 0.0);
+    next.control_r.orientation = Quaternion::lerp(
+        next.hand_r.orientation,
+        Quaternion::rotation_x(PI * -0.5),
+        0.65,
+    );
+    next.hand_r.position = Vec3::new(0.0, -2.0, 0.0);
+    next.hand_r.orientation = Quaternion::rotation_x(PI * 0.5);
+}

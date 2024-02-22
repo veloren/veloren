@@ -392,3 +392,9 @@ common-abilities-hammer-tremor = Tremor
 common-abilities-hammer-vigorous_bash = Vigorous Bash
     .desc =
         Use the head of your hammer to quickly strike your foes.
+common-abilities-hammer-heavy_whorl = Heavy Whorl
+    .desc =
+        You strike all foes surrounding you with your hammer.
+common-abilities-hammer-dual_heavy_whorl = Heavy Whorl
+    .desc =
+        You strike all foes surrounding you with your hammers.
