@@ -43,7 +43,6 @@ pub enum Chat {
     ChatTabInsert(usize, ChatTab),
     ChatTabMove(usize, usize), //(i, j) move item from position i, and insert into position j
     ChatTabRemove(usize),
-    ChatTabFade(bool),
     ResetChatSettings,
 }
 #[derive(Clone)]
@@ -351,9 +350,6 @@ impl SettingsChange {
                         if i < chat_tabs.len() {
                             settings.chat.chat_tabs.remove(i);
                         }
-                    },
-                    Chat::ChatTabFade(fade) => {
-                        settings.chat.chat_tab_fade = fade;
                     },
                     Chat::ResetChatSettings => {
                         settings.chat = ChatSettings::default();

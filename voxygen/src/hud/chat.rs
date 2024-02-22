@@ -88,7 +88,6 @@ pub struct Chat<'a> {
     history_max: usize,
     chat_size: Vec2<f64>,
     chat_pos: Vec2<f64>,
-    unread_tabs: Vec<bool>,
     scale: Scale,
 
     localized_strings: &'a Localization,
@@ -105,7 +104,6 @@ impl<'a> Chat<'a> {
         localized_strings: &'a Localization,
         chat_size: Vec2<f64>,
         chat_pos: Vec2<f64>,
-        unread_tabs: Vec<bool>,
         scale: Scale,
     ) -> Self {
         Self {
@@ -123,7 +121,6 @@ impl<'a> Chat<'a> {
             chat_size,
             chat_pos,
             localized_strings,
-            unread_tabs,
             scale,
         }
     }
@@ -201,7 +198,6 @@ pub enum Event {
     ShowChatTabSettings(usize),
     ResizeChat(Vec2<f64>),
     MoveChat(Vec2<f64>),
-    UpdateUnread(Vec<bool>),
     DisableForceChat,
 }
 
@@ -245,7 +241,7 @@ impl<'a> Widget for Chat<'a> {
         let mut events = Vec::new();
 
         let chat_settings = &self.global_state.settings.chat;
-
+        let force_chat = !(&self.global_state.settings.interface.toggle_chat);
         let chat_tabs = &chat_settings.chat_tabs;
         let current_chat_tab = chat_settings.chat_tab_index.and_then(|i| chat_tabs.get(i));
 
@@ -313,18 +309,6 @@ impl<'a> Widget for Chat<'a> {
             })
             .collect::<HashSet<_>>();
 
-        let chat_tabs_with_new_content = chat_tabs.iter().map(|tab| {
-            self.new_messages
-                .iter()
-                .any(|new_message| tab.filter.satisfies(new_message, &group_members))
-        });
-        let mut new_unread: Vec<bool> = self
-            .unread_tabs
-            .iter()
-            .zip(chat_tabs_with_new_content)
-            .map(|(a, b)| a | b)
-            .collect();
-
         // Maintain scrolling //
         if !self.new_messages.is_empty() {
             for message in self.new_messages.iter() {
@@ -340,6 +324,10 @@ impl<'a> Widget for Chat<'a> {
             if Self::scrolled_to_bottom(state, ui) {
                 ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
             }
+        }
+
+        if force_chat {
+            ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
         }
 
         // Trigger scroll event queued from previous frame
@@ -673,15 +661,11 @@ impl<'a> Widget for Chat<'a> {
         {
             state.update(|s| s.tabs_last_hover_pulse = Some(self.pulse));
         }
-        let time_since_hover = if chat_settings.chat_tab_fade {
-            state
-                .tabs_last_hover_pulse
-                .map(|t| self.pulse - t)
-                .filter(|t| t <= &1.5)
-        } else {
-            Some(0.0)
-        };
-        if let Some(time_since_hover) = time_since_hover {
+        if let Some(time_since_hover) = state
+            .tabs_last_hover_pulse
+            .map(|t| self.pulse - t)
+            .filter(|t| t <= &1.5)
+        {
             let alpha = 1.0 - (time_since_hover / 1.5).powi(4);
             let shading = color::rgba(1.0, 0.82, 0.27, (chat_settings.chat_opacity + 0.1) * alpha);
 
@@ -726,8 +710,7 @@ impl<'a> Widget for Chat<'a> {
                 });
             }
             for (i, chat_tab) in chat_tabs.iter().enumerate() {
-                let is_unread = new_unread[i];
-                if Button::image(if chat_settings.chat_tab_index == Some(i) || is_unread {
+                if Button::image(if chat_settings.chat_tab_index == Some(i) {
                     self.imgs.selection
                 } else {
                     self.imgs.nothing
@@ -748,7 +731,7 @@ impl<'a> Widget for Chat<'a> {
                     0.0,
                 )
                 .and(|r| {
-                    if is_unread && chat_settings.chat_tab_index != Some(i) {
+                    if chat_settings.chat_tab_index != Some(i) {
                         r.image_color(shading.complement())
                     } else {
                         r.image_color(shading)
@@ -757,7 +740,6 @@ impl<'a> Widget for Chat<'a> {
                 .set(state.ids.chat_tabs[i], ui)
                 .was_clicked()
                 {
-                    new_unread[i] = false;
                     events.push(Event::ChangeChatTab(Some(i)));
                 }
 
@@ -867,7 +849,6 @@ impl<'a> Widget for Chat<'a> {
                 }
             })
             .set(state.ids.draggable_area, ui);
-        events.push(Event::UpdateUnread(new_unread));
         events
     }
 }

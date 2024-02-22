@@ -1297,7 +1297,6 @@ pub struct Hud {
     map_drag: Vec2<f64>,
     chat_size: Vec2<f64>,
     chat_pos: Vec2<f64>,
-    unread_tabs: Vec<bool>,
     force_chat: bool,
 }
 
@@ -1437,7 +1436,6 @@ impl Hud {
             map_drag: Vec2::zero(),
             chat_size: Vec2::new(DEFAULT_CHAT_BOX_WIDTH, DEFAULT_CHAT_BOX_HEIGHT),
             chat_pos: Vec2::new(10.0, 10.0),
-            unread_tabs: vec![false; global_state.settings.chat.chat_tabs.len()],
             force_chat: false,
         }
     }
@@ -3512,7 +3510,6 @@ impl Hud {
                 i18n,
                 self.chat_size,
                 self.chat_pos,
-                self.unread_tabs.clone(),
                 scale,
             )
             .and_then(self.force_chat_input.take(), |c, input| c.input(input))
@@ -3548,9 +3545,6 @@ impl Hud {
                     },
                     chat::Event::MoveChat(pos) => {
                         self.chat_pos = pos;
-                    },
-                    chat::Event::UpdateUnread(unread) => {
-                        self.unread_tabs = unread;
                     },
                     chat::Event::DisableForceChat => {
                         self.force_chat = false;
@@ -3609,16 +3603,6 @@ impl Hud {
                                 InterfaceChange::ResetInterfaceSettings => {
                                     self.show.help = false;
                                 },
-                                _ => {},
-                            },
-                            SettingsChange::Chat(chat_change) => match chat_change {
-                                ChatChange::ChatTabInsert(idx, _) => {
-                                    self.unread_tabs.insert(*idx, false)
-                                },
-                                ChatChange::ChatTabRemove(idx) => {
-                                    self.unread_tabs.remove(*idx);
-                                },
-                                ChatChange::ResetChatSettings => self.unread_tabs.truncate(1),
                                 _ => {},
                             },
                             _ => {},
