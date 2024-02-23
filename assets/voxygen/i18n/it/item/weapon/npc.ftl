@@ -397,6 +397,9 @@ common-items-npc_weapons-unique-quadruped_medium-donkey = Asino
 common-items-npc_weapons-unique-quadruped_medium-grolgar = Grolgar
     .desc = {""}
 
+common-items-npc_weapons-unique-quadruped_medium-highland = Bovino delle Highland
+    .desc = {""}
+
 common-items-npc_weapons-unique-quadruped_medium-horse = Cavallo
     .desc = {""}
 
@@ -404,6 +407,9 @@ common-items-npc_weapons-unique-quadruped_medium-moose = Alce
     .desc = {""}
 
 common-items-npc_weapons-unique-quadruped_medium-mouflon = Mouflone
+    .desc = {""}
+
+common-items-npc_weapons-unique-quadruped_medium-wolf = Lupo
     .desc = {""}
 
 common-items-npc_weapons-unique-quadruped_small-boar = Cinghiale

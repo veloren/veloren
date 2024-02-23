@@ -1,6 +1,9 @@
 weapon-shield-wood-0 = Uno scudo consunto
     .desc = Dovrebbe resistere a qualche colpo in più, speriamo...
 
+weapon-shield-starter = Scudo di legno
+    .desc = Potrebbe non resistere al fuoco
+
 weapon-dagger-dagger_basic-0 = Coltello di carta sospetto
     .desc = Apre velocemente le lettere.
 
