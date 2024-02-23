@@ -326,10 +326,6 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        if force_chat {
-            ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
-        }
-
         // Trigger scroll event queued from previous frame
         if state.scroll_next {
             ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
@@ -811,6 +807,8 @@ impl<'a> Widget for Chat<'a> {
                 let has_message = !state.input.message.is_empty();
                 let pressed = matches!(key_press.key, Key::Return | Key::NumPadEnter);
                 if pressed {
+                    // If chat was hidden, scroll to bottom the next time it is opened
+                    state.update(|s| s.scroll_next = force_chat);
                     events.push(Event::DisableForceChat);
                 }
                 has_message && pressed
