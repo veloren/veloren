@@ -1756,7 +1756,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Snowy biome
             (
                 Some("common.entity.wild.aggressive.akhlut"),
-                (biome.snowy.max(biome.icy) + 0.1) * 0.03,
+                (biome.snowy.max(biome.icy) + 0.1),
                 0.05,
                 0.5,
             ),
