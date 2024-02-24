@@ -390,7 +390,7 @@ fn dispatch_hit(
                 .map_or(false, |i| i.projectiles);
 
             let precision_from_flank =
-                combat::precision_mult_from_flank(*projectile_dir, target_info.ori);
+                combat::precision_mult_from_flank(*projectile_dir, target_info.ori, 1.0);
 
             let precision_from_head = {
                 // This performs a cylinder and line segment intersection check. The cylinder is

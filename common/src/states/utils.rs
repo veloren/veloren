@@ -1732,14 +1732,16 @@ pub enum ComboConsumption {
     #[default]
     All,
     Half,
+    Cost,
 }
 
 impl ComboConsumption {
-    pub fn consume(&self, data: &JoinData, output_events: &mut OutputEvents) {
+    pub fn consume(&self, data: &JoinData, output_events: &mut OutputEvents, cost: u32) {
         let combo = data.combo.map_or(0, |c| c.counter());
         let to_consume = match self {
             Self::All => combo,
             Self::Half => (combo + 1) / 2,
+            Self::Cost => cost,
         };
         output_events.emit_server(ComboChangeEvent {
             entity: data.entity,

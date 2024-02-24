@@ -74,9 +74,11 @@ impl CharacterBehavior for Data {
                         c.exhausted = true;
                     }
 
-                    self.static_data
-                        .combo_consumption
-                        .consume(data, output_events);
+                    self.static_data.combo_consumption.consume(
+                        data,
+                        output_events,
+                        self.static_data.minimum_combo,
+                    );
                     let mut melee_constructor = self.static_data.melee_constructor;
 
                     if let Some(scaling) = self.static_data.scaling {

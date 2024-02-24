@@ -407,3 +407,7 @@ common-abilities-hammer-dual_intercept = Intercept
 common-abilities-hammer-retaliate = Retaliate
     .desc =
         After blocking an attack, retaliate with a heavy strike back.
+common-abilities-hammer-spine_cracker = Spine Cracker
+    .desc =
+        When you foe turns their back to you, strike them hard in the back, targeting the weak part of their spine.
+

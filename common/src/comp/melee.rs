@@ -23,6 +23,7 @@ pub struct Melee {
     pub multi_target: Option<MultiTarget>,
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
     pub simultaneous_hits: u32,
+    pub precision_flank_multiplier: f32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -51,6 +52,7 @@ impl Component for Melee {
 }
 
 fn default_simultaneous_hits() -> u32 { 1 }
+fn default_precision_flank_multiplier() -> f32 { 1.0 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scaled {
@@ -73,9 +75,12 @@ pub struct MeleeConstructor {
     pub angle: f32,
     pub multi_target: Option<MultiTarget>,
     pub damage_effect: Option<CombatEffect>,
+    pub attack_effect: Option<(CombatEffect, CombatRequirement)>,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
     pub custom_combo: Option<CustomCombo>,
+    #[serde(default = "default_precision_flank_multiplier")]
+    pub precision_flank_multiplier: f32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -354,6 +359,14 @@ impl MeleeConstructor {
             },
         };
 
+        let attack = if let Some((effect, requirement)) = self.attack_effect {
+            let effect = AttackEffect::new(Some(GroupTarget::OutOfGroup), effect)
+                .with_requirement(requirement);
+            attack.with_effect(effect)
+        } else {
+            attack
+        };
+
         let attack = match self.custom_combo {
             None => attack.with_combo_increment(),
             Some(CustomCombo {
@@ -377,6 +390,7 @@ impl MeleeConstructor {
             multi_target: self.multi_target,
             break_block: None,
             simultaneous_hits: self.simultaneous_hits,
+            precision_flank_multiplier: self.precision_flank_multiplier,
         }
     }
 

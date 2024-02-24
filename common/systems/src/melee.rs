@@ -248,6 +248,7 @@ impl<'a> System<'a> for Sys {
                             .try_normalized()
                             .unwrap_or(ori.look_vec()),
                         target_ori,
+                        melee_attack.precision_flank_multiplier,
                     );
 
                     let precision_from_poise = {

@@ -263,6 +263,7 @@ impl<'a> System<'a> for Sys {
                             let precision_from_flank = combat::precision_mult_from_flank(
                                 beam.bezier.ctrl - beam.bezier.start,
                                 target_info.ori,
+                                1.0,
                             );
 
                             let precision_from_time = {

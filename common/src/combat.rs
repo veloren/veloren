@@ -655,6 +655,14 @@ impl Attack {
                 CombatRequirement::TargetPoised => {
                     target.char_state.map_or(false, |cs| cs.is_stunned())
                 },
+                CombatRequirement::BehindTarget => {
+                    const REQUIRED_ANGLE: f32 = 45.0;
+                    if let Some(ori) = target.ori {
+                        ori.look_vec().angle_between(dir.with_z(0.0)) < REQUIRED_ANGLE
+                    } else {
+                        false
+                    }
+                },
             });
             if requirements_met {
                 is_applied = true;
@@ -1014,6 +1022,7 @@ pub enum CombatRequirement {
     Combo(u32),
     TargetHasBuff(BuffKind),
     TargetPoised,
+    BehindTarget,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -1630,11 +1639,19 @@ pub fn compute_poise_resilience(
 }
 
 /// Used to compute the precision multiplier achieved by flanking a target
-pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>) -> Option<f32> {
+pub fn precision_mult_from_flank(
+    attack_dir: Vec3<f32>,
+    target_ori: Option<&Ori>,
+    precision_flank_multiplier: f32,
+) -> Option<f32> {
     let angle = target_ori.map(|t_ori| t_ori.look_dir().angle_between(attack_dir));
     match angle {
-        Some(angle) if angle < FULL_FLANK_ANGLE => Some(MAX_BACK_FLANK_PRECISION),
-        Some(angle) if angle < PARTIAL_FLANK_ANGLE => Some(MAX_SIDE_FLANK_PRECISION),
+        Some(angle) if angle < FULL_FLANK_ANGLE => {
+            Some(MAX_BACK_FLANK_PRECISION * precision_flank_multiplier)
+        },
+        Some(angle) if angle < PARTIAL_FLANK_ANGLE => {
+            Some(MAX_SIDE_FLANK_PRECISION * precision_flank_multiplier)
+        },
         Some(_) | None => None,
     }
 }
