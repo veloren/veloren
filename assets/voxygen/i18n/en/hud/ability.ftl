@@ -413,4 +413,6 @@ common-abilities-hammer-spine_cracker = Spine Cracker
 common-abilities-hammer-breach = Breach
     .desc =
         Breach through your enemy's attempt at defense with a heavy strike from your hammer.
-
+common-abilities-hammer-pile_driver = Pile Driver
+    .desc =
+        Strike your enemy into the ground, stopping their movement until they free their legs.

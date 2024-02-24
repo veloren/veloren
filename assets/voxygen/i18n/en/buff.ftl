@@ -124,6 +124,9 @@ buff-heatstroke = Heatstroke
 ## Scornful Taunt
 buff-scornfultaunt = Scornful Taunt
     .desc = You scornfully taunt your enemies, granting you bolstered fortitude and stamina. However, your death will bolster your killer.
+## Rooted
+buff-rooted = Rooted
+    .desc = You are stuck in place and cannot move.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

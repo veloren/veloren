@@ -177,6 +177,14 @@ pub enum BuffKind {
     /// 33.3% and energy reward reduced by 200%. Energy reward can't be
     /// reduced by more than 200%, to a minimum value of -100%.
     Heatstroke,
+    /// Reduces movement speed to 0.
+    /// Strength increases the relative mass of the creature that can be
+    /// targeted. A strength of 1.0 means that a creature of the same mass gets
+    /// rooted for the full duration. A strength of 2.0 means a creature of
+    /// twice the mass gets rooted for the full duration. If the target's mass
+    /// is higher than the strength allows for, duration gets reduced using a
+    /// mutiplier from the ratio of masses.
+    Rooted,
     // Complex, non-obvious buffs
     /// Changed into another body.
     Polymorphed,
@@ -239,7 +247,8 @@ impl BuffKind {
             | BuffKind::Poisoned
             | BuffKind::Parried
             | BuffKind::PotionSickness
-            | BuffKind::Heatstroke => BuffDescriptor::SimpleNegative,
+            | BuffKind::Heatstroke
+            | BuffKind::Rooted => BuffDescriptor::SimpleNegative,
             BuffKind::Polymorphed => BuffDescriptor::Complex,
         }
     }
@@ -479,6 +488,7 @@ impl BuffKind {
                     duration: data.duration,
                 }),
             ],
+            BuffKind::Rooted => vec![BuffEffect::MovementSpeed(0.0)],
         }
     }
 
@@ -492,6 +502,21 @@ impl BuffKind {
             _ => {},
         }
         cat_ids
+    }
+
+    fn modify_data(&self, mut data: BuffData) -> BuffData {
+        // TODO: Remove clippy allow after another buff needs this
+        #[allow(clippy::single_match)]
+        match self {
+            BuffKind::Rooted => {
+                let source_mass = 50.0;
+                let dest_mass = 50.0_f64;
+                let ratio = (source_mass / dest_mass).min(1.0);
+                data.duration = data.duration.map(|dur| Secs(dur.0 * ratio));
+            },
+            _ => {},
+        }
+        data
     }
 }
 
@@ -687,6 +712,7 @@ impl Buff {
         time: Time,
         stats: Option<&Stats>,
     ) -> Self {
+        let data = kind.modify_data(data);
         let effects = kind.effects(&data, stats);
         let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));

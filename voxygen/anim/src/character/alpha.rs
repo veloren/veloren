@@ -154,6 +154,31 @@ impl Animation for AlphaAnimation {
                 next.control.orientation.rotate_x(move2 * -4.5);
                 next.control.position += Vec3::new(0.0, 0.0, -20.0) * move2;
             },
+            Some("common.abilities.hammer.pile_driver") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let shake = (move1 * 15.0).sin();
+                let move1 = (move1 * 2.0).min(1.0) * pullback;
+                let move2 = move2 * pullback;
+
+                twist_back(&mut next, move1, 0.9, 0.3, 0.1, 0.5);
+                next.control.orientation.rotate_x(move1 * 2.4);
+                next.control.position += Vec3::new(-14.0, 0.0, 14.0) * move1;
+                next.control.orientation.rotate_z(move1 * 1.8);
+
+                next.control.orientation.rotate_x(shake * 0.15);
+
+                twist_forward(&mut next, move2, 1.6, 0.5, 0.2, 0.9);
+                next.control.orientation.rotate_x(move2 * -4.0);
+                next.control.orientation.rotate_z(move2 * 0.4);
+                next.control.position += Vec3::new(0.0, 0.0, -12.0) * move2;
+            },
             _ => {
                 let (move1, move2, _move3, move2h) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),

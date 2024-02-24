@@ -5275,6 +5275,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::PotionSickness => imgs.debuff_potionsickness_0,
         BuffKind::Polymorphed => imgs.debuff_polymorphed,
         BuffKind::Heatstroke => imgs.debuff_heatstroke_0,
+        BuffKind::Rooted => imgs.debuff_rooted,
     }
 }
 
