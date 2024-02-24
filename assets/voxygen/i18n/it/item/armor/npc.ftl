@@ -560,28 +560,31 @@ common-items-npc_armor-quadruped_medium-bonerattler = Armatura di scuotiossa
     .desc = Realizzata con le ossa delle sue prede per proteggere la sua pelle flessibile.
 
 common-items-npc_armor-quadruped_medium-broad = Armatura generica media di quadrupede
-    .desc = Testing123
+    .desc = Test123
 
 common-items-npc_armor-quadruped_medium-catoblepas = Armatura di catoblepa
     .desc = Spesso e rigido.
 
 common-items-npc_armor-quadruped_medium-claysteed = Pelle spessa dei destrieri d'argilla.
-    .desc = Testing123
+    .desc = Test123
 
 common-items-npc_armor-quadruped_medium-dreadhorn = Armatura del Cornoterrore
     .desc = Spesso e rigido.
 
 common-items-npc_armor-quadruped_medium-equus = Armatura di cavallo
-    .desc = Testing123
+    .desc = Test123
 
 common-items-npc_armor-quadruped_medium-frostfang = Pelle spessa di zanne di ghiaccio
-    .desc = Testing123
+    .desc = Test123
 
 common-items-npc_armor-quadruped_medium-hirdrasil = Benedizione di hirdrasil
-    .desc = Testing123
+    .desc = Test123
 
 common-items-npc_armor-quadruped_medium-roshwalr = Pelle spessa di roshwalr
-    .desc = Testing123
+    .desc = Test123
+
+common-items-npc_armor-quadruped_medium-wolf = Armatura di lupo
+    .desc = Test123
 
 common-items-npc_armor-quadruped_small-boar = Armatura di cinghiale
     .desc = Indossata da piccole creature.
