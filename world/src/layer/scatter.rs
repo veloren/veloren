@@ -1,4 +1,9 @@
-use crate::{column::ColumnSample, sim::SimChunk, util::RandomField, Canvas, CONFIG};
+use crate::{
+    column::ColumnSample,
+    sim::SimChunk,
+    util::{close, RandomField},
+    Canvas, CONFIG,
+};
 use common::{
     calendar::{Calendar, CalendarEvent},
     terrain::{Block, BlockKind, SpriteKind},
@@ -8,10 +13,6 @@ use num::traits::Pow;
 use rand::prelude::*;
 use std::f32;
 use vek::*;
-
-pub fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
-    (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
-}
 
 /// Returns a decimal value between 0 and 1.
 /// The density is maximum at the middle of the highest and the lowest allowed

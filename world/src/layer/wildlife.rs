@@ -1,4 +1,4 @@
-use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
+use crate::{column::ColumnSample, sim::SimChunk, util::close, IndexRef, CONFIG};
 use common::{
     assets::{self, AssetExt},
     calendar::{Calendar, CalendarEvent},
@@ -16,10 +16,6 @@ use vek::*;
 type Weight = u32;
 type Min = u8;
 type Max = u8;
-
-fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
-    (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
-}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SpawnEntry {

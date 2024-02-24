@@ -9,7 +9,7 @@ use common::{
     trade::{SiteId, SitePrices},
 };
 use core::ops::Deref;
-use noise::{Fbm, Seedable, SuperSimplex, MultiFractal};
+use noise::{Fbm, MultiFractal, Seedable, SuperSimplex};
 use std::sync::Arc;
 
 const WORLD_COLORS_MANIFEST: &str = "world.style.colors";

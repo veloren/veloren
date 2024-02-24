@@ -1,10 +1,8 @@
-use super::scatter::close;
-
 use crate::{
     site::SiteKind,
     util::{
-        sampler::Sampler, FastNoise2d, RandomField, RandomPerm, SmallCache, StructureGen2d,
-        LOCALITY, SQUARE_4,
+        close_fast as close, sampler::Sampler, FastNoise2d, RandomField, RandomPerm, SmallCache,
+        StructureGen2d, LOCALITY, SQUARE_4,
     },
     Canvas, CanvasInfo, ColumnSample, Land,
 };
@@ -16,7 +14,6 @@ use common::{
     },
     vol::RectVolSize,
 };
-use inline_tweak::tweak_fn;
 use itertools::Itertools;
 use noise::NoiseFn;
 use rand::prelude::*;
@@ -26,10 +23,6 @@ use std::{
     ops::{Add, Mul, Range, Sub},
 };
 use vek::*;
-
-fn close_fast(x: f32, tgt: f32, falloff: f32, falloff_strength: i32) -> f32 {
-    (1.0 - ((x - tgt) / falloff).powi(falloff_strength * 2)).max(0.0)
-}
 
 const CELL_SIZE: i32 = 1536;
 
@@ -122,7 +115,6 @@ impl Tunnel {
         }
     }
 
-    #[tweak_fn]
     fn z_range_at(
         &self,
         wposf: Vec2<f64>,
@@ -182,7 +174,6 @@ impl Tunnel {
         }
     }
 
-    #[inline_tweak::tweak_fn]
     fn biome_at(&self, wpos: Vec3<i32>, info: &CanvasInfo) -> Biome {
         let Some(col) = info.col_or_gen(wpos.xy()) else {
             return Biome::default();
@@ -242,37 +233,38 @@ impl Tunnel {
             // Mushrooms grow underground and thrive in a humid environment with moderate
             // temperatures
             let mushroom = underground
-                * close(humidity, 1.0, 0.7)
-                * close(temp, 1.5, 0.9)
-                * close(depth, 1.0, 0.6);
+                * close(humidity, 1.0, 0.7, 3)
+                * close(temp, 1.5, 0.9, 3)
+                * close(depth, 1.0, 0.6, 3);
             // Extremely hot and dry areas deep underground
             let fire = underground
-                * close(humidity, 0.0, 0.6)
-                * close(temp, 2.0, 1.3)
-                * close(depth, 1.0, 0.5);
+                * close(humidity, 0.0, 0.6, 3)
+                * close(temp, 2.0, 1.3, 3)
+                * close(depth, 1.0, 0.55, 3);
             // Overgrown with plants that need a moderate climate to survive
             let leafy = underground
-                * close(humidity, 0.8, 0.8)
-                * close(temp, 0.95, 0.85)
-                * close(depth, 0.0, 0.6);
+                * close(humidity, 0.8, 0.8, 3)
+                * close(temp, 0.95, 0.85, 3)
+                * close(depth, 0.0, 0.6, 3);
             // Cool temperature, dry and devoid of value
-            let dusty = close(humidity, 0.0, 0.5) * close(temp, -0.1, 0.6);
+            let dusty = close(humidity, 0.0, 0.5, 3) * close(temp, -0.1, 0.6, 3);
             // Deep underground and freezing cold
             let icy = underground
-                * close(temp, -1.5, 1.3)
-                * close(depth, 1.0, 0.65)
-                * close(humidity, 1.0, 0.7);
+                * close(temp, -1.5, 1.3, 3)
+                * close(depth, 1.0, 0.65, 3)
+                * close(humidity, 1.0, 0.7, 3);
             // Rocky cold cave that appear near the surface
-            let snowy = close(temp, -0.5, 0.3) * close(depth, 0.0, 0.4);
+            let snowy = close(temp, -0.6, 0.5, 3) * close(depth, 0.0, 0.45, 3);
             // Crystals grow deep underground in areas rich with minerals. They are present
             // in areas with colder temperatures and low humidity
             let crystal = underground
-                * close(humidity, 0.0, 0.5)
-                * close(temp, -0.6, 0.75)
-                * close(depth, 1.0, 0.55)
-                * close(mineral, 1.5, 1.0);
+                * close(humidity, 0.0, 0.5, 3)
+                * close(temp, -0.6, 0.75, 3)
+                * close(depth, 1.0, 0.55, 3)
+                * close(mineral, 2.0, 1.25, 3);
             // Hot, dry and shallow
-            let sandy = close(humidity, 0.0, 0.3) * close(temp, 0.7, 0.9) * close(depth, 0.0, 0.6);
+            let sandy =
+                close(humidity, 0.0, 0.3, 3) * close(temp, 0.7, 0.9, 3) * close(depth, 0.0, 0.6, 3);
 
             let biomes = [
                 barren, mushroom, fire, leafy, dusty, icy, snowy, crystal, sandy,
@@ -543,7 +535,6 @@ struct Flower {
     // rotation: Mat3<f32>,
 }
 
-#[inline_tweak::tweak_fn]
 fn write_column<R: Rng>(
     canvas: &mut Canvas,
     col: &ColumnSample,
@@ -652,7 +643,7 @@ fn write_column<R: Rng>(
         .mul(width_factor)
         .mul(
             (0.75 * dist_cave_center)
-                + max_height * (close(dist_cave_center, cave_width, cave_width * 0.7)),
+                + max_height * (close(dist_cave_center, cave_width, cave_width * 0.7, 3)),
         )
         .mul(((col.alt - z_range.end as f32) / 64.0).clamped(0.0, 1.0));
 
@@ -767,125 +758,117 @@ fn write_column<R: Rng>(
                     }
 
                     if biome.mushroom > 0.7
-                            && vertical > 16.0
-                            && rng.gen_bool(
-                                0.5 * close_fast(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2) as f64
-                                    * close_fast(biome.mushroom, 1.0, 0.7, 1) as f64,
-                            )
-                        {
-                            let purp = rng.gen_range(0..50);
-                            Some(CaveStructure::Mushroom(Mushroom {
-                                pos,
-                                stalk: 8.0
-                                    + rng.gen::<f32>().powf(2.0)
-                                        * (z_range.end - z_range.start - 8) as f32
-                                        * 0.75,
-                                head_color: Rgb::new(
-                                    40 + purp,
-                                    rng.gen_range(60..120),
-                                    rng.gen_range(80..200) + purp,
-                                ),
-                            }))
-                        } else if biome.crystal > 0.5
-                            && rng.gen_bool(0.4 * close_fast(biome.crystal, 1.0, 0.7, 2) as f64)
-                        {
-                            let on_ground = rng.gen_bool(0.6);
-                            let pos = wpos2d.with_z(if on_ground {
-                                z_range.start
-                            } else {
-                                z_range.end
-                            });
-
-                            let mut crystals: Vec<Crystal> = Vec::new();
-                            let max_length =
-                                (48.0 * close_fast(vertical, MAX_RADIUS, MAX_RADIUS, 1)).max(12.0);
-                            let length = rng.gen_range(8.0..max_length);
-                            let radius = Lerp::lerp(
-                                2.0,
-                                4.5,
-                                length / max_length + rng.gen_range(-0.1..0.1),
-                            );
-                            let dir = Vec3::new(
-                                rng.gen_range(-3.0..3.0),
-                                rng.gen_range(-3.0..3.0),
-                                rng.gen_range(0.5..10.0) * if on_ground { 1.0 } else { -1.0 },
-                            )
-                            .normalized();
-
-                            crystals.push(Crystal {
-                                dir,
-                                length,
-                                radius,
-                            });
-
-                            (0..4).for_each(|_| {
-                                crystals.push(Crystal {
-                                    dir: Vec3::new(
-                                        rng.gen_range(-1.0..1.0),
-                                        rng.gen_range(-1.0..1.0),
-                                        (dir.z + rng.gen_range(-0.2..0.2)).clamped(0.0, 1.0),
-                                    ),
-                                    length: length * rng.gen_range(0.3..0.8),
-                                    radius: (radius * rng.gen_range(0.5..0.8)).max(1.0),
-                                });
-                            });
-
-                            let purple = rng.gen_range(25..75);
-                            let blue = (rng.gen_range(45.0..75.0) * biome.icy) as u8;
-
-                            Some(CaveStructure::Crystal(CrystalCluster {
-                                pos,
-                                crystals,
-                                color: Rgb::new(
-                                    255 - blue * 2,
-                                    255 - blue - purple,
-                                    200 + rng.gen_range(25..55),
-                                ),
-                            }))
-                        } else if biome.leafy > 0.8
-                            && vertical > 16.0
-                            && horizontal > 8.0
-                            && rng.gen_bool(
-                                0.25 * (close_fast(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
-                                    * close_fast(horizontal, MAX_RADIUS, MAX_RADIUS - 8.0, 2)
-                                    * biome.leafy) as f64,
-                            )
-                        {
-                            let petal_radius = rng.gen_range(8.0..16.0);
-                            Some(CaveStructure::Flower(Flower {
-                                pos,
-                                stalk: 6.0
-                                    + rng.gen::<f32>().powf(2.0)
-                                        * (z_range.end - z_range.start - 8) as f32
-                                        * 0.75,
-                                petals: rng.gen_range(1..5) * 2 + 1,
-                                petal_height: 0.4
-                                    * petal_radius
-                                    * (1.0 + rng.gen::<f32>().powf(2.0)),
-                                petal_radius,
-                            }))
-                        } else if (biome.leafy > 0.7 || giant_tree_factor > 0.0)
-                            && rng.gen_bool(
-                                (0.5 * close_fast(biome.leafy, 1.0, 0.5, 1)
-                                    .max(1.0 + giant_tree_factor)
-                                    as f64)
-                                    .clamped(0.0, 1.0),
-                            )
-                        {
-                            Some(CaveStructure::GiantRoot {
-                                pos,
-                                radius: rng.gen_range(
-                                    1.5..(3.5
-                                        + close_fast(vertical, MAX_RADIUS, MAX_RADIUS / 2.0, 2)
-                                            * 3.0
-                                        + close_fast(horizontal, MAX_RADIUS, MAX_RADIUS / 2.0, 2)
-                                            * 3.0),
-                                ),
-                                height: (z_range.end - z_range.start) as f32,
-                            })
+                        && vertical > 16.0
+                        && rng.gen_bool(
+                            0.5 * close(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2) as f64
+                                * close(biome.mushroom, 1.0, 0.7, 1) as f64,
+                        )
+                    {
+                        let purp = rng.gen_range(0..50);
+                        Some(CaveStructure::Mushroom(Mushroom {
+                            pos,
+                            stalk: 8.0
+                                + rng.gen::<f32>().powf(2.0)
+                                    * (z_range.end - z_range.start - 8) as f32
+                                    * 0.75,
+                            head_color: Rgb::new(
+                                40 + purp,
+                                rng.gen_range(60..120),
+                                rng.gen_range(80..200) + purp,
+                            ),
+                        }))
+                    } else if biome.crystal > 0.5
+                        && rng.gen_bool(0.4 * close(biome.crystal, 1.0, 0.7, 2) as f64)
+                    {
+                        let on_ground = rng.gen_bool(0.6);
+                        let pos = wpos2d.with_z(if on_ground {
+                            z_range.start
                         } else {
-                            None
-                        }
+                            z_range.end
+                        });
+
+                        let mut crystals: Vec<Crystal> = Vec::new();
+                        let max_length =
+                            (48.0 * close(vertical, MAX_RADIUS, MAX_RADIUS, 1)).max(12.0);
+                        let length = rng.gen_range(8.0..max_length);
+                        let radius =
+                            Lerp::lerp(2.0, 4.5, length / max_length + rng.gen_range(-0.1..0.1));
+                        let dir = Vec3::new(
+                            rng.gen_range(-3.0..3.0),
+                            rng.gen_range(-3.0..3.0),
+                            rng.gen_range(0.5..10.0) * if on_ground { 1.0 } else { -1.0 },
+                        )
+                        .normalized();
+
+                        crystals.push(Crystal {
+                            dir,
+                            length,
+                            radius,
+                        });
+
+                        (0..4).for_each(|_| {
+                            crystals.push(Crystal {
+                                dir: Vec3::new(
+                                    rng.gen_range(-1.0..1.0),
+                                    rng.gen_range(-1.0..1.0),
+                                    (dir.z + rng.gen_range(-0.2..0.2)).clamped(0.0, 1.0),
+                                ),
+                                length: length * rng.gen_range(0.3..0.8),
+                                radius: (radius * rng.gen_range(0.5..0.8)).max(1.0),
+                            });
+                        });
+
+                        let purple = rng.gen_range(25..75);
+                        let blue = (rng.gen_range(45.0..75.0) * biome.icy) as u8;
+
+                        Some(CaveStructure::Crystal(CrystalCluster {
+                            pos,
+                            crystals,
+                            color: Rgb::new(
+                                255 - blue * 2,
+                                255 - blue - purple,
+                                200 + rng.gen_range(25..55),
+                            ),
+                        }))
+                    } else if biome.leafy > 0.8
+                        && vertical > 16.0
+                        && horizontal > 8.0
+                        && rng.gen_bool(
+                            0.25 * (close(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
+                                * close(horizontal, MAX_RADIUS, MAX_RADIUS - 8.0, 2)
+                                * biome.leafy) as f64,
+                        )
+                    {
+                        let petal_radius = rng.gen_range(8.0..16.0);
+                        Some(CaveStructure::Flower(Flower {
+                            pos,
+                            stalk: 6.0
+                                + rng.gen::<f32>().powf(2.0)
+                                    * (z_range.end - z_range.start - 8) as f32
+                                    * 0.75,
+                            petals: rng.gen_range(1..5) * 2 + 1,
+                            petal_height: 0.4 * petal_radius * (1.0 + rng.gen::<f32>().powf(2.0)),
+                            petal_radius,
+                        }))
+                    } else if (biome.leafy > 0.7 || giant_tree_factor > 0.0)
+                        && rng.gen_bool(
+                            (0.5 * close(biome.leafy, 1.0, 0.5, 1).max(1.0 + giant_tree_factor)
+                                as f64)
+                                .clamped(0.0, 1.0),
+                        )
+                    {
+                        Some(CaveStructure::GiantRoot {
+                            pos,
+                            radius: rng.gen_range(
+                                1.5..(3.5
+                                    + close(vertical, MAX_RADIUS, MAX_RADIUS / 2.0, 2) * 3.0
+                                    + close(horizontal, MAX_RADIUS, MAX_RADIUS / 2.0, 2) * 3.0),
+                            ),
+                            height: (z_range.end - z_range.start) as f32,
+                        })
+                    } else {
+                        None
+                    }
                 }) {
                 structure
             } else {
@@ -1073,8 +1056,8 @@ fn write_column<R: Rng>(
                                 .atan2(rpos.y)
                                 .rem_euclid(std::f32::consts::TAU / flower.petals as f32);
                             if dist_ratio < 0.175 {
-                                let red = close_fast(near, 0.0, 0.5, 1);
-                                let purple = close_fast(near, 0.0, 0.35, 1);
+                                let red = close(near, 0.0, 0.5, 1);
+                                let purple = close(near, 0.0, 0.35, 1);
                                 if dist_ratio > red || rpos.z < petal_height_at {
                                     return Some(Block::new(
                                         BlockKind::ArtLeaves,
@@ -1092,8 +1075,7 @@ fn write_column<R: Rng>(
                                     ));
                                 }
                             } else {
-                                let inset = close_fast(near, -1.0, 1.0, 2)
-                                    .max(close_fast(near, 1.0, 1.0, 2));
+                                let inset = close(near, -1.0, 1.0, 2).max(close(near, 1.0, 1.0, 2));
                                 if dist_ratio < inset {
                                     return Some(Block::new(
                                         BlockKind::ArtLeaves,
@@ -1336,7 +1318,7 @@ fn write_column<R: Rng>(
                         } else if biome.fire.max(biome.snowy) > 0.5 {
                             BlockKind::Rock
                         } else if biome.crystal > 0.5 {
-                            if rand.chance(wpos, biome.crystal * 0.05) {
+                            if rand.chance(wpos, biome.crystal * 0.02) {
                                 BlockKind::GlowingRock
                             } else {
                                 BlockKind::Rock
@@ -1502,8 +1484,8 @@ fn write_column<R: Rng>(
                         .ok()
                         .and_then(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(7), 0.01) {
-                        let shallow = close(biome.depth, 0.0, 0.4);
-                        let middle = close(biome.depth, 0.5, 0.4);
+                        let shallow = close(biome.depth, 0.0, 0.4, 3);
+                        let middle = close(biome.depth, 0.5, 0.4, 3);
                         //let deep = close(biome.depth, 1.0, 0.4); // TODO: Use this for deep only
                         // things
                         [
@@ -1570,7 +1552,7 @@ fn write_column<R: Rng>(
         }
     }
 }
-#[tweak_fn]
+
 fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Biome, rng: &mut R) {
     if RandomField::new(canvas.info().index().seed).chance(wpos, 0.035) {
         if let Some(entity_asset) = [
@@ -1632,7 +1614,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             (
                 Some("common.entity.wild.peaceful.crawler_moss"),
                 biome.leafy + 0.05,
-				0.25,
+                0.25,
                 0.5,
             ),
             (
@@ -1656,7 +1638,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Dusty biome
             (
                 Some("common.entity.wild.aggressive.dodarock"),
-                biome.dusty.max(biome.barren).max(biome.crystal).max(biome.snowy) + 0.05,
+                biome
+                    .dusty
+                    .max(biome.barren)
+                    .max(biome.crystal)
+                    .max(biome.snowy)
+                    + 0.05,
                 0.05,
                 0.5,
             ),
@@ -1697,18 +1684,18 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.02,
                 0.5,
             ),
-		    (
+            (
                 Some("common.entity.wild.aggressive.frostfang"),
                 biome.icy + 0.0,
-				0.25,
+                0.25,
                 0.5,
-            ),		
+            ),
             (
                 Some("common.entity.wild.aggressive.tursus"),
                 biome.icy + 0.0,
-				0.03,
+                0.03,
                 0.5,
-            ),	
+            ),
             // Lava biome
             (
                 Some("common.entity.wild.aggressive.lavadrake"),
@@ -1726,8 +1713,8 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 Some("common.entity.wild.aggressive.cave_salamander"),
                 biome.fire + 0.0,
                 0.5,
-                0.5,				
-            ),			
+                0.5,
+            ),
             (
                 Some("common.entity.wild.aggressive.red_oni"),
                 biome.fire + 0.0,
@@ -1741,12 +1728,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.1,
                 0.5,
             ),
-			(
+            (
                 Some("common.entity.wild.aggressive.blue_oni"),
                 biome.crystal + 0.0,
-				0.03,
+                0.03,
                 0.5,
-            ),	
+            ),
             // Sandy biome
             (
                 Some("common.entity.wild.aggressive.antlion"),
@@ -1760,12 +1747,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.025,
                 0.5,
             ),
-			(
+            (
                 Some("common.entity.wild.peaceful.crawler_sand"),
                 biome.sandy + 0.1,
-				0.25,
+                0.25,
                 0.5,
-            ),	
+            ),
             // Snowy biome
             (
                 Some("common.entity.wild.aggressive.akhlut"),
@@ -1797,7 +1784,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
         .iter()
         .filter_map(|(entity, biome_modifier, chance, cutoff)| {
             if let Some(entity) = entity {
-                let close = close_fast(1.0, *biome_modifier, *cutoff, 2);
+                let close = close(1.0, *biome_modifier, *cutoff, 2);
                 (close > 0.0).then(|| (Some(entity), close * chance))
             } else {
                 Some((None, 100.0))

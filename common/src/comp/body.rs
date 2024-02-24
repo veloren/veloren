@@ -1118,7 +1118,10 @@ impl Body {
                         | object::Body::Flamethrower
                         | object::Body::TerracottaStatue
                 ),
-                Body::QuadrupedLow(q) => matches!(q.species, quadruped_low::Species::Lavadrake | quadruped_low::Species::Salamander),
+                Body::QuadrupedLow(q) => matches!(
+                    q.species,
+                    quadruped_low::Species::Lavadrake | quadruped_low::Species::Salamander
+                ),
                 Body::BirdLarge(b) => matches!(
                     b.species,
                     bird_large::Species::Phoenix
