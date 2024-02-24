@@ -1570,9 +1570,9 @@ fn write_column<R: Rng>(
         }
     }
 }
-
+#[tweak_fn]
 fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Biome, rng: &mut R) {
-    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.025) {
+    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.035) {
         if let Some(entity_asset) = [
             // Mushroom biome
             (
@@ -1596,32 +1596,26 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Leafy biome
             (
                 Some("common.entity.wild.peaceful.holladon"),
-                biome.leafy + 0.05,
-                0.5,
+                biome.leafy.max(biome.dusty) + 0.05,
+                0.25,
                 0.5,
             ),
             (
-                Some("common.entity.wild.peaceful.turtle"),
+                Some("common.entity.dungeon.gnarling.mandragora"),
                 biome.leafy + 0.05,
-                0.5,
+                0.2,
                 0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.rootsnapper"),
                 biome.leafy + 0.05,
-                0.05,
-                0.5,
-            ),
-            (
-                Some("common.entity.wild.peaceful.axolotl"),
-                biome.leafy + 0.05,
-                0.5,
+                0.075,
                 0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.maneater"),
                 biome.leafy + 0.05,
-                0.1,
+                0.075,
                 0.5,
             ),
             (
@@ -1632,25 +1626,25 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                     .max(biome.sandy)
                     .max(biome.snowy)
                     + 0.3,
-                0.35,
+                0.25,
                 0.5,
             ),
             (
-                Some("common.entity.wild.aggressive.cave_salamander"),
-                biome.leafy + 0.0,
-                0.3,
+                Some("common.entity.wild.peaceful.crawler_moss"),
+                biome.leafy + 0.05,
+				0.25,
                 0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.asp"),
-                biome.leafy + 0.1,
-                0.25,
+                biome.leafy.max(biome.sandy) + 0.1,
+                0.2,
                 0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.swamp_troll"),
                 biome.leafy + 0.0,
-                0.1,
+                0.05,
                 0.5,
             ),
             (
@@ -1662,7 +1656,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Dusty biome
             (
                 Some("common.entity.wild.aggressive.dodarock"),
-                biome.dusty.max(biome.barren).max(biome.snowy) + 0.05,
+                biome.dusty.max(biome.barren).max(biome.crystal).max(biome.snowy) + 0.05,
                 0.05,
                 0.5,
             ),
@@ -1692,12 +1686,6 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             ),
             // Icy biome
             (
-                Some("common.entity.wild.aggressive.blue_oni"),
-                biome.icy + 0.0,
-                0.03,
-                0.5,
-            ),
-            (
                 Some("common.entity.wild.aggressive.icedrake"),
                 biome.icy + 0.0,
                 0.1,
@@ -1709,6 +1697,18 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.02,
                 0.5,
             ),
+		    (
+                Some("common.entity.wild.aggressive.frostfang"),
+                biome.icy + 0.0,
+				0.25,
+                0.5,
+            ),		
+            (
+                Some("common.entity.wild.aggressive.tursus"),
+                biome.icy + 0.0,
+				0.03,
+                0.5,
+            ),	
             // Lava biome
             (
                 Some("common.entity.wild.aggressive.lavadrake"),
@@ -1719,13 +1719,19 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             (
                 Some("common.entity.wild.peaceful.crawler_molten"),
                 biome.fire + 0.0,
-                0.75,
+                0.5,
                 0.5,
             ),
             (
+                Some("common.entity.wild.aggressive.cave_salamander"),
+                biome.fire + 0.0,
+                0.5,
+                0.5,				
+            ),			
+            (
                 Some("common.entity.wild.aggressive.red_oni"),
                 biome.fire + 0.0,
-                0.05,
+                0.03,
                 0.5,
             ),
             // Crystal biome
@@ -1735,6 +1741,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.1,
                 0.5,
             ),
+			(
+                Some("common.entity.wild.aggressive.blue_oni"),
+                biome.crystal + 0.0,
+				0.03,
+                0.5,
+            ),	
             // Sandy biome
             (
                 Some("common.entity.wild.aggressive.antlion"),
@@ -1748,16 +1760,22 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.025,
                 0.5,
             ),
+			(
+                Some("common.entity.wild.peaceful.crawler_sand"),
+                biome.sandy + 0.1,
+				0.25,
+                0.5,
+            ),	
             // Snowy biome
             (
                 Some("common.entity.wild.aggressive.akhlut"),
-                biome.snowy.max(biome.icy) + 0.1,
+                (biome.snowy.max(biome.icy) + 0.1) * 0.03,
                 0.05,
                 0.5,
             ),
             (
                 Some("common.entity.wild.aggressive.rocksnapper"),
-                biome.barren.max(biome.snowy) + 0.1,
+                biome.barren.max(biome.crystal).max(biome.snowy) + 0.1,
                 0.1,
                 0.5,
             ),
