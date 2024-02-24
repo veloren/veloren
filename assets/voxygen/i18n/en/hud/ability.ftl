@@ -404,3 +404,6 @@ common-abilities-hammer-intercept = Intercept
 common-abilities-hammer-dual_intercept = Intercept
     .desc =
         Charge forward with your hammers throwing your weight behind your strike.
+common-abilities-hammer-retaliate = Retaliate
+    .desc =
+        After blocking an attack, retaliate with a heavy strike back.
