@@ -280,6 +280,10 @@ impl Server {
 
         let pools = State::pools(GameMode::Server);
 
+        // Load plugins before generating the world.
+        #[cfg(feature = "plugins")]
+        let plugin_mgr = PluginMgr::from_asset_or_default();
+
         #[cfg(feature = "worldgen")]
         let (world, index) = World::generate(
             settings.world_seed,
@@ -337,6 +341,8 @@ impl Server {
                     weather::add_server_systems(dispatcher_builder);
                 }
             },
+            #[cfg(feature = "plugins")]
+            plugin_mgr,
         );
         register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(battlemode_buffer);

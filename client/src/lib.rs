@@ -623,6 +623,8 @@ impl Client {
                     add_local_systems(dispatch_builder);
                     add_foreign_systems(dispatch_builder);
                 },
+                #[cfg(feature = "plugins")]
+                common_state::plugin::PluginMgr::from_asset_or_default(),
             );
             let mut missing_plugins: Vec<PluginHash> = Vec::new();
             let mut local_plugins: Vec<PathBuf> = Vec::new();

@@ -37,6 +37,7 @@ mod tests {
             |dispatch_builder| {
                 dispatch::<character_behavior::Sys>(dispatch_builder, &[]);
             },
+            common_state::plugin::PluginMgr::default(),
         );
         let msm = MaterialStatManifest::load().cloned();
         state.ecs_mut().insert(msm);

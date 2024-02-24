@@ -178,6 +178,17 @@ pub struct PluginMgr {
 }
 
 impl PluginMgr {
+    pub fn from_asset_or_default() -> Self {
+        match Self::from_assets() {
+            Ok(plugin_mgr) => plugin_mgr,
+            Err(e) => {
+                tracing::debug!(?e, "Failed to read plugins from assets");
+                tracing::info!("Plugins disabled, enable debug logging for more information.");
+                PluginMgr::default()
+            },
+        }
+    }
+
     pub fn from_assets() -> Result<Self, PluginError> {
         let mut assets_path = (*ASSETS_PATH).clone();
         assets_path.push("plugins");
