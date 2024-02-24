@@ -6,7 +6,7 @@ hud-social-faction = Faction
 hud-social-play_online_fmt =
   { $nb_player ->
    [one] 1 player online
-   *[other] { $nb_player } player(s)s online
+   *[other] { $nb_player } players online
   }
 
 hud-social-name = Name
