@@ -410,4 +410,7 @@ common-abilities-hammer-retaliate = Retaliate
 common-abilities-hammer-spine_cracker = Spine Cracker
     .desc =
         When you foe turns their back to you, strike them hard in the back, targeting the weak part of their spine.
+common-abilities-hammer-breach = Breach
+    .desc =
+        Breach through your enemy's attempt at defense with a heavy strike from your hammer.
 

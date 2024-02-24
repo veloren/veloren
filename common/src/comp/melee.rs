@@ -24,6 +24,7 @@ pub struct Melee {
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
     pub simultaneous_hits: u32,
     pub precision_flank_multiplier: f32,
+    pub precision_flank_invert: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -81,6 +82,8 @@ pub struct MeleeConstructor {
     pub custom_combo: Option<CustomCombo>,
     #[serde(default = "default_precision_flank_multiplier")]
     pub precision_flank_multiplier: f32,
+    #[serde(default)]
+    pub precision_flank_invert: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -391,6 +394,7 @@ impl MeleeConstructor {
             break_block: None,
             simultaneous_hits: self.simultaneous_hits,
             precision_flank_multiplier: self.precision_flank_multiplier,
+            precision_flank_invert: self.precision_flank_invert,
         }
     }
 

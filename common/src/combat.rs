@@ -663,6 +663,9 @@ impl Attack {
                         false
                     }
                 },
+                CombatRequirement::TargetBlocking => target.char_state.map_or(false, |cs| {
+                    cs.is_block(attack_source) || cs.is_parry(attack_source)
+                }),
             });
             if requirements_met {
                 is_applied = true;
@@ -1023,6 +1026,7 @@ pub enum CombatRequirement {
     TargetHasBuff(BuffKind),
     TargetPoised,
     BehindTarget,
+    TargetBlocking,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -1643,8 +1647,15 @@ pub fn precision_mult_from_flank(
     attack_dir: Vec3<f32>,
     target_ori: Option<&Ori>,
     precision_flank_multiplier: f32,
+    precision_flank_invert: bool,
 ) -> Option<f32> {
-    let angle = target_ori.map(|t_ori| t_ori.look_dir().angle_between(attack_dir));
+    let angle = target_ori.map(|t_ori| {
+        t_ori.look_dir().angle_between(if precision_flank_invert {
+            -attack_dir
+        } else {
+            attack_dir
+        })
+    });
     match angle {
         Some(angle) if angle < FULL_FLANK_ANGLE => {
             Some(MAX_BACK_FLANK_PRECISION * precision_flank_multiplier)

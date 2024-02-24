@@ -324,6 +324,7 @@ image_ids! {
         hammer_intercept: "voxygen.element.skills.hammer.intercept",
         hammer_retaliate: "voxygen.element.skills.hammer.retaliate",
         hammer_spine_cracker: "voxygen.element.skills.hammer.spine_cracker",
+        hammer_breach: "voxygen.element.skills.hammer.breach",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

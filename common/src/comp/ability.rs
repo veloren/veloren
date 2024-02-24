@@ -1114,6 +1114,7 @@ impl Default for CharacterAbility {
                 simultaneous_hits: 1,
                 custom_combo: None,
                 precision_flank_multiplier: 1.0,
+                precision_flank_invert: false,
             },
             ori_modifier: 1.0,
             frontend_specifier: None,

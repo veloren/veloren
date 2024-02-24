@@ -264,6 +264,7 @@ impl<'a> System<'a> for Sys {
                                 beam.bezier.ctrl - beam.bezier.start,
                                 target_info.ori,
                                 1.0,
+                                false,
                             );
 
                             let precision_from_time = {

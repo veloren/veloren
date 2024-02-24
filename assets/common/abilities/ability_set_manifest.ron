@@ -201,7 +201,7 @@
             Simple(Hammer(VigorousBash), "common.abilities.hammer.vigorous_bash"),
             Simple(Hammer(Retaliate), "common.abilities.hammer.retaliate"),
             Simple(Hammer(SpineCracker), "common.abilities.hammer.spine_cracker"),
-            // Simple(Hammer(Breach), "common.abilities.hammer.breach"),
+            Simple(Hammer(Breach), "common.abilities.hammer.breach"),
             // Contextualized(
             //     pseudo_id: "common.abilities.hammer.iron_tempest",
             //     abilities: [
