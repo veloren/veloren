@@ -5276,6 +5276,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Polymorphed => imgs.debuff_polymorphed,
         BuffKind::Heatstroke => imgs.debuff_heatstroke_0,
         BuffKind::Rooted => imgs.debuff_rooted,
+        BuffKind::Winded => imgs.debuff_winded,
     }
 }
 

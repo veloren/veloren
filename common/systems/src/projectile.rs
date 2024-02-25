@@ -4,7 +4,7 @@ use common::{
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         projectile, Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health,
-        Inventory, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
+        Inventory, Mass, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
     event::{
         BonkEvent, BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, Emitter, EnergyChangeEvent,
@@ -73,6 +73,7 @@ pub struct ReadData<'a> {
     terrain: ReadExpect<'a, TerrainGrid>,
     buffs: ReadStorage<'a, Buffs>,
     entered_auras: ReadStorage<'a, EnteredAuras>,
+    masses: ReadStorage<'a, Mass>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -340,6 +341,7 @@ fn dispatch_hit(
                         combo: read_data.combos.get(entity),
                         inventory: read_data.inventories.get(entity),
                         stats: read_data.stats.get(entity),
+                        mass: read_data.masses.get(entity),
                     });
 
             let target_info = TargetInfo {
@@ -353,6 +355,7 @@ fn dispatch_hit(
                 char_state: read_data.character_states.get(target),
                 energy: read_data.energies.get(target),
                 buffs: read_data.buffs.get(target),
+                mass: read_data.masses.get(target),
             };
 
             // TODO: Is it possible to have projectile without body??
@@ -389,8 +392,12 @@ fn dispatch_hit(
                 .and_then(|cs| cs.attack_immunities())
                 .map_or(false, |i| i.projectiles);
 
-            let precision_from_flank =
-                combat::precision_mult_from_flank(*projectile_dir, target_info.ori, 1.0, false);
+            let precision_from_flank = combat::precision_mult_from_flank(
+                *projectile_dir,
+                target_info.ori,
+                Default::default(),
+                false,
+            );
 
             let precision_from_head = {
                 // This performs a cylinder and line segment intersection check. The cylinder is

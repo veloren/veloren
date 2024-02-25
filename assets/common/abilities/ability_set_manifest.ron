@@ -233,7 +233,7 @@
                 ],
             ),
             Simple(Hammer(PileDriver), "common.abilities.hammer.pile_driver"),
-            // Simple(Hammer(LungPummel), "common.abilities.hammer.lung_pummel"),
+            Simple(Hammer(LungPummel), "common.abilities.hammer.lung_pummel"),
             // Simple(Hammer(HelmCrusher), "common.abilities.hammer.helm_crusher"),
             // Simple(Hammer(Rampart), "common.abilities.hammer.rampart"),
             // Simple(Hammer(Tenacity), "common.abilities.hammer.tenacity"),

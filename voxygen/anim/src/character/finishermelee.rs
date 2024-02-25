@@ -462,6 +462,27 @@ impl Animation for FinisherMeleeAnimation {
                 next.control.orientation.rotate_z(move2 * 1.6);
                 next.control.position += Vec3::new(-16.0, 12.0, -8.0) * move2;
             },
+            Some("common.abilities.hammer.lung_pummel") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                twist_back(&mut next, move1, 1.9, 0.7, 0.3, 1.2);
+                next.control.orientation.rotate_x(move1 * 1.2);
+                next.control.orientation.rotate_z(move1 * 1.0);
+                next.control.position += Vec3::new(-12.0, 0.0, 0.0) * move1;
+
+                twist_forward(&mut next, move2, 3.4, 1.4, 0.9, 2.1);
+                next.control.orientation.rotate_z(move2 * -4.0);
+                next.control.position += Vec3::new(12.0, 0.0, 14.0) * move2;
+            },
             _ => {},
         }
 

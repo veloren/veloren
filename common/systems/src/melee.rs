@@ -4,8 +4,8 @@ use common::{
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         melee::MultiTarget,
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Melee,
-        Ori, Player, Pos, Scale, Stats,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass,
+        Melee, Ori, Player, Pos, Scale, Stats,
     },
     event::{self, EmitExt, EventBus},
     event_emitters,
@@ -62,6 +62,7 @@ pub struct ReadData<'a> {
     buffs: ReadStorage<'a, Buffs>,
     entered_auras: ReadStorage<'a, EnteredAuras>,
     events: ReadAttackEvents<'a>,
+    masses: ReadStorage<'a, Mass>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -213,6 +214,7 @@ impl<'a> System<'a> for Sys {
                         combo: read_data.combos.get(attacker),
                         inventory: read_data.inventories.get(attacker),
                         stats: read_data.stats.get(attacker),
+                        mass: read_data.masses.get(attacker),
                     });
 
                     let target_ori = read_data.orientations.get(target);
@@ -228,6 +230,7 @@ impl<'a> System<'a> for Sys {
                         char_state: target_char_state,
                         energy: read_data.energies.get(target),
                         buffs: read_data.buffs.get(target),
+                        mass: read_data.masses.get(target),
                     };
 
                     // PvP check
@@ -248,7 +251,7 @@ impl<'a> System<'a> for Sys {
                             .try_normalized()
                             .unwrap_or(ori.look_vec()),
                         target_ori,
-                        melee_attack.precision_flank_multiplier,
+                        melee_attack.precision_flank_multipliers,
                         melee_attack.precision_flank_invert,
                     );
 

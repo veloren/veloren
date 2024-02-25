@@ -4,7 +4,7 @@ use common::{
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         shockwave::ShockwaveDodgeable,
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
         PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{
@@ -64,6 +64,7 @@ pub struct ReadData<'a> {
     character_states: ReadStorage<'a, CharacterState>,
     buffs: ReadStorage<'a, Buffs>,
     entered_auras: ReadStorage<'a, EnteredAuras>,
+    masses: ReadStorage<'a, Mass>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -233,6 +234,7 @@ impl<'a> System<'a> for Sys {
                                 combo: read_data.combos.get(entity),
                                 inventory: read_data.inventories.get(entity),
                                 stats: read_data.stats.get(entity),
+                                mass: read_data.masses.get(entity),
                             });
 
                     let target_info = TargetInfo {
@@ -246,6 +248,7 @@ impl<'a> System<'a> for Sys {
                         char_state: read_data.character_states.get(target),
                         energy: read_data.energies.get(target),
                         buffs: read_data.buffs.get(target),
+                        mass: read_data.masses.get(target),
                     };
 
                     let target_dodging = read_data

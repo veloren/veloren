@@ -16,16 +16,10 @@ use crate::{
 use common::{calendar::Calendar, resources::TimeOfDay, slowjob::SlowJobPool};
 use common::{
     character::CharacterId,
-    combat,
-    combat::DamageContributor,
     comp::{
-        self,
-        item::{ItemKind, MaterialStatManifest},
-        misc::PortalData,
-        object, ChatType, Content, Group, Inventory, LootOwner, Object, Player, Poise, Presence,
-        PresenceKind, BASE_ABILITY_LIMIT,
+        self, item::ItemKind, misc::PortalData, object, ChatType, Content, Group, Inventory,
+        LootOwner, Object, Player, Poise, Presence, PresenceKind, BASE_ABILITY_LIMIT,
     },
-    effect::Effect,
     link::{Is, Link, LinkHandle},
     mounting::{Mounting, Rider, VolumeMounting, VolumeRider},
     resources::{Secs, Time},
@@ -50,8 +44,6 @@ use tracing::{error, trace, warn};
 use vek::*;
 
 pub trait StateExt {
-    /// Updates a component associated with the entity based on the `Effect`
-    fn apply_effect(&self, entity: EcsEntity, effect: Effect, source: Option<Uid>);
     /// Build a non-player character
     fn create_npc(
         &mut self,
@@ -177,109 +169,6 @@ pub trait StateExt {
 }
 
 impl StateExt for State {
-    fn apply_effect(&self, entity: EcsEntity, effects: Effect, source: Option<Uid>) {
-        let msm = self.ecs().read_resource::<MaterialStatManifest>();
-        match effects {
-            Effect::Health(change) => {
-                self.ecs()
-                    .write_storage::<comp::Health>()
-                    .get_mut(entity)
-                    .map(|mut health| health.change_by(change));
-            },
-            Effect::Damage(damage) => {
-                let inventories = self.ecs().read_storage::<Inventory>();
-                let stats = self.ecs().read_storage::<comp::Stats>();
-                let groups = self.ecs().read_storage::<Group>();
-
-                let damage_contributor = source.and_then(|uid| {
-                    self.ecs().entity_from_uid(uid).map(|attacker_entity| {
-                        DamageContributor::new(uid, groups.get(attacker_entity).cloned())
-                    })
-                });
-                let time = self.ecs().read_resource::<Time>();
-                let change = damage.calculate_health_change(
-                    combat::Damage::compute_damage_reduction(
-                        Some(damage),
-                        inventories.get(entity),
-                        stats.get(entity),
-                        &msm,
-                    ),
-                    0.0,
-                    damage_contributor,
-                    None,
-                    0.0,
-                    1.0,
-                    *time,
-                    random(),
-                );
-                self.ecs()
-                    .write_storage::<comp::Health>()
-                    .get_mut(entity)
-                    .map(|mut health| health.change_by(change));
-            },
-            Effect::Poise(poise) => {
-                let inventories = self.ecs().read_storage::<Inventory>();
-                let char_states = self.ecs().read_storage::<comp::CharacterState>();
-                let stats = self.ecs().read_storage::<comp::Stats>();
-
-                let change = Poise::apply_poise_reduction(
-                    poise,
-                    inventories.get(entity),
-                    &msm,
-                    char_states.get(entity),
-                    stats.get(entity),
-                );
-                // Check to make sure the entity is not already stunned
-                if let Some(character_state) = self
-                    .ecs()
-                    .read_storage::<comp::CharacterState>()
-                    .get(entity)
-                {
-                    if !character_state.is_stunned() {
-                        let groups = self.ecs().read_storage::<Group>();
-                        let damage_contributor = source.and_then(|uid| {
-                            self.ecs().entity_from_uid(uid).map(|attacker_entity| {
-                                DamageContributor::new(uid, groups.get(attacker_entity).cloned())
-                            })
-                        });
-                        let time = self.ecs().read_resource::<Time>();
-                        let poise_change = comp::PoiseChange {
-                            amount: change,
-                            impulse: Vec3::zero(),
-                            cause: None,
-                            by: damage_contributor,
-                            time: *time,
-                        };
-                        self.ecs()
-                            .write_storage::<Poise>()
-                            .get_mut(entity)
-                            .map(|mut poise| poise.change(poise_change));
-                    }
-                }
-            },
-            Effect::Buff(buff) => {
-                let time = self.ecs().read_resource::<Time>();
-                let stats = self.ecs().read_storage::<comp::Stats>();
-                self.ecs()
-                    .write_storage::<comp::Buffs>()
-                    .get_mut(entity)
-                    .map(|mut buffs| {
-                        buffs.insert(
-                            comp::Buff::new(
-                                buff.kind,
-                                buff.data,
-                                buff.cat_ids,
-                                comp::BuffSource::Item,
-                                *time,
-                                stats.get(entity),
-                            ),
-                            *time,
-                        )
-                    });
-            },
-        }
-    }
-
     fn create_npc(
         &mut self,
         pos: comp::Pos,

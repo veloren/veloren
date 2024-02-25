@@ -127,6 +127,9 @@ buff-scornfultaunt = Scornful Taunt
 ## Rooted
 buff-rooted = Rooted
     .desc = You are stuck in place and cannot move.
+## Winded
+buff-winded = Winded
+    .desc = You can barely breathe hampering how much energy you can recover and how quickly you can move.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

@@ -1,7 +1,8 @@
 use crate::{
     combat::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
-        CombatRequirement, Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
+        CombatRequirement, Damage, DamageKind, DamageSource, FlankMults, GroupTarget, Knockback,
+        KnockbackDir,
     },
     comp::{
         buff::BuffKind,
@@ -23,7 +24,7 @@ pub struct Melee {
     pub multi_target: Option<MultiTarget>,
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
     pub simultaneous_hits: u32,
-    pub precision_flank_multiplier: f32,
+    pub precision_flank_multipliers: FlankMults,
     pub precision_flank_invert: bool,
 }
 
@@ -53,7 +54,6 @@ impl Component for Melee {
 }
 
 fn default_simultaneous_hits() -> u32 { 1 }
-fn default_precision_flank_multiplier() -> f32 { 1.0 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scaled {
@@ -80,8 +80,8 @@ pub struct MeleeConstructor {
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
     pub custom_combo: Option<CustomCombo>,
-    #[serde(default = "default_precision_flank_multiplier")]
-    pub precision_flank_multiplier: f32,
+    #[serde(default)]
+    pub precision_flank_multipliers: FlankMults,
     #[serde(default)]
     pub precision_flank_invert: bool,
 }
@@ -393,7 +393,7 @@ impl MeleeConstructor {
             multi_target: self.multi_target,
             break_block: None,
             simultaneous_hits: self.simultaneous_hits,
-            precision_flank_multiplier: self.precision_flank_multiplier,
+            precision_flank_multipliers: self.precision_flank_multipliers,
             precision_flank_invert: self.precision_flank_invert,
         }
     }

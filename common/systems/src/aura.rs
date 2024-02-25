@@ -4,9 +4,9 @@ use common::{
     combat,
     comp::{
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget, EnteredAuras},
-        buff::{Buff, BuffCategory, BuffChange, BuffSource},
+        buff::{Buff, BuffCategory, BuffChange, BuffSource, DestInfo},
         group::Group,
-        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Player, Pos, Stats,
+        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Mass, Player, Pos, Stats,
     },
     event::{AuraEvent, BuffEvent, EmitExt},
     event_emitters,
@@ -41,6 +41,7 @@ pub struct ReadData<'a> {
     buffs: ReadStorage<'a, Buffs>,
     auras: ReadStorage<'a, Auras>,
     entered_auras: ReadStorage<'a, EnteredAuras>,
+    masses: ReadStorage<'a, Mass>,
 }
 
 #[derive(Default)]
@@ -86,80 +87,74 @@ impl<'a> System<'a> for Sys {
                                 read_data.healths.get(target)?,
                                 read_data.uids.get(target)?,
                                 read_data.entered_auras.get(target)?,
-                                read_data.stats.get(target),
                             ))
                         })
                     });
-                target_iter.for_each(
-                    |(target, target_pos, health, target_uid, entered_auras, stats)| {
-                        let target_buffs = match read_data.buffs.get(target) {
-                            Some(buff) => buff,
-                            None => return,
+                target_iter.for_each(|(target, target_pos, health, target_uid, entered_auras)| {
+                    let target_buffs = match read_data.buffs.get(target) {
+                        Some(buff) => buff,
+                        None => return,
+                    };
+
+                    // Ensure entity is within the aura radius
+                    if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
+                        // Ensure the entity is in the group we want to target
+                        let same_group = |uid: Uid| {
+                            read_data
+                                .id_maps
+                                .uid_entity(uid)
+                                .and_then(|e| read_data.groups.get(e))
+                                .map_or(false, |owner_group| {
+                                    Some(owner_group) == read_data.groups.get(target)
+                                })
+                                || *target_uid == uid
                         };
 
-                        // Ensure entity is within the aura radius
-                        if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
-                            // Ensure the entity is in the group we want to target
-                            let same_group = |uid: Uid| {
-                                read_data
-                                    .id_maps
-                                    .uid_entity(uid)
-                                    .and_then(|e| read_data.groups.get(e))
-                                    .map_or(false, |owner_group| {
-                                        Some(owner_group) == read_data.groups.get(target)
-                                    })
-                                    || *target_uid == uid
-                            };
+                        let allow_friendly_fire =
+                            combat::allow_friendly_fire(&read_data.entered_auras, entity, target);
 
-                            let allow_friendly_fire = combat::allow_friendly_fire(
-                                &read_data.entered_auras,
-                                entity,
-                                target,
-                            );
-
-                            if !(allow_friendly_fire && entity != target
-                                || match aura.target {
-                                    AuraTarget::GroupOf(uid) => same_group(uid),
-                                    AuraTarget::NotGroupOf(uid) => !same_group(uid),
-                                    AuraTarget::All => true,
-                                })
-                            {
-                                return;
-                            }
-
-                            let did_activate = activate_aura(
-                                key,
-                                aura,
-                                *uid,
-                                target,
-                                health,
-                                target_buffs,
-                                stats,
-                                allow_friendly_fire,
-                                &read_data,
-                                &mut emitters,
-                            );
-
-                            if did_activate {
-                                if entered_auras
-                                    .auras
-                                    .get(aura.aura_kind.as_ref())
-                                    .map_or(true, |auras| !auras.contains(&(*uid, key)))
-                                {
-                                    emitters.emit(AuraEvent {
-                                        entity: target,
-                                        aura_change: AuraChange::EnterAura(
-                                            *uid,
-                                            key,
-                                            *aura.aura_kind.as_ref(),
-                                        ),
-                                    });
-                                }
-                                active_auras.insert((*uid, *target_uid, key));
-                            }
+                        if !(allow_friendly_fire && entity != target
+                            || match aura.target {
+                                AuraTarget::GroupOf(uid) => same_group(uid),
+                                AuraTarget::NotGroupOf(uid) => !same_group(uid),
+                                AuraTarget::All => true,
+                            })
+                        {
+                            return;
                         }
-                    },
-                );
+
+                        let did_activate = activate_aura(
+                            key,
+                            aura,
+                            entity,
+                            *uid,
+                            target,
+                            health,
+                            target_buffs,
+                            allow_friendly_fire,
+                            &read_data,
+                            &mut emitters,
+                        );
+
+                        if did_activate {
+                            if entered_auras
+                                .auras
+                                .get(aura.aura_kind.as_ref())
+                                .map_or(true, |auras| !auras.contains(&(*uid, key)))
+                            {
+                                emitters.emit(AuraEvent {
+                                    entity: target,
+                                    aura_change: AuraChange::EnterAura(
+                                        *uid,
+                                        key,
+                                        *aura.aura_kind.as_ref(),
+                                    ),
+                                });
+                            }
+                            active_auras.insert((*uid, *target_uid, key));
+                        }
+                    }
+                });
             }
             if !expired_auras.is_empty() {
                 emitters.emit(AuraEvent {
@@ -200,11 +195,11 @@ impl<'a> System<'a> for Sys {
 fn activate_aura(
     key: AuraKey,
     aura: &Aura,
-    applier: Uid,
+    applier: EcsEntity,
+    applier_uid: Uid,
     target: EcsEntity,
     health: &Health,
     target_buffs: &Buffs,
-    stats: Option<&Stats>,
     allow_friendly_fire: bool,
     read_data: &ReadData,
     emitters: &mut impl EmitExt<BuffEvent>,
@@ -286,20 +281,25 @@ fn activate_aura(
             let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
                 buff.cat_ids
                     .iter()
-                    .any(|cat_id| matches!(cat_id, BuffCategory::FromActiveAura(uid, aura_key) if *aura_key == key && *uid == applier))
+                    .any(|cat_id| matches!(cat_id, BuffCategory::FromActiveAura(uid, aura_key) if *aura_key == key && *uid == applier_uid))
                     && buff.kind == kind
                     && buff.data.strength >= data.strength
             });
             if emit_buff {
+                let dest_info = DestInfo {
+                    stats: read_data.stats.get(target),
+                    mass: read_data.masses.get(target),
+                };
                 emitters.emit(BuffEvent {
                     entity: target,
                     buff_change: BuffChange::Add(Buff::new(
                         kind,
                         data,
-                        vec![category, BuffCategory::FromActiveAura(applier, key)],
+                        vec![category, BuffCategory::FromActiveAura(applier_uid, key)],
                         source,
                         *read_data.time,
-                        stats,
+                        dest_info,
+                        read_data.masses.get(applier),
                     )),
                 });
             }

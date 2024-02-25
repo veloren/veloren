@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        buff::{Buff, BuffCategory, BuffChange, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffCategory, BuffChange, BuffData, BuffKind, BuffSource, DestInfo},
         character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
@@ -116,6 +116,11 @@ impl CharacterBehavior for Data {
                         });
                     }
 
+                    let dest_info = DestInfo {
+                        stats: Some(data.stats),
+                        mass: Some(data.mass),
+                    };
+
                     // Creates buff
                     let buff = Buff::new(
                         self.static_data.buff_kind,
@@ -126,7 +131,8 @@ impl CharacterBehavior for Data {
                         buff_cat_ids,
                         BuffSource::Character { by: *data.uid },
                         *data.time,
-                        Some(data.stats),
+                        dest_info,
+                        Some(data.mass),
                     );
                     output_events.emit_server(BuffEvent {
                         entity: data.entity,

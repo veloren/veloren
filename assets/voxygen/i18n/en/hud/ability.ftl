@@ -416,3 +416,6 @@ common-abilities-hammer-breach = Breach
 common-abilities-hammer-pile_driver = Pile Driver
     .desc =
         Strike your enemy into the ground, stopping their movement until they free their legs.
+common-abilities-hammer-lung_pummel = Lung Pummel
+    .desc =
+        Swipe your hammer into your foe's side, winding them.

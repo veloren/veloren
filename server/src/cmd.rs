@@ -30,7 +30,7 @@ use common::{
     comp::{
         self,
         aura::{AuraKindVariant, AuraTarget},
-        buff::{Buff, BuffData, BuffKind, BuffSource, MiscBuffData},
+        buff::{Buff, BuffData, BuffKind, BuffSource, DestInfo, MiscBuffData},
         inventory::{
             item::{all_items_expect, tool::AbilityMap, MaterialStatManifest, Quality},
             slot::Slot,
@@ -4552,7 +4552,8 @@ fn build_buff(
             | BuffKind::PotionSickness
             | BuffKind::Heatstroke
             | BuffKind::ScornfulTaunt
-            | BuffKind::Rooted => {
+            | BuffKind::Rooted
+            | BuffKind::Winded => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {
@@ -4569,8 +4570,13 @@ fn cast_buff(buffkind: BuffKind, data: BuffData, server: &mut Server, target: Ec
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
     let stats = ecs.read_storage::<comp::Stats>();
+    let masses = ecs.read_storage::<comp::Mass>();
     let time = ecs.read_resource::<Time>();
     if let Some(mut buffs) = buffs_all.get_mut(target) {
+        let dest_info = DestInfo {
+            stats: stats.get(target),
+            mass: masses.get(target),
+        };
         buffs.insert(
             Buff::new(
                 buffkind,
@@ -4578,7 +4584,8 @@ fn cast_buff(buffkind: BuffKind, data: BuffData, server: &mut Server, target: Ec
                 vec![],
                 BuffSource::Command,
                 *time,
-                stats.get(target),
+                dest_info,
+                None,
             ),
             *time,
         );

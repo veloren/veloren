@@ -4,7 +4,7 @@ use crate::{
         AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
         DamagedEffect, DeathEffect,
     },
-    comp::{aura::AuraKey, Stats},
+    comp::{aura::AuraKey, Mass, Stats},
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -185,6 +185,11 @@ pub enum BuffKind {
     /// is higher than the strength allows for, duration gets reduced using a
     /// mutiplier from the ratio of masses.
     Rooted,
+    /// Slows movement speed and reduces energy reward
+    /// Both scale non-linearly with strength, 0.5 leads to 50% reduction of
+    /// energy reward and 33% reduction of move speed. 1.0 leads to 67%
+    /// reduction of energy reward and 50% reduction of move speed.
+    Winded,
     // Complex, non-obvious buffs
     /// Changed into another body.
     Polymorphed,
@@ -248,7 +253,8 @@ impl BuffKind {
             | BuffKind::Parried
             | BuffKind::PotionSickness
             | BuffKind::Heatstroke
-            | BuffKind::Rooted => BuffDescriptor::SimpleNegative,
+            | BuffKind::Rooted
+            | BuffKind::Winded => BuffDescriptor::SimpleNegative,
             BuffKind::Polymorphed => BuffDescriptor::Complex,
         }
     }
@@ -286,7 +292,10 @@ impl BuffKind {
 
     pub fn effects(&self, data: &BuffData, stats: Option<&Stats>) -> Vec<BuffEffect> {
         // Normalized nonlinear scaling
+        // TODO: Do we want to make denominator term parameterized. Come back to if we
+        // add nn_scaling3.
         let nn_scaling = |a| a / (a + 0.5);
+        let nn_scaling2 = |a| a / (a + 1.0);
         let instance = rand::random();
         match self {
             BuffKind::Bleeding => vec![BuffEffect::HealthChangeOverTime {
@@ -489,6 +498,10 @@ impl BuffKind {
                 }),
             ],
             BuffKind::Rooted => vec![BuffEffect::MovementSpeed(0.0)],
+            BuffKind::Winded => vec![
+                BuffEffect::MovementSpeed(1.0 - nn_scaling2(data.strength)),
+                BuffEffect::EnergyReward(1.0 - nn_scaling(data.strength)),
+            ],
         }
     }
 
@@ -504,13 +517,18 @@ impl BuffKind {
         cat_ids
     }
 
-    fn modify_data(&self, mut data: BuffData) -> BuffData {
+    fn modify_data(
+        &self,
+        mut data: BuffData,
+        source_mass: Option<&Mass>,
+        dest_mass: Option<&Mass>,
+    ) -> BuffData {
         // TODO: Remove clippy allow after another buff needs this
         #[allow(clippy::single_match)]
         match self {
             BuffKind::Rooted => {
-                let source_mass = 50.0;
-                let dest_mass = 50.0_f64;
+                let source_mass = source_mass.map_or(50.0, |m| m.0 as f64);
+                let dest_mass = dest_mass.map_or(50.0, |m| m.0 as f64);
                 let ratio = (source_mass / dest_mass).min(1.0);
                 data.duration = data.duration.map(|dur| Secs(dur.0 * ratio));
             },
@@ -710,10 +728,12 @@ impl Buff {
         cat_ids: Vec<BuffCategory>,
         source: BuffSource,
         time: Time,
-        stats: Option<&Stats>,
+        dest_info: DestInfo,
+        // Create source_info if we need more parameters from source
+        source_mass: Option<&Mass>,
     ) -> Self {
-        let data = kind.modify_data(data);
-        let effects = kind.effects(&data, stats);
+        let data = kind.modify_data(data, source_mass, dest_info.mass);
+        let effects = kind.effects(&data, dest_info.stats);
         let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids
@@ -958,6 +978,12 @@ impl Component for Buffs {
     type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }
 
+#[derive(Default, Copy, Clone)]
+pub struct DestInfo<'a> {
+    pub stats: Option<&'a Stats>,
+    pub mass: Option<&'a Mass>,
+}
+
 #[cfg(test)]
 pub mod tests {
     use crate::comp::buff::*;
@@ -973,6 +999,7 @@ pub mod tests {
             Vec::new(),
             BuffSource::Unknown,
             time,
+            DestInfo::default(),
             None,
         )
     }

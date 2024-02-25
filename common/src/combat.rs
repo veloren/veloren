@@ -2,7 +2,7 @@ use crate::{
     comp::{
         ability::Capability,
         aura::{AuraKindVariant, EnteredAuras},
-        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource, DestInfo},
         inventory::{
             item::{
                 armor::Protection,
@@ -13,7 +13,7 @@ use crate::{
         },
         skillset::SkillGroupKind,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, HealthChange,
-        Inventory, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
+        Inventory, Mass, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::{
         BuffEvent, ComboChangeEvent, EmitExt, EnergyChangeEvent, EntityAttackedHookEvent,
@@ -72,6 +72,7 @@ pub struct AttackerInfo<'a> {
     pub combo: Option<&'a Combo>,
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
+    pub mass: Option<&'a Mass>,
 }
 
 pub struct TargetInfo<'a> {
@@ -85,6 +86,7 @@ pub struct TargetInfo<'a> {
     pub char_state: Option<&'a CharacterState>,
     pub energy: Option<&'a Energy>,
     pub buffs: Option<&'a Buffs>,
+    pub mass: Option<&'a Mass>,
 }
 
 #[derive(Clone, Copy)]
@@ -464,8 +466,8 @@ impl Attack {
                                     entity: target.entity,
                                     buff_change: BuffChange::Add(b.to_buff(
                                         time,
-                                        attacker.map(|a| a.uid),
-                                        target.stats,
+                                        attacker,
+                                        target,
                                         applied_damage,
                                         strength_modifier,
                                     )),
@@ -697,8 +699,8 @@ impl Attack {
                                 entity: target.entity,
                                 buff_change: BuffChange::Add(b.to_buff(
                                     time,
-                                    attacker.map(|a| a.uid),
-                                    target.stats,
+                                    attacker,
+                                    target,
                                     accumulated_damage,
                                     strength_modifier,
                                 )),
@@ -1322,16 +1324,20 @@ impl CombatBuff {
     fn to_buff(
         self,
         time: Time,
-        uid: Option<Uid>,
-        tgt_stats: Option<&Stats>,
+        attacker_info: Option<AttackerInfo>,
+        target_info: &TargetInfo,
         damage: f32,
         strength_modifier: f32,
     ) -> Buff {
         // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
-        let source = if let Some(uid) = uid {
+        let source = if let Some(uid) = attacker_info.map(|a| a.uid) {
             BuffSource::Character { by: uid }
         } else {
             BuffSource::Unknown
+        };
+        let dest_info = DestInfo {
+            stats: target_info.stats,
+            mass: target_info.mass,
         };
         Buff::new(
             self.kind,
@@ -1342,7 +1348,8 @@ impl CombatBuff {
             Vec::new(),
             source,
             time,
-            tgt_stats,
+            dest_info,
+            attacker_info.and_then(|a| a.mass),
         )
     }
 }
@@ -1646,7 +1653,7 @@ pub fn compute_poise_resilience(
 pub fn precision_mult_from_flank(
     attack_dir: Vec3<f32>,
     target_ori: Option<&Ori>,
-    precision_flank_multiplier: f32,
+    precision_flank_multipliers: FlankMults,
     precision_flank_invert: bool,
 ) -> Option<f32> {
     let angle = target_ori.map(|t_ori| {
@@ -1657,13 +1664,35 @@ pub fn precision_mult_from_flank(
         })
     });
     match angle {
-        Some(angle) if angle < FULL_FLANK_ANGLE => {
-            Some(MAX_BACK_FLANK_PRECISION * precision_flank_multiplier)
-        },
+        Some(angle) if angle < FULL_FLANK_ANGLE => Some(
+            MAX_BACK_FLANK_PRECISION
+                * if precision_flank_invert {
+                    precision_flank_multipliers.front
+                } else {
+                    precision_flank_multipliers.back
+                },
+        ),
         Some(angle) if angle < PARTIAL_FLANK_ANGLE => {
-            Some(MAX_SIDE_FLANK_PRECISION * precision_flank_multiplier)
+            Some(MAX_SIDE_FLANK_PRECISION * precision_flank_multipliers.side)
         },
         Some(_) | None => None,
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct FlankMults {
+    pub back: f32,
+    pub front: f32,
+    pub side: f32,
+}
+
+impl Default for FlankMults {
+    fn default() -> Self {
+        FlankMults {
+            back: 1.0,
+            front: 1.0,
+            side: 1.0,
+        }
     }
 }
 

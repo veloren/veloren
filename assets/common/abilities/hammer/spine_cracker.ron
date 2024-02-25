@@ -13,7 +13,7 @@ FinisherMelee(
         range: 4.0,
         angle: 15.0,
         attack_effect: Some((Poise(50), BehindTarget)),
-        precision_flank_multiplier: 2.0,
+        precision_flank_multipliers: (front: 1.0, side: 1.0, back: 2.0),
     ),
     minimum_combo: 10,
     combo_consumption: Cost,

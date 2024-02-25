@@ -191,6 +191,7 @@ lazy_static! {
             BuffKind::Heatstroke => "heatstroke",
             BuffKind::ScornfulTaunt => "scornful_taunt",
             BuffKind::Rooted => "rooted",
+            BuffKind::Winded => "winded",
         };
         let mut buff_parser = HashMap::new();
         for kind in BuffKind::iter() {

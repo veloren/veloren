@@ -3,7 +3,7 @@ use crate::{
     comp::{
         ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
-        buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource},
+        buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
         character_state::OutputEvents,
         controller::InventoryManip,
         golem,
@@ -1332,6 +1332,10 @@ fn handle_ability(
                         strength,
                         duration,
                     } => {
+                        let dest_info = DestInfo {
+                            stats: Some(data.stats),
+                            mass: Some(data.mass),
+                        };
                         output_events.emit_server(BuffEvent {
                             entity: data.entity,
                             buff_change: BuffChange::Add(Buff::new(
@@ -1340,7 +1344,8 @@ fn handle_ability(
                                 vec![BuffCategory::SelfBuff],
                                 BuffSource::Character { by: *data.uid },
                                 *data.time,
-                                Some(data.stats),
+                                dest_info,
+                                Some(data.mass),
                             )),
                         });
                     },

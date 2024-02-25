@@ -326,6 +326,7 @@ image_ids! {
         hammer_spine_cracker: "voxygen.element.skills.hammer.spine_cracker",
         hammer_breach: "voxygen.element.skills.hammer.breach",
         hammer_pile_driver: "voxygen.element.skills.hammer.pile_driver",
+        hammer_lung_pummel: "voxygen.element.skills.hammer.lung_pummel",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -816,6 +817,7 @@ image_ids! {
         debuff_polymorphed: "voxygen.element.de_buffs.debuff_polymorphed",
         debuff_heatstroke_0: "voxygen.element.de_buffs.debuff_heatstroke_0",
         debuff_rooted: "voxygen.element.de_buffs.debuff_rooted",
+        debuff_winded: "voxygen.element.de_buffs.debuff_winded",
 
         // Animation Frames
         // Buff Frame

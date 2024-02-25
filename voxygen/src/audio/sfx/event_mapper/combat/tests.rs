@@ -90,7 +90,7 @@ fn maps_basic_melee() {
                     multi_target: None,
                     simultaneous_hits: 1,
                     custom_combo: None,
-                    precision_flank_multiplier: 1.0,
+                    precision_flank_multipliers: Default::default(),
                     precision_flank_invert: false,
                 },
                 ori_modifier: 1.0,
