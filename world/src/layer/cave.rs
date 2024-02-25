@@ -1570,7 +1570,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.5,
             ),
             (
-                Some("common.entity.wild.aggressive.bat"),
+                Some("common.entity.wild.peaceful.bat"),
                 biome.mushroom + 0.1,
                 0.25,
                 0.5,
@@ -1630,7 +1630,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.5,
             ),
             (
-                Some("common.entity.wild.aggressive.bat"),
+                Some("common.entity.wild.peaceful.bat"),
                 biome.leafy + 0.1,
                 0.25,
                 0.5,
@@ -1666,7 +1666,7 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.5,
             ),
             (
-                Some("common.entity.wild.aggressive.bat"),
+                Some("common.entity.wild.peaceful.bat"),
                 biome.dusty.max(biome.sandy).max(biome.snowy) + 0.1,
                 0.25,
                 0.5,
@@ -1784,8 +1784,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
         .iter()
         .filter_map(|(entity, biome_modifier, chance, cutoff)| {
             if let Some(entity) = entity {
-                let close = close(1.0, *biome_modifier, *cutoff, 2);
-                (close > 0.0).then(|| (Some(entity), close * chance))
+                if *biome_modifier > *cutoff {
+                    let close = close(1.0, *biome_modifier, *cutoff, 2);
+                    (close > 0.0).then(|| (Some(entity), close * chance))
+                } else {
+                    None
+                }
             } else {
                 Some((None, 100.0))
             }
