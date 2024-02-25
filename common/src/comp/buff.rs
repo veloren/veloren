@@ -190,6 +190,9 @@ pub enum BuffKind {
     /// energy reward and 33% reduction of move speed. 1.0 leads to 67%
     /// reduction of energy reward and 50% reduction of move speed.
     Winded,
+    /// Prevents use of auxiliary abilities.
+    /// Does not scale with strength
+    Concussion,
     // Complex, non-obvious buffs
     /// Changed into another body.
     Polymorphed,
@@ -254,7 +257,8 @@ impl BuffKind {
             | BuffKind::PotionSickness
             | BuffKind::Heatstroke
             | BuffKind::Rooted
-            | BuffKind::Winded => BuffDescriptor::SimpleNegative,
+            | BuffKind::Winded
+            | BuffKind::Concussion => BuffDescriptor::SimpleNegative,
             BuffKind::Polymorphed => BuffDescriptor::Complex,
         }
     }
@@ -502,6 +506,7 @@ impl BuffKind {
                 BuffEffect::MovementSpeed(1.0 - nn_scaling2(data.strength)),
                 BuffEffect::EnergyReward(1.0 - nn_scaling(data.strength)),
             ],
+            BuffKind::Concussion => vec![BuffEffect::DisableAuxiliaryAbilities],
         }
     }
 
@@ -673,6 +678,8 @@ pub enum BuffEffect {
     DamagedEffect(DamagedEffect),
     /// Add an effect to the entity when killed
     DeathEffect(DeathEffect),
+    /// Prevents use of auxiliary abilities
+    DisableAuxiliaryAbilities,
 }
 
 /// Actual de/buff.

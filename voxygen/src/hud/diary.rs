@@ -37,7 +37,7 @@ use common::{
             StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
-        Body, CharacterState, Energy, Health, Inventory, Poise,
+        Body, CharacterState, Energy, Health, Inventory, Poise, Stats,
     },
 };
 use conrod_core::{
@@ -210,6 +210,7 @@ pub struct Diary<'a> {
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     context: &'a AbilityContext,
+    stats: Option<&'a Stats>,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -257,6 +258,7 @@ impl<'a> Diary<'a> {
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         context: &'a AbilityContext,
+        stats: Option<&'a Stats>,
     ) -> Self {
         Self {
             show,
@@ -280,6 +282,7 @@ impl<'a> Diary<'a> {
             slot_manager,
             pulse,
             context,
+            stats,
             common: widget::CommonBuilder::default(),
             created_btns_top_l: 0,
             created_btns_top_r: 0,
@@ -825,6 +828,7 @@ impl<'a> Widget for Diary<'a> {
                         self.skill_set,
                         self.context,
                         Some(self.char_state),
+                        self.stats,
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
@@ -838,6 +842,7 @@ impl<'a> Widget for Diary<'a> {
                             AbilityInput::Auxiliary(i),
                             Some(self.inventory),
                             Some(self.skill_set),
+                            self.stats,
                         )
                         .ability_id(
                             Some(self.char_state),
@@ -1022,6 +1027,7 @@ impl<'a> Widget for Diary<'a> {
                         self.skill_set,
                         self.context,
                         Some(self.char_state),
+                        self.stats,
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),

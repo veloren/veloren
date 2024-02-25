@@ -77,6 +77,7 @@ pub struct Stats {
     pub effects_on_damaged: Vec<DamagedEffect>,
     /// This creates effects when the entity is killed
     pub effects_on_death: Vec<DeathEffect>,
+    pub disable_auxiliary_abilities: bool,
 }
 
 impl Stats {
@@ -103,6 +104,7 @@ impl Stats {
             energy_reward_modifier: 1.0,
             effects_on_damaged: Vec::new(),
             effects_on_death: Vec::new(),
+            disable_auxiliary_abilities: false,
         }
     }
 

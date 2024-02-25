@@ -219,6 +219,7 @@ impl<'a> AgentData<'a> {
                     self.body,
                     Some(self.char_state),
                     &context,
+                    self.stats,
                 )
                 .map_or(Default::default(), |a| a.0),
         )

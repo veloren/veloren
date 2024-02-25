@@ -3201,6 +3201,7 @@ impl Hud {
                 combo,
                 char_states.get(entity),
                 stance,
+                stats.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets)
             {
@@ -3731,6 +3732,7 @@ impl Hud {
                     &mut self.slot_manager,
                     self.pulse,
                     &context,
+                    stats.get(entity),
                 )
                 .set(self.ids.diary, ui_widgets)
                 {
@@ -5277,6 +5279,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Heatstroke => imgs.debuff_heatstroke_0,
         BuffKind::Rooted => imgs.debuff_rooted,
         BuffKind::Winded => imgs.debuff_winded,
+        BuffKind::Concussion => imgs.debuff_concussion,
     }
 }
 

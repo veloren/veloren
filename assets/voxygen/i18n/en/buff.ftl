@@ -130,6 +130,9 @@ buff-rooted = Rooted
 ## Winded
 buff-winded = Winded
     .desc = You can barely breathe hampering how much energy you can recover and how quickly you can move.
+## Concussion
+buff-concussion = Concussion
+    .desc = You have been hit hard on the head and have trouble focusing, preventing you from using some of your more complex attacks.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

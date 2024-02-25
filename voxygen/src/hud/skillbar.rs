@@ -30,7 +30,7 @@ use common::comp::{
     },
     skillset::SkillGroupKind,
     Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
-    PoiseState, SkillSet,
+    PoiseState, SkillSet, Stats,
 };
 use conrod_core::{
     color,
@@ -317,6 +317,7 @@ pub struct Skillbar<'a> {
     combo: Option<&'a Combo>,
     char_state: Option<&'a CharacterState>,
     stance: Option<&'a Stance>,
+    stats: Option<&'a Stats>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -351,6 +352,7 @@ impl<'a> Skillbar<'a> {
         combo: Option<&'a Combo>,
         char_state: Option<&'a CharacterState>,
         stance: Option<&'a Stance>,
+        stats: Option<&'a Stats>,
     ) -> Self {
         Self {
             client,
@@ -383,6 +385,7 @@ impl<'a> Skillbar<'a> {
             combo,
             char_state,
             stance,
+            stats,
         }
     }
 
@@ -946,6 +949,7 @@ impl<'a> Skillbar<'a> {
             self.combo,
             self.char_state,
             self.stance,
+            self.stats,
         );
 
         let image_source = (self.item_imgs, self.imgs);
@@ -1028,7 +1032,7 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, skill_set, active_abilities, _, contexts, _, _, _) =
+            let (hotbar, inventory, _, skill_set, active_abilities, _, contexts, ..) =
                 content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory.get_by_hash(i).map(|item| {
@@ -1176,6 +1180,7 @@ impl<'a> Skillbar<'a> {
                         Some(self.body),
                         self.char_state,
                         self.context,
+                        self.stats,
                     )
                 })
                 .map_or(false, |(a, _, _)| {

@@ -1,7 +1,7 @@
 FinisherMelee(
     energy_cost: 0,
-    buildup_duration: 0.15,
-    swing_duration: 0.15,
+    buildup_duration: 0.2,
+    swing_duration: 0.1,
     recover_duration: 0.2,
     melee_constructor: (
         kind: Bash(
@@ -13,12 +13,13 @@ FinisherMelee(
         range: 4.0,
         angle: 60.0,
         damage_effect: Some(Buff((
-            kind: Winded,
+            kind: Concussion,
             dur_secs: 8,
             strength: Value(1.0),
             chance: 1.0,
         ))),
-        precision_flank_multipliers: (front: 1.0, side: 2.0, back: 1.0),
+        precision_flank_multipliers: (front: 1.5, side: 1.0, back: 1.0),
+        precision_flank_invert: true,
     ),
     minimum_combo: 10,
     combo_consumption: Cost,

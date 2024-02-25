@@ -11,7 +11,7 @@ use common::{
         item::tool::{AbilityContext, ToolKind},
         slot::{InvSlotId, Slot},
         ActiveAbilities, Body, CharacterState, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
-        Stance,
+        Stance, Stats,
     },
     recipe::ComponentRecipeBook,
 };
@@ -133,6 +133,7 @@ type HotbarSource<'a> = (
     Option<&'a Combo>,
     Option<&'a CharacterState>,
     Option<&'a Stance>,
+    Option<&'a Stats>,
 );
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
@@ -152,6 +153,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             combo,
             char_state,
             stance,
+            stats,
         ): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         const GREYED_OUT: Color = Color::Rgba(0.3, 0.3, 0.3, 0.8);
@@ -189,6 +191,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     Some(body),
                                     *char_state,
                                     contexts,
+                                    *stats,
                                 )
                             })
                             .map(|(ability, _, _)| {
@@ -247,6 +250,7 @@ type AbilitiesSource<'a> = (
     &'a SkillSet,
     &'a AbilityContext,
     Option<&'a CharacterState>,
+    Option<&'a Stats>,
 );
 
 impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
@@ -254,7 +258,7 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
 
     fn image_key(
         &self,
-        (active_abilities, inventory, skillset, contexts, char_state): &AbilitiesSource<'a>,
+        (active_abilities, inventory, skillset, contexts, char_state, stats): &AbilitiesSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         let ability_id = match self {
             Self::Slot(index) => active_abilities
@@ -262,6 +266,7 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
                     AbilityInput::Auxiliary(*index),
                     Some(inventory),
                     Some(skillset),
+                    *stats,
                 )
                 .ability_id(*char_state, Some(inventory), Some(skillset), contexts),
             Self::Ability(ability) => Ability::from(*ability).ability_id(

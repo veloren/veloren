@@ -4553,7 +4553,8 @@ fn build_buff(
             | BuffKind::Heatstroke
             | BuffKind::ScornfulTaunt
             | BuffKind::Rooted
-            | BuffKind::Winded => {
+            | BuffKind::Winded
+            | BuffKind::Concussion => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

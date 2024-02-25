@@ -1298,6 +1298,7 @@ fn handle_ability(
                     Some(data.body),
                     Some(data.character),
                     &context,
+                    Some(data.stats),
                 )
             })
             .map(|(mut a, f, s)| {

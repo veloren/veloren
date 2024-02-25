@@ -167,18 +167,24 @@ impl ActiveAbilities {
         input: AbilityInput,
         inventory: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
+        stats: Option<&comp::Stats>,
     ) -> Ability {
         match input {
             AbilityInput::Guard => self.guard.into(),
             AbilityInput::Primary => self.primary.into(),
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
-            AbilityInput::Auxiliary(index) => self
-                .auxiliary_set(inventory, skill_set)
-                .get(index)
-                .copied()
-                .map(|a| a.into())
-                .unwrap_or(Ability::Empty),
+            AbilityInput::Auxiliary(index) => {
+                if stats.map_or(false, |s| s.disable_auxiliary_abilities) {
+                    Ability::Empty
+                } else {
+                    self.auxiliary_set(inventory, skill_set)
+                        .get(index)
+                        .copied()
+                        .map(|a| a.into())
+                        .unwrap_or(Ability::Empty)
+                }
+            },
         }
     }
 
@@ -192,9 +198,10 @@ impl ActiveAbilities {
         body: Option<&Body>,
         char_state: Option<&CharacterState>,
         context: &AbilityContext,
+        stats: Option<&comp::Stats>,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool, SpecifiedAbility)> {
-        let ability = self.get_ability(input, inv, Some(skill_set));
+        let ability = self.get_ability(input, inv, Some(skill_set), stats);
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
