@@ -597,15 +597,23 @@ impl TabComplete for ArgumentSpec {
                 .map(|c| c.to_string())
                 .collect(),
             ArgumentSpec::AssetPath(_, prefix, paths, _) => {
-                let part_with_prefix = prefix.to_string() + part;
-                let depth = part_with_prefix.split('.').count();
-                paths
-                    .iter()
-                    .map(|path| path.as_str().split('.').take(depth).join("."))
-                    .dedup()
-                    .filter(|string| string.starts_with(&part_with_prefix))
-                    .filter_map(|c| Some(c.strip_prefix(prefix)?.to_string()))
-                    .collect()
+                if let Some(part_stripped) = part.strip_prefix('#') {
+                    paths
+                        .iter()
+                        .filter(|string| string.contains(part_stripped))
+                        .filter_map(|c| Some(c.strip_prefix(prefix)?.to_string()))
+                        .collect()
+                } else {
+                    let part_with_prefix = prefix.to_string() + part;
+                    let depth = part_with_prefix.split('.').count();
+                    paths
+                        .iter()
+                        .map(|path| path.as_str().split('.').take(depth).join("."))
+                        .dedup()
+                        .filter(|string| string.starts_with(&part_with_prefix))
+                        .filter_map(|c| Some(c.strip_prefix(prefix)?.to_string()))
+                        .collect()
+                }
             },
             ArgumentSpec::Boolean(_, part, _) => ["true", "false"]
                 .iter()
