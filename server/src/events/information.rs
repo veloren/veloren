@@ -1,5 +1,5 @@
 use crate::client::Client;
-use common::event::{RequestPluginsEvent, RequestSiteInfoEvent};
+use common::event::RequestSiteInfoEvent;
 use common_net::msg::{world_msg::EconomyInfo, ServerGeneral};
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
@@ -12,7 +12,7 @@ use super::{event_dispatch, ServerEvent};
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<RequestSiteInfoEvent>(builder);
     #[cfg(feature = "plugins")]
-    event_dispatch::<RequestPluginsEvent>(builder);
+    event_dispatch::<common::event::RequestPluginsEvent>(builder);
 }
 
 #[cfg(not(feature = "worldgen"))]
@@ -71,7 +71,7 @@ impl ServerEvent for RequestSiteInfoEvent {
 
 /// Send missing plugins to the client
 #[cfg(feature = "plugins")]
-impl ServerEvent for RequestPluginsEvent {
+impl ServerEvent for common::event::RequestPluginsEvent {
     type SystemData<'a> = (ReadExpect<'a, PluginMgr>, ReadStorage<'a, Client>);
 
     fn handle(
