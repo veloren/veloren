@@ -1216,20 +1216,26 @@ fn write_column<R: Rng>(
                         BlockKind::Sand
                     } else if rand.chance(wpos, biome.leafy) {
                         BlockKind::ArtLeaves
+                    } else if ceiling_cover > 0.0 {
+                        BlockKind::Rock
                     } else {
                         BlockKind::WeakRock
                     },
                     stalactite.map(|e| e as u8),
                 )
             } else if z < ceiling && z >= ceiling_drip {
-                let color = if biome.mushroom > 0.9 {
-                    Rgb::new(10, 70, 148)
+                if biome.mushroom > 0.9 {
+                    let block = if rand.chance(wpos2d.with_z(89), 0.05) {
+                        BlockKind::GlowingMushroom
+                    } else {
+                        BlockKind::GlowingWeakRock
+                    };
+                    Block::new(block, Rgb::new(10, 70, 148))
                 } else if biome.icy > 0.9 {
-                    Rgb::new(120, 140, 255)
+                    Block::new(BlockKind::GlowingWeakRock, Rgb::new(120, 140, 255))
                 } else {
-                    Rgb::new(80, 100, 150)
-                };
-                Block::new(BlockKind::GlowingRock, color)
+                    Block::new(BlockKind::WeakRock, Rgb::new(80, 100, 150))
+                }
             } else if z >= base && z < floor && !void_below && !sky_above {
                 let (net_col, total) = [
                     (

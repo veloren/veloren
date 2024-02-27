@@ -96,6 +96,7 @@ const int PHOENIX_BEAM = 56;
 const int PHOENIX_BUILD_UP_AIM = 57;
 const int CLAY_SHRAPNEL = 58;
 const int AIRFLOW = 59;
+const int SPORE = 60;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1014,6 +1015,18 @@ void main() {
                 vec4(1.1, 1.1, 1.1, 0.3),
                 // rotation
                 spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
+            );
+            break;
+        case SPORE:
+            f_reflect = 0.0;
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    vec3(0, 0, -1.1)
+                ) + vec3(sin((lifetime + rand9 * 0.1) * 0.5) * 3.0, sin((lifetime+ rand8 * 0.1) * 0.5) * 3.0, sin(lifetime * 0.5) * 1.5),
+                vec3(0.4 + 0.4 * abs(sin(lifetime))),
+                vec4(vec3(0.8, 6.0 + rand6 * 1.75, 7.5 + (1.75 + rand5 * 0.5)), 1),
+                spin_in_axis(vec3(rand1, rand2, rand3), rand4 * 1.5 + lifetime)
             );
             break;
         default:
