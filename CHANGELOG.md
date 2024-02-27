@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In commands that reference assets you can now use `#name` and press tab to cycle through assets with that name.
 - Allow moving and resizing the chat with left and right mouse button respectively
 - Missing plugins are requested from the server and cached locally
+- Support for adding spots in plugins
 
 ### Changed
 

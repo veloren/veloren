@@ -182,8 +182,7 @@ impl PluginMgr {
         match Self::from_assets() {
             Ok(plugin_mgr) => plugin_mgr,
             Err(e) => {
-                tracing::debug!(?e, "Failed to read plugins from assets");
-                tracing::info!("Plugins disabled, enable debug logging for more information.");
+                tracing::error!(?e, "Failed to read plugins from assets");
                 PluginMgr::default()
             },
         }
