@@ -39,6 +39,11 @@ use std::{borrow::Cow, convert::TryFrom, time::Duration};
 use super::shockwave::ShockwaveDodgeable;
 
 pub const BASE_ABILITY_LIMIT: usize = 5;
+
+// FIXME: different AbilitySpec on same ToolKind share the same key
+// FIXME: only really works with weapons, glider just fallback to (None, None),
+// but maybe that's ok?
+/// Descriptor to pick the right (auxiliary) ability set
 pub type AuxiliaryKey = (Option<ToolKind>, Option<ToolKind>);
 
 // TODO: Potentially look into storing previous ability sets for weapon
@@ -131,27 +136,38 @@ impl ActiveAbilities {
         }
     }
 
-    pub fn active_auxiliary_key(inv: Option<&Inventory>) -> AuxiliaryKey {
-        let tool_kind = |slot| {
-            inv.and_then(|inv| inv.equipped(slot))
-                .and_then(|item| match &*item.kind() {
-                    ItemKind::Tool(tool) => Some(tool.kind),
-                    _ => None,
-                })
-        };
+    pub fn active_auxiliary_key(
+        inv: Option<&Inventory>,
+        char_state: Option<&CharacterState>,
+    ) -> AuxiliaryKey {
+        let source = AbilitySource::determine(char_state);
 
-        (
-            tool_kind(EquipSlot::ActiveMainhand),
-            tool_kind(EquipSlot::ActiveOffhand),
-        )
+        match source {
+            AbilitySource::Weapons => {
+                let tool_kind = |slot| {
+                    inv.and_then(|inv| inv.equipped(slot))
+                        .and_then(|item| match &*item.kind() {
+                            ItemKind::Tool(tool) => Some(tool.kind),
+                            _ => None,
+                        })
+                };
+
+                (
+                    tool_kind(EquipSlot::ActiveMainhand),
+                    tool_kind(EquipSlot::ActiveOffhand),
+                )
+            },
+            AbilitySource::Glider => (None, None),
+        }
     }
 
     pub fn auxiliary_set(
         &self,
         inv: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
+        char_state: Option<&CharacterState>,
     ) -> Cow<Vec<AuxiliaryAbility>> {
-        let aux_key = Self::active_auxiliary_key(inv);
+        let aux_key = Self::active_auxiliary_key(inv, char_state);
 
         self.auxiliary_sets
             .get(&aux_key)
@@ -164,6 +180,7 @@ impl ActiveAbilities {
         input: AbilityInput,
         inventory: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
+        char_state: Option<&CharacterState>,
     ) -> Ability {
         match input {
             AbilityInput::Guard => self.guard.into(),
@@ -171,7 +188,7 @@ impl ActiveAbilities {
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
             AbilityInput::Auxiliary(index) => self
-                .auxiliary_set(inventory, skill_set)
+                .auxiliary_set(inventory, skill_set, char_state)
                 .get(index)
                 .copied()
                 .map(|a| a.into())
@@ -191,7 +208,7 @@ impl ActiveAbilities {
         context: &AbilityContext,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool, SpecifiedAbility)> {
-        let ability = self.get_ability(input, inv, Some(skill_set));
+        let ability = self.get_ability(input, inv, Some(skill_set), char_state);
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
@@ -232,40 +249,48 @@ impl ActiveAbilities {
         };
 
         let source = AbilitySource::determine(char_state);
-        match source {
-            AbilitySource::Glider => match ability {
-                Ability::ToolGuard => None,
-                Ability::ToolPrimary => inst_ability(EquipSlot::Glider, false),
-                Ability::ToolSecondary => inst_ability(EquipSlot::Glider, false),
-                Ability::SpeciesMovement => None,
-                Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
-                Ability::Empty => None,
-            },
-            AbilitySource::Weapons => match ability {
-                Ability::ToolGuard => {
+
+        match ability {
+            Ability::ToolGuard => match source {
+                AbilitySource::Weapons => {
                     let equip_slot = combat::get_equip_slot_by_block_priority(inv);
                     inst_ability(equip_slot, matches!(equip_slot, EquipSlot::ActiveOffhand))
                 },
-                Ability::ToolPrimary => inst_ability(EquipSlot::ActiveMainhand, false),
-                Ability::ToolSecondary => inst_ability(EquipSlot::ActiveOffhand, true)
-                    .or_else(|| inst_ability(EquipSlot::ActiveMainhand, false)),
-                Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
-                    .then(|| CharacterAbility::default_roll(char_state))
-                    .map(|ability| {
-                        (
-                            ability.adjusted_by_skills(skill_set, None),
-                            false,
-                            spec_ability(None),
-                        )
-                    }),
-                Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand, false),
-                Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand, true),
-                Ability::Empty => None,
+                AbilitySource::Glider => None,
             },
+            Ability::ToolPrimary => match source {
+                AbilitySource::Weapons => inst_ability(EquipSlot::ActiveMainhand, false),
+                AbilitySource::Glider => inst_ability(EquipSlot::Glider, false),
+            },
+            Ability::ToolSecondary => match source {
+                AbilitySource::Weapons => inst_ability(EquipSlot::ActiveOffhand, true)
+                    .or_else(|| inst_ability(EquipSlot::ActiveMainhand, false)),
+                AbilitySource::Glider => inst_ability(EquipSlot::Glider, false),
+            },
+            Ability::MainWeaponAux(_) => match source {
+                AbilitySource::Weapons => inst_ability(EquipSlot::ActiveMainhand, false),
+                // TODO: add auxiliary abilities in the future?
+                AbilitySource::Glider => None,
+            },
+            Ability::OffWeaponAux(_) => match source {
+                AbilitySource::Weapons => inst_ability(EquipSlot::ActiveOffhand, true),
+                // TODO: add auxiliary abilities in the future?
+                AbilitySource::Glider => None,
+            },
+            Ability::Empty => None,
+            Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
+                .then(|| CharacterAbility::default_roll(char_state))
+                .map(|ability| {
+                    (
+                        ability.adjusted_by_skills(skill_set, None),
+                        false,
+                        spec_ability(None),
+                    )
+                }),
         }
     }
 
-    pub fn iter_available_abilities<'a>(
+    pub fn iter_available_abilities_on<'a>(
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
         equip_slot: EquipSlot,
@@ -290,15 +315,66 @@ impl ActiveAbilities {
             })
     }
 
+    pub fn all_available_abilities(
+        inv: Option<&Inventory>,
+        skill_set: Option<&SkillSet>,
+        char_state: Option<&CharacterState>,
+    ) -> Vec<AuxiliaryAbility> {
+        let source = AbilitySource::determine(char_state);
+
+        match source {
+            AbilitySource::Weapons => {
+                // Check if uses combo of two "equal" weapons
+                let paired = inv
+                    .and_then(|inv| {
+                        let a = inv.equipped(EquipSlot::ActiveMainhand)?;
+                        let b = inv.equipped(EquipSlot::ActiveOffhand)?;
+
+                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) =
+                            (&*a.kind(), &*b.kind())
+                        {
+                            Some((a.ability_spec(), tool_a.kind, b.ability_spec(), tool_b.kind))
+                        } else {
+                            None
+                        }
+                    })
+                    .is_some_and(|(a_spec, a_kind, b_spec, b_kind)| {
+                        (a_spec, a_kind) == (b_spec, b_kind)
+                    });
+
+                // If equal, just take the first
+                if paired {
+                    Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveMainhand)
+                        .map(AuxiliaryAbility::MainWeapon)
+                        .collect()
+                } else {
+                    Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveMainhand)
+                        .map(AuxiliaryAbility::MainWeapon)
+                        .chain(
+                            Self::iter_available_abilities_on(
+                                inv,
+                                skill_set,
+                                EquipSlot::ActiveOffhand,
+                            )
+                            .map(AuxiliaryAbility::OffWeapon),
+                        )
+                        .collect()
+                }
+            },
+            // TODO: add auxiliary abilities to gliders
+            AbilitySource::Glider => vec![],
+        }
+    }
+
     fn default_ability_set<'a>(
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
         limit: Option<usize>,
     ) -> Vec<AuxiliaryAbility> {
-        let mut iter = Self::iter_available_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
+        let mut iter = Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveMainhand)
             .map(AuxiliaryAbility::MainWeapon)
             .chain(
-                Self::iter_available_abilities(inv, skill_set, EquipSlot::ActiveOffhand)
+                Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveOffhand)
                     .map(AuxiliaryAbility::OffWeapon),
             );
 
@@ -406,6 +482,7 @@ impl Ability {
                 Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
                 Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
                 Ability::SpeciesMovement => None, // TODO: Make not None
+                // TODO: add aux abilities to gliders in the future?
                 Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
                 Ability::Empty => None,
             },
@@ -415,8 +492,8 @@ impl Ability {
                     inst_ability(equip_slot)
                 },
                 Ability::ToolPrimary => inst_ability(EquipSlot::ActiveMainhand),
-                Ability::ToolSecondary => inst_ability(EquipSlot::ActiveMainhand)
-                    .or_else(|| inst_ability(EquipSlot::ActiveOffhand)),
+                Ability::ToolSecondary => inst_ability(EquipSlot::ActiveOffhand)
+                    .or_else(|| inst_ability(EquipSlot::ActiveMainhand)),
                 Ability::SpeciesMovement => None, // TODO: Make not None
                 Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
                 Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
@@ -504,6 +581,7 @@ impl SpecifiedAbility {
                 Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
                 Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
                 Ability::SpeciesMovement => None,
+                // TODO: add aux abilities to gliders in the future?
                 Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
                 Ability::Empty => None,
             },
@@ -524,14 +602,13 @@ impl SpecifiedAbility {
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum PrimaryAbility {
     Tool,
-    Glider,
     Empty,
 }
 
 impl From<PrimaryAbility> for Ability {
     fn from(primary: PrimaryAbility) -> Self {
         match primary {
-            PrimaryAbility::Tool | PrimaryAbility::Glider => Ability::ToolPrimary,
+            PrimaryAbility::Tool => Ability::ToolPrimary,
             PrimaryAbility::Empty => Ability::Empty,
         }
     }
@@ -540,14 +617,13 @@ impl From<PrimaryAbility> for Ability {
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum SecondaryAbility {
     Tool,
-    Glider,
     Empty,
 }
 
 impl From<SecondaryAbility> for Ability {
     fn from(primary: SecondaryAbility) -> Self {
         match primary {
-            SecondaryAbility::Tool | SecondaryAbility::Glider => Ability::ToolSecondary,
+            SecondaryAbility::Tool => Ability::ToolSecondary,
             SecondaryAbility::Empty => Ability::Empty,
         }
     }

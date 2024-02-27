@@ -434,7 +434,8 @@ impl<'a> AgentData<'a> {
 
             agent.combat_state.int_counters[IntCounters::Tactics as usize] = tactic as u8;
 
-            let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
+            let auxiliary_key =
+                ActiveAbilities::active_auxiliary_key(Some(self.inventory), Some(self.char_state));
             let set_sword_ability = |controller: &mut Controller, slot, skill| {
                 controller.push_event(ControlEvent::ChangeAbility {
                     slot,
@@ -1219,7 +1220,8 @@ impl<'a> AgentData<'a> {
 
             agent.combat_state.int_counters[IntCounters::Tactic as usize] = tactic as u8;
 
-            let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
+            let auxiliary_key =
+                ActiveAbilities::active_auxiliary_key(Some(self.inventory), Some(self.char_state));
             let set_axe_ability = |controller: &mut Controller, slot, skill| {
                 controller.push_event(ControlEvent::ChangeAbility {
                     slot,

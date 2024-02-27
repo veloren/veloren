@@ -3684,6 +3684,7 @@ impl Hud {
             if let (
                 Some(skill_set),
                 Some(inventory),
+                Some(char_state),
                 Some(health),
                 Some(energy),
                 Some(body),
@@ -3691,6 +3692,7 @@ impl Hud {
             ) = (
                 skill_sets.get(entity),
                 inventories.get(entity),
+                char_states.get(entity),
                 healths.get(entity),
                 energies.get(entity),
                 bodies.get(entity),
@@ -3704,6 +3706,7 @@ impl Hud {
                     skill_set,
                     active_abilities.get(entity).unwrap_or(&Default::default()),
                     inventory,
+                    char_state,
                     health,
                     energy,
                     poise,
@@ -4002,12 +4005,20 @@ impl Hud {
                                 let me = info.viewpoint_entity;
                                 if let Some(active_abilities) = active_abilities.get(me) {
                                     let ability_a = active_abilities
-                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .auxiliary_set(
+                                            inventories.get(me),
+                                            skill_sets.get(me),
+                                            char_states.get(me),
+                                        )
                                         .get(a)
                                         .copied()
                                         .unwrap_or(AuxiliaryAbility::Empty);
                                     let ability_b = active_abilities
-                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .auxiliary_set(
+                                            inventories.get(me),
+                                            skill_sets.get(me),
+                                            char_states.get(me),
+                                        )
                                         .get(b)
                                         .copied()
                                         .unwrap_or(AuxiliaryAbility::Empty);
@@ -4152,12 +4163,20 @@ impl Hud {
                                 let me = info.viewpoint_entity;
                                 if let Some(active_abilities) = active_abilities.get(me) {
                                     let ability_a = active_abilities
-                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .auxiliary_set(
+                                            inventories.get(me),
+                                            skill_sets.get(me),
+                                            char_states.get(me),
+                                        )
                                         .get(a)
                                         .copied()
                                         .unwrap_or(AuxiliaryAbility::Empty);
                                     let ability_b = active_abilities
-                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .auxiliary_set(
+                                            inventories.get(me),
+                                            skill_sets.get(me),
+                                            char_states.get(me),
+                                        )
                                         .get(b)
                                         .copied()
                                         .unwrap_or(AuxiliaryAbility::Empty);

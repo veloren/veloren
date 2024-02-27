@@ -165,7 +165,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             },
             hotbar::SlotContents::Ability(i) => {
                 let ability_id = active_abilities.and_then(|a| {
-                    a.auxiliary_set(Some(inventory), Some(skillset))
+                    a.auxiliary_set(Some(inventory), Some(skillset), *char_state)
                         .get(i)
                         .and_then(|a| {
                             Ability::from(*a).ability_id(
@@ -246,6 +246,7 @@ type AbilitiesSource<'a> = (
     &'a Inventory,
     &'a SkillSet,
     &'a AbilityContext,
+    Option<&'a CharacterState>,
 );
 
 impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
@@ -253,7 +254,7 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
 
     fn image_key(
         &self,
-        (active_abilities, inventory, skillset, contexts): &AbilitiesSource<'a>,
+        (active_abilities, inventory, skillset, contexts, char_state): &AbilitiesSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         let ability_id = match self {
             Self::Slot(index) => active_abilities
@@ -261,11 +262,15 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
                     AbilityInput::Auxiliary(*index),
                     Some(inventory),
                     Some(skillset),
+                    *char_state,
                 )
-                .ability_id(None, Some(inventory), Some(skillset), contexts),
-            Self::Ability(ability) => {
-                Ability::from(*ability).ability_id(None, Some(inventory), Some(skillset), contexts)
-            },
+                .ability_id(*char_state, Some(inventory), Some(skillset), contexts),
+            Self::Ability(ability) => Ability::from(*ability).ability_id(
+                *char_state,
+                Some(inventory),
+                Some(skillset),
+                contexts,
+            ),
         };
 
         ability_id.map(|id| (String::from(id), None))

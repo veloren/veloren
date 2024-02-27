@@ -37,7 +37,7 @@ use common::{
             RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
-        Body, Energy, Health, Inventory, Poise,
+        Body, CharacterState, Energy, Health, Inventory, Poise,
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
@@ -212,6 +212,7 @@ pub struct Diary<'a> {
     skill_set: &'a SkillSet,
     active_abilities: &'a ActiveAbilities,
     inventory: &'a Inventory,
+    char_state: &'a CharacterState,
     health: &'a Health,
     energy: &'a Energy,
     poise: &'a Poise,
@@ -258,6 +259,7 @@ impl<'a> Diary<'a> {
         skill_set: &'a SkillSet,
         active_abilities: &'a ActiveAbilities,
         inventory: &'a Inventory,
+        char_state: &'a CharacterState,
         health: &'a Health,
         energy: &'a Energy,
         poise: &'a Poise,
@@ -280,6 +282,7 @@ impl<'a> Diary<'a> {
             skill_set,
             active_abilities,
             inventory,
+            char_state,
             health,
             energy,
             poise,
@@ -838,6 +841,7 @@ impl<'a> Widget for Diary<'a> {
                         self.inventory,
                         self.skill_set,
                         self.context,
+                        Some(self.char_state),
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
@@ -851,9 +855,10 @@ impl<'a> Widget for Diary<'a> {
                             AbilityInput::Auxiliary(i),
                             Some(self.inventory),
                             Some(self.skill_set),
+                            Some(self.char_state),
                         )
                         .ability_id(
-                            None,
+                            Some(self.char_state),
                             Some(self.inventory),
                             Some(self.skill_set),
                             self.context,
@@ -917,61 +922,24 @@ impl<'a> Widget for Diary<'a> {
                         .set(state.ids.active_abilities_keys[i], ui);
                 }
 
-                let same_weap_kinds = self
-                    .inventory
-                    .equipped(EquipSlot::ActiveMainhand)
-                    .zip(self.inventory.equipped(EquipSlot::ActiveOffhand))
-                    .map_or(false, |(a, b)| {
-                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) =
-                            (&*a.kind(), &*b.kind())
-                        {
-                            (a.ability_spec(), tool_a.kind) == (b.ability_spec(), tool_b.kind)
-                        } else {
-                            false
-                        }
-                    });
-
-                let main_weap_abilities = ActiveAbilities::iter_available_abilities(
+                let abilities: Vec<_> = ActiveAbilities::all_available_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
-                    EquipSlot::ActiveMainhand,
+                    Some(self.char_state),
                 )
-                .map(AuxiliaryAbility::MainWeapon)
+                .into_iter()
                 .map(|a| {
                     (
                         Ability::from(a).ability_id(
-                            None,
+                            Some(self.char_state),
                             Some(self.inventory),
                             Some(self.skill_set),
                             self.context,
                         ),
                         a,
                     )
-                });
-                let off_weap_abilities = ActiveAbilities::iter_available_abilities(
-                    Some(self.inventory),
-                    Some(self.skill_set),
-                    EquipSlot::ActiveOffhand,
-                )
-                .map(AuxiliaryAbility::OffWeapon)
-                .map(|a| {
-                    (
-                        Ability::from(a).ability_id(
-                            None,
-                            Some(self.inventory),
-                            Some(self.skill_set),
-                            self.context,
-                        ),
-                        a,
-                    )
-                });
-
-                let abilities: Vec<_> = if same_weap_kinds {
-                    // When the weapons have the same ability kind take only the main weapons,
-                    main_weap_abilities.collect()
-                } else {
-                    main_weap_abilities.chain(off_weap_abilities).collect()
-                };
+                })
+                .collect();
 
                 const ABILITIES_PER_PAGE: usize = 12;
 
@@ -1072,11 +1040,26 @@ impl<'a> Widget for Diary<'a> {
                         self.inventory,
                         self.skill_set,
                         self.context,
+                        Some(self.char_state),
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
                     pulse: 0.0,
                 };
+
+                let same_weap_kinds = self
+                    .inventory
+                    .equipped(EquipSlot::ActiveMainhand)
+                    .zip(self.inventory.equipped(EquipSlot::ActiveOffhand))
+                    .map_or(false, |(a, b)| {
+                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) =
+                            (&*a.kind(), &*b.kind())
+                        {
+                            (a.ability_spec(), tool_a.kind) == (b.ability_spec(), tool_b.kind)
+                        } else {
+                            false
+                        }
+                    });
 
                 for (id_index, (ability_id, ability)) in abilities
                     .iter()
