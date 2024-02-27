@@ -37,6 +37,7 @@ mod mounting;
 mod player;
 mod trade;
 
+/// Shared utilities used by other code **in this crate**
 pub(crate) mod shared {
     pub(crate) use super::{
         entity_manipulation::{transform_entity, TransformEntityError},

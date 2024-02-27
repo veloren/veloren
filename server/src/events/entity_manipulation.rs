@@ -22,7 +22,7 @@ use common::{
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, Inventory, Object, Player,
-        Poise, Pos, Presence, PresenceKind, SkillSet, Stats,
+        Poise, Pos, Presence, PresenceKind, SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -2106,13 +2106,17 @@ pub fn handle_transform(server: &mut Server, TransformEvent(uid, info): Transfor
         return;
     };
 
-    let _ = transform_entity(server, entity, info);
+    if let Err(error) = transform_entity(server, entity, info) {
+        error!(?error, ?uid, "Failed transform entity");
+    }
 }
 
+#[derive(Debug)]
 pub enum TransformEntityError {
     EntityDead,
     UnexpectedNpcWaypoint,
     UnexpectedNpcTeleporter,
+    LoadingCharacter,
 }
 
 pub fn transform_entity(
@@ -2158,20 +2162,38 @@ pub fn transform_entity(
             }
 
             // Disable persistence
-            {
+            'persist: {
+                match server
+                    .state
+                    .ecs()
+                    .read_storage::<Presence>()
+                    .get(entity)
+                    .map(|presence| presence.kind)
+                {
+                    // Transforming while the character is being loaded or is spectating is invalid!
+                    Some(PresenceKind::Spectator | PresenceKind::LoadingCharacter(_)) => {
+                        return Err(TransformEntityError::LoadingCharacter);
+                    },
+                    Some(PresenceKind::Possessor | PresenceKind::Character(_)) => {},
+                    None => break 'persist,
+                }
+
                 // Run persistence once before disabling it
+                //
+                // We must NOT early return between persist_entity() being called and
+                // persistence being set to Possessor
                 super::player::persist_entity(server.state_mut(), entity);
 
-                // TODO: let Imbris work out some edge-cases:
-                // - error on PresenseKind::LoadingCharacter
-                // - handle active inventory actions
-                let ecs = server.state.ecs();
-                let mut presences = ecs.write_storage::<Presence>();
-                let presence = presences.get_mut(entity);
+                // We re-fetch presence here as mutable, because checking for a valid
+                // [`PresenceKind`] must be done BEFORE persist_entity but persist_entity needs
+                // exclusive mutable access to the server's state
+                let mut presences = server.state.ecs().write_storage::<Presence>();
+                let Some(presence) = presences.get_mut(entity) else {
+                    // Checked above
+                    unreachable!("We already know this entity has a Presence");
+                };
 
-                if let Some(presence) = presence
-                    && let PresenceKind::Character(id) = presence.kind
-                {
+                if let PresenceKind::Character(id) = presence.kind {
                     server.state.ecs().write_resource::<IdMaps>().remove_entity(
                         Some(entity),
                         None,
@@ -2194,6 +2216,16 @@ pub fn transform_entity(
             set_or_remove_component(server, entity, Some(body.density()))?;
             set_or_remove_component(server, entity, Some(body.collider()))?;
             set_or_remove_component(server, entity, Some(scale))?;
+            // Reset active abilities
+            set_or_remove_component(
+                server,
+                entity,
+                Some(if body.is_humanoid() {
+                    comp::ActiveAbilities::default_limited(BASE_ABILITY_LIMIT)
+                } else {
+                    comp::ActiveAbilities::default()
+                }),
+            )?;
 
             // Don't add Agent or ItemDrops to players
             if !is_player {

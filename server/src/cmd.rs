@@ -672,9 +672,10 @@ fn handle_into_npc(
         TransformEntityError::UnexpectedNpcTeleporter => {
             Content::localized("command-unimplemented-teleporter-spawn")
         },
-    })?;
-
-    Ok(())
+        TransformEntityError::LoadingCharacter => {
+            Content::localized("command-transform-invalid-presence")
+        },
+    })
 }
 
 fn handle_make_npc(

@@ -3,6 +3,7 @@ use std::time::Duration;
 use common_assets::AssetExt;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
+use tracing::error;
 use vek::Vec3;
 
 use crate::{
@@ -65,6 +66,7 @@ impl CharacterBehavior for Data {
                 // Buildup finished, start transformation
                 } else {
                     let Ok(entity_config) = EntityConfig::load(&self.static_data.target) else {
+                        error!(?self.static_data.target, "Failed to load entity configuration");
                         end_ability(data, &mut update);
                         return update;
                     };

@@ -243,11 +243,14 @@ pub fn handle_client_disconnect(
     Event::ClientDisconnected { entity }
 }
 
-// When a player logs out, their data is queued for persistence in the next tick
-// of the persistence batch update. The player will be
-// temporarily unable to log in during this period to avoid
-// the race condition of their login fetching their old data
-// and overwriting the data saved here.
+/// When a player logs out, their data is queued for persistence in the next
+/// tick of the persistence batch update. The player will be
+/// temporarily unable to log in during this period to avoid
+/// the race condition of their login fetching their old data
+/// and overwriting the data saved here.
+///
+/// This function is also used by the Transform event and MUST NOT assume that
+/// the persisting entity is deleted afterwards.
 pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
     if let (
         Some(presence),
