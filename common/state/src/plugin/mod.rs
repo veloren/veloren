@@ -76,6 +76,8 @@ pub struct Plugin {
     hash: PluginHash,
     #[allow(dead_code)]
     path: PathBuf,
+    #[allow(dead_code)]
+    data_buf: Vec<u8>,
 }
 
 impl Plugin {
@@ -120,11 +122,14 @@ impl Plugin {
             })
             .collect::<Result<_, _>>()?;
 
+        let data_buf = fs::read(&path_buf).map_err(PluginError::Io)?;
+
         Ok(Plugin {
             data,
             modules,
             hash: shasum,
             path: path_buf,
+            data_buf,
         })
     }
 
@@ -161,7 +166,10 @@ impl Plugin {
     }
 
     /// get the path to the plugin file
-    pub fn path(&self) -> &Path { return self.path.as_path() }
+    pub fn path(&self) -> &Path { self.path.as_path() }
+
+    /// Get the data of this plugin
+    pub fn data_buf(&self) -> &[u8] { &self.data_buf }
 }
 
 #[derive(Default)]

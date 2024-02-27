@@ -1,16 +1,17 @@
-use crate::{client::Client, events::DispatcherBuilder};
+use crate::client::Client;
 use common::event::{RequestPluginsEvent, RequestSiteInfoEvent};
 use common_net::msg::{world_msg::EconomyInfo, ServerGeneral};
+#[cfg(feature = "plugins")]
+use common_state::plugin::PluginMgr;
 use specs::{DispatcherBuilder, ReadExpect, ReadStorage};
 use std::collections::HashMap;
 use world::IndexOwned;
-#[cfg(feature = "plugins")]
-use {common_state::plugin::PluginMgr, std::io::Read};
 
 use super::{event_dispatch, ServerEvent};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<RequestSiteInfoEvent>(builder);
+    #[cfg(feature = "plugins")]
     event_dispatch::<RequestPluginsEvent>(builder);
 }
 
@@ -78,42 +79,22 @@ impl ServerEvent for RequestPluginsEvent {
         (plugin_mgr, clients): Self::SystemData<'_>,
     ) {
         for mut ev in events {
+            let Some(client) = clients.get(ev.entity) else {
+                continue;
+            };
+
             for hash in ev.plugins.drain(..) {
                 if let Some(plugin) = plugin_mgr.find(&hash) {
-                    match std::fs::File::open(plugin.path()) {
-                        Ok(mut reader) => {
-                            let mut buf = Vec::new();
-                            match reader.read_to_end(&mut buf) {
-                                Ok(_) => {
-                                    clients.get(ev.entity).map(|c| {
-                                        c.send(ServerGeneral::PluginData(buf)).unwrap_or_else(|e| {
-                                            tracing::warn!(
-                                                "Error {e} sending plugin {hash:?} to client"
-                                            )
-                                        })
-                                    });
-                                },
-                                Err(e) => {
-                                    tracing::warn!(
-                                        "Error {e} reading plugin file {:?}",
-                                        plugin.path()
-                                    );
-                                },
-                            }
-                        },
-                        Err(e) => {
-                            tracing::warn!("Error {e} opening plugin file {:?}", plugin.path());
-                        },
-                    }
+                    let buf = Vec::from(plugin.data_buf());
+                    // TODO: @perf We could possibly make this more performant by caching prepared
+                    // messages for each plugin.
+                    client
+                        .send(ServerGeneral::PluginData(buf))
+                        .unwrap_or_else(|e| {
+                            tracing::warn!("Error {e} sending plugin {hash:?} to client")
+                        });
                 }
             }
         }
     }
-}
-
-#[cfg(not(feature = "plugins"))]
-impl ServerEvent for RequestPluginsEvent {
-    type SystemData<'a> = ();
-
-    fn handle(_events: impl ExactSizeIterator<Item = Self>, _: Self::SystemData<'_>) {}
 }
