@@ -849,7 +849,8 @@ impl Server {
                 Anchor::Entity(anchor_entity) => Some(*anchor_entity),
                 _ => None,
             })
-            .filter(|anchor_entity| anchors.get(*anchor_entity).is_some())
+            // We allow Anchor::Entity(_) -> Anchor::Chunk(_) chains
+            .filter(|anchor_entity| matches!(anchors.get(*anchor_entity), Some(Anchor::Entity(_))))
             .collect();
         drop(anchors);
 

@@ -227,10 +227,10 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
             .expect("We just created these entities");
     }
 
-    for pet in ev.npc.pets {
+    for (pet, offset) in ev.npc.pets {
         let pet_entity = handle_create_npc(server, CreateNpcEvent {
-            pos: ev.pos,
-            ori: Ori::default(),
+            pos: comp::Pos(ev.pos.0 + offset),
+            ori: Ori::from_unnormalized_vec(offset).unwrap_or_default(),
             npc: pet,
             rider: None,
         });

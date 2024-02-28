@@ -59,7 +59,7 @@ pub struct NpcBuilder {
     pub scale: comp::Scale,
     pub anchor: Option<comp::Anchor>,
     pub loot: LootSpec<String>,
-    pub pets: Vec<NpcBuilder>,
+    pub pets: Vec<(NpcBuilder, Vec3<f32>)>,
     pub rtsim_entity: Option<RtSimEntity>,
     pub projectile: Option<comp::Projectile>,
 }
@@ -134,7 +134,7 @@ impl NpcBuilder {
         self
     }
 
-    pub fn with_pets(mut self, pets: Vec<NpcBuilder>) -> Self {
+    pub fn with_pets(mut self, pets: Vec<(NpcBuilder, Vec3<f32>)>) -> Self {
         self.pets = pets;
         self
     }

@@ -39,7 +39,7 @@ use specs::{
     storage::GenericReadStorage, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect,
     ReadStorage, Write, WriteExpect, WriteStorage,
 };
-use std::sync::Arc;
+use std::{f32::consts::TAU, sync::Arc};
 use vek::*;
 
 #[cfg(feature = "persistent_world")]
@@ -210,7 +210,6 @@ impl<'a> System<'a> for Sys {
                         emitters.emit(CreateWaypointEvent(pos));
                     },
                     data @ NpcData::Data { .. } => {
-                        // TODO: Investigate anchor chains with pets
                         let (npc_builder, pos) = data
                             .to_npc_builder()
                             .expect("This NpcData is known to be valid");
@@ -419,7 +418,7 @@ pub enum NpcData {
         alignment: comp::Alignment,
         scale: comp::Scale,
         loot: LootSpec<String>,
-        pets: Vec<NpcData>,
+        pets: Vec<(NpcData, Vec3<f32>)>,
     },
     Waypoint(Vec3<f32>),
     Teleporter(Vec3<f32>, PortalData),
@@ -561,7 +560,21 @@ impl NpcData {
             alignment,
             scale: comp::Scale(scale),
             loot,
-            pets: pets.into_iter().map(NpcData::from_entity_info).collect(),
+            pets: {
+                let pet_count = pets.len() as f32;
+                pets.into_iter()
+                    .enumerate()
+                    .map(|(i, pet)| {
+                        (
+                            NpcData::from_entity_info(pet),
+                            Vec2::one()
+                                .rotated_z(TAU * (i as f32 / pet_count))
+                                .with_z(0.0)
+                                * ((pet_count * 3.0) / TAU),
+                        )
+                    })
+                    .collect()
+            },
         }
     }
 
@@ -592,13 +605,12 @@ impl NpcData {
                     .with_loot(loot)
                     .with_pets(
                         pets.into_iter()
-                            .map(|pet_data| pet_data.to_npc_builder().map(|(npc, _pos)| npc))
+                            .map(|(pet, offset)| pet.to_npc_builder().map(|(pet, _)| (pet, offset)))
                             .collect::<Result<Vec<_>, _>>()?,
                     ),
                 pos,
             )),
-            NpcData::Waypoint(_) => Err(self),
-            NpcData::Teleporter(_, _) => Err(self),
+            NpcData::Waypoint(_) | NpcData::Teleporter(_, _) => Err(self),
         }
     }
 }

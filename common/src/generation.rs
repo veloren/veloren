@@ -138,7 +138,7 @@ pub struct EntityConfig {
 
     /// Pets to spawn with this entity (specified as a list of asset paths)
     #[serde(default)]
-    pub pets: Vec<String>,
+    pub pets: Vec<(String, usize, usize)>,
 
     /// Meta Info for optional fields
     /// Possible fields:
@@ -320,17 +320,18 @@ impl EntityInfo {
         // NOTE: set loadout after body, as it's used with default equipement
         self = self.with_inventory(inventory, config_asset, loadout_rng, time);
 
-        self.pets = pets
-            .into_iter()
-            .map(|pet_config| {
-                EntityInfo::at(self.pos).with_entity_config(
-                    EntityConfig::load_expect_cloned(&pet_config),
-                    config_asset,
-                    loadout_rng,
-                    time,
-                )
-            })
-            .collect();
+        for (pet_asset, start, end) in pets {
+            let config = EntityConfig::load_expect_cloned(&pet_asset);
+            self.pets
+                .extend((0..loadout_rng.gen_range(start..=end)).map(|_| {
+                    EntityInfo::at(self.pos).with_entity_config(
+                        config.clone(),
+                        config_asset,
+                        loadout_rng,
+                        time,
+                    )
+                }));
+        }
 
         // Prefer the new configuration, if possible
         let AgentConfig {
@@ -692,10 +693,11 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn validate_pets(pets: Vec<String>, config_asset: &str) {
-        for pet in pets.into_iter().map(|pet_asset| {
-            EntityConfig::load_cloned(&pet_asset)
-                .expect(&format!("Pet asset path invalid, in {config_asset}"))
+    fn validate_pets(pets: Vec<(String, usize, usize)>, config_asset: &str) {
+        for pet in pets.into_iter().map(|(pet_asset, _, _)| {
+            EntityConfig::load_cloned(&pet_asset).unwrap_or_else(|_| {
+                panic!("Pet asset path invalid: \"{pet_asset}\", in {config_asset}")
+            })
         }) {
             if !pet.pets.is_empty() {
                 panic!("Pets must not be owners of pets: {config_asset}");

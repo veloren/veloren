@@ -2252,17 +2252,14 @@ pub fn transform_entity(
             }
 
             // Spawn pets
-            let position = server
-                .state
-                .ecs()
-                .read_storage::<comp::Pos>()
-                .get(entity)
-                .copied();
+            let position = server.state.read_component_copied::<comp::Pos>(entity);
             if let Some(pos) = position {
-                for (pet, _pos) in pets.into_iter().filter_map(|pet| pet.to_npc_builder().ok()) {
+                for (pet, offset) in pets.into_iter().filter_map(|(pet, offset)| {
+                    pet.to_npc_builder().map(|(pet, _)| (pet, offset)).ok()
+                }) {
                     let pet_entity = handle_create_npc(server, CreateNpcEvent {
-                        pos,
-                        ori: comp::Ori::default(),
+                        pos: comp::Pos(pos.0 + offset),
+                        ori: comp::Ori::from_unnormalized_vec(offset).unwrap_or_default(),
                         npc: pet,
                         rider: None,
                     });
