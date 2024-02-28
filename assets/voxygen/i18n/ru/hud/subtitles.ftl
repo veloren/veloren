@@ -44,3 +44,4 @@ subtitle-wield_sceptre = Скипетр экипирован
 subtitle-roll = Перекат
 subtitle-attack_blocked = Атака заблокирована
 subtitle-interrupted = Прервано
+subtitle-fire_shot = Выстрел посоха

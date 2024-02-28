@@ -32,7 +32,7 @@ hud-chat-died_of_npc_buff_msg =
 hud-chat-pvp_melee_kill_msg = { "[" }{ $attacker }] besegrade [{ $victim }]
 hud-chat-pvp_ranged_kill_msg = { "[" }{ $attacker }] sköt [{ $victim }]
 hud-chat-pvp_explosion_kill_msg = { "[" }{ $attacker }] sprängde [{ $victim }]
-hud-chat-pvp_energy_kill_msg = { "[" }{ $attacker }] dödade [{ $victim }] med trolldom
+hud-chat-pvp_energy_kill_msg = { "[" }{ $attacker }] dödade [{ $victim }] med magi
 hud-chat-pvp_other_kill_msg = { "[" }{ $attacker }] dödade [{ $victim }]
 
 ## PvE deaths
@@ -40,7 +40,7 @@ hud-chat-pvp_other_kill_msg = { "[" }{ $attacker }] dödade [{ $victim }]
 hud-chat-npc_melee_kill_msg = { $attacker } dödade [{ $victim }]
 hud-chat-npc_ranged_kill_msg = { $attacker } sköt [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } sprängde [{ $victim }]
-hud-chat-npc_energy_kill_msg = { $attacker } dödade [{ $victim }] med trolldom
+hud-chat-npc_energy_kill_msg = { $attacker } dödade [{ $victim }] med magi
 hud-chat-npc_other_kill_msg = { $attacker } dödade [{ $victim }]
 
 ## Other deaths
@@ -54,9 +54,31 @@ hud-chat-default_death_msg = { "[" }{ $name }] dog
 hud-chat-all = Alla
 hud-chat-chat_tab_hover_tooltip = Högerklicka för inställningar
 hud-loot-pickup-msg =
-    { $actor } plockade upp { $amount ->
-        [one] { $item }
-       *[other] { $amount }x { $item }
+    { $amount ->
+        [1] { $actor } plockade upp { $item }
+       *[other] { $actor } plockade upp { $amount }x { $item }
     }
 hud-chat-goodbye = Hejdå!
 hud-chat-connection_lost = Anslutningen bröts. Sparkas ut om { $time } sekunder.
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to = Till [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from = Från [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from-npc = Från [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to-npc = Till [{ $alias }]: { $msg }
+# HUD Pickup message
+hud-loot-pickup-msg-you =
+    { $amount ->
+        [1] Du plockade upp { $item }
+       *[other] Du plockade upp { $amount }x { $item }
+    }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message = { "[" }{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-with-name = { "[" }{ $alias }] { $name }: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }

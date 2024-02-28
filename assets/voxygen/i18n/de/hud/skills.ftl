@@ -1,7 +1,8 @@
 hud-rank_up = Neuer Fähigkeitspunkt
 hud-skill-sp_available = { $number } SP verfügbar
 hud-skill-not_unlocked = Noch nicht freigeschaltet
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Benötigt { $number } SP
 hud-skill-inc_health_title = Leben erhöhen
@@ -169,3 +170,4 @@ hud-skill-pick_strike_oregain_title = Ausbeute von Erzen
 hud-skill-pick_strike_oregain = Erhöht die Chance auf mehr Erze beim Abbauen ({ $boost }% höher pro Level){ $SP }
 hud-skill-pick_strike_gemgain_title = Ausbeute von Edelsteinen
 hud-skill-pick_strike_gemgain = Erhöht die Chance auf mehr Edelsteine beim Abbauen ({ $boost }% höher pro Level){ $SP }
+hud-skill-set_as_exp_bar = Als Erfahrungsleiste setzen

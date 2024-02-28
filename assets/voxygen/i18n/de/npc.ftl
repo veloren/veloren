@@ -89,7 +89,7 @@ npc-speech-villager_neurotic =
     .a3 = Ich wünschte, jemand würde die Wölfe aus dem Dorf fernhalten.
 npc-speech-villager_sad_loner =
     .a0 = Ich bin soo allein.
-    .a1 = ... Entschuldige die peinliche Stille. Ich bin nicht so gut im Umgang mit Menschen.
+    .a1 = { "." }.. Entschuldige die peinliche Stille. Ich bin nicht so gut im Umgang mit Menschen.
 npc-speech-villager_seeker =
     .a0 = Eines Tages möchte ich die Welt sehen. Es muss doch mehr im Leben geben als dieses Dorf.
 npc-speech-villager_stable =
@@ -130,7 +130,6 @@ npc-speech-merchant_trade_cancelled_hostile =
 npc-speech-ambush =
     .a0 = Es ist unklug, allein zu reisen!
     .a1 = Als ob man einem Baby Süßigkeiten klaut!
-
 npc-speech-villager_cultist_alarm =
     .a0 = Achtung! Ein Kultist schleicht hier herum!
     .a1 = Zu den Waffen! Die Kultisten attackieren uns!
@@ -238,7 +237,7 @@ npc-speech-villager_under_attack =
 npc-speech-villager_enemy_killed =
     .a0 = Ich habe den Feind vernichtet!
     .a1 = Endlich Frieden!
-    .a2 = ... also, wo war ich stehengeblieben?
+    .a2 = { "." }.. also, wo war ich stehengeblieben?
 npc-speech-menacing =
     .a0 = Ich warne dich!
     .a1 = Komm nicht näher oder ich greife an!
@@ -259,3 +258,104 @@ npc-speech-prisoner =
     .a3 = Diesem Kardinal kann nicht getraut werden.
     .a4 = Diese Kleriker führen doch etwas im Schilde.
     .a5 = Ich wünschte meine Spitzhacke wäre noch bei mir!
+# Generic NPC messages
+npc-speech-merchant_sell_undirected =
+    .a0 = Alle meine Waren haben die höchste Qualität!
+    .a1 = Möchte jemand meine Waren kaufen?
+    .a2 = Ich habe die besten Angebote der Stadt.
+    .a3 = Auf der Suche nach Zubehör? Ich habe, was sie brauchen.
+# Generic NPC messages
+npc-speech-day_time =
+    .a0 = Ein neuer Tag beginnt!
+    .a1 = Ich mochte aufwachen noch nie...
+# Generic NPC messages
+npc-speech-night_time =
+    .a0 = Es ist dunkel, Zeit nach Hause zu gehen.
+    .a1 = Ich bin müde.
+    .a2 = Mein Bett winkt!
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_ahead = den Weg weiter
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_west = Westen
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_far = weit
+# NPC reactions
+npc-speech-witness_enemy_murder =
+    .a0 = Mein Held!
+    .a1 = Endlich hat es jemand erlegt!
+    .a2 = Yeaah!
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_south_east = Südosten
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_north_west = Nordwesten
+# NPC site hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $site represents hard-coded site in the world
+npc-speech-tell_site =
+    .a0 = Warst du schonmal in { $site }? Es liegt nur im { $dir } von hier!
+    .a1 = Du solltest irgendwann einmal { $site } besuchen.
+    .a2 = Wenn du { $dist } nach { $dir } gehst, gelangst du nach { $site }.
+    .a3 = Nach { $dir } wirst du { $site } finden, es ist nur { $dist }.
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_north_east = Nordosten
+# NPC reactions
+npc-speech-witness_death =
+    .a0 = Nein!
+    .a1 = Das ist schrecklich!
+    .a2 = Ach du meine Güte!
+# NPC reactions
+npc-speech-witness_murder =
+    .a0 = Mörder!
+    .a1 = Wie konntest du das tun?
+    .a2 = Aaahhh!
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_south_west = Südwesten
+# Generic NPC messages
+npc-speech-merchant_sell_directed =
+    .a0 = Hey du! Brauchst du ein neues Dingsbums?
+    .a1 = Bist du hungrig? Ich hab sicher etwas Käse, den du kaufen kannst.
+    .a2 = Du siehst aus, als könntest du etwas neue Rüstung gebrauchen!
+# NPC monster hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $body references body-npc-speech-* variables in `body` component
+npc-speech-tell_monster =
+    .a0 = Sie sagen da wäre { $body } nach { $dir }, { $dist }...
+    .a1 = Du denkst du bist zäh? Nach { $dir } gibt es { $body }.
+# Generic NPC messages
+npc-speech-migrating =
+    .a0 = Ich lebe hier nicht mehr glücklich. Es wird Zeit, nach { $site } zu ziehen.
+    .a1 = Zeit, nach { $site } zu ziehen, ich habe von diesem Ort die Nase voll.
+# NPC proposals
+npc-speech-arena = Lasst uns dort hinsetzen!
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_very_far = sehr weit
+# Generic NPC messages
+npc-speech-moving_on =
+    .a0 = Ich habe genug Zeit hier verbracht, auf nach { $site }!
+# Generic NPC messages
+npc-speech-start_hunting =
+    .a0 = Zeit für die Jagd!
+# NPC reactions
+npc-speech-welcome-aboard =
+    .a0 = Willkommen an Bord!
+    .a1 = Kann ich dein Ticket sehen... kleiner Spaß, Eintritt ist frei!
+    .a2 = Hab eine gute Fahrt!
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_south = Süden
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_north = Norden
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_near = kurz
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_near_to = sehr kurz
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_east = Osten
+# Generic NPC messages
+npc-speech-guard_thought =
+    .a0 = Mein Bruder ist unterwegs, gegen Ogre zu kämpfen. Was bleibt für mich? Wachdienst...
+    .a1 = Nur noch eine Patrouille, dann kann ich nach Hause.
+    .a2 = Kein Bandit kommt an mir vorbei.

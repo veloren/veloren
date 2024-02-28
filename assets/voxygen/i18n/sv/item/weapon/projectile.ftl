@@ -1,0 +1,14 @@
+weapon-projectile-fireworks_white = Fyverkeri Vit
+    .desc = Blinkar som stjärnorna.
+weapon-projectile-fireworks_green = Fyverkeri Grön
+    .desc = Se upp för träden.
+weapon-projectile-fireworks_blue = Fyverkeri Blå
+    .desc = Rekommendrad undanröjning: 42 chonks.
+weapon-projectile-fireworks_purple = Fyverkeri Lila
+    .desc = Kultfavorit.
+weapon-projectile-fireworks_yellow = Fyverkeri Gul
+    .desc = Den Store Doktorn gick bort efter att ha testat denna apparat inomhus.
+object-bomb = Bomb
+    .desc = En högst explosiv enhet, demolerare älskar dem!
+weapon-projectile-fireworks_red = Fyverkeri Röd
+    .desc = Människor använder ibland dessa som nödbloss i svåra situationer.

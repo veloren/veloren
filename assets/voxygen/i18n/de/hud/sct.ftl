@@ -1,2 +1,2 @@
-hud-sct-experience = { $amount } Exp
+hud-sct-experience = { $amount } Erfahrung
 hud-sct-block = BLOCKIERT

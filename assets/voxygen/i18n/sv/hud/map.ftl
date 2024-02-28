@@ -19,9 +19,9 @@ hud-map-dungeon = Dungeon
 hud-map-df_mine = Gruva
 hud-map-difficulty_dungeon =
     Dungeon
-    
+
     Svårighet: { $difficulty }
-hud-map-drag = Drag
+hud-map-drag = Dra
 hud-map-zoom = Zooma
 hud-map-mid_click = Markera landmärke
 hud-map-recenter = Omcentrera
@@ -36,3 +36,5 @@ hud-map-gnarling = Gnarlingsfästning
 hud-map-chapel_site = Sjökapell
 hud-map-adlet = Adletsfort
 hud-map-placed_by = Placerad av { $name }
+hud-map-terracotta = Terrakottaruinerna
+hud-map-haniwa = Haniwakatakomb

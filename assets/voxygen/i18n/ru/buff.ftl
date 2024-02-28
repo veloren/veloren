@@ -148,3 +148,21 @@ buff-title-fury = Ярость
 buff-desc-frigid = Заморозьте своих врагов.
 # Flame
 buff-desc-flame = Пламя — ваш союзник.
+# Berserk
+buff-title-berserk = Берсерк
+# Bloodfeast
+buff-title-bloodfeast = Кровавый пир
+# Berserk
+buff-desc-berserk = Вы находитесь в состоянии ярости, в результате чего ваши атаки становятся более мощными и быстрыми, а скорость увеличивается. Однако при этом снижается способность к защите.
+# Salamander's Aspect
+buff-desc-salamanderaspect = Вы не горите и быстро перемещаетесь по лаве.
+# Agility
+buff-desc-agility = Вы двигаетесь быстрее, но наносите меньше урона и получаете больше повреждений.
+# Agility
+buff-stat-agility =
+    Увеличивает скорость передвижения на { $strength }%.
+    но уменьшает ваш урон на 100%,
+    и увеличивает уязвимость к урону
+    на 100%.
+# Agility
+buff-title-agility = Ловкость

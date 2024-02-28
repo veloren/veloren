@@ -1,7 +1,8 @@
 hud-rank_up = Nouveau Point de compétence
 hud-skill-sp_available = { $number } PC disponibles
 hud-skill-not_unlocked = Pas encore débloqué
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Nécessite { $number } PC
 hud-skill-set_as_exp_bar = Définir comme bar d'expérience
@@ -22,7 +23,7 @@ hud-skill-unlck_staff = Débloque l'arbre de compétence pour le bâton{ $SP }
 hud-skill-unlck_sceptre_title = Maniement du Sceptre
 hud-skill-unlck_sceptre = Débloque l'arbre de compétence pour le sceptre{ $SP }
 hud-skill-dodge_title = Roulade
-hud-skill-dodge = Esquivez les attaques de mélée en faisant des roulades{ $SP }
+hud-skill-dodge = Esquivez les attaques de mélée en faisant des roulades.
 hud-skill-roll_energy_title = Coût d'Endurance de la Roulade
 hud-skill-roll_energy = Rouler coûte { $boost }% moins d'endurance{ $SP }
 hud-skill-roll_speed_title = Vitesse de la Roulade
@@ -30,7 +31,7 @@ hud-skill-roll_speed = Rouler { $boost }% plus vite{ $SP }
 hud-skill-roll_dur_title = Durée de la Roulade
 hud-skill-roll_dur = Augmente de { $boost }% la durée de la roulade{ $SP }
 hud-skill-climbing_title = Escalade
-hud-skill-climbing = Sauter encore plus haut
+hud-skill-climbing = Capacité à escalader des surfaces
 hud-skill-climbing_cost_title = Coût d'endurance de l'Escalade
 hud-skill-climbing_cost = Escalader coûte { $boost }% moins d'endurance{ $SP }
 hud-skill-climbing_speed_title = Vitesse d'Escalade
@@ -45,7 +46,7 @@ hud-skill-sc_lifesteal_damage_title = Dégâts du Rayon Vol-Vie
 hud-skill-sc_lifesteal_damage = Inflige { $boost }% plus de dégâts{ $SP }
 hud-skill-sc_lifesteal_range_title = Portée du Rayon Vol-Vie
 hud-skill-sc_lifesteal_range = Votre Rayon se propage { $boost }% plus loin{ $SP }
-hud-skill-sc_lifesteal_lifesteal_title = Efficacité du Rayon Vol-Vie
+hud-skill-sc_lifesteal_lifesteal_title = Efficacité du rayon voleur de vie
 hud-skill-sc_lifesteal_lifesteal = Convertit { $boost }% plus de dégâts en points de vie{ $SP }
 hud-skill-sc_lifesteal_regen_title = Régénération d'Endurance du Rayon Vol-Vie
 hud-skill-sc_lifesteal_regen = Restaure de { $boost }% en plus votre endurance{ $SP }

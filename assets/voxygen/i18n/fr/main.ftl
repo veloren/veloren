@@ -7,29 +7,29 @@ main-tip = Astuce:
 main-unbound_key_tip = non lié
 main-notice =
     Bienvenue dans la version alpha de Veloren !
-    
+
     Avant de commencer à vous amuser, merci de garder les choses suivantes en tête :
-    
+
     - Il s'agit d'une version alpha très jeune. Attendez-vous à des bugs, un gameplay non terminé, des mécaniques non peaufinées et des fonctionalités manquantes.
-    
+
     - Si vous avez des retours constructifs ou avez detecté un bug, vous pouvez nous contacter via Reddit, GitLab ou notre serveur communautaire Discord.
-    
+
     - Veloren est un logiciel open-source sous licence GPL3. Cela signifie que vous êtes libre de jouer, modifier et redistribuer le jeu comme il vous semble (licence contaminante sous GPL 3 pour toute modification)
-    
+
     - Veloren est un projet communautaire à but non-lucratif développé par des bénévoles.
     Si vous appréciez ce jeu, vous êtes les bienvenus pour rejoindre les équipes de développement ou d'artistes!
-    
+
     Merci d'avoir pris le temps de lire cette annonce, nous espérons que vous apprécierez le jeu!
-    
+
     ~ L'équipe de Veloren
 main-login_process =
     Information sur la procédure de connexion:
-    
+
     Vous devez à présent posséder un compte
     afin de jouer sur les serveurs avec authentification.
-    
+
     Vous pouvez créer un compte à l'adresse 
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Serveur introuvable
 main-login-authentication_error = Erreur d'authentification sur le serveur
@@ -93,3 +93,23 @@ loading-tips =
     .a20 = Appuyez sur '{ $gameinput-roll }' pour rouler. Faire une roulade peut être utilisé pour se déplacer plus vite et esquiver les attaques ennemies.
     .a21 = Vous vous demandez à quoi sert un objet ? Rechercher 'input:<item name>' dans le menu de craft pour voir dans quelle(s) recette(s) il est utilisé.
     .a22 = Vous avez trouvé quelque chose de cool ? Prenez une capture d'écran à l'aide de '{ $gameinput-screenshot }'.
+main-singleplayer-new = Nouveau
+main-singleplayer-map_shape = Forme
+menu-singleplayer-confirm_delete = Êtes-vous sur de vouloir supprimer «{ $world_name }»
+main-singleplayer-delete = Supprimer
+main-singleplayer-random_seed = Aléatoire
+menu-singleplayer-confirm_regenerate = Êtes-vous sur de vouloir régénérer «{ $world_name }» ?
+main-singleplayer-play = Jouer
+main-singleplayer-regenerate = Régénérer
+main-singleplayer-create_custom = Personnaliser
+main-singleplayer-invalid_name = Erreur : Nom invalide
+main-singleplayer-size_lg = Taille logarithmique
+main-singleplayer-map_large_warning = Attention : les grands mondes prennent beaucoup de temps pour se lancer la première fois
+main-singleplayer-day_length = Durée de la journée
+main-singleplayer-seed = Graine
+main-singleplayer-world_name = Nom du monde
+main-singleplayer-map_scale = Échelle verticale
+main-singleplayer-map_erosion_quality = Qualité de l'érosion
+main-singleplayer-generate_and_play = Générer et Jouer
+main-server-rules = Ce serveur a des règles qui souvent être acceptées
+main-server-rules-seen-before = Ces règles ont changés depuis la dernière fois que vous les avez accepté

@@ -18,7 +18,7 @@ hud-map-bridge = Brücke
 hud-map-dungeon = Verlies
 hud-map-difficulty_dungeon =
     Verlies
-    
+
     Schwierigkeitsgrad: { $difficulty }
 hud-map-drag = Ziehen
 hud-map-zoom = Zoom
@@ -29,9 +29,12 @@ hud-map-marked_location_remove = Zum Entfernen klicken
 hud-map-change_map_mode = Kartenmodus ändern
 hud-map-toggle_minimap_voxel = Voxel-Ansicht der Minikarte an-/ausschalten
 hud-map-zoom_minimap_explanation =
-    Du kannst in der minimap heranzoomen,
-    um die Welt um dich herum im Detail zu sehen.
+    Du kannst in der Minimap heranzoomen,
+    um die Welt um dich herum im Detail zu sehen
 hud-map-gnarling = Gnarling Festung
 hud-map-chapel_site = Meereskapelle
 hud-map-adlet = Adlet Festung
 hud-map-placed_by = Platziert von { $name }
+hud-map-haniwa = Haniwa Katakomben
+hud-map-terracotta = Terrakottaruinen
+hud-map-df_mine = Bergwerk

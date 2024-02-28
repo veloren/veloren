@@ -60,3 +60,19 @@ hud-loot-pickup-msg =
         [one] { $item }
        *[other] { $amount }x { $item }
     }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from = De [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to-npc = Para [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to = Para [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message = { "[" }{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-with-name = { "[" }{ $alias }] { $name }: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from-npc = De [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }: { $msg }

@@ -7,45 +7,45 @@ main-tip = Tips:
 main-unbound_key_tip = obunden
 main-notice =
     Välkommen till alfa-versionen av Veloren!
-    
+
     Innan du dyker in i det roliga, ber vi dig hålla några saker i åtanke:
-    
+
     - Detta är en väldigt tidig alfa-version. Förvänta dig buggar, väldigt bristfällig spelupplevelse, ovårdad spelmekanik och saknade funktioner.
-    
+
     - Om du har konstruktiva synpunkter eller buggar att rapportera går det bra att kontakta oss på Reddit, GitLab eller vår gemenskaps Discord-server.
-    
+
     - Veloren har öppen källkod, publicerad under licensen GPL 3. Det innebär att du får spela, modifiera och sprida spelet vidare precis
      som du vill (så länge dina ändringar publiceras under samma licens).
-    
+
     - Veloren är ett projekt som drivs av en gemenskap utan vinstintresse och alla som bidrar är en volontär.
     Om du gillar det du ser, får du gärna gå med i en utvecklings- eller konstgrupp!
-    
+
     Tack för att du tog dig tid att läsa det här meddelandet, vi hoppas du kommer gilla spelet!
-    
+
     ~ Velorens utvecklare
 main-login_process =
     Information om inloggningsproceduren:
-    
+
     Observera att du behöver ett konto
     för att spela på vissa servrar.
-    
+
     Du kan skapa ett konto på
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Servern hittades inte
 main-login-authentication_error = Inloggningsfel på servern
-main-login-internal_error = Internt fel hos klienten (troligen på grund av att rollpersonen har raderats)
+main-login-internal_error = Internt fel hos klient (troligen på grund av att spelarkaraktären har raderats)
 main-login-failed_auth_server_url_invalid = Kunde inte ansluta till inloggningsservern
-main-login-insecure_auth_scheme = Inloggning kan inte ske över HTTP. Detta är osäkert! För utvecklingsskäl får HTTP användas för 'localhost' ooch felsökningsinstallationer
+main-login-insecure_auth_scheme = Inloggning kan inte ske över HTTP. Det är osäkert! För utvecklingsskäl får HTTP användas för 'localhost' eller felsökningsversioner
 main-login-server_full = Servern är full
 main-login-untrusted_auth_server = Inloggningsservern är inte betrodd
-main-login-outdated_client_or_server = ServernÄrTokig: Versionerna är förmodligen inte kompatibla, se om det finns uppdateringar tillgängliga.
-main-login-timeout = Timeout: Servern svarade inte i tid. (Överbelastad eller nätverksproblem.)
-main-login-server_shut_down = Servern stannade
+main-login-outdated_client_or_server = ServernÄrTokig: Versionerna är nog inkompatibla, se om det finns uppdateringar.
+main-login-timeout = Timeout: Servern svarade inte i tid. (Överbelastad eller nätverksproblem).
+main-login-server_shut_down = Servern stänges ner
 main-login-network_error = Nätverksfel
-main-login-network_wrong_version = Olika version hos server och klient, vänligen uppdatera din spelklient.
+main-login-network_wrong_version = Olika versioner hos server och klient, vänligen uppdatera din spelklient.
 main-login-failed_sending_request = Förfrågan till inloggningsservern misslyckades
-main-login-invalid_character = Den valda rollpersonen är ogiltig
+main-login-invalid_character = Den valda karaktären är ogiltig
 main-login-client_crashed = Klienten kraschade
 main-login-not_on_whitelist = Du måste finnas på administratörens vitlista för att få gå med
 main-login-banned = Du har blockerats med följande motivering
@@ -58,13 +58,13 @@ main-login-username_bad_characters = Användarnamnet innehåller otillåtna teck
 main-login-username_too_long = Användarnamnet är för långt! Den maximala längden är: { $max_len }
 main-servers-select_server = Välj en server
 main-servers-singleplayer_error = Misslyckades att ansluta till den interna servern: { $sp_error }
-main-servers-network_error = Serverns nätverks/uttagsfel: { $raw_error }
+main-servers-network_error = Serverns nätverks-/uttagsfel: { $raw_error }
 main-servers-participant_error = Deltagarfrånkoppling/protokollfel : { $raw_error }
 main-servers-stream_error = Klientanslutnings-/komprimerings-/(av)serialiseringsfel: { $raw_error }
 main-servers-database_error = Serverdatabasfel: { $raw_error }
 main-servers-persistence_error = Serverpersistensfel (Troligtvis Tillgångs/Karaktärsdatarelaterat): { $raw_error }
 main-servers-other_error = Generellt serverfel: { $raw_error }
-main-credits = Lista över medverkande
+main-credits = Medverkande
 main-credits-created_by = skapat av
 main-credits-music = Musik
 main-credits-fonts = Typsnitt
@@ -93,3 +93,23 @@ loading-tips =
     .a19 = Tryck '{ $gameinput-roll }' för att rulla. Det är användbart att rulla för att röra sig fortare och undvika fiendernas attacker.
     .a20 = Undrar du vad et föremål används till? Sök efter 'input:<item name>' i tillverkningmenyn för att se vilka recept det används i.
     .a21 = Har du hittat något coolt? Ta en bild av det med '{ $gameinput-screenshot }'.
+main-singleplayer-new = Ny
+main-singleplayer-regenerate = Omgenerera
+main-singleplayer-create_custom = Skapa Anpassad
+main-singleplayer-invalid_name = Fel: Ogiltigt namn
+main-singleplayer-size_lg = Logaritmisk storlek
+main-singleplayer-random_seed = Slumpmässig
+main-singleplayer-day_length = Daglängd
+main-singleplayer-world_name = Världnamn
+main-singleplayer-map_scale = Vertikal skalning
+main-singleplayer-map_erosion_quality = Erosionskvalitet
+main-singleplayer-play = Spela
+main-singleplayer-generate_and_play = Generera & Spela
+menu-singleplayer-confirm_regenerate = Vill du verkligen omgenerera "{ $world_name }"
+menu-singleplayer-confirm_delete = Vill du verkligen radera "{ $world_name }"
+main-singleplayer-map_shape = Form
+main-singleplayer-map_large_warning = Varning: Stora världar kommer att ta lång tid att starta den första gången
+main-server-rules-seen-before = De här reglerna har ändrats sen du accepterat dem sist
+main-singleplayer-delete = Radera
+main-server-rules = Den här servern har regler som måste accepteras
+main-singleplayer-seed = Frö

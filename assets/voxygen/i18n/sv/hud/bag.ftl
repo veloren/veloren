@@ -32,7 +32,7 @@ hud-bag-stealth = Smygning
 hud-bag-combat_rating_desc =
     Beräknas från din
     utrustning och hälsa.
-hud-bag-protection_desc = Skadebegränsning från rustning
+hud-bag-protection_desc = skademinskning från rustning.
 hud-bag-stun_res_desc =
     Motståndskraft mot att bli överväldigad efter upprepade slag.
     Regenereras likt energi.
@@ -41,3 +41,4 @@ hud-bag-sort_by_quality = Sortera efter Kvalitet
 hud-bag-sort_by_category = Sortera efter Kategori
 hud-bag-sort_by_tag = Sort efter Tagg
 hud-bag-sort_by_quantity = Sortera efter Kvantitet
+hud-bag-backpack = Ryggsäck

@@ -12,7 +12,7 @@ hud-trade-has_accepted =
     ha aceptado
 hud-trade-accept = Aceptar
 hud-trade-decline = Rechazar
-hud-trade-invite_sent = Solicitud de comercio enviada a { $playername }
+hud-trade-invite_sent = Solicitud de comercio enviada a { $playername }.
 hud-trade-result-completed = Trato hecho con éxito.
 hud-trade-result-declined = Trato rechazado.
 hud-trade-result-nospace = No hay suficiente espacio para completar la transacción.
@@ -21,11 +21,14 @@ hud-trade-tooltip_hint_2 = <Ctrl-Click para igualar el valor del trato.>
 hud-trade-your_offer = Tu oferta
 hud-trade-their_offer = Su oferta
 hud-trade-amount_input = Selecciona un objeto
-hud-trade-buy = Precio de compra: { $coin_num ->
-    [one] 1 moneda
-    *[other] { $coin_formatted } monedas
-}
-hud-trade-sell = Precio de venta: { $coin_num ->
-    [one] 1 moneda
-    *[other] { $coin_formatted } monedas
-}
+hud-trade-buy =
+    Precio de compra: { $coin_num ->
+        [one] 1 moneda
+       *[other] { $coin_formatted } monedas
+    }
+hud-trade-sell =
+    Precio de venta: { $coin_num ->
+        [one] 1 moneda
+       *[other] { $coin_formatted } monedas
+    }
+hud-confirm-trade-for-nothing = ¿Seguro que quieres regalar estos objetos a cambio de nada?

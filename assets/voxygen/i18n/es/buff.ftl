@@ -139,3 +139,34 @@ buff-desc-sunderer = Tus ataques pueden romper las defensas de tus enemigos y re
 buff-desc-defiance = Puedes resistir golpes más fuertes y asombrosos y generar combos al ser golpeado, sin embargo es más lento.
 # Berserk
 buff-desc-berserk = Estás en modo furioso, lo que hace que tus ataques sean más potentes y rápidos, y aumenta tu velocidad. Sin embargo, tu capacidad defensiva es menor.
+# Fury
+buff-title-fury = Furia
+# Lifesteal
+buff-desc-lifesteal = Drena la fuerza vital de tus enemigos.
+# Agility
+buff-desc-agility = Te mueves más rápido, pero disminuye tu ataque y tu defensa.
+# Agility
+buff-stat-agility =
+    Aumenta la velocidad de movimiento en un { $strength } %,
+    pero te hace incapaz de infligir daño
+    y duplica el daño que recibes.
+# Agility
+buff-title-agility = Agilidad
+# Heatstroke
+buff-title-heatstroke = Golpe de calor
+# Heatstroke
+buff-desc-heatstroke = Las altas temperaturas te han provocado un golpe de calor. Tu ganancia de aguante y velocidad de movimiento se ven reducidos. Refréscate.
+# Flame
+buff-title-flame = Llama
+# Flame
+buff-desc-flame = La llama es tu aliada.
+# Frigid
+buff-title-frigid = Gélido
+# Frigid
+buff-desc-frigid = Congela a tus enemigos.
+# Lifesteal
+buff-title-lifesteal = Robo de vida
+# Sunderer
+buff-title-defiance = Resistencia
+# Berserk
+buff-title-berserk = Berseker

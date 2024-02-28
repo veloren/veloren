@@ -42,7 +42,7 @@ common-video_settings = Options Vidéo
 common-sound_settings = Options Audio
 common-language_settings = Langage
 common-chat_settings = Réglages Chat
-common-accessibility_settings = Options Accessibilité
+common-accessibility_settings = Paramètres d'accessibilité
 common-networking_settings = Options Réseau
 common-connection_lost =
     Connexion perdue !
@@ -113,3 +113,6 @@ common-sprite-chair = Chaise
 common-sprite-mud = Boue
 common-sprite-grave = Tombe
 common-sprite-crate = Boite
+common-stats-durability = Durabilité
+common-tool-shovel = Pelle
+common-stats-effect-power = Puissance d'effet
