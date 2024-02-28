@@ -98,15 +98,9 @@ impl Animation for MultiAction {
                                 Quaternion::rotation_y(move1 * 0.1 + move2alt * -0.15)
                                     * Quaternion::rotation_z(move1 * 1.2 + move2alt * -2.0);
                             next.head.orientation =
-<<<<<<< HEAD:voxygen/anim/src/character/multi.rs
                                 Quaternion::rotation_x(move1 * 0.2 + move2alt * -0.24)
                                     * Quaternion::rotation_y(move1 * 0.3 + move2alt * -0.36)
                                     * Quaternion::rotation_z(move1 * -0.3 + move2alt * 0.72);
-=======
-                                Quaternion::rotation_x(move1 * 0.15 + move2alt * -0.15)
-                                    * Quaternion::rotation_y(move1 * 0.15 + move2alt * -0.15)
-                                    * Quaternion::rotation_z(move1 * -0.6 + move2alt * 1.0);
->>>>>>> a30ae2259d (Double Slash, Heavy Sweep and Pommel Strike):voxygen/anim/src/character/combomelee.rs
                             next.belt.orientation =
                                 Quaternion::rotation_z(move1 * -0.8 + move2alt * 1.0);
                             next.shorts.orientation =
@@ -159,31 +153,19 @@ impl Animation for MultiAction {
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
                     next.chest.orientation = 
-<<<<<<< HEAD:voxygen/anim/src/character/multi.rs
                         Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
                             * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
                     next.head.orientation =
                         Quaternion::rotation_x(move1 * 0.2 + move2 * -0.24)
                             * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
                             * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.72);
-=======
-                        Quaternion::rotation_y(move1 * 0.2 + move2 * -0.2)
-                            * Quaternion::rotation_z(move1 * 0.6 + move2 * -1.0);
-                    next.head.orientation =
-                        Quaternion::rotation_x(move1 * 0.2 + move2 * -0.2)
-                            * Quaternion::rotation_y(move1 * 0.2 + move2 * -0.2)
-                            * Quaternion::rotation_z(move1 * -0.6 + move2 * 1.0);
->>>>>>> a30ae2259d (Double Slash, Heavy Sweep and Pommel Strike):voxygen/anim/src/character/combomelee.rs
                     next.control.orientation.rotate_x(move1 * 1.2);
                     next.control.position += Vec3::new(move1 * -4.0, 0.0, move1 * 6.0);
                     next.control.orientation.rotate_y(move1 * -1.6);
 
-<<<<<<< HEAD:voxygen/anim/src/character/multi.rs
                     next.foot_l.position += Vec3::new(0.0, move2 * 2.5, 0.0);
                     next.foot_r.position += Vec3::new(0.0, move2 * 0.5, 0.0);
                     next.chest.position += Vec3::new(0.0, move2 * 3.0, 0.0);
-=======
->>>>>>> a30ae2259d (Double Slash, Heavy Sweep and Pommel Strike):voxygen/anim/src/character/combomelee.rs
                     next.chest.orientation.rotate_z(move2 * -0.6);
                     next.control.orientation.rotate_z(move2 * -3.8);
                     next.control.position += Vec3::new(move2 * 24.0, 0.0, 0.0);
@@ -206,48 +188,29 @@ impl Animation for MultiAction {
                     next.chest.position += Vec3::new(0.0, move1 * -0.5, 0.0);
                     next.chest.orientation = 
                         Quaternion::rotation_x(move1 * 0.15)
-<<<<<<< HEAD:voxygen/anim/src/character/multi.rs
                             * Quaternion::rotation_y(move1 * 0.15)
-=======
-                            * Quaternion::rotation_y(move1 * 0.2)
->>>>>>> a30ae2259d (Double Slash, Heavy Sweep and Pommel Strike):voxygen/anim/src/character/combomelee.rs
                             * Quaternion::rotation_z(move1 * 0.3);
                     next.head.orientation = 
                         Quaternion::rotation_y(move1 * -0.15)
                             * Quaternion::rotation_z(move1 * -0.3);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.1);
-<<<<<<< HEAD:voxygen/anim/src/character/multi.rs
                     next.control.orientation.rotate_x(move1 * 2.2);
                     next.control.position += Vec3::new(move1 * -2.0, move1 * -8.0, move1 * 10.0);
-=======
-                    next.control.orientation.rotate_x(move1 * 2.1);
-                    next.control.position += Vec3::new(move1 * -2.0, move1 * -10.0, move1 * 7.0);
->>>>>>> a30ae2259d (Double Slash, Heavy Sweep and Pommel Strike):voxygen/anim/src/character/combomelee.rs
                     next.control.orientation.rotate_z(move1 * -0.3);
 
                     next.chest.position += Vec3::new(0.0, move2 * 6.0, 0.0);
                     next.chest.orientation.rotate_x(move2 * -0.2);
                     next.chest.orientation.rotate_y(move2 * -0.1);
-<<<<<<< HEAD:voxygen/anim/src/character/multi.rs
                     next.chest.orientation.rotate_z(move2 * -0.6);
                     next.foot_l.position += Vec3::new(0.0, move2 * 5.0, 0.0);
                     next.foot_r.position += Vec3::new(0.0, move2 * 1.0, 0.0);
-=======
-                    next.chest.orientation.rotate_z(move2 * -0.7);
-                    next.foot_l.position += Vec3::new(0.0, move2 * 8.0, 0.0);
-                    next.foot_r.position += Vec3::new(0.0, move2 * 4.0, 0.0);
->>>>>>> a30ae2259d (Double Slash, Heavy Sweep and Pommel Strike):voxygen/anim/src/character/combomelee.rs
                     next.head.orientation.rotate_x(move2 * -0.3);
                     next.head.orientation.rotate_z(move2 * 0.4);
                     next.shorts.orientation.rotate_z(move2 * 0.5);
                     next.belt.orientation.rotate_z(move2 * 0.2);
-<<<<<<< HEAD:voxygen/anim/src/character/multi.rs
                     next.control.position += Vec3::new(move2 * -8.0, move2 * 24.0, move2 * -1.5);
                     next.control.orientation.rotate_x(move2 * -0.2);
-=======
-                    next.control.position += Vec3::new(move2 * -8.0, move2 * 25.0, move2 * -2.0);
->>>>>>> a30ae2259d (Double Slash, Heavy Sweep and Pommel Strike):voxygen/anim/src/character/combomelee.rs
                     next.control.orientation.rotate_z(move2 * 0.6);
                 },
                 Some("common.abilities.sword.agile_quick_draw") => {
