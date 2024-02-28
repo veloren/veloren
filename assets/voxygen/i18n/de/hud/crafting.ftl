@@ -33,13 +33,13 @@ hud-crafting-tabs-processed_material = Materialien
 hud-crafting-dismantle_title = Zerlegung
 hud-crafting-dismantle_explanation =
     Bewege den Mauszeiger über deine 
-    
     Gegenstände, um zu sehen,
-    
     welche zerlegbar sind.
-    
+
     Doppelklicke, um Zerlegung zu starten.
+
 ## Modular Weapons
+
 hud-crafting-modular_desc = Lege Item Bauteile hier ab, um eine Waffe herzustellen.
 hud-crafting-mod_weap_prim_slot_title = Primäres Waffen Bauteil
 hud-crafting-mod_weap_prim_slot_desc = Lege hier ein primäres Waffen Bauteil ab (z.B. eine Schwertklinge, Axtkopf oder Bogensehne).

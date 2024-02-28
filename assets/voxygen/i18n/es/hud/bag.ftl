@@ -31,9 +31,12 @@ hud-bag-stun_res = Resistencia al aturdimiento
 hud-bag-stealth = Sigilo
 hud-bag-combat_rating_desc = Calculado en base a tu equipamiento y salud.
 hud-bag-protection_desc = Reducción de daño por armadura.
-hud-bag-stun_res_desc = Resistencia a ser aturdido por golpes consecutivos.
+hud-bag-stun_res_desc =
+    Resistencia a ser aturdido por golpes consecutivos.
     Se regenera del mismo modo que el aguante.
 hud-bag-sort_by_name = Ordenar por nombre
 hud-bag-sort_by_quality = Ordenar por calidad
 hud-bag-sort_by_category = Ordenar por categoría
 hud-bag-sort_by_tag = Ordenar por etiqueta
+hud-bag-backpack = Mochila
+hud-bag-sort_by_quantity = Ordenar por cantidad

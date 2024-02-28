@@ -74,3 +74,5 @@ gameinput-muteinactivemaster = Stäng av huvudvolym (inaktivt fönster)
 gameinput-mutemusic = Stäng av musikvolym
 gameinput-mutesfx = Stäng av SFX-volym
 gameinput-muteambience = Stäng av bakgrundsvolym
+gameinput-stayfollow = Stanna/Följ
+gameinput-togglewalk = Växla Promenerande

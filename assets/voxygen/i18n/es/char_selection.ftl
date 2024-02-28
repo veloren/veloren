@@ -26,3 +26,4 @@ char_selection-starting_site_kind = Tipo: { $kind }
 char_selection-create_info_name = ¡Tu personaje necesita un nombre!
 char_selection-version_mismatch = ¡AVISO! Este servidor se está ejecutando en una versión diferente a la de tu cliente. Por favor, actualiza el juego.
 char_selection-joining_character = Entrando al mundo...
+char_selection-rules = Normas

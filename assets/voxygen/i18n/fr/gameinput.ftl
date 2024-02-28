@@ -72,3 +72,7 @@ gameinput-muteinactivemaster = Désactiver le son global (Fenêtre inactive)
 gameinput-mutemusic = Désactiver le son de la musique
 gameinput-mutesfx = Désactiver le son des effets
 gameinput-muteambience = Désactiver le son d'ambiance
+gameinput-zoomlock = Verrouillage du zoom de la caméra
+gameinput-zoomin = Zoom avant de la caméra
+gameinput-zoomout = Zoom arrière de la caméra
+gameinput-togglewalk = Basculement marche

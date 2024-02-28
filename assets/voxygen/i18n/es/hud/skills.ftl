@@ -145,8 +145,8 @@ hud-skill-sc_heal_range_title = Alcance de {{ hud-skill-sc_heal_title }}
 hud-skill-sc_heal_range = El aura llega un { $boost } % más lejos{ $SP }
 
 ## Aura de protección
--hud-skill-sc_wardaura_title = Aura del guardián
 
+-hud-skill-sc_wardaura_title = Aura del guardián
 hud-skill-sc_wardaura_unlock_title = Desbloquear {{ -hud-skill-sc_wardaura_title }}
 hud-skill-sc_wardaura_unlock = Emana de ti un aura que te protege a ti y a tus aliados{ $SP }
 hud-skill-sc_wardaura_strength_title = Potencia de {{ -hud-skill-sc_wardaura_title }}
@@ -184,8 +184,8 @@ hud-skill-bow_repeater_speed_title = Velocidad de {{ hud-skill-bow_repeater_titl
 hud-skill-bow_repeater_speed = Aumenta la velocidad a la que se disparan flechas en un { $boost } %{ $SP }
 
 ## Escopeta
--hud-skill-bow_shotgun_title = Escopeta
 
+-hud-skill-bow_shotgun_title = Escopeta
 hud-skill-bow_shotgun_unlock_title = Desbloquear Escopeta
 hud-skill-bow_shotgun_unlock = Desbloquea la capacidad de disparar una multitud de flechas al mismo tiempo{ $SP }
 hud-skill-bow_shotgun_damage_title = Daño de {{ -hud-skill-bow_shotgun_title }}
@@ -230,8 +230,8 @@ hud-skill-st_flamethrower_range_title = Alcance de {{ hud-skill-st_flamethrower_
 hud-skill-st_flamethrower_range = Las llamas llegan un { $boost } % más lejos{ $SP }
 
 ## Onda de choque
--hud-skill-st_shockwave_title = Onda de choque
 
+-hud-skill-st_shockwave_title = Onda de choque
 hud-skill-st_shockwave_unlock_title = Desbloquear {{ -hud-skill-st_shockwave_title }}
 hud-skill-st_shockwave_unlock = Desbloquea la habilidad de lanzar por los aires a los enemigos usando fuego{ $SP }
 hud-skill-st_shockwave_damage_title = Daño de {{ -hud-skill-st_shockwave_title }}
@@ -245,7 +245,7 @@ hud-skill-st_shockwave_cost = Reduce el coste de aguante en un { $boost } %{ $SP
 # Minería - Árbol de habilidades
 hud-skill-mining_title = Minería
 hud-skill-pick_strike_title = Picar
-hud-skill-pick_strike = Usa el pico para extraer minerales y gemas de rocas y conseguir puntos de experiencia.
+hud-skill-pick_strike = Usa el pico para extraer minerales y gemas de rocas y conseguir puntos de experiencia
 hud-skill-pick_strike_speed_title = Velocidad de {{ hud-skill-pick_strike_title }}
 hud-skill-pick_strike_speed = Pica rocas más rápido{ $SP }
 hud-skill-pick_strike_oregain_title = Producción de minerales de {{ hud-skill-pick_strike_title }}

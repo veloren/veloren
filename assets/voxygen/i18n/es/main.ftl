@@ -17,10 +17,10 @@ main-notice =
     - Veloren se licencia bajo la licencia de código abierto GPL 3. Esto quiere decir que eres libre para jugar, modificar y redistribuir el juego tal y como desees (siempre y cuando tal trabajo se licencie también bajo la GPL 3).
 
     - Veloren es un proyecto comunitario sin ánimo de lucro, y todo aquel que trabaja en él es un voluntario.
-
     Si te gusta lo que ves, ¡eres bienvenido a unirte a los equipos de desarrollo o arte!
 
     Gracias por tomarte el tiempo de leer esta noticia, ¡esperamos que disfrutes del juego!
+
     ~ Los desarrolladores de Veloren
 main-login_process =
     Información para iniciar sesión:
@@ -28,7 +28,7 @@ main-login_process =
     Por favor, ten en cuenta que ahora necesitas una cuenta para jugar en servidores con autenticación activada.
 
     Puedes crear una cuenta en
-    https://veloren.net/account/.
+    https://veloren.net/account/
 main-login-server_not_found = Servidor no encontrado
 main-login-authentication_error = Error de autenticación al servidor
 main-login-internal_error = Error interno en el cliente (lo más probable es que se haya borrado el personaje)
@@ -90,5 +90,23 @@ loading-tips =
     .a19 = Pulsa '{ $gameinput-roll }' para rodar por el suelo. Rodar te sirve para esquivar los ataques enemigos y para moverte más rápido.
     .a20 = ¿Para qué sirve este objeto? Busca 'input:<item name>' en fabricación para ver en qué recetas se usa.
     .a21 = ¡Eh, mira eso! Toma un pantallazo pulsando '{ $gameinput-screenshot }'.
-    .a22 = Intenta saltar y esquivar al mismo tiempo para pasar a través de los enemigos.
-    .a23 = Para ver tus atributos, haz clic en el botón 'Atributos' del inventario.
+main-singleplayer-regenerate = Recrear
+main-singleplayer-create_custom = Personalizado
+main-singleplayer-invalid_name = Error: nombre no válido
+main-singleplayer-seed = Semilla
+main-singleplayer-random_seed = Aleatoria
+main-singleplayer-new = Nuevo
+main-server-rules-seen-before = Las normas del servidor han cambiado desde la última vez que las aceptaste
+main-singleplayer-delete = Borrar
+main-server-rules = Este servidor requiere aceptar sus normas
+main-singleplayer-play = Jugar
+main-singleplayer-day_length = Duración del día
+main-singleplayer-size_lg = Escala logarítmica
+main-singleplayer-map_large_warning = Aviso: Los mundos de gran tamaño tardan más tiempo en arrancar por primera vez
+main-singleplayer-world_name = Nombre del mundo
+main-singleplayer-map_scale = Escala vertical
+main-singleplayer-map_erosion_quality = Calidad de erosión
+main-singleplayer-map_shape = Forma
+main-singleplayer-generate_and_play = Crear y jugar
+menu-singleplayer-confirm_regenerate = ¿Seguro que quieres recrear el mundo "{ $world_name }"?
+menu-singleplayer-confirm_delete = ¿Seguro que quieres borrar el mundo "{ $world_name }"?

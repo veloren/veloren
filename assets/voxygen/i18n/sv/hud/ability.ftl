@@ -8,7 +8,6 @@ common-abilities-staff-fireshockwave = Eldens ring
     .desc = Tänder eld på marken med en eldig stötvåg.
 common-abilities-sceptre-wardingaura = Vårdande Aura
     .desc = Skyddar dina allierade mot fiendens attacker.
-
 # Sword abilities
 veloren-core-pseudo_abilities-sword-heavy_stance = Tung Hållning
     .desc = Attacker i denna hållning kan göra att fiender vacklar och ge mer skada på vacklande fiender men är långsammare
@@ -174,8 +173,8 @@ common-abilities-sword-cleaving_bladestorm = Storm av Svärdsblad
         Kräver en måttlig mängd kombo för att använda
 common-abilities-sword-cleaving_dual_bladestorm = Storm av Svärdsblad
     .desc =
-    Överrumpla dina fiender med flera cykliska hugg med båda dina svärd
-            Kräver en måttlig mängd kombo för att använda
+        Överrumpla dina fiender med flera cykliska sving med båda dina svärd
+        Kräver en måttlig mängd kombo för att använda
 common-abilities-sword-heavy_sweep = Tungt Svep
     .desc =
         Ett tungt brett svepande hugg som gör mer skada mot vacklande fiender
@@ -210,7 +209,7 @@ common-abilities-sword-crippling_hamstring = Förlama
         Påbörjar förlamande hållning
 common-abilities-sword-cleaving_whirlwind_slice = Virvelvindssnitt
     .desc =
-    Hugg cirkulärt alla fiender runtom dig
+        Hugg cirkulärt alla fiender runtom dig
         Påbörjar klyvande hållning
 common-abilities-sword-cleaving_dual_whirlwind_slice = Virvelvindssnitt
     .desc =
@@ -264,3 +263,29 @@ common-abilities-sword-cleaving_sky_splitter = Himmelsklyvare
     .desc =
         Ett kraftfullt hugg som till och med sägs kunna klyva himmelen, men kommer klyva genom fiender
         Kräver klyvande hållning
+-heavy_stance = ""
+-agile_stance = ""
+common-abilities-axe-execute = Avrätta
+    .desc =
+        Ett förödande slag som ofta är känd att vara fatal
+        Kräver 30 kombo för användning
+        Uppgraderar automatiskt till maelstrom vid 50 kombo om upplåst
+common-abilities-axe-berserk = Bärsärk
+    .desc = Ökar din styrka dock med kostnaden av att lämna dig sårbar
+common-abilities-axe-brutal_swing = Brutal Sving
+    .desc = En snurrande klyvning runt om dig
+common-abilities-axe-maelstrom = Maelstrom
+    .desc =
+        Slå allt i din närhet med ett förödande, snurrande slag
+        Uppgraderar automatisk från avrätta vid 50 kombo
+# Axe abilities
+common-abilities-axe-triple_chop = Tripellhugg
+    .desc = Tre snabba slag
+common-abilities-axe-cleave = Klyva
+    .desc = Ett nergående hugg som kan bygga multikombo
+common-abilities-axe-plunder = Plunder
+    .desc = Ta snabba steg mot din fiende, och stjäl deras balans med ett slag
+common-abilities-axe-fracture = Fraktur
+    .desc =
+        Ett förlamande slag som hindrar din fiendes rörelse
+        Skalar med kombo vid aktivering, konsumerar hälften av kombo

@@ -72,3 +72,7 @@ gameinput-muteinactivemaster = Gesamtlautstärke stummschalten (inaktives Fenste
 gameinput-mutemusic = Musik stummschalten
 gameinput-mutesfx = Soundeffekte stummschalten
 gameinput-muteambience = Umgebungsgeräusche stummschalten
+gameinput-zoomin = Kamera hereinzoomen
+gameinput-zoomout = Kamera herauszoomen
+gameinput-stayfollow = Bleiben/Folgen
+gameinput-togglewalk = Laufen Umschalten

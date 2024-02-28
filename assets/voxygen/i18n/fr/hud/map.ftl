@@ -35,3 +35,6 @@ hud-map-gnarling = Campement Gnarling
 hud-map-chapel_site = Chapelle marine
 hud-map-adlet = Forteresse Adlet
 hud-map-placed_by = Ajouté par { $name }
+hud-map-df_mine = Mine
+hud-map-terracotta = Ruines en terre cuite
+hud-map-haniwa = Catacombe d'Haniwa

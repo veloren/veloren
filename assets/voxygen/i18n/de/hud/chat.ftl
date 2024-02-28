@@ -4,7 +4,7 @@ hud-chat-all = Alle
 hud-chat-chat_tab_hover_tooltip = Rechtsklick für Einstellungen
 hud-loot-pickup-msg =
     { $actor } nahm { $amount ->
-        [one] { $item }
+        [1] { $item }
        *[other] { $amount }x { $item }
     } auf
 
@@ -54,3 +54,25 @@ hud-chat-npc_energy_kill_msg = { $attacker } tötete [{ $victim }] mit Magie
 hud-chat-npc_other_kill_msg = { $attacker } tötete [{ $victim }]
 hud-chat-goodbye = Auf Wiedersehen!
 hud-chat-connection_lost = Verbindungsabbruch. Du wirst in { $time } Sekunden gekickt.
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to-npc = An [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-with-name = { "[" }{ $alias }] { $name }: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message = { "[" }{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to = An [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from-npc = Von [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from = Von [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }: { $msg }
+# HUD Pickup message
+hud-loot-pickup-msg-you =
+    Du nahmst { $amount ->
+        [1] { $item }
+       *[other] { $amount }x { $item }
+    } auf

@@ -72,3 +72,4 @@ gameinput-muteinactivemaster = Silenciar volumen principal (juego inactivo)
 gameinput-mutemusic = Silenciar música
 gameinput-mutesfx = Silenciar efectos de sonido
 gameinput-muteambience = Silenciar volumen ambiental
+gameinput-stayfollow = Quedarse/Seguir

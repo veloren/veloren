@@ -239,3 +239,6 @@ npc-speech-witness_death =
     .a1 = Это ужасно!
     .a2 = О, Боже мой!
 npc-speech-dist_very_far = очень далеко
+# Generic NPC messages
+npc-speech-start_hunting =
+    .a0 = Пора идти на охоту!

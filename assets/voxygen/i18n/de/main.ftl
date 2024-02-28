@@ -18,7 +18,6 @@ main-notice =
     aber auch modifizieren (solange die Modifikation auch die selbe Lizenz trägt) und das Spiel an andere weiterschicken.
 
     - Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
-
     Wenn dir die Idee gefällt, dann schließe dich doch einfach unserem Dev- oder Art-Team an!
 
     Danke, dass du dir die Zeit genommen hast diese Zeilen zu lesen und wir hoffen, dass dir Veloren gefällt!
@@ -34,7 +33,7 @@ main-login_process =
 
     https://veloren.net/account/.
 main-login-server_not_found = Server nicht gefunden
-main-login-authentication_error = Authentifizierung fehlgeschlagen
+main-login-authentication_error = Authentifizierungsfehler auf dem Server
 main-login-internal_error = Interner Fehler beim Client (wahrscheinlich wurde der Charakter gelöscht)
 main-login-failed_auth_server_url_invalid = Verbindung zum Authentifikationsserver fehlgeschlagen
 main-login-insecure_auth_scheme = Das HTTP Protokoll wird nicht unterstützt. Es ist unsicher! Für Entwicklungszwecke kann HTTP für 'localhost'- und debug-builds genutzt werden
@@ -45,7 +44,7 @@ main-login-timeout = Zeitüberschreitung: Der Server hat nicht rechtzeitig geant
 main-login-server_shut_down = Server wurde heruntergefahren
 main-login-network_error = Netzwerkfehler
 main-login-network_wrong_version = Der Server läuft auf einer anderen Version als du. Überprüfe deine Version und suche nach Updates.
-main-login-failed_sending_request = Authentifizierung fehlgeschlagen
+main-login-failed_sending_request = Anfrage zum Authentifizierungsserver fehlgeschlagen
 main-login-invalid_character = Ungültiger Charakter
 main-login-client_crashed = Client abgestürzt
 main-login-not_on_whitelist = Du benötigst einen Whitelist Eintrag durch den Server-Administrator
@@ -106,3 +105,11 @@ main-singleplayer-map_shape = Form
 main-singleplayer-map_erosion_quality = Erosionsqualität
 main-singleplayer-play = Spielen
 main-singleplayer-generate_and_play = Generieren & Spielen
+main-server-rules = Dieser Server hat Regeln, die akzeptiert werden müssen
+main-singleplayer-create_custom = Eigene Erstellen
+main-singleplayer-day_length = Tageslänge
+menu-singleplayer-confirm_delete = Bist du dir sicher, dass du „{ $world_name }“ löschen möchtest
+main-singleplayer-seed = Seed
+menu-singleplayer-confirm_regenerate = Bist du dir sicher, dass du „{ $world_name }“ regenerieren möchtest
+main-singleplayer-map_scale = Vertikale Skalierung
+main-server-rules-seen-before = Diese Regeln haben sich geändert, seitdem du sie zuletzt akzeptiert hast
