@@ -36,6 +36,14 @@ pub fn attempt<T>(max_iters: usize, mut f: impl FnMut() -> Option<T>) -> Option<
     (0..max_iters).find_map(|_| f())
 }
 
+pub fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
+    (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
+}
+
+pub fn close_fast(x: f32, tgt: f32, falloff: f32, falloff_strength: i32) -> f32 {
+    (1.0 - ((x - tgt) / falloff).powi(falloff_strength * 2)).max(0.0)
+}
+
 pub const CARDINALS: [Vec2<i32>; 4] = [
     Vec2::new(0, 1),
     Vec2::new(1, 0),

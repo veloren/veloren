@@ -111,6 +111,7 @@ pub enum ParticleMode {
     PhoenixBuildUpAim = 57,
     ClayShrapnel = 58,
     Airflow = 59,
+    Spore = 60,
 }
 
 impl ParticleMode {

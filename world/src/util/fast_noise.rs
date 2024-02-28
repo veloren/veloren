@@ -110,9 +110,9 @@ impl Sampler<'static> for FastNoise2d {
             f.powi(2) * (3.0 - 2.0 * f)
         });
 
-        let v0 = v00 + factor.y * (v10 - v00);
-        let v1 = v01 + factor.y * (v11 - v01);
+        let v0 = v00 + factor.x * (v10 - v00);
+        let v1 = v01 + factor.x * (v11 - v01);
 
-        (v0 + factor.x * (v1 - v0)) * 2.0 - 1.0
+        (v0 + factor.y * (v1 - v0)) * 2.0 - 1.0
     }
 }

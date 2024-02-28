@@ -2186,6 +2186,14 @@ impl ParticleMgr {
                 mode: ParticleMode::PortalFizz,
                 cond: |_| true,
             },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::Positions(&boi.spores),
+                range: 4,
+                rate: 0.055,
+                lifetime: 20.0,
+                mode: ParticleMode::Spore,
+                cond: |_| true,
+            },
         ];
 
         let ecs = scene_data.state.ecs();

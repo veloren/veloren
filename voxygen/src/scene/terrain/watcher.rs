@@ -49,6 +49,7 @@ pub struct BlocksOfInterest {
     pub flowers: Vec<Vec3<i32>>,
     pub fire_bowls: Vec<Vec3<i32>>,
     pub snow: Vec<Vec3<i32>>,
+    pub spores: Vec<Vec3<i32>>,
     //This is so crickets stay in place and don't randomly change sounds
     pub cricket1: Vec<Vec3<i32>>,
     pub cricket2: Vec<Vec3<i32>>,
@@ -97,6 +98,7 @@ impl BlocksOfInterest {
         let mut cricket3 = Vec::new();
         let mut frogs = Vec::new();
         let mut one_way_walls = Vec::new();
+        let mut spores = Vec::new();
 
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
@@ -138,6 +140,7 @@ impl BlocksOfInterest {
                         lavapool.push(pos)
                     }
                 },
+                BlockKind::GlowingMushroom if rng.gen_range(0..8) == 0 => spores.push(pos),
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => {
                     if let Some(sprite) = block.get_sprite() {
@@ -163,7 +166,6 @@ impl BlocksOfInterest {
                             SpriteKind::StreetLampTall => fire_bowls.push(pos + Vec3::unit_z() * 4),
                             SpriteKind::WallSconce => fire_bowls.push(pos + Vec3::unit_z()),
                             SpriteKind::Beehive => beehives.push(pos),
-                            SpriteKind::CrystalHigh => fireflies.push(pos),
                             SpriteKind::Reed => {
                                 reeds.push(pos);
                                 fireflies.push(pos);
@@ -226,6 +228,8 @@ impl BlocksOfInterest {
                             SpriteKind::Sign | SpriteKind::HangingSign => {
                                 interactables.push((pos, Interaction::Read))
                             },
+                            SpriteKind::MycelBlue => spores.push(pos),
+                            SpriteKind::Mold => spores.push(pos),
                             _ => {},
                         }
                     }
@@ -269,6 +273,7 @@ impl BlocksOfInterest {
             flowers,
             fire_bowls,
             snow,
+            spores,
             cricket1,
             cricket2,
             cricket3,

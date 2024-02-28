@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Autumn Forests, Cherry Blossom Forests, and Maple Trees.
 - Added reworked dungeon: Haniwa Catacombs
 - Added dungeon: Terracotta Ruins
+- Sand and crystal cave biome
 
 ### Changed
 
@@ -92,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sword Changes; Pommel Strike has been nerfed -> increased energy cost, increased _durations, and decreased poise damage. Heavy Sweep has been nerfed -> decreased poise damage and stun vulnerability damage. Pillar Thrust has been altered -> decreased maximum base damage with an increase in stun vulnerability damage.
 - Weapons block are based on poise
 - Wooden Shield recipe
+- Overhauled the visuals of several cave biomes
 
 ### Removed
 - Medium and large potions from all loot tables

@@ -8,8 +8,6 @@ use num::integer::Roots;
 use rand::prelude::*;
 use vek::*;
 
-use inline_tweak::tweak;
-
 enum RoofKind {
     Crenelated,
     Hipped,
@@ -618,7 +616,7 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
         .fill(rock.clone());
 
     let offset = tower_size * 2 - 2;
-    let d = tweak!(2);
+    let d = 2;
     let n = (bridge.end.z - bridge.start.z - d) / offset;
     let p = (bridge.end.z - bridge.start.z - d) / n;
 
