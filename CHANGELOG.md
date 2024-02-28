@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added reworked dungeon: Haniwa Catacombs
 - Added dungeon: Terracotta Ruins
 - Sand and crystal cave biome
+- In commands that reference assets you can now use `#name` and press tab to cycle through assets with that name.
 
 ### Changed
 
