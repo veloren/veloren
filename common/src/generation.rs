@@ -136,6 +136,10 @@ pub struct EntityConfig {
     /// Check docs for `InventorySpec` struct in this file.
     pub inventory: InventorySpec,
 
+    /// Pets to spawn with this entity (specified as a list of asset paths)
+    #[serde(default)]
+    pub pets: Vec<String>,
+
     /// Meta Info for optional fields
     /// Possible fields:
     /// SkillSetAsset(String) with asset_specifier for skillset
@@ -204,8 +208,7 @@ pub struct EntityInfo {
     // Skills
     pub skillset_asset: Option<String>,
 
-    // Not implemented
-    pub pet: Option<Box<EntityInfo>>,
+    pub pets: Vec<EntityInfo>,
 
     // Economy
     // we can't use DHashMap, do we want to move that into common?
@@ -236,7 +239,7 @@ impl EntityInfo {
             loadout: LoadoutBuilder::empty(),
             make_loadout: None,
             skillset_asset: None,
-            pet: None,
+            pets: Vec::new(),
             trading_information: None,
             special_entity: None,
         }
@@ -279,6 +282,7 @@ impl EntityInfo {
             inventory,
             loot,
             meta,
+            pets,
         } = config;
 
         match body {
@@ -315,6 +319,18 @@ impl EntityInfo {
 
         // NOTE: set loadout after body, as it's used with default equipement
         self = self.with_inventory(inventory, config_asset, loadout_rng, time);
+
+        self.pets = pets
+            .into_iter()
+            .map(|pet_config| {
+                EntityInfo::at(self.pos).with_entity_config(
+                    EntityConfig::load_expect_cloned(&pet_config),
+                    config_asset,
+                    loadout_rng,
+                    time,
+                )
+            })
+            .collect();
 
         // Prefer the new configuration, if possible
         let AgentConfig {
@@ -675,6 +691,18 @@ mod tests {
         }
     }
 
+    #[cfg(test)]
+    fn validate_pets(pets: Vec<String>, config_asset: &str) {
+        for pet in pets.into_iter().map(|pet_asset| {
+            EntityConfig::load_cloned(&pet_asset)
+                .expect(&format!("Pet asset path invalid, in {config_asset}"))
+        }) {
+            if !pet.pets.is_empty() {
+                panic!("Pets must not be owners of pets: {config_asset}");
+            }
+        }
+    }
+
     #[test]
     fn test_all_entity_assets() {
         // Get list of entity configs, load everything, validate content.
@@ -689,6 +717,7 @@ mod tests {
                 loot,
                 meta,
                 alignment: _, // can't fail if serialized, it's a boring enum
+                pets,
             } = EntityConfig::from_asset_expect_owned(&config_asset);
 
             validate_body(&body, &config_asset);
@@ -698,6 +727,7 @@ mod tests {
             // misc
             validate_loot(loot, &config_asset);
             validate_meta(meta, &config_asset);
+            validate_pets(pets, &config_asset);
         }
     }
 }

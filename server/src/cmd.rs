@@ -744,6 +744,8 @@ fn handle_make_npc(
                 agent,
                 alignment,
                 scale,
+                // TODO
+                pets: _,
                 loot,
             } => {
                 // Spread about spawned npcs

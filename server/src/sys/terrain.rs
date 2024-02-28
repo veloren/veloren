@@ -209,31 +209,16 @@ impl<'a> System<'a> for Sys {
                     NpcData::Waypoint(pos) => {
                         emitters.emit(CreateWaypointEvent(pos));
                     },
-                    NpcData::Data {
-                        pos,
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        agent,
-                        body,
-                        alignment,
-                        scale,
-                        loot,
-                    } => {
+                    data @ NpcData::Data { .. } => {
+                        // TODO: Investigate anchor chains with pets
+                        let (npc_builder, pos) = data
+                            .to_npc_builder()
+                            .expect("This NpcData is known to be valid");
+
                         emitters.emit(CreateNpcEvent {
                             pos,
                             ori: comp::Ori::from(Dir::random_2d(&mut rng)),
-                            npc: NpcBuilder::new(stats, body, alignment)
-                                .with_skill_set(skill_set)
-                                .with_health(health)
-                                .with_poise(poise)
-                                .with_inventory(inventory)
-                                .with_agent(agent)
-                                .with_scale(scale)
-                                .with_anchor(comp::Anchor::Chunk(key))
-                                .with_loot(loot),
+                            npc: npc_builder.with_anchor(comp::Anchor::Chunk(key)),
                             rider: None,
                         });
                     },
@@ -420,6 +405,7 @@ impl<'a> System<'a> for Sys {
 // TODO: better name?
 // TODO: if this is send around network, optimize the large_enum_variant
 #[allow(clippy::large_enum_variant)]
+#[derive(Debug)]
 pub enum NpcData {
     Data {
         pos: Pos,
@@ -433,6 +419,7 @@ pub enum NpcData {
         alignment: comp::Alignment,
         scale: comp::Scale,
         loot: LootSpec<String>,
+        pets: Vec<NpcData>,
     },
     Waypoint(Vec3<f32>),
     Teleporter(Vec3<f32>, PortalData),
@@ -462,7 +449,7 @@ impl NpcData {
             make_loadout,
             trading_information: economy,
             // unused
-            pet: _, // TODO: I had no idea we have this.
+            pets,
         } = entity;
 
         if let Some(special) = special_entity {
@@ -574,6 +561,44 @@ impl NpcData {
             alignment,
             scale: comp::Scale(scale),
             loot,
+            pets: pets.into_iter().map(NpcData::from_entity_info).collect(),
+        }
+    }
+
+    #[allow(clippy::result_large_err)]
+    pub fn to_npc_builder(self) -> Result<(NpcBuilder, comp::Pos), Self> {
+        match self {
+            NpcData::Data {
+                pos,
+                stats,
+                skill_set,
+                health,
+                poise,
+                inventory,
+                agent,
+                body,
+                alignment,
+                scale,
+                loot,
+                pets,
+            } => Ok((
+                NpcBuilder::new(stats, body, alignment)
+                    .with_skill_set(skill_set)
+                    .with_health(health)
+                    .with_poise(poise)
+                    .with_inventory(inventory)
+                    .with_agent(agent)
+                    .with_scale(scale)
+                    .with_loot(loot)
+                    .with_pets(
+                        pets.into_iter()
+                            .map(|pet_data| pet_data.to_npc_builder().map(|(npc, _pos)| npc))
+                            .collect::<Result<Vec<_>, _>>()?,
+                    ),
+                pos,
+            )),
+            NpcData::Waypoint(_) => Err(self),
+            NpcData::Teleporter(_, _) => Err(self),
         }
     }
 }

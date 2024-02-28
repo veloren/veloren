@@ -37,6 +37,14 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
         }
     }
 
+    if let Some(Alignment::Owned(owner_alignment_uid)) = ecs.read_storage::<Alignment>().get(owner)
+    {
+        if *owner_alignment_uid != owner_uid {
+            warn!("Pets cannot be owners of pets");
+            return;
+        }
+    }
+
     let _ = ecs
         .write_storage()
         .insert(pet_entity, common::comp::Alignment::Owned(owner_uid));

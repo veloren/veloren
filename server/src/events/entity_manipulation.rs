@@ -7,6 +7,8 @@ use crate::{
         BuffKind, BuffSource, PhysicsState,
     },
     error,
+    events::entity_creation::handle_create_npc,
+    pet::tame_pet,
     rtsim::RtSim,
     state_ext::StateExt,
     sys::terrain::{NpcData, SAFE_ZONE_RADIUS},
@@ -28,12 +30,12 @@ use common::{
     consts::TELEPORTER_RADIUS,
     event::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
-        ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateObjectEvent, DeleteEvent,
-        DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus,
-        ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent,
-        ParryHookEvent, PoiseChangeEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent,
-        StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent, TransformEvent,
-        UpdateMapMarkerEvent,
+        ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
+        DeleteEvent, DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent,
+        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent,
+        MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RemoveLightEmitterEvent, RespawnEvent,
+        SoundEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
+        TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::EntityInfo,
@@ -2154,6 +2156,7 @@ pub fn transform_entity(
             loot,
             alignment: _,
             pos: _,
+            pets,
         } => {
             fn set_or_remove_component<C: specs::Component>(
                 server: &mut Server,
@@ -2246,6 +2249,26 @@ pub fn transform_entity(
             if !is_player {
                 set_or_remove_component(server, entity, agent)?;
                 set_or_remove_component(server, entity, loot.to_items().map(comp::ItemDrops))?;
+            }
+
+            // Spawn pets
+            let position = server
+                .state
+                .ecs()
+                .read_storage::<comp::Pos>()
+                .get(entity)
+                .copied();
+            if let Some(pos) = position {
+                for (pet, _pos) in pets.into_iter().filter_map(|pet| pet.to_npc_builder().ok()) {
+                    let pet_entity = handle_create_npc(server, CreateNpcEvent {
+                        pos,
+                        ori: comp::Ori::default(),
+                        npc: pet,
+                        rider: None,
+                    });
+
+                    tame_pet(server.state.ecs(), pet_entity, entity);
+                }
             }
         },
         NpcData::Waypoint(_) => {

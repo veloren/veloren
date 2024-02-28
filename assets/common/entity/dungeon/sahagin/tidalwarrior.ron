@@ -7,5 +7,7 @@
     inventory: (
         loadout: FromBody,
     ),
+    // Added for testing
+    pets: ["common.entity.wild.peaceful.crab"],
     meta: [],
 )

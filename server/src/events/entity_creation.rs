@@ -1,6 +1,6 @@
 use crate::{
     client::Client, events::player::handle_exit_ingame, persistence::PersistedComponents,
-    presence::RepositionOnChunkLoad, sys, CharacterUpdater, Server, StateExt,
+    pet::tame_pet, presence::RepositionOnChunkLoad, sys, CharacterUpdater, Server, StateExt,
 };
 use common::{
     comp::{
@@ -225,6 +225,17 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
             .state
             .link(link)
             .expect("We just created these entities");
+    }
+
+    for pet in ev.npc.pets {
+        let pet_entity = handle_create_npc(server, CreateNpcEvent {
+            pos: ev.pos,
+            ori: Ori::default(),
+            npc: pet,
+            rider: None,
+        });
+
+        tame_pet(server.state.ecs(), pet_entity, new_entity);
     }
 
     new_entity

@@ -4,7 +4,7 @@ use super::*;
 use crate::sys::terrain::NpcData;
 use common::{
     calendar::Calendar,
-    comp::{self, Agent, Body, Presence, PresenceKind},
+    comp::{self, Body, Presence, PresenceKind},
     event::{CreateNpcEvent, CreateShipEvent, DeleteEvent, EventBus, NpcBuilder},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
@@ -339,41 +339,19 @@ impl<'a> System<'a> for Sys {
                     Some(&calendar_data),
                 );
 
-                create_npc_emitter.emit(match NpcData::from_entity_info(entity_info) {
-                    NpcData::Data {
-                        pos,
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        agent,
-                        body,
-                        alignment,
-                        scale,
-                        loot,
-                    } => CreateNpcEvent {
-                        pos,
-                        ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
-                        npc: NpcBuilder::new(stats, body, alignment)
-                            .with_skill_set(skill_set)
-                            .with_health(health)
-                            .with_poise(poise)
-                            .with_inventory(inventory)
-                            .with_agent(agent.map(|agent| Agent {
-                                rtsim_outbox: Some(Default::default()),
-                                ..agent
-                            }))
-                            .with_scale(scale)
-                            .with_loot(loot)
-                            .with_rtsim(RtSimEntity(id)),
-                        rider: steering,
-                    },
-                    // EntityConfig can't represent Waypoints at all
-                    // as of now, and if someone will try to spawn
-                    // rtsim waypoint it is definitely error.
-                    NpcData::Waypoint(_) => unimplemented!(),
-                    NpcData::Teleporter(_, _) => unimplemented!(),
+                let (mut npc_builder, pos) = NpcData::from_entity_info(entity_info)
+                    .to_npc_builder()
+                    .expect("NpcData must be valid");
+
+                if let Some(agent) = &mut npc_builder.agent {
+                    agent.rtsim_outbox = Some(Default::default());
+                }
+
+                create_npc_emitter.emit(CreateNpcEvent {
+                    pos,
+                    ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
+                    npc: npc_builder.with_rtsim(RtSimEntity(id)),
+                    rider: steering,
                 });
             },
         };
@@ -400,37 +378,17 @@ impl<'a> System<'a> for Sys {
                             Some(&calendar_data),
                         );
 
-                        Some(match NpcData::from_entity_info(entity_info) {
-                            NpcData::Data {
-                                pos: _,
-                                stats,
-                                skill_set,
-                                health,
-                                poise,
-                                inventory,
-                                agent,
-                                body,
-                                alignment,
-                                scale,
-                                loot,
-                            } => NpcBuilder::new(stats, body, alignment)
-                                .with_skill_set(skill_set)
-                                .with_health(health)
-                                .with_poise(poise)
-                                .with_inventory(inventory)
-                                .with_agent(agent.map(|agent| Agent {
-                                    rtsim_outbox: Some(Default::default()),
-                                    ..agent
-                                }))
-                                .with_scale(scale)
-                                .with_loot(loot)
-                                .with_rtsim(RtSimEntity(npc_id)),
-                            // EntityConfig can't represent Waypoints at all
-                            // as of now, and if someone will try to spawn
-                            // rtsim waypoint it is definitely error.
-                            NpcData::Waypoint(_) => unimplemented!(),
-                            NpcData::Teleporter(_, _) => unimplemented!(),
-                        })
+                        let mut npc_builder = NpcData::from_entity_info(entity_info)
+                            .to_npc_builder()
+                            .expect("NpcData must be valid")
+                            .0
+                            .with_rtsim(RtSimEntity(npc_id));
+
+                        if let Some(agent) = &mut npc_builder.agent {
+                            agent.rtsim_outbox = Some(Default::default());
+                        }
+
+                        Some(npc_builder)
                     } else {
                         error!("Npc is loaded but vehicle is unloaded");
                         None
