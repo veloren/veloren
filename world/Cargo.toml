@@ -8,7 +8,8 @@ edition = "2021"
 use-dyn-lib = ["common-dynlib"]
 be-dyn-lib = []
 simd = ["vek/platform_intrinsics", "packed_simd"]
-bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits", "fallible-iterator", "clap", "rstar"]
+bin_compression = ["lz-fear", "deflate", "flate2", "image/jpeg", "num-traits", "fallible-iterator", "rstar", "cli"]
+cli = ["clap", "signal-hook", "indicatif"]
 
 default = ["simd"]
 
@@ -51,6 +52,8 @@ num-traits = { workspace = true, optional = true }
 fallible-iterator = { version = "0.2.0", optional = true }
 rstar = { version = "0.10", optional = true }
 clap = { workspace = true, optional = true }
+signal-hook = { version = "0.3.6", optional = true }
+indicatif = { version = "0.17.8", optional = true }
 
 
 [dev-dependencies]
@@ -80,3 +83,7 @@ required-features = ["bin_compression"]
 [[example]]
 name = "heightmap_visualization"
 required-features = ["bin_compression"]
+
+[[example]]
+name = "batch_generate"
+required-features = ["cli"]
