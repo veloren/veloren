@@ -261,7 +261,13 @@ pub struct SetPetStayEvent(pub EcsEntity, pub EcsEntity, pub bool);
 
 pub struct PossessEvent(pub Uid, pub Uid);
 
-pub struct TransformEvent(pub Uid, pub EntityInfo);
+pub struct TransformEvent {
+    pub target_entity: Uid,
+    pub entity_info: EntityInfo,
+    /// If set to false, players wont be transformed unless with a Possessor
+    /// presence kind
+    pub allow_players: bool,
+}
 
 pub struct InitializeCharacterEvent {
     pub entity: EcsEntity,

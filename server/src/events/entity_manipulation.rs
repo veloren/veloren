@@ -2101,13 +2101,20 @@ impl ServerEvent for StartTeleportingEvent {
     }
 }
 
-pub fn handle_transform(server: &mut Server, TransformEvent(uid, info): TransformEvent) {
-    let Some(entity) = server.state().ecs().entity_from_uid(uid) else {
+pub fn handle_transform(
+    server: &mut Server,
+    TransformEvent {
+        target_entity,
+        entity_info,
+        allow_players,
+    }: TransformEvent,
+) {
+    let Some(entity) = server.state().ecs().entity_from_uid(target_entity) else {
         return;
     };
 
-    if let Err(error) = transform_entity(server, entity, info) {
-        error!(?error, ?uid, "Failed transform entity");
+    if let Err(error) = transform_entity(server, entity, entity_info, allow_players) {
+        error!(?error, ?target_entity, "Failed transform entity");
     }
 }
 
@@ -2117,19 +2124,21 @@ pub enum TransformEntityError {
     UnexpectedNpcWaypoint,
     UnexpectedNpcTeleporter,
     LoadingCharacter,
+    EntityIsPlayer,
 }
 
 pub fn transform_entity(
     server: &mut Server,
     entity: Entity,
-    info: EntityInfo,
+    entity_info: EntityInfo,
+    allow_players: bool,
 ) -> Result<(), TransformEntityError> {
     let is_player = server
         .state()
         .read_storage::<comp::Player>()
         .contains(entity);
 
-    match NpcData::from_entity_info(info) {
+    match NpcData::from_entity_info(entity_info) {
         NpcData::Data {
             inventory,
             stats,
@@ -2173,6 +2182,9 @@ pub fn transform_entity(
                     // Transforming while the character is being loaded or is spectating is invalid!
                     Some(PresenceKind::Spectator | PresenceKind::LoadingCharacter(_)) => {
                         return Err(TransformEntityError::LoadingCharacter);
+                    },
+                    Some(PresenceKind::Character(_)) if !allow_players => {
+                        return Err(TransformEntityError::EntityIsPlayer);
                     },
                     Some(PresenceKind::Possessor | PresenceKind::Character(_)) => {},
                     None => break 'persist,

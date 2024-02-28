@@ -32,6 +32,8 @@ pub struct StaticData {
     /// The entity configuration you will be transformed into
     pub target: String,
     pub ability_info: AbilityInfo,
+    /// Whether players are allowed to transform
+    pub allow_players: bool,
     /// Used to specify the transformation to the frontend
     pub specifier: Option<FrontendSpecifier>,
 }
@@ -95,7 +97,11 @@ impl CharacterBehavior for Data {
                         }
                     }
 
-                    output_events.emit_server(TransformEvent(*data.uid, entity_info));
+                    output_events.emit_server(TransformEvent {
+                        target_entity: *data.uid,
+                        entity_info,
+                        allow_players: self.static_data.allow_players,
+                    });
                     update.character = CharacterState::Transform(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),

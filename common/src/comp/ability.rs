@@ -1004,6 +1004,10 @@ pub enum CharacterAbility {
         target: String,
         #[serde(default)]
         specifier: Option<transform::FrontendSpecifier>,
+        /// Only set to `true` for admin only abilities since this disables
+        /// persistence and is not intended to be used by regular players
+        #[serde(default)]
+        allow_players: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1678,6 +1682,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 target: _,
                 specifier: _,
+                allow_players: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2964,12 +2969,14 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 target,
                 specifier,
+                allow_players,
                 meta: _,
             } => CharacterState::Transform(transform::Data {
                 static_data: transform::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     specifier: *specifier,
+                    allow_players: *allow_players,
                     target: target.to_owned(),
                     ability_info,
                 },

@@ -662,7 +662,7 @@ fn handle_into_npc(
         None,
     );
 
-    transform_entity(server, target, entity_info).map_err(|error| match error {
+    transform_entity(server, target, entity_info, true).map_err(|error| match error {
         TransformEntityError::EntityDead => {
             Content::localized_with_args("command-entity-dead", [("entity", "target")])
         },
@@ -674,6 +674,11 @@ fn handle_into_npc(
         },
         TransformEntityError::LoadingCharacter => {
             Content::localized("command-transform-invalid-presence")
+        },
+        TransformEntityError::EntityIsPlayer => {
+            unreachable!(
+                "Transforming players must be valid as we explicitly allowed player transformation"
+            );
         },
     })
 }
