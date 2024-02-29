@@ -6,3 +6,5 @@ sprite-food-salad_plain = Salade simple
     .desc = Littéralement de la laitue hachée. Est-ce que cela compte comme une salade ?
 sprite-carrot-carrot = Carotte
     .desc = Un légume-racine orange. On raconte que cela améliore la vue !
+sprite-tomato-tomato = Tomate
+    .desc = Un fruit rouge. En fait, ce n'est pas un légume !

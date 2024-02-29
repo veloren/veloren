@@ -7,30 +7,30 @@ main-tip = Consejo:
 main-unbound_key_tip = unbound
 main-notice =
     Bienvenido a la versión alfa de Veloren!
-    
+
     Antes de que te diviertas, por favor ten en cuenta lo siguiente:
-    
+
     - Esta es una alfa muy temprana, espera fallos, jugabilidad extremadamente incompleta, mecánicas sin pulir y características faltantes.
-    
+
     - Si tienes críticas constructivas o reportes de fallos, puedes contactarnos por reddit, GitLab, o por el server de Discord de nuestra comunidad.
-    
+
     - Veloren esta licenciado bajo la licencia GPL 3 open-source (código abierto). Eso significa que tienes la libertad de jugar, modificar, y redistribuir el Juego como
      desees (siempre y cuando dicho trabajo también este licenciado como GPL 3).
-    
+
     - Veloren es un proyecto en comunidad sin ánimo de lucro, y todos los que trabajan en el son voluntarios.
     Si te gusta lo que ves, eres bienvenido a unirte a los equipos de desarrollo o de arte!
-    
+
     Gracias por tomarte el tiempo de leer este mensaje, esperamos que disfrutes el juego!
-    
+
     ~ Los Desarrolladores de Veloren
 main-login_process =
     Información sobre el proceso para Iniciar Sesión:
-    
+
     Por favor ten en cuenta que ahora necesitas una cuenta
     para jugar en servidores con autenticación activada.
-    
+
     Puedes crearte una cuenta en
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = No se encontró el servidor
 main-login-authentication_error = Error de autenticación en el servidor

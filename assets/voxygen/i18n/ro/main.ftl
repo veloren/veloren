@@ -7,30 +7,30 @@ main-tip = Sfat:
 main-unbound_key_tip = nelegat
 main-notice =
     Bine ai venit în versiunea alfa de Veloren!
-    
+
     Înainte să începi distracția, te rog să ții minte câteva lucruri:
-    
+
     - Această versiune de joc este prematură. Așteaptă-te la erori, gameplay nefinisat, mecanisme nelustruite și caracteristici care lipsesc. 
-    
+
     - Dacă ai feedback constructiv sau rapoarte de erori, ne poți contacta pe Reddit, GitLab sau în serverul nostru de comunitate pe Discord.
-    
+
     - Veloren este licențiat sub licența susră-deschisă(„open-source”) GPL 3. Asta înseamnă că ești liber să joci, să modifici și să redistribui jocul 
      după gustul tău (cu condiția ca munca derivată să fie sub GPL 3).
-     
+
     - Veloren este un proiect non-profit al comunotații, iar cei care lucrează la el sunt voluntari.
     Daca îți place ce vezi, ești binevenit să te alături echipelor de dezvoltare sau echipelor de artă!
-    
+
     Îți mulțumim că ai citit acest anunț, sperăm că te vei distra!
-    
+
     ~ Dezvoltatorii Veloren
 main-login_process =
     Informații privind procesul de autentificare:
-    
+
     Ține minte că îți trebuie un cont
     pentru a juca pe servere cu autentificarea activată.
-    
+
     Poți să-ți faci un cont pe
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Serverul nu a fost găsit
 main-login-authentication_error = Eroare de autentificare pe server

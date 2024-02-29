@@ -7,30 +7,30 @@ main-tip = 小提示:
 main-unbound_key_tip = 自由
 main-notice =
     欢迎加入 Veloren Alpha 版本!
-    
+
     在你开始享受游戏之前,请注意以下事情:
-    
+
     - 这是非常前期的 alpha 版本,你会遇到不少错误、未完成的游戏模式、未完善的游戏机制以及缺失的功能. 
-    
+
     - 如果有建设性的意见反馈或是错误汇报,可以通过 Reddit、GitLab 或者我们的 Discord 服务器联系我们.
-    
+
     - Veloren 的授权条款是GPL3. 意思是你可以免费游玩,
     修改并重新发布游戏(衍生内容也必须是GPL3)
-    
+
     - Veloren 是一个非营利的社区项目, 参与该项目的都是志愿者.
     如果你想在项目中看到你的身影,欢迎加入开发或艺术团队!
-    
+
     感谢你抽出宝贵的时间阅读此通知,希望你喜欢这款游戏!
-    
+
     ~ The Veloren Devs
 main-login_process =
     有关登录的信息:
-    
+
     请注意,你现在需要一个账户,
     才能在启用身份验证的服务器上游玩.
-    
+
     你可以通过下面的网站创建用户.
-    
+
     https://veloren.net/account/.
 main-singleplayer-new = 新建
 main-singleplayer-delete = 删除

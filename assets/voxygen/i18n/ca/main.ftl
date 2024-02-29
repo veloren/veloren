@@ -7,30 +7,30 @@ main-tip = Consell:
 main-unbound_key_tip = deslligar
 main-notice =
     Benvingut a la versió alfa de Veloren!
-    
+
     Abans de començar a divertir-te, si us plau tingues les següents coses en ment:
-    
+
     - Aquesta és una versió alfa molt recent. Espera errors, jugabilitat extremadament inacabada, mecàniques per polir i manca d'elements.
-    
+
     - Si tens algun feedback constructiu o vols reportar un error, pot posar-te en contacte amb nosaltres mitjançant Reddit, GitLab, o el nostre servidor de Discord.
-    
+
     - Veloren està llicenciat sota una llicència de codi obert GPL 3. Això significa que ets lliure de jugar, modificar, i redistribuir el joc de la manera
      que desitges (sempre que aquest producte derivat es trobi sota una llicència GPL 3).
-    
+
     - Veloren és un projecte comunitari sense ànim de lucre i tothom qui hi treballa en ell és un voluntari.
     Si t'agrada el que hi veus, ets benvingut a unir-te a l'equip de desenvolupament o artístic!
-    
+
     Gràcies per prendre't el temps per llegir aquest avís, esperem que gaudeixis del joc!
-    
+
     ~ Els Desenvolupadors de Veloren
 main-login_process =
     Informació sobre el procés d'Inici de Sessió:
-    
+
     Si us plau, tingues en compte que necessites un compte
     per jugar a servidors amb autentificació activada.
-    
+
     Pots crear un compte a
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = No s'ha trobat el Servidor
 main-login-authentication_error = Error d'Autentificació al Servidor

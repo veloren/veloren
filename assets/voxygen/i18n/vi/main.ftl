@@ -6,28 +6,28 @@ main-creating_world = Đang tạo thế giới mới
 main-tip = Mẹo:
 main-notice =
     Chào mừng đến với Veloren phiên bản alpha!
-    
+
     Trước khi bạn bắt đầu chơi Veloren, bạn cần chú ý những điều sau:
-    
+
     - Đây là một phiên bản alpha chưa hoàn thiện. Trò chơi còn nhiều lỗi, cơ chế và tính năng cũng còn nhiều thiết sót.
-    
+
     - Nếu bạn muốn phản hồi hoặc báo lỗi, hãy liên hệ với chúng tôi trên Reddit, GitLab, hoặc trên Discord của chúng tôi.
-    
+
     - Veloren được cấp phép theo giấy phép GPL 3 open-source. Có nghĩa là bạn được phép chơi miễn phí, sửa đổi, và phân phối lại trò chơi theo cách bạn muốn (miễn là nó cũng theo giấy phép GPL 3).
-    
+
     - Veloren là một dự án cộng đồng phi lợi nhuận, mọi người cùng tình nguyện đóng góp. Nếu bạn thích, hãy tham gia đội phát triển hoặc đội mỹ thuật của chúng tôi!
-    
+
     Cảm ơn bạn đã dành thời gian đọc thông báo này, chúng tôi hy vọng bạn thích trò chơi này!
-    
+
     ~ The Veloren Devs
 main-login_process =
     Thông tin về quá trình đăng nhập:
-    
+
     Xin lưu ý rằng bạn cần có tài khoản
     để chơi trên máy chủ được xác thực.
-    
+
     Bạn có thể tạo một tài khoản tại
-    
+
     
     https://veloren.net/account/.
 main-login-server_not_found = Không tìm thấy máy chủ
