@@ -30,6 +30,7 @@
                 (2, Item("common.items.weapons.staff.laevateinn")),
                 (1, Item("common.items.weapons.sceptre.caduceus")),
             ]), None)),
+            glider: Item("common.items.glider.sunset"),
         )),
         items: [
             (50, "common.items.consumable.potion_big"),
