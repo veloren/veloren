@@ -1,7 +1,7 @@
 ## Player events, $user_gender should be available
 
-hud-chat-online_msg = [{ $name }] is online now
-hud-chat-offline_msg = [{ $name }] went offline
+hud-chat-online_msg = [{ $name }] is online now.
+hud-chat-offline_msg = [{ $name }] went offline.
 hud-chat-goodbye = Goodbye!
 hud-chat-connection_lost = Connection lost. Kicking in { $time } seconds.
 

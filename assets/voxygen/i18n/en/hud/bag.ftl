@@ -36,7 +36,7 @@ hud-bag-combat_rating_desc =
 hud-bag-protection_desc = Damage reduction through armor.
 hud-bag-stun_res_desc =
     Resilience against being stunned by consecutive hits.
-    Regenerates like Energy.
+    Regenerates like energy.
 hud-bag-sort_by_name = Sort by Name
 hud-bag-sort_by_quality = Sort by Quality
 hud-bag-sort_by_category = Sort by Category
