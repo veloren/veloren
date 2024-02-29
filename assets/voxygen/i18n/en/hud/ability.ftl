@@ -314,7 +314,7 @@ common-abilities-axe-savage_sense = Savage Sense
         Identify a vital point on your target, ensuring your next strike critically damages them.
 common-abilities-axe-adrenaline_rush = Adrenaline Rush
     .desc =
-        Consume all your combo to replenish your stamina.
+        Consume all your combo to replenish your energy.
         Scales with combo on activation, consumes all combo.
 common-abilities-axe-execute = Execute
     .desc =
@@ -358,7 +358,7 @@ common-abilities-axe-skull_bash = Skullbash
         A strike with the flat of your axe that can stagger.
 common-abilities-axe-sunder = Sunder
     .desc =
-        By changing your grip, you become able to bypass your enemy's armor while restoring your stamina more effectively.
+        By changing your grip, you become able to bypass your enemy's armor while restoring your energy more effectively.
 common-abilities-axe-plunder = Plunder
     .desc =
         Quickly step towards your foe, robbing them of their balance with a strike.

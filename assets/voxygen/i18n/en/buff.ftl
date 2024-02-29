@@ -17,21 +17,21 @@ buff-desc-saturation = Gain health over time from consumables.
 ## Campfire
 buff-title-campfire_heal = Campfire Heal
 buff-desc-campfire_heal = Resting at a campfire heals { $rate } % HP per second.
-## Stamina Regen
-buff-title-energy_regen = Stamina Regeneration
-buff-desc-energy_regen = Faster stamina regeneration.
-buff-stat-energy_regen = Restores { $str_total } stamina
+## Energy Regen
+buff-title-energy_regen = Energy Regeneration
+buff-desc-energy_regen = Faster energy regeneration.
+buff-stat-energy_regen = Restores { $str_total } energy
 ## Health Increase
 buff-title-increase_max_health = Increase Max Health
 buff-desc-increase_max_health = Your maximum HP is increased.
 buff-stat-increase_max_health =
     Raises maximum health
     by { $strength }
-## Stamina Increase
-buff-title-increase_max_energy = Increase Max Stamina
-buff-desc-increase_max_energy = Your maximum stamina is increased.
+## Energy Increase
+buff-title-increase_max_energy = Increase Max Energy
+buff-desc-increase_max_energy = Your maximum energy is increased.
 buff-stat-increase_max_energy =
-    Raises maximum stamina
+    Raises maximum energy
     by { $strength }
 ## Invulnerability
 buff-title-invulnerability = Invulnerability
@@ -105,7 +105,7 @@ buff-title-fury = Fury
 buff-desc-fury = With your fury, your strikes generate more combo.
 ## Sunderer
 buff-title-sunderer = Sunderer
-buff-desc-sunderer = Your attacks can break through your foes' defences and refresh you with more stamina.
+buff-desc-sunderer = Your attacks can break through your foes' defences and refresh you with more energy.
 ## Sunderer
 buff-title-defiance = Defiance
 buff-desc-defiance = You can withstand mightier and more staggering blows and generate combo by being hit, however you are slower.
@@ -117,7 +117,7 @@ buff-title-berserk = Berserk
 buff-desc-berserk = You are in a berserking rage, causing your attacks to be more powerful and swift, and increasing your speed. However, as a result your defensive capability is less.
 ## Heatstroke
 buff-title-heatstroke = Heatstroke
-buff-desc-heatstroke = You were exposed to heat and now suffer from heatstroke. Your stamina reward and movement speed are cut down. Chill.
+buff-desc-heatstroke = You were exposed to heat and now suffer from heatstroke. Your energy reward and movement speed are cut down. Chill.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds
