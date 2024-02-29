@@ -2,7 +2,7 @@ use core::ops::Not;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use std::{cmp::Ordering, convert::TryFrom, mem, ops::Range};
+use std::{cmp::Ordering, convert::TryFrom, mem, num::NonZeroU32, ops::Range};
 use tracing::{debug, trace, warn};
 use vek::Vec3;
 
@@ -586,6 +586,42 @@ impl Inventory {
                 return_item
                     .set_amount(1)
                     .expect("Items duplicated from a stackable item must be stackable.");
+                Some(return_item)
+            } else {
+                self.remove(inv_slot_id)
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Takes an amount of items from a slot
+    pub fn take_amount(
+        &mut self,
+        inv_slot_id: InvSlotId,
+        amount: NonZeroU32,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Option<Item> {
+        if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
+            if item.is_stackable() && item.amount() > 1 {
+                let mut return_item = item.duplicate(ability_map, msm);
+                let return_amount = amount.get().min(item.amount());
+                return_item
+                    .set_amount(return_amount)
+                    .expect("We know that 0 < return_amount <= item.amount()");
+
+                // Instead of setting item amount to 0 we remove it
+                if amount.get() == item.amount() {
+                    self.remove(inv_slot_id);
+                } else {
+                    let new_amount = item.amount() - return_amount;
+                    item.set_amount(new_amount).expect(
+                        "new_amount must be > 0 since return amount is != item.amount() and < \
+                         item.amount()",
+                    );
+                }
+
                 Some(return_item)
             } else {
                 self.remove(inv_slot_id)
