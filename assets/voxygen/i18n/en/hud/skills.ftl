@@ -2,7 +2,7 @@ hud-rank_up = New skillpoint
 hud-skill-sp_available =
     { $number ->
         [0] No skill points available
-        [one] { $number } skill point available
+        [1] { $number } skill point available
        *[other] { $number } skill points available
     }
 hud-skill-not_unlocked = Not yet unlocked

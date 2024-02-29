@@ -5,7 +5,7 @@ hud-social-not_yet_available = Not yet available
 hud-social-faction = Faction
 hud-social-play_online_fmt =
   { $nb_player ->
-   [one] 1 player online
+   [1] 1 player online
    *[other] { $nb_player } players online
   }
 
