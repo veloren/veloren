@@ -6,31 +6,31 @@ main-creating_world = Világ létrehozása
 main-tip = Tipp:
 main-notice =
     Üdvözlünk a Veloren alfa verziójában!
-    
+
     Mielőtt fejest ugrasz a játékba szeretnénk felhívhi a figyelmedet pár dologra:
-    
+
     - Ez egy nagyon korai alfa verzió, vagyis akadnak még benne hibák, a játékmenet és a különféle játékmechanikák még csiszolásra szorulnak, bizonyos elemek pedig még nem kerültek implementálásra.
-    
+
     - Ha van valamilyen építő jellegű visszajelzésed, vagy hibát szeretnél bejelenteni, nyugodtan keress fel minket Redditen, GitLab-en, vagy a közösségi Discord-szerverünkön.
-    
+
     - A Veloren a GPL 3 nyílt forráskódú licenc alatt van kiadva. Ezt azt jelenti, hogy megkötések nélül játhatsz vele, továbbá saját igényeid szerint módosíthatod és terjesztheted (már amennyiben az új produktum is GPL 3-as licensszel rendelkezik).
-    
+
     - A Veloren egy nonprofit, közösségi projekt, a fejlesztésben részt vevő emberek pedig egytől-egyik önkéntesek.
     Ha tetszik amit látsz, örömmel várunk akár a fejlesztői, akár a művészeti csapatban!
-    
+
     Köszönjük, hogy szakítottál időt ezen kis értesítő elolvasására. Jó játékot kívánunk!
-    
+
     ~ A Veloren fejlesztői
 main-login_process =
     Információ a bejelentkezési folyamatról:
-    
+
     Ahhoz, hogy játszani tudj hitelesített
     szervereken előbb létre kell hoznod
     egy felhasználói fiókot.
-    
+
     Ezt a fiókot a következő weboldalon
     tudod létrehozni:
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Szerver nem található
 main-login-authentication_error = Hitelesítési hiba a szerveren

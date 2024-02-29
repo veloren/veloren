@@ -3,31 +3,31 @@ main-creating_world = Wereld aan het maken
 main-tip = Tip:
 main-notice =
     Welkom bij de Alpha versie van Veloren!
-    
+
     Voordat de fun begint zijn hier enkele dingen om rekening mee te houden:
-    
+
     - Dit is een hele vroege alpha. Verwacht bugs, extreem onafgemaakte gameplay, ruwe spelmechanics en missende functies.
-    
+
     - Als je constructieve feedback hebt of bugs wil melden, kan je ons contacteren via Reddit, Gitlab of onze community Discord.
-    
+
     - Veloren is onder de GPL 3 open-source licentie gelicensieerd. Dat betekent dat je vrij bent om het spel te spelen, bewerken en doorgeven op welke manier
     je ook wil (zo lang afgeleide werken ook onder GPL 3 gelicensieerd zijn)
-    
+
     - Veloren is een non-profit community project, en iedereen dat er aan meehelpt is een vrijwilliger.
     Als je interesse hebt kan je je aansluiten bij onze ontwikkeling- of ontwerpteams!
-    
+
     Bedankt voor de tijd te nemen om deze melding te lezen, we hopen dat je van het spel zult genieten!
     Thanks for taking the time to read this notice, we hope you enjoy the game!
-    
+
     ~ De Veloren ontwikkelaars
 main-login_process =
     Information over het loginproces:
-    
+
     Hou er rekening mee dat je tegenwoordig een account nodig hebt
     om op servers met authenticatie te spelen
-    
+
     Je kan een account maken op
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Server nie gevonden
 main-login-authentication_error = Authenticatie mislukt

@@ -60,3 +60,7 @@ weapon-sword-cultist = Magisches Kutlistengroßschwert
     .desc = Dies gehörte einst einem bösen Kultistenführer.
 weapon-sceptre-root_evil = Die Wurzel des Bösen
     .desc = 'Alles hat seinen Preis …'
+weapon-sword-frost-0 = Frost-Schlitzer
+    .desc = Strahlt eine eiskalte Aura aus.
+weapon-sword-frost-1 = Frostsäge
+    .desc = Geschmiedet aus einem einzigen Stück ewigen Eises.

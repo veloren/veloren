@@ -46,3 +46,15 @@ body-npc-speech-biped_large-cultist_warlord = ein Kult-Kriegsherr
 body-npc-speech-biped_large-cultist_warlock = ein Kult-Hexer
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-husk_brute = ein Husk Brute
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-sea_bishop = ein Seebischof
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-haniwa_general = ein Haniwa-General
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_besieger = ein Terrakotta-Belagerer
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_demolisher = ein Terrakotta-Zerstörer
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_punisher = ein Terrakotta-Bestrafer
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_pursuer = ein Terrakotta-Verfolger

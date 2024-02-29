@@ -6,32 +6,32 @@ main-creating_world = Dünya oluşturuluyor
 main-tip = İpucu:
 main-notice =
     Veloren Alfa sürümüne hoşgeldin!
-    
+
     Eğlenmeye başlamadan önce, lütfen bir kaç şeyi aklında tut:
-    
+
     - Bu alfa sürümü daha çok yeni. Hatalar, bitmemiş oynanış, elden geçirilmemiş mekanikler ve eksik özellikler bulunuyor.
-    
+
     - Yapıcı geri bildirim veya hata raporların varsa bize Reddit, GitLab veya Discord kullanarak ulaşabilirsin.
-    
+
     - Veloren GPL 3 açık kaynak lisansı ile lisanslıdır. Bunun anlamı, oyunu istediğin gibi oynayabilir, değiştirebilir ve dağıtabilirsin
     (türetilmiş çalışmalarda GPL 3 ile lisanslanmış olduğu sürece)
-    
+
     - Veloren kar gütmeyen bir topluluk projesidir ve üzerinde çalışan herkes birer gönüllüdür.
     Gördüklerini beğendiysen, geliştirme veya sanat takımlarına katılabilirsin!
-    
+
     Bu bildiriyi okumaya zaman ayırdığın için teşekkür ederiz, umarız ki oyundan memnun kalırsın!
-    
+
     ~ Veloren Geliştiricileri
 main-login_process =
     Giriş işlemi hakkında bilgi:
-    
+
     Eğer giriş yaparken sorunlarla karşılaşıyorsan:
-    
+
     Lütfen kimlik doğrulaması gerektiren sunucularda
     oynamak için bir hesaba ihtiyacın olduğunu hatırla.
-    
+
     https://veloren.net/account/ adresinden
-    
+
     bir hesap oluşturabilirsin.
 main-login-server_not_found = Sunucu bulunamadı
 main-login-authentication_error = Sunucuda kimlik doğrulama hatası

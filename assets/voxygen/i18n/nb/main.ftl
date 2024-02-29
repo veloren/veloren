@@ -6,30 +6,30 @@ main-creating_world = Lager verden
 main-tip = Tips:
 main-notice =
     Velkommen til alfaversjonen av Veloren!
-    
+
     Før du dykker inn i moroa, vennligst hold et par ting i tankene:
-    
+
     - Dette er en veldig tidlig alfa. Forvent feil, ekstremt uferdig spilling, upolert mekanikk og manglende funksjoner.
-    
+
     - Hvis du har konstruktive tilbakemeldinger eller feilrapporter, kan du kontakte oss via Reddit, GitLab eller vår Discord-server.
-    
+
     - Veloren er lisensiert under GPL 3 åpen kildekode-lisensen. Det betyr at du er fri til å spille, endre og distribuere spillet på nytt, akkurat
      som du ønsker (så lenge arbeidet også er under GPL 3).
-    
+
     - Veloren er et ikke-profitt basert samfunnsprosjekt, og alle som jobber på prosjektet er frivillige.
     Hvis du liker det du ser, er du velkommen til å bli med i utviklings- eller kunstteamene!
-    
+
     Takk for at du tar deg tid til å lese denne meldingen, vi håper at du liker spillet!
-    
+
     - Veloren-utviklerne
 main-login_process =
     Informasjon om påloggingsprosessen:
-    
+
     Vær oppmerksom på at du nå trenger en konto
     for å spille på godkjennings-aktiverte servere.
-    
+
     Du kan opprette en konto på
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Server ikke funnet
 main-login-authentication_error = Innloggingsfeil på serveren

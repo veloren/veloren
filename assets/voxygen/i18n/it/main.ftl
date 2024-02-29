@@ -7,30 +7,30 @@ main-tip = Consiglio:
 main-unbound_key_tip = Slega
 main-notice =
     Benvenuto nella versione Alpha di Veloren!
-    
+
     Prima di tuffarti nel divertimento, ti preghiamo di tenere a mente che:
-    
+
     - Questa è una versione alpha molto prematura. Aspettati errori, giocabilità non completa, meccaniche non rifinite e funzioni mancanti.
-    
+
     - Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab o il server Discord della nostra community.
-    
+
     - Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare e ridistribuire il gioco come
      tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
-    
+
     - Veloren è un progetto comunitario no-profit, e chiunque ci lavori sopra è un volontario.
     Se ti piace ciò che vedi, sei il benvenuto ad unirti ai team di sviluppo e artistico!
-    
+
     Grazie per aver dedicato del tempo a leggere questo avviso, speriamo che ti divertirai col gioco!
-    
+
     ~ Il team di sviluppo di Veloren
 main-login_process =
     Informazioni sul processo di autenticazione:
-    
+
     Notare che hai bisogno di un account
     per giocare su server con autenticazione abilitata.
-    
+
     Puoi creare un account su
-    
+
     https://veloren.net/account/.
 main-singleplayer-new = Nuovo
 main-singleplayer-delete = Cancella

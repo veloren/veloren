@@ -7,27 +7,27 @@ main-tip = Aholkua:
 main-unbound_key_tip = lotu gabe
 main-notice =
     Ongi etorri Velorenen alpha bertsiora!
-    
+
     Jokatzen hasi aurretik, kontuan izan honako ohar hauek:
-    
+
     - Alpha bertsio hau oso goiztiarra da. Beraz, baliteke akatsak, findu gabeko mekanikak eta bukatu gabeko ezaugarriak aurkitzea.
-    
+
     - Zure iritzia adierazi edo akats baten berri eman nahi baduzu, Reddit, Gitlab, Discord eta Matrixen aurkituko gaituzu.
-    
+
     - Veloren GPL-3 lizentzia librean banatzen da. Horrek esan nahi du libre zarela jokatu, aldatu eta nahi bezala banatzeko (betiere GPL-3 lizentziaren baldintzak betetzen badituzu)
-    
+
     - Veloren irabazi asmorik gabeko proiektua da, eta guztiok bertan modu boluntarioan egiten dugu lan.
       Zuk ere parte hartu nahi baduzu, ongi etorria izango zara garatzaile zein arte taldeetan!
-    
+
     Eskerrik asko ohar hau irakurtzeko denbora hartzeagatik. Espero dugu jokoa zure gustukoa izatea!
-    
+
     ~ Velorenen garatzaile taldea
 main-login_process =
     Saioa hasteko jarraibideak:
-    
+
     Kontu bat beharko duzu autentikazioa
     erabiltzen duten zerbitzarietan jokatzeko.
-    
+
     Helbide honetan sortu dezakezu:    
     https://veloren.net/account/.
 main-login-server_not_found = Ezin izan da zerbitzaria aurkitu

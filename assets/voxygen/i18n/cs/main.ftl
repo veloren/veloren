@@ -6,28 +6,28 @@ main-creating_world = Tvorba Světa
 main-tip = Tip:
 main-notice =
     Vítejte v alfa verzi Veloren!
-    
+
     Než začnete, mějte na paměti, že:
-    
+
     - Hra je v rané verzi alfa. Očekávejte chyby, extrémně nedokončený příběh, nedostatečně rozvinuté mechaniky a chybějící funkce.
-    
+
     - Pokud se chcete podělit o svůj názor, máte návrhy nebo nápady nebo chcete nahlásit chybu, můžete nás kontaktovat prostřednictvím Redditu, GitLabu nebo Discordu.
-    
+
     - Veloren je licencován pod licencí open source GPL 3. To znamená, že máte právo hru upravovat a distribuovat, jakkoliv chcete (pokud je vaše práce licencována také pod GPL 3).
-    
+
     - Veloren je neziskový projekt, kde je každý spolupracující člověk dobrovolníkem. Pokud se vám tato hra líbí, připojte se k našemu týmu!
-    
+
     Děkujeme za přečtení této zprávy a doufáme, že se vám tato hra bude líbit!
-    
+
     ~ Tvůrci Veloren
 main-login_process =
     Informace o procesu přihlášení:
-    
+
     Nezapomeňte, že k připojení na server
     se zapnutým ověřením potřebujete účet.
-    
+
     Účet si můžete vytvořit na webu:
-    
+
     https://veloren.net/account/.
 main-login-server_not_found = Server nenalezen
 main-login-authentication_error = Chyba ověření

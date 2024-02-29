@@ -7,46 +7,46 @@ main-tip = คำแนะนำ:
 main-unbound_key_tip = ยกเลิกปุ่ม
 main-notice =
     ยินดีต้อนรับเข้าสู่โลกเวโลเรน (ในเวอร์ชั่นอัลฟา)!
-    
+
     แต่ก่อนที่ความสนุกจะเริ่ม สิ่งที่คุณควรรู้คือ
-    
+
     - ตัวเกมอยู่ในช่วงแรกของการพัฒนา ดังนั้น ตัวเกมจึงยังไม่สมบูรณ์ บางองค์ประกอบอาจขาดหายหรือทำงานผิดพลาด 
-    
+
     - หากคุณต้องการให้คำแนะนำเกี่ยวกับเกมหรือแจ้งบัค คุณสามารถติดต่อเราได้ที่ Reddit, GitLab หรือผ่านทาง Discord ของเรา
-    
+
     - เวโลเรนจัดอยู่ในหมวดหมู่ลิขสิทธิ์ของ GPL-3 คือ อนุญาตให้ใช้งาน, ดัดแปลง และแจกจ่ายได้โดยไม่คิดค่าใช้จ่าย (แต่ต้องอยู่ภายลิขสิทธิ์เดียวกัน)
-    
+
     - เวโลเรนเป็นเกมที่สร้างขึ้นโดยไม่หวังผลกำไร ผู้ที่มีส่วนร่วมทุกคนเป็นอาสาสมัคร 
     ดังนั้นถ้าคุณสนใจอยากเข้าร่วม ทางทีมพัฒนายินดีต้อนรับเสมอ
-    
+
     ท้ายที่สุดเราขอขอบคุณที่สละเวลาอ่านข้อความเล็กๆ อันนี้ เราหวังว่าคุณจะได้รับสนุกจากเกมของเรา
-    
+
     ~ ด้วยความเคารพ ทีมผู้พัฒนา
-    
+
     Welcome to the alpha version of Veloren!
-    
+
     Before you dive into the fun, please keep a few things in mind:
-    
+
     - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
-    
+
     - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
-    
+
     - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
      you wish (provided derived work is also under GPL 3).
-    
+
     - Veloren is a non-profit community project, and everybody working on it is a volunteer.
     If you like what you see, you're welcome to join the development or art teams!
-    
+
     Thanks for taking the time to read this notice, we hope you enjoy the game!
-    
+
     ~ The Veloren Devs
 main-login_process =
     ขั้นตอนการเข้าเกม:
-    
+
     คุณอาจจำเป็นจะต้องสมัครรหัสเพื่อเข้าเล่นบางเซิร์ฟเวอร์
-    
+
     สร้างบัญชีได้ที่
-    
+
     https://veloren.net/account/.
 main-login-server_not_found =
     ไม่พบเซิร์ฟเวอร์ 
