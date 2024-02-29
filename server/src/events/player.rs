@@ -65,7 +65,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
 
     // Cancel trades here since we don't use `delete_entity_recorded` and we
     // remove `Uid` below.
-    super::cancel_trades_for(state, entity);
+    super::trade::cancel_trades_for(state, entity);
 
     let maybe_group = state.read_component_copied::<group::Group>(entity);
     let maybe_admin = state.delete_component::<comp::Admin>(entity);
@@ -243,12 +243,15 @@ pub fn handle_client_disconnect(
     Event::ClientDisconnected { entity }
 }
 
-// When a player logs out, their data is queued for persistence in the next tick
-// of the persistence batch update. The player will be
-// temporarily unable to log in during this period to avoid
-// the race condition of their login fetching their old data
-// and overwriting the data saved here.
-fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
+/// When a player logs out, their data is queued for persistence in the next
+/// tick of the persistence batch update. The player will be
+/// temporarily unable to log in during this period to avoid
+/// the race condition of their login fetching their old data
+/// and overwriting the data saved here.
+///
+/// This function is also used by the Transform event and MUST NOT assume that
+/// the persisting entity is deleted afterwards.
+pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
     if let (
         Some(presence),
         Some(skill_set),

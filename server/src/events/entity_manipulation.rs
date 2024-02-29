@@ -9,7 +9,7 @@ use crate::{
     error,
     rtsim::RtSim,
     state_ext::StateExt,
-    sys::terrain::SAFE_ZONE_RADIUS,
+    sys::terrain::{NpcData, SAFE_ZONE_RADIUS},
     Server, Settings, SpawnPoint,
 };
 use common::{
@@ -22,7 +22,7 @@ use common::{
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, Inventory, Object, Player,
-        Poise, Pos, Presence, PresenceKind, SkillSet, Stats,
+        Poise, Pos, Presence, PresenceKind, SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -31,9 +31,11 @@ use common::{
         DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus,
         ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent,
         ParryHookEvent, PoiseChangeEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent,
-        StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent, UpdateMapMarkerEvent,
+        StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent, TransformEvent,
+        UpdateMapMarkerEvent,
     },
     event_emitters,
+    generation::EntityInfo,
     link::Is,
     lottery::distribute_many,
     mounting::{Rider, VolumeRider},
@@ -49,13 +51,13 @@ use common::{
     vol::ReadVol,
     CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget, RadiusEffect,
 };
-use common_net::msg::ServerGeneral;
+use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
 use specs::{
     shred, DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read,
-    ReadExpect, ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
+    ReadExpect, ReadStorage, SystemData, WorldExt, Write, WriteExpect, WriteStorage,
 };
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 use tracing::{debug, warn};
@@ -2097,4 +2099,159 @@ impl ServerEvent for StartTeleportingEvent {
             }
         }
     }
+}
+
+pub fn handle_transform(
+    server: &mut Server,
+    TransformEvent {
+        target_entity,
+        entity_info,
+        allow_players,
+    }: TransformEvent,
+) {
+    let Some(entity) = server.state().ecs().entity_from_uid(target_entity) else {
+        return;
+    };
+
+    if let Err(error) = transform_entity(server, entity, entity_info, allow_players) {
+        error!(?error, ?target_entity, "Failed transform entity");
+    }
+}
+
+#[derive(Debug)]
+pub enum TransformEntityError {
+    EntityDead,
+    UnexpectedNpcWaypoint,
+    UnexpectedNpcTeleporter,
+    LoadingCharacter,
+    EntityIsPlayer,
+}
+
+pub fn transform_entity(
+    server: &mut Server,
+    entity: Entity,
+    entity_info: EntityInfo,
+    allow_players: bool,
+) -> Result<(), TransformEntityError> {
+    let is_player = server
+        .state()
+        .read_storage::<comp::Player>()
+        .contains(entity);
+
+    match NpcData::from_entity_info(entity_info) {
+        NpcData::Data {
+            inventory,
+            stats,
+            skill_set,
+            poise,
+            health,
+            body,
+            scale,
+            agent,
+            loot,
+            alignment: _,
+            pos: _,
+        } => {
+            fn set_or_remove_component<C: specs::Component>(
+                server: &mut Server,
+                entity: EcsEntity,
+                component: Option<C>,
+            ) -> Result<(), TransformEntityError> {
+                let mut storage = server.state.ecs_mut().write_storage::<C>();
+
+                if let Some(component) = component {
+                    storage
+                        .insert(entity, component)
+                        .and(Ok(()))
+                        .map_err(|_| TransformEntityError::EntityDead)
+                } else {
+                    storage.remove(entity);
+                    Ok(())
+                }
+            }
+
+            // Disable persistence
+            'persist: {
+                match server
+                    .state
+                    .ecs()
+                    .read_storage::<Presence>()
+                    .get(entity)
+                    .map(|presence| presence.kind)
+                {
+                    // Transforming while the character is being loaded or is spectating is invalid!
+                    Some(PresenceKind::Spectator | PresenceKind::LoadingCharacter(_)) => {
+                        return Err(TransformEntityError::LoadingCharacter);
+                    },
+                    Some(PresenceKind::Character(_)) if !allow_players => {
+                        return Err(TransformEntityError::EntityIsPlayer);
+                    },
+                    Some(PresenceKind::Possessor | PresenceKind::Character(_)) => {},
+                    None => break 'persist,
+                }
+
+                // Run persistence once before disabling it
+                //
+                // We must NOT early return between persist_entity() being called and
+                // persistence being set to Possessor
+                super::player::persist_entity(server.state_mut(), entity);
+
+                // We re-fetch presence here as mutable, because checking for a valid
+                // [`PresenceKind`] must be done BEFORE persist_entity but persist_entity needs
+                // exclusive mutable access to the server's state
+                let mut presences = server.state.ecs().write_storage::<Presence>();
+                let Some(presence) = presences.get_mut(entity) else {
+                    // Checked above
+                    unreachable!("We already know this entity has a Presence");
+                };
+
+                if let PresenceKind::Character(id) = presence.kind {
+                    server.state.ecs().write_resource::<IdMaps>().remove_entity(
+                        Some(entity),
+                        None,
+                        Some(id),
+                        None,
+                    );
+
+                    presence.kind = PresenceKind::Possessor;
+                }
+            }
+
+            // Should do basically what StateExt::create_npc does
+            set_or_remove_component(server, entity, Some(inventory))?;
+            set_or_remove_component(server, entity, Some(stats))?;
+            set_or_remove_component(server, entity, Some(skill_set))?;
+            set_or_remove_component(server, entity, Some(poise))?;
+            set_or_remove_component(server, entity, health)?;
+            set_or_remove_component(server, entity, Some(body))?;
+            set_or_remove_component(server, entity, Some(body.mass()))?;
+            set_or_remove_component(server, entity, Some(body.density()))?;
+            set_or_remove_component(server, entity, Some(body.collider()))?;
+            set_or_remove_component(server, entity, Some(scale))?;
+            // Reset active abilities
+            set_or_remove_component(
+                server,
+                entity,
+                Some(if body.is_humanoid() {
+                    comp::ActiveAbilities::default_limited(BASE_ABILITY_LIMIT)
+                } else {
+                    comp::ActiveAbilities::default()
+                }),
+            )?;
+
+            // Don't add Agent or ItemDrops to players
+            if !is_player {
+                set_or_remove_component(server, entity, agent)?;
+                set_or_remove_component(server, entity, loot.to_items().map(comp::ItemDrops))?;
+            }
+        },
+        NpcData::Waypoint(_) => {
+            return Err(TransformEntityError::UnexpectedNpcWaypoint);
+        },
+        NpcData::Teleporter(_, _) => {
+            return Err(TransformEntityError::UnexpectedNpcTeleporter);
+        },
+    }
+
+    Ok(())
 }

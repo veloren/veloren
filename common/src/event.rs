@@ -9,6 +9,7 @@ use crate::{
         misc::PortalData,
         DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
     },
+    generation::EntityInfo,
     lottery::LootSpec,
     mounting::VolumePos,
     outcome::Outcome,
@@ -259,6 +260,14 @@ pub struct UnmountEvent(pub EcsEntity);
 pub struct SetPetStayEvent(pub EcsEntity, pub EcsEntity, pub bool);
 
 pub struct PossessEvent(pub Uid, pub Uid);
+
+pub struct TransformEvent {
+    pub target_entity: Uid,
+    pub entity_info: EntityInfo,
+    /// If set to false, players wont be transformed unless with a Possessor
+    /// presence kind
+    pub allow_players: bool,
+}
 
 pub struct InitializeCharacterEvent {
     pub entity: EcsEntity,
@@ -531,6 +540,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<TeleportToPositionEvent>::default());
     ecs.insert(EventBus::<StartTeleportingEvent>::default());
     ecs.insert(EventBus::<ToggleSpriteLightEvent>::default());
+    ecs.insert(EventBus::<TransformEvent>::default());
 }
 
 /// Define ecs read data for event busses. And a way to convert them all to

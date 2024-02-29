@@ -1,5 +1,7 @@
 common-abilities-debug-possess = Possessing Arrow
     .desc = Shoots a poisonous arrow. Lets you control your target.
+common-abilities-debug-evolve = Evolve
+    .desc = You become your better self.
 common-abilities-hammer-leap = Smash of Doom
     .desc = An AOE attack with knockback. Leaps to position of cursor.
 common-abilities-bow-shotgun = Burst

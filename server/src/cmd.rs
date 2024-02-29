@@ -35,8 +35,7 @@ use common::{
         },
         invite::InviteKind,
         misc::PortalData,
-        AdminRole, ChatType, Content, Inventory, Item, LightEmitter, Presence, PresenceKind,
-        WaypointArea,
+        AdminRole, ChatType, Content, Inventory, Item, LightEmitter, WaypointArea,
     },
     depot,
     effect::Effect,
@@ -54,7 +53,7 @@ use common::{
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     tether::Tethered,
-    uid::{IdMaps, Uid},
+    uid::Uid,
     vol::ReadVol,
     weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
@@ -628,6 +627,8 @@ fn handle_into_npc(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
+    use crate::events::shared::{transform_entity, TransformEntityError};
+
     if client != target {
         server.notify_client(
             client,
@@ -661,70 +662,25 @@ fn handle_into_npc(
         None,
     );
 
-    match NpcData::from_entity_info(entity_info) {
-        NpcData::Data {
-            inventory,
-            stats,
-            skill_set,
-            poise,
-            health,
-            body,
-            scale,
-            // changing alignments is cool idea, but needs more work
-            alignment: _,
-            // we aren't interested in these (yet?)
-            pos: _,
-            agent: _,
-            loot: _,
-        } => {
-            // Should do basically what StateExt::create_npc does
-            insert_or_replace_component(server, target, inventory, "player")?;
-            insert_or_replace_component(server, target, stats, "player")?;
-            insert_or_replace_component(server, target, skill_set, "player")?;
-            insert_or_replace_component(server, target, poise, "player")?;
-            if let Some(health) = health {
-                insert_or_replace_component(server, target, health, "player")?;
-            }
-            insert_or_replace_component(server, target, body, "player")?;
-            insert_or_replace_component(server, target, body.mass(), "player")?;
-            insert_or_replace_component(server, target, body.density(), "player")?;
-            insert_or_replace_component(server, target, body.collider(), "player")?;
-            insert_or_replace_component(server, target, scale, "player")?;
+    transform_entity(server, target, entity_info, true).map_err(|error| match error {
+        TransformEntityError::EntityDead => {
+            Content::localized_with_args("command-entity-dead", [("entity", "target")])
         },
-        NpcData::Waypoint(_) => {
-            return Err(Content::localized("command-unimplemented-waypoint-spawn"));
+        TransformEntityError::UnexpectedNpcWaypoint => {
+            Content::localized("command-unimplemented-waypoint-spawn")
         },
-        NpcData::Teleporter(_, _) => {
-            return Err(Content::localized("command-unimplemented-teleporter-spawn"));
+        TransformEntityError::UnexpectedNpcTeleporter => {
+            Content::localized("command-unimplemented-teleporter-spawn")
         },
-    }
-
-    // Black magic
-    //
-    // Mainly needed to disable persistence
-    {
-        // TODO: let Imbris work out some edge-cases:
-        // - error on PresenseKind::LoadingCharacter
-        // - handle active inventory actions
-        let ecs = server.state.ecs();
-        let mut presences = ecs.write_storage::<Presence>();
-        let presence = presences.get_mut(target);
-
-        if let Some(presence) = presence
-            && let PresenceKind::Character(id) = presence.kind
-        {
-            server.state.ecs().write_resource::<IdMaps>().remove_entity(
-                Some(target),
-                None,
-                Some(id),
-                None,
+        TransformEntityError::LoadingCharacter => {
+            Content::localized("command-transform-invalid-presence")
+        },
+        TransformEntityError::EntityIsPlayer => {
+            unreachable!(
+                "Transforming players must be valid as we explicitly allowed player transformation"
             );
-
-            presence.kind = PresenceKind::Possessor;
-        }
-    }
-    // End of black magic
-    Ok(())
+        },
+    })
 }
 
 fn handle_make_npc(

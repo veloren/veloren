@@ -35,6 +35,7 @@ pub mod sprite_interact;
 pub mod sprite_summon;
 pub mod stunned;
 pub mod talk;
+pub mod transform;
 pub mod use_item;
 pub mod utils;
 pub mod wallrun;

@@ -1,4 +1,4 @@
-use crate::{client::Client, events::update_map_markers};
+use crate::{client::Client, events::shared::update_map_markers};
 use common::{
     comp::{
         self, anchor::Anchor, group::GroupManager, Agent, Alignment, Behavior, BehaviorCapability,
