@@ -3,6 +3,7 @@ subtitle-bird_call = Birds singing
 subtitle-bees = Bees buzzing
 subtitle-owl = Owl hooting
 subtitle-running_water = Water bubbling
+subtitle-lavapool = Lava pool
 subtitle-lightning = Thunder
 subtitle-portal-activated = Portal Activated
 subtitle-portal-teleported = Teleported via portal
@@ -160,3 +161,4 @@ subtitle-utterance-wyvern-angry = Wyvern roaring
 subtitle-utterance-wyvern-hurt = Wyvern hurting
 subtitle-utterance-phoenix-angry = Phoenix screaming
 subtitle-utterance-phoenix-hurt = Phoenix hurting
+
