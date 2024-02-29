@@ -5,8 +5,8 @@ use common::{
             TRADE_INTERACTION_TIME,
         },
         dialogue::Subject,
-        Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, ControlAction,
-        ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
+        Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, CharacterState,
+        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
     },
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
@@ -79,6 +79,7 @@ impl BehaviorTree {
     pub fn root() -> Self {
         Self {
             tree: vec![
+                maintain_if_gliding,
                 react_on_dangerous_fall,
                 react_if_on_fire,
                 target_if_attacked,
@@ -177,6 +178,28 @@ impl BehaviorTree {
     }
 }
 
+/// If in gliding, properly maintain it
+/// If on ground, unwield glider
+fn maintain_if_gliding(bdata: &mut BehaviorData) -> bool {
+    let Some(char_state) = bdata.read_data.char_states.get(*bdata.agent_data.entity) else {
+        return false;
+    };
+
+    match char_state {
+        CharacterState::Glide(_) => {
+            bdata
+                .agent_data
+                .glider_flight(bdata.controller, bdata.read_data);
+            true
+        },
+        CharacterState::GlideWield(_) if bdata.agent_data.physics_state.on_ground.is_some() => {
+            bdata.controller.push_action(ControlAction::Unwield);
+            true
+        },
+        _ => false,
+    }
+}
+
 /// If falling velocity is critical, throw everything
 /// and save yourself!
 ///
@@ -200,7 +223,7 @@ fn react_on_dangerous_fall(bdata: &mut BehaviorData) -> bool {
         } else if bdata.agent_data.glider_equipped {
             bdata
                 .agent_data
-                .glider_fall(bdata.controller, bdata.read_data);
+                .glider_equip(bdata.controller, bdata.read_data);
             return true;
         }
     }

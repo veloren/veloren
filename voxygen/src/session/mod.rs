@@ -19,8 +19,8 @@ use common::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDesc},
-        CharacterActivity, ChatType, Content, InputKind, InventoryUpdateEvent, Pos, PresenceKind,
-        Stats, UtteranceKind, Vel,
+        CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent, Pos,
+        PresenceKind, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
@@ -1331,33 +1331,12 @@ impl PlayState for SessionState {
                             .read_storage::<comp::PhysicsState>()
                             .get(entity)?
                             .in_fluid?;
-                        ecs.read_storage::<Vel>()
-                            .get(entity)
-                            .map(|vel| fluid.relative_flow(vel).0)
-                            .map(|rel_flow| {
-                                let is_wind_downwards =
-                                    rel_flow.dot(Vec3::unit_z()).is_sign_negative();
-                                if !self.free_look {
-                                    if is_wind_downwards {
-                                        self.scene.camera().forward_xy().into()
-                                    } else {
-                                        let windwards = rel_flow
-                                            * self
-                                                .scene
-                                                .camera()
-                                                .forward_xy()
-                                                .dot(rel_flow.xy())
-                                                .signum();
-                                        Plane::from(Dir::new(self.scene.camera().right()))
-                                            .projection(windwards)
-                                    }
-                                } else if is_wind_downwards {
-                                    Vec3::from(-rel_flow.xy())
-                                } else {
-                                    -rel_flow
-                                }
-                            })
-                            .and_then(Dir::from_unnormalized)
+                        let vel = *ecs.read_storage::<Vel>().get(entity)?;
+                        let free_look = self.free_look;
+                        let dir_forward_xy = self.scene.camera().forward_xy();
+                        let dir_right = self.scene.camera().right();
+
+                        auto_glide(fluid, vel, free_look, dir_forward_xy, dir_right)
                     })
                 {
                     self.key_state.auto_walk = false;
@@ -1567,18 +1546,30 @@ impl PlayState for SessionState {
             let debug_info = global_state.settings.interface.toggle_debug.then(|| {
                 let client = self.client.borrow();
                 let ecs = client.state().ecs();
-                let entity = client.entity();
-                let coordinates = ecs.read_storage::<Pos>().get(entity).cloned();
-                let velocity = ecs.read_storage::<Vel>().get(entity).cloned();
-                let ori = ecs.read_storage::<comp::Ori>().get(entity).cloned();
-                let look_dir = self.inputs.look_dir;
+                let client_entity = client.entity();
+                let coordinates = ecs.read_storage::<Pos>().get(viewpoint_entity).cloned();
+                let velocity = ecs.read_storage::<Vel>().get(viewpoint_entity).cloned();
+                let ori = ecs
+                    .read_storage::<comp::Ori>()
+                    .get(viewpoint_entity)
+                    .cloned();
+                // NOTE: at the time of writing, it will always output default
+                // look_dir in Specate mode, because Controller isn't synced
+                let look_dir = if viewpoint_entity == client_entity {
+                    self.inputs.look_dir
+                } else {
+                    ecs.read_storage::<comp::Controller>()
+                        .get(viewpoint_entity)
+                        .map(|c| c.inputs.look_dir)
+                        .unwrap_or_default()
+                };
                 let in_fluid = ecs
                     .read_storage::<comp::PhysicsState>()
-                    .get(entity)
+                    .get(viewpoint_entity)
                     .and_then(|state| state.in_fluid);
                 let character_state = ecs
                     .read_storage::<comp::CharacterState>()
-                    .get(entity)
+                    .get(viewpoint_entity)
                     .cloned();
 
                 DebugInfo {
@@ -2264,4 +2255,32 @@ fn find_shortest_distance(arr: &[Option<f32>]) -> Option<f32> {
     arr.iter()
         .filter_map(|x| *x)
         .min_by(|d1, d2| OrderedFloat(*d1).cmp(&OrderedFloat(*d2)))
+}
+
+// TODO: Can probably be exported in some way for AI, somehow
+fn auto_glide(
+    fluid: Fluid,
+    vel: Vel,
+    free_look: bool,
+    dir_forward_xy: Vec2<f32>,
+    dir_right: Vec3<f32>,
+) -> Option<Dir> {
+    let Vel(rel_flow) = fluid.relative_flow(&vel);
+
+    let is_wind_downwards = rel_flow.z.is_sign_negative();
+
+    let dir = if free_look {
+        if is_wind_downwards {
+            Vec3::from(-rel_flow.xy())
+        } else {
+            -rel_flow
+        }
+    } else if is_wind_downwards {
+        dir_forward_xy.into()
+    } else {
+        let windwards = rel_flow * dir_forward_xy.dot(rel_flow.xy()).signum();
+        Plane::from(Dir::new(dir_right)).projection(windwards)
+    };
+
+    Dir::from_unnormalized(dir)
 }

@@ -5417,7 +5417,14 @@ pub fn angle_of_attack_text(
     if v_sq.abs() > 0.0001 {
         let rel_flow_dir = Dir::new(rel_flow / v_sq.sqrt());
         let aoe = fluid_dynamics::angle_of_attack(&glider_ori, &rel_flow_dir);
-        format!("Angle of Attack: {:.1}", aoe.to_degrees())
+        let (rel_x, rel_y, rel_z) = (rel_flow.x, rel_flow.y, rel_flow.z);
+        format!(
+            "Angle of Attack: {:.1} ({:.1},{:.1},{:.1})",
+            aoe.to_degrees(),
+            rel_x,
+            rel_y,
+            rel_z
+        )
     } else {
         "Angle of Attack: Not moving".to_owned()
     }
