@@ -258,54 +258,52 @@ impl Inventory {
     /// Adds a new item to the first fitting group of the inventory or starts a
     /// new group. Returns the item in an error if no space was found, otherwise
     /// returns the found slot.
-    pub fn push(&mut self, item: Item) -> Result<(), Item> {
-        // First, check to make sure there's enough room for all instances of the
-        // item (note that if we find any empty slots, we can guarantee this by
-        // just filling up the whole slot, but to be nice we won't use it if we
-        // can find enough space in any combination of existing slots, and
-        // that's what we check in the `is_stackable` case).
-
-        if item.is_stackable()
-            && self
-                .slots()
-                .filter_map(Option::as_ref)
+    pub fn push(&mut self, mut item: Item) -> Result<(), Item> {
+        // If the item is stackable, we can increase the amount of other equal items up
+        // to max_amount before inserting a new item if there is still a remaining
+        // amount (caused by overflow or no other equal stackable being present in the
+        // inventory).
+        if item.is_stackable() {
+            let remaining = self
+                .slots_mut()
+                .filter_map(Option::as_mut)
                 .filter(|s| *s == &item)
                 .try_fold(item.amount(), |remaining, current| {
-                    remaining
+                    debug_assert_eq!(
+                        item.max_amount(),
+                        current.max_amount(),
+                        "max_amount of two equal items must match"
+                    );
+
+                    // NOTE: Invariant that current.amount <= current.max_amount(), so this
+                    // subtraction is safe.
+                    let new_remaining = remaining
                         .checked_sub(current.max_amount() - current.amount())
-                        .filter(|&remaining| remaining > 0)
-                })
-                .is_none()
-        {
-            // We either exactly matched or had more than enough space for inserting the
-            // item into existing slots, so go do that!
-            assert!(
-                self.slots_mut()
-                    .filter_map(Option::as_mut)
-                    .filter(|s| *s == &item)
-                    .try_fold(item.amount(), |remaining, current| {
-                        // NOTE: Invariant that current.amount <= current.max_amount(), so the
-                        // subtraction is safe.
-                        let new_remaining = remaining
-                            .checked_sub(current.max_amount() - current.amount())
-                            .filter(|&remaining| remaining > 0);
-                        if new_remaining.is_some() {
-                            // Not enough capacity left to hold all the remaining items, so we fill
-                            // it as much as we can.
-                            current
-                                .set_amount(current.max_amount())
-                                .expect("max_amount() is always a valid amount.");
-                        } else {
-                            // Enough capacity to hold all the remaining items.
-                            current
-                                .increase_amount(remaining)
-                                .expect("Already checked that there is enough room.");
-                        }
-                        new_remaining
-                    })
-                    .is_none()
-            );
-            Ok(())
+                        .filter(|&remaining| remaining > 0);
+                    if new_remaining.is_some() {
+                        // Not enough capacity left to hold all the remaining items, so we set this
+                        // one to max.
+                        current
+                            .set_amount(current.max_amount())
+                            .expect("max_amount() is always a valid amount");
+                    } else {
+                        // Enough capacity to hold all the remaining items.
+                        current.increase_amount(remaining).expect(
+                            "This item must be able to contain the remaining amount, because \
+                             remaining < current.max_amount() - current.amount()",
+                        );
+                    }
+
+                    new_remaining
+                });
+
+            if let Some(remaining) = remaining {
+                item.set_amount(remaining)
+                    .expect("Remaining is known to be > 0");
+                self.insert(item)
+            } else {
+                Ok(())
+            }
         } else {
             // No existing item to stack with or item not stackable, put the item in a new
             // slot
@@ -604,26 +602,28 @@ impl Inventory {
         msm: &MaterialStatManifest,
     ) -> Option<Item> {
         if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
-            if item.is_stackable() && item.amount() > 1 {
+            // We can return at most item.amount()
+            let return_amount = amount.get().min(item.amount());
+
+            if item.is_stackable() && item.amount() > 1 && return_amount != item.amount() {
                 let mut return_item = item.duplicate(ability_map, msm);
-                let return_amount = amount.get().min(item.amount());
                 return_item
                     .set_amount(return_amount)
                     .expect("We know that 0 < return_amount <= item.amount()");
 
-                // Instead of setting item amount to 0 we remove it
-                if amount.get() == item.amount() {
-                    self.remove(inv_slot_id);
-                } else {
-                    let new_amount = item.amount() - return_amount;
-                    item.set_amount(new_amount).expect(
-                        "new_amount must be > 0 since return amount is != item.amount() and < \
-                         item.amount()",
-                    );
-                }
+                let new_amount = item
+                    .amount()
+                    .checked_sub(return_amount)
+                    .expect("This subtraction must succeed because return_amount < item.amount()");
+                item.set_amount(new_amount).expect(
+                    "The result of item.amount() - return_amount must be > 0 since return_amount \
+                     < item.amount()",
+                );
 
                 Some(return_item)
             } else {
+                // If return_amount == item.amount or the item's amount is one, we
+                // can just pop it from the inventory
                 self.remove(inv_slot_id)
             }
         } else {
