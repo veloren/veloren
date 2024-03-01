@@ -1,7 +1,7 @@
 #![allow(dead_code)] // TODO: Remove this when rtsim is fleshed out
 
 use super::*;
-use crate::sys::terrain::NpcData;
+use crate::sys::terrain::SpawnEntityData;
 use common::{
     calendar::Calendar,
     comp::{self, Body, Presence, PresenceKind},
@@ -339,9 +339,10 @@ impl<'a> System<'a> for Sys {
                     Some(&calendar_data),
                 );
 
-                let (mut npc_builder, pos) = NpcData::from_entity_info(entity_info)
-                    .to_npc_builder()
-                    .expect("NpcData must be valid");
+                let (mut npc_builder, pos) = SpawnEntityData::from_entity_info(entity_info)
+                    .into_npc_data_inner()
+                    .expect("Entity loaded from assets cannot be special")
+                    .to_npc_builder();
 
                 if let Some(agent) = &mut npc_builder.agent {
                     agent.rtsim_outbox = Some(Default::default());
@@ -378,9 +379,13 @@ impl<'a> System<'a> for Sys {
                             Some(&calendar_data),
                         );
 
-                        let mut npc_builder = NpcData::from_entity_info(entity_info)
+                        let mut npc_builder = SpawnEntityData::from_entity_info(entity_info)
+                            .into_npc_data_inner()
+                            // EntityConfig can't represent Waypoints at all
+                            // as of now, and if someone will try to spawn
+                            // rtsim waypoint it is definitely error.
+                            .expect("Entity loaded from assets cannot be special")
                             .to_npc_builder()
-                            .expect("NpcData must be valid")
                             .0
                             .with_rtsim(RtSimEntity(npc_id));
 

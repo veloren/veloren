@@ -838,7 +838,16 @@ impl Server {
             }
         }
 
-        // Prevent anchor entity chains which are not currently supported
+        // Prevent anchor entity chains which are not currently supported due to:
+        // * potential cycles?
+        // * unloading a chain could occur across an unbounded number of ticks with the
+        //   current implementation.
+        // * in particular, we want to be able to unload all entities in a
+        //   limited number of ticks when a database error occurs and kicks all
+        //   players (not quiet sure on exact time frame, since it already
+        //   takes a tick after unloading all chunks for entities to despawn?),
+        //   see this thread and the discussion linked from there:
+        //   https://gitlab.com/veloren/veloren/-/merge_requests/2668#note_634913847
         let anchors = self.state.ecs().read_storage::<Anchor>();
         let anchored_anchor_entities: Vec<Entity> = (
             &self.state.ecs().entities(),
@@ -849,8 +858,13 @@ impl Server {
                 Anchor::Entity(anchor_entity) => Some(*anchor_entity),
                 _ => None,
             })
-            // We allow Anchor::Entity(_) -> Anchor::Chunk(_) chains
-            .filter(|anchor_entity| matches!(anchors.get(*anchor_entity), Some(Anchor::Entity(_))))
+            // We allow Anchor::Entity(_) -> Anchor::Chunk(_) connections, since they can't chain further.
+            //
+            // NOTE: The entity with `Anchor::Entity` will unload one tick after the entity with `Anchor::Chunk`.
+            .filter(|anchor_entity| match anchors.get(*anchor_entity) {
+                Some(Anchor::Entity(_)) => true,
+                Some(Anchor::Chunk(_)) | None => false
+            })
             .collect();
         drop(anchors);
 

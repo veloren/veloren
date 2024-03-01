@@ -14,7 +14,7 @@
             ]), None)),
         )),
     ),
-    pets: [("common.entity.dungeon.cultist.hound", 4, 5)],
+    pets: [("common.entity.dungeon.cultist.hound", ( start: 4, end: 5 ))],
     meta: [
         SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],

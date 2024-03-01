@@ -105,6 +105,7 @@ pub struct InventoryManipData<'a> {
     orientations: ReadStorage<'a, comp::Ori>,
     controllers: ReadStorage<'a, comp::Controller>,
     agents: ReadStorage<'a, comp::Agent>,
+    pets: ReadStorage<'a, comp::Pet>,
     velocities: ReadStorage<'a, comp::Vel>,
 }
 
@@ -520,9 +521,9 @@ impl ServerEvent for InventoryManipEvent {
                                         const MAX_PETS: usize = 3;
                                         let reinsert = if let Some(pos) = data.positions.get(entity)
                                         {
-                                            if (&data.alignments, &data.agents)
+                                            if (&data.alignments, &data.agents, data.pets.mask())
                                                 .join()
-                                                .filter(|(alignment, _)| {
+                                                .filter(|(alignment, _, _)| {
                                                     alignment == &&comp::Alignment::Owned(*uid)
                                                 })
                                                 .count()

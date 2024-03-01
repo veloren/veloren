@@ -14,7 +14,7 @@ use std::{collections::VecDeque, fmt};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
-use super::{dialogue::Subject, Pos};
+use super::{dialogue::Subject, Group, Pos};
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
@@ -110,6 +110,18 @@ impl Alignment {
             (Alignment::Tame, Alignment::Tame) => true,
             (_, Alignment::Passive) => true,
             _ => false,
+        }
+    }
+
+    /// Default group for this alignment
+    // NOTE: This is a HACK
+    pub fn group(&self) -> Option<Group> {
+        match self {
+            Alignment::Wild => None,
+            Alignment::Passive => None,
+            Alignment::Enemy => Some(super::group::ENEMY),
+            Alignment::Npc | Alignment::Tame => Some(super::group::NPC),
+            Alignment::Owned(_) => None,
         }
     }
 }

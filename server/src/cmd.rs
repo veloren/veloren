@@ -9,7 +9,7 @@ use crate::{
         server_description::ServerDescription, Ban, BanAction, BanInfo, EditableSetting,
         SettingError, WhitelistInfo, WhitelistRecord,
     },
-    sys::terrain::NpcData,
+    sys::terrain::SpawnEntityData,
     weather::WeatherJob,
     wiring,
     wiring::OutputFormula,
@@ -726,17 +726,15 @@ fn handle_make_npc(
             None,
         );
 
-        match NpcData::from_entity_info(entity_info) {
-            NpcData::Waypoint(_) => {
+        match SpawnEntityData::from_entity_info(entity_info) {
+            SpawnEntityData::Waypoint(_) => {
                 return Err(Content::localized("command-unimplemented-waypoint-spawn"));
             },
-            NpcData::Teleporter(_, _) => {
+            SpawnEntityData::Teleporter(_, _) => {
                 return Err(Content::localized("command-unimplemented-teleporter-spawn"));
             },
-            data @ NpcData::Data { .. } => {
-                let (npc_builder, _pos) = data
-                    .to_npc_builder()
-                    .expect("We know this NpcData is valid");
+            SpawnEntityData::Npc(data) => {
+                let (npc_builder, _pos) = data.to_npc_builder();
 
                 server
                     .state
@@ -1735,13 +1733,7 @@ fn handle_spawn(
                         owner_entity: target,
                         pet_entity: new_entity,
                     });
-                } else if let Some(group) = match alignment {
-                    Alignment::Wild => None,
-                    Alignment::Passive => None,
-                    Alignment::Enemy => Some(comp::group::ENEMY),
-                    Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
-                    comp::Alignment::Owned(_) => unreachable!(),
-                } {
+                } else if let Some(group) = alignment.group() {
                     insert_or_replace_component(server, new_entity, group, "new entity")?;
                 }
 

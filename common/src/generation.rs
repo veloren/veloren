@@ -1,3 +1,5 @@
+use std::ops::RangeInclusive;
+
 use crate::{
     assets::{self, AssetExt, Error},
     calendar::Calendar,
@@ -15,6 +17,7 @@ use crate::{
 };
 use enum_map::EnumMap;
 use serde::Deserialize;
+use tracing::error;
 use vek::*;
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
@@ -136,9 +139,10 @@ pub struct EntityConfig {
     /// Check docs for `InventorySpec` struct in this file.
     pub inventory: InventorySpec,
 
-    /// Pets to spawn with this entity (specified as a list of asset paths)
+    /// Pets to spawn with this entity (specified as a list of asset paths).
+    /// The range represents how many pets will be spawned.
     #[serde(default)]
-    pub pets: Vec<(String, usize, usize)>,
+    pub pets: Vec<(String, RangeInclusive<usize>)>,
 
     /// Meta Info for optional fields
     /// Possible fields:
@@ -320,18 +324,25 @@ impl EntityInfo {
         // NOTE: set loadout after body, as it's used with default equipement
         self = self.with_inventory(inventory, config_asset, loadout_rng, time);
 
-        for (pet_asset, start, end) in pets {
-            let config = EntityConfig::load_expect_cloned(&pet_asset);
-            self.pets
-                .extend((0..loadout_rng.gen_range(start..=end)).map(|_| {
-                    EntityInfo::at(self.pos).with_entity_config(
-                        config.clone(),
-                        config_asset,
-                        loadout_rng,
-                        time,
-                    )
-                }));
+        let mut pet_infos: Vec<EntityInfo> = Vec::new();
+        for (pet_asset, amount) in pets {
+            let config = EntityConfig::load_expect(&pet_asset).read();
+            let (start, mut end) = amount.into_inner();
+            if start > end {
+                error!("Invalid range for pet count start: {start}, end: {end}");
+                end = start;
+            }
+
+            pet_infos.extend((0..loadout_rng.gen_range(start..=end)).map(|_| {
+                EntityInfo::at(self.pos).with_entity_config(
+                    config.clone(),
+                    config_asset,
+                    loadout_rng,
+                    time,
+                )
+            }));
         }
+        self.pets = pet_infos;
 
         // Prefer the new configuration, if possible
         let AgentConfig {
@@ -693,12 +704,22 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn validate_pets(pets: Vec<(String, usize, usize)>, config_asset: &str) {
-        for pet in pets.into_iter().map(|(pet_asset, _, _)| {
-            EntityConfig::load_cloned(&pet_asset).unwrap_or_else(|_| {
-                panic!("Pet asset path invalid: \"{pet_asset}\", in {config_asset}")
-            })
+    fn validate_pets(pets: Vec<(String, RangeInclusive<usize>)>, config_asset: &str) {
+        for (pet, amount) in pets.into_iter().map(|(pet_asset, amount)| {
+            (
+                EntityConfig::load_cloned(&pet_asset).unwrap_or_else(|_| {
+                    panic!("Pet asset path invalid: \"{pet_asset}\", in {config_asset}")
+                }),
+                amount,
+            )
         }) {
+            assert!(
+                amount.end() >= amount.start(),
+                "Invalid pet spawn range ({}..={}), in {}",
+                amount.start(),
+                amount.end(),
+                config_asset
+            );
             if !pet.pets.is_empty() {
                 panic!("Pets must not be owners of pets: {config_asset}");
             }

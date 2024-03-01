@@ -11,7 +11,7 @@ use crate::{
     pet::tame_pet,
     rtsim::RtSim,
     state_ext::StateExt,
-    sys::terrain::{NpcData, SAFE_ZONE_RADIUS},
+    sys::terrain::{NpcData, SpawnEntityData, SAFE_ZONE_RADIUS},
     Server, Settings, SpawnPoint,
 };
 use common::{
@@ -2143,8 +2143,8 @@ pub fn transform_entity(
         .read_storage::<comp::Player>()
         .contains(entity);
 
-    match NpcData::from_entity_info(entity_info) {
-        NpcData::Data {
+    match SpawnEntityData::from_entity_info(entity_info) {
+        SpawnEntityData::Npc(NpcData {
             inventory,
             stats,
             skill_set,
@@ -2157,7 +2157,7 @@ pub fn transform_entity(
             alignment: _,
             pos: _,
             pets,
-        } => {
+        }) => {
             fn set_or_remove_component<C: specs::Component>(
                 server: &mut Server,
                 entity: EcsEntity,
@@ -2254,9 +2254,10 @@ pub fn transform_entity(
             // Spawn pets
             let position = server.state.read_component_copied::<comp::Pos>(entity);
             if let Some(pos) = position {
-                for (pet, offset) in pets.into_iter().filter_map(|(pet, offset)| {
-                    pet.to_npc_builder().map(|(pet, _)| (pet, offset)).ok()
-                }) {
+                for (pet, offset) in pets
+                    .into_iter()
+                    .map(|(pet, offset)| (pet.to_npc_builder().0, offset))
+                {
                     let pet_entity = handle_create_npc(server, CreateNpcEvent {
                         pos: comp::Pos(pos.0 + offset),
                         ori: comp::Ori::from_unnormalized_vec(offset).unwrap_or_default(),
@@ -2268,10 +2269,10 @@ pub fn transform_entity(
                 }
             }
         },
-        NpcData::Waypoint(_) => {
+        SpawnEntityData::Waypoint(_) => {
             return Err(TransformEntityError::UnexpectedNpcWaypoint);
         },
-        NpcData::Teleporter(_, _) => {
+        SpawnEntityData::Teleporter(_, _) => {
             return Err(TransformEntityError::UnexpectedNpcTeleporter);
         },
     }

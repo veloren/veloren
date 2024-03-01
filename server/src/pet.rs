@@ -7,8 +7,8 @@ use common::{
     uid::Uid,
 };
 use common_net::msg::ServerGeneral;
-use specs::{Entity, WorldExt};
-use tracing::warn;
+use specs::{Entity, Join, WorldExt};
+use tracing::{error, warn};
 
 /// Restores a pet retrieved from the database on login, assigning it to its
 /// owner
@@ -23,31 +23,43 @@ pub fn tame_pet(ecs: &specs::World, pet_entity: Entity, owner: Entity) {
 
 fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet: Option<Pet>) {
     let uids = ecs.read_storage::<Uid>();
-    let owner_uid = match uids.get(owner) {
-        Some(uid) => *uid,
-        None => return,
+    let (owner_uid, pet_uid) = match (uids.get(owner), uids.get(pet_entity)) {
+        (Some(uid_owner), Some(uid_pet)) => (*uid_owner, *uid_pet),
+        _ => return,
+    };
+    let mut alignments = ecs.write_storage::<Alignment>();
+    let Some(owner_alignment) = alignments.get(owner).copied() else {
+        error!("Owner of a pet must have an Alignment");
+        return;
     };
 
-    if let Some(Alignment::Owned(existing_owner_uid)) =
-        ecs.read_storage::<Alignment>().get(pet_entity)
-    {
+    if let Some(Alignment::Owned(existing_owner_uid)) = alignments.get(pet_entity) {
         if *existing_owner_uid != owner_uid {
             warn!("Disallowing taming of pet already owned by another entity");
             return;
         }
     }
 
-    if let Some(Alignment::Owned(owner_alignment_uid)) = ecs.read_storage::<Alignment>().get(owner)
-    {
-        if *owner_alignment_uid != owner_uid {
-            warn!("Pets cannot be owners of pets");
+    if let Alignment::Owned(owner_alignment_uid) = owner_alignment {
+        if owner_alignment_uid != owner_uid {
+            error!("Pets cannot be owners of pets");
             return;
         }
     }
 
-    let _ = ecs
-        .write_storage()
-        .insert(pet_entity, common::comp::Alignment::Owned(owner_uid));
+    if (
+        &ecs.entities(),
+        &alignments,
+        ecs.read_storage::<Pet>().mask(),
+    )
+        .join()
+        .any(|(_, alignment, _)| matches!(alignment, Alignment::Owned(uid) if *uid == pet_uid))
+    {
+        error!("Cannot tame entity which owns pets");
+        return;
+    }
+
+    let _ = alignments.insert(pet_entity, common::comp::Alignment::Owned(owner_uid));
 
     // Anchor the pet to the player to prevent it de-spawning
     // when its chunk is unloaded if its owner is still logged
@@ -78,6 +90,8 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
     let clients = ecs.read_storage::<Client>();
     let mut group_manager = ecs.write_resource::<GroupManager>();
     let map_markers = ecs.read_storage::<comp::MapMarker>();
+
+    drop(alignments);
     group_manager.new_pet(
         pet_entity,
         owner,

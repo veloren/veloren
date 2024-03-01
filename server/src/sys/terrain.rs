@@ -2,6 +2,7 @@
 use crate::test_world::{IndexOwned, World};
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
+use tracing::error;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
@@ -204,15 +205,13 @@ impl<'a> System<'a> for Sys {
                     "Chunk spawned entity that wasn't nearby",
                 );
 
-                let data = NpcData::from_entity_info(entity);
+                let data = SpawnEntityData::from_entity_info(entity);
                 match data {
-                    NpcData::Waypoint(pos) => {
+                    SpawnEntityData::Waypoint(pos) => {
                         emitters.emit(CreateWaypointEvent(pos));
                     },
-                    data @ NpcData::Data { .. } => {
-                        let (npc_builder, pos) = data
-                            .to_npc_builder()
-                            .expect("This NpcData is known to be valid");
+                    SpawnEntityData::Npc(data) => {
+                        let (npc_builder, pos) = data.to_npc_builder();
 
                         emitters.emit(CreateNpcEvent {
                             pos,
@@ -221,7 +220,7 @@ impl<'a> System<'a> for Sys {
                             rider: None,
                         });
                     },
-                    NpcData::Teleporter(pos, teleporter) => {
+                    SpawnEntityData::Teleporter(pos, teleporter) => {
                         emitters.emit(CreateTeleporterEvent(pos, teleporter));
                     },
                 }
@@ -399,32 +398,36 @@ impl<'a> System<'a> for Sys {
     }
 }
 
+// TODO: better name
+#[derive(Debug)]
+pub struct NpcData {
+    pub pos: Pos,
+    pub stats: comp::Stats,
+    pub skill_set: comp::SkillSet,
+    pub health: Option<comp::Health>,
+    pub poise: comp::Poise,
+    pub inventory: comp::inventory::Inventory,
+    pub agent: Option<comp::Agent>,
+    pub body: comp::Body,
+    pub alignment: comp::Alignment,
+    pub scale: comp::Scale,
+    pub loot: LootSpec<String>,
+    pub pets: Vec<(NpcData, Vec3<f32>)>,
+}
+
 /// Convinient structure to use when you need to create new npc
 /// from EntityInfo
 // TODO: better name?
 // TODO: if this is send around network, optimize the large_enum_variant
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
-pub enum NpcData {
-    Data {
-        pos: Pos,
-        stats: comp::Stats,
-        skill_set: comp::SkillSet,
-        health: Option<comp::Health>,
-        poise: comp::Poise,
-        inventory: comp::inventory::Inventory,
-        agent: Option<comp::Agent>,
-        body: comp::Body,
-        alignment: comp::Alignment,
-        scale: comp::Scale,
-        loot: LootSpec<String>,
-        pets: Vec<(NpcData, Vec3<f32>)>,
-    },
+pub enum SpawnEntityData {
+    Npc(NpcData),
     Waypoint(Vec3<f32>),
     Teleporter(Vec3<f32>, PortalData),
 }
 
-impl NpcData {
+impl SpawnEntityData {
     pub fn from_entity_info(entity: EntityInfo) -> Self {
         let EntityInfo {
             // flags
@@ -447,7 +450,6 @@ impl NpcData {
             inventory: items,
             make_loadout,
             trading_information: economy,
-            // unused
             pets,
         } = entity;
 
@@ -548,7 +550,7 @@ impl NpcData {
             agent
         };
 
-        NpcData::Data {
+        SpawnEntityData::Npc(NpcData {
             pos: Pos(pos),
             stats,
             skill_set,
@@ -564,54 +566,66 @@ impl NpcData {
                 let pet_count = pets.len() as f32;
                 pets.into_iter()
                     .enumerate()
-                    .map(|(i, pet)| {
-                        (
-                            NpcData::from_entity_info(pet),
+                    .flat_map(|(i, pet)| {
+                        Some((
+                            SpawnEntityData::from_entity_info(pet)
+                                .into_npc_data_inner()
+                                .inspect_err(|data| {
+                                    error!("Pets must be SpawnEntityData::Npc, but found: {data:?}")
+                                })
+                                .ok()?,
                             Vec2::one()
                                 .rotated_z(TAU * (i as f32 / pet_count))
                                 .with_z(0.0)
                                 * ((pet_count * 3.0) / TAU),
-                        )
+                        ))
                     })
                     .collect()
             },
-        }
+        })
     }
 
-    #[allow(clippy::result_large_err)]
-    pub fn to_npc_builder(self) -> Result<(NpcBuilder, comp::Pos), Self> {
+    pub fn into_npc_data_inner(self) -> Result<NpcData, Self> {
         match self {
-            NpcData::Data {
-                pos,
-                stats,
-                skill_set,
-                health,
-                poise,
-                inventory,
-                agent,
-                body,
-                alignment,
-                scale,
-                loot,
-                pets,
-            } => Ok((
-                NpcBuilder::new(stats, body, alignment)
-                    .with_skill_set(skill_set)
-                    .with_health(health)
-                    .with_poise(poise)
-                    .with_inventory(inventory)
-                    .with_agent(agent)
-                    .with_scale(scale)
-                    .with_loot(loot)
-                    .with_pets(
-                        pets.into_iter()
-                            .map(|(pet, offset)| pet.to_npc_builder().map(|(pet, _)| (pet, offset)))
-                            .collect::<Result<Vec<_>, _>>()?,
-                    ),
-                pos,
-            )),
-            NpcData::Waypoint(_) | NpcData::Teleporter(_, _) => Err(self),
+            SpawnEntityData::Npc(inner) => Ok(inner),
+            other => Err(other),
         }
+    }
+}
+
+impl NpcData {
+    pub fn to_npc_builder(self) -> (NpcBuilder, comp::Pos) {
+        let NpcData {
+            pos,
+            stats,
+            skill_set,
+            health,
+            poise,
+            inventory,
+            agent,
+            body,
+            alignment,
+            scale,
+            loot,
+            pets,
+        } = self;
+
+        (
+            NpcBuilder::new(stats, body, alignment)
+                .with_skill_set(skill_set)
+                .with_health(health)
+                .with_poise(poise)
+                .with_inventory(inventory)
+                .with_agent(agent)
+                .with_scale(scale)
+                .with_loot(loot)
+                .with_pets(
+                    pets.into_iter()
+                        .map(|(pet, offset)| (pet.to_npc_builder().0, offset))
+                        .collect::<Vec<_>>(),
+                ),
+            pos,
+        )
     }
 }
 
