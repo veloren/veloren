@@ -237,6 +237,8 @@ impl WeatherLerp {
                 .zip(old.iter().zip(new.iter()))
                 .for_each(|((_, current), ((_, old), (_, new)))| {
                     *current = CompressedWeather::lerp_unclamped(old, new, t);
+                    // `local_wind` is set for all weather cells on the client,
+                    // which will still be inaccurate outside the "local" area
                     current.wind = self.local_wind;
                 });
         }
