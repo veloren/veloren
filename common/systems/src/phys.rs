@@ -759,35 +759,40 @@ impl<'a> PhysicsData<'a> {
             )
                 .join()
             {
-                // Don't simulate for non-gliding, for now
-                if !state.is_glide() {
-                    continue;
+                // Always reset air_vel to zero
+                let mut air_vel = Vec3::zero();
+
+                'simulation: {
+                    // Don't simulate for non-gliding, for now
+                    if !state.is_glide() {
+                        break 'simulation;
+                    }
+
+                    let pos_2d = pos.0.as_().xy();
+                    let chunk_pos: Vec2<i32> = pos_2d.wpos_to_cpos();
+                    let Some(current_chunk) = &read.terrain.get_key(chunk_pos) else {
+                        // oopsie
+                        break 'simulation;
+                    };
+
+                    let meta = current_chunk.meta();
+
+                    // Skip simulating for entites deeply under the ground
+                    if pos.0.z < meta.alt() - 25.0 {
+                        break 'simulation;
+                    }
+
+                    // If couldn't simulate wind for some reason, skip
+                    if let Ok(simulated_vel) =
+                        simulated_wind_vel(pos, weather, &read.terrain, &read.time_of_day)
+                    {
+                        air_vel = simulated_vel
+                    };
                 }
-
-                let pos_2d = pos.0.as_().xy();
-                let chunk_pos: Vec2<i32> = pos_2d.wpos_to_cpos();
-                let Some(current_chunk) = &read.terrain.get_key(chunk_pos) else {
-                    // oopsie
-                    continue;
-                };
-
-                let meta = current_chunk.meta();
-
-                // Skip simulating for entites deeply under the ground
-                if pos.0.z < meta.alt() - 25.0 {
-                    continue;
-                }
-
-                // If couldn't simulate wind for some reason, skip
-                let Ok(wind_vel) =
-                    simulated_wind_vel(pos, weather, &read.terrain, &read.time_of_day)
-                else {
-                    continue;
-                };
 
                 phys.in_fluid = phys.in_fluid.map(|f| match f {
                     Fluid::Air { elevation, .. } => Fluid::Air {
-                        vel: Vel(wind_vel),
+                        vel: Vel(air_vel),
                         elevation,
                     },
                     fluid => fluid,

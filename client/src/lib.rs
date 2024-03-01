@@ -237,6 +237,7 @@ impl WeatherLerp {
                 .zip(old.iter().zip(new.iter()))
                 .for_each(|((_, current), ((_, old), (_, new)))| {
                     *current = CompressedWeather::lerp_unclamped(old, new, t);
+                    current.wind = self.local_wind;
                 });
         }
     }
