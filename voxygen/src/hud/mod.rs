@@ -140,8 +140,6 @@ use std::{
 use tracing::warn;
 use vek::*;
 
-use self::chat::{DEFAULT_CHAT_BOX_HEIGHT, DEFAULT_CHAT_BOX_WIDTH};
-
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_VELORITE: Color = Color::Rgba(0.0, 0.66, 0.66, 1.0);
 const TEXT_BLUE_COLOR: Color = Color::Rgba(0.8, 0.9, 1.0, 1.0);
@@ -1273,6 +1271,8 @@ pub struct Hud {
     failed_entity_pickups: HashMap<EcsEntity, CollectFailedData>,
     new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
+    // NOTE Used for storing messages sent while the chat is hidden. This is needed because NPC
+    // speech uses new_messages so we need to clear it every frame.
     message_backlog: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
@@ -1295,8 +1295,6 @@ pub struct Hud {
     floaters: Floaters,
     voxel_minimap: VoxelMinimap,
     map_drag: Vec2<f64>,
-    chat_size: Vec2<f64>,
-    chat_pos: Vec2<f64>,
     force_chat: bool,
 }
 
@@ -1434,8 +1432,6 @@ impl Hud {
                 block_floaters: Vec::new(),
             },
             map_drag: Vec2::zero(),
-            chat_size: Vec2::new(DEFAULT_CHAT_BOX_WIDTH, DEFAULT_CHAT_BOX_HEIGHT),
-            chat_pos: Vec2::new(10.0, 10.0),
             force_chat: false,
         }
     }
@@ -3508,8 +3504,6 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 i18n,
-                self.chat_size,
-                self.chat_pos,
                 scale,
             )
             .and_then(self.force_chat_input.take(), |c, input| c.input(input))
@@ -3541,10 +3535,12 @@ impl Hud {
                         self.show.settings(true);
                     },
                     chat::Event::ResizeChat(size) => {
-                        self.chat_size = size;
+                        global_state.settings.chat.chat_size_x = size.x;
+                        global_state.settings.chat.chat_size_y = size.y;
                     },
                     chat::Event::MoveChat(pos) => {
-                        self.chat_pos = pos;
+                        global_state.settings.chat.chat_pos_x = pos.x;
+                        global_state.settings.chat.chat_pos_y = pos.y;
                     },
                     chat::Event::DisableForceChat => {
                         self.force_chat = false;
@@ -3553,7 +3549,7 @@ impl Hud {
             }
         } else {
             self.message_backlog.extend(self.new_messages.drain(..));
-            while self.message_backlog.len() > 100 {
+            while self.message_backlog.len() > chat::MAX_MESSAGES {
                 self.message_backlog.pop_front();
             }
         }
@@ -4642,18 +4638,10 @@ impl Hud {
             if show.map {
                 let new_zoom_lvl = (global_state.settings.interface.map_zoom * factor)
                     .clamped(1.25, max_zoom / 64.0);
-
                 global_state.settings.interface.map_zoom = new_zoom_lvl;
-                global_state
-                    .settings
-                    .save_to_file_warn(&global_state.config_dir);
             } else if global_state.settings.interface.minimap_show {
                 let new_zoom_lvl = global_state.settings.interface.minimap_zoom * factor;
-
                 global_state.settings.interface.minimap_zoom = new_zoom_lvl;
-                global_state
-                    .settings
-                    .save_to_file_warn(&global_state.config_dir);
             }
 
             show.map && global_state.settings.interface.minimap_show
