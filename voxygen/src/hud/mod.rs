@@ -1271,6 +1271,9 @@ pub struct Hud {
     failed_entity_pickups: HashMap<EcsEntity, CollectFailedData>,
     new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
+    // NOTE Used for storing messages sent while the chat is hidden. This is needed because NPC
+    // speech uses new_messages so we need to clear it every frame.
+    message_backlog: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     content_bubbles: Vec<(Vec3<f32>, comp::SpeechBubble)>,
@@ -1292,6 +1295,7 @@ pub struct Hud {
     floaters: Floaters,
     voxel_minimap: VoxelMinimap,
     map_drag: Vec2<f64>,
+    force_chat: bool,
 }
 
 impl Hud {
@@ -1368,6 +1372,7 @@ impl Hud {
             failed_entity_pickups: HashMap::default(),
             new_loot_messages: VecDeque::new(),
             new_messages: VecDeque::new(),
+            message_backlog: VecDeque::new(),
             new_notifications: VecDeque::new(),
             speech_bubbles: HashMap::new(),
             content_bubbles: Vec::new(),
@@ -1427,6 +1432,7 @@ impl Hud {
                 block_floaters: Vec::new(),
             },
             map_drag: Vec2::zero(),
+            force_chat: false,
         }
     }
 
@@ -1463,6 +1469,7 @@ impl Hud {
         if global_state.settings.interface.map_show_voxel_map {
             self.voxel_minimap.maintain(client, &mut self.ui);
         }
+        let scale = self.ui.scale();
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
         // self.ui.set_item_widgets(); pulse time for pulsating elements
@@ -3445,12 +3452,50 @@ impl Hud {
             }
         }
 
+        if global_state.settings.audio.subtitles {
+            Subtitles::new(
+                client,
+                &global_state.settings,
+                &global_state.audio.get_listener().clone(),
+                &mut global_state.audio.subtitles,
+                &self.fonts,
+                i18n,
+            )
+            .set(self.ids.subtitles, ui_widgets);
+        }
+
+        //Loot
+        LootScroller::new(
+            &mut self.new_loot_messages,
+            client,
+            &info,
+            &self.show,
+            &self.imgs,
+            &self.item_imgs,
+            &self.rot_imgs,
+            &self.fonts,
+            i18n,
+            &self.item_i18n,
+            &msm,
+            item_tooltip_manager,
+            self.pulse,
+        )
+        .set(self.ids.loot_scroller, ui_widgets);
+
+        self.new_loot_messages.clear();
+
         // Don't put NPC messages in chat box.
         self.new_messages
             .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_)));
 
         // Chat box
-        if global_state.settings.interface.toggle_chat {
+        // Draw this after loot scroller and subtitles so it can be dragged
+        // even when hovering over them
+        // TODO look into parenting and then settings movable widgets to floating
+        if global_state.settings.interface.toggle_chat || self.force_chat {
+            for hidden in self.message_backlog.drain(..).rev() {
+                self.new_messages.push_front(hidden);
+            }
             for event in Chat::new(
                 &mut self.new_messages,
                 client,
@@ -3459,6 +3504,7 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 i18n,
+                scale,
             )
             .and_then(self.force_chat_input.take(), |c, input| c.input(input))
             .and_then(self.tab_complete.take(), |c, input| {
@@ -3488,44 +3534,28 @@ impl Hud {
                         self.show.settings_tab = SettingsTab::Chat;
                         self.show.settings(true);
                     },
+                    chat::Event::ResizeChat(size) => {
+                        global_state.settings.chat.chat_size_x = size.x;
+                        global_state.settings.chat.chat_size_y = size.y;
+                    },
+                    chat::Event::MoveChat(pos) => {
+                        global_state.settings.chat.chat_pos_x = pos.x;
+                        global_state.settings.chat.chat_pos_y = pos.y;
+                    },
+                    chat::Event::DisableForceChat => {
+                        self.force_chat = false;
+                    },
                 }
+            }
+        } else {
+            self.message_backlog.extend(self.new_messages.drain(..));
+            while self.message_backlog.len() > chat::MAX_MESSAGES {
+                self.message_backlog.pop_front();
             }
         }
 
-        if global_state.settings.audio.subtitles {
-            Subtitles::new(
-                client,
-                &global_state.settings,
-                &global_state.audio.get_listener().clone(),
-                &mut global_state.audio.subtitles,
-                &self.fonts,
-                i18n,
-            )
-            .set(self.ids.subtitles, ui_widgets);
-        }
-
-        self.new_messages = VecDeque::new();
-        self.new_notifications = VecDeque::new();
-
-        //Loot
-        LootScroller::new(
-            &mut self.new_loot_messages,
-            client,
-            &info,
-            &self.show,
-            &self.imgs,
-            &self.item_imgs,
-            &self.rot_imgs,
-            &self.fonts,
-            i18n,
-            &self.item_i18n,
-            &msm,
-            item_tooltip_manager,
-            self.pulse,
-        )
-        .set(self.ids.loot_scroller, ui_widgets);
-
-        self.new_loot_messages = VecDeque::new();
+        self.new_messages.clear();
+        self.new_notifications.clear();
 
         // Windows
 
@@ -4608,18 +4638,10 @@ impl Hud {
             if show.map {
                 let new_zoom_lvl = (global_state.settings.interface.map_zoom * factor)
                     .clamped(1.25, max_zoom / 64.0);
-
                 global_state.settings.interface.map_zoom = new_zoom_lvl;
-                global_state
-                    .settings
-                    .save_to_file_warn(&global_state.config_dir);
             } else if global_state.settings.interface.minimap_show {
                 let new_zoom_lvl = global_state.settings.interface.minimap_zoom * factor;
-
                 global_state.settings.interface.minimap_zoom = new_zoom_lvl;
-                global_state
-                    .settings
-                    .save_to_file_warn(&global_state.config_dir);
             }
 
             show.map && global_state.settings.interface.minimap_show
@@ -4688,6 +4710,7 @@ impl Hud {
                 self.ui.focus_widget(if self.typing() {
                     None
                 } else {
+                    self.force_chat = true;
                     Some(self.ids.chat)
                 });
                 true
@@ -4695,6 +4718,7 @@ impl Hud {
             WinEvent::InputUpdate(GameInput::Escape, true) => {
                 if self.typing() {
                     self.ui.focus_widget(None);
+                    self.force_chat = false;
                 } else if self.show.trade {
                     self.events.push(Event::TradeAction(TradeAction::Decline));
                 } else {
@@ -4720,6 +4744,7 @@ impl Hud {
                     GameInput::Command if state => {
                         self.force_chat_input = Some("/".to_owned());
                         self.force_chat_cursor = Some(Index { line: 0, char: 1 });
+                        self.force_chat = true;
                         self.ui.focus_widget(Some(self.ids.chat));
                         true
                     },

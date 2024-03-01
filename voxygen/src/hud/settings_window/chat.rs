@@ -162,7 +162,7 @@ impl<'a> Widget for Chat<'a> {
         if let Some(new_val) = ImageSlider::continuous(
             chat_settings.chat_opacity,
             0.0,
-            0.9,
+            1.0,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )

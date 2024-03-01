@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 pub const MAX_CHAT_TABS: usize = 5;
+pub const DEFAULT_CHAT_BOX_WIDTH: f64 = 470.0;
+pub const DEFAULT_CHAT_BOX_HEIGHT: f64 = 150.0;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ChatFilter {
@@ -74,6 +76,10 @@ pub struct ChatSettings {
     pub chat_tabs: Vec<ChatTab>,
     pub chat_tab_index: Option<usize>,
     pub chat_cmd_prefix: char,
+    pub chat_pos_x: f64,
+    pub chat_pos_y: f64,
+    pub chat_size_x: f64,
+    pub chat_size_y: f64,
 }
 
 impl Default for ChatSettings {
@@ -84,6 +90,10 @@ impl Default for ChatSettings {
             chat_tabs: vec![ChatTab::default()],
             chat_tab_index: Some(0),
             chat_cmd_prefix: '/',
+            chat_pos_x: 10.0,
+            chat_pos_y: 10.0,
+            chat_size_x: DEFAULT_CHAT_BOX_WIDTH,
+            chat_size_y: DEFAULT_CHAT_BOX_HEIGHT,
         }
     }
 }
