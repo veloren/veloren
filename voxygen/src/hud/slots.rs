@@ -165,7 +165,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             },
             hotbar::SlotContents::Ability(i) => {
                 let ability_id = active_abilities.and_then(|a| {
-                    a.auxiliary_set(Some(inventory), Some(skillset), *char_state)
+                    a.auxiliary_set(Some(inventory), Some(skillset))
                         .get(i)
                         .and_then(|a| {
                             Ability::from(*a).ability_id(
@@ -262,7 +262,6 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
                     AbilityInput::Auxiliary(*index),
                     Some(inventory),
                     Some(skillset),
-                    *char_state,
                 )
                 .ability_id(*char_state, Some(inventory), Some(skillset), contexts),
             Self::Ability(ability) => Ability::from(*ability).ability_id(

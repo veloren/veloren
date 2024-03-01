@@ -855,7 +855,6 @@ impl<'a> Widget for Diary<'a> {
                             AbilityInput::Auxiliary(i),
                             Some(self.inventory),
                             Some(self.skill_set),
-                            Some(self.char_state),
                         )
                         .ability_id(
                             Some(self.char_state),

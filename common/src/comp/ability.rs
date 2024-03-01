@@ -40,9 +40,7 @@ use super::shockwave::ShockwaveDodgeable;
 
 pub const BASE_ABILITY_LIMIT: usize = 5;
 
-// FIXME: different AbilitySpec on same ToolKind share the same key
-// FIXME: only really works with weapons, glider just fallback to (None, None),
-// but maybe that's ok?
+// NOTE: different AbilitySpec on same ToolKind share the same key
 /// Descriptor to pick the right (auxiliary) ability set
 pub type AuxiliaryKey = (Option<ToolKind>, Option<ToolKind>);
 
@@ -136,38 +134,27 @@ impl ActiveAbilities {
         }
     }
 
-    pub fn active_auxiliary_key(
-        inv: Option<&Inventory>,
-        char_state: Option<&CharacterState>,
-    ) -> AuxiliaryKey {
-        let source = AbilitySource::determine(char_state);
+    pub fn active_auxiliary_key(inv: Option<&Inventory>) -> AuxiliaryKey {
+        let tool_kind = |slot| {
+            inv.and_then(|inv| inv.equipped(slot))
+                .and_then(|item| match &*item.kind() {
+                    ItemKind::Tool(tool) => Some(tool.kind),
+                    _ => None,
+                })
+        };
 
-        match source {
-            AbilitySource::Weapons => {
-                let tool_kind = |slot| {
-                    inv.and_then(|inv| inv.equipped(slot))
-                        .and_then(|item| match &*item.kind() {
-                            ItemKind::Tool(tool) => Some(tool.kind),
-                            _ => None,
-                        })
-                };
-
-                (
-                    tool_kind(EquipSlot::ActiveMainhand),
-                    tool_kind(EquipSlot::ActiveOffhand),
-                )
-            },
-            AbilitySource::Glider => (None, None),
-        }
+        (
+            tool_kind(EquipSlot::ActiveMainhand),
+            tool_kind(EquipSlot::ActiveOffhand),
+        )
     }
 
     pub fn auxiliary_set(
         &self,
         inv: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
-        char_state: Option<&CharacterState>,
     ) -> Cow<Vec<AuxiliaryAbility>> {
-        let aux_key = Self::active_auxiliary_key(inv, char_state);
+        let aux_key = Self::active_auxiliary_key(inv);
 
         self.auxiliary_sets
             .get(&aux_key)
@@ -180,7 +167,6 @@ impl ActiveAbilities {
         input: AbilityInput,
         inventory: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
-        char_state: Option<&CharacterState>,
     ) -> Ability {
         match input {
             AbilityInput::Guard => self.guard.into(),
@@ -188,7 +174,7 @@ impl ActiveAbilities {
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
             AbilityInput::Auxiliary(index) => self
-                .auxiliary_set(inventory, skill_set, char_state)
+                .auxiliary_set(inventory, skill_set)
                 .get(index)
                 .copied()
                 .map(|a| a.into())
@@ -208,7 +194,7 @@ impl ActiveAbilities {
         context: &AbilityContext,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool, SpecifiedAbility)> {
-        let ability = self.get_ability(input, inv, Some(skill_set), char_state);
+        let ability = self.get_ability(input, inv, Some(skill_set));
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))

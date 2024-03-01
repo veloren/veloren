@@ -81,10 +81,6 @@ impl State {
                         .state()
                         .read_storage::<comp::SkillSet>()
                         .get(info.viewpoint_entity),
-                    client
-                        .state()
-                        .read_storage::<comp::CharacterState>()
-                        .get(info.viewpoint_entity),
                 )
                 .iter()
                 .enumerate()
