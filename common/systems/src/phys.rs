@@ -225,7 +225,9 @@ fn simulated_wind_vel(
     // === Ridge/Wave lift ===
 
     let mut ridge_lift = {
-        let steepness = normal.angle_between(normal.with_z(0.)).max(0.5);
+        const RIDGE_LIFT_COEFF: f32 = 1.0;
+
+        let steepness = normal.angle_between(Vec3::unit_z());
 
         // angle between normal and wind
         let mut angle = wind_velocity.angle_between(normal.xy()); // 1.4 radians of zero
@@ -235,7 +237,7 @@ fn simulated_wind_vel(
         angle = (angle - 1.3).max(0.0);
 
         // the ridge lift is based on the angle and the velocity of the wind
-        angle * steepness * wind_velocity.magnitude() * 2.0
+        angle * steepness * wind_velocity.magnitude() * RIDGE_LIFT_COEFF
     };
 
     // Cliffs mean more lift
