@@ -255,13 +255,15 @@ impl ActiveAbilities {
             },
             Ability::MainWeaponAux(_) => match source {
                 AbilitySource::Weapons => inst_ability(EquipSlot::ActiveMainhand, false),
-                // TODO: add auxiliary abilities in the future?
                 AbilitySource::Glider => None,
             },
             Ability::OffWeaponAux(_) => match source {
                 AbilitySource::Weapons => inst_ability(EquipSlot::ActiveOffhand, true),
-                // TODO: add auxiliary abilities in the future?
                 AbilitySource::Glider => None,
+            },
+            Ability::GliderAux(_) => match source {
+                AbilitySource::Weapons => None,
+                AbilitySource::Glider => inst_ability(EquipSlot::Glider, false),
             },
             Ability::Empty => None,
             Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
@@ -347,8 +349,11 @@ impl ActiveAbilities {
                         .collect()
                 }
             },
-            // TODO: add auxiliary abilities to gliders
-            AbilitySource::Glider => vec![],
+            AbilitySource::Glider => {
+                Self::iter_available_abilities_on(inv, skill_set, EquipSlot::Glider)
+                    .map(AuxiliaryAbility::Glider)
+                    .collect()
+            },
         }
     }
 
@@ -391,19 +396,24 @@ pub enum Ability {
     SpeciesMovement,
     MainWeaponAux(usize),
     OffWeaponAux(usize),
+    GliderAux(usize),
     Empty,
     /* For future use
      * ArmorAbility(usize), */
 }
 
 impl Ability {
+    // Reverses input this ability would have originated from
+    // Used for generic ability dispatch (inst_ability) in this file
     fn try_input(&self) -> Option<AbilityInput> {
         let input = match self {
             Self::ToolGuard => AbilityInput::Guard,
             Self::ToolPrimary => AbilityInput::Primary,
             Self::ToolSecondary => AbilityInput::Secondary,
             Self::SpeciesMovement => AbilityInput::Movement,
-            Self::OffWeaponAux(idx) | Self::MainWeaponAux(idx) => AbilityInput::Auxiliary(*idx),
+            Self::GliderAux(idx) | Self::OffWeaponAux(idx) | Self::MainWeaponAux(idx) => {
+                AbilityInput::Auxiliary(*idx)
+            },
             Self::Empty => return None,
         };
 
@@ -468,8 +478,8 @@ impl Ability {
                 Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
                 Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
                 Ability::SpeciesMovement => None, // TODO: Make not None
-                // TODO: add aux abilities to gliders in the future?
                 Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
+                Ability::GliderAux(_) => inst_ability(EquipSlot::Glider),
                 Ability::Empty => None,
             },
             AbilitySource::Weapons => match self {
@@ -483,6 +493,7 @@ impl Ability {
                 Ability::SpeciesMovement => None, // TODO: Make not None
                 Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
                 Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
+                Ability::GliderAux(_) => None,
                 Ability::Empty => None,
             },
         }
@@ -493,6 +504,7 @@ impl Ability {
             Ability::ToolPrimary
             | Ability::ToolSecondary
             | Ability::MainWeaponAux(_)
+            | Ability::GliderAux(_)
             | Ability::OffWeaponAux(_)
             | Ability::ToolGuard => true,
             Ability::SpeciesMovement | Ability::Empty => false,
@@ -567,8 +579,8 @@ impl SpecifiedAbility {
                 Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
                 Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
                 Ability::SpeciesMovement => None,
-                // TODO: add aux abilities to gliders in the future?
                 Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
+                Ability::GliderAux(_) => inst_ability(EquipSlot::Glider),
                 Ability::Empty => None,
             },
             AbilitySource::Weapons => match self.ability {
@@ -579,6 +591,7 @@ impl SpecifiedAbility {
                 Ability::SpeciesMovement => None, // TODO: Make not None
                 Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
                 Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
+                Ability::GliderAux(_) => None,
                 Ability::Empty => None,
             },
         }
@@ -634,6 +647,7 @@ impl From<MovementAbility> for Ability {
 pub enum AuxiliaryAbility {
     MainWeapon(usize),
     OffWeapon(usize),
+    Glider(usize),
     Empty,
 }
 
@@ -642,6 +656,7 @@ impl From<AuxiliaryAbility> for Ability {
         match primary {
             AuxiliaryAbility::MainWeapon(i) => Ability::MainWeaponAux(i),
             AuxiliaryAbility::OffWeapon(i) => Ability::OffWeaponAux(i),
+            AuxiliaryAbility::Glider(i) => Ability::GliderAux(i),
             AuxiliaryAbility::Empty => Ability::Empty,
         }
     }
