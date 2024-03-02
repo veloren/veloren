@@ -1,5 +1,7 @@
 common-abilities-debug-possess = Freccia di controllo
     .desc = Scocca una freccia velenosa. Ti permette di controllare il tuo obiettivo.
+common-abilities-debug-evolve = Evolvi
+    .desc = Diventa la versione migliore di te stesso.
 common-abilities-hammer-leap = Colpo del destino
     .desc = Un attacco ad area con contraccolpo. Salta alla posizione del cursore.
 common-abilities-bow-shotgun = Raffica
