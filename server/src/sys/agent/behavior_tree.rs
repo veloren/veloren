@@ -192,8 +192,15 @@ fn maintain_if_gliding(bdata: &mut BehaviorData) -> bool {
                 .glider_flight(bdata.controller, bdata.read_data);
             true
         },
-        CharacterState::GlideWield(_) if bdata.agent_data.physics_state.on_ground.is_some() => {
-            bdata.controller.push_action(ControlAction::Unwield);
+        CharacterState::GlideWield(_) => {
+            if bdata.agent_data.physics_state.on_ground.is_some() {
+                bdata.controller.push_action(ControlAction::Unwield);
+            }
+            // Always stop execution if during GlideWield.
+            // - If on ground, the line above will unwield the glider on next
+            // tick
+            // - If in air, we probably wouldn't want to do anything anyway, as
+            // character state code will shift itself to glide on next tick
             true
         },
         _ => false,
