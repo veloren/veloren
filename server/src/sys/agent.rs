@@ -137,11 +137,14 @@ impl<'a> System<'a> for Sys {
                             )
                     };
 
-                    if !matches!(char_state, CharacterState::LeapMelee(_)) {
+                    if !matches!(
+                        char_state,
+                        CharacterState::LeapMelee(_) | CharacterState::Glide(_)
+                    ) {
                         // Default to looking in orientation direction
                         // (can be overridden below)
                         //
-                        // This definitely breaks LeapMelee and
+                        // This definitely breaks LeapMelee, Glide and
                         // probably not only that, do we really need this at all?
                         controller.reset();
                         controller.inputs.look_dir = ori.look_dir();

@@ -19,6 +19,7 @@
                 (1, ModularWeapon(tool: Staff, material: Bamboo, hands: None)),
                 (1, ModularWeapon(tool: Sceptre, material: Bamboo, hands: None)),
             ]), None)),
+            glider: Item("common.items.glider.leaves"),
         )),
         items: [
             (25, "common.items.consumable.potion_minor"),

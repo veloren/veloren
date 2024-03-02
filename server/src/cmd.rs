@@ -746,6 +746,13 @@ fn handle_make_npc(
                 scale,
                 loot,
             } => {
+                // Spread about spawned npcs
+                let vel = Vec3::new(
+                    thread_rng().gen_range(-2.0..3.0),
+                    thread_rng().gen_range(-2.0..3.0),
+                    10.0,
+                );
+
                 let mut entity_builder = server
                     .state
                     .create_npc(
@@ -760,7 +767,7 @@ fn handle_make_npc(
                     )
                     .with(alignment)
                     .with(scale)
-                    .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)));
+                    .with(comp::Vel(vel));
 
                 if let Some(agent) = agent {
                     entity_builder = entity_builder.with(agent);

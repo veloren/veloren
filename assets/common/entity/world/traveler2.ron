@@ -30,6 +30,7 @@
                 (1, ModularWeapon(tool: Staff, material: Ironwood, hands: None)),
                 (1, ModularWeapon(tool: Sceptre, material: Ironwood, hands: None)),
             ]), None)),
+            glider: Item("common.items.glider.butterfly3"),
         )),
         items: [
             (50, "common.items.consumable.potion_med"),
