@@ -37,7 +37,7 @@ impl Lod {
     }
 
     #[cfg(not(feature = "worldgen"))]
-    pub fn from_world(world: &World, index: IndexRef, _threadpool: &rayon::ThreadPool) -> Self {
+    pub fn from_world(_world: &World, _index: IndexRef, _threadpool: &rayon::ThreadPool) -> Self {
         Self::default()
     }
 

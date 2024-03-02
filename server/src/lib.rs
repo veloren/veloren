@@ -308,7 +308,7 @@ impl Server {
         #[cfg(feature = "worldgen")]
         let map = world.get_map_data(index.as_index_ref(), &pools);
         #[cfg(not(feature = "worldgen"))]
-        let map = WorldMapMsg {
+        let map = common_net::msg::WorldMapMsg {
             dimensions_lg: Vec2::zero(),
             max_height: 1.0,
             rgba: Grid::new(Vec2::new(1, 1), 1),
@@ -320,16 +320,18 @@ impl Server {
             default_chunk: Arc::new(world.generate_oob_chunk()),
         };
 
+        #[cfg(feature = "worldgen")]
+        let map_size_lg = world.sim().map_size_lg();
+        #[cfg(not(feature = "worldgen"))]
+        let map_size_lg = world.map_size_lg();
+
         let lod = lod::Lod::from_world(&world, index.as_index_ref(), &pools);
 
         report_stage(ServerInitStage::StartingSystems);
 
         let mut state = State::server(
             Arc::clone(&pools),
-            #[cfg(feature = "worldgen")]
-            world.sim().map_size_lg(),
-            #[cfg(not(feature = "worldgen"))]
-            common::terrain::map::MapSizeLg::new(Vec2::one()).unwrap(),
+            map_size_lg,
             Arc::clone(&map.default_chunk),
             |dispatcher_builder| {
                 add_local_systems(dispatcher_builder);

@@ -174,6 +174,37 @@ impl Sys {
                         alias
                     )))?;
                 } else if let Some(player) = players.get(entity) {
+                    #[cfg(feature = "worldgen")]
+                    let waypoint = start_site.and_then(|site_idx| {
+                        // TODO: This corresponds to the ID generation logic in
+                        // `world/src/lib.rs`. Really, we should have
+                        // a way to consistently refer to sites, but that's a job for rtsim2
+                        // and the site changes that it will require. Until then, this code is
+                        // very hacky.
+                        world
+                            .civs()
+                            .sites
+                            .iter()
+                            .find(|(_, site)| site.site_tmp.map(|i| i.id()) == Some(site_idx))
+                            .map(Some)
+                            .unwrap_or_else(|| {
+                                error!(
+                                    "Tried to create character with starting site index {}, but \
+                                     such a site does not exist",
+                                    site_idx
+                                );
+                                None
+                            })
+                            .map(|(_, site)| {
+                                let wpos2d = TerrainChunkSize::center_wpos(site.center);
+                                Waypoint::new(
+                                    world.find_accessible_pos(index.as_index_ref(), wpos2d, false),
+                                    time,
+                                )
+                            })
+                    });
+                    #[cfg(not(feature = "worldgen"))]
+                    let waypoint = Some(Waypoint::new(world.get_center().with_z(10).as_(), time));
                     if let Err(error) = character_creator::create_character(
                         entity,
                         player.uuid().to_string(),
@@ -182,41 +213,7 @@ impl Sys {
                         offhand.clone(),
                         body,
                         character_updater,
-                        #[cfg(feature = "worldgen")]
-                        start_site.and_then(|site_idx| {
-                            // TODO: This corresponds to the ID generation logic in
-                            // `world/src/lib.rs`. Really, we should have
-                            // a way to consistently refer to sites, but that's a job for rtsim2
-                            // and the site changes that it will require. Until then, this code is
-                            // very hacky.
-                            world
-                                .civs()
-                                .sites
-                                .iter()
-                                .find(|(_, site)| site.site_tmp.map(|i| i.id()) == Some(site_idx))
-                                .map(Some)
-                                .unwrap_or_else(|| {
-                                    error!(
-                                        "Tried to create character with starting site index {}, \
-                                         but such a site does not exist",
-                                        site_idx
-                                    );
-                                    None
-                                })
-                                .map(|(_, site)| {
-                                    let wpos2d = TerrainChunkSize::center_wpos(site.center);
-                                    Waypoint::new(
-                                        world.find_accessible_pos(
-                                            index.as_index_ref(),
-                                            wpos2d,
-                                            false,
-                                        ),
-                                        time,
-                                    )
-                                })
-                        }),
-                        #[cfg(not(feature = "worldgen"))]
-                        None,
+                        waypoint,
                     ) {
                         debug!(
                             ?error,

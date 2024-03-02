@@ -254,8 +254,12 @@ impl<'a> System<'a> for Sys {
         }
 
         let max_view_distance = server_settings.max_view_distance.unwrap_or(u32::MAX);
+        #[cfg(feature = "worldgen")]
+        let world_size = world.sim().get_size();
+        #[cfg(not(feature = "worldgen"))]
+        let world_size = world.map_size_lg().chunks().map(u32::from);
         let (presences_position_entities, presences_positions) = prepare_player_presences(
-            &world,
+            world_size,
             max_view_distance,
             &entities,
             &positions,
@@ -688,7 +692,7 @@ fn prepare_for_vd_check(
 }
 
 pub fn prepare_player_presences<'a, P>(
-    world: &World,
+    world_size: Vec2<u32>,
     max_view_distance: u32,
     entities: &Entities<'a>,
     positions: P,
@@ -704,14 +708,7 @@ where
     let world_aabr_in_chunks = Aabr {
         min: Vec2::zero(),
         // NOTE: Cast is correct because chunk coordinates must fit in an i32 (actually, i16).
-        #[cfg(feature = "worldgen")]
-        max: world
-            .sim()
-            .get_size()
-            .map(|x| x.saturating_sub(1))
-            .as_::<i32>(),
-        #[cfg(not(feature = "worldgen"))]
-        max: Vec2::one(),
+        max: world_size.map(|x| x.saturating_sub(1)).as_::<i32>(),
     };
 
     let (mut presences_positions_entities, mut presences_positions): (Vec<_>, Vec<_>) =

@@ -3,6 +3,8 @@ use super::{
     group_manip::{self, update_map_markers},
     ServerEvent,
 };
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::IndexOwned;
 use crate::{client::Client, Settings};
 use common::{
     comp::{
@@ -24,6 +26,8 @@ use specs::{
 };
 use std::time::{Duration, Instant};
 use tracing::{error, warn};
+#[cfg(feature = "worldgen")]
+use world::IndexOwned;
 
 /// Time before invite times out
 const INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(31);
@@ -222,7 +226,7 @@ pub struct InviteResponseData<'a> {
     entities: Entities<'a>,
     group_manager: Write<'a, GroupManager>,
     trades: Write<'a, Trades>,
-    index: ReadExpect<'a, world::IndexOwned>,
+    index: ReadExpect<'a, IndexOwned>,
     id_maps: Read<'a, IdMaps>,
     invites: WriteStorage<'a, Invite>,
     pending_invites: WriteStorage<'a, PendingInvites>,

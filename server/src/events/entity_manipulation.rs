@@ -1,3 +1,5 @@
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::{IndexOwned, World};
 use crate::{
     client::Client,
     comp::{
@@ -67,7 +69,8 @@ use specs::{
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 use tracing::{debug, warn};
 use vek::{Vec2, Vec3};
-use world::World;
+#[cfg(feature = "worldgen")]
+use world::{IndexOwned, World};
 
 use super::{event_dispatch, ServerEvent};
 
@@ -286,6 +289,7 @@ fn handle_exp_gain(
 #[derive(SystemData)]
 pub struct DestroyEventData<'a> {
     entities: Entities<'a>,
+    #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, RtSim>,
     id_maps: Read<'a, IdMaps>,
     msm: ReadExpect<'a, MaterialStatManifest>,
@@ -293,7 +297,7 @@ pub struct DestroyEventData<'a> {
     time: Read<'a, Time>,
     program_time: ReadExpect<'a, ProgramTime>,
     world: ReadExpect<'a, Arc<World>>,
-    index: ReadExpect<'a, world::IndexOwned>,
+    index: ReadExpect<'a, IndexOwned>,
     areas_container: Read<'a, AreasContainer<NoDurabilityArea>>,
     outcomes: Read<'a, EventBus<Outcome>>,
     create_item_drop: Read<'a, EventBus<CreateItemDropEvent>>,
@@ -725,23 +729,24 @@ impl ServerEvent for DestroyEvent {
             };
             let actor = entity_as_actor(ev.entity);
 
+            #[cfg(feature = "worldgen")]
             if let Some(actor) = actor {
                 data.rtsim.hook_rtsim_actor_death(
-                &data.world,
-                data.index.as_index_ref(),
-                actor,
-                data.positions.get(ev.entity).map(|p| p.0),
-                ev.cause
-                    .by
-                    .as_ref()
-                    .and_then(
-                        |(DamageContributor::Solo(entity_uid)
-                         | DamageContributor::Group { entity_uid, .. })| {
-                            data.id_maps.uid_entity(*entity_uid)
-                        },
-                    )
-                    .and_then(entity_as_actor),
-            );
+                    &data.world,
+                    data.index.as_index_ref(),
+                    actor,
+                    data.positions.get(ev.entity).map(|p| p.0),
+                    ev.cause
+                        .by
+                        .as_ref()
+                        .and_then(
+                            |(DamageContributor::Solo(entity_uid)
+                             | DamageContributor::Group { entity_uid, .. })| {
+                                data.id_maps.uid_entity(*entity_uid)
+                            },
+                        )
+                        .and_then(entity_as_actor),
+                );
             }
 
             if should_delete {

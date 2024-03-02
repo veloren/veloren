@@ -1,3 +1,5 @@
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::World;
 use crate::{chunk_serialize::ChunkSendEntry, client::Client, Settings};
 use common::{
     comp::{Pos, Presence},
@@ -9,7 +11,7 @@ use common_state::TerrainChanges;
 use rayon::prelude::*;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::Arc;
-use world::World;
+#[cfg(feature = "worldgen")] use world::World;
 
 /// This systems sends new chunks to clients as well as changes to existing
 /// chunks
@@ -46,8 +48,11 @@ impl<'a> System<'a> for Sys {
     ) {
         let max_view_distance = server_settings.max_view_distance.unwrap_or(u32::MAX);
         #[cfg(feature = "worldgen")]
+        let world_size = world.sim().get_size();
+        #[cfg(not(feature = "worldgen"))]
+        let world_size = world.map_size_lg().chunks().as_();
         let (presences_position_entities, _) = super::terrain::prepare_player_presences(
-            &world,
+            world_size,
             max_view_distance,
             &entities,
             &positions,
