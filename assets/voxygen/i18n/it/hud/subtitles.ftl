@@ -3,6 +3,7 @@ subtitle-bird_call = Uccelli canterini
 subtitle-bees = Api che ronzano
 subtitle-owl = Gufo che bubola
 subtitle-running_water = Acqua gorgogliante
+subtitle-lavapool = Pozza di lava
 subtitle-lightning = Tuono
 subtitle-portal-activated = Portale attivato
 subtitle-portal-teleported = Teletrasportato dal portale

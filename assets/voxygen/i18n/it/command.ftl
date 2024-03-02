@@ -83,7 +83,8 @@ command-scale-set = Imposta la scala a { $scale }
 command-repaired-items = Riparato l'intero equipaggiamento
 command-message-group-missing = Stai utilizzando la chat di gruppo ma non appartieni ad alcun gruppo. Usa /world o
    /region per cambiare chat.
-command-tell-request = { $sender } Vuole parlare con te.
+command-tell-request = { $sender } vuole parlare con te.
+command-transform-invalid-presence = Non è possibile trasformarsi nel personaggio corrente
 
 # Unreachable/untestable but added for consistency
 
