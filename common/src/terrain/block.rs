@@ -5,7 +5,6 @@ use super::{
 use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
-    lottery::LootSpec,
     make_case_elim, rtsim,
     vol::FilledVox,
 };
@@ -516,7 +515,7 @@ impl Block {
             BlockKind::Wood => Some(4.5),
             BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
-                sprite if sprite.is_container() => None,
+                sprite if sprite.is_defined_as_container() => None,
                 SpriteKind::Keyhole
                 | SpriteKind::KeyDoor
                 | SpriteKind::BoneKeyhole
@@ -583,16 +582,12 @@ impl Block {
         }
     }
 
+    /// Whether the block containes a sprite that marked to be collectible
+    ///
+    /// Check docs for [`SpriteKind::default_tool`] for more.
     #[inline]
-    pub fn collectible_id(&self) -> Option<Option<LootSpec<&'static str>>> {
-        self.get_sprite()
-            .map(|s| s.collectible_id())
-            .unwrap_or(None)
-    }
-
-    #[inline]
-    pub fn is_collectible(&self) -> bool {
-        self.collectible_id().is_some() && self.mine_tool().is_none()
+    pub fn default_tool(&self) -> Option<Option<ToolKind>> {
+        self.get_sprite().and_then(|s| s.default_tool())
     }
 
     #[inline]

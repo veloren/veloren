@@ -358,7 +358,14 @@ impl ServerEvent for InventoryManipEvent {
                         .or_insert_with(InventoryUpdate::default);
 
                     if let Some(block) = block {
-                        if block.is_collectible() && data.block_change.can_set_block(sprite_pos) {
+                        // If there are items to be reclaimed from the block, add it to the
+                        // inventory
+                        let sprite_cfg = data.terrain.sprite_cfg_at(sprite_pos);
+                        if block
+                            .get_sprite()
+                            .is_some_and(|s| s.is_collectible(sprite_cfg))
+                            && data.block_change.can_set_block(sprite_pos)
+                        {
                             // Send event to rtsim if something was stolen.
                             #[cfg(feature = "worldgen")]
                             if block.is_owned()
@@ -383,9 +390,9 @@ impl ServerEvent for InventoryManipEvent {
                                 inventory.take(inv_slot, &data.ability_map, &data.msm);
                             }
 
-                            // If there are items to be reclaimed from the block, add it to the
-                            // inventory
-                            if let Some(items) = comp::Item::try_reclaim_from_block(block) {
+                            if let Some(items) =
+                                comp::Item::try_reclaim_from_block(block, sprite_cfg)
+                            {
                                 for item in
                                     flatten_counted_items(&items, &data.ability_map, &data.msm)
                                 {

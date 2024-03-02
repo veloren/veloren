@@ -1043,7 +1043,14 @@ impl PlayState for SessionState {
                                                 match interaction {
                                                     BlockInteraction::Collect { .. }
                                                     | BlockInteraction::Unlock(_) => {
-                                                        if block.is_collectible() {
+                                                        if block.get_sprite().is_some_and(|s| {
+                                                            s.is_collectible(
+                                                                client
+                                                                    .state()
+                                                                    .terrain()
+                                                                    .sprite_cfg_at(volume_pos.pos),
+                                                            )
+                                                        }) {
                                                             match volume_pos.kind {
                                                                 common::mounting::Volume::Terrain => {
                                                                     client.collect_block(volume_pos.pos);

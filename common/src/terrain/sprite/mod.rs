@@ -889,13 +889,16 @@ impl SpriteKind {
         }
     }
 
-    /// What loot table does collecting this sprite draw from?
+    /// What loot table would collecting this sprite draw from, by default?
+    ///
+    /// NOTE: `Item::try_reclaim_from_block` is what you probably looking for
+    /// instead.
+    ///
     /// None = block cannot be collected
     /// Some(None) = block can be collected, but does not give back an item
     /// Some(Some(_)) = block can be collected and gives back an item
     #[inline]
-    //#[tweak_fn]
-    pub fn collectible_id(&self) -> Option<Option<LootSpec<&'static str>>> {
+    pub fn default_loot_spec(&self) -> Option<Option<LootSpec<&'static str>>> {
         let item = LootSpec::Item;
         let table = LootSpec::LootTable;
         Some(Some(match self {
@@ -986,14 +989,42 @@ impl SpriteKind {
 
     /// Can this sprite be picked up to yield an item without a tool?
     #[inline]
-    pub fn is_collectible(&self) -> bool {
-        self.collectible_id().is_some() && self.mine_tool().is_none()
+    pub fn is_collectible(&self, sprite_cfg: Option<&SpriteCfg>) -> bool {
+        sprite_cfg.and_then(|cfg| cfg.loot_table.as_ref()).is_some()
+            || self.default_tool() == Some(None)
     }
 
-    /// Is the sprite a container that will emit a mystery item?
+    /// Is this sprite *expected* to be picked up?
+    ///
+    /// None means sprite can't be collected
+    /// Some(None) means sprite can be collected without any mine tool
+    /// Some(Some(_)) means sprite can be collected but requires a tool
     #[inline]
-    pub fn is_container(&self) -> bool {
-        matches!(self.collectible_id(), Some(Some(LootSpec::LootTable(_))))
+    pub fn default_tool(&self) -> Option<Option<ToolKind>> {
+        self.default_loot_spec().map(|_| self.mine_tool())
+    }
+
+    /// Is the sprite should behave like a container? Whatever that means.
+    ///
+    /// If you just asking where you can collect this sprite without any tool,
+    /// use `SpriteKind::is_collectible`.
+    ///
+    /// Use `SpriteKind::default_tool` if you can afford potential
+    /// false positives, it doesn't require SpriteCfg.
+    ///
+    /// Implicit invariant of this method is that only sprites listed here
+    /// can use SpriteCfg.loot_table.
+    #[inline]
+    pub fn is_defined_as_container(&self) -> bool { self.category() == Category::Container }
+
+    #[inline]
+    /// Some items may drop random items, yet aren't containers.
+    pub fn should_drop_mystery(&self) -> bool {
+        self.is_defined_as_container()
+            || matches!(
+                self.default_loot_spec(),
+                Some(Some(LootSpec::LootTable { .. } | LootSpec::Lottery { .. }))
+            ) && self.mine_tool().is_none()
     }
 
     /// Get the position and direction to mount this sprite if any.
@@ -1207,7 +1238,7 @@ impl<'a> TryFrom<&'a str> for SpriteKind {
     fn try_from(s: &'a str) -> Result<Self, Self::Error> { SPRITE_KINDS.get(s).copied().ok_or(()) }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub enum UnlockKind {
     /// The sprite can be freely unlocked without any conditions
     Free,
@@ -1219,14 +1250,32 @@ pub enum UnlockKind {
     Consumes(ItemDefinitionIdOwned),
 }
 
-#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub struct SpriteCfg {
+    /// Signifies that this sprite needs an item to be unlocked.
     pub unlock: Option<UnlockKind>,
+    /// Signifies a text associated with this sprite.
+    /// This also allows (but not requires) internationalization.
+    ///
+    /// Notice boards are an example of sprite that uses this.
     pub content: Option<Content>,
+    /// Signifies a loot table associated with this sprite. The string referes
+    /// to the loot table asset identifier.
+    ///
+    /// Chests are an example of sprite that can use this. For simple sprites
+    /// like flowers using default_loot_spec() method is recommended instead.
+    ///
+    /// If you place a custom loot table on a sprite, make sure it's listed in
+    /// SpriteKind::is_defined_as_container() to avoid minor bugs, which should
+    /// be enforced in tests, in possible.
+    ///
+    /// NOTE: this is sent to the clients, we may potentionally strip this info
+    /// on sending.
+    pub loot_table: Option<String>,
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
 
     #[test]

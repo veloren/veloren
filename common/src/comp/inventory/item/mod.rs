@@ -11,9 +11,10 @@ use crate::{
     assets::{self, AssetExt, BoxedError, Error},
     comp::inventory::InvSlot,
     effect::Effect,
+    lottery::LootSpec,
     recipe::RecipeInput,
     resources::ProgramTime,
-    terrain::Block,
+    terrain::{Block, sprite::SpriteCfg},
 };
 use common_i18n::Content;
 use core::{
@@ -1377,8 +1378,15 @@ impl Item {
 
     pub fn slot_mut(&mut self, slot: usize) -> Option<&mut InvSlot> { self.slots.get_mut(slot) }
 
-    pub fn try_reclaim_from_block(block: Block) -> Option<Vec<(u32, Self)>> {
-        block.get_sprite()?.collectible_id()??.to_items()
+    pub fn try_reclaim_from_block(
+        block: Block,
+        sprite_cfg: Option<&SpriteCfg>,
+    ) -> Option<Vec<(u32, Self)>> {
+        if let Some(loot_spec) = sprite_cfg.and_then(|sprite_cfg| sprite_cfg.loot_table.as_ref()) {
+            LootSpec::LootTable(loot_spec).to_items()
+        } else {
+            block.get_sprite()?.default_loot_spec()??.to_items()
+        }
     }
 
     pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {

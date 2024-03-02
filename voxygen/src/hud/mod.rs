@@ -2198,26 +2198,24 @@ impl Hud {
                 // TODO: Handle this better. The items returned from `try_reclaim_from_block`
                 // are based on rng. We probably want some function to get only gauranteed items
                 // from `LootSpec`.
-                let interactable_item =
-                    block
-                        .get_sprite()
-                        .filter(|s| !s.is_container())
-                        .and_then(|_| {
-                            Item::try_reclaim_from_block(block).and_then(|mut items| {
-                                debug_assert!(
-                                    items.len() <= 1,
-                                    "The amount of items returned from \
-                                     Item::try_reclam_from_block for non-container items must not \
-                                     be higher than one"
-                                );
-                                let (amount, mut item) = items.pop()?;
-                                item.set_amount(amount.clamp(1, item.max_amount())).expect(
-                                    "Setting an item amount between 1 and item.max_amount() must \
-                                     succeed",
-                                );
-                                Some(item)
-                            })
-                        });
+                let interactable_item = block
+                    .get_sprite()
+                    .filter(|s| !s.should_drop_mystery())
+                    .and_then(|_| {
+                        Item::try_reclaim_from_block(block, None).and_then(|mut items| {
+                            debug_assert!(
+                                items.len() <= 1,
+                                "The amount of items returned from Item::try_reclam_from_block \
+                                 for non-container items must not be higher than one"
+                            );
+                            let (amount, mut item) = items.pop()?;
+                            item.set_amount(amount.clamp(1, item.max_amount())).expect(
+                                "Setting an item amount between 1 and item.max_amount() must \
+                                 succeed",
+                            );
+                            Some(item)
+                        })
+                    });
 
                 if let Some(sprite) = block.get_sprite() {
                     let (desc, quality) = interactable_item.map_or_else(

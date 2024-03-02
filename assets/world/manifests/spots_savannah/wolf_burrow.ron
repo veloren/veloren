@@ -1,3 +1,4 @@
+#![enable(implicit_some)]
 #![enable(unwrap_newtypes)]
 
 [
@@ -8,7 +9,9 @@
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             20: Sprite(ShortGrass()),
             19: Sprite(Mushroom()),
-            18: Sprite(CommonLockedChest()),
+            18: SpriteWithCfg(CommonLockedChest, (
+                loot_table: "common.loot_tables.spot.wolf_burrow",
+            )),
             17: Sprite(Bones()),
             242: EntitySpawner("common.entity.wild.aggressive.wolf", 0.5),
          },

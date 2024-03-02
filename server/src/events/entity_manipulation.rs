@@ -1814,7 +1814,8 @@ impl ServerEvent for BonkEvent {
                         .try_set(pos, block.with_sprite(SpriteKind::Empty))
                         .is_some()
                     {
-                        if let Some(items) = comp::Item::try_reclaim_from_block(block) {
+                        let sprite_cfg = terrain.sprite_cfg_at(pos);
+                        if let Some(items) = comp::Item::try_reclaim_from_block(block, sprite_cfg) {
                             let msm = &MaterialStatManifest::load().read();
                             let ability_map = &AbilityMap::load().read();
                             for item in flatten_counted_items(&items, ability_map, msm) {

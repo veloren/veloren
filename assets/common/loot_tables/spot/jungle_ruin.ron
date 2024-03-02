@@ -1,0 +1,4 @@
+[
+    // TODO: give it something unique
+    (1.0, LootTable("common.loot_tables.dungeon.gnarling.chest")),
+]

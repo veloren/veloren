@@ -1,0 +1,9 @@
+[
+    // Common stuff traveling merchant eaten by wolfs was carrying
+    (1.0, LootTable("common.loot_tables.materials.common")),
+    // This merchant was rich
+    (0.5, All([
+        LootTable("common.loot_tables.materials.common"),
+        LootTable("common.loot_tables.materials.underground"),
+    ])),
+]

@@ -334,6 +334,13 @@ impl TerrainGrid {
 
         Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
     }
+
+    pub fn sprite_cfg_at(&self, wpos: Vec3<i32>) -> Option<&SpriteCfg> {
+        let chunk = self.pos_chunk(wpos)?;
+        let sprite_chunk_pos = TerrainGrid::chunk_offs(wpos);
+
+        chunk.meta().sprite_cfg_at(sprite_chunk_pos)
+    }
 }
 
 impl TerrainChunk {

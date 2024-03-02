@@ -596,7 +596,7 @@ pub fn get_npc_name<
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
     use crate::SkillSetBuilder;
     use hashbrown::HashMap;
@@ -762,33 +762,38 @@ mod tests {
         }
     }
 
+    #[cfg(test)]
+    pub fn validate_entity_config(config_asset: &str) {
+        let EntityConfig {
+            body,
+            inventory,
+            name,
+            loot,
+            pets,
+            meta,
+            death_effects,
+            alignment: _, // can't fail if serialized, it's a boring enum
+            agent: _,
+        } = EntityConfig::from_asset_expect_owned(config_asset);
+
+        validate_body(&body, config_asset);
+        // body dependent stuff
+        validate_inventory(inventory, &body, config_asset);
+        validate_name(name, body, config_asset);
+        // misc
+        validate_loot(loot, config_asset);
+        validate_meta(meta, config_asset);
+        validate_pets(pets, config_asset);
+        validate_death_effects(death_effects, config_asset);
+    }
+
     #[test]
     fn test_all_entity_assets() {
         // Get list of entity configs, load everything, validate content.
         let entity_configs =
             try_all_entity_configs().expect("Failed to access entity configs directory");
         for config_asset in entity_configs {
-            let EntityConfig {
-                body,
-                agent: _,
-                inventory,
-                name,
-                loot,
-                meta,
-                alignment: _, // can't fail if serialized, it's a boring enum
-                death_effects,
-                pets,
-            } = EntityConfig::from_asset_expect_owned(&config_asset);
-
-            validate_body(&body, &config_asset);
-            // body dependent stuff
-            validate_inventory(inventory, &body, &config_asset);
-            validate_name(name, body, &config_asset);
-            // misc
-            validate_loot(loot, &config_asset);
-            validate_meta(meta, &config_asset);
-            validate_pets(pets, &config_asset);
-            validate_death_effects(death_effects, &config_asset);
+            validate_entity_config(&config_asset)
         }
     }
 }

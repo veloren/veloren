@@ -273,7 +273,8 @@ impl BlocksOfInterest {
                     }
                 },
             }
-            if block.collectible_id().is_some() {
+            // NOTE: we don't care whether it requires mine-tool or not here
+            if block.default_tool().is_some() {
                 interactables.push((pos, Interaction::Collect));
             }
             if let Some(glow) = block.get_glow() {

@@ -187,6 +187,20 @@ impl<'a> Canvas<'a> {
         });
     }
 
+    /// Like [`Canvas::map`], except allows marking resource-containing blocks
+    /// appropriately and allows setting sprite_cfg.
+    pub fn map_resource_with_cfg(
+        &mut self,
+        pos: Vec3<i32>,
+        f: impl FnOnce(Block, &mut Option<SpriteCfg>) -> Block,
+    ) {
+        let mut sprite_cfg = None;
+        self.map_resource(pos, |block| f(block, &mut sprite_cfg));
+        if let Some(sprite_cfg) = sprite_cfg {
+            self.set_sprite_cfg(pos, sprite_cfg);
+        }
+    }
+
     pub fn set_sprite_cfg(&mut self, pos: Vec3<i32>, sprite_cfg: SpriteCfg) {
         let rpos = pos - self.wpos();
         self.chunk.meta_mut().set_sprite_cfg_at(rpos, sprite_cfg);
