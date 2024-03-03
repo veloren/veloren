@@ -1,5 +1,5 @@
 [
-    (1.0, LootTable("common.loot_tables.food.prepared")),
-    (2.0, LootTable("common.loot_tables.cave_large")),
+    (0.7, LootTable("common.loot_tables.food.prepared")),
+    (2.3, LootTable("common.loot_tables.cave_large")),
     (0.4, Item("common.items.glider.morpho")),
 ]
