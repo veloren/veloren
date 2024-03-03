@@ -420,5 +420,11 @@ common-abilities-hammer-lung_pummel = Lung Pummel
     .desc =
         Swipe your hammer into your foe's side, winding them.
 common-abilities-hammer-helm_crusher = Helm Crusher
-    .dsc =
+    .desc =
         Bash your enemy's head with your hammer, concussing them.
+common-abilities-hammer-iron_tempest = Iron Tempest
+    .desc =
+        Swing swiftly enough that your hammer becomes like a storm, scattering your enemies.
+common-abilities-hammer-dual_iron_tempest = Iron Tempest
+    .desc =
+        Swing swiftly enough that your hammers becomes like a storm, scattering your enemies.

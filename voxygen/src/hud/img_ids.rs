@@ -328,6 +328,7 @@ image_ids! {
         hammer_pile_driver: "voxygen.element.skills.hammer.pile_driver",
         hammer_lung_pummel: "voxygen.element.skills.hammer.lung_pummel",
         hammer_helm_crusher: "voxygen.element.skills.hammer.helm_crusher",
+        hammer_iron_tempest: "voxygen.element.skills.hammer.iron_tempest",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

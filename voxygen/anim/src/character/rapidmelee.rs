@@ -1,6 +1,6 @@
 use super::{
     super::{vek::*, Animation},
-    CharacterSkeleton, SkeletonAttr,
+    dual_wield_start, hammer_start, twist_back, twist_forward, CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
 use core::f32::consts::{PI, TAU};
@@ -22,7 +22,7 @@ impl Animation for RapidMeleeAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_rapid_melee")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, (current_strike, _max_strikes), _ability_info): Self::Dependency<
+        (ability_id, stage_section, (current_strike, max_strikes), _ability_info): Self::Dependency<
             '_,
         >,
         anim_time: f32,
@@ -376,6 +376,59 @@ impl Animation for RapidMeleeAnimation {
                 next.shorts.orientation.rotate_z(move2 * 1.1);
                 next.control.orientation.rotate_x(move2 * -2.7);
                 next.control.position += Vec3::new(move2 * 4.0, 0.0, move2 * -7.0);
+            },
+            Some("common.abilities.hammer.iron_tempest") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2_tot = current_strike as f32 + move2;
+                let move2 = move2_tot / max_strikes.map_or(1.0, |x| x as f32);
+                let move2 = move2 * pullback;
+
+                twist_back(&mut next, move1, 2.0, 0.8, 0.3, 1.4);
+                next.control.orientation.rotate_x(move1 * 0.8);
+                next.control.position += Vec3::new(-15.0, 0.0, 6.0) * move1;
+                next.control.orientation.rotate_z(move1 * 1.2);
+
+                next.torso.orientation.rotate_z(-TAU * move2_tot);
+                twist_forward(&mut next, move2, 3.0, 1.2, 0.5, 1.8);
+                next.control.orientation.rotate_z(move2 * -5.0);
+                next.control.position += Vec3::new(20.0, 0.0, 0.0) * move2;
+            },
+            Some("common.abilities.hammer.dual_iron_tempest") => {
+                dual_wield_start(&mut next);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2_tot = current_strike as f32 + move2;
+                let move2 = move2_tot / max_strikes.map_or(1.0, |x| x as f32);
+                let move2 = move2 * pullback;
+
+                twist_back(&mut next, move1, 2.0, 0.8, 0.3, 1.4);
+                next.control_l.orientation.rotate_y(move1 * -PI / 2.0);
+                next.control_r.orientation.rotate_y(move1 * -PI / 2.0);
+                next.control.orientation.rotate_z(move1 * 1.2);
+                next.control.position += Vec3::new(-10.0, 10.0, 6.0) * move1;
+                next.control_r.position += Vec3::new(0.0, -10.0, 0.0) * move1;
+
+                next.torso.orientation.rotate_z(-TAU * move2_tot);
+                twist_forward(&mut next, move2, 3.0, 1.2, 0.5, 1.8);
+                next.control.orientation.rotate_z(move2 * -3.0);
+                next.control.position += Vec3::new(20.0, -10.0, 0.0) * move2;
+                next.control_r.position += Vec3::new(0.0, 10.0, 0.0) * move2;
+                next.control_l.position += Vec3::new(0.0, -10.0, 0.0) * move2;
+                // next.control.position += Vec3::new(20.0, 0.0, 0.0) * move2;
             },
             _ => {},
         }

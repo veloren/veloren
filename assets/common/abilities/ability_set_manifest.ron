@@ -202,13 +202,13 @@
             Simple(Hammer(Retaliate), "common.abilities.hammer.retaliate"),
             Simple(Hammer(SpineCracker), "common.abilities.hammer.spine_cracker"),
             Simple(Hammer(Breach), "common.abilities.hammer.breach"),
-            // Contextualized(
-            //     pseudo_id: "common.abilities.hammer.iron_tempest",
-            //     abilities: [
-            //         ((dual_wielding_same_kind: true), (Hammer(IronTempest), "common.abilities.hammer.dual_iron_tempest")),
-            //         ((), (Hammer(IronTempest), "common.abilities.hammer.iron_tempest")),
-            //     ],
-            // ),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.iron_tempest",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(IronTempest), "common.abilities.hammer.dual_iron_tempest")),
+                    ((), (Hammer(IronTempest), "common.abilities.hammer.iron_tempest")),
+                ],
+            ),
             // Contextualized(
             //     pseudo_id: "common.abilities.hammer.upheaval",
             //     abilities: [

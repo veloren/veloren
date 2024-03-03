@@ -1,0 +1,19 @@
+RapidMelee(
+    buildup_duration: 0.4,
+    swing_duration: 0.15,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Bash(
+            damage: 12,
+            poise: 15,
+            knockback: 3,
+            energy_regen: 0,
+        ),
+        range: 4.0,
+        angle: 360.0,
+    ),
+    energy_cost: 3,
+    max_strikes: Some(8),
+    move_modifier: 0.2,
+    ori_modifier: 1.0,
+)
