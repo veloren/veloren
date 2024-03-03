@@ -1,6 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rayon::ThreadPoolBuilder;
-use vek::Vec2;
 use veloren_world::{
     layer,
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
@@ -34,30 +33,6 @@ fn cave(c: &mut Criterion) {
                     || false,
                     None,
                 ));
-            }
-        });
-    });
-
-    c.bench_function("generate_specific", |b| {
-        b.iter(|| {
-            let base_positions = vec![
-                Vec2::new(600, 650),
-                Vec2::new(630, 300),
-                Vec2::new(809, 141),
-            ];
-            for base_pos in base_positions {
-                for i in 0..=4 {
-                    for j in 0..=4 {
-                        let pos = base_pos + Vec2::new(i as i32, j as i32) - 2;
-                        _ = black_box(world.generate_chunk(
-                            index.as_index_ref(),
-                            pos,
-                            None,
-                            || false,
-                            None,
-                        ));
-                    }
-                }
             }
         });
     });

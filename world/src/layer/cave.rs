@@ -174,7 +174,6 @@ impl Tunnel {
         }
     }
 
-    #[inline_tweak::tweak_fn]
     fn biome_at(&self, wpos: Vec3<i32>, info: &CanvasInfo) -> Biome {
         let Some(col) = info.col_or_gen(wpos.xy()) else {
             return Biome::default();
@@ -542,7 +541,6 @@ struct Flower {
     // rotation: Mat3<f32>,
 }
 
-#[inline_tweak::tweak_fn]
 fn write_column<R: Rng>(
     canvas: &mut Canvas,
     col: &ColumnSample,

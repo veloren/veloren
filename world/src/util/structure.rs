@@ -111,58 +111,6 @@ impl StructureGen2d {
             )
         })
     }
-
-    /// Note: Generates all possible closest samples for elements in the range
-    /// of min to max, *exclusive.*
-    pub fn iter_with_wpos(
-        &self,
-        min: Vec2<i32>,
-        max: Vec2<i32>,
-    ) -> impl Iterator<Item = (Vec2<i32>, StructureField)> {
-        let freq = self.freq;
-        let spread = self.spread;
-        let spread_mul = Self::spread_mul(spread);
-        assert!(spread * 2 == spread_mul);
-        assert!(spread_mul <= freq);
-        let spread = spread as i32;
-        let freq = freq as i32;
-        let freq_offset = Self::freq_offset(freq);
-        assert!(freq_offset * 2 == freq);
-
-        let min_index = Self::sample_to_index_internal(freq, min) - 1;
-        let max_index = Self::sample_to_index_internal(freq, max) + 1;
-        assert!(min_index.x < max_index.x);
-        // NOTE: xlen > 0
-        let xlen = (max_index.x - min_index.x) as u32;
-        assert!(min_index.y < max_index.y);
-        // NOTE: ylen > 0
-        let ylen = (max_index.y - min_index.y) as u32;
-        // NOTE: Cannot fail, since every product of u32s fits in a u64.
-        let len = ylen as u64 * xlen as u64;
-        // NOTE: since iteration is *exclusive* for the initial range, it's fine that we
-        // don't go up to the maximum value.
-        // NOTE: we convert to usize first, and then iterate, because we want to make
-        // sure we get a properly indexed parallel iterator that can deal with
-        // the whole range at once.
-        let x_field = self.x_field;
-        let y_field = self.y_field;
-        let seed_field = self.seed_field;
-        (0..len).map(move |xy| {
-            let index = min_index + Vec2::new((xy % xlen as u64) as i32, (xy / xlen as u64) as i32);
-            let index_wpos = min + Vec2::new((xy % xlen as u64) as i32, (xy / len as u64) as i32);
-            let field = Self::index_to_sample_internal(
-                freq,
-                freq_offset,
-                spread,
-                spread_mul,
-                x_field,
-                y_field,
-                seed_field,
-                index,
-            );
-            (index_wpos, field)
-        })
-    }
 }
 
 impl Sampler<'static> for StructureGen2d {
