@@ -432,7 +432,7 @@ impl SpriteKind {
             SpriteKind::HaniwaUrn => 1.09,
             SpriteKind::TerracottaChest => 1.09,
             SpriteKind::TerracottaStatue => 5.29,
-            SpriteKind::TerracottaBlock => 1.09,
+            SpriteKind::TerracottaBlock => 1.00,
             SpriteKind::SeaDecorChain => 1.09,
             SpriteKind::SeaDecorBlock => 1.00,
             SpriteKind::SeaDecorWindowHor => 0.55,

@@ -4813,6 +4813,7 @@ impl<'a> AgentData<'a> {
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
+        attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
         rng: &mut impl Rng,
@@ -4844,7 +4845,7 @@ impl<'a> AgentData<'a> {
                     .copied(),
                 select_pos: None,
             });
-        } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] > 10.0 {
+        } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] > 12.0 {
             agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] = 0.0;
         } else {
             agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] += read_data.dt.0;
@@ -4860,7 +4861,7 @@ impl<'a> AgentData<'a> {
         }
 
         if line_of_sight_with_target() {
-            if agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] > 45.0 {
+            if agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] > 32.0 {
                 match agent.combat_state.timers[ActionStateTimers::SelectSummon as usize] as i32 {
                     0 => controller.push_basic_input(InputKind::Ability(0)),
                     1 => controller.push_basic_input(InputKind::Ability(1)),
@@ -4869,19 +4870,23 @@ impl<'a> AgentData<'a> {
                     _ => controller.push_basic_input(InputKind::Ability(4)),
                 }
             } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 6.0 {
+                controller.push_basic_input(InputKind::Ability(6));
+            } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 9.0 {
                 controller.push_basic_input(InputKind::Primary);
             } else {
                 controller.push_basic_input(InputKind::Secondary);
             }
         }
-        self.path_toward_target(
-            agent,
-            controller,
-            tgt_data.pos.0,
-            read_data,
-            Path::Partial,
-            None,
-        );
+        if attack_data.dist_sqrd > 10_f32.powi(2) {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Full,
+                None,
+            );
+        }
     }
 
     pub fn handle_shamanic_spirit_attack(
@@ -4926,7 +4931,7 @@ impl<'a> AgentData<'a> {
         enum Conditions {
             AttackToggle = 0,
         }
-        if attack_data.dist_sqrd < 15_f32.powi(2) {
+        if attack_data.dist_sqrd < 25_f32.powi(2) {
             if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
                 controller.push_basic_input(InputKind::Primary);
                 if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))

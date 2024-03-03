@@ -7,7 +7,7 @@ BasicBeam(
     range: 30.0,
     max_angle: 15.0,
     damage_effect: Some(Buff((
-        kind: Burning,
+        kind: Wet,
         dur_secs: 3.0,
         strength: Value(0.2),
         chance: 0.1,
