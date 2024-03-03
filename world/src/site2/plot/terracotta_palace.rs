@@ -617,14 +617,13 @@ impl Structure for TerracottaPalace {
         // chamber rooms
         for dir in CARDINALS {
             let room_center = center + dir * ((room_size / 2) + 8);
-            // floor decor in chamber rooms
             painter
                 .cylinder(Aabb {
-                    min: (room_center - 3).with_z(base - 24 - (room_size / 2) - (room_size / 16)),
+                    min: (room_center - 3).with_z(base - 30 - (room_size / 2) - (room_size / 16)),
                     max: (room_center + 3).with_z(base - 6 - (room_size / 2) - (room_size / 16)),
                 })
                 .clear();
-            // npcs in chamber rooms
+            // cursekeeper in chamber rooms
             let npc_pos = room_center.with_z(base - 24 - (room_size / 2) - (room_size / 16));
             let npc = chamber_npcs
                 .swap_remove(RandomField::new(0).get(npc_pos) as usize % chamber_npcs.len());
@@ -634,7 +633,7 @@ impl Structure for TerracottaPalace {
         // chamber_1
         painter
             .aabb(Aabb {
-                min: Vec2::new(center.x - (room_size / 2), center.y - 5)
+                min: Vec2::new(center.x - (room_size / 2), center.y - 4)
                     .with_z(base - 10 - (room_size / 2)),
                 max: Vec2::new(center.x - (room_size / 2) + 1, center.y + 5)
                     .with_z(base - 10 - (room_size / 2) + 5),
@@ -651,7 +650,7 @@ impl Structure for TerracottaPalace {
         // chamber_2
         painter
             .aabb(Aabb {
-                min: Vec2::new(center.x + (room_size / 2) - 1, center.y - 5)
+                min: Vec2::new(center.x + (room_size / 2) - 1, center.y - 4)
                     .with_z(base - 10 - (room_size / 2)),
                 max: Vec2::new(center.x + (room_size / 2), center.y + 5)
                     .with_z(base - 10 - (room_size / 2) + 5),
@@ -668,7 +667,7 @@ impl Structure for TerracottaPalace {
         // chamber_3
         painter
             .aabb(Aabb {
-                min: Vec2::new(center.x - 5, center.y - (room_size / 2))
+                min: Vec2::new(center.x - 4, center.y - (room_size / 2))
                     .with_z(base - 10 - (room_size / 2)),
                 max: Vec2::new(center.x + 5, center.y - (room_size / 2) + 1)
                     .with_z(base - 10 - (room_size / 2) + 5),
@@ -685,7 +684,7 @@ impl Structure for TerracottaPalace {
         // chamber_4
         painter
             .aabb(Aabb {
-                min: Vec2::new(center.x - 5, center.y + (room_size / 2) - 1)
+                min: Vec2::new(center.x - 4, center.y + (room_size / 2) - 1)
                     .with_z(base - 10 - (room_size / 2)),
                 max: Vec2::new(center.x + 5, center.y + (room_size / 2))
                     .with_z(base - 10 - (room_size / 2) + 5),
@@ -880,7 +879,6 @@ impl Structure for TerracottaPalace {
 
             spawn_random_entity(pillar_npc_pos, painter, 1..=1);
 
-            // npcs in upper chamber rooms
             let statue = statue_npcs
                 .swap_remove(RandomField::new(0).get(statue_pos) as usize % statue_npcs.len());
             painter.spawn(
@@ -1031,7 +1029,7 @@ impl Structure for TerracottaPalace {
             }
         }
         // npcs on top floor
-        let npcs = 3.0_f32;
+        let npcs = 5.0_f32;
         let radius_npcs = (room_size / 4) + 6;
         let phi_npcs = TAU / npcs;
         for n in 1..=npcs as i32 {
@@ -1050,7 +1048,7 @@ impl Structure for TerracottaPalace {
 
         // main room npcs
         let radius_npcs_main = (room_size / 4) + 10;
-        let npcs_main = 10.0_f32;
+        let npcs_main = 15.0_f32;
         let phi_npcs_main = TAU / npcs_main;
         for n in 1..=npcs_main as i32 {
             let pos = Vec2::new(

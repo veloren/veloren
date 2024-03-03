@@ -1587,9 +1587,14 @@ impl<'a> AgentData<'a> {
                 read_data,
                 rng,
             ),
-            Tactic::Cursekeeper => {
-                self.handle_cursekeeper_attack(agent, controller, tgt_data, read_data, rng)
-            },
+            Tactic::Cursekeeper => self.handle_cursekeeper_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
             Tactic::CursekeeperFake => {
                 self.handle_cursekeeper_fake_attack(agent, controller, &attack_data)
             },

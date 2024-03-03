@@ -1040,6 +1040,7 @@
             Simple(None, "common.abilities.custom.cursekeeper.summonshamanicspirit"),
             Simple(None, "common.abilities.custom.cursekeeper.summonjiangshi"),
             Simple(None, "common.abilities.custom.cursekeeper.teleport"),
+            Simple(None, "common.abilities.custom.cursekeeper.poisonbomb"),
         ],
     ),
     Custom("CursekeeperFake"): (

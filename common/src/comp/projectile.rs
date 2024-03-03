@@ -80,6 +80,7 @@ pub enum ProjectileConstructor {
     Poisonball {
         damage: f32,
         radius: f32,
+        knockback: f32,
         min_falloff: f32,
     },
     NecroticSphere {
@@ -400,8 +401,18 @@ impl ProjectileConstructor {
             Poisonball {
                 damage,
                 radius,
+                knockback,
                 min_falloff,
             } => {
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    })
+                    .adjusted_by_stats(tool_stats),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
                 let buff = AttackEffect::new(
                     Some(GroupTarget::OutOfGroup),
                     CombatEffect::Buff(CombatBuff {
@@ -425,6 +436,7 @@ impl ProjectileConstructor {
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_precision(precision_mult)
+                    .with_effect(knockback)
                     .with_effect(buff);
                 let explosion = Explosion {
                     effects: vec![
