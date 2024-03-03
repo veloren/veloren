@@ -654,7 +654,7 @@ pub fn handle_orientation(
     // else the current horizontal movement direction is used
     let target_ori = if let Some(dir_override) = dir_override {
         dir_override.into()
-    } else if is_strafing(data, update) || update.character.is_attack() {
+    } else if is_strafing(data, update) || update.character.should_follow_look() {
         data.inputs
             .look_dir
             .to_horizontal()

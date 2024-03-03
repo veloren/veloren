@@ -2,6 +2,7 @@ pub mod alpha;
 pub mod beam;
 pub mod beta;
 pub mod block;
+pub mod boost;
 pub mod chargeswing;
 pub mod climb;
 pub mod collect;
@@ -45,10 +46,10 @@ pub mod wield;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, block::BlockAnimation,
-    chargeswing::ChargeswingAnimation, climb::ClimbAnimation, collect::CollectAnimation,
-    combomelee::ComboAnimation, consume::ConsumeAnimation, dance::DanceAnimation,
-    dash::DashAnimation, divemelee::DiveMeleeAnimation, equip::EquipAnimation,
-    finishermelee::FinisherMeleeAnimation, glidewield::GlideWieldAnimation,
+    boost::BoostAnimation, chargeswing::ChargeswingAnimation, climb::ClimbAnimation,
+    collect::CollectAnimation, combomelee::ComboAnimation, consume::ConsumeAnimation,
+    dance::DanceAnimation, dash::DashAnimation, divemelee::DiveMeleeAnimation,
+    equip::EquipAnimation, finishermelee::FinisherMeleeAnimation, glidewield::GlideWieldAnimation,
     gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
     mount::MountAnimation, music::MusicAnimation, rapidmelee::RapidMeleeAnimation,
     repeater::RepeaterAnimation, ripostemelee::RiposteMeleeAnimation, roll::RollAnimation,

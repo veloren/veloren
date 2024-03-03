@@ -1601,10 +1601,10 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Boost(_) => {
-                            anim::character::AlphaAnimation::update_skeleton(
+                            anim::character::BoostAnimation::update_skeleton(
                                 &target_base,
-                                (hands, None, None),
-                                state.state_time,
+                                (),
+                                0.5,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )

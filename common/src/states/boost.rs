@@ -31,6 +31,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        handle_orientation(data, &mut update, 10.0, None);
         handle_move(data, &mut update, 1.0);
 
         if self.timer < self.static_data.movement_duration {

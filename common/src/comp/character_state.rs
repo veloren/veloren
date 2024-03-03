@@ -245,6 +245,10 @@ impl CharacterState {
         )
     }
 
+    pub fn should_follow_look(&self) -> bool {
+        matches!(self, CharacterState::Boost(_)) || self.is_attack()
+    }
+
     pub fn is_attack(&self) -> bool {
         matches!(
             self,
