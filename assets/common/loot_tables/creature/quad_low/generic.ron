@@ -1,4 +1,4 @@
 [
     (1.0, Item("common.items.food.meat.tough_raw")),
-    (3.0, Item("common.items.crafting_ing.hide.scales")),
+    (3.0, MultiDrop(Item("common.items.crafting_ing.hide.scales"), 2, 3)),
 ]
