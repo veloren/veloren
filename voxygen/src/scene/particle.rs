@@ -946,9 +946,9 @@ impl ParticleMgr {
                             + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
                         || {
                             Particle::new(
-                                Duration::from_secs(15),
+                                Duration::from_millis(250),
                                 time,
-                                ParticleMode::CampfireSmoke,
+                                ParticleMode::PortalFizz,
                                 interpolated.pos
                                     + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
                             )
