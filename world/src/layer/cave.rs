@@ -40,7 +40,7 @@ fn to_wpos(cell: Vec2<i32>, level: u32) -> Vec2<i32> {
 }
 
 const AVG_LEVEL_DEPTH: i32 = 120;
-const LAYERS: u32 = 4;
+pub const LAYERS: u32 = 5;
 const MIN_RADIUS: f32 = 8.0;
 const MAX_RADIUS: f32 = 64.0;
 
@@ -174,13 +174,14 @@ impl Tunnel {
         }
     }
 
-    fn biome_at(&self, wpos: Vec3<i32>, info: &CanvasInfo) -> Biome {
+    pub fn biome_at(&self, wpos: Vec3<i32>, info: &CanvasInfo) -> Biome {
         let Some(col) = info.col_or_gen(wpos.xy()) else {
             return Biome::default();
         };
 
         // Below the ground
-        let below = ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * 1.5)).clamped(0.0, 1.0);
+        let below = ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32 * 0.5))
+            .clamped(0.0, 1.0);
         let depth = (col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32);
         let underground = ((col.alt - wpos.z as f32) / 80.0 - 1.0).clamped(0.0, 1.0);
 
@@ -195,7 +196,7 @@ impl Tunnel {
         );
 
         let temp = Lerp::lerp_unclamped(
-            col.temp,
+            col.temp * 2.0,
             FastNoise2d::new(42)
                 .get(wpos.xy().map(|e| e as f64 / 1536.0))
                 .mul(1.15)
@@ -229,42 +230,44 @@ impl Tunnel {
             sandy,
         ] = {
             // Default biome, no other conditions apply
-            let barren = 0.01;
+            let barren = 0.005;
             // Mushrooms grow underground and thrive in a humid environment with moderate
             // temperatures
             let mushroom = underground
-                * close(humidity, 1.0, 0.6, 4)
-                * close(temp, 1.5, 0.9, 4)
-                * close(depth, 1.0, 0.55, 4);
+                * close(humidity, 1.0, 0.7, 4)
+                * close(temp, 1.5, 1.2, 4)
+                * close(depth, 0.9, 0.65, 4);
             // Extremely hot and dry areas deep underground
             let fire = underground
                 * close(humidity, 0.0, 0.6, 4)
-                * close(temp, 2.0, 1.3, 4)
-                * close(depth, 1.0, 0.5, 4);
+                * close(temp, 2.0, 1.4, 4)
+                * close(depth, 1.0, 0.45, 4);
             // Overgrown with plants that need a moderate climate to survive
             let leafy = underground
-                * close(humidity, 0.9, 0.65, 4)
-                * close(temp, 1.15, 0.85, 4)
-                * close(depth, 0.0, 0.65, 4);
+                * close(humidity, 0.8, 0.9, 4)
+                * close(temp, 0.8, 1.0, 4)
+                * close(depth, 0.1, 0.7, 4);
             // Cool temperature, dry and devoid of value
-            let dusty = close(humidity, 0.0, 0.5, 4) * close(temp, -0.3, 0.7, 4);
+            let dusty = close(humidity, 0.0, 0.5, 4)
+                * close(temp, -0.3, 0.7, 4)
+                * close(depth, 0.5, 0.5, 4);
             // Deep underground and freezing cold
             let icy = underground
-                * close(temp, -1.5, 1.0, 4)
-                * close(depth, 1.0, 0.6, 4)
-                * close(humidity, 1.0, 0.7, 4);
+                * close(temp, -1.5, 2.0, 4)
+                * close(depth, 0.9, 0.55, 4)
+                * close(humidity, 1.0, 0.75, 4);
             // Rocky cold cave that appear near the surface
-            let snowy = close(temp, -0.8, 0.5, 4) * close(depth, 0.0, 0.45, 4);
+            let snowy = close(temp, -0.7, 0.4, 4) * close(depth, 0.0, 0.4, 4);
             // Crystals grow deep underground in areas rich with minerals. They are present
             // in areas with colder temperatures and low humidity
             let crystal = underground
                 * close(humidity, 0.0, 0.5, 4)
-                * close(temp, -0.9, 0.7, 4)
+                * close(temp, -0.9, 0.9, 4)
                 * close(depth, 1.0, 0.55, 4)
                 * close(mineral, 2.0, 1.25, 4);
             // Hot, dry and shallow
             let sandy =
-                close(humidity, 0.0, 0.4, 4) * close(temp, 1.1, 0.6, 4) * close(depth, 0.0, 0.6, 4);
+                close(humidity, 0.0, 0.5, 4) * close(temp, 1.0, 0.9, 4) * close(depth, 0.0, 0.6, 4);
 
             let biomes = [
                 barren, mushroom, fire, leafy, dusty, icy, snowy, crystal, sandy,
@@ -463,6 +466,12 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 }
             }
 
+            let z_ranges = &tunnel_bounds
+                .iter()
+                .map(|(_, z_range, _, _, _, _)| z_range.clone())
+                .collect_vec();
+
+            let structure_seeds = StructureGen2d::new(34537, 24, 8).get(wpos2d);
             for (level, z_range, horizontal, vertical, dist, tunnel) in tunnel_bounds {
                 write_column(
                     canvas,
@@ -470,10 +479,12 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     level,
                     wpos2d,
                     z_range.clone(),
+                    z_ranges,
                     tunnel,
                     (horizontal, vertical, dist),
                     giant_tree_dist,
                     &mut structure_cache,
+                    &structure_seeds,
                     rng,
                 );
             }
@@ -482,19 +493,19 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
 }
 
 #[allow(dead_code)]
-#[derive(Default)]
-struct Biome {
+#[derive(Default, Clone)]
+pub struct Biome {
     humidity: f32,
-    barren: f32,
+    pub barren: f32,
     mineral: f32,
-    mushroom: f32,
-    fire: f32,
-    leafy: f32,
-    dusty: f32,
-    icy: f32,
-    snowy: f32,
-    crystal: f32,
-    sandy: f32,
+    pub mushroom: f32,
+    pub fire: f32,
+    pub leafy: f32,
+    pub dusty: f32,
+    pub icy: f32,
+    pub snowy: f32,
+    pub crystal: f32,
+    pub sandy: f32,
     depth: f32,
 }
 
@@ -547,10 +558,12 @@ fn write_column<R: Rng>(
     level: u32,
     wpos2d: Vec2<i32>,
     z_range: Range<i32>,
+    z_ranges: &[Range<i32>],
     tunnel: Tunnel,
     dimensions: (f32, f32, f32),
     giant_tree_dist: f32,
     structure_cache: &mut SmallCache<Vec3<i32>, Option<CaveStructure>>,
+    structure_seeds: &[(Vec2<i32>, u32); 9],
     rng: &mut R,
 ) {
     let info = canvas.info();
@@ -563,6 +576,19 @@ fn write_column<R: Rng>(
     let cavern_height = (z_range.end - z_range.start) as f32;
     let (cave_width, max_height, dist_cave_center) = dimensions;
     let biome = tunnel.biome_at(wpos2d.with_z(z_range.start), &info);
+
+    // Get the range, if there is any, where the current cave overlaps with other
+    // caves. Right now this is only used to prevent ceiling cover from being
+    // place
+    let overlap = z_ranges.iter().find_map(|other_z_range| {
+        if *other_z_range == z_range {
+            return None;
+        }
+        let start = z_range.start.max(other_z_range.start);
+        let end = z_range.end.min(other_z_range.end);
+        let min = z_range.start.min(other_z_range.start);
+        if start < end { Some(min..end) } else { None }
+    });
 
     let stalactite = {
         FastNoise2d::new(35)
@@ -631,7 +657,7 @@ fn write_column<R: Rng>(
             .sub(0.2)
             .min(0.0)
             // .mul((biome.temp as f64 - 1.5).mul(30.0).clamped(0.0, 1.0))
-            .mul((cave_width / 16.0).clamped(0.0, 1.0))
+            .mul((cave_width / 16.0).clamped(0.5, 1.0))
             .mul((cave_width / (MAX_RADIUS - 16.0)).clamped(1.0, 1.25))
             .mul((biome.fire - 0.5).mul(30.0).clamped(0.0, 1.0))
             .mul(64.0)
@@ -743,9 +769,7 @@ fn write_column<R: Rng>(
             0
         };
 
-    let structures = StructureGen2d::new(34537, 24, 8)
-        .get(wpos2d)
-        .as_slice()
+    let structures = structure_seeds
         .iter()
         .filter_map(|(wpos2d, seed)| {
             let structure = structure_cache.get(wpos2d.with_z(tunnel.a.depth), |_| {
@@ -758,6 +782,7 @@ fn write_column<R: Rng>(
                     tunnel_bounds_at(pos.xy(), &info, &info.land())
                         .any(|(_, z_range, _, _, _, _)| z_range.contains(&(z_range.start - 1)))
                 };
+
                 if biome.mushroom > 0.7
                     && vertical > 16.0
                     && rng.gen_bool(
@@ -1164,7 +1189,10 @@ fn write_column<R: Rng>(
                 && !void_below
             {
                 Block::new(BlockKind::Rock, Rgb::new(50, 35, 75))
-            } else if (z < base && !void_below) || (z >= ceiling && !void_above) {
+            } else if (z < base && !void_below)
+                || ((z >= ceiling && !void_above)
+                    && !(ceiling_cover > 0.0 && overlap.as_ref().map_or(false, |o| o.contains(&z))))
+            {
                 let stalactite: Rgb<i16> = Lerp::lerp_unclamped(
                     Lerp::lerp_unclamped(
                         Lerp::lerp_unclamped(
