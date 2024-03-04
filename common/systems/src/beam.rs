@@ -187,7 +187,7 @@ impl<'a> System<'a> for Sys {
                         // Finally, ensure that a hit has actually occurred by performing a raycast.
                         // We do this last because it's likely to be the
                         // most expensive operation.
-                        let tgt_dist = pos.0.distance(pos_b.0);
+                        let tgt_dist = beam.bezier.start.distance(pos_b.0);
                         let beam_dir = (beam.bezier.ctrl - beam.bezier.start)
                             / beam.bezier.start.distance(beam.bezier.ctrl).max(0.01);
                         let hit = hit
