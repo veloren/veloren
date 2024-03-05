@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Weapons block are based on poise
 - Wooden Shield recipe
 - Overhauled the visuals of several cave biomes
+- Dropped items now merge dynamically (including non-stackables)
 
 ### Removed
 - Medium and large potions from all loot tables

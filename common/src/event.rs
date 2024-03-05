@@ -165,7 +165,7 @@ pub struct CreateItemDropEvent {
     pub pos: Pos,
     pub vel: Vel,
     pub ori: Ori,
-    pub item: comp::Item,
+    pub item: comp::PickupItem,
     pub loot_owner: Option<LootOwner>,
 }
 pub struct CreateObjectEvent {
@@ -173,7 +173,7 @@ pub struct CreateObjectEvent {
     pub vel: Vel,
     pub body: comp::object::Body,
     pub object: Option<comp::Object>,
-    pub item: Option<comp::Item>,
+    pub item: Option<comp::PickupItem>,
     pub light_emitter: Option<comp::LightEmitter>,
     pub stats: Option<comp::Stats>,
 }

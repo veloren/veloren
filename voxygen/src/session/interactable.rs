@@ -207,7 +207,7 @@ pub(super) fn select_interactable(
         let is_mounts = ecs.read_storage::<Is<Mount>>();
         let is_riders = ecs.read_storage::<Is<Rider>>();
         let bodies = ecs.read_storage::<comp::Body>();
-        let items = ecs.read_storage::<comp::Item>();
+        let items = ecs.read_storage::<comp::PickupItem>();
         let stats = ecs.read_storage::<comp::Stats>();
 
         let player_char_state = char_states.get(player_entity);

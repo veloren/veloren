@@ -1074,7 +1074,7 @@ impl PlayState for SessionState {
                                                 if client
                                                     .state()
                                                     .ecs()
-                                                    .read_storage::<comp::Item>()
+                                                    .read_storage::<comp::PickupItem>()
                                                     .get(*entity)
                                                     .is_some()
                                                 {

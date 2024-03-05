@@ -129,7 +129,7 @@ pub(super) fn targets_under_cursor(
         &positions,
         scales.maybe(),
         &ecs.read_storage::<comp::Body>(),
-        ecs.read_storage::<comp::Item>().maybe(),
+        ecs.read_storage::<comp::PickupItem>().maybe(),
         !&ecs.read_storage::<Is<Mount>>(),
         ecs.read_storage::<Is<Rider>>().maybe(),
     )

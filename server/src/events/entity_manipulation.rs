@@ -21,8 +21,9 @@ use common::{
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        Alignment, Auras, Body, CharacterState, Energy, Group, Health, Inventory, Object, Player,
-        Poise, Pos, Presence, PresenceKind, SkillSet, Stats, BASE_ABILITY_LIMIT,
+        Alignment, Auras, Body, CharacterState, Energy, Group, Health, Inventory, Object,
+        PickupItem, Player, Poise, Pos, Presence, PresenceKind, SkillSet, Stats,
+        BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -40,7 +41,7 @@ use common::{
     lottery::distribute_many,
     mounting::{Rider, VolumeRider},
     outcome::{HealthChangeInfo, Outcome},
-    resources::{Secs, Time},
+    resources::{ProgramTime, Secs, Time},
     rtsim::{Actor, RtSimEntity},
     spiral::Spiral2d,
     states::utils::StageSection,
@@ -286,6 +287,7 @@ pub struct DestroyEventData<'a> {
     msm: ReadExpect<'a, MaterialStatManifest>,
     ability_map: ReadExpect<'a, AbilityMap>,
     time: Read<'a, Time>,
+    program_time: ReadExpect<'a, ProgramTime>,
     world: ReadExpect<'a, Arc<World>>,
     index: ReadExpect<'a, world::IndexOwned>,
     areas_container: Read<'a, AreasContainer<NoDurabilityArea>>,
@@ -641,7 +643,7 @@ impl ServerEvent for DestroyEvent {
                                 vel: vel.copied().unwrap_or(comp::Vel(Vec3::zero())),
                                 // TODO: Random
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
-                                item,
+                                item: PickupItem::new(item, *data.program_time),
                                 loot_owner: if let Some(loot_owner) = loot_owner {
                                     debug!(
                                         "Assigned UID {loot_owner:?} as the winner for the loot \
@@ -1432,12 +1434,13 @@ impl ServerEvent for BonkEvent {
     type SystemData<'a> = (
         Write<'a, BlockChange>,
         ReadExpect<'a, TerrainGrid>,
+        ReadExpect<'a, ProgramTime>,
         Read<'a, EventBus<CreateObjectEvent>>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (mut block_change, terrain, create_object_events): Self::SystemData<'_>,
+        (mut block_change, terrain, program_time, create_object_events): Self::SystemData<'_>,
     ) {
         let mut create_object_emitter = create_object_events.emitter();
         for ev in events {
@@ -1474,7 +1477,7 @@ impl ServerEvent for BonkEvent {
                                         },
                                         _ => None,
                                     },
-                                    item: Some(item),
+                                    item: Some(comp::PickupItem::new(item, *program_time)),
                                     light_emitter: None,
                                     stats: None,
                                 });

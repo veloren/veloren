@@ -56,7 +56,7 @@ impl Asset for MaterialStatManifest {
     const EXTENSION: &'static str = "ron";
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ModularBase {
     Tool,
 }
