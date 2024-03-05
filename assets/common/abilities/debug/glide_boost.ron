@@ -1,3 +1,3 @@
 GlideBoost(
-    booster: Upward(400.0),
+    booster: Upward(100.0),
 )
