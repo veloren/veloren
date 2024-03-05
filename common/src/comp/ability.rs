@@ -253,14 +253,8 @@ impl ActiveAbilities {
                     .or_else(|| inst_ability(EquipSlot::ActiveMainhand, false)),
                 AbilitySource::Glider => inst_ability(EquipSlot::Glider, false),
             },
-            Ability::MainWeaponAux(_) => match source {
-                AbilitySource::Weapons => inst_ability(EquipSlot::ActiveMainhand, false),
-                AbilitySource::Glider => None,
-            },
-            Ability::OffWeaponAux(_) => match source {
-                AbilitySource::Weapons => inst_ability(EquipSlot::ActiveOffhand, true),
-                AbilitySource::Glider => None,
-            },
+            Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand, false),
+            Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand, true),
             Ability::GliderAux(_) => inst_ability(EquipSlot::Glider, false),
             Ability::Empty => None,
             Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
@@ -475,7 +469,8 @@ impl Ability {
                 Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
                 Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
                 Ability::SpeciesMovement => None, // TODO: Make not None
-                Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
+                Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
+                Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
                 Ability::GliderAux(_) => inst_ability(EquipSlot::Glider),
                 Ability::Empty => None,
             },
@@ -576,7 +571,8 @@ impl SpecifiedAbility {
                 Ability::ToolPrimary => inst_ability(EquipSlot::Glider),
                 Ability::ToolSecondary => inst_ability(EquipSlot::Glider),
                 Ability::SpeciesMovement => None,
-                Ability::MainWeaponAux(_) | Ability::OffWeaponAux(_) => None,
+                Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
+                Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
                 Ability::GliderAux(_) => inst_ability(EquipSlot::Glider),
                 Ability::Empty => None,
             },
