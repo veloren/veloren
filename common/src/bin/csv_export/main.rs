@@ -301,6 +301,11 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                         write_loot_spec(wtr, spec, chance)?;
                     }
                 },
+                LootSpec::Lottery(lottery) => {
+                    for (_weight, spec) in lottery {
+                        write_loot_spec(wtr, spec, "")?;
+                    }
+                },
             }
             Ok(())
         }
@@ -480,6 +485,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                     }
                 },
                 LootSpec::LootTable(_) => unreachable!(),
+                LootSpec::Lottery(_) => todo!(),
                 LootSpec::MultiDrop(_, _, _) => todo!(),
                 LootSpec::All(_) => todo!(),
             }

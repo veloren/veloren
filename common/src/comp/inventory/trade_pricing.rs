@@ -379,6 +379,15 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         .map(|(p1, asset, amount)| (*p1 * scale, asset.clone(), *amount))
                         .collect::<Vec<_>>()
                 },
+                LootSpec::Lottery(table) => {
+                    let unscaled = ProbabilityFile::from(table);
+                    let scale = p0 * rescale;
+                    unscaled
+                        .content
+                        .into_iter()
+                        .map(|(p1, asset, amount)| (p1 * scale, asset, amount))
+                        .collect::<Vec<_>>()
+                },
                 LootSpec::ModularWeapon {
                     tool,
                     material,

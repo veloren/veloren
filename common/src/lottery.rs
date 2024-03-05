@@ -207,7 +207,7 @@ pub fn distribute_many<T: Copy + Eq + Hash, I>(
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum LootSpec<T: AsRef<str>> {
     /// Asset specifier
     Item(T),
@@ -232,6 +232,8 @@ pub enum LootSpec<T: AsRef<str>> {
     /// Each category is evaluated, often used to have guaranteed quest Item +
     /// random reward
     All(Vec<LootSpec<T>>),
+    /// Like a `LootTable` but inline
+    Lottery(Vec<(f32, LootSpec<T>)>),
 }
 
 impl<T: AsRef<str>> LootSpec<T> {
@@ -289,6 +291,18 @@ impl<T: AsRef<str>> LootSpec<T> {
                 let loot_spec = Lottery::<LootSpec<String>>::load_expect(table.as_ref()).read();
                 for _ in 0..amount {
                     loot_spec.choose().to_items_inner(rng, 1, items)
+                }
+            },
+            Self::Lottery(table) => {
+                let lottery = Lottery::from(
+                    table
+                        .iter()
+                        .map(|(weight, spec)| (*weight, spec))
+                        .collect::<Vec<_>>(),
+                );
+
+                for _ in 0..amount {
+                    lottery.choose().to_items_inner(rng, 1, items)
                 }
             },
             Self::Nothing => {},
@@ -368,6 +382,8 @@ impl Default for LootSpec<String> {
 
 #[cfg(test)]
 pub mod tests {
+    use std::borrow::Borrow;
+
     use super::*;
     use crate::{assets, comp::Item};
     use assets::AssetExt;
@@ -426,12 +442,22 @@ pub mod tests {
                     validate_loot_spec(loot_spec);
                 }
             },
+            LootSpec::Lottery(table) => {
+                let lottery = Lottery::from(
+                    table
+                        .iter()
+                        .map(|(weight, spec)| (*weight, spec))
+                        .collect::<Vec<_>>(),
+                );
+
+                validate_table_contents(&lottery);
+            },
         }
     }
 
-    fn validate_table_contents(table: &Lottery<LootSpec<String>>) {
+    fn validate_table_contents<T: Borrow<LootSpec<String>>>(table: &Lottery<T>) {
         for (_, item) in table.iter() {
-            validate_loot_spec(item);
+            validate_loot_spec(item.borrow());
         }
     }
 

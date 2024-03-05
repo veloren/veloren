@@ -1,7 +1,15 @@
 [
     (1, All([
             Item("common.items.keys.terracotta_key_door"),
-            LootTable("common.loot_tables.dungeon.terracotta.cursekeeper_extra"),
+
+            Lottery([
+                // Weapons
+                (3.0, LootTable("common.loot_tables.weapons.tier-5")),
+                // Armor
+                (3.0, LootTable("common.loot_tables.armor.tier-5")),
+                // Misc
+                (0.25, Item("common.items.tool.instruments.steeltonguedrum")),
+            ]),
         ],
     )),
 ]
