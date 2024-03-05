@@ -3,7 +3,16 @@
             Item("common.items.keys.bone_key"),
             MultiDrop(Item("common.items.crafting_ing.animal_misc.fur"), 1, 2),
             MultiDrop(Item("common.items.crafting_ing.leather.thick_leather"), 1, 2),
-            LootTable("common.loot_tables.dungeon.adlet.elder_extra"),
+
+            Lottery([
+                // Weapons
+                (4.0, LootTable("common.loot_tables.weapons.tier-2")),
+                // Armor
+                (4.0, LootTable("common.loot_tables.armor.tier-2")),
+                // Misc
+                (2.0, Item("common.items.armor.misc.neck.pendant_of_protection")),
+                (0.5, Item("common.items.tool.instruments.wildskin_drum")),
+            ]),
         ],
     )),
 ]
