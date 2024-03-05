@@ -193,6 +193,7 @@ lazy_static! {
             BuffKind::Rooted => "rooted",
             BuffKind::Winded => "winded",
             BuffKind::Concussion => "concussion",
+            BuffKind::Staggered => "staggered",
         };
         let mut buff_parser = HashMap::new();
         for kind in BuffKind::iter() {

@@ -213,6 +213,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Rooted => "buff-rooted",
         BuffKind::Winded => "buff-winded",
         BuffKind::Concussion => "buff-concussion",
+        BuffKind::Staggered => "buff-staggered",
         // Neutral
         BuffKind::Polymorphed => "buff-polymorphed",
     }
@@ -326,7 +327,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::ScornfulTaunt
                         | BuffKind::Rooted
                         | BuffKind::Winded
-                        | BuffKind::Concussion => Cow::Borrowed(""),
+                        | BuffKind::Concussion
+                        | BuffKind::Staggered => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -380,7 +382,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::ScornfulTaunt
                             | BuffKind::Rooted
                             | BuffKind::Winded
-                            | BuffKind::Concussion => Cow::Borrowed(""),
+                            | BuffKind::Concussion
+                            | BuffKind::Staggered => Cow::Borrowed(""),
                         }
                     } else if let BuffKind::Saturation
                     | BuffKind::Regeneration
@@ -648,6 +651,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.hammer.helm_crusher" => imgs.hammer_helm_crusher,
         "common.abilities.hammer.iron_tempest" => imgs.hammer_iron_tempest,
         "common.abilities.hammer.dual_iron_tempest" => imgs.hammer_iron_tempest,
+        "common.abilities.hammer.upheaval" => imgs.hammer_upheaval,
+        "common.abilities.hammer.dual_upheaval" => imgs.hammer_upheaval,
         // Bow
         "common.abilities.bow.charged" => imgs.bow_m1,
         "common.abilities.bow.repeater" => imgs.bow_m2,

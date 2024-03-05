@@ -329,6 +329,7 @@ image_ids! {
         hammer_lung_pummel: "voxygen.element.skills.hammer.lung_pummel",
         hammer_helm_crusher: "voxygen.element.skills.hammer.helm_crusher",
         hammer_iron_tempest: "voxygen.element.skills.hammer.iron_tempest",
+        hammer_upheaval: "voxygen.element.skills.hammer.upheaval",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -821,6 +822,7 @@ image_ids! {
         debuff_rooted: "voxygen.element.de_buffs.debuff_rooted",
         debuff_winded: "voxygen.element.de_buffs.debuff_winded",
         debuff_concussion: "voxygen.element.de_buffs.debuff_concussion",
+        debuff_staggered: "voxygen.element.de_buffs.debuff_staggered",
 
         // Animation Frames
         // Buff Frame

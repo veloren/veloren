@@ -193,6 +193,10 @@ pub enum BuffKind {
     /// Prevents use of auxiliary abilities.
     /// Does not scale with strength
     Concussion,
+    /// Increases amount of poise damage received
+    /// Scales linearly with strength, 1.0 leads to 100% more poise damage
+    /// received
+    Staggered,
     // Complex, non-obvious buffs
     /// Changed into another body.
     Polymorphed,
@@ -258,7 +262,8 @@ impl BuffKind {
             | BuffKind::Heatstroke
             | BuffKind::Rooted
             | BuffKind::Winded
-            | BuffKind::Concussion => BuffDescriptor::SimpleNegative,
+            | BuffKind::Concussion
+            | BuffKind::Staggered => BuffDescriptor::SimpleNegative,
             BuffKind::Polymorphed => BuffDescriptor::Complex,
         }
     }
@@ -507,6 +512,7 @@ impl BuffKind {
                 BuffEffect::EnergyReward(1.0 - nn_scaling(data.strength)),
             ],
             BuffKind::Concussion => vec![BuffEffect::DisableAuxiliaryAbilities],
+            BuffKind::Staggered => vec![BuffEffect::PoiseReduction(-data.strength)],
         }
     }
 

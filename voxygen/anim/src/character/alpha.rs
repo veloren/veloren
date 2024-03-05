@@ -179,6 +179,62 @@ impl Animation for AlphaAnimation {
                 next.control.orientation.rotate_z(move2 * 0.4);
                 next.control.position += Vec3::new(0.0, 0.0, -12.0) * move2;
             },
+            Some("common.abilities.hammer.upheaval") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1base = move1;
+                let move1 = move1 * pullback;
+                let move2base = move2;
+                let move2 = move2 * pullback;
+                let move1_twist = move1 * (move1 * PI * 1.5).sin();
+
+                twist_forward(&mut next, move1_twist, 0.8, 0.3, 0.0, 0.4);
+                let angle1 = 5.0;
+                let angle2 = 4.0;
+                next.control
+                    .orientation
+                    .rotate_x(move1base * (2.0 - angle1) + move2base * (2.0 - angle2));
+                next.control.orientation.rotate_y(move1 * -0.8);
+                next.control
+                    .orientation
+                    .rotate_x(move1base * angle1 + move2base * angle2);
+                next.control.orientation.rotate_z(move1 * 1.0);
+                next.control.orientation.rotate_x(move2 * 6.0);
+                next.control.orientation.rotate_z(move2 * -0.6);
+                next.control.position += Vec3::new(-16.0, 0.0, 0.0) * move1;
+                next.control.position += Vec3::new(12.0, 0.0, 10.0) * move2;
+                twist_forward(&mut next, move2, 1.0, 0.9, 0.4, 1.1);
+            },
+            Some("common.abilities.hammer.dual_upheaval") => {
+                dual_wield_start(&mut next);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1base = move1;
+                let move1_return = (3.0 * move1).sin();
+                let move1 = move1 * pullback;
+                let move2base = move2;
+                let move2 = move2 * pullback;
+
+                next.control.orientation.rotate_x(4.0 * move1base);
+                next.control_l.orientation.rotate_z(move1 * 0.6);
+                next.control_r.orientation.rotate_z(move1 * -0.6);
+                next.control.position += Vec3::new(0.0, 6.0, 8.0) * move1_return;
+                next.control.orientation.rotate_x(3.5 * move2base);
+                next.control_l.orientation.rotate_z(move2 * -1.4);
+                next.control_r.orientation.rotate_z(move2 * 1.4);
+                next.control.position += Vec3::new(0.0, 12.0, 10.0) * move2;
+            },
             _ => {
                 let (move1, move2, _move3, move2h) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),

@@ -428,3 +428,9 @@ common-abilities-hammer-iron_tempest = Iron Tempest
 common-abilities-hammer-dual_iron_tempest = Iron Tempest
     .desc =
         Swing swiftly enough that your hammers becomes like a storm, scattering your enemies.
+common-abilities-hammer-upheaval = Upheaval
+    .desc =
+        Slam your hammer into your foe, knocking them into the air and leaving them vulnerable to staggers.
+common-abilities-hammer-dual_upheaval = Upheaval
+    .desc =
+        Slam your hammers into your foes, knocking them into the air and leaving them vulnerable to staggers.

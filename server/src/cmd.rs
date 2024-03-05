@@ -4554,7 +4554,8 @@ fn build_buff(
             | BuffKind::ScornfulTaunt
             | BuffKind::Rooted
             | BuffKind::Winded
-            | BuffKind::Concussion => {
+            | BuffKind::Concussion
+            | BuffKind::Staggered => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

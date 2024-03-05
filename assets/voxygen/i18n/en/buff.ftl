@@ -133,6 +133,9 @@ buff-winded = Winded
 ## Concussion
 buff-concussion = Concussion
     .desc = You have been hit hard on the head and have trouble focusing, preventing you from using some of your more complex attacks.
+## Staggered
+buff-title-staggered = Staggered
+buff-desc-staggered = You are off balance and more susceptible to heavy attacks.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

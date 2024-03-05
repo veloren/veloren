@@ -209,13 +209,13 @@
                     ((), (Hammer(IronTempest), "common.abilities.hammer.iron_tempest")),
                 ],
             ),
-            // Contextualized(
-            //     pseudo_id: "common.abilities.hammer.upheaval",
-            //     abilities: [
-            //         ((dual_wielding_same_kind: true), (Hammer(Upheaval), "common.abilities.hammer.dual_upheaval")),
-            //         ((), (Hammer(Upheaval), "common.abilities.hammer.upheaval")),
-            //     ],
-            // ),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.upheaval",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(Upheaval), "common.abilities.hammer.dual_upheaval")),
+                    ((), (Hammer(Upheaval), "common.abilities.hammer.upheaval")),
+                ],
+            ),
             // Simple(Hammer(Thunderclap), "common.abilities.hammer.thunderclap"),
             // Simple(Hammer(SeismicShock), "common.abilities.hammer.seismic_shock"),
             Contextualized(

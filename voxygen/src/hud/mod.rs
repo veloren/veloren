@@ -5280,6 +5280,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Rooted => imgs.debuff_rooted,
         BuffKind::Winded => imgs.debuff_winded,
         BuffKind::Concussion => imgs.debuff_concussion,
+        BuffKind::Staggered => imgs.debuff_staggered,
     }
 }
 
