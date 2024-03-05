@@ -261,10 +261,7 @@ impl ActiveAbilities {
                 AbilitySource::Weapons => inst_ability(EquipSlot::ActiveOffhand, true),
                 AbilitySource::Glider => None,
             },
-            Ability::GliderAux(_) => match source {
-                AbilitySource::Weapons => None,
-                AbilitySource::Glider => inst_ability(EquipSlot::Glider, false),
-            },
+            Ability::GliderAux(_) => inst_ability(EquipSlot::Glider, false),
             Ability::Empty => None,
             Ability::SpeciesMovement => matches!(body, Some(Body::Humanoid(_)))
                 .then(|| CharacterAbility::default_roll(char_state))
@@ -493,7 +490,7 @@ impl Ability {
                 Ability::SpeciesMovement => None, // TODO: Make not None
                 Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
                 Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
-                Ability::GliderAux(_) => None,
+                Ability::GliderAux(_) => inst_ability(EquipSlot::Glider),
                 Ability::Empty => None,
             },
         }
@@ -591,7 +588,7 @@ impl SpecifiedAbility {
                 Ability::SpeciesMovement => None, // TODO: Make not None
                 Ability::MainWeaponAux(_) => inst_ability(EquipSlot::ActiveMainhand),
                 Ability::OffWeaponAux(_) => inst_ability(EquipSlot::ActiveOffhand),
-                Ability::GliderAux(_) => None,
+                Ability::GliderAux(_) => inst_ability(EquipSlot::Glider),
                 Ability::Empty => None,
             },
         }
