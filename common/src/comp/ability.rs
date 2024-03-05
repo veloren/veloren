@@ -216,11 +216,26 @@ impl ActiveAbilities {
             context_index,
         };
 
+        // This function is an attempt to generalize ability handling
         let inst_ability = |slot: EquipSlot, offhand: bool| {
             ability_set(slot).and_then(|abilities| {
+                // We use AbilityInput here as an object to match on, which
+                // roughly corresponds to all needed data we need to know about
+                // ability.
                 use AbilityInput as I;
 
-                let dispatched = match input {
+                // Also we don't provide `ability`, nor `ability_input` as an
+                // argument to the closure, and that wins us a bit of code
+                // duplication we would need to do otherwise, but it's
+                // important that we can and do re-create all needed Ability
+                // information here to make decisions.
+                //
+                // For example, we should't take `input` argument provided to
+                // activate_abilities, because in case of Auxiliary abilities,
+                // it has wrong index.
+                //
+                // We could alternatively just take `ability`, but it works too.
+                let dispatched = match ability.try_ability_set_key()? {
                     I::Guard => abilities.guard(Some(skill_set), context),
                     I::Primary => abilities.primary(Some(skill_set), context),
                     I::Secondary => abilities.secondary(Some(skill_set), context),
@@ -297,55 +312,40 @@ impl ActiveAbilities {
     pub fn all_available_abilities(
         inv: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
-        char_state: Option<&CharacterState>,
     ) -> Vec<AuxiliaryAbility> {
-        let source = AbilitySource::determine(char_state);
+        let mut ability_buff = vec![];
+        // Check if uses combo of two "equal" weapons
+        let paired = inv
+            .and_then(|inv| {
+                let a = inv.equipped(EquipSlot::ActiveMainhand)?;
+                let b = inv.equipped(EquipSlot::ActiveOffhand)?;
 
-        match source {
-            AbilitySource::Weapons => {
-                // Check if uses combo of two "equal" weapons
-                let paired = inv
-                    .and_then(|inv| {
-                        let a = inv.equipped(EquipSlot::ActiveMainhand)?;
-                        let b = inv.equipped(EquipSlot::ActiveOffhand)?;
-
-                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) =
-                            (&*a.kind(), &*b.kind())
-                        {
-                            Some((a.ability_spec(), tool_a.kind, b.ability_spec(), tool_b.kind))
-                        } else {
-                            None
-                        }
-                    })
-                    .is_some_and(|(a_spec, a_kind, b_spec, b_kind)| {
-                        (a_spec, a_kind) == (b_spec, b_kind)
-                    });
-
-                // If equal, just take the first
-                if paired {
-                    Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveMainhand)
-                        .map(AuxiliaryAbility::MainWeapon)
-                        .collect()
+                if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) = (&*a.kind(), &*b.kind()) {
+                    Some((a.ability_spec(), tool_a.kind, b.ability_spec(), tool_b.kind))
                 } else {
-                    Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveMainhand)
-                        .map(AuxiliaryAbility::MainWeapon)
-                        .chain(
-                            Self::iter_available_abilities_on(
-                                inv,
-                                skill_set,
-                                EquipSlot::ActiveOffhand,
-                            )
-                            .map(AuxiliaryAbility::OffWeapon),
-                        )
-                        .collect()
+                    None
                 }
-            },
-            AbilitySource::Glider => {
-                Self::iter_available_abilities_on(inv, skill_set, EquipSlot::Glider)
-                    .map(AuxiliaryAbility::Glider)
-                    .collect()
-            },
+            })
+            .is_some_and(|(a_spec, a_kind, b_spec, b_kind)| (a_spec, a_kind) == (b_spec, b_kind));
+
+        // Push main weapon abilities
+        Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveMainhand)
+            .map(AuxiliaryAbility::MainWeapon)
+            .for_each(|a| ability_buff.push(a));
+
+        // Push secondary weapon abilities, if different
+        // If equal, just take the first
+        if !paired {
+            Self::iter_available_abilities_on(inv, skill_set, EquipSlot::ActiveOffhand)
+                .map(AuxiliaryAbility::OffWeapon)
+                .for_each(|a| ability_buff.push(a));
         }
+        // Push glider abilities
+        Self::iter_available_abilities_on(inv, skill_set, EquipSlot::Glider)
+            .map(AuxiliaryAbility::Glider)
+            .for_each(|a| ability_buff.push(a));
+
+        ability_buff
     }
 
     fn default_ability_set<'a>(
@@ -370,7 +370,7 @@ impl ActiveAbilities {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum AbilityInput {
     Guard,
     Primary,
@@ -394,9 +394,11 @@ pub enum Ability {
 }
 
 impl Ability {
-    // Reverses input this ability would have originated from
     // Used for generic ability dispatch (inst_ability) in this file
-    fn try_input(&self) -> Option<AbilityInput> {
+    //
+    // It does use AbilityInput to avoid creating just another enum, but it is
+    // semantically different.
+    fn try_ability_set_key(&self) -> Option<AbilityInput> {
         let input = match self {
             Self::ToolGuard => AbilityInput::Guard,
             Self::ToolPrimary => AbilityInput::Primary,
@@ -439,7 +441,7 @@ impl Ability {
             ability_set(slot).and_then(|abilities| {
                 use AbilityInput as I;
 
-                let dispatched = match self.try_input()? {
+                let dispatched = match self.try_ability_set_key()? {
                     I::Guard => abilities.guard(skill_set, context),
                     I::Primary => abilities.primary(skill_set, context),
                     I::Secondary => abilities.secondary(skill_set, context),
@@ -447,9 +449,8 @@ impl Ability {
                     I::Movement => return None,
                 };
 
-                dispatched
-                    .map(|(a, _)| a.id.as_str())
-                    .or_else(|| match self.try_input()? {
+                dispatched.map(|(a, _)| a.id.as_str()).or_else(|| {
+                    match self.try_ability_set_key()? {
                         I::Guard => abilities
                             .guard
                             .as_ref()
@@ -458,7 +459,8 @@ impl Ability {
                         I::Secondary => contextual_id(Some(&abilities.secondary)),
                         I::Auxiliary(index) => contextual_id(abilities.abilities.get(index)),
                         I::Movement => None,
-                    })
+                    }
+                })
             })
         };
 
@@ -553,7 +555,7 @@ impl SpecifiedAbility {
             ability_set(slot).and_then(|abilities| {
                 use AbilityInput as I;
 
-                let dispatched = match self.ability.try_input()? {
+                let dispatched = match self.ability.try_ability_set_key()? {
                     I::Guard => abilities.guard.as_ref(),
                     I::Primary => Some(&abilities.primary),
                     I::Secondary => Some(&abilities.secondary),

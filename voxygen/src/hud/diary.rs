@@ -924,7 +924,6 @@ impl<'a> Widget for Diary<'a> {
                 let abilities: Vec<_> = ActiveAbilities::all_available_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
-                    Some(self.char_state),
                 )
                 .into_iter()
                 .map(|a| {
