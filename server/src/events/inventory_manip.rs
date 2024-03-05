@@ -14,7 +14,7 @@ use common::{
         item::{self, flatten_counted_items, tool::AbilityMap, MaterialStatManifest},
         loot_owner::LootOwnerKind,
         slot::{self, Slot},
-        InventoryUpdate, LootOwner,
+        InventoryUpdate, LootOwner, PickupItem,
     },
     consts::MAX_PICKUP_RANGE,
     event::{
@@ -26,7 +26,7 @@ use common::{
     recipe::{
         self, default_component_recipe_book, default_recipe_book, default_repair_recipe_book,
     },
-    resources::Time,
+    resources::{ProgramTime, Time},
     terrain::{Block, SpriteKind},
     trade::Trades,
     uid::{IdMaps, Uid},
@@ -82,10 +82,11 @@ pub struct InventoryManipData<'a> {
     terrain: ReadExpect<'a, common::terrain::TerrainGrid>,
     id_maps: Read<'a, IdMaps>,
     time: Read<'a, Time>,
+    program_time: ReadExpect<'a, ProgramTime>,
     ability_map: ReadExpect<'a, AbilityMap>,
     msm: ReadExpect<'a, MaterialStatManifest>,
     inventories: WriteStorage<'a, comp::Inventory>,
-    items: WriteStorage<'a, comp::Item>,
+    items: WriteStorage<'a, comp::PickupItem>,
     inventory_updates: WriteStorage<'a, comp::InventoryUpdate>,
     light_emitters: WriteStorage<'a, comp::LightEmitter>,
     positions: ReadStorage<'a, comp::Pos>,
@@ -234,6 +235,12 @@ impl ServerEvent for InventoryManipEvent {
                         continue;
                     };
 
+                    const ITEM_ENTITY_EXPECT_MESSAGE: &str = "We know item_entity still exist \
+                                                              since we just successfully removed \
+                                                              its PickupItem component.";
+
+                    let (item, reinsert_item) = item.pick_up();
+
                     // NOTE: We dup the item for message purposes.
                     let item_msg = item.duplicate(&data.ability_map, &data.msm);
 
@@ -244,13 +251,25 @@ impl ServerEvent for InventoryManipEvent {
                         inventory.pickup_item(returned_item)
                     }) {
                         Err(returned_item) => {
+                            // If we had a `reinsert_item`, merge returned_item into it
+                            let returned_item = if let Some(mut reinsert_item) = reinsert_item {
+                                reinsert_item
+                                    .try_merge(PickupItem::new(returned_item, *data.program_time))
+                                    .expect(
+                                        "We know this item must be mergeable since it is a \
+                                         duplicate",
+                                    );
+                                reinsert_item
+                            } else {
+                                PickupItem::new(returned_item, *data.program_time)
+                            };
+
                             // Inventory was full, so we need to put back the item (note that we
                             // know there was no old item component for
                             // this entity).
-                            data.items.insert(item_entity, returned_item).expect(
-                                "We know item_entity exists since we just successfully removed \
-                                 its Item component.",
-                            );
+                            data.items
+                                .insert(item_entity, returned_item)
+                                .expect(ITEM_ENTITY_EXPECT_MESSAGE);
                             comp::InventoryUpdate::new(InventoryUpdateEvent::EntityCollectFailed {
                                 entity: pickup_uid,
                                 reason: CollectFailedReason::InventoryFull,
@@ -259,7 +278,14 @@ impl ServerEvent for InventoryManipEvent {
                         Ok(_) => {
                             // We succeeded in picking up the item, so we may now delete its old
                             // entity entirely.
-                            emitters.emit(DeleteEvent(item_entity));
+                            if let Some(reinsert_item) = reinsert_item {
+                                data.items
+                                    .insert(item_entity, reinsert_item)
+                                    .expect(ITEM_ENTITY_EXPECT_MESSAGE);
+                            } else {
+                                emitters.emit(DeleteEvent(item_entity));
+                            }
+
                             if let Some(group_id) = data.groups.get(entity) {
                                 announce_loot_to_group(
                                     group_id,
@@ -415,7 +441,7 @@ impl ServerEvent for InventoryManipEvent {
                             ),
                             vel: comp::Vel(Vec3::zero()),
                             ori: data.orientations.get(entity).copied().unwrap_or_default(),
-                            item,
+                            item: PickupItem::new(item, *data.program_time),
                             loot_owner: Some(LootOwner::new(LootOwnerKind::Player(*uid), false)),
                         });
                     }
@@ -445,14 +471,14 @@ impl ServerEvent for InventoryManipEvent {
                                 }
                                 if let Some(pos) = data.positions.get(entity) {
                                     dropped_items.extend(
-                                        inventory.equip(slot, *data.time).into_iter().map(|x| {
+                                        inventory.equip(slot, *data.time).into_iter().map(|item| {
                                             (
                                                 *pos,
                                                 data.orientations
                                                     .get(entity)
                                                     .copied()
                                                     .unwrap_or_default(),
-                                                x,
+                                                PickupItem::new(item, *data.program_time),
                                                 *uid,
                                             )
                                         }),
@@ -567,14 +593,14 @@ impl ServerEvent for InventoryManipEvent {
                                 if let Ok(Some(leftover_items)) =
                                     inventory.unequip(slot, *data.time)
                                 {
-                                    dropped_items.extend(leftover_items.into_iter().map(|x| {
+                                    dropped_items.extend(leftover_items.into_iter().map(|item| {
                                         (
                                             *pos,
                                             data.orientations
                                                 .get(entity)
                                                 .copied()
                                                 .unwrap_or_default(),
-                                            x,
+                                            PickupItem::new(item, *data.program_time),
                                             *uid,
                                         )
                                     }));
@@ -671,11 +697,11 @@ impl ServerEvent for InventoryManipEvent {
                         // If the stacks weren't mergable carry out a swap.
                         if !merged_stacks {
                             dropped_items.extend(inventory.swap(a, b, *data.time).into_iter().map(
-                                |x| {
+                                |item| {
                                     (
                                         *pos,
                                         data.orientations.get(entity).copied().unwrap_or_default(),
-                                        x,
+                                        PickupItem::new(item, *data.program_time),
                                         *uid,
                                     )
                                 },
@@ -743,7 +769,7 @@ impl ServerEvent for InventoryManipEvent {
                         dropped_items.push((
                             *pos,
                             data.orientations.get(entity).copied().unwrap_or_default(),
-                            item,
+                            PickupItem::new(item, *data.program_time),
                             *uid,
                         ));
                     }
@@ -771,7 +797,7 @@ impl ServerEvent for InventoryManipEvent {
                         dropped_items.push((
                             *pos,
                             data.orientations.get(entity).copied().unwrap_or_default(),
-                            item,
+                            PickupItem::new(item, *data.program_time),
                             *uid,
                         ));
                     }
@@ -949,18 +975,35 @@ impl ServerEvent for InventoryManipEvent {
                     // Attempt to insert items into inventory, dropping them if there is not enough
                     // space
                     let items_were_crafted = if let Some(crafted_items) = crafted_items {
+                        let mut dropped: Vec<PickupItem> = Vec::new();
                         for item in crafted_items {
                             if let Err(item) = inventory.push(item) {
-                                if let Some(pos) = data.positions.get(entity) {
-                                    dropped_items.push((
-                                        *pos,
-                                        data.orientations.get(entity).copied().unwrap_or_default(),
-                                        item.duplicate(&data.ability_map, &data.msm),
-                                        *uid,
-                                    ));
+                                let item = PickupItem::new(item, *data.program_time);
+                                if let Some(can_merge) =
+                                    dropped.iter_mut().find(|other| other.can_merge(&item))
+                                {
+                                    can_merge
+                                        .try_merge(item)
+                                        .expect("We know these items can be merged");
+                                } else {
+                                    dropped.push(item);
                                 }
                             }
                         }
+
+                        if !dropped.is_empty()
+                            && let Some(pos) = data.positions.get(entity)
+                        {
+                            for item in dropped {
+                                dropped_items.push((
+                                    *pos,
+                                    data.orientations.get(entity).copied().unwrap_or_default(),
+                                    item,
+                                    *uid,
+                                ));
+                            }
+                        }
+
                         true
                     } else {
                         false
@@ -990,16 +1033,9 @@ impl ServerEvent for InventoryManipEvent {
         // Drop items, Debug items should simply disappear when dropped
         for (pos, ori, mut item, owner) in dropped_items
             .into_iter()
-            .filter(|(_, _, i, _)| !matches!(i.quality(), item::Quality::Debug))
+            .filter(|(_, _, i, _)| !matches!(i.item().quality(), item::Quality::Debug))
         {
-            // If item is a container check inside of it for Debug items and remove them
-            item.slots_mut().iter_mut().for_each(|x| {
-                if let Some(contained_item) = &x {
-                    if matches!(contained_item.quality(), item::Quality::Debug) {
-                        std::mem::take(x);
-                    }
-                }
-            });
+            item.remove_debug_items();
 
             emitters.emit(CreateItemDropEvent {
                 pos,

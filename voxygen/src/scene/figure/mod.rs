@@ -40,8 +40,8 @@ use common::{
         item::{armor::ArmorKind, Hands, ItemKind, ToolKind},
         ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
         slot::ArmorSlot,
-        Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, Item,
-        ItemKey, Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PoiseState, Pos,
+        Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, ItemKey,
+        Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem, PoiseState, Pos,
         Scale, Vel,
     },
     link::Is,
@@ -889,7 +889,7 @@ impl FigureMgr {
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Inventory>().maybe(),
-            ecs.read_storage::<Item>().maybe(),
+            ecs.read_storage::<PickupItem>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
             (
                 ecs.read_storage::<Is<Rider>>().maybe(),
@@ -6361,7 +6361,7 @@ impl FigureMgr {
                     );
                 },
                 Body::ItemDrop(body) => {
-                    let item_key = item.map(ItemKey::from);
+                    let item_key = item.map(|item| ItemKey::from(item.item()));
                     let (model, skeleton_attr) = self.item_drop_model_cache.get_or_create_model(
                         renderer,
                         &mut self.atlas,
@@ -6558,7 +6558,7 @@ impl FigureMgr {
     ) {
         let ecs = state.ecs();
         let time = ecs.read_resource::<Time>();
-        let items = ecs.read_storage::<Item>();
+        let items = ecs.read_storage::<PickupItem>();
         (
                 &ecs.entities(),
                 &ecs.read_storage::<Pos>(),
@@ -6591,7 +6591,7 @@ impl FigureMgr {
                         _ => 0,
                     },
                     &filter_state,
-                    if matches!(body, Body::ItemDrop(_)) { items.get(entity).map(ItemKey::from) } else { None },
+                    if matches!(body, Body::ItemDrop(_)) { items.get(entity).map(|item| ItemKey::from(item.item())) } else { None },
                 ) {
                     drawer.draw(model, bound);
                 }
@@ -6734,7 +6734,7 @@ impl FigureMgr {
         let time = ecs.read_resource::<Time>();
         let character_state_storage = state.read_storage::<CharacterState>();
         let character_state = character_state_storage.get(viewpoint_entity);
-        let items = ecs.read_storage::<Item>();
+        let items = ecs.read_storage::<PickupItem>();
         for (entity, pos, body, _, inventory, scale, collider, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -6769,7 +6769,7 @@ impl FigureMgr {
                 },
                 |state| state.visible(),
                 if matches!(body, Body::ItemDrop(_)) {
-                    items.get(entity).map(ItemKey::from)
+                    items.get(entity).map(|item| ItemKey::from(item.item()))
                 } else {
                     None
                 },
@@ -6792,7 +6792,7 @@ impl FigureMgr {
 
         let character_state_storage = state.read_storage::<CharacterState>();
         let character_state = character_state_storage.get(viewpoint_entity);
-        let items = ecs.read_storage::<Item>();
+        let items = ecs.read_storage::<PickupItem>();
 
         if let (Some(pos), Some(body), scale) = (
             ecs.read_storage::<Pos>().get(viewpoint_entity),
@@ -6822,7 +6822,9 @@ impl FigureMgr {
                 0,
                 |state| state.visible(),
                 if matches!(body, Body::ItemDrop(_)) {
-                    items.get(viewpoint_entity).map(ItemKey::from)
+                    items
+                        .get(viewpoint_entity)
+                        .map(|item| ItemKey::from(item.item()))
                 } else {
                     None
                 },

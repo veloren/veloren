@@ -20,6 +20,7 @@ use common::{
     link::Is,
     mounting::Mount,
     outcome::Outcome,
+    resources::ProgramTime,
     terrain::{Block, SpriteKind, TerrainGrid},
     uid::Uid,
     util::Dir,
@@ -194,6 +195,7 @@ impl ServerEvent for MineBlockEvent {
         ReadExpect<'a, AbilityMap>,
         ReadExpect<'a, EventBus<CreateItemDropEvent>>,
         ReadExpect<'a, EventBus<Outcome>>,
+        ReadExpect<'a, ProgramTime>,
         WriteStorage<'a, comp::SkillSet>,
         ReadStorage<'a, Uid>,
     );
@@ -207,6 +209,7 @@ impl ServerEvent for MineBlockEvent {
             ability_map,
             create_item_drop_events,
             outcomes,
+            program_time,
             mut skill_sets,
             uids,
         ): Self::SystemData<'_>,
@@ -296,7 +299,7 @@ impl ServerEvent for MineBlockEvent {
                                 pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
                                 vel: comp::Vel(Vec3::zero()),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
-                                item,
+                                item: comp::PickupItem::new(item, *program_time),
                                 loot_owner,
                             });
                         }

@@ -12,6 +12,7 @@ use crate::{
     comp::inventory::InvSlot,
     effect::Effect,
     recipe::RecipeInput,
+    resources::ProgramTime,
     terrain::Block,
 };
 use common_i18n::Content;
@@ -474,6 +475,27 @@ pub struct Item {
     durability_lost: Option<u32>,
 }
 
+// An item that is dropped into the world an can be picked up. It can stack with
+// other items of the same type regardless of the stack limit, when picked up
+// the last item from the list is popped
+//
+// NOTE: Never call PickupItem::clone, it is only used for network
+// synchronization
+//
+// Invariants:
+//  - Any item that is not the last one must have an amount equal to its
+//    `max_amount()`
+//  - All items must be equal and have a zero amount of slots
+//  - The Item list must not be empty
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PickupItem {
+    items: Vec<Item>,
+    /// This [`ProgramTime`] only makes sense on the server
+    created_at: ProgramTime,
+    /// This [`ProgramTime`] only makes sense on the server
+    next_merge_check: ProgramTime,
+}
+
 use std::hash::{Hash, Hasher};
 
 // Used to find inventory item corresponding to hotbar slot
@@ -824,14 +846,13 @@ impl ItemDef {
 /// please don't rely on this for anything!
 impl PartialEq for Item {
     fn eq(&self, other: &Self) -> bool {
-        if let (ItemBase::Simple(self_def), ItemBase::Simple(other_def)) =
-            (&self.item_base, &other.item_base)
-        {
-            self_def.item_definition_id == other_def.item_definition_id
-                && self.components == other.components
-        } else {
-            false
-        }
+        (match (&self.item_base, &other.item_base) {
+            (ItemBase::Simple(our_def), ItemBase::Simple(other_def)) => {
+                our_def.item_definition_id == other_def.item_definition_id
+            },
+            (ItemBase::Modular(our_base), ItemBase::Modular(other_base)) => our_base == other_base,
+            _ => false,
+        }) && self.components() == other.components()
     }
 }
 
@@ -1270,37 +1291,6 @@ impl Item {
         }
     }
 
-    /// Return `true` if `other` can be merged into this item. This is generally
-    /// only possible if the item has a compatible item ID and is stackable,
-    /// along with any other similarity checks.
-    pub fn can_merge(&self, other: &Item) -> bool {
-        if self.is_stackable()
-            && let ItemBase::Simple(other_item_def) = &other.item_base
-            && self.is_same_item_def(other_item_def)
-            && u32::from(self.amount)
-                .checked_add(other.amount())
-                .filter(|&amount| amount <= self.max_amount())
-                .is_some()
-        {
-            true
-        } else {
-            false
-        }
-    }
-
-    /// Try to merge `other` into this item. This is generally only possible if
-    /// the item has a compatible item ID and is stackable, along with any
-    /// other similarity checks.
-    pub fn try_merge(&mut self, other: Item) -> Result<(), Item> {
-        if self.can_merge(&other) {
-            self.increase_amount(other.amount())
-                .expect("`can_merge` succeeded but `increase_amount` did not");
-            Ok(())
-        } else {
-            Err(other)
-        }
-    }
-
     pub fn num_slots(&self) -> u16 { self.item_base.num_slots() }
 
     /// NOTE: invariant that amount() ≤ max_amount(), 1 ≤ max_amount(),
@@ -1476,6 +1466,173 @@ impl Item {
             msm,
         )
     }
+
+    /// Checks if this item and another are suitable for grouping into the same
+    /// [`PickItem`].
+    ///
+    /// Also see [`Item::try_merge`].
+    pub fn can_merge(&self, other: &Self) -> bool {
+        if self.amount() > self.max_amount() || other.amount() > other.max_amount() {
+            error!("An item amount is over max_amount!");
+            return false;
+        }
+
+        (self == other)
+            && self.slots().iter().all(Option::is_none)
+            && other.slots().iter().all(Option::is_none)
+            && self.durability_lost() == other.durability_lost()
+    }
+
+    /// Checks if this item and another are suitable for grouping into the same
+    /// [`PickItem`] and combines stackable items if possible.
+    ///
+    /// If the sum of both amounts is larger than their max amount, a remainder
+    /// item is returned as `Ok(Some(remainder))`. A remainder item will
+    /// always be produced for non-stackable items.
+    ///
+    /// If the items are not suitable for grouping `Err(other)` will be
+    /// returned.
+    pub fn try_merge(&mut self, mut other: Self) -> Result<Option<Self>, Self> {
+        if self.can_merge(&other) {
+            let max_amount = self.max_amount();
+            debug_assert_eq!(
+                max_amount,
+                other.max_amount(),
+                "Mergeable items must have the same max_amount()"
+            );
+
+            // Additional amount `self` can hold
+            // For non-stackable items this is always zero
+            let to_fill_self = max_amount
+                .checked_sub(self.amount())
+                .expect("can_merge should ensure that amount() <= max_amount()");
+
+            if let Some(remainder) = other.amount().checked_sub(to_fill_self).filter(|r| *r > 0) {
+                self.set_amount(max_amount)
+                    .expect("max_amount() is always a valid amount.");
+                other.set_amount(remainder).expect(
+                    "We know remainder is more than 0 and less than or equal to max_amount()",
+                );
+                Ok(Some(other))
+            } else {
+                // If there would be no remainder, add the amounts!
+                self.increase_amount(other.amount())
+                    .expect("We know that we can at least add other.amount() to this item");
+                drop(other);
+                Ok(None)
+            }
+        } else {
+            Err(other)
+        }
+    }
+}
+
+impl PickupItem {
+    pub fn new(item: Item, time: ProgramTime) -> Self {
+        Self {
+            items: vec![item],
+            created_at: time,
+            next_merge_check: time,
+        }
+    }
+
+    /// Get a reference to the last item in this stack
+    ///
+    /// The amount of this item should *not* be used.
+    pub fn item(&self) -> &Item {
+        self.items
+            .last()
+            .expect("PickupItem without at least one item is an invariant")
+    }
+
+    pub fn created(&self) -> ProgramTime { self.created_at }
+
+    pub fn next_merge_check(&self) -> ProgramTime { self.next_merge_check }
+
+    pub fn next_merge_check_mut(&mut self) -> &mut ProgramTime { &mut self.next_merge_check }
+
+    // Get the total amount of items in here
+    pub fn amount(&self) -> u32 { self.items.iter().map(Item::amount).sum() }
+
+    /// Remove any debug items if this is a container, used before dropping an
+    /// item from an inventory
+    pub fn remove_debug_items(&mut self) {
+        for item in self.items.iter_mut() {
+            item.slots_mut().iter_mut().for_each(|container_slot| {
+                container_slot
+                    .take_if(|contained_item| matches!(contained_item.quality(), Quality::Debug));
+            });
+        }
+    }
+
+    pub fn can_merge(&self, other: &PickupItem) -> bool {
+        let self_item = self.item();
+        let other_item = other.item();
+
+        self_item.can_merge(other_item)
+    }
+
+    // Attempt to merge another PickupItem into this one, can only fail if
+    // `can_merge` returns false
+    pub fn try_merge(&mut self, mut other: PickupItem) -> Result<(), PickupItem> {
+        if self.can_merge(&other) {
+            // Pop the last item from `self` and `other` to merge them, as only the last
+            // items can have an amount != max_amount()
+            let mut self_last = self
+                .items
+                .pop()
+                .expect("PickupItem without at least one item is an invariant");
+            let other_last = other
+                .items
+                .pop()
+                .expect("PickupItem without at least one item is an invariant");
+
+            // Merge other_last into self_last
+            let merged = self_last
+                .try_merge(other_last)
+                .expect("We know these items can be merged");
+
+            debug_assert!(
+                other
+                    .items
+                    .iter()
+                    .chain(self.items.iter())
+                    .all(|item| item.amount() == item.max_amount()),
+                "All items before the last in `PickupItem` should have a full amount"
+            );
+
+            // We know all items except the last have a full amount, so we can safely append
+            // them here
+            self.items.append(&mut other.items);
+
+            debug_assert!(
+                merged.is_none() || self_last.amount() == self_last.max_amount(),
+                "Merged can only be `Some` if the origin was set to `max_amount()`"
+            );
+
+            // Push the potentially not fully-stacked item at the end
+            self.items.push(self_last);
+
+            // Push the remainder, merged is only `Some` if self_last was set to
+            // `max_amount()`
+            if let Some(remainder) = merged {
+                self.items.push(remainder);
+            }
+
+            Ok(())
+        } else {
+            Err(other)
+        }
+    }
+
+    pub fn pick_up(mut self) -> (Item, Option<Self>) {
+        (
+            self.items
+                .pop()
+                .expect("PickupItem without at least one item is an invariant"),
+            (!self.items.is_empty()).then_some(self),
+        )
+    }
 }
 
 pub fn flatten_counted_items<'a>(
@@ -1603,8 +1760,42 @@ impl ItemDesc for ItemDef {
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier { DurabilityMultiplier(1.0) }
 }
 
-impl Component for Item {
-    type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
+impl ItemDesc for PickupItem {
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        self.item().description()
+    }
+
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        self.item().name()
+    }
+
+    fn kind(&self) -> Cow<ItemKind> { self.item().kind() }
+
+    fn amount(&self) -> NonZeroU32 {
+        NonZeroU32::new(self.amount()).expect("Item having amount of 0 is invariant")
+    }
+
+    fn quality(&self) -> Quality { self.item().quality() }
+
+    fn num_slots(&self) -> u16 { self.item().num_slots() }
+
+    fn item_definition_id(&self) -> ItemDefinitionId<'_> { self.item().item_definition_id() }
+
+    fn tags(&self) -> Vec<ItemTag> { self.item().tags() }
+
+    fn is_modular(&self) -> bool { self.item().is_modular() }
+
+    fn components(&self) -> &[Item] { self.item().components() }
+
+    fn has_durability(&self) -> bool { self.item().has_durability() }
+
+    fn durability_lost(&self) -> Option<u32> { self.item().durability_lost() }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        self.item().stats_durability_multiplier()
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -1612,6 +1803,10 @@ pub struct ItemDrops(pub Vec<(u32, Item)>);
 
 impl Component for ItemDrops {
     type Storage = DenseVecStorage<Self>;
+}
+
+impl Component for PickupItem {
+    type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug)]

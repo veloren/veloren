@@ -22,7 +22,7 @@ use common::{
         misc::PortalData,
         object,
         skills::{GeneralSkill, Skill},
-        ChatType, Content, Group, Inventory, Item, LootOwner, Object, Player, Poise, Presence,
+        ChatType, Content, Group, Inventory, LootOwner, Object, Player, Poise, Presence,
         PresenceKind, BASE_ABILITY_LIMIT,
     },
     effect::Effect,
@@ -74,7 +74,7 @@ pub trait StateExt {
         pos: comp::Pos,
         ori: comp::Ori,
         vel: comp::Vel,
-        item: Item,
+        item: comp::PickupItem,
         loot_owner: Option<LootOwner>,
     ) -> Option<EcsEntity>;
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
@@ -342,54 +342,44 @@ impl StateExt for State {
         pos: comp::Pos,
         ori: comp::Ori,
         vel: comp::Vel,
-        item: Item,
+        world_item: comp::PickupItem,
         loot_owner: Option<LootOwner>,
     ) -> Option<EcsEntity> {
+        // Attempt merging with any nearby entities if possible
         {
-            const MAX_MERGE_DIST: f32 = 1.5;
+            use crate::sys::item::get_nearby_mergeable_items;
 
-            // First, try to identify possible candidates for item merging
-            // We limit our search to just a few blocks and we prioritise merging with the
-            // closest
             let positions = self.ecs().read_storage::<comp::Pos>();
             let loot_owners = self.ecs().read_storage::<LootOwner>();
-            let mut items = self.ecs().write_storage::<Item>();
-            let mut nearby_items = self
-                .ecs()
-                .read_resource::<common::CachedSpatialGrid>()
-                .0
-                .in_circle_aabr(pos.0.xy(), MAX_MERGE_DIST)
-                .filter(|entity| items.contains(*entity))
-                .filter_map(|entity| {
-                    Some((entity, positions.get(entity)?.0.distance_squared(pos.0)))
-                })
-                .filter(|(_, dist_sqrd)| *dist_sqrd < MAX_MERGE_DIST.powi(2))
-                .collect::<Vec<_>>();
-            nearby_items.sort_by_key(|(_, dist_sqrd)| (dist_sqrd * 1000.0) as i32);
-            for (nearby, _) in nearby_items {
-                // Only merge if the loot owner is the same
-                if loot_owners.get(nearby).map(|lo| lo.owner()) == loot_owner.map(|lo| lo.owner())
-                    && items
-                        .get(nearby)
-                        .map_or(false, |nearby_item| nearby_item.can_merge(&item))
-                {
-                    // Merging can occur! Perform the merge:
-                    items
-                        .get_mut(nearby)
-                        .expect("we know that the item exists")
-                        .try_merge(item)
-                        .expect("`try_merge` should succeed because `can_merge` returned `true`");
-                    return None;
-                }
+            let mut items = self.ecs().write_storage::<comp::PickupItem>();
+            let entities = self.ecs().entities();
+            let spatial_grid = self.ecs().read_resource();
+
+            let nearby_items = get_nearby_mergeable_items(
+                &world_item,
+                &pos,
+                loot_owner.as_ref(),
+                (&entities, &items, &positions, &loot_owners, &spatial_grid),
+            );
+
+            // Merge the nearest item if possible, skip to creating a drop otherwise
+            if let Some((mergeable_item, _)) =
+                nearby_items.min_by_key(|(_, dist)| (dist * 1000.0) as i32)
+            {
+                items
+                    .get_mut(mergeable_item)
+                    .expect("we know that the item exists")
+                    .try_merge(world_item)
+                    .expect("`try_merge` should succeed because `can_merge` returned `true`");
+                return None;
             }
-            // Only if merging items fails do we give up and create a new item
         }
 
         let spawned_at = *self.ecs().read_resource::<Time>();
 
-        let item_drop = comp::item_drop::Body::from(&item);
+        let item_drop = comp::item_drop::Body::from(world_item.item());
         let body = comp::Body::ItemDrop(item_drop);
-        let light_emitter = match &*item.kind() {
+        let light_emitter = match &*world_item.item().kind() {
             ItemKind::Lantern(lantern) => Some(comp::LightEmitter {
                 col: lantern.color(),
                 strength: lantern.strength(),
@@ -401,7 +391,7 @@ impl StateExt for State {
         Some(
             self.ecs_mut()
                 .create_entity_synced()
-                .with(item)
+                .with(world_item)
                 .with(pos)
                 .with(ori)
                 .with(vel)

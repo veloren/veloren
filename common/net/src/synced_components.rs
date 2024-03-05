@@ -29,7 +29,7 @@ macro_rules! synced_components {
             poise: Poise,
             light_emitter: LightEmitter,
             loot_owner: LootOwner,
-            item: Item,
+            item: PickupItem,
             scale: Scale,
             group: Group,
             is_mount: IsMount,
@@ -166,7 +166,7 @@ impl NetSync for LootOwner {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
-impl NetSync for Item {
+impl NetSync for PickupItem {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

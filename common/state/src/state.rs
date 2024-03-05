@@ -234,7 +234,7 @@ impl State {
         ecs.register::<comp::Poise>();
         ecs.register::<comp::CanBuild>();
         ecs.register::<comp::LightEmitter>();
-        ecs.register::<comp::Item>();
+        ecs.register::<comp::PickupItem>();
         ecs.register::<comp::Scale>();
         ecs.register::<Is<Mount>>();
         ecs.register::<Is<Rider>>();

@@ -49,7 +49,7 @@ use common::{
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
-    resources::{BattleMode, PlayerPhysicsSettings, Secs, Time, TimeOfDay, TimeScale},
+    resources::{BattleMode, PlayerPhysicsSettings, ProgramTime, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     tether::Tethered,
@@ -494,7 +494,7 @@ fn handle_drop_all(
             )),
             comp::Ori::default(),
             comp::Vel(vel),
-            item,
+            comp::PickupItem::new(item, ProgramTime(server.state.get_program_time())),
             None,
         );
     }

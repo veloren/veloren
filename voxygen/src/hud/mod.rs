@@ -102,13 +102,13 @@ use common::{
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
-        BuffData, BuffKind, Health, Item, MapMarkerChange, PresenceKind,
+        BuffData, BuffKind, Health, Item, MapMarkerChange, PickupItem, PresenceKind,
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
     mounting::{Mount, Rider, VolumePos},
     outcome::Outcome,
-    resources::{Secs, Time},
+    resources::{ProgramTime, Secs, Time},
     slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
@@ -1495,7 +1495,7 @@ impl Hud {
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
-            let items = ecs.read_storage::<Item>();
+            let items = ecs.read_storage::<PickupItem>();
             let inventories = ecs.read_storage::<comp::Inventory>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
             let entities = ecs.entities();
@@ -1992,8 +1992,8 @@ impl Hud {
             let pulse = self.pulse;
 
             let make_overitem =
-                |item: &Item, pos, distance, properties, fonts, interaction_options| {
-                    let quality = get_quality_col(item);
+                |item: &PickupItem, pos, distance, properties, fonts, interaction_options| {
+                    let quality = get_quality_col(item.item());
 
                     // Item
                     overitem::Overitem::new(
@@ -2201,7 +2201,7 @@ impl Hud {
                     item.set_amount(amount.clamp(1, item.max_amount()))
                         .expect("amount >= 1 and <= max_amount is always a valid amount");
                     make_overitem(
-                        &item,
+                        &PickupItem::new(item, ProgramTime(0.0)),
                         over_pos,
                         pos.distance_squared(player_pos),
                         overitem_properties,

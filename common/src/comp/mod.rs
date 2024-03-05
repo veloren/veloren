@@ -78,7 +78,7 @@ pub use self::{
             self,
             item_key::ItemKey,
             tool::{self, AbilityItem},
-            Item, ItemConfig, ItemDrops,
+            Item, ItemConfig, ItemDrops, PickupItem,
         },
         slot, CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },
