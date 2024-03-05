@@ -87,6 +87,13 @@ impl Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+        // reset booster
+        update.character = CharacterState::Glide(Self {
+            booster: None,
+            ..*self
+        });
+
+        let gained_booster = self.booster;
 
         handle_glider_input_or(data, &mut update, output_events, |_, _| {});
 
@@ -94,17 +101,6 @@ impl CharacterBehavior for Data {
         if !matches!(update.character, CharacterState::Glide { .. }) {
             return update;
         }
-
-        // Alternatively, we could end up in the same state, but gained booster
-        let gained_booster = if let CharacterState::Glide(Data {
-            booster: Some(booster),
-            ..
-        }) = update.character
-        {
-            Some(booster)
-        } else {
-            None
-        };
 
         // If player is on the ground and effectively doesn't have any gliding
         // power left, end the glide
@@ -240,13 +236,23 @@ impl CharacterBehavior for Data {
                 }
             };
 
+            // Don't override gained booster, if any, otherwise set to None
+            let next_booster = if let CharacterState::Glide(Data {
+                booster: Some(booster),
+                ..
+            }) = update.character
+            {
+                Some(booster)
+            } else {
+                None
+            };
+
             update.character = CharacterState::Glide(Self {
                 ori,
                 last_vel: *data.vel,
                 timer: tick_attack_or_default(data, self.timer, None),
                 inputs_disabled,
-                // booster is consumed, set to None
-                booster: None,
+                booster: next_booster,
                 ..*self
             });
         }
