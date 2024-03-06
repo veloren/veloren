@@ -10,7 +10,7 @@ use common::{
 use crossbeam_channel::{self, TryIter};
 use rusqlite::Connection;
 use std::sync::{Arc, RwLock};
-use tracing::error;
+use tracing::{debug, error};
 
 pub(crate) type CharacterListResult = Result<Vec<CharacterItem>, PersistenceError>;
 pub(crate) type CharacterCreationResult =
@@ -101,9 +101,11 @@ impl CharacterLoader {
                     conn.update_log_mode(&settings);
 
                     let response = CharacterLoader::process_request(request, &conn);
+                    debug!("Processing complete");
                     if let Err(e) = internal_tx.send(response) {
                         error!(?e, "Could not send character loader response");
                     }
+                    debug!("Sent character loader response");
                 }
             })
             .unwrap();
@@ -126,6 +128,7 @@ impl CharacterLoader {
             target_entity: entity,
             response_kind: match kind {
                 CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
+                    debug!(?player_uuid, "Loading character list");
                     CharacterScreenResponseKind::CharacterList(load_character_list(
                         &player_uuid,
                         connection,
@@ -135,6 +138,7 @@ impl CharacterLoader {
                     player_uuid,
                     character_id,
                 } => {
+                    debug!(?player_uuid, ?character_id, "Loading character data");
                     let result = load_character_data(player_uuid, character_id, connection);
                     if result.is_err() {
                         error!(
@@ -151,6 +155,7 @@ impl CharacterLoader {
     /// Loads a list of characters belonging to the player identified by
     /// `player_uuid`
     pub fn load_character_list(&self, entity: specs::Entity, player_uuid: String) {
+        debug!(?player_uuid, "Requesting character list");
         if let Err(e) = self
             .update_tx
             .send((entity, CharacterLoaderRequestKind::LoadCharacterList {
@@ -168,6 +173,7 @@ impl CharacterLoader {
         player_uuid: String,
         character_id: CharacterId,
     ) {
+        debug!(?character_id, ?player_uuid, "Requesting character data");
         if let Err(e) =
             self.update_tx
                 .send((entity, CharacterLoaderRequestKind::LoadCharacterData {
