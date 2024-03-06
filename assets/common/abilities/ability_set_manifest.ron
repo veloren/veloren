@@ -535,6 +535,13 @@
         secondary: Simple(None, "common.abilities.custom.quadlowbasic.singlestrike"),
         abilities: [],
     ),
+    Custom("Rocksnapper"): (
+        primary: Simple(None, "common.abilities.custom.rocksnapper.triplestrike"),
+        secondary: Simple(None, "common.abilities.custom.rocksnapper.singlestrike"),
+        abilities: [
+            Simple(None, "common.abilities.custom.rocksnapper.dash"),
+        ],
+    ),
     Custom("Quad Low Beam"): (
         primary: Simple(None, "common.abilities.custom.quadlowbeam.lifestealbeam"),
         secondary: Simple(None, "common.abilities.custom.quadlowbreathe.triplestrike"),

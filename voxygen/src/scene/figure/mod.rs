@@ -3098,6 +3098,7 @@ impl FigureMgr {
                             anim::quadruped_low::DashAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     rel_vel.magnitude(),
                                     time,
                                     Some(s.stage_section),
