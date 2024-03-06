@@ -1,5 +1,5 @@
-#[cfg(not(feature = "worldgen"))]
-use crate::test_world::{IndexOwned, World};
+#[cfg(feature = "worldgen")]
+use crate::rtsim::RtSim;
 use crate::{
     client::Client,
     comp::{
@@ -11,11 +11,12 @@ use crate::{
     error,
     events::entity_creation::handle_create_npc,
     pet::tame_pet,
-    rtsim::RtSim,
     state_ext::StateExt,
     sys::terrain::{NpcData, SpawnEntityData, SAFE_ZONE_RADIUS},
     Server, Settings, SpawnPoint,
 };
+#[cfg(feature = "worldgen")]
+use common::rtsim::{Actor, RtSimEntity};
 use common::{
     combat,
     combat::{AttackSource, DamageContributor},
@@ -48,7 +49,6 @@ use common::{
     mounting::{Rider, VolumeRider},
     outcome::{HealthChangeInfo, Outcome},
     resources::{ProgramTime, Secs, Time},
-    rtsim::{Actor, RtSimEntity},
     spiral::Spiral2d,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
@@ -62,11 +62,14 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
+#[cfg(feature = "worldgen")]
+use specs::WriteExpect;
 use specs::{
     shred, DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read,
-    ReadExpect, ReadStorage, SystemData, WorldExt, Write, WriteExpect, WriteStorage,
+    ReadExpect, ReadStorage, SystemData, WorldExt, Write, WriteStorage,
 };
-use std::{collections::HashMap, iter, sync::Arc, time::Duration};
+#[cfg(feature = "worldgen")] use std::sync::Arc;
+use std::{collections::HashMap, iter, time::Duration};
 use tracing::{debug, warn};
 use vek::{Vec2, Vec3};
 #[cfg(feature = "worldgen")]
@@ -296,7 +299,9 @@ pub struct DestroyEventData<'a> {
     ability_map: ReadExpect<'a, AbilityMap>,
     time: Read<'a, Time>,
     program_time: ReadExpect<'a, ProgramTime>,
+    #[cfg(feature = "worldgen")]
     world: ReadExpect<'a, Arc<World>>,
+    #[cfg(feature = "worldgen")]
     index: ReadExpect<'a, IndexOwned>,
     areas_container: Read<'a, AreasContainer<NoDurabilityArea>>,
     outcomes: Read<'a, EventBus<Outcome>>,
@@ -323,7 +328,9 @@ pub struct DestroyEventData<'a> {
     alignments: ReadStorage<'a, Alignment>,
     stats: ReadStorage<'a, Stats>,
     agents: ReadStorage<'a, Agent>,
+    #[cfg(feature = "worldgen")]
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
 }
 
@@ -716,6 +723,7 @@ impl ServerEvent for DestroyEvent {
                 }
             }
 
+            #[cfg(feature = "worldgen")]
             let entity_as_actor = |entity| {
                 if let Some(rtsim_entity) = data.rtsim_entities.get(entity).copied() {
                     Some(Actor::Npc(rtsim_entity.0))
@@ -727,6 +735,7 @@ impl ServerEvent for DestroyEvent {
                     None
                 }
             };
+            #[cfg(feature = "worldgen")]
             let actor = entity_as_actor(ev.entity);
 
             #[cfg(feature = "worldgen")]

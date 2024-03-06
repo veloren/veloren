@@ -1,5 +1,5 @@
 #[cfg(not(feature = "worldgen"))]
-use crate::test_world::{IndexOwned, World};
+use crate::test_world::World;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
@@ -10,6 +10,8 @@ use crate::{
     persistence::{character_loader::CharacterLoader, character_updater::CharacterUpdater},
     EditableSettings,
 };
+#[cfg(feature = "worldgen")]
+use common::terrain::TerrainChunkSize;
 use common::{
     comp::{Admin, AdminRole, ChatType, Player, Presence, Waypoint},
     event::{
@@ -18,14 +20,15 @@ use common::{
     },
     event_emitters,
     resources::Time,
-    terrain::TerrainChunkSize,
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use specs::{Entities, Join, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use specs::{
+    shred, Entities, Join, ReadExpect, ReadStorage, SystemData, WriteExpect, WriteStorage,
+};
 use std::sync::{atomic::Ordering, Arc};
-use tracing::{debug, error};
+use tracing::debug;
 
 event_emitters! {
     struct Events[Emitters] {
@@ -54,7 +57,7 @@ impl Sys {
         automod: &AutoMod,
         msg: ClientGeneral,
         time: Time,
-        index: &ReadExpect<'_, IndexOwned>,
+        #[cfg(feature = "worldgen")] index: &ReadExpect<'_, IndexOwned>,
         world: &ReadExpect<'_, Arc<World>>,
     ) -> Result<(), crate::error::Error> {
         let mut send_join_messages = || -> Result<(), crate::error::Error> {
@@ -165,7 +168,10 @@ impl Sys {
                 mainhand,
                 offhand,
                 body,
+                #[cfg(feature = "worldgen")]
                 start_site,
+                #[cfg(not(feature = "worldgen"))]
+                    start_site: _,
             } => {
                 if censor.check(&alias) {
                     debug!(?alias, "denied alias as it contained a banned word");
@@ -188,7 +194,7 @@ impl Sys {
                             .find(|(_, site)| site.site_tmp.map(|i| i.id()) == Some(site_idx))
                             .map(Some)
                             .unwrap_or_else(|| {
-                                error!(
+                                tracing::error!(
                                     "Tried to create character with starting site index {}, but \
                                      such a site does not exist",
                                     site_idx
@@ -272,73 +278,59 @@ impl Sys {
     }
 }
 
+#[derive(SystemData)]
+pub struct Data<'a> {
+    entities: Entities<'a>,
+    events: Events<'a>,
+    character_loader: ReadExpect<'a, CharacterLoader>,
+    character_updater: WriteExpect<'a, CharacterUpdater>,
+    uids: ReadStorage<'a, Uid>,
+    clients: WriteStorage<'a, Client>,
+    players: ReadStorage<'a, Player>,
+    admins: ReadStorage<'a, Admin>,
+    presences: ReadStorage<'a, Presence>,
+    editable_settings: ReadExpect<'a, EditableSettings>,
+    censor: ReadExpect<'a, Arc<censor::Censor>>,
+    automod: ReadExpect<'a, AutoMod>,
+    time: ReadExpect<'a, Time>,
+    #[cfg(feature = "worldgen")]
+    index: ReadExpect<'a, IndexOwned>,
+    world: ReadExpect<'a, Arc<World>>,
+}
+
 /// This system will handle new messages from clients
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        Entities<'a>,
-        Events<'a>,
-        ReadExpect<'a, CharacterLoader>,
-        WriteExpect<'a, CharacterUpdater>,
-        ReadStorage<'a, Uid>,
-        WriteStorage<'a, Client>,
-        ReadStorage<'a, Player>,
-        ReadStorage<'a, Admin>,
-        ReadStorage<'a, Presence>,
-        ReadExpect<'a, EditableSettings>,
-        ReadExpect<'a, Arc<censor::Censor>>,
-        ReadExpect<'a, AutoMod>,
-        ReadExpect<'a, Time>,
-        ReadExpect<'a, IndexOwned>,
-        ReadExpect<'a, Arc<World>>,
-    );
+    type SystemData = Data<'a>;
 
     const NAME: &'static str = "msg::character_screen";
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    fn run(
-        _job: &mut Job<Self>,
-        (
-            entities,
-            events,
-            character_loader,
-            mut character_updater,
-            uids,
-            mut clients,
-            players,
-            admins,
-            presences,
-            editable_settings,
-            censor,
-            automod,
-            time,
-            index,
-            world,
-        ): Self::SystemData,
-    ) {
-        let mut emitters = events.get_emitters();
+    fn run(_job: &mut Job<Self>, mut data: Self::SystemData) {
+        let mut emitters = data.events.get_emitters();
 
-        for (entity, client) in (&entities, &mut clients).join() {
+        for (entity, client) in (&data.entities, &mut data.clients).join() {
             let _ = super::try_recv_all(client, 1, |client, msg| {
                 Self::handle_client_character_screen_msg(
                     &mut emitters,
                     entity,
                     client,
-                    &character_loader,
-                    &mut character_updater,
-                    &uids,
-                    &players,
-                    &admins,
-                    &presences,
-                    &editable_settings,
-                    &censor,
-                    &automod,
+                    &data.character_loader,
+                    &mut data.character_updater,
+                    &data.uids,
+                    &data.players,
+                    &data.admins,
+                    &data.presences,
+                    &data.editable_settings,
+                    &data.censor,
+                    &data.automod,
                     msg,
-                    *time,
-                    &index,
-                    &world,
+                    *data.time,
+                    #[cfg(feature = "worldgen")]
+                    &data.index,
+                    &data.world,
                 )
             });
         }

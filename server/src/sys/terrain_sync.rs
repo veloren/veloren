@@ -59,8 +59,6 @@ impl<'a> System<'a> for Sys {
             &presences,
             &clients,
         );
-        #[cfg(not(feature = "worldgen"))]
-        let presences_position_entities: Vec<((vek::Vec2<i16>, i32), specs::Entity)> = Vec::new();
         let real_max_view_distance =
             super::terrain::convert_to_loaded_vd(u32::MAX, max_view_distance);
 

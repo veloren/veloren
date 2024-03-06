@@ -3,8 +3,6 @@ use super::{
     group_manip::{self, update_map_markers},
     ServerEvent,
 };
-#[cfg(not(feature = "worldgen"))]
-use crate::test_world::IndexOwned;
 use crate::{client::Client, Settings};
 use common::{
     comp::{
@@ -20,9 +18,10 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
+#[cfg(feature = "worldgen")]
+use specs::ReadExpect;
 use specs::{
-    shred, DispatcherBuilder, Entities, Entity, Read, ReadExpect, ReadStorage, SystemData, Write,
-    WriteStorage,
+    shred, DispatcherBuilder, Entities, Entity, Read, ReadStorage, SystemData, Write, WriteStorage,
 };
 use std::time::{Duration, Instant};
 use tracing::{error, warn};
@@ -226,6 +225,7 @@ pub struct InviteResponseData<'a> {
     entities: Entities<'a>,
     group_manager: Write<'a, GroupManager>,
     trades: Write<'a, Trades>,
+    #[cfg(feature = "worldgen")]
     index: ReadExpect<'a, IndexOwned>,
     id_maps: Read<'a, IdMaps>,
     invites: WriteStorage<'a, Invite>,

@@ -6,9 +6,10 @@ use tracing::error;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
+#[cfg(feature = "worldgen")] use crate::rtsim;
 use crate::{
     chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry, client::Client,
-    presence::RepositionOnChunkLoad, rtsim, settings::Settings, ChunkRequest, Tick,
+    presence::RepositionOnChunkLoad, settings::Settings, ChunkRequest, Tick,
 };
 use common::{
     calendar::Calendar,
@@ -35,8 +36,8 @@ use core::cmp::Reverse;
 use itertools::Itertools;
 use rayon::{iter::Either, prelude::*};
 use specs::{
-    storage::GenericReadStorage, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect,
-    ReadStorage, Write, WriteExpect, WriteStorage,
+    shred, storage::GenericReadStorage, Entities, Entity, Join, LendJoin, ParJoin, Read,
+    ReadExpect, ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
 };
 use std::{f32::consts::TAU, sync::Arc};
 use vek::*;
@@ -60,6 +61,34 @@ event_emitters! {
     }
 }
 
+#[derive(SystemData)]
+pub struct Data<'a> {
+    events: Events<'a>,
+    tick: Read<'a, Tick>,
+    server_settings: Read<'a, Settings>,
+    time_of_day: Read<'a, TimeOfDay>,
+    calendar: Read<'a, Calendar>,
+    slow_jobs: ReadExpect<'a, SlowJobPool>,
+    index: ReadExpect<'a, IndexOwned>,
+    world: ReadExpect<'a, Arc<World>>,
+    chunk_send_bus: ReadExpect<'a, EventBus<ChunkSendEntry>>,
+    chunk_generator: WriteExpect<'a, ChunkGenerator>,
+    terrain: WriteExpect<'a, TerrainGrid>,
+    terrain_changes: Write<'a, TerrainChanges>,
+    chunk_requests: Write<'a, Vec<ChunkRequest>>,
+    rtsim: RtSimData<'a>,
+    #[cfg(feature = "persistent_world")]
+    terrain_persistence: TerrainPersistenceData<'a>,
+    positions: WriteStorage<'a, Pos>,
+    presences: ReadStorage<'a, Presence>,
+    clients: ReadStorage<'a, Client>,
+    entities: Entities<'a>,
+    reposition_on_load: WriteStorage<'a, RepositionOnChunkLoad>,
+    forced_updates: WriteStorage<'a, ForceUpdate>,
+    waypoints: WriteStorage<'a, Waypoint>,
+    time: ReadExpect<'a, Time>,
+}
+
 /// This system will handle loading generated chunks and unloading
 /// unneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
@@ -70,80 +99,29 @@ event_emitters! {
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
-    type SystemData = (
-        Events<'a>,
-        Read<'a, Tick>,
-        Read<'a, Settings>,
-        Read<'a, TimeOfDay>,
-        Read<'a, Calendar>,
-        ReadExpect<'a, SlowJobPool>,
-        ReadExpect<'a, IndexOwned>,
-        ReadExpect<'a, Arc<World>>,
-        ReadExpect<'a, EventBus<ChunkSendEntry>>,
-        WriteExpect<'a, ChunkGenerator>,
-        WriteExpect<'a, TerrainGrid>,
-        Write<'a, TerrainChanges>,
-        Write<'a, Vec<ChunkRequest>>,
-        RtSimData<'a>,
-        TerrainPersistenceData<'a>,
-        WriteStorage<'a, Pos>,
-        ReadStorage<'a, Presence>,
-        ReadStorage<'a, Client>,
-        Entities<'a>,
-        WriteStorage<'a, RepositionOnChunkLoad>,
-        WriteStorage<'a, ForceUpdate>,
-        WriteStorage<'a, Waypoint>,
-        ReadExpect<'a, Time>,
-    );
+    type SystemData = Data<'a>;
 
     const NAME: &'static str = "terrain";
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    fn run(
-        _job: &mut Job<Self>,
-        (
-            events,
-            tick,
-            server_settings,
-            time_of_day,
-            calendar,
-            slow_jobs,
-            index,
-            world,
-            chunk_send_bus,
-            mut chunk_generator,
-            mut terrain,
-            mut terrain_changes,
-            mut chunk_requests,
-            mut rtsim,
-            mut _terrain_persistence,
-            mut positions,
-            presences,
-            clients,
-            entities,
-            mut reposition_on_load,
-            mut force_update,
-            mut waypoints,
-            time,
-        ): Self::SystemData,
-    ) {
-        let mut emitters = events.get_emitters();
+    fn run(_job: &mut Job<Self>, mut data: Self::SystemData) {
+        let mut emitters = data.events.get_emitters();
 
         // Generate requested chunks
         //
         // Submit requests for chunks right before receiving finished chunks so that we
         // don't create duplicate work for chunks that just finished but are not
         // yet added to the terrain.
-        chunk_requests.drain(..).for_each(|request| {
-            chunk_generator.generate_chunk(
+        data.chunk_requests.drain(..).for_each(|request| {
+            data.chunk_generator.generate_chunk(
                 Some(request.entity),
                 request.key,
-                &slow_jobs,
-                Arc::clone(&world),
-                &rtsim,
-                index.clone(),
-                (*time_of_day, calendar.clone()),
+                &data.slow_jobs,
+                Arc::clone(&data.world),
+                &data.rtsim,
+                data.index.clone(),
+                (*data.time_of_day, data.calendar.clone()),
             )
         });
 
@@ -151,12 +129,12 @@ impl<'a> System<'a> for Sys {
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();
-        'insert_terrain_chunks: while let Some((key, res)) = chunk_generator.recv_new_chunk() {
+        'insert_terrain_chunks: while let Some((key, res)) = data.chunk_generator.recv_new_chunk() {
             #[allow(unused_mut)]
             let (mut chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
-                    if let Some(client) = clients.get(entity) {
+                    if let Some(client) = data.clients.get(entity) {
                         client.send_fallible(ServerGeneral::TerrainChunkUpdate {
                             key,
                             chunk: Err(()),
@@ -171,7 +149,7 @@ impl<'a> System<'a> for Sys {
 
             // Apply changes from terrain persistence to this chunk
             #[cfg(feature = "persistent_world")]
-            if let Some(terrain_persistence) = _terrain_persistence.as_mut() {
+            if let Some(terrain_persistence) = data.terrain_persistence.as_mut() {
                 terrain_persistence.apply_changes(key, &mut chunk);
             }
 
@@ -183,19 +161,20 @@ impl<'a> System<'a> for Sys {
 
             // TODO: code duplication for chunk insertion between here and state.rs
             // Insert the chunk into terrain changes
-            if terrain.insert(key, chunk).is_some() {
-                terrain_changes.modified_chunks.insert(key);
+            if data.terrain.insert(key, chunk).is_some() {
+                data.terrain_changes.modified_chunks.insert(key);
             } else {
-                terrain_changes.new_chunks.insert(key);
+                data.terrain_changes.new_chunks.insert(key);
                 #[cfg(feature = "worldgen")]
-                rtsim.hook_load_chunk(key, supplement.rtsim_max_resources);
+                data.rtsim
+                    .hook_load_chunk(key, supplement.rtsim_max_resources);
             }
 
             // Handle chunk supplement
             for entity in supplement.entities {
                 // Check this because it's a common source of weird bugs
                 assert!(
-                    terrain
+                    data.terrain
                         .pos_key(entity.pos.map(|e| e.floor() as i32))
                         .map2(key, |e, tgt| (e - tgt).abs() <= 1)
                         .reduce_and(),
@@ -223,7 +202,7 @@ impl<'a> System<'a> for Sys {
 
         // TODO: Consider putting this in another system since this forces us to take
         // positions by write rather than read access.
-        let repositioned = (&entities, &mut positions, (&mut force_update).maybe(), &reposition_on_load)
+        let repositioned = (&data.entities, &mut data.positions, (&mut data.forced_updates).maybe(), &data.reposition_on_load)
             // TODO: Consider using par_bridge() because Rayon has very poor work splitting for
             // sparse joins.
             .par_join()
@@ -234,11 +213,11 @@ impl<'a> System<'a> for Sys {
                 // If an entity is marked as needing repositioning once the chunk loads (e.g.
                 // from having just logged in), reposition them.
                 let chunk_pos = TerrainGrid::chunk_key(entity_pos);
-                let chunk = terrain.get_key(chunk_pos)?;
+                let chunk = data.terrain.get_key(chunk_pos)?;
                 let new_pos = if reposition.needs_ground {
-                    terrain.try_find_ground(entity_pos)
+                    data.terrain.try_find_ground(entity_pos)
                 } else {
-                    terrain.try_find_space(entity_pos)
+                    data.terrain.try_find_space(entity_pos)
                 }.map(|x| x.as_::<f32>()).unwrap_or_else(|| chunk.find_accessible_pos(entity_pos.xy(), false));
                 pos.0 = new_pos;
                 force_update.map(|force_update| force_update.update());
@@ -247,30 +226,30 @@ impl<'a> System<'a> for Sys {
             .collect::<Vec<_>>();
 
         for (entity, new_pos) in repositioned {
-            if let Some(waypoint) = waypoints.get_mut(entity) {
-                *waypoint = Waypoint::new(new_pos, *time);
+            if let Some(waypoint) = data.waypoints.get_mut(entity) {
+                *waypoint = Waypoint::new(new_pos, *data.time);
             }
-            reposition_on_load.remove(entity);
+            data.reposition_on_load.remove(entity);
         }
 
-        let max_view_distance = server_settings.max_view_distance.unwrap_or(u32::MAX);
+        let max_view_distance = data.server_settings.max_view_distance.unwrap_or(u32::MAX);
         #[cfg(feature = "worldgen")]
-        let world_size = world.sim().get_size();
+        let world_size = data.world.sim().get_size();
         #[cfg(not(feature = "worldgen"))]
-        let world_size = world.map_size_lg().chunks().map(u32::from);
+        let world_size = data.world.map_size_lg().chunks().map(u32::from);
         let (presences_position_entities, presences_positions) = prepare_player_presences(
             world_size,
             max_view_distance,
-            &entities,
-            &positions,
-            &presences,
-            &clients,
+            &data.entities,
+            &data.positions,
+            &data.presences,
+            &data.clients,
         );
         let real_max_view_distance = convert_to_loaded_vd(u32::MAX, max_view_distance);
 
         // Send the chunks to all nearby players.
         new_chunks.par_iter().for_each_init(
-            || chunk_send_bus.emitter(),
+            || data.chunk_send_bus.emitter(),
             |chunk_send_emitter, chunk_key| {
                 // We only have to check players inside the maximum view distance of the server
                 // of our own position.
@@ -311,19 +290,19 @@ impl<'a> System<'a> for Sys {
             },
         );
 
-        let tick = (tick.0 % 16) as i32;
+        let tick = (data.tick.0 % 16) as i32;
 
         // Remove chunks that are too far from players.
         //
         // Note that all chunks involved here (both terrain chunks and pending chunks)
         // are guaranteed in bounds.  This simplifies the rest of the logic
         // here.
-        let chunks_to_remove = terrain
+        let chunks_to_remove = data.terrain
             .par_keys()
             .copied()
             // There may be lots of pending chunks, so don't check them all.  This should be okay
             // as long as we're maintaining a reasonable tick rate.
-            .chain(chunk_generator.par_pending_chunks())
+            .chain(data.chunk_generator.par_pending_chunks())
             // Don't check every chunk every tick (spread over 16 ticks)
             //
             // TODO: Investigate whether we can add support for performing this filtering directly
@@ -370,26 +349,26 @@ impl<'a> System<'a> for Sys {
             .filter_map(|key| {
                 // Register the unloading of this chunk from terrain persistence
                 #[cfg(feature = "persistent_world")]
-                if let Some(terrain_persistence) = _terrain_persistence.as_mut() {
+                if let Some(terrain_persistence) = data.terrain_persistence.as_mut() {
                     terrain_persistence.unload_chunk(key);
                 }
 
-                chunk_generator.cancel_if_pending(key);
+                data.chunk_generator.cancel_if_pending(key);
 
                 // If you want to trigger any behaivour on unload, do it in `Server::tick` by
                 // reading `TerrainChanges::removed_chunks` since chunks can also be removed
                 // using eg. /reload_chunks
 
                 // TODO: code duplication for chunk insertion between here and state.rs
-                terrain.remove(key).map(|chunk| {
-                    terrain_changes.removed_chunks.insert(key);
+                data.terrain.remove(key).map(|chunk| {
+                    data.terrain_changes.removed_chunks.insert(key);
                     chunk
                 })
             })
             .collect::<Vec<_>>();
         if !chunks_to_remove.is_empty() {
             // Drop chunks in a background thread.
-            slow_jobs.spawn("CHUNK_DROP", move || {
+            data.slow_jobs.spawn("CHUNK_DROP", move || {
                 drop(chunks_to_remove);
             });
         }

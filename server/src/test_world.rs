@@ -1,12 +1,12 @@
 use common::{
     calendar::Calendar,
-    generation::{ChunkSupplement, EntityInfo},
+    generation::ChunkSupplement,
     resources::TimeOfDay,
     rtsim::ChunkResource,
     terrain::{
         Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize,
     },
-    vol::{ReadVol, RectVolSize, WriteVol},
+    vol::RectVolSize,
 };
 use enum_map::EnumMap;
 use rand::{prelude::*, rngs::SmallRng};
@@ -26,6 +26,7 @@ pub struct World;
 pub struct IndexOwned;
 
 #[derive(Clone, Copy)]
+#[allow(dead_code)]
 pub struct IndexRef<'a>(&'a IndexOwned);
 
 impl IndexOwned {
@@ -39,7 +40,7 @@ impl IndexOwned {
 impl World {
     pub fn generate(_seed: u32) -> (Self, IndexOwned) { (Self, IndexOwned) }
 
-    pub fn tick(&self, dt: Duration) {}
+    pub fn tick(&self, _dt: Duration) {}
 
     #[inline(always)]
     pub const fn map_size_lg(&self) -> MapSizeLg { DEFAULT_WORLD_CHUNKS_LG }
@@ -63,7 +64,7 @@ impl World {
         ]);
         let height = rng.gen::<i32>() % 8;
 
-        let mut supplement = ChunkSupplement::default();
+        let supplement = ChunkSupplement::default();
 
         Ok((
             TerrainChunk::new(
@@ -79,7 +80,7 @@ impl World {
     pub fn get_center(&self) -> Vec2<u32> {
         // FIXME: Assumes that TerrainChunkSize::RECT_SIZE.x ==
         // TerrainChunkSize::RECT_SIZE.y
-        DEFAULT_WORLD_CHUNKS_LG.chunks().as_::<u32>() / 2 * TerrainChunkSize::RECT_SIZE.x as u32
+        DEFAULT_WORLD_CHUNKS_LG.chunks().as_::<u32>() / 2 * TerrainChunkSize::RECT_SIZE.x
     }
 
     pub fn get_location_name(&self, _index: IndexRef, _wpos2d: Vec2<i32>) -> Option<String> {

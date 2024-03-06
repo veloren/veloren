@@ -1,3 +1,5 @@
+#[cfg(feature = "worldgen")]
+use crate::rtsim::RtSim;
 use crate::{
     automod::AutoMod,
     chat::ChatExporter,
@@ -6,13 +8,13 @@ use crate::{
     persistence::PersistedComponents,
     pet::restore_pet,
     presence::RepositionOnChunkLoad,
-    rtsim::RtSim,
     settings::Settings,
     sys::sentinel::DeletedEntities,
     wiring, BattleModeBuffer, SpawnPoint,
 };
+#[cfg(feature = "worldgen")]
+use common::{calendar::Calendar, resources::TimeOfDay, slowjob::SlowJobPool};
 use common::{
-    calendar::Calendar,
     character::CharacterId,
     combat,
     combat::DamageContributor,
@@ -26,9 +28,8 @@ use common::{
     effect::Effect,
     link::{Is, Link, LinkHandle},
     mounting::{Mounting, Rider, VolumeMounting, VolumeRider},
-    resources::{Secs, Time, TimeOfDay},
+    resources::{Secs, Time},
     rtsim::{Actor, RtSimEntity},
-    slowjob::SlowJobPool,
     tether::Tethered,
     uid::{IdMaps, Uid},
     util::Dir,
@@ -111,6 +112,7 @@ pub trait StateExt {
     /// Queues chunk generation in the view distance of the persister, this
     /// entity must be built before those chunks are received (the builder
     /// borrows the ecs world so that is kind of impossible in practice)
+    #[cfg(feature = "worldgen")]
     fn create_persister(
         &mut self,
         pos: comp::Pos,
@@ -546,6 +548,7 @@ impl StateExt for State {
     /// Queues chunk generation in the view distance of the persister, this
     /// entity must be built before those chunks are received (the builder
     /// borrows the ecs world so that is kind of impossible in practice)
+    #[cfg(feature = "worldgen")]
     fn create_persister(
         &mut self,
         pos: comp::Pos,
@@ -559,10 +562,7 @@ impl StateExt for State {
         {
             let ecs = self.ecs();
             let slow_jobs = ecs.write_resource::<SlowJobPool>();
-            #[cfg(feature = "worldgen")]
             let rtsim = ecs.read_resource::<RtSim>();
-            #[cfg(not(feature = "worldgen"))]
-            let rtsim = ();
             let mut chunk_generator =
                 ecs.write_resource::<crate::chunk_generator::ChunkGenerator>();
             let chunk_pos = self.terrain().pos_key(pos.0.map(|e| e as i32));
@@ -580,7 +580,6 @@ impl StateExt for State {
                     * TerrainChunkSize::RECT_SIZE.x as f64
             })
             .for_each(|chunk_key| {
-                #[cfg(feature = "worldgen")]
                 {
                     let time = (*ecs.read_resource::<TimeOfDay>(), (*ecs.read_resource::<Calendar>()).clone());
                     chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), &rtsim, index.clone(), time);

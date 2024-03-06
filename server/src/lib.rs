@@ -41,7 +41,7 @@ pub mod sys;
 pub mod terrain_persistence;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
-mod weather;
+#[cfg(feature = "worldgen")] mod weather;
 
 pub mod wiring;
 
@@ -73,6 +73,8 @@ use crate::{
 use censor::Censor;
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
+#[cfg(feature = "worldgen")]
+use common::terrain::TerrainChunkSize;
 use common::{
     assets::AssetExt,
     calendar::Calendar,
@@ -90,7 +92,7 @@ use common::{
     rtsim::RtSimEntity,
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
-    terrain::{TerrainChunk, TerrainChunkSize},
+    terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
 use common_base::prof_span;
@@ -117,15 +119,12 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+#[cfg(not(feature = "worldgen"))]
+use test_world::{IndexOwned, World};
 use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
 pub use world::{civ::WorldCivStage, sim::WorldSimStage, WorldGenerateStage};
-#[cfg(not(feature = "worldgen"))]
-use {
-    common_net::msg::WorldMapMsg,
-    test_world::{IndexOwned, World},
-};
 
 use crate::{
     persistence::{DatabaseSettings, SqlLogMode},
@@ -496,7 +495,7 @@ impl Server {
             #[cfg(feature = "worldgen")]
             let size = world.sim().get_size();
             #[cfg(not(feature = "worldgen"))]
-            let size = Vec2::new(40, 40);
+            let size = world.map_size_lg().chunks().map(u32::from);
 
             let world_size = size.map(|e| e as i32) * TerrainChunk::RECT_SIZE.map(|e| e as i32);
             let world_aabb = Aabb {

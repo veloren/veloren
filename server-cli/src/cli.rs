@@ -60,6 +60,7 @@ pub enum Message {
     },
     /// Loads up the chunks at map center and adds a entity that mimics a
     /// player to keep them from despawning
+    #[cfg(feature = "worldgen")]
     LoadArea {
         /// View distance of the loaded area
         view_distance: u32,
