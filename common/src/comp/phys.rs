@@ -4,6 +4,7 @@ use crate::{
     consts::WATER_DENSITY,
     terrain::Block,
     uid::Uid,
+    util::Dir,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -25,6 +26,8 @@ pub struct Vel(pub Vec3<f32>);
 
 impl Vel {
     pub fn zero() -> Self { Vel(Vec3::zero()) }
+
+    pub fn to_dir(&self) -> Dir { Dir::from_unnormalized(self.0).unwrap_or_default() }
 }
 
 impl Component for Vel {

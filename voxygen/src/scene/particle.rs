@@ -949,8 +949,10 @@ impl ParticleMgr {
                                 Duration::from_millis(250),
                                 time,
                                 ParticleMode::PortalFizz,
+                                // Output particles from broom, not from character ass
                                 interpolated.pos
-                                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+                                    - ori.to_horizontal().look_dir().to_vec()
+                                    - vel.map_or(Vec3::zero(), |v| v.0 * dt * rng.gen::<f32>()),
                             )
                         },
                     );

@@ -31,8 +31,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 10.0, None);
         handle_move(data, &mut update, 1.0);
+        handle_orientation(data, &mut update, 10.0, None);
 
         if self.timer < self.static_data.movement_duration {
             // Movement
@@ -40,6 +40,8 @@ impl CharacterBehavior for Data {
                 update.vel.0.z += self.static_data.speed * data.dt.0;
             } else {
                 update.vel.0 += *data.inputs.look_dir * self.static_data.speed * data.dt.0;
+                let dir = Some(update.vel.to_dir());
+                handle_orientation(data, &mut update, 10.0, dir);
             }
             update.character = CharacterState::Boost(Data {
                 timer: tick_attack_or_default(data, self.timer, None),
