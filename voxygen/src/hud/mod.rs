@@ -3684,6 +3684,7 @@ impl Hud {
             if let (
                 Some(skill_set),
                 Some(inventory),
+                Some(char_state),
                 Some(health),
                 Some(energy),
                 Some(body),
@@ -3691,6 +3692,7 @@ impl Hud {
             ) = (
                 skill_sets.get(entity),
                 inventories.get(entity),
+                char_states.get(entity),
                 healths.get(entity),
                 energies.get(entity),
                 bodies.get(entity),
@@ -3704,6 +3706,7 @@ impl Hud {
                     skill_set,
                     active_abilities.get(entity).unwrap_or(&Default::default()),
                     inventory,
+                    char_state,
                     health,
                     energy,
                     poise,

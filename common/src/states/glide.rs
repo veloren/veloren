@@ -19,6 +19,14 @@ use vek::*;
 const PITCH_SLOW_TIME: f32 = 0.5;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Boost {
+    /// Slowly increases XY speed
+    Forward(f32),
+    /// Gives Z impulse
+    Upward(f32),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// The aspect ratio is the ratio of the span squared to actual planform
     /// area
@@ -28,6 +36,7 @@ pub struct Data {
     last_vel: Vel,
     pub timer: Duration,
     inputs_disabled: bool,
+    pub booster: Option<Boost>,
 }
 
 impl Data {
@@ -47,6 +56,7 @@ impl Data {
             last_vel: Vel::zero(),
             timer: Duration::default(),
             inputs_disabled: true,
+            booster: None,
         }
     }
 
@@ -75,12 +85,28 @@ impl Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+        // reset booster
+        update.character = CharacterState::Glide(Self {
+            booster: None,
+            ..*self
+        });
 
-        // If player is on ground, end glide
+        let gained_booster = self.booster;
+
+        handle_glider_input_or(data, &mut update, output_events, |_, _| {});
+
+        // If switched state, let it do its thing
+        if !matches!(update.character, CharacterState::Glide { .. }) {
+            return update;
+        }
+
+        // If player is on the ground and effectively doesn't have any gliding
+        // power left, end the glide
         if data.physics.on_ground.is_some()
             && (data.vel.0 - data.physics.ground_vel).magnitude_squared() < 2_f32.powi(2)
+            && gained_booster.is_none()
         {
             update.character = CharacterState::GlideWield(glide_wield::Data::from(data));
         } else if data.physics.in_liquid().is_some()
@@ -189,11 +215,44 @@ impl CharacterBehavior for Data {
                     slerp_s,
                 )
             };
+
+            // If we gained a booster
+            if let Some(booster) = gained_booster {
+                match booster {
+                    Boost::Upward(speed) => {
+                        update.vel.0.z += speed * data.dt.0;
+                    },
+                    Boost::Forward(speed) => {
+                        if data.physics.on_ground.is_some() {
+                            // quality of life hack: help with starting
+                            //
+                            // other velocities are intentionally ignored
+                            update.vel.0.z += 500.0 * data.dt.0;
+                        } else {
+                            update.vel.0.x *= 1.0 + speed * data.dt.0;
+                            update.vel.0.y *= 1.0 + speed * data.dt.0;
+                        }
+                    },
+                }
+            };
+
+            // Don't override gained booster, if any, otherwise set to None
+            let next_booster = if let CharacterState::Glide(Data {
+                booster: Some(booster),
+                ..
+            }) = update.character
+            {
+                Some(booster)
+            } else {
+                None
+            };
+
             update.character = CharacterState::Glide(Self {
                 ori,
                 last_vel: *data.vel,
                 timer: tick_attack_or_default(data, self.timer, None),
                 inputs_disabled,
+                booster: next_booster,
                 ..*self
             });
         }

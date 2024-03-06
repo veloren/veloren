@@ -751,38 +751,47 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
         // TODO: Either remove msm or use it as argument in fn kind
         (item, ability_map, _msm): (&Item, &AbilityMap, &MaterialStatManifest),
     ) -> Result<Self, Self::Error> {
-        if let ItemKind::Tool(tool) = &*item.kind() {
-            // If no custom ability set is specified, fall back to abilityset of tool kind.
-            let tool_default = |tool_kind| {
-                let key = &AbilitySpec::Tool(tool_kind);
-                ability_map.get_ability_set(key)
-            };
-            let abilities = if let Some(set_key) = item.ability_spec() {
-                if let Some(set) = ability_map.get_ability_set(&set_key) {
+        match &*item.kind() {
+            ItemKind::Tool(tool) => {
+                // If no custom ability set is specified, fall back to abilityset of tool kind.
+                let tool_default = |tool_kind| {
+                    let key = &AbilitySpec::Tool(tool_kind);
+                    ability_map.get_ability_set(key)
+                };
+                let abilities = if let Some(set_key) = item.ability_spec() {
+                    if let Some(set) = ability_map.get_ability_set(&set_key) {
+                        set.clone()
+                            .modified_by_tool(tool, item.stats_durability_multiplier())
+                    } else {
+                        error!(
+                            "Custom ability set: {:?} references non-existent set, falling back \
+                             to default ability set.",
+                            set_key
+                        );
+                        tool_default(tool.kind).cloned().unwrap_or_default()
+                    }
+                } else if let Some(set) = tool_default(tool.kind) {
                     set.clone()
                         .modified_by_tool(tool, item.stats_durability_multiplier())
                 } else {
                     error!(
-                        "Custom ability set: {:?} references non-existent set, falling back to \
-                         default ability set.",
-                        set_key
+                        "No ability set defined for tool: {:?}, falling back to default ability \
+                         set.",
+                        tool.kind
                     );
-                    tool_default(tool.kind).cloned().unwrap_or_default()
-                }
-            } else if let Some(set) = tool_default(tool.kind) {
-                set.clone()
-                    .modified_by_tool(tool, item.stats_durability_multiplier())
-            } else {
-                error!(
-                    "No ability set defined for tool: {:?}, falling back to default ability set.",
-                    tool.kind
-                );
-                Default::default()
-            };
+                    Default::default()
+                };
 
-            Ok(ItemConfig { abilities })
-        } else {
-            Err(ItemConfigError::BadItemKind)
+                Ok(ItemConfig { abilities })
+            },
+            ItemKind::Glider => item
+                .ability_spec()
+                .and_then(|set_key| ability_map.get_ability_set(&set_key))
+                .map(|abilities| ItemConfig {
+                    abilities: abilities.clone(),
+                })
+                .ok_or(ItemConfigError::BadItemKind),
+            _ => Err(ItemConfigError::BadItemKind),
         }
     }
 }
@@ -1314,11 +1323,7 @@ impl Item {
 
     pub fn slots_mut(&mut self) -> &mut [InvSlot] { &mut self.slots }
 
-    pub fn item_config_expect(&self) -> &ItemConfig {
-        self.item_config
-            .as_ref()
-            .expect("Item was expected to have an ItemConfig")
-    }
+    pub fn item_config(&self) -> Option<&ItemConfig> { self.item_config.as_deref() }
 
     pub fn free_slots(&self) -> usize { self.slots.iter().filter(|x| x.is_none()).count() }
 

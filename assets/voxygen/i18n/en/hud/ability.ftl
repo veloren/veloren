@@ -1,20 +1,7 @@
-common-abilities-debug-possess = Possessing Arrow
-    .desc = Shoots a poisonous arrow. Lets you control your target.
-common-abilities-debug-evolve = Evolve
-    .desc = You become your better self.
-common-abilities-hammer-leap = Smash of Doom
-    .desc = An AOE attack with knockback. Leaps to position of cursor.
-common-abilities-bow-shotgun = Burst
-    .desc = Launches a burst of arrows.
-common-abilities-staff-fireshockwave = Ring of Fire
-    .desc = Ignites the ground with fiery shockwave.
-common-abilities-sceptre-wardingaura = Warding Aura
-    .desc = Wards your allies against enemy attacks.
-
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
+## Internal terms, currently only used in zh-Hans.
+## If we remove them here, they also get auto-removed in zh-Hans,
+## so please keep them, even when not used in English file.
+## See https://github.com/WeblateOrg/weblate/issues/9895
 
 -heavy_stance = ""
 -agile_stance = ""
@@ -39,7 +26,27 @@ common-abilities-sceptre-wardingaura = Warding Aura
 -enter_stance = ""
 -require_stance = ""
 
-# Sword abilities
+## Debug abilities
+common-abilities-debug-possess = Possessing Arrow
+    .desc = Shoots a poisonous arrow. Lets you control your target.
+common-abilities-debug-evolve = Evolve
+    .desc = You become your better self.
+common-abilities-debug-glide_boost = Vroom
+    .desc = Gives you the force to reach the sky
+common-abilities-debug-glide_speeder = Vroom
+    .desc = Gives you the force to reach wherever your eyes look
+
+## Hotbar abilities
+common-abilities-hammer-leap = Smash of Doom
+    .desc = An AOE attack with knockback. Leaps to position of cursor.
+common-abilities-bow-shotgun = Burst
+    .desc = Launches a burst of arrows
+common-abilities-staff-fireshockwave = Ring of Fire
+    .desc = Ignites the ground with fiery shockwave.
+common-abilities-sceptre-wardingaura = Warding Aura
+    .desc = Wards your allies against enemy attacks.
+
+## Sword abilities
 veloren-core-pseudo_abilities-sword-heavy_stance = Heavy Stance
     .desc = Attacks in this stance can stagger enemies and deal more damage to staggered enemies but are slower.
 veloren-core-pseudo_abilities-sword-agile_stance = Agile Stance
@@ -295,7 +302,7 @@ common-abilities-sword-cleaving_sky_splitter = Sky Splitter
         A powerful strike that purportedly can even split the sky, but will split through enemies.
         Requires cleaving stance.
 
-# Axe abilities
+## Axe abilities
 common-abilities-axe-triple_chop = Triple Chop
     .desc =
         Three quick strikes.

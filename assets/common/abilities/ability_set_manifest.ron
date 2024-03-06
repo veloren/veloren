@@ -933,6 +933,13 @@
             Simple(None, "common.abilities.debug.evolve"),
         ],
     ),
+    Custom("Admin's Eagle"): (
+        primary: Simple(None, "common.abilities.debug.glide_speeder"),
+        secondary: Simple(None, "common.abilities.debug.glide_boost"),
+        abilities: [
+            Simple(None, "common.abilities.debug.eaglify"),
+        ],
+    ),
     Tool(Farming): (
         primary: Simple(None, "common.abilities.farming.basic"),
         secondary: Simple(None, "common.abilities.farming.basic"),

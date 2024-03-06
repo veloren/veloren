@@ -68,5 +68,9 @@
             vox_spec: ("glider.winter_wings", (-26.0, -26.0, 0.0)),
             color: None
         ),
+        "common.items.debug.glider": (
+            vox_spec: ("glider.cloverleaf", (-19.0, -5.0, 0.0)),
+            color: None
+        ),
     },
 ))

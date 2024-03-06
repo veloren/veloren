@@ -1062,7 +1062,7 @@ impl FigureMgr {
             let ability_id = character.and_then(|c| {
                 c.ability_info()
                     .and_then(|a| a.ability)
-                    .and_then(|a| a.ability_id(inventory))
+                    .and_then(|a| a.ability_id(Some(c), inventory))
             });
 
             let move_dir = {

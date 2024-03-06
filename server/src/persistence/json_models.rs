@@ -127,6 +127,7 @@ fn aux_ability_to_string(ability: comp::ability::AuxiliaryAbility) -> String {
     match ability {
         AuxiliaryAbility::MainWeapon(index) => format!("Main Weapon:index:{}", index),
         AuxiliaryAbility::OffWeapon(index) => format!("Off Weapon:index:{}", index),
+        AuxiliaryAbility::Glider(index) => format!("Glider:index:{}", index),
         AuxiliaryAbility::Empty => String::from("Empty"),
     }
 }
@@ -161,6 +162,27 @@ fn aux_ability_from_string(ability: &str) -> comp::ability::AuxiliaryAbility {
             .map(|index| index.parse::<usize>().map_err(|_| index))
         {
             Some(Ok(index)) => AuxiliaryAbility::OffWeapon(index),
+            Some(Err(error)) => {
+                dev_panic!(format!(
+                    "Conversion from database to ability set failed. Unable to parse index for \
+                     offhand abilities: {}",
+                    error
+                ));
+                AuxiliaryAbility::Empty
+            },
+            None => {
+                dev_panic!(String::from(
+                    "Conversion from database to ability set failed. Unable to find an index for \
+                     offhand abilities"
+                ));
+                AuxiliaryAbility::Empty
+            },
+        },
+        Some("Glider") => match parts
+            .next()
+            .map(|index| index.parse::<usize>().map_err(|_| index))
+        {
+            Some(Ok(index)) => AuxiliaryAbility::Glider(index),
             Some(Err(error)) => {
                 dev_panic!(format!(
                     "Conversion from database to ability set failed. Unable to parse index for \

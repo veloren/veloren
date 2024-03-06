@@ -1,3 +1,12 @@
+## internal terms, currently only used in ES
+## If we remove them here, they also get auto-removed in ES,
+## so please keep them, even when not used in English file.
+## See https://github.com/WeblateOrg/weblate/issues/9895
+-hud-skill-sc_wardaura_title = ""
+-hud-skill-bow_shotgun_title = ""
+-hud-skill-st_shockwave_title = ""
+
+## SkillTree UI
 hud-rank_up = New skillpoint
 hud-skill-sp_available =
     { $number ->
@@ -12,11 +21,6 @@ hud-skill-inc_health_title = Increase health
 hud-skill-inc_health = Increases your maximum health by { $boost } points.{ $SP }
 hud-skill-inc_energy_title = Increase energy
 hud-skill-inc_energy = Increases your maximum energy by { $boost } points.{ $SP }
-
-# internally translations, used by ES file currently
--hud-skill-sc_wardaura_title = ""
--hud-skill-bow_shotgun_title = ""
--hud-skill-st_shockwave_title = ""
 
 hud-skill-unlck_sword_title = Sword proficiency
 hud-skill-unlck_sword = Unlocks the sword skill tree.{ $SP }

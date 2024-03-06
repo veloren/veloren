@@ -168,7 +168,12 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                     a.auxiliary_set(Some(inventory), Some(skillset))
                         .get(i)
                         .and_then(|a| {
-                            Ability::from(*a).ability_id(Some(inventory), Some(skillset), contexts)
+                            Ability::from(*a).ability_id(
+                                *char_state,
+                                Some(inventory),
+                                Some(skillset),
+                                contexts,
+                            )
                         })
                 });
 
@@ -241,6 +246,7 @@ type AbilitiesSource<'a> = (
     &'a Inventory,
     &'a SkillSet,
     &'a AbilityContext,
+    Option<&'a CharacterState>,
 );
 
 impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
@@ -248,7 +254,7 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
 
     fn image_key(
         &self,
-        (active_abilities, inventory, skillset, contexts): &AbilitiesSource<'a>,
+        (active_abilities, inventory, skillset, contexts, char_state): &AbilitiesSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         let ability_id = match self {
             Self::Slot(index) => active_abilities
@@ -257,10 +263,13 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
                     Some(inventory),
                     Some(skillset),
                 )
-                .ability_id(Some(inventory), Some(skillset), contexts),
-            Self::Ability(ability) => {
-                Ability::from(*ability).ability_id(Some(inventory), Some(skillset), contexts)
-            },
+                .ability_id(*char_state, Some(inventory), Some(skillset), contexts),
+            Self::Ability(ability) => Ability::from(*ability).ability_id(
+                *char_state,
+                Some(inventory),
+                Some(skillset),
+                contexts,
+            ),
         };
 
         ability_id.map(|id| (String::from(id), None))
