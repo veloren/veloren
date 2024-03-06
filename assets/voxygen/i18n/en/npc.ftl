@@ -10,7 +10,7 @@ npc-speech-villager_open =
     .a4 = I left some cheese with my sibling. Now I don't know if it exists or not. I call it Schrödinger's cheese.
     .a5 = Have you ever caught a firefly?
     .a6 = They say shiny gems of all kinds can be found in caves.
-    .a7 = I just can't understand where those Sauroks keep coming from.
+    .a7 = I just can't understand where those sauroks keep coming from.
 npc-speech-villager_adventurous =
     .a0 = I hope to make my own glider someday.
     .a1 = I'd like to go spelunking in a cave when I'm stronger.
@@ -76,7 +76,7 @@ npc-speech-villager_busy =
 npc-speech-merchant_advertisement =
     .a0 = Can I interest you in a trade?
     .a1 = Do you want to trade with me?
-    .a2 = I have plenty of goods, Do you want to take a look?
+    .a2 = I have plenty of goods. Do you want to take a look?
 npc-speech-merchant_busy =
     .a0 = Please wait, I'm only one person.
     .a1 = Just a moment, let me finish.
@@ -271,7 +271,7 @@ npc-speech-tell_site =
 ## - $body references body-npc-speech-* variables in `body` component
 
 npc-speech-tell_monster =
-    .a0 = They say there's { $body } { $dir }, { $dist } ...
+    .a0 = They say there's { $body } { $dir }, { $dist }...
     .a1 = You think you're tough? There's { $body } { $dir }.
 
 ## Direction hints, used ONLY in npc-speech-tell* above

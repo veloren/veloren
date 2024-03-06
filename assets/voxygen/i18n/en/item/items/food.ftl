@@ -5,7 +5,7 @@ sprite-cabbage-cabbage = Lettuce
     .desc = A vibrant green leafy vegetable. Lettuce make some salads!
 
 sprite-mushrooms-mushroom-10 = Mushroom
-    .desc = Hopefully this one is not poisonous
+    .desc = Hopefully this one is not poisonous.
 
 sprite-food-salad_plain = Plain Salad
     .desc = Literally just chopped lettuce. Does this even count as a salad?
@@ -53,7 +53,7 @@ sprite-food-meat-tough_raw = Raw Tough Meat
     .desc = Peculiar bit of meat, best after cooking.
 
 object-apple_half = Apple
-    .desc = Red and juicy
+    .desc = Red and juicy.
 
 object-mushroom_curry = Mushroom Curry
     .desc = Who could say no to that?
@@ -62,7 +62,7 @@ object-apple_stick = Apple Stick
     .desc = The stick makes it easier to carry!
 
 object-blue_cheese = Blue Cheese
-    .desc = Pungent and filling
+    .desc = Pungent and filling.
 
 object-cactus_drink = Cactus Colada
     .desc = Giving you that special prickle.
@@ -74,16 +74,16 @@ object-coconut_half = Coconut
     .desc = Reliable source of water and fat. Can often be found growing on palm trees.
 
 object-honeycorn = Honeycorn
-    .desc = Sweeet
+    .desc = Sweeet.
 
 object-mushroom_stick = Mushroom Stick
-    .desc = Roasted mushrooms on a stick for easy carrying
+    .desc = Roasted mushrooms on a stick for easy carrying.
 
 object-pumpkin_spice_brew = Pumpkin Spice Brew
     .desc = Brewed from moldy pumpkins.
 
 object-sunflower_ice_tea = Sunflower Ice Tea
-    .desc = Brewed from freshly shelled sunflower seeds
+    .desc = Brewed from freshly shelled sunflower seeds.
 
 sprite-spore-corruption_spore = Spore of Corruption
     .desc = 

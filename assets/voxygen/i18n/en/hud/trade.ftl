@@ -21,7 +21,7 @@ hud-trade-buy = Buy Price: { $coin_num ->
     *[other] { $coin_formatted } coins
 }
 hud-trade-sell = Sell Price: { $coin_num ->
-    [1] one coin.
+    [1] one coin
     *[other] { $coin_formatted } coins
 }
 hud-trade-tooltip_hint_1 = <Shift-Click to Add/Remove from trade.>

@@ -1,20 +1,23 @@
-buff-title-heal = Лекуване
-buff-title-potion = Отвара
-buff-desc-potion = Изпиване...
-buff-title-saturation = Наситеност
-buff-title-campfire_heal = Лекуване от лагерен огън
-buff-desc-campfire_heal = Почивката пред лагерен огън, лекува с { $rate } % в секунда.
-buff-title-invulnerability = Неуязвимост
-buff-desc-protectingward = Вие сте защитен, някак си, от атаки.
-buff-title-frenzied = Обезумял
+buff-heal = Лекуване
+buff-potion = Отвара
+    .desc = Изпиване...
+buff-saturation = Наситеност
+buff-campfire_heal = Лекуване от лагерен огън
+    .desc = Почивката пред лагерен огън, лекува с { $rate } % в секунда.
+buff-invulnerability = Неуязвимост
+buff-protectingward = 
+    .desc = Вие сте защитен, някак си, от атаки.
+buff-frenzied = Обезумял
+
 # Debuffs
-buff-title-bleed = Кървене
-buff-title-cursed = Проклет
-buff-desc-cursed = Вие сте проклет.
-buff-title-burn = Горящ
-buff-desc-burn = Вие изгаряте жив
-buff-title-frozen = Замразен
-buff-desc-frozen = Вашите движения и атаки са забавени.
-buff-title-wet = Намокрен
+buff-bleed = Кървене
+buff-cursed = Проклет
+    .desc = Вие сте проклет.
+buff-burn = Горящ
+    .desc = Вие изгаряте жив
+buff-frozen = Замразен
+    .desc = Вашите движения и атаки са забавени.
+buff-wet = Намокрен
+
 # Text
 buff-text-for_seconds = за { $dur_secs } секунди

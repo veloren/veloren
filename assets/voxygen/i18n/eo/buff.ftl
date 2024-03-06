@@ -1,21 +1,20 @@
 ## Buffs
 
 buff-remove = Klaku por forigi
-buff-title-heal = Resaniĝi
-buff-desc-heal = Resaniĝi kun la tempo.
-buff-title-potion = Pocio
-buff-desc-potion = Trinkanta...
-buff-title-saturation = Saturiĝo
-buff-desc-saturation = Resaniĝi kun la tempo pro konsumebloj.
-buff-title-campfire_heal = Resaniĝi pro Bivakfajro
-buff-desc-campfire_heal = Ripozi apud bivakfajro resanigas { $rate } % per sekundo.
-buff-title-invulnerability = Nevundeblo
-buff-desc-invulnerability = Vi ne povas vunditas dum batalo.
+buff-heal = Resaniĝi
+    .desc = Resaniĝi kun la tempo.
+buff-potion = Pocio
+    .desc = Trinkanta...
+buff-saturation = Saturiĝo
+    .desc = Resaniĝi kun la tempo pro konsumebloj.
+buff-campfire_heal = Resaniĝi pro Bivakfajro
+    .desc = Ripozi apud bivakfajro resanigas { $rate } % per sekundo.
+buff-invulnerability = Nevundeblo
+    .desc = Vi ne povas vunditas dum batalo.
 
 ## Debuffs
-
-buff-title-bleed = Sangi
-buff-title-burn = Brulanta
+buff-bleed = Sangi
+buff-burn = Brulanta
 
 ## Text
 

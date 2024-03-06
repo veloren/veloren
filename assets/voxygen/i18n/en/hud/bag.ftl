@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername }'s Inventory
 hud-bag-stats_title = { $playername }'s Stats
-hud-bag-exp = Exp
 hud-bag-armor = Armor
 hud-bag-stats = Stats
 hud-bag-head = Head

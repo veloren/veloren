@@ -1,101 +1,101 @@
 ## Health
 
-buff-title-heal = Heilung
-buff-desc-heal = Erhalte mit der Zeit Lebenspunkte.
-buff-stat-health = Stellt { $str_total } Lebenspunkte wieder her
+buff-heal = Heilung
+    .desc = Erhalte mit der Zeit Lebenspunkte.
+    .stat = Stellt { $str_total } Lebenspunkte wieder her
 
 ## Potion
 
-buff-title-potion = Zaubertrank
-buff-desc-potion = Trinke...
+buff-potion = Zaubertrank
+    .desc = Trinke...
 
 ## Saturation
 
-buff-title-saturation = Sättigung
-buff-desc-saturation = Erhalte mit der Zeit Lebenspunkte durch Nahrung.
+buff-saturation = Sättigung
+    .desc = Erhalte mit der Zeit Lebenspunkte durch Nahrung.
 
 ## Campfire
 
-buff-title-campfire_heal = Heilung durch Lagerfeuer
-buff-desc-campfire_heal = Das Sitzen am Lagerfeuer heilt { $rate }% der Lebensenergie pro Sekunde.
+buff-campfire_heal = Heilung durch Lagerfeuer
+    .desc = Das Sitzen am Lagerfeuer heilt { $rate }% der Lebensenergie pro Sekunde.
 
 ## Energy Regen
 
-buff-title-energy_regen = Ausdauerregeneration
-buff-desc-energy_regen = Schnellere Ausdauerregeneration
-buff-stat-energy_regen = Stellt { $str_total } Ausdauer wieder her
+buff-energy_regen = Ausdauerregeneration
+    .desc = Schnellere Ausdauerregeneration
+    .stat = Stellt { $str_total } Ausdauer wieder her
 
 ## Health Increase
 
-buff-title-increase_max_health = Erhöhung der maximalen Lebensenergie
-buff-desc-increase_max_health = Erhöhe deine maximale Lebensenergiegrenze
-buff-stat-increase_max_health =
-    Erhöht die maximale Lebensenergie
-    um { $strength }
+buff-increase_max_health = Erhöhung der maximalen Lebensenergie
+    .desc = Erhöhe deine maximale Lebensenergiegrenze
+    .stat =
+        Erhöht die maximale Lebensenergie
+        um { $strength }
 
 ## Energy Increase
 
-buff-title-increase_max_energy = Erhöhung der maximalen Ausdauer
-buff-desc-increase_max_energy = Erhöhe deine maximale Ausdauergrenze
-buff-stat-increase_max_energy =
-    Erhöht die maximale Ausdauer
-    um { $strength }
+buff-increase_max_energy = Erhöhung der maximalen Ausdauer
+    .desc = Erhöhe deine maximale Ausdauergrenze
+    .stat =
+        Erhöht die maximale Ausdauer
+        um { $strength }
 
 ## Invulnerability
 
-buff-title-invulnerability = Unverwundbarkeit
-buff-desc-invulnerability = Du bist immun gegen jeglichen Schaden.
-buff-stat-invulnerability = Gewährt Unverwundbarkeit
+buff-invulnerability = Unverwundbarkeit
+    .desc = Du bist immun gegen jeglichen Schaden.
+    .stat = Gewährt Unverwundbarkeit
 
 ## Protection Ward
 
-buff-title-protectingward = Schutzaura
-buff-desc-protectingward = Du bist einigermaßen vor Angriffen geschützt.
+buff-protectingward = Schutzaura
+    .desc = Du bist einigermaßen vor Angriffen geschützt.
 
 ## Frenzied
 
-buff-title-frenzied = Rasend
-buff-desc-frenzied = Du bist mit einer unnatürlichen Geschwindigkeit durchtränkt und ignorierst kleinere Verletzungen.
+buff-frenzied = Rasend
+    .desc = Du bist mit einer unnatürlichen Geschwindigkeit durchtränkt und ignorierst kleinere Verletzungen.
 
 ## Haste
 
-buff-title-hastened = Beschleunigend
-buff-desc-hastened = Deine Bewegungen und Attacken sind schneller.
+buff-hastened = Beschleunigend
+    .desc = Deine Bewegungen und Attacken sind schneller.
 
 ## Bleeding
 
-buff-title-bleed = Blutend
-buff-desc-bleed = Fügt regelmäßigen Schaden zu.
+buff-bleed = Blutend
+    .desc = Fügt regelmäßigen Schaden zu.
 
 ## Cursed
 
-buff-title-cursed = Verflucht
-buff-desc-cursed = Du bist verflucht.
+buff-cursed = Verflucht
+    .desc = Du bist verflucht.
 
 ## Burning
 
-buff-title-burn = Brennend
-buff-desc-burn = Du verbrennst
+buff-burn = Brennend
+    .desc = Du verbrennst
 
 ## Crippled
 
-buff-title-crippled = Verkrüppelt
-buff-desc-crippled = Deine Bewegungen sind eingeschränkt, da deine Beine stark beschädigt sind..
+buff-crippled = Verkrüppelt
+    .desc = Deine Bewegungen sind eingeschränkt, da deine Beine stark beschädigt sind..
 
 ### Freeze
 
-buff-title-frozen = Frierend
-buff-desc-frozen = Deine Bewegungen und Attacken sind verlangsamt. Wärme dich auf.
+buff-frozen = Frierend
+    .desc = Deine Bewegungen und Attacken sind verlangsamt. Wärme dich auf.
 
 ## Wet
 
-buff-title-wet = Nass
-buff-desc-wet = Du rutschst über den Boden und kannst kaum anhalten.
+buff-wet = Nass
+    .desc = Du rutschst über den Boden und kannst kaum anhalten.
 
 ## Ensnared
 
-buff-title-ensnared = Gefesselt
-buff-desc-ensnared = Äste greifen nach deinen Beinen und verlangsamen deine Bewegungen.
+buff-ensnared = Gefesselt
+    .desc = Äste greifen nach deinen Beinen und verlangsamen deine Bewegungen.
 
 ## Util
 
@@ -103,77 +103,68 @@ buff-text-over_seconds = über { $dur_secs } Sekunden
 buff-text-for_seconds = für { $dur_secs } Sekunden
 buff-remove = Klicke zum Entfernen
 # Potion sickness
-buff-title-potionsickness = Zaubertrank-Übelkeit
-# Potion sickness
-buff-desc-potionsickness = Tränke heilen dich weniger nachdem du kurz davor bereits einen konsumiert hast.
+buff-potionsickness = Zaubertrank-Übelkeit
+    .desc = Tränke heilen dich weniger nachdem du kurz davor bereits einen konsumiert hast.
+    .stat =
+        Reduziert deine Heilung von
+        folgenden Tränken um { $strength }%.
 # Imminent Critical
-buff-desc-imminentcritical = Dein nächster Angriff wird deinen Gegner kritisch treffen.
+buff-imminentcritical =
+    .desc = Dein nächster Angriff wird deinen Gegner kritisch treffen.
 # Reckless
-buff-desc-reckless = Deine Angriffe werden stärker, jedoch lässt du deine Verteidigung offen.
+buff-reckless = Rücksichtslos
+    .desc = Deine Angriffe werden stärker, jedoch lässt du deine Verteidigung offen.
 # Agility
-buff-desc-agility = Deine Bewegungen sind schneller, aber du verteilst weniger und nimmst mehr Schaden.
+buff-agility = Beweglichkeit
+    .desc = Deine Bewegungen sind schneller, aber du verteilst weniger und nimmst mehr Schaden.
+    .stat = Erhöht Bewegungsgeschwindigkeit um { $strength }%.
+        Aber reduziert deinen Schaden um 100%,
+        and erhöht deine Schadensverwundbarkeit
+        um 100%.
 # Parried
-buff-title-parried = Pariert
-# Agility
-buff-stat-agility =
-    Erhöht Bewegungsgeschwindigkeit um { $strength }%.
-    Aber reduziert deinen Schaden um 100%,
-    and erhöht deine Schadensverwundbarkeit
-    um 100%.
+buff-parried = Pariert
+    .desc = Du wurdest pariert und erholst dich jetzt nur langsam.
+
 # Lifesteal
-buff-desc-lifesteal = Saugt die Leben deiner Feinde aus.
+buff-lifesteal = Lebensraub
+    .desc = Saugt die Leben deiner Feinde aus.
 # Fury
-buff-desc-fury = Mit deiner Wut werden deine Schläge mehr Combo erzielen
-# Lifesteal
-buff-title-lifesteal = Lebensraub
-# Sunderer
-buff-desc-defiance = Du kannst mächtigeren und erschütternderen Schlägen widerstehen und Combo mit jedem Treffer erzielen, jedoch bist du langsamer.
+buff-fury = Wut
+    .desc = Mit deiner Wut werden deine Schläge mehr Combo erzielen
+
+# Defiance
+buff-defiance = Trotz
+    .desc = Du kannst mächtigeren und erschütternderen Schlägen widerstehen und Combo mit jedem Treffer erzielen, jedoch bist du langsamer.
+
 # Flame
-buff-title-flame = Flamme
+buff-flame = Flamme
+    .desc = Flammen sind deine Verbündeten.
+
 # Polymorped
-buff-desc-polymorphed = Dein Körper verändert die Form.
+buff-polymorphed = Verwandelt
+    .desc = Dein Körper verändert die Form.
+
 # Salamander's Aspect
-buff-desc-salamanderaspect = Du kannst nicht brennen und bewegst dich schnell durch Lava.
-# Fury
-buff-title-fury = Wut
+buff-salamanderaspect =
+    .desc = Du kannst nicht brennen und bewegst dich schnell durch Lava.
+
 # Frigid
-buff-desc-frigid = Gefriere deine Feinde.
-# Sunderer
-buff-title-defiance = Trotz
-# Flame
-buff-desc-flame = Flammen sind deine Verbündeten.
-# Potion sickness
-buff-stat-potionsickness =
-    Reduziert deine Heilung von
-    folgenden Tränken um { $strength }%.
-# Reckless
-buff-title-reckless = Rücksichtslos
+buff-frigid = Kalt
+    .desc = Gefriere deine Feinde.
+
 # Fortitude
-buff-desc-fortitude = Du kannst Taumeln widerstehen, und während du mehr Schaden erleidest, kannst du andere einfacher ins Taumeln bringen.
-# Fortitude
-buff-title-fortitude = Tapferkeit
-# Frigid
-buff-title-frigid = Kalt
-# Agility
-buff-title-agility = Beweglichkeit
+buff-fortitude = Tapferkeit
+    .desc = Du kannst Taumeln widerstehen, und während du mehr Schaden erleidest, kannst du andere einfacher ins Taumeln bringen.
 # Bloodfeast
-buff-title-bloodfeast = Blutbad
+buff-bloodfeast = Blutbad
+    .desc = Du regenerierst Leben durch Angriffe gegen blutende Gegner
 # Heatstroke
-buff-title-heatstroke = Hitzschlag
-# Heatstroke
-buff-desc-heatstroke = Du wurdest Hitze ausgesetzt und erleidest nun einen Hitzschlag. Dein Energiebonus und deine Bewegungsgeschwindigkeit sind eingeschränkt. Kühl dich ab.
+buff-heatstroke = Hitzschlag
+    .desc = Du wurdest Hitze ausgesetzt und erleidest nun einen Hitzschlag. Dein Energiebonus und deine Bewegungsgeschwindigkeit sind eingeschränkt. Kühl dich ab.
 # Berserk
-buff-title-berserk = Berserker
+buff-berserk = Berserker
+    .desc = Du bist in einer Berserkerwut, die deine Angriffe stärker und geschickter macht und deine Geschwindigkeit erhöht. Jedoch hast du dadurch geringere Abwehrfähigkeiten.
 buff-mysterious = Mysteriöser Effekt
 # Sunderer
-buff-title-sunderer = Zersplitterung
-# Polymorped
-buff-title-polymorphed = Verwandelt
-# Parried
-buff-desc-parried = Du wurdest pariert und erholst dich jetzt nur langsam.
-# Sunderer
-buff-desc-sunderer = Deine Angriffe können die gegnerische Verteidigung durchbrechen und erfrischen dich mit mehr Energie.
-# Berserk
-buff-desc-berserk = Du bist in einer Berserkerwut, die deine Angriffe stärker und geschickter macht und deine Geschwindigkeit erhöht. Jedoch hast du dadurch geringere Abwehrfähigkeiten.
-# Bloodfeast
-buff-desc-bloodfeast = Du regenerierst Leben durch Angriffe gegen blutende Gegner
+buff-sunderer = Zersplitterung
+    .desc = Deine Angriffe können die gegnerische Verteidigung durchbrechen und erfrischen dich mit mehr Energie.

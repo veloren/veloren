@@ -1,18 +1,18 @@
-## internal terms, currently only used in ES
-## If we remove them here, they also get auto-removed in ES,
+## Internal terms, currently only used in es
+## If we remove them here, they also get auto-removed in es,
 ## so please keep them, even when not used in English file.
 ## See https://github.com/WeblateOrg/weblate/issues/9895
 -hud-skill-sc_wardaura_title = ""
 -hud-skill-bow_shotgun_title = ""
 -hud-skill-st_shockwave_title = ""
 
-## SkillTree UI
-hud-rank_up = New skillpoint
+## Skill tree UI
+hud-rank_up = New skill point
 hud-skill-sp_available =
     { $number ->
         [0] No skill points available
         [1] { $number } skill point available
-       *[other] { $number } skill points available
+        *[other] { $number } skill points available
     }
 hud-skill-not_unlocked = Not yet unlocked
 hud-skill-req_sp = {"\u000A"}Requires { $number } SP
@@ -35,7 +35,7 @@ hud-skill-unlck_staff = Unlocks the staff skill tree.{ $SP }
 hud-skill-unlck_sceptre_title = Sceptre proficiency
 hud-skill-unlck_sceptre = Unlocks the sceptre skill tree.{ $SP }
 hud-skill-dodge_title = Dodge
-hud-skill-dodge = Dodge rolls are triggered with middle-click, and grant temporary immunity to melee attacks (iframes) while you're rolling.
+hud-skill-dodge = Dodging grants temporary immunity to attacks while you're rolling.
 hud-skill-roll_energy_title = Roll Energy Cost
 hud-skill-roll_energy = Rolling uses { $boost } % less energy.{ $SP }
 hud-skill-roll_speed_title = Rolling Speed
@@ -71,7 +71,7 @@ hud-skill-sc_heal_cost = Healing requires { $boost } % less energy.{ $SP }
 hud-skill-sc_heal_duration_title = Duration
 hud-skill-sc_heal_duration = The effects of your healing aura last { $boost } % longer.{ $SP }
 hud-skill-sc_heal_range_title = Radius
-hud-skill-sc_heal_range = Your healing aura reachs { $boost } % further.{ $SP }
+hud-skill-sc_heal_range = Your healing aura reaches { $boost } % further.{ $SP }
 hud-skill-sc_wardaura_unlock_title = Warding Aura Unlock
 hud-skill-sc_wardaura_unlock = Allows you to ward your allies against enemy attacks.{ $SP }
 hud-skill-sc_wardaura_strength_title = Strength

@@ -8,7 +8,7 @@ use common::{
             Effects, Item, ItemDefinitionId, ItemDesc, ItemI18n, ItemKind, MaterialKind,
             MaterialStatManifest,
         },
-        BuffKind,
+        BuffData, BuffKind,
     },
     effect::Effect,
     trade::{Good, SitePrices},
@@ -167,6 +167,72 @@ pub fn line_count(item: &dyn ItemDesc, msm: &MaterialStatManifest, i18n: &Locali
     }
 }
 
+/// Returns i18n key for a buff with title, .desc and optionally .stat
+///
+/// NOTE: not to be confused with buff key for buff's kill message
+fn buff_key(buff: BuffKind) -> &'static str {
+    match buff {
+        // Buffs
+        BuffKind::Regeneration => "buff-heal",
+        BuffKind::Saturation => "buff-saturation",
+        BuffKind::Potion => "buff-potion",
+        BuffKind::Agility => "buff-agility",
+        BuffKind::CampfireHeal => "buff-campfire_heal",
+        BuffKind::EnergyRegen => "buff-energy_regen",
+        BuffKind::IncreaseMaxHealth => "buff-increase_max_health",
+        BuffKind::IncreaseMaxEnergy => "buff-increase_max_energy",
+        BuffKind::Invulnerability => "buff-invulnerability",
+        BuffKind::ProtectingWard => "buff-protectingward",
+        BuffKind::Frenzied => "buff-frenzied",
+        BuffKind::Hastened => "buff-hastened",
+        BuffKind::Fortitude => "buff-fortitude",
+        BuffKind::Reckless => "buff-reckless",
+        // BuffKind::SalamanderAspect => "buff-salamanderaspect",
+        BuffKind::Flame => "buff-burn",
+        BuffKind::Frigid => "buff-frigid",
+        BuffKind::Lifesteal => "buff-lifesteal",
+        BuffKind::ImminentCritical => "buff-imminentcritical",
+        BuffKind::Fury => "buff-fury",
+        BuffKind::Sunderer => "buff-sunderer",
+        BuffKind::Defiance => "buff-defiance",
+        BuffKind::Bloodfeast => "buff-bloodfeast",
+        BuffKind::Berserk => "buff-berserk",
+        // Debuffs
+        BuffKind::Bleeding => "buff-bleed",
+        BuffKind::Cursed => "buff-cursed",
+        BuffKind::Burning => "buff-burn",
+        BuffKind::Crippled => "buff-crippled",
+        BuffKind::Frozen => "buff-frozen",
+        BuffKind::Wet => "buff-wet",
+        BuffKind::Ensnared => "buff-ensnared",
+        BuffKind::Poisoned => "buff-poisoned",
+        BuffKind::Parried => "buff-parried",
+        BuffKind::PotionSickness => "buff-potionsickness",
+        BuffKind::Heatstroke => "buff-heatstroke",
+        // Neutral
+        BuffKind::Polymorphed => "buff-polymorphed",
+    }
+}
+
+/// Returns localized buff title
+pub fn get_buff_title(buff: BuffKind, i18n: &Localization) -> Cow<str> {
+    let key = buff_key(buff);
+
+    i18n.get_msg(key)
+}
+
+/// Returns localized buff description
+pub fn get_buff_desc(buff: BuffKind, data: BuffData, i18n: &Localization) -> Cow<str> {
+    let key = buff_key(buff);
+    if let BuffKind::CampfireHeal = buff {
+        i18n.get_attr_ctx(key, "desc", &i18n::fluent_args! {
+            "rate" => data.strength * 100.0
+        })
+    } else {
+        i18n.get_attr(key, "desc")
+    }
+}
+
 /// Takes N `effects` and returns N effect descriptions
 /// If effect isn't intended to have description, returns empty string
 ///
@@ -190,36 +256,42 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         |input: f32| format!("{:.1}", input).trim_end_matches(".0").to_string();
 
                     let buff_desc = match buff.kind {
-                        BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => i18n
-                            .get_msg_ctx("buff-stat-health", &i18n::fluent_args! {
+                        // These share common buff-key and show full possible regen
+                        BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => {
+                            let key = "buff-heal";
+                            i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "str_total" => format_float(str_total),
-                            }),
+                            })
+                        },
+                        // Shows its full possible regen
                         BuffKind::EnergyRegen => {
-                            i18n.get_msg_ctx("buff-stat-energy_regen", &i18n::fluent_args! {
+                            let key = buff_key(buff.kind);
+                            i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "str_total" => format_float(str_total),
                             })
                         },
-                        BuffKind::IncreaseMaxEnergy => {
-                            i18n.get_msg_ctx("buff-stat-increase_max_energy", &i18n::fluent_args! {
+                        // Show buff strength
+                        BuffKind::IncreaseMaxEnergy
+                        | BuffKind::IncreaseMaxHealth => {
+                            let key = buff_key(buff.kind);
+                            i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "strength" => format_float(strength),
                             })
                         },
-                        BuffKind::IncreaseMaxHealth => {
-                            i18n.get_msg_ctx("buff-stat-increase_max_health", &i18n::fluent_args! {
+                        // Show percentage
+                        BuffKind::PotionSickness
+                        | BuffKind::Agility => {
+                            let key = buff_key(buff.kind);
+                            i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "strength" => format_float(strength),
                             })
                         },
-                        BuffKind::PotionSickness => {
-                            i18n.get_msg_ctx("buff-stat-potionsickness", &i18n::fluent_args! {
-                                "strength" => format_float(strength * 100.0),
-                            })
+                        // Independent of strength
+                        BuffKind::Invulnerability => {
+                            let key = buff_key(buff.kind);
+                            i18n.get_attr(key, "stat")
                         },
-                        BuffKind::Agility => {
-                            i18n.get_msg_ctx("buff-stat-agility", &i18n::fluent_args! {
-                                "strength" => format_float(strength * 100.0),
-                            })
-                        },
-                        BuffKind::Invulnerability => i18n.get_msg("buff-stat-invulnerability"),
+                        // Have no stat description
                         BuffKind::Bleeding
                         | BuffKind::Burning
                         | BuffKind::CampfireHeal

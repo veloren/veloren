@@ -1,4 +1,4 @@
-hud-do_not_show_on_startup = Don't show this on Startup
+hud-do_not_show_on_startup = Don't show this on startup
 hud-show_tips = Show Tips
 hud-quests = Quests
 hud-you_died = You Died
@@ -8,17 +8,17 @@ hud-inventory_full = Inventory Full
 hud-someone_else = someone else
 hud-another_group = another group
 hud-owned_by_for_secs = Owned by { $name } for { $secs } secs
-hud-press_key_to_show_keybindings_fmt = [{ $key }] Keybindings
+hud-press_key_to_show_keybindings_fmt = [{ $key }] Key bindings
 hud-press_key_to_toggle_lantern_fmt = [{ $key }] Lantern
 hud-press_key_to_show_debug_info_fmt = Press { $key } to show debug info
-hud-press_key_to_toggle_keybindings_fmt = Press { $key } to toggle keybindings
+hud-press_key_to_toggle_keybindings_fmt = Press { $key } to toggle key bindings
 hud-press_key_to_toggle_debug_info_fmt = Press { $key } to toggle debug info
 hud_items_lost_dur = Your equipped items have lost Durability.
 hud-press_key_to_respawn = Press { $key } to respawn at the last campfire you visited.
 hud-tutorial_btn = Tutorial
 hud-tutorial_click_here = Press [ { $key } ] to free your cursor and click this button!
 hud-tutorial_elements = Crafting
-hud-temp_quest_headline = Greetings Traveller!
+hud-temp_quest_headline = Greetings traveller!
 hud-temp_quest_text =
     To begin your journey you could start looking through this village and gather some supplies.
 

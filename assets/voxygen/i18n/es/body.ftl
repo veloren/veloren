@@ -19,7 +19,7 @@ body-npc-speech-biped_large-red_oni = un oni rojo
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-dullahan = un dullahan
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-mindflayer = un mind flayer
+body-npc-speech-biped_large-mindflayer = un mindflayer
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-minotaur = un minotauro
 # Monster descriptions, used ONLY in npc-speech-tell_monster

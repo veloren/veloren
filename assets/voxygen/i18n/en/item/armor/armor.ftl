@@ -266,7 +266,7 @@ armor-misc-head-gnarling_mask = Chieftain Mask
     .desc = It smells like burned wood.
 
 armor-misc-head-helmet = Helmet
-    .desc = yep.
+    .desc = {""}
 
 armor-misc-head-hog_hood = Hog Hood
     .desc = Wear the guise of a great swine now felled, so that you may honor its sacrifice.
@@ -701,7 +701,7 @@ armor-cultist-hand = Cultist Gloves
     .desc = Ceremonial attire used by members.
 
 armor-cultist-necklace = Cultist Amulet
-    .desc = You can still feel the Mindflayer's presence within this amulet...
+    .desc = You can still feel a mindflayer's presence within this amulet...
 
 armor-cultist-pants = Cultist Skirt
     .desc = Ceremonial attire used by members.

@@ -1,4 +1,4 @@
-character_window-character_name = Character Name
+character_window-character_name = Character name
 character_window-character_stats =
     Endurance
     

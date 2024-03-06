@@ -137,7 +137,7 @@ sprite-crafting_ing-leather-thick_leather = Thick Leather
     .desc = Strong and durable.
 
 sprite-crafting_ing-cloth-cloth_strips = Cloth Strips
-    .desc = Small and soft, yet useful
+    .desc = Small and soft, yet useful.
 
 sprite-crafting_ing-cloth-cotton = Cotton
     .desc = Easy to work with and multi-functional.
@@ -188,7 +188,7 @@ object-v-coin = Coins
     .desc = Precious coins, can be exchanged for goods and services.
 
 object-collar = Collar
-    .desc = Tames neutral wild animals within 5 blocks
+    .desc = Tames neutral wild animals within 5 blocks.
 
 object-training_dummy = Training Dummy
     .desc = His name is William. Fire at will.

@@ -84,7 +84,7 @@ armor-misc-bag-liana_kit = Liana Kit
 
 armor-misc-bag-mindflayer_spellbag = Mindflayer Spellbag
     .desc = 
-        You can almost feel the Mindflayer's
+        You can almost feel a mindflayer's
         evil presence flowing through the fabric.
 
 armor-misc-bag-reliable_backpack = Reliable Backpack
