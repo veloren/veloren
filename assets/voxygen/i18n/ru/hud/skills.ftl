@@ -1,7 +1,8 @@
 hud-rank_up = Новый SP
 hud-skill-sp_available = { $number } SP доступны
 hud-skill-not_unlocked = Еще не разблокирован
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Необходимо { $number } SP
 hud-skill-set_as_exp_bar = Установить как шкалу опыта

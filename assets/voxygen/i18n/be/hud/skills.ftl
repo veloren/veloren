@@ -1,7 +1,8 @@
 hud-rank_up = Новая адзінка ўмельства
 hud-skill-sp_available = { $number } АУ даступна
 hud-skill-not_unlocked = Пакуль не адчынена
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Патрабуе { $number } АУ
 hud-skill-inc_health_title = Павелічэнне здароўя

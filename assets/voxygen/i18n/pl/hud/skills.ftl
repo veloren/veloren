@@ -1,7 +1,8 @@
 hud-rank_up = Nowy punkt rozwoju
 hud-skill-sp_available = Masz { $number } punkt(ów) rozwoju
 hud-skill-not_unlocked = Zablokowane
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Wymaga { $number } punktów rozwoju
 hud-skill-inc_health_title = Zwiększ Zdrowie

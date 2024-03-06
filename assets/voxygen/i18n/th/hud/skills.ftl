@@ -1,7 +1,8 @@
 hud-rank_up = ได้รับแต้มทักษะ
 hud-skill-sp_available = แต้มทักษะที่ใช้ได้ { $number } แต้ม
 hud-skill-not_unlocked = ยังไม่ปลดล็อค
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     ใช้แต้มทักษะ { $number } แต้ม
 hud-skill-inc_health_title = พลังชีวิต

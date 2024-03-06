@@ -7,7 +7,6 @@ buff-desc-campfire_heal = Почивката пред лагерен огън, �
 buff-title-invulnerability = Неуязвимост
 buff-desc-protectingward = Вие сте защитен, някак си, от атаки.
 buff-title-frenzied = Обезумял
-
 # Debuffs
 buff-title-bleed = Кървене
 buff-title-cursed = Проклет
@@ -17,6 +16,5 @@ buff-desc-burn = Вие изгаряте жив
 buff-title-frozen = Замразен
 buff-desc-frozen = Вашите движения и атаки са забавени.
 buff-title-wet = Намокрен
-
 # Text
 buff-text-for_seconds = за { $dur_secs } секунди

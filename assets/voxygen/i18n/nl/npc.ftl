@@ -79,3 +79,6 @@ npc-speech-villager_under_attack =
     .a77 = Doe dat alsjeblieft niet meer.
     .a78 = Wachters, gooi dit monster het meer in!
     .a79 = Ik laat mijn Tarasque op je los!
+# Generic NPC messages
+npc-speech-villager =
+    .a0 = Ik hou van kaas.

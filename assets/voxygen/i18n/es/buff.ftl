@@ -21,9 +21,9 @@ buff-desc-campfire_heal = Descansar en una hoguera restaura { $rate } % de salud
 
 ## Regeneración de aguante
 
-buff-title-energy_regen = Regeneración de aguante
-buff-desc-energy_regen = Aumenta la regeneración de aguante.
-buff-stat-energy_regen = Restaura { $str_total } de aguante
+buff-title-energy_regen = Regeneración de energía
+buff-desc-energy_regen = Aumenta la regeneración de energía.
+buff-stat-energy_regen = Restaura { $str_total } de energía
 
 ## Aumento de salud
 
@@ -33,9 +33,9 @@ buff-stat-increase_max_health = Aumenta en { $strength } puntos tu salud máxima
 
 ## Aumento de aguante
 
-buff-title-increase_max_energy = Aumento de aguante
-buff-desc-increase_max_energy = Aumenta tu aguante máximo
-buff-stat-increase_max_energy = Aumenta en { $strength } puntos tu aguante máximo
+buff-title-increase_max_energy = Aumento de energía
+buff-desc-increase_max_energy = Aumenta tu energía máximo
+buff-stat-increase_max_energy = Aumenta en { $strength } puntos tu energía máximo
 
 ## Invulnerabilidad
 
@@ -106,10 +106,10 @@ buff-desc-parried = Tu arma ha sido parada por lo que te cuesta recuperarte.
 ## Enfermedad de poción
 
 buff-title-potionsickness = Enfermedad de poción
-buff-desc-potionsickness = La pociones van curando cada vez menos con cada consumición a corto plazo.
+buff-desc-potionsickness = La pociones te van haciendo cada vez menos efecto con cada consumición a corto plazo.
 buff-stat-potionsickness =
-    Te curas un { $strength } % menos
-    con cada poción consecutiva que consumas.
+    Cada poción consecutiva que consumas
+    te hace un { $strength } % menos de efecto.
 
 ## Temerario
 
@@ -155,7 +155,7 @@ buff-title-agility = Agilidad
 # Heatstroke
 buff-title-heatstroke = Golpe de calor
 # Heatstroke
-buff-desc-heatstroke = Las altas temperaturas te han provocado un golpe de calor. Tu ganancia de aguante y velocidad de movimiento se ven reducidos. Refréscate.
+buff-desc-heatstroke = Las altas temperaturas te han provocado un golpe de calor. Tu ganancia de energía y velocidad de movimiento se ven reducidos. Refréscate.
 # Flame
 buff-title-flame = Llama
 # Flame
@@ -170,3 +170,5 @@ buff-title-lifesteal = Robo de vida
 buff-title-defiance = Resistencia
 # Berserk
 buff-title-berserk = Berseker
+# Salamander's Aspect
+buff-title-salamanderaspect = Aspecto de la salamandra

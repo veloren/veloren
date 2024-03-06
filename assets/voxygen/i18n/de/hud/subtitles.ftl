@@ -139,3 +139,4 @@ subtitle-attack-shovel = Schaufel gräbt
 subtitle-deep_laugh = Tiefes Lachen
 subtitle-attack-fuse_charge = Zündschnur knistert
 subtitle-instrument_shamisen = Shamisen spielt
+subtitle-lavapool = Lavasee

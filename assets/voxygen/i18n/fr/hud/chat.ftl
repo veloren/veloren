@@ -54,9 +54,9 @@ hud-chat-default_death_msg = { "[" }{ $name }] est mort
 hud-chat-all = Global
 hud-chat-chat_tab_hover_tooltip = Clique Droit pour ouvrir les paramètres
 hud-loot-pickup-msg =
-    { $actor } a récupéré { $amount ->
-        [one] { $item }
-       *[other] x{ $amount } { $item }s
+    { $amount ->
+        [1] { $actor } a ramassé { $item }
+       *[other] { $actor } a ramassé { $amount }x { $item }
     }
 hud-chat-goodbye = Au revoir!
 hud-chat-connection_lost = Connexion perdue. Expulsion dans { $time } secondes.

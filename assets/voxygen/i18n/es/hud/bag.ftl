@@ -33,7 +33,7 @@ hud-bag-combat_rating_desc = Calculado en base a tu equipamiento y salud.
 hud-bag-protection_desc = Reducción de daño por armadura.
 hud-bag-stun_res_desc =
     Resistencia a ser aturdido por golpes consecutivos.
-    Se regenera del mismo modo que el aguante.
+    Se regenera del mismo modo que la energía.
 hud-bag-sort_by_name = Ordenar por nombre
 hud-bag-sort_by_quality = Ordenar por calidad
 hud-bag-sort_by_category = Ordenar por categoría

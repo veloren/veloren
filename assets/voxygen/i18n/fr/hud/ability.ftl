@@ -129,3 +129,5 @@ common-abilities-axe-keelhaul = Quilleur
         Évolue avec le combo lors de l'activation, consomme la moitié du combo
 common-abilities-axe-plunder = Pillage
     .desc = Un pas rapide vers vos ennemis, volant leurs équilibre avec une frappe
+common-abilities-debug-evolve = Évoluer
+    .desc = Vous devenez meilleur.

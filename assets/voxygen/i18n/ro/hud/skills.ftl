@@ -1,9 +1,10 @@
 hud-rank_up = Punct de Abilitate Nou
 hud-skill-sp_available = { $number } PA valabile
 hud-skill-not_unlocked = Nedeblocat încă
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
-     Necesită { $number } PA
+    Necesită { $number } PA
 hud-skill-inc_health_title = Mărește Viața
 hud-skill-inc_health = Mărește capacitatea vietii cu { $boost }{ $SP }
 hud-skill-inc_energy_title = Mărește Energia

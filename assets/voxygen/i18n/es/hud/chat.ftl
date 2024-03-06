@@ -57,7 +57,7 @@ hud-loot-pickup-msg =
         [You] { "\u0000" }
        *[other] { $actor } ha obtenido
     } { $amount ->
-        [one] { $item }
+        [1] { $item }
        *[other] { $amount }x { $item }
     }
 # Player /tell messages, $user_gender should be available
@@ -76,3 +76,9 @@ hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
 hud-chat-tell-from-npc = De [{ $alias }]: { $msg }
 # Player /tell messages, $user_gender should be available
 hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }: { $msg }
+# HUD Pickup message
+hud-loot-pickup-msg-you =
+    { $amount ->
+        [1] { $item }
+       *[other] { $amount }x { $item }
+    }

@@ -1,7 +1,8 @@
 hud-rank_up = Új képességpont
 hud-skill-sp_available = { $number } KP áll rendelkezésedre
 hud-skill-not_unlocked = Nincs még feloldva
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     { $number } KP kell hozzá
 hud-skill-inc_health_title = Életerő növelése

@@ -1,7 +1,8 @@
 hud-rank_up = Novo Ponto de Habilidade
 hud-skill-sp_available = { $number } PHs disponíveis
 hud-skill-not_unlocked = Não desbloqueado
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Requer { $number } PHs
 hud-skill-set_as_exp_bar = Configuar como Barra de Experiência
