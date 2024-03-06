@@ -1,128 +1,82 @@
 ## Regeneration
-
-buff-title-heal = 治愈
-buff-desc-heal = 一定时间内生命值随缓慢恢复.
-buff-stat-health = 总共恢复 { $str_total } 点生命值
-
+buff-heal = 治愈
+    .desc = 一定时间内生命值随缓慢恢复.
+    .stat = 总共恢复 { $str_total } 点生命值
 ## Potion
-
-buff-title-potion = 药水
-buff-desc-potion = 吨吨吨...
-
+buff-potion = 药水
+    .desc = 吨吨吨...
 ## Saturation
-
-buff-title-saturation = 饱腹
-buff-desc-saturation = 吃饱喝足后,一定时间内生命值随缓慢恢复.
-
+buff-saturation = 饱腹
+    .desc = 吃饱喝足后,一定时间内生命值随缓慢恢复.
 ## Campfire
-
-buff-title-campfire_heal = 篝火疗愈
-buff-desc-campfire_heal = 在篝火旁休息每秒可治愈{ $rate }%生命.
-
+buff-campfire_heal = 篝火疗愈
+    .desc = 在篝火旁休息每秒可治愈{ $rate }%生命.
 ## Energy Regen
-
-buff-title-energy_regen = 耐力值恢复
-buff-desc-energy_regen = 耐力值恢复加快
-buff-stat-energy_regen = 恢复 { $str_total } 耐力值
-
+buff-energy_regen = 耐力值恢复
+    .desc = 耐力值恢复加快
+    .stat = 恢复 { $str_total } 耐力值
 ## Health Increase
-
-buff-title-increase_max_health = 增加最大生命值
-buff-desc-increase_max_health = 提高你的最大生命值上限
-buff-stat-increase_max_health =
-    提高最大生命值
-    通过 { $strength }
-
+buff-increase_max_health = 增加最大生命值
+    .desc = 提高你的最大生命值上限
+    .stat =
+        提高最大生命值
+        通过 { $strength }
 ## Energy Increase
-
-buff-title-increase_max_energy = 增加最大耐力值
-buff-desc-increase_max_energy = 提高你的最大耐力值上限
-buff-stat-increase_max_energy =
-    提高最大耐力值
-    通过 { $strength }
-
+buff-increase_max_energy = 增加最大耐力值
+    .desc = 提高你的最大耐力值上限
+    .stat =
+        提高最大耐力值
+        通过 { $strength }
 ## Invulnerability
-
-buff-title-invulnerability = 无敌
-buff-desc-invulnerability = 你不会受到任何攻击的伤害.
-buff-stat-invulnerability = 获得无敌状态
-
+buff-invulnerability = 无敌
+    .desc = 你不会受到任何攻击的伤害.
+    .stat = 获得无敌状态
 ## Protection Ward
-
-buff-title-protectingward = 守护领域
-buff-desc-protectingward = 有股力量在守护着你,一定时间内防御得到显著提升.
-
+buff-protectingward =守护领域
+    .desc = 有股力量在守护着你,一定时间内防御得到显著提升.
 ## Frenzied
-
-buff-title-frenzied = 狂暴
-buff-desc-frenzied = 你激发了非同寻常的速度，可以忽略轻伤.
-
+buff-frenzied = 狂暴
+    .desc = 你激发了非同寻常的速度，可以忽略轻伤.
 ## Haste
-
-buff-title-hastened = 加速
-buff-desc-hastened = 你的移动和攻击速度变得更快.
-
+buff-hastened = 加速
+    .desc = 你的移动和攻击速度变得更快.
 ## Bleeding
-
-buff-title-bleed = 流血
-buff-desc-bleed = 造成定期伤害.
-
+buff-bleed = 流血
+    .desc = 造成定期伤害.
 ## Curse
-
-buff-title-cursed = 诅咒
-buff-desc-cursed = 你被诅咒了.
-
+buff-cursed = 诅咒
+    .desc = 你被诅咒了.
 ## Burning
-
-buff-title-burn = 着火
-buff-desc-burn = 你被活活烧死了
-
+buff-burn = 着火
+    .desc = 你被活活烧死了
 ## Crippled
-
-buff-title-crippled = 残废
-buff-desc-crippled = 你的双腿受了重伤，你的运动能力受到影响.
-
+buff-crippled = 残废
+    .desc = 你的双腿受了重伤，你的运动能力受到影响.
 ## Freeze
-
-buff-title-frozen = 冻结
-buff-desc-frozen = 你的行动和攻击都变慢了.
-
+buff-frozen = 冻结
+    .desc =你的行动和攻击都变慢了.
 ## Wet
-
-buff-title-wet = 潮湿
-buff-desc-wet = 地面变得湿滑，让你很难停下来.
-
+buff-wet = 潮湿
+    .desc =地面变得湿滑，让你很难停下来.
 ## Ensnared
-
-buff-title-ensnared = 陷阱
-buff-desc-ensnared = 你的腿受到束缚，阻碍了你的移动.
-
+buff-ensnared = 陷阱
+    .desc =你的腿受到束缚，阻碍了你的移动.
 ## Fortitude
-
-buff-title-fortitude = 刚毅
-buff-desc-fortitude = 你对于震慑的承受能力更强大，并且受到的伤害月多对其他目标的震慑威力也提升了.
-
+buff-fortitude = 刚毅
+    .desc = 你对于震慑的承受能力更强大，并且受到的伤害月多对其他目标的震慑威力也提升了.
 ## Parried
-
-buff-title-parried = 被格挡
-buff-desc-parried = 你被格挡了，你的恢复更加缓慢.
-
+buff-parried = 被格挡
+    .desc = 你被格挡了，你的恢复更加缓慢.
 ## Potion sickness
-
-buff-title-potionsickness = 药水厌倦
-buff-desc-potionsickness = 因为你最近喝了一瓶药，药水给予的恢复量更少了.
-buff-stat-potionsickness = 将其他药水获得的恢复量降低{ $strength }%.
-
+buff-potionsickness = 药水厌倦
+    .desc = 因为你最近喝了一瓶药，药水给予的恢复量更少了.
+    .stat = 将其他药水获得的恢复量降低{ $strength }%.
 ## Reckless
-
-buff-title-reckless = 狂热
-buff-desc-reckless = 你的攻击更加强大, 但对于你的防御疏忽关照(防御降低).
-
+buff-reckless = 狂热
+    .desc = 你的攻击更加强大, 但对于你的防御疏忽关照(防御降低).
 ## Polymorped
-
-buff-title-polymorphed = 形态转换
-buff-desc-polymorphed = 你的身体转换了形态.
-
+buff-polymorphed = 形态转换
+    .desc = 你的身体转换了形态.
 ## Util
 
 buff-mysterious = 神秘效果

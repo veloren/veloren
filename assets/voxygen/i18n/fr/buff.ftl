@@ -1,111 +1,111 @@
 ## Régénération
 
-buff-title-heal = Soin
-buff-desc-heal = Régénère progressivement des points de vie.
-buff-stat-health = Restaure { $str_total } points de vie
+buff-heal = Soin
+    .desc = Régénère progressivement des points de vie.
+    .stat = Restaure { $str_total } points de vie
 
 ## Potion
 
-buff-title-potion = Potion
-buff-desc-potion = En train de boire...
+buff-potion = Potion
+    .desc = En train de boire...
 
 ## Saturation
 
-buff-title-saturation = Saturation
-buff-desc-saturation = Régénère progressivement des points de vie grâce à la nourriture.
+buff-saturation = Saturation
+    .desc = Régénère progressivement des points de vie grâce à la nourriture.
 
 ## Feu de camp
 
-buff-title-campfire_heal = Soin autour d'un feu de camp
-buff-desc-campfire_heal = Se reposer à côté d'un feu de camp restaure { $rate }% de santé chaque seconde.
+buff-campfire_heal = Soin autour d'un feu de camp
+    .desc = Se reposer à côté d'un feu de camp restaure { $rate }% de santé chaque seconde.
 
 ## Régen d'Endurance
 
-buff-title-energy_regen = Régénération d'Endurance
-buff-desc-energy_regen = Régénération de l'Endurance plus rapide
-buff-stat-energy_regen = Restaure { $str_total } d'Endurance
+buff-energy_regen = Régénération d'Endurance
+    .desc = Régénération de l'Endurance plus rapide
+    .stat = Restaure { $str_total } d'Endurance
 
 ## Augmentation de Santé
 
-buff-title-increase_max_health = Augmentation de Santé
-buff-desc-increase_max_health = Augmente votre limite max de points de vie
-buff-stat-increase_max_health =
-    Augmente les points de vie max
-    de { $strength }
+buff-increase_max_health = Augmentation de Santé
+    .desc = Augmente votre limite max de points de vie
+    .stat =
+        Augmente les points de vie max
+        de { $strength }
 
 ## Augmentation d'Endurance
 
-buff-title-increase_max_energy = Augmentation d'Endurance
-buff-desc-increase_max_energy = Augmente votre limite maximale de points d'endurance
-buff-stat-increase_max_energy =
-    Augmente les points d'endurance max
-    de { $strength }
+buff-increase_max_energy = Augmentation d'Endurance
+    .desc = Augmente votre limite maximale de points d'endurance
+    .stat =
+        Augmente les points d'endurance max
+        de { $strength }
 
 ## Invulnérabilité
 
-buff-title-invulnerability = Invulnérabilité
-buff-desc-invulnerability = Vous ne pouvez pas être blessé par une attaque.
-buff-stat-invulnerability = Rend invincible
+buff-invulnerability = Invulnérabilité
+    .desc = Vous ne pouvez pas être blessé par une attaque.
+    .stat = Rend invincible
 
 ## Aura de Protection
 
-buff-title-protectingward = Aura de Protection
-buff-desc-protectingward = Vous êtes protégé, d'une quelconque façon, des attaques ennemies
+buff-protectingward = Aura de Protection
+    .desc = Vous êtes protégé, d'une quelconque façon, des attaques ennemies
 
 ## Frénésie
 
-buff-title-frenzied = Frénétique
-buff-desc-frenzied = Vous bénéficiez d'une vitesse surnaturelle et ignorez les blessures superficielles.
+buff-frenzied = Frénétique
+    .desc = Vous bénéficiez d'une vitesse surnaturelle et ignorez les blessures superficielles.
 
 ## Hâte
 
-buff-title-hastened = Hâte
-buff-desc-hastened = Vos mouvements et vos attaques sont plus rapides.
+buff-hastened = Hâte
+    .desc = Vos mouvements et vos attaques sont plus rapides.
 
 ## Saignement
 
-buff-title-bleed = Saignement
-buff-desc-bleed = Inflige régulièrement des dommages.
+buff-bleed = Saignement
+    .desc = Inflige régulièrement des dommages.
 
 ## Malédiction
 
-buff-title-cursed = Maudit
-buff-desc-cursed = Vous êtes maudit.
+buff-cursed = Maudit
+    .desc = Vous êtes maudit.
 
 ## Brûlure
 
-buff-title-burn = En feu
-buff-desc-burn = Vous êtes en train de brûler vivant.
+buff-burn = En feu
+    .desc = Vous êtes en train de brûler vivant.
 
 ## Estropié
 
-buff-title-crippled = Estropie
-buff-desc-crippled = Vos mouvements sont ralentis suite à de graves blessures aux jambes.
+buff-crippled = Estropie
+    .desc = Vos mouvements sont ralentis suite à de graves blessures aux jambes.
 
 ## Gelé
 
-buff-title-frozen = Glacé(e)
-buff-desc-frozen = Vos mouvements et attaques sont ralentis.
+buff-frozen = Glacé(e)
+    .desc = Vos mouvements et attaques sont ralentis.
 
 ## Trempé
 
-buff-title-wet = Trempé(e)
-buff-desc-wet = Le sol rejette vos pieds, rendant le fait de s'arrêter difficile.
+buff-wet = Trempé(e)
+    .desc = Le sol rejette vos pieds, rendant le fait de s'arrêter difficile.
 
 ## Enchaîné
 
-buff-title-ensnared = Piégé(e)
-buff-desc-ensnared = Des plantes grimpantes s'attachent à vos jambes, restreignant vos mouvements.
+buff-ensnared = Piégé(e)
+    .desc = Des plantes grimpantes s'attachent à vos jambes, restreignant vos mouvements.
 
 ## Fortitude
 
-buff-title-fortitude = Courage
-buff-desc-fortitude = Vous pouvez résister aux étourdissements, et plus vous prenez de dégâts, plus vous étourdissez les autres facilement.
+buff-fortitude = Courage
+    .desc = Vous pouvez résister aux étourdissements, et plus vous prenez de dégâts, plus vous étourdissez les autres facilement.
 
 ## Paré
 
-buff-title-parried = Paré
-buff-desc-parried = Tu as été paré et tu es maintenant lent à récupérer.
+buff-parried = Paré
+    .desc = Tu as été paré et tu es maintenant lent à récupérer.
 
 ## Util
 
@@ -113,73 +113,56 @@ buff-text-over_seconds = pendant { $dur_secs } secondes
 buff-text-for_seconds = pour { $dur_secs } secondes
 buff-remove = Cliquer pour retirer
 # Reckless
-buff-title-reckless = Imprudent
+buff-reckless = Imprudent
+    .desc = Vos attaques sont plus puissantes mais vous laissez vos défenses ouvertes.
 # Potion sickness
-buff-title-potionsickness = Mal des potions
-# Potion sickness
-buff-desc-potionsickness = Les potions vous guérissent moins après en avoir consommé.
-# Reckless
-buff-desc-reckless = Vos attaques sont plus puissantes mais vous laissez vos défenses ouvertes.
+buff-potionsickness = Mal des potions
+    .desc = Les potions vous guérissent moins après en avoir consommé.
+    .stat =
+        Réduit la quantité de vie regagnée par
+        les potions suivantes de { $strength }%.
 # Lifesteal
-buff-desc-lifesteal = Siphonne la vie de vos ennemis.
+buff-lifesteal = Voleur de vie
+    .desc = Siphonne la vie de vos ennemis.
 # Polymorped
-buff-title-polymorphed = Polymorphe
+buff-polymorphed = Polymorphe
+    .desc = Votre corps change de forme.
 # Salamander's Aspect
-buff-title-salamanderaspect = Allure des salamandres
-# Polymorped
-buff-desc-polymorphed = Votre corps change de forme.
+buff-salamanderaspect = Allure des salamandres
+    .desc = Vous ne pouvez pas brûler et avancez vite dans la lave.
 # Frigid
-buff-title-frigid = Glacé
-# Frigid
-buff-desc-frigid = Gèle vos ennemis.
+buff-frigid = Glacé
+    .desc = Gèle vos ennemis.
 # Flame
-buff-desc-flame = Les flammes sont vos alliés.
-# Potion sickness
-buff-stat-potionsickness =
-    Réduit la quantité de vie regagnée par
-    les potions suivantes de { $strength }%.
+buff-flame = Enflammé
+    .desc = Les flammes sont vos alliés.
 # Imminent Critical
-buff-title-imminentcritical = Coup critique imminent
+buff-imminentcritical = Coup critique imminent
+    .desc = Votre prochaine attaque frappera votre ennemie de manière critique.
 # Bloodfeast
-buff-title-bloodfeast = Fête du sang
-# Imminent Critical
-buff-desc-imminentcritical = Votre prochaine attaque frappera votre ennemie de manière critique.
+buff-bloodfeast = Fête du sang
+    .desc = Vous regagner de la vie en attaquant des ennemis saignant
 # Fury
-buff-desc-fury = Avec votre fureur, vos coups génèrent plus de combo
+buff-fury = Fureur
+    .desc = Avec votre fureur, vos coups génèrent plus de combo
 # Sunderer
-buff-desc-defiance = Vous pouvez résister à des coups plus puissants et étourdissants et générer des combos en étant frappé mais vous êtes plus lent.
-# Bloodfeast
-buff-desc-bloodfeast = Vous regagner de la vie en attaquant des ennemis saignant
-# Sunderer
-buff-title-sunderer = Fragmentation
-# Salamander's Aspect
-buff-desc-salamanderaspect = Vous ne pouvez pas brûler et avancez vite dans la lave.
-# Fury
-buff-title-fury = Fureur
-# Sunderer
-buff-desc-sunderer = Vos attaques peuvent transpercer les défenses de vos ennemis et vous redonner plus d'énergie.
+buff-sunderer = Fragmentation
+    .desc = Vos attaques peuvent transpercer les défenses de vos ennemis et vous redonner plus d'énergie.
 # Berserk
-buff-title-berserk = Fou furieux
-# Berserk
-buff-desc-berserk = Vous êtes dans une rage furieuse, ce qui rend vos attaques plus puissantes et plus rapides. Cependant, cela rend moindre votre capacité défensive.
+buff-berserk = Fou furieux
+    .desc = Vous êtes dans une rage furieuse, ce qui rend vos attaques plus puissantes et plus rapides. Cependant, cela rend moindre votre capacité défensive.
 buff-mysterious = Effet mystérieux
-# Lifesteal
-buff-title-lifesteal = Voleur de vie
-# Sunderer
-buff-title-defiance = Bravoure
+# Defiance
+buff-defiance = Bravoure
+    .desc = Vous pouvez résister à des coups plus puissants et étourdissants et générer des combos en étant frappé mais vous êtes plus lent.
 # Agility
-buff-title-agility = Agilité
-# Agility
-buff-desc-agility = Vos mouvements sont plus rapides, mais vous infligez moins de dégâts, et prenez plus de dégâts.
-# Agility
-buff-stat-agility =
-    Augmente votre vitesse de déplacement
-    de { $strength }%.
-    Mais réduit vos dégâts de 100%,
-    et augmente les dégâts reçus de 100%.
+buff-agility = Agilité
+    .desc = Vos mouvements sont plus rapides, mais vous infligez moins de dégâts, et prenez plus de dégâts.
+    .stat =
+        Augmente votre vitesse de déplacement
+        de { $strength }%.
+        Mais réduit vos dégâts de 100%,
+        et augmente les dégâts reçus de 100%.
 # Heatstroke
-buff-desc-heatstroke = Vous avez été exposé à la chaleur et vous avez pris un coup de chaud. Votre récupération d'énergie et vitesse de mouvement sont réduits. Détendez vous.
-# Flame
-buff-title-flame = Enflammé
-# Heatstroke
-buff-title-heatstroke = Coup de chaleur
+buff-heatstroke = Coup de chaleur
+    .desc = Vous avez été exposé à la chaleur et vous avez pris un coup de chaud. Votre récupération d'énergie et vitesse de mouvement sont réduits. Détendez vous.

@@ -37,6 +37,9 @@ common-abilities-debug-glide_speeder = Vroom
     .desc = Gives you the force to reach wherever your eyes look
 
 ## Hotbar abilities
+
+# Not-yet reworked weapon abilities
+
 common-abilities-hammer-leap = Smash of Doom
     .desc = An AOE attack with knockback. Leaps to position of cursor.
 common-abilities-bow-shotgun = Burst
@@ -304,23 +307,17 @@ common-abilities-sword-cleaving_sky_splitter = Sky Splitter
 
 ## Axe abilities
 common-abilities-axe-triple_chop = Triple Chop
-    .desc =
-        Three quick strikes.
+    .desc = Three quick strikes.
 common-abilities-axe-cleave = Cleave
-    .desc =
-        A downwards chop that can build multiple combo.
+    .desc = A downwards chop that can build multiple combo.
 common-abilities-axe-brutal_swing = Brutal Swing
-    .desc =
-        A spinning cleave around you.
+    .desc = A spinning cleave around you.
 common-abilities-axe-berserk = Berserk
-    .desc =
-        Increases your strength at the cost of leaving you vulnerable.
+    .desc = Increases your strength at the cost of leaving you vulnerable.
 common-abilities-axe-rising_tide = Rising Tide
-    .desc =
-        An upwards strike that greatly increases combo.
+    .desc = An upwards strike that greatly increases combo.
 common-abilities-axe-savage_sense = Savage Sense
-    .desc =
-        Identify a vital point on your target, ensuring your next strike critically damages them.
+    .desc = Identify a vital point on your target, ensuring your next strike critically damages them.
 common-abilities-axe-adrenaline_rush = Adrenaline Rush
     .desc =
         Consume all your combo to replenish your energy.
@@ -335,20 +332,15 @@ common-abilities-axe-maelstrom = Maelstrom
         Strike everything in your vicinity with a devastating, spinning strike.
         Automatically upgrades from execute at 50 combo.
 common-abilities-axe-rake = Rake
-    .desc =
-        Drag your axe across your foe, inducing bleeding.
+    .desc = Drag your axe across your foe, inducing bleeding.
 common-abilities-axe-bloodfeast = Bloodfeast
-    .desc =
-        Your axe thirsts for the blood of your enemies, replenishing you with each strike against a bleeding enemy.
+    .desc = Your axe thirsts for the blood of your enemies, replenishing you with each strike against a bleeding enemy.
 common-abilities-axe-fierce_raze = Fierce Raze
-    .desc =
-        A rapid flurry of strikes on your foe.
+    .desc = A rapid flurry of strikes on your foe.
 common-abilities-axe-dual_fierce_raze = Fierce Raze
-    .desc =
-        A rapid flurry of strikes on your foe using both of your axes.
+    .desc = A rapid flurry of strikes on your foe using both of your axes.
 common-abilities-axe-furor = Furor
-    .desc =
-        As your fury rises, your strikes generate more combo.
+    .desc = As your fury rises, your strikes generate more combo.
 common-abilities-axe-fracture = Fracture
     .desc =
         A crippling blow that hampers your foe's movement.
@@ -363,17 +355,13 @@ common-abilities-axe-riptide = Riptide
         Flay everything nearby, parting them from their blood.
         Automatically upgrades from lacerate at 50 combo.
 common-abilities-axe-skull_bash = Skullbash
-    .desc =
-        A strike with the flat of your axe that can stagger.
+    .desc = A strike with the flat of your axe that can stagger.
 common-abilities-axe-sunder = Sunder
-    .desc =
-        By changing your grip, you become able to bypass your enemy's armor while restoring your energy more effectively.
+    .desc = By changing your grip, you become able to bypass your enemy's armor while restoring your energy more effectively.
 common-abilities-axe-plunder = Plunder
-    .desc =
-        Quickly step towards your foe, robbing them of their balance with a strike.
+    .desc = Quickly step towards your foe, robbing them of their balance with a strike.
 common-abilities-axe-defiance = Defiance
-    .desc =
-        Stare death in the eye longer as you make yourself resistant to both staggers and death.
+    .desc = Stare death in the eye longer as you make yourself resistant to both staggers and death.
 common-abilities-axe-keelhaul = Keelhaul
     .desc =
         Hook your opponent to pull them closer towards you.

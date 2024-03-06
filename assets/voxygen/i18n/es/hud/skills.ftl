@@ -1,4 +1,5 @@
-# General - Todos los árboles de habilidades
+## General - Todos los árboles de habilidades
+
 hud-rank_up = Nuevo punto de habilidad adquirido
 hud-skill-sp_available =
     { $number ->
@@ -17,14 +18,12 @@ hud-skill-req_sp =
 hud-skill-set_as_exp_bar = Fijar en barra de experiencia
 
 # Combate general - Árbol de habilidades
-
-
 ## Salud
 
 hud-skill-inc_health_title = Aumentar salud
 hud-skill-inc_health = Aumenta la salud máxima en { $boost } puntos{ $SP }
 
-## Aguante
+## Energía
 
 hud-skill-inc_energy_title = Aumentar energía
 hud-skill-inc_energy = Aumenta la energía máxima en { $boost } puntos{ $SP }
@@ -72,8 +71,6 @@ hud-skill-swim_speed_title = Velocidad al nadar
 hud-skill-swim_speed = Nadas un { $boost } % más rápido{ $SP }
 
 # Martillo - Árbol de habilidades
-
-
 ## Golpe único
 
 hud-skill-hmr_single_strike_title = Golpe sencillo
@@ -116,8 +113,6 @@ hud-skill-hmr_leap_radius_title = Radio de Terremoto
 hud-skill-hmr_leap_radius = Aumenta el radio del golpe al suelo en { $boost } metros{ $SP }
 
 # Cetro - Árbol de habilidades
-
-
 ## Drenar vida
 
 hud-skill-sc_lifesteal_title = Drenar vida
@@ -159,8 +154,6 @@ hud-skill-sc_wardaura_cost_title = Coste de energía de {{ -hud-skill-sc_wardaur
 hud-skill-sc_wardaura_cost = El aura requiere un { $boost } % menos de energía{ $SP }
 
 # Árco - Árbol de habilidades
-
-
 ## Tiro de arco
 
 hud-skill-bow_charged_title = Tiro de arco
@@ -204,7 +197,6 @@ hud-skill-bow_projectile_speed = Las flechas llegan más lejos al viajar un { $b
 
 # Bastón de fuego - Árbol de habilidades
 
-
 ## Bola de fuego
 
 hud-skill-st_fireball_title = Bola de Fuego
@@ -242,7 +234,9 @@ hud-skill-st_shockwave_knockback_title = Retroceso de {{ -hud-skill-st_shockwave
 hud-skill-st_shockwave_knockback = Aumenta la potencia de lanzamiento en un { $boost } %{ $SP }
 hud-skill-st_shockwave_cost_title = Coste de {{ -hud-skill-st_shockwave_title }}
 hud-skill-st_shockwave_cost = Reduce el coste de energía en un { $boost } %{ $SP }
+
 # Minería - Árbol de habilidades
+
 hud-skill-mining_title = Minería
 hud-skill-pick_strike_title = Picar
 hud-skill-pick_strike = Usa el pico para extraer minerales y gemas de rocas y conseguir puntos de experiencia

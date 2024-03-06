@@ -11,7 +11,7 @@ object-potion_big = Large Potion
     .desc = Precious medicine, it makes for the largest rejuvenative flask yet.
 
 object-potion_combustion = Potion of Combustion
-    .desc = Sets the user ablaze
+    .desc = Sets the user ablaze.
 
 object-potion_med = Medium Potion
     .desc = An innovative invention from an apothecary, better than its smaller precursors.

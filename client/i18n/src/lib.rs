@@ -487,17 +487,23 @@ impl LocalizationGuard {
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
-    pub fn try_attr_ctx<'a>(
-        &'a self,
+    pub fn try_attr_ctx(
+        &self,
         key: &str,
         attr: &str,
-        args: &'a FluentArgs,
-    ) -> Option<Cow<str>> {
-        self.active.try_attr(key, attr, Some(args)).or_else(|| {
-            self.fallback
-                .as_ref()
-                .and_then(|fb| fb.try_attr(key, attr, Some(args)))
-        })
+        args: &FluentArgs,
+    ) -> Option<Cow<'static, str>> {
+        // NOTE: we explicitly Own result, because in 99.999% cases it got
+        // owned during formatting of arguments, hence it's a no-op, but makes
+        // using this function much easier
+        self.active
+            .try_attr(key, attr, Some(args))
+            .or_else(|| {
+                self.fallback
+                    .as_ref()
+                    .and_then(|fb| fb.try_attr(key, attr, Some(args)))
+            })
+            .map(|res| Cow::Owned(res.into_owned()))
     }
 
     /// Get a localized text from the given key by given attribute and arguments
@@ -506,7 +512,7 @@ impl LocalizationGuard {
     /// the fallback (if present).
     /// If the key is not present in the localization object
     /// then the key itself is returned.
-    pub fn get_attr_ctx<'a>(&'a self, key: &str, attr: &str, args: &'a FluentArgs) -> Cow<str> {
+    pub fn get_attr_ctx(&self, key: &str, attr: &str, args: &FluentArgs) -> Cow<'static, str> {
         self.try_attr_ctx(key, attr, args)
             .unwrap_or_else(|| Cow::Owned(format!("{key}.{attr}")))
     }

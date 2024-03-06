@@ -161,4 +161,3 @@ subtitle-utterance-wyvern-angry = Wyvern roaring
 subtitle-utterance-wyvern-hurt = Wyvern hurting
 subtitle-utterance-phoenix-angry = Phoenix screaming
 subtitle-utterance-phoenix-hurt = Phoenix hurting
-

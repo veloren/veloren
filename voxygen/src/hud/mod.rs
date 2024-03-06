@@ -508,8 +508,8 @@ impl BuffIconKind {
                 data,
                 multiplicity: _,
             } => (
-                get_buff_title(*kind, localized_strings),
-                get_buff_desc(*kind, *data, localized_strings),
+                util::get_buff_title(*kind, localized_strings),
+                util::get_buff_desc(*kind, *data, localized_strings),
             ),
             Self::Stance(stance) => {
                 util::ability_description(stance.pseudo_ability_id(), localized_strings)
@@ -5264,96 +5264,6 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::PotionSickness => imgs.debuff_potionsickness_0,
         BuffKind::Polymorphed => imgs.debuff_polymorphed,
         BuffKind::Heatstroke => imgs.debuff_heatstroke_0,
-    }
-}
-
-pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<str> {
-    match buff {
-        // Buffs
-        BuffKind::Regeneration => localized_strings.get_msg("buff-title-heal"),
-        BuffKind::Saturation => localized_strings.get_msg("buff-title-saturation"),
-        BuffKind::Potion => localized_strings.get_msg("buff-title-potion"),
-        BuffKind::Agility => localized_strings.get_msg("buff-title-agility"),
-        BuffKind::CampfireHeal => localized_strings.get_msg("buff-title-campfire_heal"),
-        BuffKind::EnergyRegen => localized_strings.get_msg("buff-title-energy_regen"),
-        BuffKind::IncreaseMaxHealth => localized_strings.get_msg("buff-title-increase_max_health"),
-        BuffKind::IncreaseMaxEnergy => localized_strings.get_msg("buff-title-increase_max_energy"),
-        BuffKind::Invulnerability => localized_strings.get_msg("buff-title-invulnerability"),
-        BuffKind::ProtectingWard => localized_strings.get_msg("buff-title-protectingward"),
-        BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
-        BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
-        BuffKind::Fortitude => localized_strings.get_msg("buff-title-fortitude"),
-        BuffKind::Reckless => localized_strings.get_msg("buff-title-reckless"),
-        // BuffKind::SalamanderAspect => localized_strings.get_msg("buff-title-salamanderaspect"),
-        BuffKind::Flame => localized_strings.get_msg("buff-title-burn"),
-        BuffKind::Frigid => localized_strings.get_msg("buff-title-frigid"),
-        BuffKind::Lifesteal => localized_strings.get_msg("buff-title-lifesteal"),
-        BuffKind::ImminentCritical => localized_strings.get_msg("buff-title-imminentcritical"),
-        BuffKind::Fury => localized_strings.get_msg("buff-title-fury"),
-        BuffKind::Sunderer => localized_strings.get_msg("buff-title-sunderer"),
-        BuffKind::Defiance => localized_strings.get_msg("buff-title-defiance"),
-        BuffKind::Bloodfeast => localized_strings.get_msg("buff-title-bloodfeast"),
-        BuffKind::Berserk => localized_strings.get_msg("buff-title-berserk"),
-        // Debuffs
-        BuffKind::Bleeding => localized_strings.get_msg("buff-title-bleed"),
-        BuffKind::Cursed => localized_strings.get_msg("buff-title-cursed"),
-        BuffKind::Burning => localized_strings.get_msg("buff-title-burn"),
-        BuffKind::Crippled => localized_strings.get_msg("buff-title-crippled"),
-        BuffKind::Frozen => localized_strings.get_msg("buff-title-frozen"),
-        BuffKind::Wet => localized_strings.get_msg("buff-title-wet"),
-        BuffKind::Ensnared => localized_strings.get_msg("buff-title-ensnared"),
-        BuffKind::Poisoned => localized_strings.get_msg("buff-title-poisoned"),
-        BuffKind::Parried => localized_strings.get_msg("buff-title-parried"),
-        BuffKind::PotionSickness => localized_strings.get_msg("buff-title-potionsickness"),
-        BuffKind::Polymorphed => localized_strings.get_msg("buff-title-polymorphed"),
-        BuffKind::Heatstroke => localized_strings.get_msg("buff-title-heatstroke"),
-    }
-}
-
-pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localization) -> Cow<str> {
-    match buff {
-        // Buffs
-        BuffKind::Regeneration => localized_strings.get_msg("buff-desc-heal"),
-        BuffKind::Saturation => localized_strings.get_msg("buff-desc-saturation"),
-        BuffKind::Potion => localized_strings.get_msg("buff-desc-potion"),
-        BuffKind::Agility => localized_strings.get_msg("buff-desc-agility"),
-        BuffKind::CampfireHeal => {
-            localized_strings.get_msg_ctx("buff-desc-campfire_heal", &i18n::fluent_args! {
-                "rate" => data.strength * 100.0
-            })
-        },
-        BuffKind::EnergyRegen => localized_strings.get_msg("buff-desc-energy_regen"),
-        BuffKind::IncreaseMaxHealth => localized_strings.get_msg("buff-desc-increase_max_health"),
-        BuffKind::IncreaseMaxEnergy => localized_strings.get_msg("buff-desc-increase_max_energy"),
-        BuffKind::Invulnerability => localized_strings.get_msg("buff-desc-invulnerability"),
-        BuffKind::ProtectingWard => localized_strings.get_msg("buff-desc-protectingward"),
-        BuffKind::Frenzied => localized_strings.get_msg("buff-desc-frenzied"),
-        BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
-        BuffKind::Fortitude => localized_strings.get_msg("buff-desc-fortitude"),
-        BuffKind::Reckless => localized_strings.get_msg("buff-desc-reckless"),
-        // BuffKind::SalamanderAspect => localized_strings.get_msg("buff-desc-salamanderaspect"),
-        BuffKind::Flame => localized_strings.get_msg("buff-desc-flame"),
-        BuffKind::Frigid => localized_strings.get_msg("buff-desc-frigid"),
-        BuffKind::Lifesteal => localized_strings.get_msg("buff-desc-lifesteal"),
-        BuffKind::ImminentCritical => localized_strings.get_msg("buff-desc-imminentcritical"),
-        BuffKind::Fury => localized_strings.get_msg("buff-desc-fury"),
-        BuffKind::Sunderer => localized_strings.get_msg("buff-desc-sunderer"),
-        BuffKind::Defiance => localized_strings.get_msg("buff-desc-defiance"),
-        BuffKind::Bloodfeast => localized_strings.get_msg("buff-desc-bloodfeast"),
-        BuffKind::Berserk => localized_strings.get_msg("buff-desc-berserk"),
-        // Debuffs
-        BuffKind::Bleeding => localized_strings.get_msg("buff-desc-bleed"),
-        BuffKind::Cursed => localized_strings.get_msg("buff-desc-cursed"),
-        BuffKind::Burning => localized_strings.get_msg("buff-desc-burn"),
-        BuffKind::Crippled => localized_strings.get_msg("buff-desc-crippled"),
-        BuffKind::Frozen => localized_strings.get_msg("buff-desc-frozen"),
-        BuffKind::Wet => localized_strings.get_msg("buff-desc-wet"),
-        BuffKind::Ensnared => localized_strings.get_msg("buff-desc-ensnared"),
-        BuffKind::Poisoned => localized_strings.get_msg("buff-desc-poisoned"),
-        BuffKind::Parried => localized_strings.get_msg("buff-desc-parried"),
-        BuffKind::PotionSickness => localized_strings.get_msg("buff-desc-potionsickness"),
-        BuffKind::Polymorphed => localized_strings.get_msg("buff-desc-polymorphed"),
-        BuffKind::Heatstroke => localized_strings.get_msg("buff-desc-heatstroke"),
     }
 }
 

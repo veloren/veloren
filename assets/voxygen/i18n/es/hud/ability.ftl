@@ -7,8 +7,9 @@
 # 5. Habilidades específicas de esa posición de combate, las mostradas en el árbol de habilidades, leídas de izquierda a derecha, de arriba a abajo
 
 
-## Habilidades con polimorfismo, es decir, que tienen variantes para cada posición de combate
-## Estas son las habilidades mostradas en el centro del árbol de habilidades de la espada, excepto las dos primeras listadas
+## Habilidades con polimorfismo, es decir, que tienen variantes para cada posición de combate.
+## Estas son las habilidades mostradas en el centro del árbol de habilidades de la espada,
+## excepto las dos primeras listadas.
 
 veloren-core-pseudo_abilities-sword-double_slash = Golpe doble
     .desc = Una sucesión de dos golpes.
