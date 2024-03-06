@@ -1,7 +1,8 @@
 hud-rank_up = Abilezia puntu berria
 hud-skill-sp_available = { $number } AP-a erabilgarri
 hud-skill-not_unlocked = Desblokeatu gabe
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Kostua: { $number } AP
 hud-skill-inc_health_title = Osasuna areagotu
@@ -63,7 +64,7 @@ hud-skill-sc_wardaura_unlock = Aliatuak arerioen erasoengandik babestea ahalbide
 hud-skill-sc_wardaura_strength_title = Indarra
 hud-skill-sc_wardaura_strength = Zure babesaren indarra %{ $boost }areagotzen da{ $SP }
 hud-skill-sc_wardaura_duration_title = Iraupena
-hud-skill-sc_wardaura_duration = Zure babesaren iraupena %{ $boost} areagotzen da{ $SP }
+hud-skill-sc_wardaura_duration = Zure babesaren iraupena %{ $boost } areagotzen da{ $SP }
 hud-skill-sc_wardaura_range_title = Erradioa
 hud-skill-sc_wardaura_range = Zure babesa %{ $boost }urrunago iristen da{ $SP }
 hud-skill-sc_wardaura_cost_title = Energia balioa

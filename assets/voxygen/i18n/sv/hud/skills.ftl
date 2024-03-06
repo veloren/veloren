@@ -1,7 +1,8 @@
 hud-rank_up = Nytt färdighetspoäng
 hud-skill-sp_available = { $number } FP tillgängliga
 hud-skill-not_unlocked = Inte upplåst än
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Kräver { $number } FP
 hud-skill-set_as_exp_bar = Ställ in som erfarenhetsmätare

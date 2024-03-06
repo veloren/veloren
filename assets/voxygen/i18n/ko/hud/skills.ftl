@@ -1,7 +1,8 @@
 hud-rank_up = 새 스킬포인트
 hud-skill-sp_available = { $number } 포인트 사용가능
 hud-skill-not_unlocked = 아직 잠겨있음
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     { $number } 포인트 필요함
 hud-skill-set_as_exp_bar = 경험치바로 설정하기

@@ -1,7 +1,8 @@
 hud-rank_up = Nou Punt d'Habilitat
 hud-skill-sp_available = { $number } PH disponibles
 hud-skill-not_unlocked = No desbloquejat
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Requereix { $number } PH
 hud-skill-inc_health_title = Augmentar Salut

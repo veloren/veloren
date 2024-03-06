@@ -1,7 +1,8 @@
 hud-rank_up = Nuovo punto abilità
 hud-skill-sp_available = { $number } PA disponibili
 hud-skill-not_unlocked = Non ancora sbloccato
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Richiede { $number } PA
 hud-skill-set_as_exp_bar = Imposta nella barra dell'esperienza

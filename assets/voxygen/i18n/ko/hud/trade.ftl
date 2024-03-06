@@ -16,14 +16,16 @@ hud-trade-invite_sent = { $playername }에게 거래 제안함.
 hud-trade-result-completed = 거래가 성사됨.
 hud-trade-result-declined = 거래가 거절됨.
 hud-trade-result-nospace = 공간이 부족하여 거래 실패함.
-hud-trade-buy = 사는 가격: { $coin_num ->
-    [one] 동전 { $coin_formatted }개
-    *[other] 동전 { $coin_formatted }개
-}
-hud-trade-sell = 파는 가격: { $coin_num ->
-    [one] 동전 { $coin_formatted }개
-    *[other] 동전 { $coin_formatted }개
-}
+hud-trade-buy =
+    사는 가격: { $coin_num ->
+        [one] 동전 { $coin_formatted }개
+       *[other] 동전 { $coin_formatted }개
+    }
+hud-trade-sell =
+    파는 가격: { $coin_num ->
+        [one] 동전 { $coin_formatted }개
+       *[other] 동전 { $coin_formatted }개
+    }
 hud-trade-tooltip_hint_1 = <시프트-왼클릭으로 거래에 아이템 더하기/빼기.>
 hud-trade-tooltip_hint_2 = <컨트롤-왼클릭으로 자동으로 가격에 갯수 맞추기.>
 hud-trade-your_offer = 당신의 제안

@@ -1,5 +1,6 @@
 hud-skill-not_unlocked = Todavía no desbloqueado
-hud-skill-req_sp ={"\u000A"}
+hud-skill-req_sp =
+    { "\u000A" }
 
     Requiere { $number } PH
 hud-rank_up = Nuevo punto de habilidad
