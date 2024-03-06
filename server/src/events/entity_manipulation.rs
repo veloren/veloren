@@ -7,9 +7,11 @@ use crate::{
         BuffKind, BuffSource, PhysicsState,
     },
     error,
+    events::entity_creation::handle_create_npc,
+    pet::tame_pet,
     rtsim::RtSim,
     state_ext::StateExt,
-    sys::terrain::{NpcData, SAFE_ZONE_RADIUS},
+    sys::terrain::{NpcData, SpawnEntityData, SAFE_ZONE_RADIUS},
     Server, Settings, SpawnPoint,
 };
 use common::{
@@ -28,12 +30,12 @@ use common::{
     consts::TELEPORTER_RADIUS,
     event::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
-        ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateObjectEvent, DeleteEvent,
-        DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus,
-        ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent,
-        ParryHookEvent, PoiseChangeEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent,
-        StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent, TransformEvent,
-        UpdateMapMarkerEvent,
+        ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
+        DeleteEvent, DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent,
+        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent,
+        MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RemoveLightEmitterEvent, RespawnEvent,
+        SoundEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
+        TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::EntityInfo,
@@ -2141,8 +2143,8 @@ pub fn transform_entity(
         .read_storage::<comp::Player>()
         .contains(entity);
 
-    match NpcData::from_entity_info(entity_info) {
-        NpcData::Data {
+    match SpawnEntityData::from_entity_info(entity_info) {
+        SpawnEntityData::Npc(NpcData {
             inventory,
             stats,
             skill_set,
@@ -2154,7 +2156,8 @@ pub fn transform_entity(
             loot,
             alignment: _,
             pos: _,
-        } => {
+            pets,
+        }) => {
             fn set_or_remove_component<C: specs::Component>(
                 server: &mut Server,
                 entity: EcsEntity,
@@ -2247,11 +2250,29 @@ pub fn transform_entity(
                 set_or_remove_component(server, entity, agent)?;
                 set_or_remove_component(server, entity, loot.to_items().map(comp::ItemDrops))?;
             }
+
+            // Spawn pets
+            let position = server.state.read_component_copied::<comp::Pos>(entity);
+            if let Some(pos) = position {
+                for (pet, offset) in pets
+                    .into_iter()
+                    .map(|(pet, offset)| (pet.to_npc_builder().0, offset))
+                {
+                    let pet_entity = handle_create_npc(server, CreateNpcEvent {
+                        pos: comp::Pos(pos.0 + offset),
+                        ori: comp::Ori::from_unnormalized_vec(offset).unwrap_or_default(),
+                        npc: pet,
+                        rider: None,
+                    });
+
+                    tame_pet(server.state.ecs(), pet_entity, entity);
+                }
+            }
         },
-        NpcData::Waypoint(_) => {
+        SpawnEntityData::Waypoint(_) => {
             return Err(TransformEntityError::UnexpectedNpcWaypoint);
         },
-        NpcData::Teleporter(_, _) => {
+        SpawnEntityData::Teleporter(_, _) => {
             return Err(TransformEntityError::UnexpectedNpcTeleporter);
         },
     }

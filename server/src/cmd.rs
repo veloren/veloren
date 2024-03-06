@@ -9,7 +9,7 @@ use crate::{
         server_description::ServerDescription, Ban, BanAction, BanInfo, EditableSetting,
         SettingError, WhitelistInfo, WhitelistRecord,
     },
-    sys::terrain::NpcData,
+    sys::terrain::SpawnEntityData,
     weather::WeatherJob,
     wiring,
     wiring::OutputFormula,
@@ -40,8 +40,8 @@ use common::{
     depot,
     effect::Effect,
     event::{
-        ClientDisconnectEvent, CreateWaypointEvent, EventBus, ExplosionEvent, GroupManipEvent,
-        InitiateInviteEvent, TamePetEvent,
+        ClientDisconnectEvent, CreateNpcEvent, CreateWaypointEvent, EventBus, ExplosionEvent,
+        GroupManipEvent, InitiateInviteEvent, TamePetEvent,
     },
     generation::{EntityConfig, EntityInfo},
     link::Is,
@@ -726,68 +726,26 @@ fn handle_make_npc(
             None,
         );
 
-        match NpcData::from_entity_info(entity_info) {
-            NpcData::Waypoint(_) => {
+        match SpawnEntityData::from_entity_info(entity_info) {
+            SpawnEntityData::Waypoint(_) => {
                 return Err(Content::localized("command-unimplemented-waypoint-spawn"));
             },
-            NpcData::Teleporter(_, _) => {
+            SpawnEntityData::Teleporter(_, _) => {
                 return Err(Content::localized("command-unimplemented-teleporter-spawn"));
             },
-            NpcData::Data {
-                inventory,
-                pos,
-                stats,
-                skill_set,
-                poise,
-                health,
-                body,
-                agent,
-                alignment,
-                scale,
-                loot,
-            } => {
-                // Spread about spawned npcs
-                let vel = Vec3::new(
-                    thread_rng().gen_range(-2.0..3.0),
-                    thread_rng().gen_range(-2.0..3.0),
-                    10.0,
-                );
+            SpawnEntityData::Npc(data) => {
+                let (npc_builder, _pos) = data.to_npc_builder();
 
-                let mut entity_builder = server
+                server
                     .state
-                    .create_npc(
-                        pos,
-                        comp::Ori::default(),
-                        stats,
-                        skill_set,
-                        health,
-                        poise,
-                        inventory,
-                        body,
-                    )
-                    .with(alignment)
-                    .with(scale)
-                    .with(comp::Vel(vel));
-
-                if let Some(agent) = agent {
-                    entity_builder = entity_builder.with(agent);
-                }
-
-                if let Some(drop_items) = loot.to_items() {
-                    entity_builder = entity_builder.with(comp::ItemDrops(drop_items));
-                }
-
-                // Some would say it's a hack, some would say it's incomplete
-                // simulation. But this is what we do to avoid PvP between npc.
-                let npc_group = match alignment {
-                    Alignment::Enemy => Some(comp::group::ENEMY),
-                    Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
-                    Alignment::Wild | Alignment::Passive | Alignment::Owned(_) => None,
-                };
-                if let Some(group) = npc_group {
-                    entity_builder = entity_builder.with(group);
-                }
-                entity_builder.build();
+                    .ecs()
+                    .read_resource::<EventBus<CreateNpcEvent>>()
+                    .emit_now(CreateNpcEvent {
+                        pos: comp::Pos(pos),
+                        ori: comp::Ori::default(),
+                        npc: npc_builder,
+                        rider: None,
+                    });
             },
         };
     }
@@ -1775,13 +1733,7 @@ fn handle_spawn(
                         owner_entity: target,
                         pet_entity: new_entity,
                     });
-                } else if let Some(group) = match alignment {
-                    Alignment::Wild => None,
-                    Alignment::Passive => None,
-                    Alignment::Enemy => Some(comp::group::ENEMY),
-                    Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
-                    comp::Alignment::Owned(_) => unreachable!(),
-                } {
+                } else if let Some(group) = alignment.group() {
                     insert_or_replace_component(server, new_entity, group, "new entity")?;
                 }
 

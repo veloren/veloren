@@ -854,13 +854,6 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
                     None,
                 ),
             );
-            entities.resize_with(entities.len() + 4, || {
-                EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_asset_expect(
-                    "common.entity.dungeon.cultist.hound",
-                    dynamic_rng,
-                    None,
-                )
-            });
         },
         1 => {
             entities.resize_with(2, || {

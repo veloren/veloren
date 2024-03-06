@@ -1,6 +1,6 @@
 use crate::{
     client::Client, events::player::handle_exit_ingame, persistence::PersistedComponents,
-    presence::RepositionOnChunkLoad, sys, CharacterUpdater, Server, StateExt,
+    pet::tame_pet, presence::RepositionOnChunkLoad, sys, CharacterUpdater, Server, StateExt,
 };
 use common::{
     comp::{
@@ -198,13 +198,7 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
                 },
             );
         }
-    } else if let Some(group) = match ev.npc.alignment {
-        Alignment::Wild => None,
-        Alignment::Passive => None,
-        Alignment::Enemy => Some(comp::group::ENEMY),
-        Alignment::Npc | Alignment::Tame => Some(comp::group::NPC),
-        comp::Alignment::Owned(_) => unreachable!(),
-    } {
+    } else if let Some(group) = ev.npc.alignment.group() {
         let _ = server.state.ecs().write_storage().insert(new_entity, group);
     }
 
@@ -225,6 +219,17 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
             .state
             .link(link)
             .expect("We just created these entities");
+    }
+
+    for (pet, offset) in ev.npc.pets {
+        let pet_entity = handle_create_npc(server, CreateNpcEvent {
+            pos: comp::Pos(ev.pos.0 + offset),
+            ori: Ori::from_unnormalized_vec(offset).unwrap_or_default(),
+            npc: pet,
+            rider: None,
+        });
+
+        tame_pet(server.state.ecs(), pet_entity, new_entity);
     }
 
     new_entity

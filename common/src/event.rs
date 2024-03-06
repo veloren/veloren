@@ -59,6 +59,7 @@ pub struct NpcBuilder {
     pub scale: comp::Scale,
     pub anchor: Option<comp::Anchor>,
     pub loot: LootSpec<String>,
+    pub pets: Vec<(NpcBuilder, Vec3<f32>)>,
     pub rtsim_entity: Option<RtSimEntity>,
     pub projectile: Option<comp::Projectile>,
 }
@@ -79,6 +80,7 @@ impl NpcBuilder {
             loot: LootSpec::Nothing,
             rtsim_entity: None,
             projectile: None,
+            pets: Vec::new(),
         }
     }
 
@@ -129,6 +131,11 @@ impl NpcBuilder {
 
     pub fn with_loot(mut self, loot: LootSpec<String>) -> Self {
         self.loot = loot;
+        self
+    }
+
+    pub fn with_pets(mut self, pets: Vec<(NpcBuilder, Vec3<f32>)>) -> Self {
+        self.pets = pets;
         self
     }
 }
