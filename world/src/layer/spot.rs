@@ -543,7 +543,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             Spot::Arch => SpotConfig {
                 base_structures: Some("spots.arch"),
                 entity_radius: 50.0,
-                entities: &[(2..3, "common.entity.wild.aggressive.ngoubou")],
+                entities: &[],
             },
             Spot::AirshipCrash => SpotConfig {
                 base_structures: Some("trees.airship_crash"),
