@@ -1,6 +1,6 @@
 [   
     (1, All([
-        MultiDrop(Item("common.items.crafting_ing.hide.rugged_hide"), 2, 4),
+        MultiDrop(Item("common.items.crafting_ing.hide.rugged_hide"), 6, 12),
         MultiDrop(Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, 2),
         ],
    )),

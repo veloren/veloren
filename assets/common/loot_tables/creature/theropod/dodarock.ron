@@ -1,4 +1,7 @@
 [
-    (1.0, MultiDrop(LootTable("common.loot_tables.materials.underground"), 1, 2)),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.stones"), 2, 6)),
+    (1, All([
+        MultiDrop(LootTable("common.loot_tables.materials.underground"), 1, 2),
+        MultiDrop(Item("common.items.crafting_ing.stones"), 2, 6),
+        ],
+    )),
 ]

@@ -1,4 +1,7 @@
 [
-    (1.0, MultiDrop(Item("common.items.crafting_ing.sticky_thread"), 3, 5)),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, 2)),
+    (1, All([
+        MultiDrop(Item("common.items.crafting_ing.sticky_thread"), 3, 7),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, 2),
+        ],
+    )),
 ]

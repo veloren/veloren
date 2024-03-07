@@ -1,5 +1,8 @@
 [
-    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.tough_hide"), 1, 2)),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.living_embers"), 1, 2)),
-    (1.0, Item("common.items.food.meat.tough_raw")),
+    (1, All([
+        MultiDrop(Item("common.items.crafting_ing.hide.tough_hide"), 3, 5),
+        MultiDrop(Item("common.items.crafting_ing.living_embers"), 2, 4),
+        MultiDrop(Item("common.items.food.meat.tough_raw"), 3, 5),
+        ],
+    )),
 ]

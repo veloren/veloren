@@ -1,4 +1,7 @@
 [
-    (1.5, MultiDrop(Item("common.items.crafting_ing.hide.carapace"), 4, 5)),
-    (1.0, MultiDrop(Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, 2)),
+    (1, All([
+        MultiDrop(Item("common.items.crafting_ing.hide.carapace"), 5, 8),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, 2),
+        ],
+    )),
 ]

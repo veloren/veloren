@@ -1,4 +1,7 @@
 [
-    (4.0, LootTable("common.loot_tables.creature.quad_medium.generic")),
-    (2.0, MultiDrop(Item("common.items.crafting_ing.animal_misc.claw"), 1, 4)),
+    (1, All([
+        MultiDrop(LootTable("common.loot_tables.creature.quad_medium.generic"), 2, 4),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.claw"), 3, 4),
+        ],
+    )),
 ]

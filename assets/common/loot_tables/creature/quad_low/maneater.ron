@@ -1,8 +1,8 @@
 [
     (9.5, All([
-        MultiDrop(Item("common.items.crafting_ing.animal_misc.lively_vine"), 2, 4),
-        MultiDrop(Item("common.loot_tables.food.wild_ingredients"), 1, 1),
-        MultiDrop(Item("common.items.crafting_ing.sentient_seed"), 1, 3),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.lively_vine"), 4, 8),
+        MultiDrop(LootTable("common.loot_tables.food.wild_ingredients"), 1, 3),
+        MultiDrop(Item("common.items.crafting_ing.sentient_seed"), 3, 6),
         ],
     )),
     (0.5, Item("common.items.armor.misc.head.bamboo_twig")),
