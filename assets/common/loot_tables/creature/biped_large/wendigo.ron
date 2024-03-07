@@ -5,5 +5,5 @@
         MultiDrop(LootTable("common.loot_tables.cave_large"), 2, 3),
       ],
    )),
-  (0.3, LootTable("common.loot_tables.weapons.components.tier-2"), 1, 1),
+  (0.3, LootTable("common.loot_tables.weapons.components.tier-2")),
 ]
