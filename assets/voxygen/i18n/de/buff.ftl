@@ -22,13 +22,13 @@ buff-campfire_heal = Heilung durch Lagerfeuer
 ## Energy Regen
 
 buff-energy_regen = Ausdauerregeneration
-    .desc = Schnellere Ausdauerregeneration
+    .desc = Schnellere Ausdauerregeneration.
     .stat = Stellt { $str_total } Ausdauer wieder her
 
 ## Health Increase
 
 buff-increase_max_health = Erhöhung der maximalen Lebensenergie
-    .desc = Erhöhe deine maximale Lebensenergiegrenze
+    .desc = Erhöhe deine maximale Lebensenergie
     .stat =
         Erhöht die maximale Lebensenergie
         um { $strength }
@@ -36,7 +36,7 @@ buff-increase_max_health = Erhöhung der maximalen Lebensenergie
 ## Energy Increase
 
 buff-increase_max_energy = Erhöhung der maximalen Ausdauer
-    .desc = Erhöhe deine maximale Ausdauergrenze
+    .desc = Erhöhe deine maximale Ausdauer
     .stat =
         Erhöht die maximale Ausdauer
         um { $strength }
@@ -75,7 +75,7 @@ buff-cursed = Verflucht
 ## Burning
 
 buff-burn = Brennend
-    .desc = Du verbrennst
+    .desc = Du verbrennst.
 
 ## Crippled
 
@@ -118,9 +118,7 @@ buff-reckless = Rücksichtslos
 buff-agility = Beweglichkeit
     .desc = Deine Bewegungen sind schneller, aber du verteilst weniger und nimmst mehr Schaden.
     .stat = Erhöht Bewegungsgeschwindigkeit um { $strength }%.
-        Aber reduziert deinen Schaden um 100%,
-        and erhöht deine Schadensverwundbarkeit
-        um 100%.
+        Im Gegenzug wird deine Angriffs- und Abwehrstärke drastisch reduziert.
 # Parried
 buff-parried = Pariert
     .desc = Du wurdest pariert und erholst dich jetzt nur langsam.
@@ -130,7 +128,7 @@ buff-lifesteal = Lebensraub
     .desc = Saugt die Leben deiner Feinde aus.
 # Fury
 buff-fury = Wut
-    .desc = Mit deiner Wut werden deine Schläge mehr Combo erzielen
+    .desc = Mit deiner Wut werden deine Schläge mehr Combo erzielen.
 
 # Defiance
 buff-defiance = Trotz
@@ -157,7 +155,7 @@ buff-fortitude = Tapferkeit
     .desc = Du kannst Taumeln widerstehen, und während du mehr Schaden erleidest, kannst du andere einfacher ins Taumeln bringen.
 # Bloodfeast
 buff-bloodfeast = Blutbad
-    .desc = Du regenerierst Leben durch Angriffe gegen blutende Gegner
+    .desc = Du regenerierst Leben durch Angriffe gegen blutende Gegner.
 # Heatstroke
 buff-heatstroke = Hitzschlag
     .desc = Du wurdest Hitze ausgesetzt und erleidest nun einen Hitzschlag. Dein Energiebonus und deine Bewegungsgeschwindigkeit sind eingeschränkt. Kühl dich ab.

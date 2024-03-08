@@ -1,10 +1,10 @@
 lantern-black = Linterna negra
-    .desc = ¡Una elección popular para aventureros novatos!
+    .desc = ¡Una elección popular entre aventureros novatos!
 lantern-geode_purp = Geoda morada
     .desc = Emite un brillo calmante que te ayuda a relajarte.
 lantern-red = Linterna roja
     .desc = Precaución: su contenido quema.
-glider-basic_white = Paravela de tela sencilla
+glider-basic_white = Paravela de tela
     .desc = Simple, pero con estilo.
 glider-cloverleaf = Trévol
     .desc = Da buena suerte a su dueño. Ligera y fácil de fabricar, ¡y muy mona!

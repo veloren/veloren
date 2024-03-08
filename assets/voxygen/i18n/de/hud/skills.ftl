@@ -1,5 +1,10 @@
 hud-rank_up = Neuer Fähigkeitspunkt
-hud-skill-sp_available = { $number } SP verfügbar
+hud-skill-sp_available =
+    { $number ->
+        [0] Keine SP verfügbar
+        [1] Ein SP verfügbar
+       *[other] { $number } SP verfügbar
+    }
 hud-skill-not_unlocked = Noch nicht freigeschaltet
 hud-skill-req_sp =
     { "\u000A" }

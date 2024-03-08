@@ -22,13 +22,13 @@ buff-campfire_heal = Soin autour d'un feu de camp
 ## Régen d'Endurance
 
 buff-energy_regen = Régénération d'Endurance
-    .desc = Régénération de l'Endurance plus rapide
+    .desc = Régénération de l'Endurance plus rapide.
     .stat = Restaure { $str_total } d'Endurance
 
 ## Augmentation de Santé
 
 buff-increase_max_health = Augmentation de Santé
-    .desc = Augmente votre limite max de points de vie
+    .desc = Vos point de vie maximum sont augmentés.
     .stat =
         Augmente les points de vie max
         de { $strength }
@@ -36,7 +36,7 @@ buff-increase_max_health = Augmentation de Santé
 ## Augmentation d'Endurance
 
 buff-increase_max_energy = Augmentation d'Endurance
-    .desc = Augmente votre limite maximale de points d'endurance
+    .desc = Votre énergie maximale est augmentée.
     .stat =
         Augmente les points d'endurance max
         de { $strength }
@@ -141,10 +141,10 @@ buff-imminentcritical = Coup critique imminent
     .desc = Votre prochaine attaque frappera votre ennemie de manière critique.
 # Bloodfeast
 buff-bloodfeast = Fête du sang
-    .desc = Vous regagner de la vie en attaquant des ennemis saignant
+    .desc = Vous regagnez de la vie lors des attaques contre les ennemis qui saignent.
 # Fury
 buff-fury = Fureur
-    .desc = Avec votre fureur, vos coups génèrent plus de combo
+    .desc = Avec votre fureur, vos coups génèrent plus de combo.
 # Sunderer
 buff-sunderer = Fragmentation
     .desc = Vos attaques peuvent transpercer les défenses de vos ennemis et vous redonner plus d'énergie.
@@ -159,10 +159,8 @@ buff-defiance = Bravoure
 buff-agility = Agilité
     .desc = Vos mouvements sont plus rapides, mais vous infligez moins de dégâts, et prenez plus de dégâts.
     .stat =
-        Augmente votre vitesse de déplacement
-        de { $strength }%.
-        Mais réduit vos dégâts de 100%,
-        et augmente les dégâts reçus de 100%.
+        Augmente votre vitesse de déplacement de { $strength }%.
+        En contrepartie, votre puissance d'attaque et votre défense diminuent considérablement.
 # Heatstroke
 buff-heatstroke = Coup de chaleur
     .desc = Vous avez été exposé à la chaleur et vous avez pris un coup de chaud. Votre récupération d'énergie et vitesse de mouvement sont réduits. Détendez vous.
