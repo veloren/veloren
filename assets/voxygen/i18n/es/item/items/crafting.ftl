@@ -67,3 +67,5 @@ sprite-crafting_ing-animal_misc-claw = Garra de depredador
         Garra de un depredador feroz.
 
         Se puede utilizar para fabricar armas ágiles y veloces.
+object-v-coin = Monedas
+    .desc = Estas valiosas monedas se pueden intercambiar por productos y servicios.

@@ -131,3 +131,21 @@ common-abilities-axe-plunder = Pillage
     .desc = Un pas rapide vers vos ennemis, volant leurs équilibre avec une frappe
 common-abilities-debug-evolve = Évoluer
     .desc = Vous devenez meilleur.
+# Sword abilities
+common-abilities-sword-heavy_skewer = Poignard lourd
+    .desc = Un coup de poignard qui peut étourdir
+# Sword abilities
+common-abilities-sword-heavy_cascade = Cascade lourde
+    .desc = Un coup aérien qui peut déstabiliser.
+# Sword abilities
+common-abilities-sword-cleaving_cascade = Cascade fendante
+    .desc = Un coup aérien qui peut fendre les ennemis.
+# Sword abilities
+common-abilities-sword-heavy_cross_cut = Coup croisé lourd
+    .desc = Un coup tranchant à droite et à gauche qui peut étourdir.
+# Sword abilities
+common-abilities-sword-cleaving_cross_cut = Coupe croisée tranchante
+    .desc = Un coup à droite et un coup à gauche qui transpercent les ennemis.
+# Sword abilities
+common-abilities-sword-basic_dual_cross_cut = Coupe croisée basique
+    .desc = Une entaille basique simultanée à droite et à gauche.
