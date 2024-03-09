@@ -8,8 +8,8 @@ hud-inventory_full = Inventar Plin
 hud-someone_else = alt cineva
 hud-another_group = alt grup
 hud-owned_by_for_secs = Deținut de { $name } timp de { $secs } secunde
-hud-press_key_to_show_keybindings_fmt = [{ $key }] Taste
-hud-press_key_to_toggle_lantern_fmt = [{ $key }] Lanternă
+hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] Taste
+hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Lanternă
 hud-press_key_to_show_debug_info_fmt = Apasă { $key } ca să arăți debug info
 hud-press_key_to_toggle_keybindings_fmt = Apasă { $key } pentru a comuta tastele
 hud-press_key_to_toggle_debug_info_fmt = Apasă { $key } pentru a comuta debug info
@@ -20,15 +20,15 @@ hud-tutorial_elements = Meșteșug
 hud-temp_quest_headline = Salutări Călătorule!
 hud-temp_quest_text =
     Pentru a-ți începe aventura te-ai putea uita prin satul acesta și sa strângi niște resurse.
-    
+
     Ești liber să iei orice vrei pentru aventura ta!
-    
+
     Uită-te la colțul din dreapta jos al ecranului unde vei găsi rucsacul tău, meniul de meșteșug și harta.
-    
+
     La statiile de mestesug poti face armura, arme, mancare si multe altele!
-    
+
     Animalele sălbatice din jurul satului sunt o resursă bună de Piele de Animal pentru a crea puțină protecție împotriva pericolelor.
-    
+
     Cănd te simți pregatit, încearcă să obți echipament și mai bun prin completarea provocărilor marcate pe hartă!
 hud-spell = Vrăji
 hud-diary = Jurnal
