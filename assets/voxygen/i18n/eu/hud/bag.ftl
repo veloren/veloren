@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername }(r)en inbentarioa
 hud-bag-stats_title = { $playername }(r)en estatistikak
-hud-bag-exp = Esp
 hud-bag-armor = Armadura
 hud-bag-stats = Estatistikak
 hud-bag-head = Burua
