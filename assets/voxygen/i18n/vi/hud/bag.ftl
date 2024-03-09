@@ -1,6 +1,5 @@
 hud-bag-inventory = Kho đồ của { $playername }
 hud-bag-stats_title = Chỉ số của { $playername }
-hud-bag-exp = Exp
 hud-bag-armor = Giáp
 hud-bag-stats = Chỉ số
 hud-bag-head = Đầu
