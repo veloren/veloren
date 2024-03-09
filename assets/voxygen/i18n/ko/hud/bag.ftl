@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername }의 가방
 hud-bag-stats_title = { $playername }의 능력치
-hud-bag-exp = 경험치
 hud-bag-armor = 방어력
 hud-bag-stats = 능력치
 hud-bag-head = 머리

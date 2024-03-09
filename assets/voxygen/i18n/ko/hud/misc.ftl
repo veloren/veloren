@@ -8,27 +8,27 @@ hud-inventory_full = 가방 가득참
 hud-someone_else = 다른 사람
 hud-another_group = 다른 그룹
 hud-owned_by_for_secs = { $name }이 { $secs }초동안 소유함
-hud-press_key_to_show_keybindings_fmt = [{ $key }] 키바인딩
-hud-press_key_to_toggle_lantern_fmt = [{ $key }] 등불
+hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] 키바인딩
+hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] 등불
 hud-press_key_to_show_debug_info_fmt = { $key }키를 눌러 디버그 정보 보이기
 hud-press_key_to_toggle_keybindings_fmt = { $key }키를 눌러 키바인딩 보기
 hud-press_key_to_toggle_debug_info_fmt = { $key }키를 눌러 디버그 정보 켰다끄기
 hud-press_key_to_respawn = { $key }키를 눌러 마지막 방문한 모닥불에서 부활하세요.
 hud-tutorial_btn = 튜토리얼
-hud-tutorial_click_here = [ { $key } ]키를 눌러 커서를 보이게 해서 이 버튼을 누르세요!
+hud-tutorial_click_here = { "[" } { $key } ]키를 눌러 커서를 보이게 해서 이 버튼을 누르세요!
 hud-tutorial_elements = 제작
 hud-temp_quest_headline = 환영합니다 여행자님!
 hud-temp_quest_text =
     모험을 시작하려면 이 마을을 둘러보면서 물건을 모으고 준비할수 있습니다.
-    
+
     뭐든지 챙겨서 모험을 해도 됩니다!
-    
+
     화면의 오른쪽 아래에 가방이나 제작, 지도 등 유용한 기능이 있습니다.
-    
+
     각종 제작 장소에서 무기나 방어구 음식 등 많은 것을 만들수 있습니다!
-    
+
     마을 주변의 야생동물들에게서 밖의 위혐에서 몸을 보호할 방어구를 만들때 쓰이는 생가죽을 얻을수 있습니다.
-    
+
     준비가 되었다면 지도에 표시된 다양한 장소에서 더욱 강한 장비를 구하러 가보세요!
 hud-spell = 주문
 hud-diary = 일기
