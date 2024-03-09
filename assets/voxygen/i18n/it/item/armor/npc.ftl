@@ -133,58 +133,58 @@ common-items-npc_armor-biped_small-sahagin-tail-sorcerer = Stregone Sahagin
 common-items-npc_armor-biped_small-sahagin-tail-spearman = Lanciere Sahagin
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-foot-hunter = Cacciatore Adlet
+common-items-npc_armor-biped_small-adlet-foot-hunter = Cacciatore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-foot-icepicker = Raccoglitore di ghiaccio Adlet
+common-items-npc_armor-biped_small-adlet-foot-icepicker = Raccoglitore di ghiaccio adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-foot-tracker = Esploratore Adlet
+common-items-npc_armor-biped_small-adlet-foot-tracker = Esploratore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-head-hunter = Cacciatore Adlet
+common-items-npc_armor-biped_small-adlet-head-hunter = Cacciatore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-head-icepicker = Raccoglitore di ghiaccio Adlet
+common-items-npc_armor-biped_small-adlet-head-icepicker = Raccoglitore di ghiaccio adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-head-tracker = Esploratore Adlet
+common-items-npc_armor-biped_small-adlet-head-tracker = Esploratore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-pants-hunter = Cacciatore Adlet
+common-items-npc_armor-biped_small-adlet-pants-hunter = Cacciatore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-pants-icepicker = Raccoglitore di ghiaccio Adlet
+common-items-npc_armor-biped_small-adlet-pants-icepicker = Raccoglitore di ghiaccio adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-pants-tracker = Esploratore Adlet
+common-items-npc_armor-biped_small-adlet-pants-tracker = Esploratore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-chest-hunter = Cacciatore Adlet
+common-items-npc_armor-biped_small-adlet-chest-hunter = Cacciatore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-chest-icepicker = Raccoglitore di ghiaccio Adlet
+common-items-npc_armor-biped_small-adlet-chest-icepicker = Raccoglitore di ghiaccio adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-chest-tracker = Esploratore Adlet
+common-items-npc_armor-biped_small-adlet-chest-tracker = Esploratore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-hand-hunter = Cacciatore Adlet
+common-items-npc_armor-biped_small-adlet-hand-hunter = Cacciatore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-hand-icepicker = Raccoglitore di ghiaccio Adlet
+common-items-npc_armor-biped_small-adlet-hand-icepicker = Raccoglitore di ghiaccio adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-hand-tracker = Esploratore Adlet
+common-items-npc_armor-biped_small-adlet-hand-tracker = Esploratore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-tail-hunter = Cacciatore Adlet
+common-items-npc_armor-biped_small-adlet-tail-hunter = Cacciatore adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-tail-icepicker = Raccoglitore di ghiaccio Adlet
+common-items-npc_armor-biped_small-adlet-tail-icepicker = Raccoglitore di ghiaccio adlet
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-adlet-tail-tracker = Esploratore Adlet
+common-items-npc_armor-biped_small-adlet-tail-tracker = Esploratore adlet
     .desc = Abito cerimoniale usato dai membri.
 
 common-items-npc_armor-biped_small-gnarling-foot-chieftain = Capo dei bitorzoluti
@@ -619,8 +619,8 @@ common-items-npc_armor-biped_large-gigas_frost = Armatura di gigante del gelo
 common-items-npc_armor-biped_large-harvester = Maglietta del mietitore
     .desc = Fatta di girasoli.
 
-common-items-npc_armor-biped_large-mindflayer = Armatura dello scorticatore di anime
-    .desc = Indossato dallo scorticatore di anime.
+common-items-npc_armor-biped_large-mindflayer = Armatura dell'illithid
+    .desc = Indossato dagli illithid.
 
 common-items-npc_armor-biped_large-minotaur = Armatura di minotauro
     .desc = La migliore difesa è un buon attacco.

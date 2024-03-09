@@ -46,3 +46,6 @@ weapon-sword-frost-admin_sword = Spadone dell'amministratore
 weapon-bow-velorite-debug = Arco di velorite dell'amministratore
     .desc = Infuso con il potere di velorite.
 
+other-glider-vroom-debug = Aliante vroom
+    .desc = fa brrr
+
