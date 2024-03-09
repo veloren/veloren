@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername } 的物品栏
 hud-bag-stats_title = { $playername } 的状态
-hud-bag-exp = 经验
 hud-bag-armor = 护甲
 hud-bag-stats = 状态
 hud-bag-head = 头部

@@ -8,8 +8,8 @@ hud-inventory_full = Ekwipunek pełen
 hud-someone_else = kogoś innego
 hud-another_group = inną grupę
 hud-owned_by_for_secs = Posiadane przez { $name } przez { $secs } sekund
-hud-press_key_to_show_keybindings_fmt = [{ $key }] przypisania klawiszy
-hud-press_key_to_toggle_lantern_fmt = [{ $key }] latarnia
+hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] przypisania klawiszy
+hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] latarnia
 hud-press_key_to_show_debug_info_fmt = Naciśnij { $key } by zobaczyć debug
 hud-press_key_to_toggle_keybindings_fmt = Naciśnij { $key } by przełączyć przypisania klawiszy
 hud-press_key_to_toggle_debug_info_fmt = Naciśnij { $key } by przełączyć debugowanie
@@ -20,15 +20,15 @@ hud-tutorial_elements = Tworzenie
 hud-temp_quest_headline = Witaj Przybyszu!
 hud-temp_quest_text =
     By zacząć swoją podróż zacznij od rozglądnięcia się i zebrania zapasów.
-    
+
     Śmiało bierz cokolwiek będzie Ci potrzebne podczas Twojej wyprawy!
-    
+
     Spójrz w prawy dolny róg ekranu by znaleźć różne rzeczy, takie jak Twoja torba, menu tworzenia oraz mapę.
-    
+
     Menu tworzenia pozwala stworzyć pancerze, broń, żywność i wiele innych!
-    
+
     Dzikie zwierzęta dookoła miast są świetnym źródłem Skrawków Skóry które możesz przetworzyć na ubrania zapewniające dobrą ochronę podczas podróżowania.
-    
+
     Kiedy poczujesz się gotów, spróbuj zdobyć lepszy ekwipunek z wielu wyzwań rozrzuconych po całej mapie!
 hud-spell = Czary
 hud-diary = Dziennik

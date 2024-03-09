@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername }の持ち物
 hud-bag-stats_title = { $playername }の状態
-hud-bag-exp = Exp
 hud-bag-armor = 鎧
 hud-bag-stats = 状態
 hud-bag-head = 頭

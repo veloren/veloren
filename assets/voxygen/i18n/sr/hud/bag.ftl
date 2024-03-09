@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername } Инвентар
 hud-bag-stats_title = { $playername } Статистика
-hud-bag-exp = Иск
 hud-bag-armor = Оклоп
 hud-bag-stats = Статистика
 hud-bag-head = Глава

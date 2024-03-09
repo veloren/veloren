@@ -2,7 +2,6 @@
 
 hud-bag-inventory = Inventaro de { $playername }
 hud-bag-stats_title = Statistikoj de { $playername }
-hud-bag-exp = Sperto
 hud-bag-armor = Kiraso
 hud-bag-stats = Statistikoj
 hud-bag-head = Kapo

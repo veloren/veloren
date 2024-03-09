@@ -1,6 +1,5 @@
 hud-bag-inventory = Inventario de { $playername }
 hud-bag-stats_title = Estadísticas de { $playername }
-hud-bag-exp = EXP
 hud-bag-armor = Armadura
 hud-bag-stats = Estadísticas
 hud-bag-head = Cabeza

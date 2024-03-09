@@ -1,6 +1,5 @@
 hud-bag-inventory = สัมภาระของ { $playername }
 hud-bag-stats_title = ข้อมูลสถานะของ { $playername }
-hud-bag-exp = ค่าประสบการณ์
 hud-bag-armor = เกราะ
 hud-bag-stats = สถานะ
 hud-bag-head = ศรีษะ

@@ -18,6 +18,8 @@ hud-skill-req_sp =
 hud-skill-set_as_exp_bar = Fijar en barra de experiencia
 
 # Combate general - Árbol de habilidades
+
+
 ## Salud
 
 hud-skill-inc_health_title = Aumentar salud
@@ -71,6 +73,8 @@ hud-skill-swim_speed_title = Velocidad al nadar
 hud-skill-swim_speed = Nadas un { $boost } % más rápido{ $SP }
 
 # Martillo - Árbol de habilidades
+
+
 ## Golpe único
 
 hud-skill-hmr_single_strike_title = Golpe sencillo
@@ -113,6 +117,8 @@ hud-skill-hmr_leap_radius_title = Radio de Terremoto
 hud-skill-hmr_leap_radius = Aumenta el radio del golpe al suelo en { $boost } metros{ $SP }
 
 # Cetro - Árbol de habilidades
+
+
 ## Drenar vida
 
 hud-skill-sc_lifesteal_title = Drenar vida
@@ -154,6 +160,8 @@ hud-skill-sc_wardaura_cost_title = Coste de energía de {{ -hud-skill-sc_wardaur
 hud-skill-sc_wardaura_cost = El aura requiere un { $boost } % menos de energía{ $SP }
 
 # Árco - Árbol de habilidades
+
+
 ## Tiro de arco
 
 hud-skill-bow_charged_title = Tiro de arco
@@ -196,6 +204,7 @@ hud-skill-bow_projectile_speed_title = Velocidad de proyectil
 hud-skill-bow_projectile_speed = Las flechas llegan más lejos al viajar un { $boost } % más rápido{ $SP }
 
 # Bastón de fuego - Árbol de habilidades
+
 
 ## Bola de fuego
 

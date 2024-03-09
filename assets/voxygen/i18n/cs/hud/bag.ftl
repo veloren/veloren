@@ -8,7 +8,6 @@ hud-bag-combat_rating_desc = Vypočítáno ze života/zbroje.
 hud-bag-protection_desc = Redukce poškození přes brnění
 hud-bag-inventory = Inventář { $playername }
 hud-bag-stats_title = Statistiky { $playername }
-hud-bag-exp = Zkušenosti
 hud-bag-armor = Výzbroj
 hud-bag-stats = Statistiky
 hud-bag-head = Hlava

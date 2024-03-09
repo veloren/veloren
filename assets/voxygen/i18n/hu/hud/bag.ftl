@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername } holmija
 hud-bag-stats_title = { $playername } statisztikái
-hud-bag-exp = Tapasztalat
 hud-bag-armor = Páncélzat
 hud-bag-stats = Statisztikák
 hud-bag-head = Fej

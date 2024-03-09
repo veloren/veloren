@@ -1,6 +1,5 @@
 hud-bag-inventory = { $playername }'in Envanteri
 hud-bag-stats_title = { $playername }'in Nitelikleri
-hud-bag-exp = Tecrübe
 hud-bag-armor = Zırh
 hud-bag-stats = Nitelikler
 hud-bag-head = Baş

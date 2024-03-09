@@ -8,8 +8,8 @@ hud-inventory_full = Inbentarioa beteta
 hud-someone_else = beste norbait
 hud-another_group = beste talde bat
 hud-owned_by_for_secs = { $name }(r)ena { $secs } segundoz
-hud-press_key_to_show_keybindings_fmt = [{ $key }] kontrolak
-hud-press_key_to_toggle_lantern_fmt = [{ $key }] argiontzia
+hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] kontrolak
+hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] argiontzia
 hud-press_key_to_show_debug_info_fmt = Sakatu { $key } arazketa informazioa ikusteko
 hud-press_key_to_toggle_keybindings_fmt = Sakatu { $key } laster teklak erakutsi edo ezkutatzeko
 hud-press_key_to_toggle_debug_info_fmt = Sakatu { $key } arazketa informazioa erakutsi edo ezkutatzeko
@@ -20,15 +20,15 @@ hud-tutorial_elements = Artisautza
 hud-temp_quest_headline = Ongi etorri bidaiari!
 hud-temp_quest_text =
     Zure bidaiari ekiteko, miatu herrixka eta bildu hornigai batzuk.
-    
+
     Ez izan beldurrik behar duzun guztia hartzeko!
-    
+
     Begiratu pantailaren beheko eskuineko aldera, eta, besteak beste, zorroa, elaborazio-menua eta mapa aurkituko dituzu.
-    
+
     Elaborazio estazioek armadurak, armak, janaria eta askoz gehiago sortzeko aukera ematen dizute!
-    
+
     Hiri inguruan animali basatien larrua lor dezakezu, munduko arriskuetatik babestuko zaituen armadura egiteko.
-    
+
     Prest zaudenean, ekin mapan markatutako ziegak eta haitzuloak ikertzeari!
 hud-spell = Sorginkeriak
 hud-diary = Egunerokoa
