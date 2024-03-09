@@ -59,5 +59,5 @@ object-sunflower_ice_tea = 向日葵冰茶
 sprite-spore-corruption_spore = 腐败孢子
     .desc =
         你感觉到一股邪恶的力量在体内涌动
-        
+
         长久地坚持下去并不明智......

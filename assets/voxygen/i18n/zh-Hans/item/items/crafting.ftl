@@ -61,7 +61,7 @@ sprite-crafting_ing-hide-tough_hide = 坚韧的兽皮
 sprite-crafting_ing-animal_misc-claw = 猎食爪
     .desc =
         来自掠食性动物的极其锋利的爪子。
-        
+
         这可以在制作武器时使用。
 sprite-crafting_ing-animal_misc-fur = 柔软的皮毛
     .desc = 柔软的动物皮毛。
@@ -70,7 +70,7 @@ sprite-crafting_ing-animal_misc-grim_eyeball = 冷酷的眼球
 sprite-crafting_ing-animal_misc-large_horn = 大号角
     .desc =
         来自动物的巨大尖角。
-        
+
         这可用于制作武器。
 sprite-crafting_ing-animal_misc-lively_vine = 鲜活藤蔓
     .desc = 我想它刚才动了一下...
@@ -79,7 +79,7 @@ sprite-crafting_ing-animal_misc-phoenix_feather = 凤凰羽毛
 sprite-crafting_ing-animal_misc-sharp_fang = 锋利的獠牙
     .desc =
         来自掠食性动物的极其锋利的牙齿。
-        
+
         这可用于制作武器。
 sprite-crafting_ing-animal_misc-venom_sac = 毒液囊
     .desc = 来自有毒生物的毒囊。
@@ -144,27 +144,27 @@ object-honey = 蜂蜜
 object-glowing_remains = 发光残骸
     .desc =
         从一个邪恶的生物身上掠夺。
-        
+
         通过一些额外的工作，它肯定可以
         恢复它从前的辉煌......
 object-elegant_crest = 优雅的徽章
     .desc =
         来自某种雄伟生物的完美纹章。
-        
+
         这可以在制作武器时使用。
 object-ice_shard = 冰霜鳞片
     .desc = 从一个冰霜生物身上掠夺而来。
 object-long_tusk = 长牙
     .desc =
         来自某种野兽的尖牙。
-        
+
         可用于制作武器。
 object-raptor_feather = 猛禽羽毛
     .desc = 一根来自猛禽的大型彩色羽毛。
 object-strong_pincer = 坚固的钳子
     .desc =
         某种生物的钳子，非常坚硬。
-        
+
         可以在制造武器时使用。
 sprite-mineral-ore-bloodstone = 血矿石
     .desc = 深红色的矿石，让人联想到鲜血。
@@ -189,17 +189,17 @@ sprite-velorite-velorite = 云母碎片
 sprite-mineral-ingot-bloodsteel = 血钢锭
     .desc =
         血石和铁的合金，呈暗红色。
-        
+
         可用于制作金属武器。
 sprite-mineral-ingot-bronze = 青铜锭
     .desc =
         一种由铜和锡制成的坚固合金。
-        
+
         可用于制作金属武器。
 sprite-mineral-ingot-cobalt = 钴锭
     .desc =
         一块鲜艳的蓝色金属锭。
-        
+
         在铸造金属武器时可以使用。
 sprite-mineral-ingot-copper = 铜锭
     .desc = 具有独特棕色的锭。
@@ -208,19 +208,19 @@ sprite-mineral-ingot-gold = 金锭
 sprite-mineral-ingot-iron = 铁锭
     .desc =
         一种非常普通的金属。
-        
+
         这可以在制作金属武器时使用。
 sprite-mineral-ingot-orichalcum = 山铜锭
     .desc =
         由精炼山铜制成的锭。
-        
+
         这可用于制作金属武器。
 sprite-mineral-ingot-silver = 银锭
     .desc = 由精炼金属银制成的锭。
 sprite-mineral-ingot-steel = 钢锭
     .desc =
         一种比其成分更坚韧的铁和煤合金。
-        
+
         这可用于制作金属武器。
 sprite-mineral-ingot-tin = 锡锭
     .desc = 主要用于制造青铜的锭。
