@@ -8,8 +8,8 @@ hud-inventory_full = Inventário Cheio
 hud-someone_else = outro alguém
 hud-another_group = outro grupo
 hud-owned_by_for_secs = Pertence a { $name } por { $secs } segundos
-hud-press_key_to_show_keybindings_fmt = [{ $key }] mapeamento de teclas
-hud-press_key_to_toggle_lantern_fmt = [{ $key }] lamparina
+hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] mapeamento de teclas
+hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] lamparina
 hud-press_key_to_show_debug_info_fmt = Pressione { $key } para mostrar informações de depuração
 hud-press_key_to_toggle_keybindings_fmt = Pressione { $key } para mostrar/ocultar teclas mapeadas
 hud-press_key_to_toggle_debug_info_fmt = Pressione { $key } para mostrar/ocultar informações de depuração
@@ -21,15 +21,15 @@ hud-tutorial_elements = Criação
 hud-temp_quest_headline = Olá viajante!
 hud-temp_quest_text =
     Para o início de sua jornada, você pode começar buscando suprimentos nesta cidade. 
-    
+
     Você é bem-vindo para pegar o que for necessário para sua jornada!
-    
+
     Olhe no canto inferior direito de sua tela para encontrar diversas coisas como sua mochila, o menu de criação e o mapa.
-    
+
     A criação te permite constuir armadoras, armas, fazer alimentos e muto mais!
-    
+
     Os animais selvagens ao redor da cidade são uma boa fonte de Retalhos de Couro(Leather Scraps) para que você crie uma certa proteção contra as intempéries do mundo.
-    
+
     Assim que você se sentir pronto, tente adquirir equipamentos melhores dos desafios marcados para você no mapa!
 hud-spell = Magias
 hud-diary = Diário
