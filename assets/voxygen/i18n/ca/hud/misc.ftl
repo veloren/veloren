@@ -5,8 +5,8 @@ hud-you_died = Has Mort
 hud-waypoint_saved = Punt d'Acampada Guardat
 hud-sp_arrow_txt = PH
 hud-inventory_full = Bossa Plena
-hud-press_key_to_show_keybindings_fmt = [{ $key }] Controls del Teclat
-hud-press_key_to_toggle_lantern_fmt = [{ $key }] Llanterna
+hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] Controls del Teclat
+hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Llanterna
 hud-press_key_to_show_debug_info_fmt = Prem { $key } per mostrar Informació de Depuració
 hud-press_key_to_toggle_keybindings_fmt = Prem { $key } per mostrar controls del teclat
 hud-press_key_to_toggle_debug_info_fmt = Prem { $key } per alternar Informació de Depuració
@@ -17,15 +17,15 @@ hud-tutorial_elements = Elaboració
 hud-temp_quest_headline = Salutacions, viatger!
 hud-temp_quest_text =
     Per començar aquest viatge podries buscar per aquesta aldea i arreplegar alguns recursos.
-    
+
     Pots prendre el que necessites per al teu viatge!
-    
+
     Mira a la part dreta-inferior de la pantalla per a trobar algunes coses com la teva bossa, el menú d'elaboració i el mapa.
-    
+
     Les estacions d'elaboració et permeten crear armadures, armes, menjar i moltes coses més!
-    
+
     Els animals salvatges que viuen prop de l'aldea són una gran font de pells per a crear alguna protecció contra els perills del món.
-    
+
     Quan et sentis llest, intenta obtenir equipament encara millor dels nombrosos reptes marcats al teu mapa!
 hud-spell = Encanteris
 hud-diary = Diari
