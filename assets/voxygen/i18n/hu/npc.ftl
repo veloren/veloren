@@ -160,4 +160,4 @@ npc-speech-villager_under_attack =
 npc-speech-villager_enemy_killed =
     .a0 = Eltiportam az ellenségemet!
     .a1 = Végre ismét békességben!
-    .a2 = ...no, hol is tartottam?
+    .a2 = { "." }..no, hol is tartottam?
