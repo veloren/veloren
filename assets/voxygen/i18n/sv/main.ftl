@@ -10,43 +10,40 @@ main-notice =
 
     Innan du dyker in i det roliga, ber vi dig hålla några saker i åtanke:
 
-    - Detta är en väldigt tidig alfa-version. Förvänta dig buggar, väldigt bristfällig spelupplevelse, ovårdad spelmekanik och saknade funktioner.
+    - Detta är en väldig tidig alfa-version. Förvänta dig buggar, väldigt bristfällig spelupplevelse, ovårdad spelmekanik och saknade funktioner.
 
-    - Om du har konstruktiva synpunkter eller buggar att rapportera går det bra att kontakta oss på Reddit, GitLab eller vår gemenskaps Discord-server.
+    - Om du har konstruktiva synpunkter eller buggrapporter kan du kontakta oss på vår GitLab-repository och på vår Discord- eller Matrix-server.
 
-    - Veloren har öppen källkod, publicerad under licensen GPL 3. Det innebär att du får spela, modifiera och sprida spelet vidare precis
-     som du vill (så länge dina ändringar publiceras under samma licens).
+    - Veloren är öppen källkod. Du får spela, modifiera, och sprida spelet vidare som du vill i enlighet med version 3 av GNU General Public License.
 
-    - Veloren är ett projekt som drivs av en gemenskap utan vinstintresse och alla som bidrar är en volontär.
+    - Veloren är ett ideellt community-projekt, och alla som jobbar på det är en volontär.
     Om du gillar det du ser, får du gärna gå med i en utvecklings- eller konstgrupp!
 
     Tack för att du tog dig tid att läsa det här meddelandet, vi hoppas du kommer gilla spelet!
 
-    ~ Velorens utvecklare
+    ~ Utvecklarteamet
 main-login_process =
-    Information om inloggningsproceduren:
+    Om multiplayer:
 
-    Observera att du behöver ett konto
-    för att spela på vissa servrar.
+    Notera att du behöver ett konto för att spela på servrar med inloggning på.
 
-    Du kan skapa ett konto på
-
-    https://veloren.net/account/.
-main-login-server_not_found = Servern hittades inte
-main-login-authentication_error = Inloggningsfel på servern
-main-login-internal_error = Internt fel hos klient (troligen på grund av att spelarkaraktären har raderats)
-main-login-failed_auth_server_url_invalid = Kunde inte ansluta till inloggningsservern
-main-login-insecure_auth_scheme = Inloggning kan inte ske över HTTP. Det är osäkert! För utvecklingsskäl får HTTP användas för 'localhost' eller felsökningsversioner
-main-login-server_full = Servern är full
-main-login-untrusted_auth_server = Inloggningsservern är inte betrodd
+    Du kan skapa ett konto på:
+    https://veloren.net/account/
+main-login-server_not_found = Servern hittades inte.
+main-login-authentication_error = Inloggningsfel på servern.
+main-login-internal_error = Internt fel hos klient. Tips: Spelarkaraktären kan ha blivit raderad.
+main-login-failed_auth_server_url_invalid = Kunde inte ansluta till inloggningsservern.
+main-login-insecure_auth_scheme = Inloggning stöds inte över HTTP. Det är osäkert! För utvecklingsskäl får HTTP användas för 'localhost' eller felsökningsversioner.
+main-login-server_full = Servern är full.
+main-login-untrusted_auth_server = Inloggningsservern är inte betrodd.
 main-login-outdated_client_or_server = ServernÄrTokig: Versionerna är nog inkompatibla, se om det finns uppdateringar.
-main-login-timeout = Timeout: Servern svarade inte i tid. (Överbelastad eller nätverksproblem).
-main-login-server_shut_down = Servern stänges ner
-main-login-network_error = Nätverksfel
-main-login-network_wrong_version = Olika versioner hos server och klient, vänligen uppdatera din spelklient.
-main-login-failed_sending_request = Förfrågan till inloggningsservern misslyckades
-main-login-invalid_character = Den valda karaktären är ogiltig
-main-login-client_crashed = Klienten kraschade
+main-login-timeout = Timeout: Servern svarade inte i tid. Tips: servern kanske är överbelastad eller så är det problem i nätverket.
+main-login-server_shut_down = Servern stängdes ner.
+main-login-network_error = Nätverksfel.
+main-login-network_wrong_version = Olika versioner hos server och klient. Tips: Du kanske behöver uppdatera din spelklient.
+main-login-failed_sending_request = Förfrågan till inloggningsservern misslyckades.
+main-login-invalid_character = Den valda karaktären är ogiltig.
+main-login-client_crashed = Klient kraschade.
 main-login-not_on_whitelist = Du måste finnas på administratörens vitlista för att få gå med
 main-login-banned = Du har blockerats med följande motivering
 main-login-kicked = Du har sparkats ut med följande motivering
@@ -105,10 +102,10 @@ main-singleplayer-map_scale = Vertikal skalning
 main-singleplayer-map_erosion_quality = Erosionskvalitet
 main-singleplayer-play = Spela
 main-singleplayer-generate_and_play = Generera & Spela
-menu-singleplayer-confirm_regenerate = Vill du verkligen omgenerera "{ $world_name }"
-menu-singleplayer-confirm_delete = Vill du verkligen radera "{ $world_name }"
+menu-singleplayer-confirm_regenerate = Vill du verkligen omgenerera "{ $world_name }"?
+menu-singleplayer-confirm_delete = Vill du verkligen radera "{ $world_name }"?
 main-singleplayer-map_shape = Form
-main-singleplayer-map_large_warning = Varning: Stora världar kommer att ta lång tid att starta den första gången
+main-singleplayer-map_large_warning = Varning: Stora världar kommer att ta lång tid att starta den första gången.
 main-server-rules-seen-before = De här reglerna har ändrats sen du accepterat dem sist
 main-singleplayer-delete = Radera
 main-server-rules = Den här servern har regler som måste accepteras
