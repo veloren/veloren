@@ -67,7 +67,7 @@ common-items-npc_weapons-biped_small-haniwa-soldier = Spada del soldato
 common-items-npc_weapons-bow-bipedlarge-velorite = Arco gigante di velorite
     .desc = Infuso con il potere di velorite.
 
-common-items-npc_weapons-bow-saurok_bow = Arco Saurok
+common-items-npc_weapons-bow-saurok_bow = Arco saurok
     .desc = Segnaposto
 
 common-items-npc_weapons-bow-terracotta_besieger_bow = Arco dell'assediante di terracotta
@@ -85,16 +85,16 @@ common-items-npc_weapons-axe-oni_blue_axe = Ascia dell'oni blu
 common-items-npc_weapons-staff-bipedlarge-cultist = Bastone del cultista gigante
     .desc = Il fuoco non emana calore.
 
-common-items-npc_weapons-staff-mindflayer_staff = Bastone dello scorticatore di anime
+common-items-npc_weapons-staff-mindflayer_staff = Bastone dell'illithid
     .desc = Segnaposto
 
 common-items-npc_weapons-staff-ogre_staff = Bastone dell'orco
     .desc = Segnaposto
 
-common-items-npc_weapons-staff-saurok_staff = Bastone Saurok
+common-items-npc_weapons-staff-saurok_staff = Bastone saurok
     .desc = Segnaposto
 
-common-items-npc_weapons-sword-adlet_elder_sword = Spada dell'anziano Adlet
+common-items-npc_weapons-sword-adlet_elder_sword = Spada dell'anziano adlet
     .desc = Segnaposto
 
 common-items-npc_weapons-sword-bipedlarge-cultist = Spada gigante del cultista
@@ -106,7 +106,7 @@ common-items-npc_weapons-sword-dullahan_sword = Spada del Dullahan
 common-items-npc_weapons-sword-pickaxe_velorite_sword = Piccone di velorite
     .desc = {""}
 
-common-items-npc_weapons-sword-saurok_sword = Spada Saurok
+common-items-npc_weapons-sword-saurok_sword = Spada saurok
     .desc = Segnaposto
 
 common-items-npc_weapons-sword-haniwa_general_sword = Spada del generale Haniwa

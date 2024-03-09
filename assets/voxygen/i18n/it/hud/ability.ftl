@@ -1,7 +1,13 @@
+## Debug abilities
 common-abilities-debug-possess = Freccia di controllo
     .desc = Scocca una freccia velenosa. Ti permette di controllare il tuo obiettivo.
 common-abilities-debug-evolve = Evolvi
     .desc = Diventa la versione migliore di te stesso.
+common-abilities-debug-glide_boost = Vroom
+    .desc = Ti dà la spinta per raggiungere il cielo
+common-abilities-debug-glide_speeder = Vroom
+    .desc = Ti dà la spinta per arrivare ovunque arrivi il tuo sguardo
+
 common-abilities-hammer-leap = Colpo del destino
     .desc = Un attacco ad area con contraccolpo. Salta alla posizione del cursore.
 common-abilities-bow-shotgun = Raffica

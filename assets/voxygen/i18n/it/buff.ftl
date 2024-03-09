@@ -66,6 +66,9 @@ buff-frozen = Congelato
 ## Wet
 buff-wet = Bagnato
     .desc = Il terreno rifiuta i tuoi piedi, rendendoti difficile fermarsi.
+## Poisoned
+buff-poisoned = Avvelenato
+    .desc = Senti la tua vita svanire...
 ## Ensnared
 buff-ensnared = Intrappolato
     .desc = Liane si attorcigliano intorno alle tue gambe, impedendo il tuo movimento.
