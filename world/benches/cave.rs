@@ -1,6 +1,5 @@
 use common::{spiral::Spiral2d, terrain::CoordinateConversions};
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
-use rand::{seq::IteratorRandom, thread_rng};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rayon::ThreadPoolBuilder;
 use veloren_world::{
     layer,
@@ -11,7 +10,7 @@ use veloren_world::{
 fn cave(c: &mut Criterion) {
     let pool = ThreadPoolBuilder::new().build().unwrap();
     let (world, index) = World::generate(
-        123,
+        230,
         WorldOpts {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
@@ -22,12 +21,11 @@ fn cave(c: &mut Criterion) {
     );
     let land = Land::from_sim(world.sim());
     let mut group = c.benchmark_group("cave");
-    group.sample_size(25);
+    group.sample_size(10);
     group.bench_function("generate_entrances", |b| {
         b.iter(|| {
-            let entrances = black_box(layer::cave::surface_entrances(&land))
-                .step_by(10)
-                .map(|e| e.wpos_to_cpos());
+            let entrances =
+                black_box(layer::cave::surface_entrances(&land)).map(|e| e.wpos_to_cpos());
             for entrance in entrances {
                 _ = black_box(world.generate_chunk(
                     index.as_index_ref(),
@@ -40,15 +38,14 @@ fn cave(c: &mut Criterion) {
         });
     });
 
-    group.bench_function("generate_hard", |b| {
-        b.iter_batched(
-            || {
-                let entrance = layer::cave::surface_entrances(&land)
-                    .choose(&mut thread_rng())
-                    .unwrap()
-                    .wpos_to_cpos();
-                Spiral2d::new()
-                    .step_by(8)
+    group.bench_function("generate_multiple_tunnels", |b| {
+        b.iter(|| {
+            let entrances = layer::cave::surface_entrances(&land)
+                .map(|e| e.wpos_to_cpos())
+                .step_by(6);
+            for entrance in entrances {
+                let chunk = Spiral2d::new()
+                    .step_by(16)
                     .find(|p| {
                         CanvasInfo::with_mock_canvas_info(
                             index.as_index_ref(),
@@ -57,13 +54,12 @@ fn cave(c: &mut Criterion) {
                                 let land = &info.land();
                                 let tunnels =
                                     layer::cave::tunnel_bounds_at(entrance + p, &info, land);
-                                tunnels.count() > 2
+                                tunnels.count() > 1
                             },
                         )
                     })
-                    .map_or(entrance, |p| entrance + p)
-            },
-            |chunk| {
+                    .map_or(entrance, |p| entrance + p);
+
                 _ = black_box(world.generate_chunk(
                     index.as_index_ref(),
                     chunk,
@@ -71,9 +67,8 @@ fn cave(c: &mut Criterion) {
                     || false,
                     None,
                 ));
-            },
-            BatchSize::SmallInput,
-        );
+            }
+        });
     });
 }
 

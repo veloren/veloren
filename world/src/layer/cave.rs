@@ -174,14 +174,14 @@ impl Tunnel {
         }
     }
 
+    // #[inline_tweak::tweak_fn]
     pub fn biome_at(&self, wpos: Vec3<i32>, info: &CanvasInfo) -> Biome {
         let Some(col) = info.col_or_gen(wpos.xy()) else {
             return Biome::default();
         };
 
         // Below the ground
-        let below = ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32 * 0.5))
-            .clamped(0.0, 1.0);
+        let below = ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * 2.0)).clamped(0.0, 1.0);
         let depth = (col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32);
         let underground = ((col.alt - wpos.z as f32) / 80.0 - 1.0).clamped(0.0, 1.0);
 
@@ -198,13 +198,13 @@ impl Tunnel {
         let temp = Lerp::lerp_unclamped(
             col.temp * 2.0,
             FastNoise2d::new(42)
-                .get(wpos.xy().map(|e| e as f64 / 1536.0))
+                .get(wpos.xy().map(|e| e as f64 / 2048.0))
                 .mul(1.15)
                 .mul(2.0)
-                .sub(1.0)
+                .sub(0.5)
                 .add(
-                    ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32 * 0.6))
-                        .clamped(0.0, 2.0),
+                    ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32))
+                        .clamped(0.0, 1.0),
                 ),
             below,
         );
@@ -215,7 +215,7 @@ impl Tunnel {
             .mul(0.5)
             .add(
                 ((col.alt - wpos.z as f32) / (AVG_LEVEL_DEPTH as f32 * LAYERS as f32))
-                    .clamped(0.0, 1.5),
+                    .clamped(0.0, 1.0),
             );
 
         let [
@@ -230,44 +230,45 @@ impl Tunnel {
             sandy,
         ] = {
             // Default biome, no other conditions apply
-            let barren = 0.005;
+            let barren = 0.01;
             // Mushrooms grow underground and thrive in a humid environment with moderate
             // temperatures
             let mushroom = underground
                 * close(humidity, 1.0, 0.7, 4)
-                * close(temp, 1.5, 1.2, 4)
-                * close(depth, 0.9, 0.65, 4);
+                * close(temp, 2.0, 1.8, 4)
+                * close(depth, 0.9, 0.7, 4);
             // Extremely hot and dry areas deep underground
             let fire = underground
                 * close(humidity, 0.0, 0.6, 4)
-                * close(temp, 2.0, 1.4, 4)
-                * close(depth, 1.0, 0.45, 4);
+                * close(temp, 2.5, 2.2, 4)
+                * close(depth, 1.0, 0.4, 4);
             // Overgrown with plants that need a moderate climate to survive
             let leafy = underground
-                * close(humidity, 0.8, 0.9, 4)
-                * close(temp, 0.8, 1.0, 4)
+                * close(humidity, 0.8, 0.8, 4)
+                * close(temp, 1.2 + depth, 1.5, 4)
                 * close(depth, 0.1, 0.7, 4);
             // Cool temperature, dry and devoid of value
             let dusty = close(humidity, 0.0, 0.5, 4)
-                * close(temp, -0.3, 0.7, 4)
+                * close(temp, -0.3, 0.6, 4)
                 * close(depth, 0.5, 0.5, 4);
             // Deep underground and freezing cold
             let icy = underground
-                * close(temp, -1.5, 2.0, 4)
-                * close(depth, 0.9, 0.55, 4)
-                * close(humidity, 1.0, 0.75, 4);
+                * close(temp, -2.3 + (depth - 0.5) * 0.5, 2.0, 4)
+                * close(depth, 0.8, 0.6, 4)
+                * close(humidity, 1.0, 0.85, 4);
             // Rocky cold cave that appear near the surface
-            let snowy = close(temp, -0.7, 0.4, 4) * close(depth, 0.0, 0.4, 4);
+            let snowy = close(temp, -1.8, 1.3, 4) * close(depth, 0.0, 0.6, 4);
             // Crystals grow deep underground in areas rich with minerals. They are present
             // in areas with colder temperatures and low humidity
             let crystal = underground
-                * close(humidity, 0.0, 0.5, 4)
-                * close(temp, -0.9, 0.9, 4)
-                * close(depth, 1.0, 0.55, 4)
-                * close(mineral, 2.0, 1.25, 4);
+                * close(humidity, 0.0, 0.6, 4)
+                * close(temp, -1.6, 1.3, 4)
+                * close(depth, 1.0, 0.5, 4)
+                * close(mineral, 1.5, 1.0, 4);
             // Hot, dry and shallow
-            let sandy =
-                close(humidity, 0.0, 0.5, 4) * close(temp, 1.0, 0.9, 4) * close(depth, 0.0, 0.6, 4);
+            let sandy = close(humidity, 0.0, 0.4, 4)
+                * close(temp, 0.7, 0.8, 4)
+                * close(depth, 0.0, 0.65, 4);
 
             let biomes = [
                 barren, mushroom, fire, leafy, dusty, icy, snowy, crystal, sandy,
@@ -471,6 +472,9 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 .map(|(_, z_range, _, _, _, _)| z_range.clone())
                 .collect_vec();
 
+            // Compute structure samples only once for each column.
+            // TODO Use iter function in StructureGen2d to compute samples for the whole
+            // chunk once
             let structure_seeds = StructureGen2d::new(34537, 24, 8).get(wpos2d);
             for (level, z_range, horizontal, vertical, dist, tunnel) in tunnel_bounds {
                 write_column(
@@ -492,7 +496,6 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Default, Clone)]
 pub struct Biome {
     humidity: f32,
@@ -552,6 +555,7 @@ struct Flower {
     // rotation: Mat3<f32>,
 }
 
+// #[inline_tweak::tweak_fn]
 fn write_column<R: Rng>(
     canvas: &mut Canvas,
     col: &ColumnSample,
@@ -638,12 +642,12 @@ fn write_column<R: Rng>(
 
     let basalt = if biome.fire > 0.5 {
         FastNoise2d::new(36)
-            .get(wpos2d.map(|e| e as f64 / 40.0))
-            .mul(1.1)
-            .sub(0.5)
+            .get(wpos2d.map(|e| e as f64 / 16.0))
+            .mul(1.25)
+            .sub(0.75)
             .max(0.0)
-            .mul(((cave_width + max_height) / 48.0).clamped(0.0, 1.0))
-            .mul(6.0 + cavern_height * 0.6)
+            .mul(((cave_width + max_height) / 64.0).clamped(0.0, 1.0))
+            .mul(6.0 + cavern_height * 0.5)
             .mul((biome.fire - 0.5).powi(3) * 8.0)
     } else {
         0.0
@@ -658,7 +662,6 @@ fn write_column<R: Rng>(
             .min(0.0)
             // .mul((biome.temp as f64 - 1.5).mul(30.0).clamped(0.0, 1.0))
             .mul((cave_width / 16.0).clamped(0.5, 1.0))
-            .mul((cave_width / (MAX_RADIUS - 16.0)).clamped(1.0, 1.25))
             .mul((biome.fire - 0.5).mul(30.0).clamped(0.0, 1.0))
             .mul(64.0)
             .max(-32.0)
@@ -671,7 +674,7 @@ fn write_column<R: Rng>(
         .max(biome.dusty)
         .max(biome.leafy)
         .max(biome.barren)
-        > 0.5
+        > 0.0
     {
         FastNoise2d::new(38)
             .get(wpos2d.map(|e| e as f64 / 4.0))
@@ -748,7 +751,7 @@ fn write_column<R: Rng>(
     };
 
     let ceiling_drip = ceiling
-        - if !void_above && !sky_above {
+        - if !void_above && !sky_above && overlap.is_none() {
             let c = if biome.mushroom > 0.9 && ceiling_cover > 0.0 {
                 Some((0.07, 7.0))
             } else if biome.icy > 0.9 {
@@ -865,10 +868,9 @@ fn write_column<R: Rng>(
                     && vertical > 16.0
                     && horizontal > 16.0
                     && rng.gen_bool(
-                        0.125
-                            * (close(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
-                                * close(horizontal, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
-                                * biome.leafy) as f64,
+                        0.25 * (close(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
+                            * close(horizontal, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
+                            * biome.leafy) as f64,
                     )
                 {
                     if tunnel_intersection() {
@@ -908,23 +910,22 @@ fn write_column<R: Rng>(
                 }
             });
 
+            // TODO Some way to not clone here?
             structure
                 .as_ref()
                 .map(|structure| (*seed, structure.clone()))
         })
         .collect_vec();
     let get_structure = |wpos: Vec3<i32>, dynamic_rng: &mut R| {
-        let warp = |wposf: Vec3<f64>, freq: f64, amp: Vec3<f32>, seed: u32| -> Option<Vec3<f32>> {
+        let warp = |wposf: Vec3<f64>, freq: f64, amp: Vec3<f32>, seed: u32| -> Vec3<f32> {
             let xy = wposf.xy();
             let xz = Vec2::new(wposf.x, wposf.z);
             let yz = Vec2::new(wposf.y, wposf.z);
-            Some(
-                Vec3::new(
-                    FastNoise2d::new(seed).get(yz * freq),
-                    FastNoise2d::new(seed).get(xz * freq),
-                    FastNoise2d::new(seed).get(xy * freq),
-                ) * amp,
-            )
+            Vec3::new(
+                FastNoise2d::new(seed).get(yz * freq),
+                FastNoise2d::new(seed).get(xz * freq),
+                FastNoise2d::new(seed).get(xy * freq),
+            ) * amp
         };
         for (seed, structure) in structures.iter() {
             let seed = *seed;
@@ -933,7 +934,7 @@ fn write_column<R: Rng>(
                     let wposf = wpos.map(|e| e as f64);
                     let warp_freq = 1.0 / 32.0;
                     let warp_amp = Vec3::new(12.0, 12.0, 12.0);
-                    let warp_offset = warp(wposf, warp_freq, warp_amp, seed)?;
+                    let warp_offset = warp(wposf, warp_freq, warp_amp, seed);
                     let wposf_warped = wposf.map(|e| e as f32)
                         + warp_offset
                             * (wposf.z as f32 - mushroom.pos.z as f32)
@@ -1058,7 +1059,7 @@ fn write_column<R: Rng>(
                     let wposf = wpos.map(|e| e as f64);
                     let warp_freq = 1.0 / 16.0;
                     let warp_amp = Vec3::new(8.0, 8.0, 8.0);
-                    let warp_offset = warp(wposf, warp_freq, warp_amp, seed)?;
+                    let warp_offset = warp(wposf, warp_freq, warp_amp, seed);
                     let wposf_warped = wposf.map(|e| e as f32)
                         + warp_offset
                             * (wposf.z as f32 - flower.pos.z as f32)
@@ -1149,7 +1150,7 @@ fn write_column<R: Rng>(
                     let wposf = wpos.map(|e| e as f64);
                     let warp_freq = 1.0 / 16.0;
                     let warp_amp = Vec3::new(8.0, 8.0, 8.0);
-                    let warp_offset = warp(wposf, warp_freq, warp_amp, seed)?;
+                    let warp_offset = warp(wposf, warp_freq, warp_amp, seed);
                     let wposf_warped = wposf.map(|e| e as f32) + warp_offset;
                     let rpos = wposf_warped - pos.map(|e| e as f32);
                     let dist_sq = rpos.xy().magnitude_squared();
@@ -1381,7 +1382,6 @@ fn write_column<R: Rng>(
                         [
                             (SpriteKind::GlowMushroom, 0.5),
                             (SpriteKind::Mushroom, 0.25),
-                            (SpriteKind::GrassBlue, 0.0),
                             (SpriteKind::GrassBlueMedium, 1.5),
                             (SpriteKind::GrassBlueLong, 2.0),
                             (SpriteKind::Moonbell, 0.01),
@@ -1394,7 +1394,7 @@ fn write_column<R: Rng>(
                         && biome.leafy > 0.4
                         && rand.chance(
                             wpos2d.with_z(15),
-                            biome.leafy.powi(2) * 0.25 * col.marble_mid,
+                            biome.leafy.powi(2) * col.marble_mid * (biome.humidity * 1.3) * 0.25,
                         )
                     {
                         let mixed = col.marble.add(col.marble_small.sub(0.5).mul(0.25));
@@ -1402,7 +1402,6 @@ fn write_column<R: Rng>(
                             return [
                                 (SpriteKind::LongGrass, 1.0),
                                 (SpriteKind::MediumGrass, 2.0),
-                                (SpriteKind::ShortGrass, 0.0),
                                 (SpriteKind::JungleFern, 0.5),
                                 (SpriteKind::JungleRedGrass, 0.35),
                                 (SpriteKind::Fern, 0.75),
@@ -1429,7 +1428,6 @@ fn write_column<R: Rng>(
                             return [
                                 (SpriteKind::LongGrass, 1.0),
                                 (SpriteKind::MediumGrass, 2.0),
-                                (SpriteKind::ShortGrass, 0.0),
                                 (SpriteKind::JungleFern, 0.5),
                                 (SpriteKind::JungleLeafyPlant, 0.5),
                                 (SpriteKind::JungleRedGrass, 0.35),
@@ -1551,14 +1549,18 @@ fn write_column<R: Rng>(
                 Block::air(sprite)
             } else if let Some(sprite) = (z == ceiling - 1 && !void_above)
                 .then(|| {
-                    if biome.mushroom > 0.5 && rand.chance(wpos2d.with_z(3), biome.mushroom * 0.01)
+                    if biome.mushroom > 0.5
+                        && rand.chance(wpos2d.with_z(3), biome.mushroom.powi(2) * 0.01)
                     {
                         [(SpriteKind::MycelBlue, 0.75), (SpriteKind::Mold, 1.0)]
                             .choose_weighted(rng, |(_, w)| *w)
                             .ok()
                             .map(|s| s.0)
                     } else if biome.leafy > 0.4
-                        && rand.chance(wpos2d.with_z(4), biome.leafy * 0.015)
+                        && rand.chance(
+                            wpos2d.with_z(4),
+                            biome.leafy * (biome.humidity * 1.3) * 0.015,
+                        )
                     {
                         [
                             (SpriteKind::Liana, 1.5),
@@ -1593,6 +1595,7 @@ fn write_column<R: Rng>(
     }
 }
 
+// #[inline_tweak::tweak_fn]
 fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Biome, rng: &mut R) {
     if RandomField::new(canvas.info().index().seed).chance(wpos, 0.035) {
         if let Some(entity_asset) = [
