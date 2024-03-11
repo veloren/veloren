@@ -18,18 +18,21 @@ mod tui_runner;
 mod tuilog;
 mod web;
 use crate::{
-    cli::{Admin, ArgvApp, ArgvCommand, Message, SharedCommand, Shutdown},
+    cli::{
+        Admin, ArgvApp, ArgvCommand, BenchParams, Message, MessageReturn, SharedCommand, Shutdown,
+    },
+    settings::Settings,
     shutdown_coordinator::ShutdownCoordinator,
     tui_runner::Tui,
     tuilog::TuiLog,
 };
-use common::{clock::Clock, consts::MIN_RECOMMENDED_TOKIO_THREADS};
+use common::{clock::Clock, comp::Player, consts::MIN_RECOMMENDED_TOKIO_THREADS};
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use server::{persistence::DatabaseSettings, settings::Protocol, Event, Input, Server};
 use std::{
     io,
-    sync::{atomic::AtomicBool, mpsc, Arc},
+    sync::{atomic::AtomicBool, Arc},
     time::{Duration, Instant},
 };
 use tokio::sync::Notify;
@@ -216,12 +219,22 @@ fn main() -> io::Result<()> {
     let metrics_shutdown = Arc::new(Notify::new());
     let metrics_shutdown_clone = Arc::clone(&metrics_shutdown);
     let web_chat_secret = settings.web_chat_secret.clone();
+    let ui_api_secret = settings.ui_api_secret.clone().unwrap_or_else(|| {
+        // when no secret is provided we generate one that we distribute via the /ui
+        // endpoint
+        use rand::distributions::{Alphanumeric, DistString};
+        Alphanumeric.sample_string(&mut rand::thread_rng(), 32)
+    });
+
+    let (web_ui_request_s, web_ui_request_r) = tokio::sync::mpsc::channel(1000);
 
     runtime.spawn(async move {
         web::run(
             registry,
             chat,
             web_chat_secret,
+            ui_api_secret,
+            web_ui_request_s,
             settings.web_address,
             metrics_shutdown_clone.notified(),
         )
@@ -246,15 +259,39 @@ fn main() -> io::Result<()> {
         "Server is ready to accept connections."
     );
 
-    let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&shutdown_signal));
-
-    // Set up an fps clock
-    let mut clock = Clock::new(Duration::from_secs_f64(1.0 / TPS as f64));
-
     if let Some(bench) = bench {
         #[cfg(feature = "worldgen")]
         server.create_centered_persister(bench.view_distance);
     }
+
+    server_loop(
+        server,
+        bench,
+        settings,
+        tui,
+        web_ui_request_r,
+        shutdown_signal,
+    )?;
+
+    metrics_shutdown.notify_one();
+
+    Ok(())
+}
+
+fn server_loop(
+    mut server: Server,
+    bench: Option<BenchParams>,
+    settings: Settings,
+    tui: Option<Tui>,
+    mut web_ui_request_r: tokio::sync::mpsc::Receiver<(
+        Message,
+        tokio::sync::oneshot::Sender<MessageReturn>,
+    )>,
+    shutdown_signal: Arc<AtomicBool>,
+) -> io::Result<()> {
+    // Set up an fps clock
+    let mut clock = Clock::new(Duration::from_secs_f64(1.0 / TPS as f64));
+    let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&shutdown_signal));
     let mut bench_exit_time = None;
 
     let mut tick_no = 0u64;
@@ -296,49 +333,91 @@ fn main() -> io::Result<()> {
             trace!(?tick_no, "keepalive")
         }
 
-        if let Some(tui) = tui.as_ref() {
-            match tui.msg_r.try_recv() {
-                Ok(msg) => match msg {
-                    Message::Shutdown {
-                        command: Shutdown::Cancel,
-                    } => shutdown_coordinator.abort_shutdown(&mut server),
-                    Message::Shutdown {
-                        command: Shutdown::Graceful { seconds, reason },
-                    } => {
-                        shutdown_coordinator.initiate_shutdown(
-                            &mut server,
-                            Duration::from_secs(seconds),
-                            reason,
-                        );
-                    },
-                    Message::Shutdown {
-                        command: Shutdown::Immediate,
-                    } => {
-                        info!("Closing the server");
-                        break;
-                    },
-                    Message::Shared(SharedCommand::Admin {
-                        command: Admin::Add { username, role },
-                    }) => {
-                        server.add_admin(&username, role);
-                    },
-                    Message::Shared(SharedCommand::Admin {
-                        command: Admin::Remove { username },
-                    }) => {
-                        server.remove_admin(&username);
-                    },
-                    Message::LoadArea { view_distance } => {
-                        #[cfg(feature = "worldgen")]
-                        server.create_centered_persister(view_distance);
-                    },
-                    Message::SqlLogMode { mode } => {
-                        server.set_sql_log_mode(mode);
-                    },
-                    Message::DisconnectAllClients => {
-                        server.disconnect_all_clients();
-                    },
+        let mut handle_msg = |msg, response: tokio::sync::oneshot::Sender<MessageReturn>| {
+            use specs::{Join, WorldExt};
+            match msg {
+                Message::Shutdown {
+                    command: Shutdown::Cancel,
+                } => shutdown_coordinator.abort_shutdown(&mut server),
+                Message::Shutdown {
+                    command: Shutdown::Graceful { seconds, reason },
+                } => {
+                    shutdown_coordinator.initiate_shutdown(
+                        &mut server,
+                        Duration::from_secs(seconds),
+                        reason,
+                    );
                 },
-                Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},
+                Message::Shutdown {
+                    command: Shutdown::Immediate,
+                } => {
+                    return true;
+                },
+                Message::Shared(SharedCommand::Admin {
+                    command: Admin::Add { username, role },
+                }) => {
+                    server.add_admin(&username, role);
+                },
+                Message::Shared(SharedCommand::Admin {
+                    command: Admin::Remove { username },
+                }) => {
+                    server.remove_admin(&username);
+                },
+                Message::LoadArea { view_distance } => {
+                    #[cfg(feature = "worldgen")]
+                    server.create_centered_persister(view_distance);
+                },
+                Message::SqlLogMode { mode } => {
+                    server.set_sql_log_mode(mode);
+                },
+                Message::DisconnectAllClients => {
+                    server.disconnect_all_clients();
+                },
+                Message::ListPlayers => {
+                    let players: Vec<String> = server
+                        .state()
+                        .ecs()
+                        .read_storage::<Player>()
+                        .join()
+                        .map(|p| p.alias.clone())
+                        .collect();
+                    let _ = response.send(MessageReturn::Players(players));
+                },
+                Message::ListLogs => {
+                    let log = LOG.inner.lock().unwrap();
+                    let lines: Vec<_> = log
+                        .lines
+                        .iter()
+                        .rev()
+                        .take(30)
+                        .map(|l| l.to_string())
+                        .collect();
+                    let _ = response.send(MessageReturn::Logs(lines));
+                },
+            }
+            false
+        };
+
+        if let Some(tui) = tui.as_ref() {
+            if let Ok(msg) = tui.msg_r.try_recv() {
+                let (sender, mut recv) = tokio::sync::oneshot::channel();
+                if handle_msg(msg, sender) {
+                    info!("Closing the server");
+                    break;
+                }
+                if let Ok(msg_answ) = recv.try_recv() {
+                    match msg_answ {
+                        MessageReturn::Players(players) => info!("Players: {:?}", players),
+                        MessageReturn::Logs(_) => info!("skipp sending logs to tui"),
+                    };
+                }
+            }
+        }
+
+        if let Ok((msg, sender)) = web_ui_request_r.try_recv() {
+            if handle_msg(msg, sender) {
+                info!("Closing the server");
+                break;
             }
         }
 
@@ -348,7 +427,5 @@ fn main() -> io::Result<()> {
         #[cfg(feature = "tracy")]
         common_base::tracy_client::frame_mark();
     }
-    metrics_shutdown.notify_one();
-
     Ok(())
 }

@@ -71,6 +71,15 @@ pub enum Message {
     },
     /// Disconnects all connected clients
     DisconnectAllClients,
+    /// returns active player names
+    ListPlayers,
+    ListLogs,
+}
+
+#[derive(Debug, Clone)]
+pub enum MessageReturn {
+    Players(Vec<String>),
+    Logs(Vec<String>),
 }
 
 #[derive(Parser)]

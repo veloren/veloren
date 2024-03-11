@@ -34,6 +34,9 @@ pub struct Settings {
     /// SECRET API HEADER used to access the chat api, if disabled the API is
     /// unreachable
     pub web_chat_secret: Option<String>,
+    /// public SECRET API HEADER used to access the ui api, if disabled the API
+    /// is reachable localhost only
+    pub ui_api_secret: Option<String>,
     pub shutdown_signals: Vec<ShutdownSignal>,
 }
 
@@ -44,6 +47,7 @@ impl Default for Settings {
             update_shutdown_message: "The server is restarting for an update".to_owned(),
             web_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             web_chat_secret: None,
+            ui_api_secret: None,
             shutdown_signals: if cfg!(any(target_os = "linux", target_os = "macos")) {
                 vec![ShutdownSignal::SIGUSR1]
             } else {
