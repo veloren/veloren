@@ -21,6 +21,7 @@ use crate::audio::{
     Listener,
 };
 use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
+use rodio::cpal::FromSample;
 use serde::Deserialize;
 use std::time::Instant;
 use strum::EnumIter;
@@ -88,6 +89,7 @@ impl MusicChannel {
         S::Item: Sample,
         S::Item: Send,
         <S as Iterator>::Item: std::fmt::Debug,
+        f32:FromSample<<S as Iterator>::Item>,
     {
         self.tag = tag;
         self.sink.append(source);
@@ -208,6 +210,7 @@ impl AmbientChannel {
         S::Item: Sample,
         S::Item: Send,
         <S as Iterator>::Item: std::fmt::Debug,
+        f32:FromSample<<S as Iterator>::Item>,
     {
         self.sink.append(source);
     }
@@ -248,6 +251,7 @@ impl SfxChannel {
         S::Item: Sample,
         S::Item: Send,
         <S as Iterator>::Item: std::fmt::Debug,
+        f32:FromSample<<S as Iterator>::Item>,
     {
         self.sink.append(source);
     }
@@ -305,6 +309,7 @@ impl UiChannel {
         S::Item: Sample,
         S::Item: Send,
         <S as Iterator>::Item: std::fmt::Debug,
+        f32:FromSample<<S as Iterator>::Item>,
     {
         self.sink.append(source);
     }
