@@ -243,7 +243,7 @@ impl PluginMgr {
         base_dir: &Path,
         data: Vec<u8>,
     ) -> Result<PluginHash, PluginError> {
-        let path = store_server_plugin(base_dir, data)?;
+        let path = store_server_plugin(base_dir, data).map_err(PluginError::Io)?;
         self.load_server_plugin(path)
     }
 

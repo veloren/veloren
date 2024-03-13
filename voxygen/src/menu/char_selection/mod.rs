@@ -282,16 +282,19 @@ impl PlayState for CharSelectionState {
                                 tracing::info!("plugin data {}", data.len());
                                 let mut client = self.client.borrow_mut();
                                 #[cfg(feature = "plugins")]
-                                if let Ok(hash) = client
+                                match client
                                     .state()
                                     .ecs()
                                     .write_resource::<PluginMgr>()
                                     .cache_server_plugin(&global_state.config_dir, data)
                                 {
-                                    if client.plugin_received(hash) == 0 {
-                                        // now load characters (plugins might contain items)
-                                        client.load_character_list();
-                                    }
+                                    Ok(hash) => {
+                                        if client.plugin_received(hash) == 0 {
+                                            // now load characters (plugins might contain items)
+                                            client.load_character_list();
+                                        }
+                                    },
+                                    Err(e) => tracing::error!(?e, "cache_server_plugin"),
                                 }
                             },
                             // TODO: See if we should handle StartSpectate here instead.
