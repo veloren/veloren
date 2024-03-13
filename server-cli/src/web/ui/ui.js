@@ -29,7 +29,7 @@ async function sendGlobalMsg() {
     var world_msg = document.getElementById("world_msg");
     const msg_text = world_msg.value;
 
-    const msg_response = await fetch("/ui_api/v1/send_world_msg", {
+    const msg_response = await fetch("/ui_api/v1/send_global_msg", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

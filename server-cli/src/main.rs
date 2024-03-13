@@ -398,7 +398,7 @@ fn server_loop(
                         .collect();
                     let _ = response.send(MessageReturn::Logs(lines));
                 },
-                Message::SendWorldMsg { msg } => {
+                Message::SendGlobalMsg { msg } => {
                     use server::state_ext::StateExt;
                     let msg = ChatType::Meta.into_plain_msg(msg);
                     server.state().send_chat(msg);

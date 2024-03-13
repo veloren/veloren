@@ -34,8 +34,8 @@ pub struct Settings {
     /// SECRET API HEADER used to access the chat api, if disabled the API is
     /// unreachable
     pub web_chat_secret: Option<String>,
-    /// public SECRET API HEADER used to access the ui api, if disabled the API
-    /// is reachable localhost only
+    /// public SECRET API HEADER used to access the /ui_api, if disabled the API
+    /// is reachable localhost only (by /ui)
     pub ui_api_secret: Option<String>,
     pub shutdown_signals: Vec<ShutdownSignal>,
 }

@@ -74,7 +74,8 @@ pub enum Message {
     /// returns active player names
     ListPlayers,
     ListLogs,
-    SendWorldMsg {
+    /// sends a msg to everyone on the server
+    SendGlobalMsg {
         msg: String,
     },
 }

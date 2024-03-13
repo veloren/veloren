@@ -29,7 +29,7 @@ async fn ui(
             r#"<!DOCTYPE html>
 <html>
 <body>
-Ui is only accissable from 127.0.0.1
+Ui is only accessible from 127.0.0.1
 </body>
 </html>
         "#
