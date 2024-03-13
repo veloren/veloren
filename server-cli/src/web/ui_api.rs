@@ -4,10 +4,11 @@ use axum::{
     http::header::COOKIE,
     middleware::Next,
     response::{IntoResponse, Response},
-    routing::get,
+    routing::{get, post},
     Json, Router,
 };
 use hyper::{Request, StatusCode};
+use serde::Deserialize;
 use std::{
     collections::HashSet,
     net::{IpAddr, SocketAddr},
@@ -69,6 +70,7 @@ pub fn router(web_ui_request_s: UiRequestSender, secret_token: String) -> Router
     Router::new()
         .route("/players", get(players))
         .route("/logs", get(logs))
+        .route("/send_world_msg", post(send_world_msg))
         .layer(axum::middleware::from_fn_with_state(ip_addrs, log_users))
         .layer(axum::middleware::from_fn_with_state(token, validate_secret))
         .with_state(web_ui_request_s)
@@ -100,4 +102,20 @@ async fn logs(
         MessageReturn::Logs(logs) => Ok(Json(logs)),
         _ => Err(StatusCode::INTERNAL_SERVER_ERROR),
     }
+}
+
+#[derive(Deserialize)]
+struct SendWorldMsgBody {
+    msg: String,
+}
+
+async fn send_world_msg(
+    State(web_ui_request_s): State<UiRequestSender>,
+    Json(payload): Json<SendWorldMsgBody>,
+) -> Result<impl IntoResponse, StatusCode> {
+    let (dummy_s, _) = tokio::sync::oneshot::channel();
+    let _ = web_ui_request_s
+        .send((Message::SendWorldMsg { msg: payload.msg }, dummy_s))
+        .await;
+    Ok(())
 }

@@ -150,6 +150,9 @@ fn inner() -> &'static str {
 </div>
 
 <div id="players" class="tabcontent">
+  <label for="world_msg">Message:</label>
+  <input type="text" id="world_msg" name="world_msg" onchange="sendGlobalMsg();"></input>
+  <input type="button" value="Send" onclick="sendGlobalMsg();"></input>
   <h3>Players</h3>
   <ul id="players_list">
   </ul>
@@ -190,6 +193,25 @@ function changeSlider(evt, sliderId, showId) {
     var slider = document.getElementById(sliderId);
     var sliderNo = document.getElementById(showId);
     sliderNo.innerHTML = slider.value;
+}
+
+async function sendGlobalMsg() {
+    var world_msg = document.getElementById("world_msg");
+    const msg_text = world_msg.value;
+
+    const msg_response = await fetch("/ui_api/v1/send_world_msg", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            msg: msg_text
+        })
+    });
+
+    if (msg_response.status == 200) {
+      world_msg.value = '';
+    }
 }
 
 async function update_players() {

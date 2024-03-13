@@ -74,6 +74,9 @@ pub enum Message {
     /// returns active player names
     ListPlayers,
     ListLogs,
+    SendWorldMsg {
+        msg: String,
+    },
 }
 
 #[derive(Debug, Clone)]

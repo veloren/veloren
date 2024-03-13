@@ -26,7 +26,11 @@ use crate::{
     tui_runner::Tui,
     tuilog::TuiLog,
 };
-use common::{clock::Clock, comp::Player, consts::MIN_RECOMMENDED_TOKIO_THREADS};
+use common::{
+    clock::Clock,
+    comp::{ChatType, Player},
+    consts::MIN_RECOMMENDED_TOKIO_THREADS,
+};
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use server::{persistence::DatabaseSettings, settings::Protocol, Event, Input, Server};
@@ -393,6 +397,11 @@ fn server_loop(
                         .map(|l| l.to_string())
                         .collect();
                     let _ = response.send(MessageReturn::Logs(lines));
+                },
+                Message::SendWorldMsg { msg } => {
+                    use server::state_ext::StateExt;
+                    let msg = ChatType::Meta.into_plain_msg(msg);
+                    server.state().send_chat(msg);
                 },
             }
             false
