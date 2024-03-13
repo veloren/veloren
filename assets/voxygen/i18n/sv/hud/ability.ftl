@@ -291,3 +291,9 @@ common-abilities-axe-fracture = Fraktur
         Skalar med kombo vid aktivering, konsumerar hälften av kombo
 common-abilities-debug-evolve = Utveckla
     .desc = Du blir ett bättre själv.
+# Debug abilities
+common-abilities-debug-glide_speeder = Vroom
+    .desc = Ger dig kraften att nå vart än dina ökon kikar.
+# Debug abilities
+common-abilities-debug-glide_boost = Vroom
+    .desc = Ger dig kraften att nå himlen.

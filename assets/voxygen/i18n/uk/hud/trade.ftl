@@ -22,12 +22,14 @@ hud-trade-buy =
     Ціна покупки: { $coin_num ->
         [one] { $coin_formatted } монета
         [few] { $coin_formatted } монети
+        [many] { $coin_formatted } монет
        *[other] { $coin_formatted } монет
     }
 hud-trade-sell =
-    Sell Price: { $coin_num ->
+    Ціна продажу: { $coin_num ->
         [one] { $coin_formatted } монета
         [few] { $coin_formatted } монети
+        [many] { $coin_formatted } монет
        *[other] { $coin_formatted } монет
     }
 hud-trade-tooltip_hint_1 = <Shift-Click щоб Додати/Забрати одиницю товару.>

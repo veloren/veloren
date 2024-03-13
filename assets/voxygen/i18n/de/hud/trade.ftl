@@ -18,12 +18,12 @@ hud-trade-result-declined = Handel abgelehnt.
 hud-trade-result-nospace = Nicht genügend Platz, um den Handel abzuschließen.
 hud-trade-buy =
     Kaufpreis: { $coin_num ->
-        [one] 1 Münze
+        [1] Eine Münze
        *[other] { $coin_formatted } Münzen
     }
 hud-trade-sell =
     Verkaufspreis: { $coin_num ->
-        [one] 1 Münze
+        [one] Eine Münze
        *[other] { $coin_formatted } Münzen
     }
 hud-trade-tooltip_hint_1 = <Shift-Klick zum Hinzufügen/Entfernen der Waren.>

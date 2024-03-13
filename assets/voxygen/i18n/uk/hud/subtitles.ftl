@@ -141,3 +141,5 @@ subtitle-utterance-phoenix-angry = Крик Фенікса
 subtitle-utterance-phoenix-hurt = Феніксу боляче
 subtitle-instrument_steeldrum = Гра на сталевому барабані
 subtitle-instrument_shamisen = Гра на шямісені
+subtitle-attack-fuse_charge = Шипіння запобіжника
+subtitle-lavapool = Лавовий басейн

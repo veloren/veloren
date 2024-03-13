@@ -72,7 +72,7 @@ common-abilities-sword-cleaving_spiral_slash = Tajo circular
 common-abilities-sword-cleaving_bladestorm = Lluvia de espadas
     .desc =
         Destroza a tus enemigos con varios ataques giratorios de tu espada.
-        Requiere una cantidad moderada de combo para utilizarse
+        Requiere una cantidad moderada de combo para utilizarse.
 common-abilities-sword-cleaving_cross_cut = Tajo cruzado de hendedura
     .desc = Un tajo doble de izquierda a derecha que puede golpear a varios enemigos.
 common-abilities-sword-cleaving_skewer = Estocada de hendedura
@@ -111,7 +111,7 @@ common-abilities-sword-agile_perforate = Perforación
 common-abilities-sword-agile_hundred_cuts = Cien tajos
     .desc =
         Sucesión masiva de cortes muy rápidos sobre un objetivo.
-        Requiere una cantidad moderada de combo para utilizarse
+        Requiere una cantidad moderada de combo para utilizarse.
 common-abilities-sword-agile_cross_cut = Tajo cruzado ágil
     .desc = Un tajo rápido doble de izquierda a derecha.
 common-abilities-sword-agile_skewer = Estocada ágil
@@ -150,7 +150,7 @@ common-abilities-sword-crippling_deep_rend = Desgarre profundo
 common-abilities-sword-crippling_mutilate = Mutilación
     .desc =
         Mutila a tu enemigo al cortar sus heridas. Inflige daño adicional a enemigos que están sufriendo una hemorragia.
-        Requiere una cantidad moderada de combo para utilizarse
+        Requiere una cantidad moderada de combo para utilizarse.
 common-abilities-sword-crippling_cross_cut = Tajo cruzado incapacitante
     .desc = Un tajo doble de izquierda a derecha que puede producir hemorragia.
 common-abilities-sword-crippling_skewer = Estocada incapacitante
@@ -189,9 +189,11 @@ common-abilities-sword-heavy_slam = Presa
 common-abilities-sword-heavy_guillotine = Guillotina
     .desc =
         Tajo fuerte con gran probabilidad de aturdir a aquello que no consiga matar.
-        Requiere una cantidad moderada de combo para utilizarse
+        Requiere una cantidad moderada de combo para utilizarse.
 common-abilities-sword-heavy_fortitude = Gran fortaleza
-    .desc = Los ataques que recibes no te aturden.
+    .desc =
+        Los ataques que recibes no te aturden.
+        Requiere estar en la posición intensa.
 common-abilities-sword-heavy_pillar_thrust = Caída en picado
     .desc =
         Atraviesa a tu enemigo con la espada hasta llegar al suelo. El golpe será más potente si se utiliza durante una caída.
@@ -226,7 +228,7 @@ common-abilities-sword-defensive_vital_jab = Pinchazo crítico defensivo
 common-abilities-sword-defensive_counter = Contraataque
     .desc =
         Golpe rápido que inflige mucho daño adicional a enemigos cuyos ataques se hayan parado o bloqueado.
-        Requiere una cantidad moderada de combo para utilizarse
+        Requiere una cantidad moderada de combo para utilizarse.
 common-abilities-sword-defensive_cross_cut = Tajo cruzado defensivo
     .desc = Un tajo doble de izquierda a derecha que puede proteger de ataques enemigos.
 common-abilities-sword-defensive_skewer = Estocada defensiva
@@ -238,7 +240,9 @@ common-abilities-sword-defensive_fell_strike = Tajo horizontal defensivo
 common-abilities-sword-defensive_crescent_slash = Tajo creciente defensivo
     .desc = Golpe ascendente con la espada en dirección vertical que puede proteger de ataques enemigos.
 common-abilities-sword-defensive_stalwart_sword = Espada inquebrantable
-    .desc = Los ataques te hacen menos daño.
+    .desc =
+        Los ataques te hacen menos daño.
+        Requiere estar en la posición defensiva.
 common-abilities-sword-defensive_deflect = Parada
     .desc =
         Realiza una maniobra tan ágil que puedes llegar a bloquear proyectiles.
@@ -264,3 +268,251 @@ common-abilities-staff-fireshockwave = Anillo de fuego
 # Habilidades de cetro
 common-abilities-sceptre-wardingaura = Aura del guardián
     .desc = Emana de ti un aura que te protege a ti y a tus aliados.
+# Sword abilities
+common-abilities-sword-agile_dual_flurry = Ráfaga de estocadas
+    .desc =
+        Arremete con una serie de estocadas usando ambas espadas.
+        Requiere estar en la posición ágil.
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-defensive_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crippling_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cleaving_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-basic_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-agile_stance = ""
+# Debug abilities
+common-abilities-debug-glide_speeder = Bbrrrum
+    .desc = Consigues el poder para llegar hasta dónde alcance tu mirada.
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-heavy_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-agile_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-defensive_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crippling_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cleaving_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-double_slash = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-modified_depending_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crescent_slash = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-fell_strike = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-skewer = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cascade = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-requires_moderate_combo = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-enter_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-require_stance = ""
+# Sword abilities
+common-abilities-sword-agile_dual_perforate = Torrente de estocadas
+    .desc = Arremete con una gran serie de golpes ligeros con ambas espadas.
+# Sword abilities
+common-abilities-sword-basic_dual_cross_cut = Tajo cruzado básico.
+    .desc = Golpea al mismo tiempo tanto por la izquierda como por la derecha.
+# Sword abilities
+common-abilities-sword-heavy_dual_cross_cut = Tajo cruzado pesado.
+    .desc = Un tajo doble que puede aturdir al objetivo.
+# Sword abilities
+common-abilities-sword-agile_dual_cross_cut = Tajo cruzado ágil
+    .desc = Un golpe rápido que ataca por ambos lados al mismo tiempo.
+# Sword abilities
+common-abilities-sword-defensive_dual_cross_cut = Tajo cruzado defensivo
+    .desc = Un golpe que ataca por ambos lados al mismo tiempo y puede proteger de ataques enemigos.
+# Sword abilities
+common-abilities-sword-crippling_dual_cross_cut = Tajo cruzado de incapacitación
+    .desc = Un golpe que ataca por ambos lados al mismo tiempo y puede producir hemorragia.
+# Sword abilities
+common-abilities-sword-cleaving_dual_cross_cut = Tajo cruzado de hendedura
+    .desc = Un golpe que ataca por ambos lados al mismo tiempo y puede atravesar a varios enemigos.
+# Axe abilities
+common-abilities-axe-berserk = Berséker
+    .desc = Aumenta tu poder ofensivo a cambio de disminuir tu defensa.
+# Axe abilities
+common-abilities-axe-rising_tide = Marea creciente
+    .desc = Golpe ascendente que bonifica en gran medida el combo.
+# Axe abilities
+common-abilities-axe-savage_sense = Sentido salvaje
+    .desc = Identifica un punto débil de tu objetivo para asegurarte de que el próximo ataque hará daño crítico.
+# Axe abilities
+common-abilities-axe-adrenaline_rush = Subidón de adrenalina
+    .desc =
+        Usa todo tu combo para recuperar energía.
+        Su efecto es más potente cuanto más combo se haya consumido.
+# Axe abilities
+common-abilities-axe-maelstrom = Torbellino
+    .desc =
+        Golpea a todo cuanto te rodee con un ataque en círculos devastador.
+        Esta habilidad es la evolución de "Ejecución" cuando se tiene suficiente combo.
+# Axe abilities
+common-abilities-axe-rake = Rastrillo
+    .desc = Restriega tu hacha en el objetivo, lo que provoca hemorragia.
+# Axe abilities
+common-abilities-axe-bloodfeast = Sed de sangre
+    .desc = Tu hacha sacia su sed y te sana con la sangre en los golpes a enemigos que sufren de hemorragia.
+# Axe abilities
+common-abilities-axe-fierce_raze = Arremetida feroz
+    .desc = Una serie veloz de golpes sobre el objetivo.
+# Axe abilities
+common-abilities-axe-furor = Frenesí
+    .desc = El combo que generan tus golpes aumenta conforme lo hace tu furia.
+# Axe abilities
+common-abilities-axe-lacerate = Laceración
+    .desc =
+        Desolla a tu objetivo para provocarles hemorragia.
+        Requiere 30 de combo para usarse.
+        Esta habilidad se convierte en "Rompeolas" si tienes al menos 50 de combo.
+# Axe abilities
+common-abilities-axe-riptide = Rompeolas
+    .desc =
+        Desolla a todo lo que te rodee.
+        Esta habilidad es la evolución de "Laceración" cuando se tiene suficiente combo.
+# Axe abilities
+common-abilities-axe-skull_bash = Rompecráneos
+    .desc = Golpe con el ojo de tu hacha que puede aturdir al objetivo.
+# Axe abilities
+common-abilities-axe-cleave = Corte
+    .desc = Un tajo hacia abajo que puede generar bastante combo.
+# Axe abilities
+common-abilities-axe-brutal_swing = Ataque brutal
+    .desc = Golpeas con un ataque giratorio a tu alrededor.
+# Axe abilities
+common-abilities-axe-defiance = Desafío
+    .desc = Mira a la muerte a la cara al mismo tiempo que aumentan tus defensas.
+# Axe abilities
+common-abilities-axe-capsize = Vuelco
+    .desc =
+        Llévate por delante a todo lo que tengas alrededor con un ataque devastador.
+        Esta habilidad es la evolución de "Rompeolas" cuando se tiene suficiente combo.
+# Debug abilities
+common-abilities-debug-glide_boost = Bbrrrum
+    .desc = Consigues suficiente fuerza para alcanzar el cielo.
+# Debug abilities
+common-abilities-debug-evolve = Evolucionar
+    .desc = Conviértete en un mejor tú.
+# Sword abilities
+common-abilities-sword-cleaving_dual_bladestorm = Filotormenta
+    .desc =
+        Haz papilla a tus enemigos con un sinfín de giros con ambas espadas.
+        Requiere una cantidad moderada de combo para utilizarse.
+# Axe abilities
+common-abilities-axe-execute = Ejecución
+    .desc =
+        Un golpe devastador que suele ser letal.
+        Requiere 30 de combo para usarse.
+        Esta habilidad se convierte en "Torbellino" si tienes al menos 50 de combo.
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-heavy_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cross_cut = ""
+# Sword abilities
+common-abilities-sword-cleaving_dual_spiral_slash = Torbellino carmesí
+    .desc = Gira con ambas espadas para golpear a todo cuánto te rodee.
+# Sword abilities
+common-abilities-sword-cleaving_dual_whirlwind_slice = Tempestad afilada
+    .desc =
+        Golpea a todos los enemigos que te rodean con ataques circulares usando ambas espadas.
+        Cambia a la posición de hendedura.
+# Axe abilities
+common-abilities-axe-triple_chop = Corte triple
+    .desc = Una sucesión rápida de tres golpes.
+# Axe abilities
+common-abilities-axe-keelhaul = Pasar por la quilla
+    .desc =
+        Agarra a tu enemigo y tráelo hacia ti.
+        Consume la mitad de tu combo actual.
+        Su efecto es más potente cuanto más combo se haya consumido.
+# Axe abilities
+common-abilities-axe-dual_fierce_raze = Arremetida feroz
+    .desc = Una serie veloz de golpes sobre el objetivo usando dos hachas.
+# Axe abilities
+common-abilities-axe-sunder = Desgarre
+    .desc = Cambias tu agarre en el hacha para atravesar las defensas de tu enemigo y restaurar energía de manera más eficiente.
+# Axe abilities
+common-abilities-axe-plunder = Saqueo
+    .desc = Avanza rápido para pillar a tus enemigos desprevenidos y hacerles perder el equilibrio.
+# Axe abilities
+common-abilities-axe-fracture = Rotura
+    .desc =
+        Golpea a tu enemigo para incapacitar su movimiento.
+        Consume la mitad de tu combo actual.
+        Su efecto es más potente cuanto más combo se haya consumido.
+# Axe abilities
+common-abilities-axe-bulkhead = Rompebarcos
+    .desc =
+        Golpe potente que incluso se dice que puede herir a titanes.
+        Requiere 30 de combo para usarse.
+        Esta habilidad se convierte en "Vuelco" si tienes al menos 50 de combo.

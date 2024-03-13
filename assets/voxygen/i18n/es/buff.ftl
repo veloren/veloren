@@ -154,3 +154,6 @@ buff-flame = Llama
 buff-frigid = Gélido
     .desc = Congela a tus enemigos.
 buff-salamanderaspect = Aspecto de la salamandra
+# Poisoned
+buff-poisoned = Envenenado
+    .desc = Te sientes cada vez más débil...

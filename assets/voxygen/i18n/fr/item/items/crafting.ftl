@@ -1,0 +1,10 @@
+sprite-grass-grass_long_5 = Herbe longue
+    .desc = Plus verte qu'un museau d'orc.
+sprite-wood-item-bamboo = Bambou
+    .desc = Une herbe boisée géante. Elle peut être utilisée pour fabriquer des armes en bois.
+sprite-wood-item-frostwood = Bûches de bois de givre
+    .desc = Bois froid provenant de biomes froids. Froid au toucher. On peut s'en servir pour fabriquer des armes en bois.
+sprite-wood-item-hardwood = Bûches de bois dur
+    .desc = Bûches très épaisses et robustes. On peut s'en servir pour fabriquer des armes en bois.
+sprite-wood-item-ironwood = Bûches de bois de fer
+    .desc = Un bois particulièrement robuste. On peut s'en servir pour fabriquer des armes en bois.

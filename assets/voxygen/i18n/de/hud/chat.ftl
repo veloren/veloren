@@ -11,7 +11,7 @@ hud-loot-pickup-msg =
 ## Player events
 
 hud-chat-online_msg = { "[" }{ $name }] ist nun online.
-hud-chat-offline_msg = { "[" }{ $name }] ging offline
+hud-chat-offline_msg = { "[" }{ $name }] ging offline.
 
 ## Other deaths
 

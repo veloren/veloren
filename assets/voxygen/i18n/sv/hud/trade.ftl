@@ -17,13 +17,13 @@ hud-trade-result-completed = Bytet har genomförts.
 hud-trade-result-declined = Bytet har avbrutits.
 hud-trade-result-nospace = Inte tillräckligt mycket utrymme för att genomföra bytet.
 hud-trade-buy =
-    Buy Price: { $coin_num ->
-        [one] ett mynt
+    Köppris: { $coin_num ->
+        [1] ett mynt
        *[other] { $coin_formatted } mynt
     }
 hud-trade-sell =
-    Sell Price: { $coin_num ->
-        [one] ett mynt.
+    Säljpris: { $coin_num ->
+        [1] ett mynt
        *[other] { $coin_formatted } mynt
     }
 hud-trade-tooltip_hint_1 = <Shift-klicka för att lägga till/ta bort från byte.>

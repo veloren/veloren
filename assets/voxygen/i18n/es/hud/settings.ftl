@@ -160,3 +160,5 @@ hud-settings-language_send_to_server = Enviar el idioma seleccionado al servidor
 hud-settings-subtitles = Subtítulos
 hud-settings-use_prefixes = Usar prefijos del SI para cantidades
 hud-settings-walking_speed = Velocidad al caminar
+hud-settings-prefix_switch_point = Límite de dígitos para prefijos del SI
+hud-settings-walking_speed_behavior = Comportamiento de la velocidad al caminar

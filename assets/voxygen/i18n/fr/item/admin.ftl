@@ -36,3 +36,5 @@ weapon-tool-broom_belzeshrub_purple = Belzeshrub, le dieu du balai
     .desc = Vous pouvez l'entendre ricaner chaque fois que vous frappez le sol un peu trop fort...
 weapon-sword-frost-admin_sword = L'épée de l'administrateur
     .desc = Ça ne devrait pas être un marteau ?
+other-glider-vroom-debug = Planeur Vroom
+    .desc = aller brrr
