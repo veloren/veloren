@@ -22,7 +22,7 @@ use common::{
         Content,
     },
     path::Path,
-    rtsim::{Actor, ChunkResource, NpcInput, Profession, Role, SiteId},
+    rtsim::{Actor, ChunkResource, NpcInput, PersonalityTrait, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
     terrain::{CoordinateConversions, TerrainChunkSize},
@@ -613,6 +613,19 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + 
                         .localize_npc(),
                     ),
                 ])
+            // Mention current site
+            } else if ctx.rng.gen_bool(0.3)
+                && let Some(current_site) = ctx.npc.current_site
+                && let Some(current_site) = ctx.state.data().sites.get(current_site)
+                && let Some(current_site_name) = current_site
+                    .world_site
+                    .map(|ws| ctx.index.sites.get(ws).name().to_string())
+            {
+                Content::localized_with_args("npc-speech-site", [(
+                    "site",
+                    Content::Plain(current_site_name),
+                )])
+
             // Mention nearby monsters
             } else if ctx.rng.gen_bool(0.3)
                 && let Some(monster) = ctx
@@ -635,6 +648,9 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + 
                             .localize_npc(),
                     ),
                 ])
+            // Specific night dialog
+            } else if ctx.rng.gen_bool(0.6) && DayPeriod::from(ctx.time_of_day.0).is_dark() {
+                Content::localized("npc-speech-night")
             } else {
                 ctx.npc.personality.get_generic_comment(&mut ctx.rng)
             };
@@ -656,7 +672,10 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + 
 fn socialize() -> impl Action<EveryRange> + Clone {
     now(move |ctx, socialize: &mut EveryRange| {
         // Skip most socialising actions if we're not loaded
-        if matches!(ctx.npc.mode, SimulationMode::Loaded) && socialize.should(ctx) {
+        if matches!(ctx.npc.mode, SimulationMode::Loaded)
+            && socialize.should(ctx)
+            && !ctx.npc.personality.is(PersonalityTrait::Introverted)
+        {
             // Sometimes dance
             if ctx.rng.gen_bool(0.15) {
                 return just(|ctx, _| ctx.controller.do_dance(None))
@@ -874,7 +893,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
         }
         // Go do something fun on evenings and holidays, or on random days.
         else if
-            // Ain't no rest for the wicked 
+            // Ain't no rest for the wicked
             !matches!(ctx.npc.profession(), Some(Profession::Guard))
             && (matches!(day_period, DayPeriod::Evening) || is_weekend || ctx.rng.gen_bool(0.05)) {
             let mut fun_stuff = Vec::new();
