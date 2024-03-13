@@ -227,23 +227,24 @@ impl PluginMgr {
     }
 
     /// Add a plugin received from the server
-    pub fn load_server_plugin(&mut self, path: PathBuf) {
-        let _ = Plugin::from_path(path.clone()).map(|plugin| {
+    pub fn load_server_plugin(&mut self, path: PathBuf) -> Result<PluginHash, PluginError> {
+        Plugin::from_path(path.clone()).map(|plugin| {
             if let Err(e) = common::assets::register_tar(path.clone()) {
                 error!("Plugin {:?} tar error {e:?}", path.as_path());
             }
+            let hash = plugin.hash.clone();
             self.plugins.push(plugin);
-        });
+            hash
+        })
     }
 
     pub fn cache_server_plugin(
         &mut self,
         base_dir: &Path,
         data: Vec<u8>,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<PluginHash, PluginError> {
         let path = store_server_plugin(base_dir, data)?;
-        self.load_server_plugin(path);
-        Ok(())
+        self.load_server_plugin(path)
     }
 
     /// list all registered plugins

@@ -331,7 +331,7 @@ pub struct Client {
 
     connected_server_constants: ServerConstants,
     /// Requested but not yet received plugins
-    missing_plugins: u32,
+    missing_plugins: HashSet<PluginHash>,
     /// Locally cached plugins needed by the server
     local_plugins: Vec<PathBuf>,
 }
@@ -943,7 +943,7 @@ impl Client {
                 _ = ping_interval.tick() => ping_stream.send(PingMsg::Ping)?,
             }
         };
-        let missing_plugins_num = missing_plugins.len();
+        let missing_plugins_set = missing_plugins.iter().collect();
         if !missing_plugins.is_empty() {
             stream.send(ClientGeneral::RequestPlugins(missing_plugins))?;
         }
@@ -1027,7 +1027,7 @@ impl Client {
             dt_adjustment: 1.0,
 
             connected_server_constants: server_constants,
-            missing_plugins: missing_plugins_num as u32,
+            missing_plugins: missing_plugins_set,
             local_plugins,
         })
     }
@@ -2580,7 +2580,8 @@ impl Client {
                 frontend_events.push(Event::Notification(n));
             },
             ServerGeneral::PluginData(d) => {
-                tracing::info!("plugin data #1 {}", d.len());
+                let plugin_len = d.len();
+                tracing::info!(?plugin_len, "plugin data");
                 frontend_events.push(Event::PluginDataReceived(d));
             },
             _ => unreachable!("Not a general msg"),
@@ -3228,15 +3229,15 @@ impl Client {
     }
 
     /// another plugin data received, is this the last one
-    pub fn decrement_missing_plugins(&mut self) -> u32 {
-        if self.missing_plugins > 0 {
-            self.missing_plugins -= 1;
+    pub fn plugin_received(&mut self, hash: PluginHash) -> usize {
+        if !self.missing_plugins.remove(&hash) {
+            tracing::warn!(?hash, "received unrequested plugin");
         }
-        self.missing_plugins
+        self.missing_plugins.len()
     }
 
     /// number of requested plugins
-    pub fn missing_plugins(&self) -> u32 { self.missing_plugins }
+    pub fn num_missing_plugins(&self) -> usize { self.missing_plugins.len() }
 
     /// extract list of locally cached plugins to load
     pub fn take_local_plugins(&mut self) -> Vec<PathBuf> { std::mem::take(&mut self.local_plugins) }

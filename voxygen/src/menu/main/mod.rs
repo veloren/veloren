@@ -284,14 +284,16 @@ impl PlayState for MainMenuState {
                                 tracing::info!("plugin data {}", data.len());
                                 if let InitState::Pipeline(client) = &mut self.init {
                                     #[cfg(feature = "plugins")]
-                                    let _ = client
+                                    if let Ok(hash) = client
                                         .state()
                                         .ecs()
                                         .write_resource::<PluginMgr>()
-                                        .cache_server_plugin(&global_state.config_dir, data);
-                                    if client.decrement_missing_plugins() == 0 {
-                                        // now load characters (plugins might contain items)
-                                        client.load_character_list();
+                                        .cache_server_plugin(&global_state.config_dir, data)
+                                    {
+                                        if client.plugin_received(hash) == 0 {
+                                            // now load characters (plugins might contain items)
+                                            client.load_character_list();
+                                        }
                                     }
                                 }
                             },

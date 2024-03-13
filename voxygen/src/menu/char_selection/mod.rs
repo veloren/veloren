@@ -71,7 +71,7 @@ impl CharSelectionState {
 impl PlayState for CharSelectionState {
     fn enter(&mut self, global_state: &mut GlobalState, _: Direction) {
         // Load the player's character list
-        if self.client.borrow().missing_plugins() == 0 {
+        if self.client.borrow().num_missing_plugins() == 0 {
             self.client.borrow_mut().load_character_list();
         }
 
@@ -282,14 +282,16 @@ impl PlayState for CharSelectionState {
                                 tracing::info!("plugin data {}", data.len());
                                 let mut client = self.client.borrow_mut();
                                 #[cfg(feature = "plugins")]
-                                let _ = client
+                                if let Ok(hash) = client
                                     .state()
                                     .ecs()
                                     .write_resource::<PluginMgr>()
-                                    .cache_server_plugin(&global_state.config_dir, data);
-                                if client.decrement_missing_plugins() == 0 {
-                                    // now load characters (plugins might contain items)
-                                    client.load_character_list();
+                                    .cache_server_plugin(&global_state.config_dir, data)
+                                {
+                                    if client.plugin_received(hash) == 0 {
+                                        // now load characters (plugins might contain items)
+                                        client.load_character_list();
+                                    }
                                 }
                             },
                             // TODO: See if we should handle StartSpectate here instead.
