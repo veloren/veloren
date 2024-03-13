@@ -191,3 +191,6 @@ buff-mysterious = Таємничий ефект
 buff-remove = Натисніть, щоб видалити
 # Agility
 buff-agility = Спритність
+# Poisoned
+buff-poisoned = Отруєння
+    .desc = Ви відчуваєте, як ваше життя згасає...

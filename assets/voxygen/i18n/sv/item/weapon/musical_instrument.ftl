@@ -1,0 +1,10 @@
+weapon-tool-wooden_flute = Flöjt
+    .desc = Träflöjt.
+weapon-tool-glass_flute = Glasflöjt
+    .desc = Vad gör Kardinalen med den?
+weapon-tool-wooden_guitar = Gitarr
+    .desc = Trägitarr.
+weapon-tool-black_velvet_guitar = Mörk Gitarr
+    .desc = Låter edgy.
+weapon-tool-shamisen = Shamisen
+    .desc = Shamisen.

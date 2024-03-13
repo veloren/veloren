@@ -36,3 +36,5 @@ armor-velorite-shoulder = Manto de velorita
     .desc = { "" }
 weapon-tool-broom_belzeshrub_purple = Belzeshrub, el dios de la escoba
     .desc = Puedes escuchar su risa cuando aterrizas de mala manera...
+other-glider-vroom-debug = Paravela frenética
+    .desc = ¡Brrrum, brrrum!

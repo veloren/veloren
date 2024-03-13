@@ -222,3 +222,11 @@ hud-loot-pickup-msg =
                *[other] { $actor } підняв { $amount }x { $item }
             }
     }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from = Від [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to = До [{ $alias }]: { $msg }
+# Npc /tell messages, no gender info, sadly
+hud-chat-tell-from-npc = Від [{ $alias }]: { $msg }
+# Npc /tell messages, no gender info, sadly
+hud-chat-tell-to-npc = До [{ $alias }]: { $msg }

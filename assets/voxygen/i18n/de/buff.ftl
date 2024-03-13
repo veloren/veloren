@@ -117,39 +117,33 @@ buff-reckless = Rücksichtslos
 # Agility
 buff-agility = Beweglichkeit
     .desc = Deine Bewegungen sind schneller, aber du verteilst weniger und nimmst mehr Schaden.
-    .stat = Erhöht Bewegungsgeschwindigkeit um { $strength }%.
+    .stat =
+        Erhöht Bewegungsgeschwindigkeit um { $strength }%.
         Im Gegenzug wird deine Angriffs- und Abwehrstärke drastisch reduziert.
 # Parried
 buff-parried = Pariert
     .desc = Du wurdest pariert und erholst dich jetzt nur langsam.
-
 # Lifesteal
 buff-lifesteal = Lebensraub
     .desc = Saugt die Leben deiner Feinde aus.
 # Fury
 buff-fury = Wut
     .desc = Mit deiner Wut werden deine Schläge mehr Combo erzielen.
-
 # Defiance
 buff-defiance = Trotz
     .desc = Du kannst mächtigeren und erschütternderen Schlägen widerstehen und Combo mit jedem Treffer erzielen, jedoch bist du langsamer.
-
 # Flame
 buff-flame = Flamme
     .desc = Flammen sind deine Verbündeten.
-
 # Polymorped
 buff-polymorphed = Verwandelt
     .desc = Dein Körper verändert die Form.
-
 # Salamander's Aspect
 buff-salamanderaspect =
     .desc = Du kannst nicht brennen und bewegst dich schnell durch Lava.
-
 # Frigid
 buff-frigid = Kalt
     .desc = Gefriere deine Feinde.
-
 # Fortitude
 buff-fortitude = Tapferkeit
     .desc = Du kannst Taumeln widerstehen, und während du mehr Schaden erleidest, kannst du andere einfacher ins Taumeln bringen.
@@ -166,3 +160,6 @@ buff-mysterious = Mysteriöser Effekt
 # Sunderer
 buff-sunderer = Zersplitterung
     .desc = Deine Angriffe können die gegnerische Verteidigung durchbrechen und erfrischen dich mit mehr Energie.
+# Poisoned
+buff-poisoned = Vergiftet
+    .desc = Du spürst dein Leben dahinschwinden...

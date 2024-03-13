@@ -58,3 +58,7 @@ body-npc-speech-biped_large-terracotta_demolisher = ein Terrakotta-Zerstörer
 body-npc-speech-biped_large-terracotta_punisher = ein Terrakotta-Bestrafer
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-terracotta_pursuer = ein Terrakotta-Verfolger
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-gigas_frost = ein Gigafrost
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-adlet_elder = ein Adlet-Älterer

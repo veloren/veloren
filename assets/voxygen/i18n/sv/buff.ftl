@@ -1,8 +1,8 @@
 ## Regeneration
 
-buff-heal = Hela
+buff-heal = Heala
     .desc = Återfå hälsa över tid.
-    .stat = Återger { $str_total } hälsa
+    .stat = Återger { $str_total } hälsa.
 
 ## Potion
 
@@ -21,31 +21,31 @@ buff-campfire_heal = Helande lägereld
 
 ## Energy Regen
 
-buff-energy_regen = Energireåterställning
-    .desc = Snabbare energireåterställning
-    .stat = Återställer { $str_total } Energi
+buff-energy_regen = Energiregeneration
+    .desc = Snabbare energiregeneration.
+    .stat = Återställer { $str_total } Energi.
 
 ## Health Increase
 
 buff-increase_max_health = Öka Maximala Hälsan
-    .desc = Höj din maximala hälsogräns
+    .desc = Din maximala hälsogräns är ökad.
     .stat =
         Ökar den maximala hälsan
-        med { $strength }
+        med { $strength }.
 
 ## Energy Increase
 
 buff-increase_max_energy = Öka Maximala Energin
-    .desc = Höj din maximala energigräns
+    .desc = Höj din maximala energigräns.
     .stat =
         Ökar den maximala energin
-        med { $strength }
+        med { $strength }.
 
 ## Invulnerability
 
 buff-invulnerability = Osårbarhet
     .desc = Du kan inte skadas av någon attack.
-    .stat = Ger osårbarhet
+    .stat = Ger osårbarhet.
 
 ## Protection Ward
 
@@ -65,7 +65,7 @@ buff-hastened = Förhastad
 ## Bleeding
 
 buff-bleed = Blödande
-    .desc = Orsakar vanlig skada.
+    .desc = Orsakar regelbunden skada.
 
 ## Curse
 
@@ -74,33 +74,33 @@ buff-cursed = Förbannad
 
 ## Burning
 
-buff-burn = I lågor
-    .desc = Du är eld och lågor
+buff-burn = I Lågor
+    .desc = Du brinner levande.
 
 ## Crippled
 
-buff-crippled = Halt
+buff-crippled = Förlamad
     .desc = Din rörlighet hindras eftersom dina ben är allvarligt skadade.
 
 ## Freeze
 
 buff-frozen = Frusen
-    .desc = Din rörlighet och attacker går långsammare.
+    .desc = Dina rörelser och attacker har saktats ner.
 
 ## Wet
 
 buff-wet = Blöt
-    .desc = Marken skyr dina fötter, vilket gör det svårt att stanna.
+    .desc = Marken nekar dina fötter, vilket gör det svårt att stanna.
 
 ## Ensnared
 
 buff-ensnared = Intrasslad
-    .desc = Rankor greppar tag i dina ben vilket begränsar dina rörelser.
+    .desc = Rankor greppar tag i dina ben vilket begränsar din rörlighet.
 
 ## Fortitude
 
 buff-fortitude = Slagtålig
-    .desc = Du kan stå emot vacklande attacker.
+    .desc = Du kan tåla vacklande attacker, och när du tar med skada kan du enklare få andra att vackla.
 
 ## Parried
 
@@ -113,7 +113,7 @@ buff-potionsickness = Illamående från trolldryck
     .desc = Trolldrycker har mindre positiv effekt på dig efter att du nyligen druckit en trolldryck.
     .stat =
         Minskar dem positiva effekterna av
-        påföljande trolldrycker med { $strength }%.
+        påföljande trolldrycker med { $strength } %.
 
 ## Reckless
 
@@ -128,7 +128,7 @@ buff-polymorphed = Polymorferad
 ## Flame
 
 buff-flame = Flamma
-    .desc = Flamman är din alierade.
+    .desc = Flamman är din allierade.
 
 ## Frigid
 
@@ -142,7 +142,7 @@ buff-lifesteal = Hälsostöld
 
 ## Polymorped
 
-buff-salamanderaspect = Salamanders Egenskap
+buff-salamanderaspect = Salamanders Aspekt
     .desc = Du kan inte brinna och du rör dig snabbt genom lava.
 
 ## Imminent Critical
@@ -153,22 +153,22 @@ buff-imminentcritical = Inkommande Kritisk Träff
 ## Fury
 
 buff-fury = Raseri
-    .desc = Med ditt raseri genererar dina hugg mer kombo
+    .desc = Med ditt raseri genererar dina hugg mer kombo.
 
 ## Sunderer
 
 buff-sunderer = Söndrare
-    .desc = Dina attacker bryter genom dina fienders försvar och friskar upp dig med mer energi.
+    .desc = Dina attacker bryter igenom dina fienders försvar och friskar upp dig med mer energi.
 
 ## Sunderer
 
-buff-defiance = Motståndskraft
-    .desc = Du kan stå emot starkare och mer omskakande slag och genererar kombo när du blir träffad. Däremot är du långsammare.
+buff-defiance = Trotsning
+    .desc = Du kan stå emot starkare och mer omskakande slag och generera kombo genom att bli slagen. Däremot är du långsammare.
 
 ## Bloodfeast
 
 buff-bloodfeast = Blodfest
-    .desc = Du fyller upp ditt liv när du attackerar blödande fiender
+    .desc = Du fyller upp ditt liv när du attackerar blödande fiender.
 
 ## Berserk
 
@@ -179,16 +179,17 @@ buff-berserk = Bärsärk
 
 buff-text-over_seconds = under { $dur_secs } sekunder
 buff-text-for_seconds = i { $dur_secs } sekunder
-buff-mysterious = Mysterisk effekt
+buff-mysterious = Mystisk effekt
 buff-remove = Klicka för att ta bort
 # Agility
 buff-agility = Smidighet
     .desc = Din rörelse är snabbare, men du orsakar minder skada, och tar mer skada.
     .stat =
-        Ökar rörelsehastighet med { $strength }%,
-        men minskar din skada med 100%,
-        och ökar din sårbarhet
-        med 100%.
+        Ökar rörelsehastighet med { $strength }%.
+        I utbyte minskar din attackkraft och skydd drastiskt.
 # Heatstroke
 buff-heatstroke = Värmeslag
     .desc = Du utsattes för värme och lider nu av värmeslag. Din energibelöning och rörelsehastighet är lägre. Chilla.
+# Poisoned
+buff-poisoned = Förgiftad
+    .desc = Du känner ditt liv vissna iväg...

@@ -46,3 +46,74 @@ sprite-crafting_ing-hide-animal_hide = Tierfell
     .desc = Gewöhnliches Fell von den meisten Tieren. Wird zu Leder.
 sprite-crafting_ing-hide-carapace = Harter Panzer
     .desc = Robuste, harte Schale, ein Rückenschild für viele Kreaturen.
+sprite-crafting_ing-hide-dragon_scale = Drachenschuppen
+    .desc = Zähe Schuppen von einem legendären Biest, heiß anzufassen.
+sprite-crafting_ing-hide-troll_hide = Trollfell
+    .desc = Von Höhlentrollen beschafft.
+sprite-crafting_ing-hide-rugged_hide = Raues Fell
+    .desc = Eine haltbare Haut von einer bösen Kreatur, beliebt bei Lederern.
+sprite-crafting_ing-hide-scale = Schuppen
+    .desc = Schimmernde Schuppen, von einem Tier gefunden.
+sprite-crafting_ing-hide-tough_hide = Taffes Fell
+    .desc = Ein ziemlich taffes, raues Fell. Ergibt Leder.
+sprite-crafting_ing-animal_misc-claw = Raubtierklaue
+    .desc =
+        Die geschickte Klaue von einem feindlichen Ungestüm
+
+        Wird benutzt, um schnelle und bewegliche Waffen herzustellen.
+sprite-crafting_ing-animal_misc-fur = Weicher Pelz
+    .desc = Weicher Pelz von einem Tier.
+sprite-crafting_ing-hide-plate = Platte
+    .desc = Haltbare Platte von einem gepanzerten Tier.
+sprite-crafting_ing-animal_misc-lively_vine = Lebendiger Wein
+    .desc = Ich denke, es hat sich gerade bewegt...
+sprite-crafting_ing-animal_misc-phoenix_feather = Phoenixfeder
+    .desc = Man sagt sie hat magische Eigenschaften.
+sprite-crafting_ing-animal_misc-large_horn = Riesiges Horn
+    .desc =
+        Ein großes Horn eines furchterregenden Tieres.
+
+        Mit diesem Horn hergestellte Waffen haben verstärkte Fähigkeitseffekte.
+sprite-crafting_ing-animal_misc-sharp_fang = Scharfer Reißzahn
+    .desc =
+        Messerscharfer Zahn von einem grausamen Tier.
+
+        Mit ihm hergestellte Waffen haben stärkere anhaltende Effekte.
+sprite-crafting_ing-animal_misc-venom_sac = Giftbeutel
+    .desc = Der Giftbeutel einer giftigen Kreatur.
+sprite-crafting_ing-leather-thick_leather = Dickes Leder
+    .desc = Stark und haltbar.
+sprite-crafting_ing-leather-leather_strips = Lederstreifen
+    .desc = Einfach und vielseitig.
+sprite-crafting_ing-leather-rigid_leather = Steifes Leder
+    .desc = Leicht aber geschichtet, ideal zum Schutz.
+sprite-crafting_ing-leather-simple_leather = Einfaches Leder
+    .desc = Leicht und flexibel.
+sprite-crafting_ing-cloth-cloth_strips = Stoffstreifen
+    .desc = Klein und weich, dennoch nützlich.
+sprite-flowers-pyrebloom = Feuerblume
+    .desc = Fühlt sich warm an, auch lange nach dem Pflücken.
+sprite-crafting_ing-animal_misc-grim_eyeball = Grimmiger Augapfel
+    .desc = Wirft einen versteinernden Blick.
+sprite-crafting_ing-cloth-cotton = Baumwolle
+    .desc = Leicht zu verarbeiten und vielseitig.
+sprite-crafting_ing-cloth-linen = Leinen
+    .desc = Ein aus Flachsfasern gewonnenes Textil.
+sprite-crafting_ing-cloth-linen_red = Rotes Leinen
+    .desc = Ein Flachsfaserstoff, gefärbt um aufzufallen.
+sprite-crafting_ing-animal_misc-viscous_ooze = Zähflüssiger Schleim
+    .desc = Ein Schluck zäher Schleim von einer gliberrigen Kreatur.
+sprite-crafting_ing-cloth-lifecloth = Lebensstoff
+    .desc = Ein Stoff, getränkt mit der Güte, welche die Natur zu bieten hat.
+sprite-crafting_ing-cloth-moonweave = Mondgewebe
+    .desc = Ein leichtes aber dennoch kräftiges Textil.
+sprite-crafting_ing-cloth-silk = Seide
+    .desc = Eine feine und starke Faser von Spinnen.
+sprite-crafting_ing-cloth-sunsilk = Sonnenseide
+    .desc = Ein übernatürlich starkes Textil.
+sprite-crafting_ing-cloth-wool = Weiche Wolle
+    .desc = Weiche Wolle von einem Tier.
+sprite-flowers-moonbell = Mondglöckchen
+    .desc = Es glitzert glanzvoll im Mondlicht.
+sprite-crafting_ing-plant_fiber = Pflanzenfaser
+    .desc = Ein Stück rohes Pflanzenmaterial.

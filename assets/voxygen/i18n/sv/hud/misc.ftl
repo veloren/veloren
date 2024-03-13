@@ -11,14 +11,14 @@ hud-owned_by_for_secs = Ägs av { $name } i { $secs } sekunder
 hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] tangentbordsgenvägar
 hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] lykta
 hud-press_key_to_show_debug_info_fmt = Tryck { $key } för att vids felsökningsinformation
-hud-press_key_to_toggle_keybindings_fmt = Tryck { $key } för att visa/dölja genvägar
+hud-press_key_to_toggle_keybindings_fmt = Tryck { $key } för att visa/dölja tangentbordsgenvägar
 hud-press_key_to_toggle_debug_info_fmt = Tryck { $key } att visa/dölja felsökningsinformation
 hud_items_lost_dur = Din utrustning har förlorat Hållbarhet.
 hud-press_key_to_respawn = Tryck { $key } för att gå tillbaka till lägereld du besökte senast.
 hud-tutorial_btn = Instruktioner
 hud-tutorial_click_here = Tryck [ { $key } ] för att frigöra din muspekare och klicka på den här knappen!
 hud-tutorial_elements = Tillverkning
-hud-temp_quest_headline = Var hälsad!
+hud-temp_quest_headline = Var hälsad, resenär!
 hud-temp_quest_text =
     Du kan börja din färd med att utforska den här byn och samla ihop lite förnödenheter.
 
@@ -58,7 +58,7 @@ hud-sit = Sitt
 hud-steer = Styr
 hud-deactivate = Inaktivera
 hud-init-stage-client-authentication = { "[" }{ -client }]: Autentiserar...
-hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: Erosion { $percentage }%
+hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: Erosion { $percentage } %
 hud-stay = Stanna
 -client = Klient
 hud-init-stage-singleplayer = Startar singleplayer-server...

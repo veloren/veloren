@@ -18,3 +18,5 @@ weapon-tool-pitchfork = Horca
     .desc = Uno de los dientes está roto.
 weapon-tool-pickaxe_stone = Pico de piedra
     .desc = ¡Golpera la tierra!
+weapon-tool-rake = Rastrillo
+    .desc = Ensamblado con cordel.

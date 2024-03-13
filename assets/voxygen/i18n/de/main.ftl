@@ -10,44 +10,42 @@ main-notice =
 
     Bevor du dich ins Abenteuer stürzt, behalte bitte einige Dinge im Hinterkopf:
 
-    - Dies ist eine frühe Alpha. Du wirst auf Bugs, unfertiges Gameplay und Mechaniken, sowie fehlende Features stoßen.
+    - Dies ist eine frühe Alpha. Du wirst auf Bugs, sehr unfertiges Gameplay und Mechaniken, sowie fehlende Features stoßen.
 
-    - Für konstruktives Feedback und Bug-Reports kannst du uns via Reddit, Gitlab oder über unseren Discord-Server kontaktieren.
+    - Für konstruktives Feedback und Bug-Reports kannst du uns in unserem Gitlab-Repository und über unseren Discord- oder Matrix-Server kontaktieren.
 
-    - Veloren hat die GPL 3 Open-Source Lizenz. Das heißt du kannst es kostenlos spielen,
-    aber auch modifizieren (solange die Modifikation auch die selbe Lizenz trägt) und das Spiel an andere weiterschicken.
+    - Veloren ist Open Source. Du hast die Freiheit, das Spiel unter den Bedingungen der GPL-3-Lizenz zu spielen, zu verändern und weiterzuverbreiten.
 
     - Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
-    Wenn dir die Idee gefällt, dann schließe dich doch einfach unserem Dev- oder Art-Team an!
+    Wenn dir die Idee gefällt, dann schließe dich doch einfach einer unserer Arbeitsgruppen an!
 
-    Danke, dass du dir die Zeit genommen hast diese Zeilen zu lesen und wir hoffen, dass dir Veloren gefällt!
+    Danke, dass du dir die Zeit genommen hast, diese Zeilen zu lesen. Wir hoffen, dass du das Spiel genießt!
 
     ~ Die Entwickler*innen
 main-login_process =
-    Informationen zum Login:
+    Über den Mehrspielermodus:
 
-    Bitte beachte, dass du einen Account benötigst,
-    um auf Servern mit Authentifizierung zu spielen.
+    Bitte beachte, dass du einen Account benötigst, um
+    auf Servern mit aktivierter Authentifizierung zu spielen.
 
-    Du kannst deinen Account auf folgender Webseite erstellen:
-
-    https://veloren.net/account/.
-main-login-server_not_found = Server nicht gefunden
-main-login-authentication_error = Authentifizierungsfehler auf dem Server
-main-login-internal_error = Interner Fehler beim Client (wahrscheinlich wurde der Charakter gelöscht)
-main-login-failed_auth_server_url_invalid = Verbindung zum Authentifikationsserver fehlgeschlagen
+    Du kannst deinen Account hier erstellen:
+    https://veloren.net/account/
+main-login-server_not_found = Server nicht gefunden.
+main-login-authentication_error = Authentifizierungsfehler auf dem Server.
+main-login-internal_error = Interner Fehler beim Client. Hinweis: Vielleicht wurde der Charakter gelöscht.
+main-login-failed_auth_server_url_invalid = Verbindung zum Authentifizierungsfehler fehlgeschlagen.
 main-login-insecure_auth_scheme = Das HTTP Protokoll wird nicht unterstützt. Es ist unsicher! Für Entwicklungszwecke kann HTTP für 'localhost'- und debug-builds genutzt werden
-main-login-server_full = Server ist voll
-main-login-untrusted_auth_server = Auth. Server wird nicht vertraut
+main-login-server_full = Server ist voll.
+main-login-untrusted_auth_server = Authentifizierungsserver wird nicht vertraut.
 main-login-outdated_client_or_server = Client- oder Serverversion ist veraltet
-main-login-timeout = Zeitüberschreitung: Der Server hat nicht rechtzeitig geantwortet. (Überlastung oder Netzwerkprobleme).
-main-login-server_shut_down = Server wurde heruntergefahren
-main-login-network_error = Netzwerkfehler
-main-login-network_wrong_version = Der Server läuft auf einer anderen Version als du. Überprüfe deine Version und suche nach Updates.
-main-login-failed_sending_request = Anfrage zum Authentifizierungsserver fehlgeschlagen
-main-login-invalid_character = Ungültiger Charakter
-main-login-client_crashed = Client abgestürzt
-main-login-not_on_whitelist = Du benötigst einen Whitelist Eintrag durch den Server-Administrator
+main-login-timeout = Zeitüberschreitung: Der Server hat nicht rechtzeitig geantwortet. Hinweis: Der Server könnte derzeit überlastet sein oder es könnte einen Netzwerkprobleme geben.
+main-login-server_shut_down = Server wurde heruntergefahren.
+main-login-network_error = Netzwerkfehler.
+main-login-network_wrong_version = Der Server läuft auf einer anderen Version als du. Hinweis: Du solltest möglicherweise dein Spiel aktualisieren.
+main-login-failed_sending_request = Anfrage zum Authentifizierungsserver fehlgeschlagen.
+main-login-invalid_character = Der ausgewählte Charakter ist ungültig.
+main-login-client_crashed = Client abgestürzt.
+main-login-not_on_whitelist = Du bist nicht auf der Whitelist des Servers, dem du versucht hast beizutreten.
 main-login-banned = Du wurdest aus folgendem Grund gebannt:
 main-login-kicked = Du wurdest aus folgendem Grund gekickt:
 main-login-select_language = Wähle eine Sprache
@@ -100,16 +98,16 @@ main-singleplayer-random_seed = Zufällig
 main-singleplayer-regenerate = Regenerieren
 main-singleplayer-invalid_name = Fehler: Ungültiger Name
 main-singleplayer-size_lg = Logarithmische Größe
-main-singleplayer-map_large_warning = Warnung: Große Welten brauchen beim ersten Mal eine lange Zeit zum Starten
+main-singleplayer-map_large_warning = Warnung: Große Welten brauchen beim ersten Mal lange zum Starten.
 main-singleplayer-map_shape = Form
 main-singleplayer-map_erosion_quality = Erosionsqualität
 main-singleplayer-play = Spielen
 main-singleplayer-generate_and_play = Generieren & Spielen
-main-server-rules = Dieser Server hat Regeln, die akzeptiert werden müssen
+main-server-rules = Dieser Server hat Regeln, die akzeptiert werden müssen.
 main-singleplayer-create_custom = Eigene Erstellen
 main-singleplayer-day_length = Tageslänge
 menu-singleplayer-confirm_delete = Bist du dir sicher, dass du „{ $world_name }“ löschen möchtest?
 main-singleplayer-seed = Seed
 menu-singleplayer-confirm_regenerate = Bist du dir sicher, dass du „{ $world_name }“ regenerieren möchtest?
 main-singleplayer-map_scale = Vertikale Skalierung
-main-server-rules-seen-before = Diese Regeln haben sich geändert, seitdem du sie zuletzt akzeptiert hast
+main-server-rules-seen-before = Diese Regeln haben sich geändert, seitdem du sie zuletzt akzeptiert hast.

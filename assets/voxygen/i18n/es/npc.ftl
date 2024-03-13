@@ -274,3 +274,28 @@ npc-speech-dir_south = sur
 npc-speech-dir_south_west = suroeste
 npc-speech-dir_west = oeste
 npc-speech-dir_north_west = noroeste
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_very_far = muy lejos
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_far = lejos
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_ahead = algo lejos
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_near = por aquí cerca
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_near_to = muy cerca
+# NPC proposals
+npc-speech-arena = ¡Vamos a sentarnos allí!
+# NPC reactions
+npc-speech-welcome-aboard =
+    .a0 = ¡Bienvenido a bordo!
+    .a1 = Puedo ver tu ticket... ¡era broma! Es gratis.
+    .a2 = ¡Que tenga un buen viaje!
+# NPC monster hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $body references body-npc-speech-* variables in `body` component
+npc-speech-tell_monster =
+    .a0 = Dicen que hay { $body } hacia el { $dir }, { $dist }...
+    .a1 = ¿Te crees una persona dura de pelar? Hay { $body } hacia el { $dir }.

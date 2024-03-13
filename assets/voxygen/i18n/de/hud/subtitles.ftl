@@ -140,3 +140,6 @@ subtitle-deep_laugh = Tiefes Lachen
 subtitle-attack-fuse_charge = Zündschnur knistert
 subtitle-instrument_shamisen = Shamisen spielt
 subtitle-lavapool = Lavasee
+subtitle-utterance-wyvern-hurt = Wyvern verletzt
+subtitle-utterance-wyvern-angry = Wyvern brüllt
+subtitle-utterance-phoenix-hurt = Phoenix verletzt

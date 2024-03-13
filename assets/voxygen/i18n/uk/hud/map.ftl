@@ -16,10 +16,10 @@ hud-map-town = Місто
 hud-map-castle = Фортеця
 hud-map-bridge = Міст
 hud-map-dungeon = Підземелля
-hud-map-df_mine = Шахта 
+hud-map-df_mine = Шахта
 hud-map-difficulty_dungeon =
     Підземелля
-    
+
     Складність: { $difficulty }
 hud-map-drag = Область
 hud-map-zoom = Масштаб
@@ -36,3 +36,5 @@ hud-map-gnarling = Фортифікація Гнарлингів
 hud-map-chapel_site = Морська Каплиця
 hud-map-adlet = Фортеця Адлетів
 hud-map-placed_by = Поставлено { $name }
+hud-map-haniwa = Катакомби Хані́в
+hud-map-terracotta = Теракотові Руїни

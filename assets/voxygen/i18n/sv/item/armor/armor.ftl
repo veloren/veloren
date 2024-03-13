@@ -56,3 +56,7 @@ armor-misc-chest-worker_purp_brown = Lila Arbetströja
     .desc = Robust och pålitlig.
 armor-cloth-woolen-belt = Ullbälte
     .desc = Tjock och redo för snön.
+armor-hide-leather-back = Lädermantel
+    .desc = Kvick som vinden.
+armor-misc-head-leather-0 = Läderkeps
+    .desc = Kvick som vinden.

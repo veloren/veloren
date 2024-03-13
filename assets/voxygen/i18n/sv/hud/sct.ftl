@@ -1,2 +1,2 @@
-hud-sct-experience = { $amount } EP
+hud-sct-experience = { $amount } XP
 hud-sct-block = BLOCKERAD
