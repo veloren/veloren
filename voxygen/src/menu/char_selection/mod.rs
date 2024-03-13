@@ -279,22 +279,24 @@ impl PlayState for CharSelectionState {
                                 )));
                             },
                             client::Event::PluginDataReceived(data) => {
-                                tracing::info!("plugin data {}", data.len());
-                                let mut client = self.client.borrow_mut();
                                 #[cfg(feature = "plugins")]
-                                match client
-                                    .state()
-                                    .ecs()
-                                    .write_resource::<PluginMgr>()
-                                    .cache_server_plugin(&global_state.config_dir, data)
                                 {
-                                    Ok(hash) => {
-                                        if client.plugin_received(hash) == 0 {
-                                            // now load characters (plugins might contain items)
-                                            client.load_character_list();
-                                        }
-                                    },
-                                    Err(e) => tracing::error!(?e, "cache_server_plugin"),
+                                    tracing::info!("plugin data {}", data.len());
+                                    let mut client = self.client.borrow_mut();
+                                    let hash = client
+                                        .state()
+                                        .ecs()
+                                        .write_resource::<PluginMgr>()
+                                        .cache_server_plugin(&global_state.config_dir, data);
+                                    match hash {
+                                        Ok(hash) => {
+                                            if client.plugin_received(hash) == 0 {
+                                                // now load characters (plugins might contain items)
+                                                client.load_character_list();
+                                            }
+                                        },
+                                        Err(e) => tracing::error!(?e, "cache_server_plugin"),
+                                    }
                                 }
                             },
                             // TODO: See if we should handle StartSpectate here instead.

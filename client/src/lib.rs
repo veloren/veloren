@@ -943,7 +943,7 @@ impl Client {
                 _ = ping_interval.tick() => ping_stream.send(PingMsg::Ping)?,
             }
         };
-        let missing_plugins_set = missing_plugins.iter().collect();
+        let missing_plugins_set = missing_plugins.iter().cloned().collect();
         if !missing_plugins.is_empty() {
             stream.send(ClientGeneral::RequestPlugins(missing_plugins))?;
         }

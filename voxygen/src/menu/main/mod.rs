@@ -223,11 +223,14 @@ impl PlayState for MainMenuState {
                 // load local plugins needed by the server
                 #[cfg(feature = "plugins")]
                 for path in client.take_local_plugins().drain(..) {
-                    client
+                    if let Err(e) = client
                         .state_mut()
                         .ecs_mut()
                         .write_resource::<PluginMgr>()
-                        .load_server_plugin(path);
+                        .load_server_plugin(path)
+                    {
+                        tracing::error!(?e, "load local plugin");
+                    }
                 }
                 // Register voxygen components / resources
                 crate::ecs::init(client.state_mut().ecs_mut());
@@ -281,22 +284,25 @@ impl PlayState for MainMenuState {
                                 self.init = InitState::None;
                             },
                             client::Event::PluginDataReceived(data) => {
-                                tracing::info!("plugin data {}", data.len());
-                                if let InitState::Pipeline(client) = &mut self.init {
-                                    #[cfg(feature = "plugins")]
-                                    match client
-                                        .state()
-                                        .ecs()
-                                        .write_resource::<PluginMgr>()
-                                        .cache_server_plugin(&global_state.config_dir, data)
-                                    {
-                                        Ok(hash) => {
-                                            if client.plugin_received(hash) == 0 {
-                                                // now load characters (plugins might contain items)
-                                                client.load_character_list();
-                                            }
-                                        },
-                                        Err(e) => tracing::error!(?e, "cache_server_plugin"),
+                                #[cfg(feature = "plugins")]
+                                {
+                                    tracing::info!("plugin data {}", data.len());
+                                    if let InitState::Pipeline(client) = &mut self.init {
+                                        let hash = client
+                                            .state()
+                                            .ecs()
+                                            .write_resource::<PluginMgr>()
+                                            .cache_server_plugin(&global_state.config_dir, data);
+                                        match hash {
+                                            Ok(hash) => {
+                                                if client.plugin_received(hash) == 0 {
+                                                    // now load characters (plugins might contain
+                                                    // items)
+                                                    client.load_character_list();
+                                                }
+                                            },
+                                            Err(e) => tracing::error!(?e, "cache_server_plugin"),
+                                        }
                                     }
                                 }
                             },
