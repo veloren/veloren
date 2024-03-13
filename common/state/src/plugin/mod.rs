@@ -232,7 +232,7 @@ impl PluginMgr {
             if let Err(e) = common::assets::register_tar(path.clone()) {
                 error!("Plugin {:?} tar error {e:?}", path.as_path());
             }
-            let hash = plugin.hash.clone();
+            let hash = plugin.hash;
             self.plugins.push(plugin);
             hash
         })
