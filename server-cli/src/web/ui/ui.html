@@ -1,0 +1,93 @@
+<div class="tab">
+    <button class="tablinks active" onclick="openTab(event, 'settings')">Settings</button>
+    <button class="tablinks" onclick="openTab(event, 'logs')">Logs</button>
+    <button class="tablinks" onclick="openTab(event, 'players')">Players</button>
+    <button class="tablinks" onclick="openTab(event, 'access')">Access</button>
+</div>
+
+<div id="settings" class="tabcontent">
+    <div class="flex-container">
+        <div class="first">
+            <p>Server Name:</p>
+        </div>
+        <div>
+            <p><input type="text" id="server_name" value="Veloren Alpha"></input></p>
+        </div>
+    </div>
+
+    <div class="flex-container">
+        <div class="first">
+            <p>Server Ip/Port:</p>
+        </div>
+        <div>
+            <p><input type="text" id="server_ip_port" value="0.0.0.0:14004"></input></p>
+        </div>
+    </div>
+
+    <div class="flex-container">
+        <div class="first">
+            <p>Require Auth:</p>
+        </div>
+        <div>
+            <p><input type="checkbox" checked="checked"></input> Enabled </p>
+        </div>
+    </div>
+
+    <div class="flex-container">
+        <div class="first">
+            <p>Player Limit:</p>
+        </div>
+        <div>
+            <p id="player_limit_no">20</p>
+            <p><input type="range" min="1" max="100" value="20" class="slider" id="player_limit" oninput="changeSlider(event, 'player_limit', 'player_limit_no')"></p>
+        </div>
+    </div>
+
+    <div class="flex-container">
+        <div class="first">
+            <p>Max View Distance:</p>
+        </div>
+        <div>
+            <p id="view_distance_no">30</p>
+            <p><input type="range" min="1" max="100" value="30" class="slider" id="view_distance" oninput="changeSlider(event, 'view_distance', 'view_distance_no')"></p>
+        </div>
+    </div>
+
+    <div class="flex-container">
+        <div class="first">
+            <p>Global PvP:</p>
+        </div>
+        <div>
+            <p><input type="checkbox"></input> Enable </p>
+        </div>
+    </div>
+
+    <div class="flex-container">
+        <div class="first">
+            <p>Experimental Terrain Persistence:</p>
+        </div>
+        <div>
+            <p><input type="checkbox"></input> Enable </p>
+        </div>
+    </div>
+</div>
+
+<div id="logs" class="tabcontent">
+    <h3>Server Logs</h3>
+    <div id="logs_list"></div>
+</div>
+
+<div id="players" class="tabcontent">
+    <label for="world_msg">Message:</label>
+    <input type="text" id="world_msg" name="world_msg" onchange="sendGlobalMsg();"></input>
+    <input type="button" value="Send" onclick="sendGlobalMsg();"></input>
+    <h3>Players</h3>
+    <ul id="players_list">
+    </ul>
+</div>
+
+<div id="access" class="tabcontent">
+    <h3>Whitelist</h3>
+    <h3>Banlist</h3>
+    <h3>Admin</h3>
+</div>

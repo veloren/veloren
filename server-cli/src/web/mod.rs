@@ -1,4 +1,4 @@
-use crate::web::ui_api::UiRequestSender;
+use crate::web::ui::api::UiRequestSender;
 use axum::{extract::State, response::IntoResponse, routing::get, Router};
 use core::{future::Future, ops::Deref};
 use hyper::{body::Body, header, http, StatusCode};
@@ -8,7 +8,6 @@ use std::net::SocketAddr;
 
 mod chat;
 mod ui;
-mod ui_api;
 
 pub async fn run<S, F, R>(
     registry: R,
@@ -32,7 +31,7 @@ where
         .nest("/chat/v1", chat::router(cache, chat_secret))
         .nest(
             "/ui_api/v1",
-            ui_api::router(web_ui_request_s, ui_secret.clone()),
+            ui::api::router(web_ui_request_s, ui_secret.clone()),
         )
         .nest("/ui", ui::router(ui_secret))
         .nest("/metrics", metrics)
