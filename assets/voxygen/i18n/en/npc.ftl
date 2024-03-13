@@ -16,7 +16,6 @@ npc-speech-villager_adventurous =
     .a1 = I'd like to go spelunking in a cave when I'm stronger.
 npc-speech-villager_closed =
     .a0 = You're not from around here are you?
-    .a1 = Don't you think our village is the best?
     .a2 = They say mushrooms are good for your health. Never eat them myself.
     .a3 = To be, or not to be? I think I'll be a farmer.
 npc-speech-villager_conscientious =
@@ -264,6 +263,11 @@ npc-speech-tell_site =
     .a2 = If you travel { $dist } { $dir }, you can get to { $site }.
     .a3 = { $dir } you'll find { $site }, it's { $dist }.
 
+npc-speech-site =
+    .a0 = Don't you think our village is the best?
+    .a1 = Welcome to { $site } !
+    .a2 = { $site } is a pleasant village to live in.
+
 ## NPC monster hints
 ## Available variables:
 ## - $dir references npc-speech-dir-* variables below
@@ -315,3 +319,7 @@ npc-speech-welcome-aboard =
     .a0 = Welcome aboard!
     .a1 = Can I see your ticket... just kidding it's free!
     .a2 = Have a nice ride!
+npc-speech-night =
+    .a0 = Lanterns are handy for getting around at night!
+    .a1 = I hope we are alone in the dark...
+    .a2 = Boo!
