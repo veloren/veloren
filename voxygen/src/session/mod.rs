@@ -447,6 +447,9 @@ impl SessionState {
                 client::Event::SpectatePosition(pos) => {
                     self.scene.camera_mut().force_focus_pos(pos);
                 },
+                client::Event::PluginDataReceived(data) => {
+                    tracing::warn!("Received plugin data at wrong time {}", data.len());
+                },
             }
         }
 

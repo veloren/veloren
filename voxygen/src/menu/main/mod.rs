@@ -18,10 +18,13 @@ use client::{
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::comp;
 use common_base::span;
+#[cfg(feature = "plugins")]
+use common_state::plugin::PluginMgr;
 use i18n::LocalizationHandle;
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
-use std::sync::Arc;
+use specs::WorldExt;
+use std::{path::Path, sync::Arc};
 use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -129,6 +132,7 @@ impl PlayState for MainMenuState {
                                 global_state.settings.language.selected_language.clone(),
                             ),
                             &global_state.i18n,
+                            &global_state.config_dir,
                         );
                     },
                     Ok(Err(e)) => {
@@ -216,6 +220,18 @@ impl PlayState for MainMenuState {
         // Poll client creation.
         match self.init.client().and_then(|init| init.poll()) {
             Some(InitMsg::Done(Ok(mut client))) => {
+                // load local plugins needed by the server
+                #[cfg(feature = "plugins")]
+                for path in client.take_local_plugins().drain(..) {
+                    if let Err(e) = client
+                        .state_mut()
+                        .ecs_mut()
+                        .write_resource::<PluginMgr>()
+                        .load_server_plugin(path)
+                    {
+                        tracing::error!(?e, "load local plugin");
+                    }
+                }
                 // Register voxygen components / resources
                 crate::ecs::init(client.state_mut().ecs_mut());
                 self.init = InitState::Pipeline(Box::new(client));
@@ -266,6 +282,29 @@ impl PlayState for MainMenuState {
                                         .into_owned(),
                                 );
                                 self.init = InitState::None;
+                            },
+                            client::Event::PluginDataReceived(data) => {
+                                #[cfg(feature = "plugins")]
+                                {
+                                    tracing::info!("plugin data {}", data.len());
+                                    if let InitState::Pipeline(client) = &mut self.init {
+                                        let hash = client
+                                            .state()
+                                            .ecs()
+                                            .write_resource::<PluginMgr>()
+                                            .cache_server_plugin(&global_state.config_dir, data);
+                                        match hash {
+                                            Ok(hash) => {
+                                                if client.plugin_received(hash) == 0 {
+                                                    // now load characters (plugins might contain
+                                                    // items)
+                                                    client.load_character_list();
+                                                }
+                                            },
+                                            Err(e) => tracing::error!(?e, "cache_server_plugin"),
+                                        }
+                                    }
+                                }
                             },
                             _ => {},
                         }
@@ -378,6 +417,7 @@ impl PlayState for MainMenuState {
                             .send_to_server
                             .then_some(global_state.settings.language.selected_language.clone()),
                         &global_state.i18n,
+                        &global_state.config_dir,
                     );
                 },
                 MainMenuEvent::CancelLoginAttempt => {
@@ -609,6 +649,7 @@ fn attempt_login(
     runtime: &Arc<runtime::Runtime>,
     locale: Option<String>,
     localized_strings: &LocalizationHandle,
+    config_dir: &Path,
 ) {
     let localization = localized_strings.read();
     if let Err(err) = comp::Player::alias_validate(&username) {
@@ -641,6 +682,7 @@ fn attempt_login(
             password,
             Arc::clone(runtime),
             locale,
+            config_dir,
         ));
     }
 }

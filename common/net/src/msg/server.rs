@@ -7,7 +7,7 @@ use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
     comp::{self, body::Gender, invite::InviteKind, item::MaterialStatManifest, Content},
-    event::UpdateCharacterMetadata,
+    event::{PluginHash, UpdateCharacterMetadata},
     lod,
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBook, RepairRecipeBook},
@@ -75,6 +75,7 @@ pub enum ServerInit {
         ability_map: comp::item::tool::AbilityMap,
         server_constants: ServerConstants,
         description: ServerDescription,
+        active_plugins: Vec<PluginHash>,
     },
 }
 
@@ -219,6 +220,8 @@ pub enum ServerGeneral {
     /// Suggest the client to spectate a position. Called after client has
     /// requested teleport etc.
     SpectatePosition(Vec3<f32>),
+    /// Plugin data requested from the server
+    PluginData(Vec<u8>),
 }
 
 impl ServerGeneral {
@@ -358,6 +361,7 @@ impl ServerMsg {
                         | ServerGeneral::Disconnect(_)
                         | ServerGeneral::Notification(_)
                         | ServerGeneral::LodZoneUpdate { .. } => true,
+                        ServerGeneral::PluginData(_) => true,
                     }
             },
             ServerMsg::Ping(_) => true,

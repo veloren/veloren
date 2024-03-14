@@ -154,6 +154,8 @@ rayon = { version = "1.5" }
 
 clap = { version = "4.2",  features = ["derive"]}
 async-trait = "0.1.42"
+sha2 = "0.10"
+hex = "0.4.3"
 
 [patch.crates-io]
 shred = { git = "https://github.com/amethyst/shred.git", rev = "5d52c6fc390dd04c12158633e77591f6523d1f85" }

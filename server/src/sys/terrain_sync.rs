@@ -45,6 +45,7 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let max_view_distance = server_settings.max_view_distance.unwrap_or(u32::MAX);
+        #[cfg(feature = "worldgen")]
         let (presences_position_entities, _) = super::terrain::prepare_player_presences(
             &world,
             max_view_distance,
@@ -53,6 +54,8 @@ impl<'a> System<'a> for Sys {
             &presences,
             &clients,
         );
+        #[cfg(not(feature = "worldgen"))]
+        let presences_position_entities: Vec<((vek::Vec2<i16>, i32), specs::Entity)> = Vec::new();
         let real_max_view_distance =
             super::terrain::convert_to_loaded_vd(u32::MAX, max_view_distance);
 

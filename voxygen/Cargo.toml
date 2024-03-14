@@ -127,6 +127,7 @@ tokio = { workspace = true, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 inline_tweak = { workspace = true }
 itertools = { workspace = true }
+sha2 = { workspace = true }
 
 # Discord RPC
 discord-sdk = { version = "0.3.0", optional = true }

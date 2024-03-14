@@ -37,7 +37,9 @@ impl Lod {
     }
 
     #[cfg(not(feature = "worldgen"))]
-    pub fn from_world(world: &World, index: IndexRef) -> Self { Self::default() }
+    pub fn from_world(world: &World, index: IndexRef, _threadpool: &rayon::ThreadPool) -> Self {
+        Self::default()
+    }
 
     pub fn zone(&self, zone_pos: Vec2<i32>) -> &lod::Zone {
         self.zones.get(&zone_pos).unwrap_or(&EMPTY_ZONE)

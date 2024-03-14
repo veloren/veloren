@@ -2,11 +2,13 @@ use common::{
     calendar::Calendar,
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
+    rtsim::ChunkResource,
     terrain::{
         Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
+use enum_map::EnumMap;
 use rand::{prelude::*, rngs::SmallRng};
 use std::time::Duration;
 use vek::*;
@@ -48,6 +50,7 @@ impl World {
         &self,
         _index: IndexRef,
         chunk_pos: Vec2<i32>,
+        _rtsim_resources: Option<EnumMap<ChunkResource, f32>>,
         _should_continue: impl FnMut() -> bool,
         _time: Option<(TimeOfDay, Calendar)>,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
@@ -71,4 +74,6 @@ impl World {
             supplement,
         ))
     }
+
+    pub fn get_location_name(&self, _index: IndexRef, _wpos2d: Vec2<i32>) -> Option<String> { None }
 }

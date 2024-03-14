@@ -717,11 +717,14 @@ where
     let world_aabr_in_chunks = Aabr {
         min: Vec2::zero(),
         // NOTE: Cast is correct because chunk coordinates must fit in an i32 (actually, i16).
+        #[cfg(feature = "worldgen")]
         max: world
             .sim()
             .get_size()
             .map(|x| x.saturating_sub(1))
             .as_::<i32>(),
+        #[cfg(not(feature = "worldgen"))]
+        max: Vec2::one(),
     };
 
     let (mut presences_positions_entities, mut presences_positions): (Vec<_>, Vec<_>) =

@@ -182,6 +182,7 @@ impl Sys {
                         offhand.clone(),
                         body,
                         character_updater,
+                        #[cfg(feature = "worldgen")]
                         start_site.and_then(|site_idx| {
                             // TODO: This corresponds to the ID generation logic in
                             // `world/src/lib.rs`. Really, we should have
@@ -214,6 +215,8 @@ impl Sys {
                                     )
                                 })
                         }),
+                        #[cfg(not(feature = "worldgen"))]
+                        None,
                     ) {
                         debug!(
                             ?error,
