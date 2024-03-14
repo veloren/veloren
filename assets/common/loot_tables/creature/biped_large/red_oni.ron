@@ -1,9 +1,11 @@
 [
-  (1.2, All([
+    (1, All([
         MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 3),
         MultiDrop(LootTable("common.loot_tables.cave_large"), 2, 3),
+        Lottery([
+            (0.2, Item("common.items.glider.monarch")),
+            (1.8, Nothing),
+        ]),
       ],
-   )),
-  (0.6, LootTable("common.loot_tables.weapons.components.tier-2")),
-  (0.2, Item("common.items.glider.monarch")),
+    )),
 ]

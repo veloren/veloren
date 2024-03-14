@@ -1,8 +1,8 @@
 [
     (1, All([
         MultiDrop(Item("common.items.crafting_ing.resin"), 3, 6),
-        MultiDrop(Item("common.items.log.hardwood"), 5, 10),
-        MultiDrop(Item("common.items.flowers.plant_fiber""), 4, 5),
+        MultiDrop(Item("common.items.log.ironwood"), 5, 10),
+        MultiDrop(Item("common.items.flowers.plant_fiber"), 4, 5),
         ],
     )),
 ]

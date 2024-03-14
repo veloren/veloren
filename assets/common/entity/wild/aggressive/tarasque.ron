@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("tarasque"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.quad_medium.carapace"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.tarasque"),
     inventory: (
         loadout: FromBody,
     ),

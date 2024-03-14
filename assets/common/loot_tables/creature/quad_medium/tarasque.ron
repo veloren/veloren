@@ -1,0 +1,9 @@
+[
+    (1, All([
+        MultiDrop(Item("common.items.food.meat.tough_raw"), 2, 4),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.sharp_fang"), 0, 4),
+        MultiDrop(Item("common.items.crafting_ing.hide.carapace"), 3, 5),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.large_horn"), 0, 2),
+        ],
+    )),
+]

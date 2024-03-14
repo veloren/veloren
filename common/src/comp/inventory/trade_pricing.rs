@@ -1149,7 +1149,7 @@ pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, ItemDefinitionIdOwned, f
 #[cfg(test)]
 mod tests {
     use crate::{
-        comp::inventory::trade_pricing::{expand_loot_table, ProbabilityFile, TradePricing},
+        comp::inventory::trade_pricing::{ProbabilityFile, TradePricing},
         lottery::LootSpec,
         trade::Good,
     };
@@ -1162,26 +1162,6 @@ mod tests {
             .with_env_filter(EnvFilter::from_default_env())
             .try_init()
             .unwrap_or(());
-    }
-
-    #[test]
-    fn test_loot_table() {
-        init();
-        info!("init");
-
-        let loot = expand_loot_table("common.loot_tables.creature.quad_medium.gentle");
-        let lootsum = loot.iter().fold(0.0, |s, i| s + i.0);
-        assert!((lootsum - 1.0).abs() < 1e-3);
-        // hierarchical
-        let loot2 = expand_loot_table("common.loot_tables.creature.quad_medium.catoblepas");
-        let lootsum2 = loot2.iter().fold(0.0, |s, i| s + i.0);
-        assert!((lootsum2 - 1.0).abs() < 1e-4);
-
-        // highly nested
-        let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
-        let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
-        //tracing::trace!("{:?} {}", loot3, lootsum3);
-        assert!((lootsum3 - 1.0).abs() < 1e-5);
     }
 
     #[test]

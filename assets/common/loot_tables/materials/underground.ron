@@ -1,5 +1,5 @@
 [
     (1.0, MultiDrop(Item("common.items.mineral.ore.veloritefrag"), 3, 4)),
-    (0.35, MultiDrop(Item("common.items.mineral.ore.velorite"), 3, 4)),
+    (0.35, MultiDrop(Item("common.items.mineral.ore.velorite"), 2, 3)),
     (0.15, LootTable("common.loot_tables.materials.gems")),
 ]
