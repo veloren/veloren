@@ -43,6 +43,7 @@ pub fn setup(add_systems: impl Fn(&mut specs::DispatcherBuilder)) -> State {
         DEFAULT_WORLD_CHUNKS_LG,
         Arc::new(TerrainChunk::water(0)),
         add_systems,
+        common_state::plugin::PluginMgr::default(),
     );
     state.ecs_mut().insert(MaterialStatManifest::with_empty());
     state.ecs_mut().insert(AbilityMap::load().cloned());

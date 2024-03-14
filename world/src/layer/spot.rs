@@ -4,7 +4,7 @@ use crate::{
     Canvas,
 };
 use common::{
-    assets::{Asset, AssetExt, AssetHandle, RonLoader},
+    assets::{Asset, AssetCombined, AssetHandle, Concatenate, RonLoader},
     generation::EntityInfo,
     terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
@@ -686,9 +686,14 @@ impl Asset for RonSpots {
     const EXTENSION: &'static str = "ron";
 }
 
+impl Concatenate for RonSpots {
+    fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }
+}
+
 lazy_static! {
     static ref RON_PROPERTIES: RonSpots = {
-        let spots: AssetHandle<RonSpots> = AssetExt::load_expect("world.manifests.spots");
+        let spots: AssetHandle<RonSpots> =
+            RonSpots::load_expect_combined_static("world.manifests.spots");
         RonSpots(spots.read().0.to_vec())
     };
 }
