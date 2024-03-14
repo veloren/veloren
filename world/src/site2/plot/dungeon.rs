@@ -1332,7 +1332,7 @@ impl Floor {
                             pillar = painter.prim(Primitive::union(pillar, base));
                         }
                         // Specifically don't include pillars in Minotaur arena
-                        if !(room.kind == RoomKind::Boss && self.difficulty == 4) {
+                        if !(self.difficulty == 2 || self.difficulty == 4) {
                             pillars.push((tile_center, pillar, lights));
                         }
                     }
