@@ -299,7 +299,7 @@ fn server_loop(
     let mut bench_exit_time = None;
 
     let mut tick_no = 0u64;
-    loop {
+    'outer: loop {
         span!(guard, "work");
         if let Some(bench) = bench {
             if let Some(t) = bench_exit_time {
@@ -408,11 +408,11 @@ fn server_loop(
         };
 
         if let Some(tui) = tui.as_ref() {
-            if let Ok(msg) = tui.msg_r.try_recv() {
+            while let Ok(msg) = tui.msg_r.try_recv() {
                 let (sender, mut recv) = tokio::sync::oneshot::channel();
                 if handle_msg(msg, sender) {
                     info!("Closing the server");
-                    break;
+                    break 'outer;
                 }
                 if let Ok(msg_answ) = recv.try_recv() {
                     match msg_answ {
@@ -423,10 +423,10 @@ fn server_loop(
             }
         }
 
-        if let Ok((msg, sender)) = web_ui_request_r.try_recv() {
+        while let Ok((msg, sender)) = web_ui_request_r.try_recv() {
             if handle_msg(msg, sender) {
                 info!("Closing the server");
-                break;
+                break 'outer;
             }
         }
 
