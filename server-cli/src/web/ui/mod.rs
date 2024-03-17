@@ -1,6 +1,6 @@
 use axum::{
     extract::{ConnectInfo, State},
-    http::{header::SET_COOKIE, HeaderValue},
+    http::{header::SET_COOKIE, HeaderMap, HeaderValue},
     response::{Html, IntoResponse},
     routing::get,
     Router,
@@ -22,14 +22,19 @@ pub fn router(secret_token: String) -> Router {
 
 async fn ui(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
     State(token): State<UiApiToken>,
 ) -> impl IntoResponse {
-    if !addr.ip().is_loopback() {
+    const X_FORWARDED_FOR: &'_ str = "X-Forwarded-For";
+    if !addr.ip().is_loopback()
+        || headers.contains_key(axum::http::header::FORWARDED)
+        || headers.contains_key(X_FORWARDED_FOR)
+    {
         return Html(
             r#"<!DOCTYPE html>
 <html>
 <body>
-Ui is only accessible from 127.0.0.1
+Ui is only accessible from 127.0.0.1. Usage of proxies is forbidden.
 </body>
 </html>
         "#
