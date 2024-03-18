@@ -166,11 +166,7 @@ pub enum SceptreSkill {
 pub enum GeneralSkill {}
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum RollSkill {
-    Cost,
-    Strength,
-    Duration,
-}
+pub enum RollSkill {}
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum ClimbSkill {
@@ -470,15 +466,8 @@ impl MiningTreeModifiers {
 }
 
 pub struct GeneralTreeModifiers {
-    pub roll: RollTreeModifiers,
     pub swim: SwimTreeModifiers,
     pub climb: ClimbTreeModifiers,
-}
-
-pub struct RollTreeModifiers {
-    pub energy_cost: f32,
-    pub strength: f32,
-    pub duration: f32,
 }
 
 pub struct SwimTreeModifiers {
@@ -493,11 +482,6 @@ pub struct ClimbTreeModifiers {
 impl GeneralTreeModifiers {
     const fn get() -> Self {
         Self {
-            roll: RollTreeModifiers {
-                energy_cost: 0.95,
-                strength: 1.05,
-                duration: 1.05,
-            },
             swim: SwimTreeModifiers { speed: 1.25 },
             climb: ClimbTreeModifiers {
                 energy_cost: 0.8,

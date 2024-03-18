@@ -3,9 +3,6 @@
 ({
     "max": [
         // General skills
-        (Roll(Cost), 2),
-        (Roll(Strength), 2),
-        (Roll(Duration), 2),
         (Climb(Cost), 2),
         (Climb(Speed), 2),
         (Swim(Speed), 2),
@@ -144,9 +141,6 @@
     // Just copypasta from max with random reductions
     "middle": [
         // General skills
-        (Roll(Cost), 2),
-        (Roll(Strength), 1),
-        (Roll(Duration), 1),
 
         // Sword
         (UnlockGroup(Weapon(Sword)), 1),

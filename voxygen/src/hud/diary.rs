@@ -33,8 +33,8 @@ use common::{
             slot::EquipSlot,
         },
         skills::{
-            self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, RollSkill,
-            SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
+            self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, SceptreSkill, Skill,
+            StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
         Body, CharacterState, Energy, Health, Inventory, Poise,
@@ -1386,7 +1386,7 @@ impl<'a> Diary<'a> {
             skills_bot_l,
             skills_bot_r,
         );
-        use skills::RollSkill::*;
+
         use SkillGroupKind::*;
         use ToolKind::*;
         // General Combat
@@ -1478,20 +1478,23 @@ impl<'a> Diary<'a> {
                 position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
                 id: state.ids.skill_general_roll_0,
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Roll(Cost),
+            SkillIcon::Descriptive {
+                title: "hud-skill-dodge_title",
+                desc: "hud-skill-dodge",
                 image: self.imgs.utility_cost_skill,
                 position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
                 id: state.ids.skill_general_roll_1,
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Roll(Strength),
+            SkillIcon::Descriptive {
+                title: "hud-skill-dodge_title",
+                desc: "hud-skill-dodge",
                 image: self.imgs.utility_speed_skill,
                 position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
                 id: state.ids.skill_general_roll_2,
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Roll(Duration),
+            SkillIcon::Descriptive {
+                title: "hud-skill-dodge_title",
+                desc: "hud-skill-dodge",
                 image: self.imgs.utility_duration_skill,
                 position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
                 id: state.ids.skill_general_roll_3,
@@ -2858,7 +2861,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         Skill::Staff(s) => staff_skill_strings(s),
         Skill::Sceptre(s) => sceptre_skill_strings(s),
         // movement trees
-        Skill::Roll(s) => roll_skill_strings(s),
         Skill::Climb(s) => climb_skill_strings(s),
         Skill::Swim(s) => swim_skill_strings(s),
         // mining
@@ -3198,27 +3200,6 @@ fn sceptre_skill_strings(skill: SceptreSkill) -> SkillStrings<'static> {
             "hud-skill-sc_wardaura_cost_title",
             "hud-skill-sc_wardaura_cost",
             modifiers.warding_aura.energy_cost,
-        ),
-    }
-}
-
-fn roll_skill_strings(skill: RollSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.general_tree.roll;
-    match skill {
-        RollSkill::Cost => SkillStrings::with_mult(
-            "hud-skill-roll_energy_title",
-            "hud-skill-roll_energy",
-            modifiers.energy_cost,
-        ),
-        RollSkill::Strength => SkillStrings::with_mult(
-            "hud-skill-roll_speed_title",
-            "hud-skill-roll_speed",
-            modifiers.strength,
-        ),
-        RollSkill::Duration => SkillStrings::with_mult(
-            "hud-skill-roll_dur_title",
-            "hud-skill-roll_dur",
-            modifiers.duration,
         ),
     }
 }
