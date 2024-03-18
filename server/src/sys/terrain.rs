@@ -13,8 +13,8 @@ use crate::{
 use common::{
     calendar::Calendar,
     comp::{
-        self, agent, biped_small, bird_medium, misc::PortalData, skillset::skills,
-        BehaviorCapability, ForceUpdate, Pos, Presence, Waypoint,
+        self, agent, biped_small, bird_medium, misc::PortalData, BehaviorCapability, ForceUpdate,
+        Pos, Presence, Waypoint,
     },
     event::{
         CreateNpcEvent, CreateTeleporterEvent, CreateWaypointEvent, EmitExt, EventBus, NpcBuilder,
@@ -498,11 +498,6 @@ impl SpawnEntityData {
             inventory
         };
 
-        /*
-        let health_level = skill_set
-            .skill_level(skills::Skill::General(skills::GeneralSkill::HealthIncrease))
-            .unwrap_or(0);
-        */
         let health = Some(comp::Health::new(body, 0));
         let poise = comp::Poise::new(body);
 

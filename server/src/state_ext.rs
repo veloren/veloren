@@ -20,9 +20,7 @@ use common::{
         self,
         item::{ItemKind, MaterialStatManifest},
         misc::PortalData,
-        object,
-        skills::{GeneralSkill, Skill},
-        ChatType, Content, Group, Inventory, LootOwner, Object, Player, Poise, Presence,
+        object, ChatType, Content, Group, Inventory, LootOwner, Object, Player, Poise, Presence,
         PresenceKind, BASE_ABILITY_LIMIT,
     },
     effect::Effect,
@@ -299,15 +297,7 @@ impl StateExt for State {
             .with(body.collider())
             .with(comp::Controller::default())
             .with(body)
-            .with(comp::Energy::new(
-                body,
-                0,
-                /*
-                skill_set
-                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
-                    .unwrap_or(0),
-                */
-            ))
+            .with(comp::Energy::new(body, 0))
             .with(stats)
             .with(if body.is_humanoid() {
                 comp::ActiveAbilities::default_limited(BASE_ABILITY_LIMIT)
@@ -737,16 +727,6 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, body);
             self.write_component_ignore_entity_dead(entity, body.mass());
             self.write_component_ignore_entity_dead(entity, body.density());
-            /*
-            let (health_level, energy_level) = (
-                skill_set
-                    .skill_level(Skill::General(GeneralSkill::HealthIncrease))
-                    .unwrap_or(0),
-                skill_set
-                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
-                    .unwrap_or(0),
-            );
-            */
             self.write_component_ignore_entity_dead(entity, comp::Health::new(body, 0));
             self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, 0));
             self.write_component_ignore_entity_dead(entity, Poise::new(body));

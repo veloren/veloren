@@ -163,12 +163,7 @@ pub enum SceptreSkill {
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum GeneralSkill {
-    /*
-    HealthIncrease,
-    EnergyIncrease,
-    */
-}
+pub enum GeneralSkill {}
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum RollSkill {

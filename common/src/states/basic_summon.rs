@@ -4,7 +4,6 @@ use crate::{
         character_state::OutputEvents,
         inventory::loadout_builder::{self, LoadoutBuilder},
         object::Body::FieryTornado,
-        skillset::skills,
         Behavior, BehaviorCapability,
         Body::Object,
         CharacterState, Projectile, StateUpdate,
@@ -131,16 +130,11 @@ impl CharacterBehavior for Data {
                             body,
                         );
 
-                        let health = self.static_data.summon_info.has_health.then(|| {
-                            /*
-                            let health_level = skill_set
-                                .skill_level(skills::Skill::General(
-                                    skills::GeneralSkill::HealthIncrease,
-                                ))
-                                .unwrap_or(0);
-                            */
-                            comp::Health::new(body, 0)
-                        });
+                        let health = self
+                            .static_data
+                            .summon_info
+                            .has_health
+                            .then(|| comp::Health::new(body, 0));
 
                         // Ray cast to check where summon should happen
                         let summon_frac =

@@ -2,8 +2,8 @@
 mod tests {
     use common::{
         comp::{
-            item::MaterialStatManifest, skills::GeneralSkill, tool::AbilityMap, CharacterActivity,
-            CharacterState, Controller, Energy, Ori, PhysicsState, Poise, Pos, Skill, Stats, Vel,
+            item::MaterialStatManifest, tool::AbilityMap, CharacterActivity, CharacterState,
+            Controller, Energy, Ori, PhysicsState, Poise, Pos, Stats, Vel,
         },
         resources::{DeltaTime, GameMode, Time},
         shared_server_config::ServerConstants,
@@ -64,15 +64,7 @@ mod tests {
             .with(body.mass())
             .with(body.density())
             .with(body)
-            .with(Energy::new(
-                body,
-                0,
-                /*
-                skill_set
-                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
-                    .unwrap_or(0),
-                */
-            ))
+            .with(Energy::new(body, 0))
             .with(Controller::default())
             .with(Poise::new(body))
             .with(skill_set)

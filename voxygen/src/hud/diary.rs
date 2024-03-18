@@ -1,4 +1,3 @@
-#![allow(deprecated)]
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs},
@@ -34,13 +33,12 @@ use common::{
             slot::EquipSlot,
         },
         skills::{
-            self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
-            RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
+            self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, RollSkill,
+            SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
         Body, CharacterState, Energy, Health, Inventory, Poise,
     },
-    consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
 use conrod_core::{
     color, image,
@@ -1388,7 +1386,7 @@ impl<'a> Diary<'a> {
             skills_bot_l,
             skills_bot_r,
         );
-        use skills::{GeneralSkill::*, RollSkill::*};
+        use skills::RollSkill::*;
         use SkillGroupKind::*;
         use ToolKind::*;
         // General Combat
@@ -2853,9 +2851,6 @@ impl<'a> Diary<'a> {
 fn skill_strings(skill: Skill) -> SkillStrings<'static> {
     match skill {
         // general tree
-        /*
-        Skill::General(s) => general_skill_strings(s),
-        */
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
         Skill::Hammer(s) => hammer_skill_strings(s),
@@ -2871,23 +2866,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         _ => SkillStrings::plain("", ""),
     }
 }
-
-/*
-fn general_skill_strings(skill: GeneralSkill) -> SkillStrings<'static> {
-    match skill {
-        GeneralSkill::HealthIncrease => SkillStrings::with_const(
-            "hud-skill-inc_health_title",
-            "hud-skill-inc_health",
-            u32::from(HP_PER_LEVEL),
-        ),
-        GeneralSkill::EnergyIncrease => SkillStrings::with_const(
-            "hud-skill-inc_energy_title",
-            "hud-skill-inc_energy",
-            u32::from(ENERGY_PER_LEVEL),
-        ),
-    }
-}
-*/
 
 fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
     match group {
