@@ -71,6 +71,19 @@ pub enum Message {
     },
     /// Disconnects all connected clients
     DisconnectAllClients,
+    /// returns active player names
+    ListPlayers,
+    ListLogs,
+    /// sends a msg to everyone on the server
+    SendGlobalMsg {
+        msg: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub enum MessageReturn {
+    Players(Vec<String>),
+    Logs(Vec<String>),
 }
 
 #[derive(Parser)]

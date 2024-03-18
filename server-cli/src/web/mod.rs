@@ -1,3 +1,4 @@
+use crate::web::ui::api::UiRequestSender;
 use axum::{extract::State, response::IntoResponse, routing::get, Router};
 use core::{future::Future, ops::Deref};
 use hyper::{body::Body, header, http, StatusCode};
@@ -6,11 +7,14 @@ use server::chat::ChatCache;
 use std::net::SocketAddr;
 
 mod chat;
+mod ui;
 
 pub async fn run<S, F, R>(
     registry: R,
     cache: ChatCache,
     chat_secret: Option<String>,
+    ui_secret: String,
+    web_ui_request_s: UiRequestSender,
     addr: S,
     shutdown: F,
 ) -> Result<(), hyper::Error>
@@ -25,6 +29,11 @@ where
 
     let app = Router::new()
         .nest("/chat/v1", chat::router(cache, chat_secret))
+        .nest(
+            "/ui_api/v1",
+            ui::api::router(web_ui_request_s, ui_secret.clone()),
+        )
+        .nest("/ui", ui::router(ui_secret))
         .nest("/metrics", metrics)
         .route("/health", get(|| async {}));
 

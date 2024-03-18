@@ -47,6 +47,9 @@ tracing = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = [ "rc", "derive" ]}
 ratatui = { version = "0.26.0", features = ["crossterm"] }
+rand = { workspace = true }
+# ECS
+specs = { workspace = true }
 
 #HTTP
 axum = { version = "0.6.20" }
