@@ -256,8 +256,9 @@ impl SkillGroup {
 pub struct SkillSet {
     skill_groups: HashMap<SkillGroupKind, SkillGroup>,
     skills: HashMap<Skill, u16>,
-    pub modify_health: bool,
-    pub modify_energy: bool,
+    //#[deprecated]
+    //pub modify_health: bool,
+    //pub modify_energy: bool,
 }
 
 impl Component for SkillSet {
@@ -273,8 +274,8 @@ impl Default for SkillSet {
         let mut skill_group = Self {
             skill_groups: HashMap::new(),
             skills: SkillSet::initial_skills(),
-            modify_health: false,
-            modify_energy: false,
+            //modify_health: false,
+            //modify_energy: false,
         };
 
         // Insert default skill groups
@@ -306,8 +307,8 @@ impl SkillSet {
         let mut skillset = SkillSet {
             skill_groups,
             skills: SkillSet::initial_skills(),
-            modify_health: true,
-            modify_energy: true,
+            //modify_health: true,
+            //modify_energy: true,
         };
         let mut persistence_load_error = None;
 
@@ -530,12 +531,16 @@ impl SkillSet {
                                 Skill::UnlockGroup(group) => {
                                     this.unlock_skill_group(group);
                                 },
+                                /*
                                 Skill::General(GeneralSkill::HealthIncrease) => {
                                     this.modify_health = true;
                                 },
+                                */
+                                /*
                                 Skill::General(GeneralSkill::EnergyIncrease) => {
                                     this.modify_energy = true;
                                 },
+                                */
                                 _ => {},
                             }
                             this.skills.insert(skill, next_level);

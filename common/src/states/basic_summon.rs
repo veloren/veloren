@@ -132,12 +132,14 @@ impl CharacterBehavior for Data {
                         );
 
                         let health = self.static_data.summon_info.has_health.then(|| {
+                            /*
                             let health_level = skill_set
                                 .skill_level(skills::Skill::General(
                                     skills::GeneralSkill::HealthIncrease,
                                 ))
                                 .unwrap_or(0);
-                            comp::Health::new(body, health_level)
+                            */
+                            comp::Health::new(body, 0)
                         });
 
                         // Ray cast to check where summon should happen

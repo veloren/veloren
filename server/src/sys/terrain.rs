@@ -498,10 +498,12 @@ impl SpawnEntityData {
             inventory
         };
 
+        /*
         let health_level = skill_set
             .skill_level(skills::Skill::General(skills::GeneralSkill::HealthIncrease))
             .unwrap_or(0);
-        let health = Some(comp::Health::new(body, health_level));
+        */
+        let health = Some(comp::Health::new(body, 0));
         let poise = comp::Poise::new(body);
 
         // Allow Humanoid, BirdMedium, and Parrot to speak

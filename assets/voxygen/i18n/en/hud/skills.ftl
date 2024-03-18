@@ -17,10 +17,10 @@ hud-skill-sp_available =
 hud-skill-not_unlocked = Not yet unlocked
 hud-skill-req_sp = {"\u000A"}Requires { $number } SP
 hud-skill-set_as_exp_bar = Track progress on experience bar
-hud-skill-inc_health_title = Increase health
-hud-skill-inc_health = Increases your maximum health by { $boost } points.{ $SP }
-hud-skill-inc_energy_title = Increase energy
-hud-skill-inc_energy = Increases your maximum energy by { $boost } points.{ $SP }
+hud-skill-health_title = Health
+hud-skill-health = Gives you the ability to withstand attacks.
+hud-skill-energy_title = Energy
+hud-skill-energy = Your main resource for actions.
 
 hud-skill-unlck_sword_title = Sword proficiency
 hud-skill-unlck_sword = Unlocks the sword skill tree.{ $SP }

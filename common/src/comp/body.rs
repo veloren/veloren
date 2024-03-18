@@ -809,15 +809,14 @@ impl Body {
                 bird_large::Species::SeaWyvern => 600,
                 bird_large::Species::WealdWyvern => 600,
             },
-            Body::Humanoid(_) => 75,
+            Body::Humanoid(_) => 100,
             _ => 100,
         }
     }
 
-    #[allow(unreachable_patterns)]
     pub fn base_health(&self) -> u16 {
         match self {
-            Body::Humanoid(_) => 50,
+            Body::Humanoid(_) => 100,
             Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                 // T1
                 quadruped_small::Species::Boar => 60,
@@ -1042,7 +1041,6 @@ impl Body {
                 arthropod::Species::Mosscrawler => 600,
                 arthropod::Species::Sandcrawler => 500,
                 arthropod::Species::Stagbeetle => 440,
-                _ => 150,
             },
             Body::Ship(_) => 1000,
             Body::Crustacean(_) => 40,

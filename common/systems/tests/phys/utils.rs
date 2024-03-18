@@ -133,9 +133,12 @@ pub fn create_player(state: &mut State) -> Entity {
         .with(Auras::default())
         .with(Energy::new(
             body,
+            0,
+            /*
             skill_set
                 .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                 .unwrap_or(0),
+            */
         ))
         .with(Health::new(body, body.base_health()))
         .with(skill_set)

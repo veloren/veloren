@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs},
@@ -1419,14 +1420,17 @@ impl<'a> Diary<'a> {
             //        5 1 6
             //        3 0 4
             //        8 2 7
-            SkillIcon::Unlockable {
-                skill: Skill::General(HealthIncrease),
+            // Bottom left skills
+            SkillIcon::Descriptive {
+                title: "hud-skill-health_title",
+                desc: "hud-skill-health",
                 image: self.imgs.health_plus_skill,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_general_stat_0,
             },
-            SkillIcon::Unlockable {
-                skill: Skill::General(EnergyIncrease),
+            SkillIcon::Descriptive {
+                title: "hud-skill-energy_title",
+                desc: "hud-skill-energy",
                 image: self.imgs.energy_plus_skill,
                 position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
                 id: state.ids.skill_general_stat_1,
@@ -2849,7 +2853,9 @@ impl<'a> Diary<'a> {
 fn skill_strings(skill: Skill) -> SkillStrings<'static> {
     match skill {
         // general tree
+        /*
         Skill::General(s) => general_skill_strings(s),
+        */
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
         Skill::Hammer(s) => hammer_skill_strings(s),
@@ -2866,6 +2872,7 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
     }
 }
 
+/*
 fn general_skill_strings(skill: GeneralSkill) -> SkillStrings<'static> {
     match skill {
         GeneralSkill::HealthIncrease => SkillStrings::with_const(
@@ -2880,6 +2887,7 @@ fn general_skill_strings(skill: GeneralSkill) -> SkillStrings<'static> {
         ),
     }
 }
+*/
 
 fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
     match group {

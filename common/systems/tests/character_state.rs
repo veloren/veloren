@@ -66,9 +66,12 @@ mod tests {
             .with(body)
             .with(Energy::new(
                 body,
+                0,
+                /*
                 skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(0),
+                */
             ))
             .with(Controller::default())
             .with(Poise::new(body))

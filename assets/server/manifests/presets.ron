@@ -3,8 +3,10 @@
 ({
     "max": [
         // General skills
+        /*
         (General(HealthIncrease), 10),
         (General(EnergyIncrease), 5),
+        */
         (Roll(Cost), 2),
         (Roll(Strength), 2),
         (Roll(Duration), 2),
@@ -146,8 +148,10 @@
     // Just copypasta from max with random reductions
     "middle": [
         // General skills
+        /*
         (General(HealthIncrease), 6),
         (General(EnergyIncrease), 4),
+        */
         (Roll(Cost), 2),
         (Roll(Strength), 1),
         (Roll(Duration), 1),

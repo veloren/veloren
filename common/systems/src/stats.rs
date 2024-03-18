@@ -33,7 +33,7 @@ pub struct ReadData<'a> {
     time: Read<'a, Time>,
     events: Events<'a>,
     positions: ReadStorage<'a, Pos>,
-    bodies: ReadStorage<'a, Body>,
+    //bodies: ReadStorage<'a, Body>,
     char_states: ReadStorage<'a, CharacterState>,
     inventories: ReadStorage<'a, Inventory>,
     msm: ReadExpect<'a, MaterialStatManifest>,
@@ -46,7 +46,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Stats>,
-        WriteStorage<'a, SkillSet>,
+        //WriteStorage<'a, SkillSet>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Poise>,
         WriteStorage<'a, Energy>,
@@ -63,7 +63,7 @@ impl<'a> System<'a> for Sys {
         (
             read_data,
             stats,
-            mut skill_sets,
+            //mut skill_sets,
             mut healths,
             mut poises,
             mut energies,
@@ -120,6 +120,7 @@ impl<'a> System<'a> for Sys {
             }
         });
 
+        /*
         // Apply effects from leveling skills
         let join = (
             &mut skill_sets,
@@ -144,6 +145,7 @@ impl<'a> System<'a> for Sys {
                 skill_set.modify_energy = false;
             }
         });
+        */
 
         // Update energies and poises
         let join = (&read_data.char_states, &mut energies, &mut poises).lend_join();

@@ -1,6 +1,8 @@
 ({
+/*
     General(HealthIncrease): 10,
     General(EnergyIncrease): 5,
+*/
     Hammer(SsKnockback): 2,
     Hammer(SsDamage): 3,
     Hammer(SsRegen): 2,

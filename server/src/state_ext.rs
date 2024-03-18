@@ -301,9 +301,12 @@ impl StateExt for State {
             .with(body)
             .with(comp::Energy::new(
                 body,
+                0,
+                /*
                 skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(0),
+                */
             ))
             .with(stats)
             .with(if body.is_humanoid() {
@@ -734,6 +737,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, body);
             self.write_component_ignore_entity_dead(entity, body.mass());
             self.write_component_ignore_entity_dead(entity, body.density());
+            /*
             let (health_level, energy_level) = (
                 skill_set
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
@@ -742,8 +746,9 @@ impl StateExt for State {
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(0),
             );
-            self.write_component_ignore_entity_dead(entity, comp::Health::new(body, health_level));
-            self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, energy_level));
+            */
+            self.write_component_ignore_entity_dead(entity, comp::Health::new(body, 0));
+            self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, 0));
             self.write_component_ignore_entity_dead(entity, Poise::new(body));
             self.write_component_ignore_entity_dead(entity, stats);
             self.write_component_ignore_entity_dead(entity, active_abilities);
@@ -778,9 +783,6 @@ impl StateExt for State {
                     pets.len(),
                     player_pos
                 );
-                // This is the same as wild creatures naturally spawned in the world
-                const DEFAULT_PET_HEALTH_LEVEL: u16 = 0;
-
                 let mut rng = rand::thread_rng();
 
                 for (pet, body, stats) in pets {
@@ -791,7 +793,7 @@ impl StateExt for State {
                             ori,
                             stats,
                             comp::SkillSet::default(),
-                            Some(comp::Health::new(body, DEFAULT_PET_HEALTH_LEVEL)),
+                            Some(comp::Health::new(body, 0)),
                             Poise::new(body),
                             Inventory::with_loadout(
                                 LoadoutBuilder::from_default(&body).build(),

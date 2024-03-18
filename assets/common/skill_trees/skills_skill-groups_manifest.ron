@@ -1,7 +1,9 @@
 ({
     General: [
+    /*
         General(HealthIncrease),
         General(EnergyIncrease),
+    */
         UnlockGroup(Weapon(Sword)),
         UnlockGroup(Weapon(Axe)),
         UnlockGroup(Weapon(Hammer)),
