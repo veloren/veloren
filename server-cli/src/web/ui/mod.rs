@@ -67,6 +67,8 @@ Ui is only accessible from 127.0.0.1. Usage of proxies is forbidden.
 
     let cookie = format!("X-Secret-Token={}; SameSite=Strict", token.secret_token);
 
+    //Note: at this point we give a user our secret for the Api, this is only
+    // intended for local users, protect this route against the whole internet
     response.headers_mut().insert(
         SET_COOKIE,
         HeaderValue::from_str(&cookie).expect("An invalid secret-token for ui was provided"),

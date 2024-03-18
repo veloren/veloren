@@ -64,6 +64,8 @@ async fn log_users<B>(
     Ok(next.run(req).await)
 }
 
+//TODO: do security audit before we extend this api with more security relevant
+// functionality (e.g. account management)
 pub fn router(web_ui_request_s: UiRequestSender, secret_token: String) -> Router {
     let token = UiApiToken { secret_token };
     let ip_addrs = IpAddresses::default();
